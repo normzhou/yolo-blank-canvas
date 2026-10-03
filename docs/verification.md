@@ -44,6 +44,22 @@ Run through the local backend at `http://localhost:4317` (`node server/cli.js --
 | Request addressed to a non-loopback `Host` | `400` |
 | UI served | `GET /` returned the built canvas; assets served from `dist/client` |
 
+## One-command install outside the checkout
+
+Run from an empty directory (`/tmp/npx-check`, no source checkout present):
+
+```
+$ npx --yes github:normzhou/yolo-blank-canvas#v0.1.0 --no-open --port 4399
+yolo-blank-canvas (3b507ee3d8560f3473add648f559dca9e73da408)
+  repository: normzhou/yolo-blank-canvas
+  signed in as: normzhou (via GitHub CLI)
+  http://localhost:4399
+  Open http://localhost:4399
+  Press Ctrl-C to stop.
+```
+
+From that installed copy: `POST /api/session` returned the authenticated identity, `GET /api/issues?state=all` listed the real issues with their labels, and `GET /api/version` reported the release build identity. The command runs in the foreground until stopped; `--no-open` was used here only to keep the check headless, and the browser-open path was not observed (see gaps).
+
 Browser-driven checks (headless Chrome against the running app):
 
 - Canvas renders the prompt and Requests button; the session is established automatically.
@@ -54,13 +70,17 @@ Browser-driven checks (headless Chrome against the running app):
 - Changing the served client build ID produced the banner **“App version changed — reload to use the version this server is running.”** with user-initiated Reload / Not now.
 - No console errors during these runs.
 
+## Cleanup
+
+Integration issues [#1](https://github.com/normzhou/yolo-blank-canvas/issues/1), [#2](https://github.com/normzhou/yolo-blank-canvas/issues/2), and [#3](https://github.com/normzhou/yolo-blank-canvas/issues/3) were closed after the checks; their comments and labels were left in place as the evidence trail. GitHub CLI credentials were untouched by the app throughout (verified by `gh api user` after the session ended).
+
 ## Unverified / gaps
 
 - **First-login path was not exercised end-to-end**: this machine already had an authenticated `gh`, so the interactive `gh auth login --web` branch is covered by unit tests (spawn arguments, single invocation, cancellation, and the noninteractive print-the-command path) but was not run against a real browser authorization.
 - **`gh` missing path** is unit tested with a failing runner; it was not observed on a machine without the CLI.
 - **The `--repo` flag targeting a second repository** was not exercised live; repository access checking was verified only for `normzhou/yolo-blank-canvas`.
 - **Pagination beyond one page** was verified only with fixtures (`hasMore`, page parameters); the live repository has too few issues to exercise multi-page loads.
-- **Browser-open behaviour** (`open`, `xdg-open`, `start`) was not observed live; the launcher prints the URL regardless, so it remains a best-effort convenience.
+- **Browser-open behaviour** (`open`, `xdg-open`, `start`) was not observed live; the one-command check used `--no-open`. The launcher prints the URL regardless, so opening is a best-effort convenience.
 - **Lost authentication during a running session** was verified through the API surface and unit tests (explicit `auth_required` state with the login command and Retry connection), not by revoking real credentials mid-session.
 
 ## Tested revision
