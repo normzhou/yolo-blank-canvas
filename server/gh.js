@@ -7,7 +7,10 @@
  */
 import { execFile } from 'node:child_process';
 
-export const GH_BIN = process.env.YOLO_GH_BIN || 'gh';
+/** Read lazily so tests (and future overrides) can point at a different binary. */
+export function ghBinary() {
+  return process.env.YOLO_GH_BIN || 'gh';
+}
 export const GH_HOST = 'github.com';
 
 const OWNER_RE = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/;
@@ -51,9 +54,11 @@ export function validateIssueNumber(value) {
  */
 export function runGhApi(args, { input, timeoutMs = 30_000 } = {}) {
   return new Promise((resolve, reject) => {
+    // Callers pass only the path and flags; the `api` subcommand is added here so
+    // no caller can construct a different gh command.
     const child = execFile(
-      GH_BIN,
-      args,
+      ghBinary(),
+      ['api', ...args],
       { timeout: timeoutMs, maxBuffer: 32 * 1024 * 1024, encoding: 'utf8' },
       (error, stdout, stderr) => {
         if (error) {
@@ -81,7 +86,7 @@ export function runGhApi(args, { input, timeoutMs = 30_000 } = {}) {
 /** Same as runGhApi but returns raw text (used by `gh auth token`-free identity checks). */
 export function runGh(args, { timeoutMs = 60_000, stdio = 'pipe' } = {}) {
   return new Promise((resolve, reject) => {
-    execFile(GH_BIN, args, { timeout: timeoutMs, maxBuffer: 8 * 1024 * 1024, encoding: 'utf8' }, (error, stdout, stderr) => {
+    execFile(ghBinary(), args, { timeout: timeoutMs, maxBuffer: 8 * 1024 * 1024, encoding: 'utf8' }, (error, stdout, stderr) => {
       if (error) {
         reject(decorate(error, stderr));
         return;
@@ -107,7 +112,9 @@ export class GhError extends Error {
  * keep the exit code plus a short, non-sensitive status line.
  */
 function decorate(error, stderr) {
-  const message = String(stderr || error?.message || '');
+  // Classify on the short status line only: full help output is noisy and mentions
+  // words like "access" that would otherwise produce a misleading state.
+  const message = String(stderr || error?.message || '').slice(0, 500);
   const lower = message.toLowerCase();
   if (error?.code === 'ENOENT') {
     return new GhError('GitHub CLI (gh) is not installed or not on PATH.', 'gh_missing', 503);

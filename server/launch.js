@@ -8,12 +8,12 @@
 import { spawn } from 'node:child_process';
 import net from 'node:net';
 import { execFile } from 'node:child_process';
-import { GH_BIN, GH_HOST, effectiveIdentity, checkRepoAccess, GhError } from './gh.js';
+import { ghBinary, GH_HOST, effectiveIdentity, checkRepoAccess, GhError } from './gh.js';
 
 export const LOGIN_COMMAND = `gh auth login --hostname ${GH_HOST} --web --skip-ssh-key`;
 
 export function ghVersion({ runner = runProcess } = {}) {
-  return runner([GH_BIN, '--version']);
+  return runner([ghBinary(), '--version']);
 }
 
 function runProcess(args, { timeoutMs = 30_000 } = {}) {
@@ -30,7 +30,7 @@ function runProcess(args, { timeoutMs = 30_000 } = {}) {
 
 export async function requireGh({ runner = runProcess } = {}) {
   try {
-    await runner([GH_BIN, '--version'], { timeoutMs: 10_000 });
+    await runner([ghBinary(), '--version'], { timeoutMs: 10_000 });
     return true;
   } catch (error) {
     if (error?.code === 'ENOENT') {
@@ -50,9 +50,9 @@ export async function requireGh({ runner = runProcess } = {}) {
 }
 
 /** Run the CLI browser login with the user's terminal attached. */
-export function runInteractiveLogin({ binary = GH_BIN, host = GH_HOST } = {}) {
+export function runInteractiveLogin({ binary, host = GH_HOST } = {}) {
   return new Promise((resolve) => {
-    const child = spawn(binary, ['auth', 'login', '--hostname', host, '--web', '--skip-ssh-key'], {
+    const child = spawn(binary || ghBinary(), ['auth', 'login', '--hostname', host, '--web', '--skip-ssh-key'], {
       stdio: 'inherit',
     });
     child.on('error', () => resolve({ ok: false, reason: 'missing' }));
