@@ -1,6 +1,6 @@
 # Verification record — yolo-blank-canvas
 
-Tested revision: see "Tested revision" below (rebuilt for release `v0.1.0`).
+Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
@@ -65,4 +65,4 @@ Browser-driven checks (headless Chrome against the running app):
 
 ## Tested revision
 
-Live checks and browser checks were run against the working tree built from commit `27eab0c` (`Fix gh invocation…`) plus the README commit; the release tag `v0.1.0` was cut from the commit that finalises this record. `dist/client/.build-id` and `server/build-id.generated.js` carry the same revision that the running server reported.
+Source revision `3b507ee` ("Add README and verification record"); release tag `v0.1.0` points at the follow-up commit that carries the assets built from that source (`dist/client/.build-id` and `server/build-id.generated.js` both report `3b507ee…`). The build ID identifies the source revision the running assets were produced from; the assets-only commit follows it, which is the usual ordering for a committed build output.
