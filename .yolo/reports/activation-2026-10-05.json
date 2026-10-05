@@ -1,0 +1,172 @@
+{
+  "schema_version": 2,
+  "target": "normzhou/yolo-blank-canvas",
+  "protocol": {
+    "revision": "811b996740d19face87c4f7b7dc0d741b84111d4",
+    "sha256": "ea7504ab00bd5b7ef72bf931891243f69c7c52aa14cc4c70cbb2de338af0ebff"
+  },
+  "revision": "e6efe781c0cc6414c4697d453fa7285dd31412a7",
+  "default_revision": "e6efe781c0cc6414c4697d453fa7285dd31412a7",
+  "from": "520a81e8ec824b9ce31a7fbc8a8c08d152eb81ae",
+  "previous_report": ".yolo/reports/onboarding-l1-proposal.json",
+  "reviewed_commits": [
+    "e6efe781c0cc6414c4697d453fa7285dd31412a7",
+    "fa6ec88ec06849e35b69929f7b9264263ff97562"
+  ],
+  "working_changes": [],
+  "harness": {
+    "name": "pi coding agent",
+    "version": "1.0.1",
+    "loading_evidence": [
+      "Shared bundle and all repo-local bindings installed together by scripts/install.py from publication 4b7e248d1e394143ddc59159d577cbe542641d1d; installer reported harness_support requires observed fresh-session verification",
+      "AGENTS.md is the ordinary instruction entrypoint, linked from .yolo/adoption.json harness.instructions; CLAUDE.md and GEMINI.md import it",
+      "Protocol snapshot .yolo/protocol.md digest re-verified against the manifest after every governance edit",
+      "UNVERIFIED: no fresh session has yet loaded AGENTS.md and .agents/skills/yolo in this checkout"
+    ]
+  },
+  "github": [
+    "2026-10-05: main fa6ec88 adopted setup, e6efe78 delivered CI; both observed on the default branch",
+    "2026-10-05: reserved label yolo:state:deferred created; all five reserved labels now present, unrelated default labels untouched",
+    "2026-10-05: PR #7 (activation) and PR #9 (CI) merged by squash; required check 'Test and type check' passed on PR head 67da3cc7 and on delivered main e6efe781",
+    "2026-10-05: #5 admitted queued (first), #4 admitted waiting on requester answers; #6 and #8 closed with '## YOLO status' summaries and no state labels",
+    "2026-10-05: sole admin/push account remains normzhou; no team or CODEOWNERS; branch still unprotected; no rulesets"
+  ],
+  "findings": [
+    {
+      "rule": "authority",
+      "status": "resolved",
+      "evidence": [
+        "https://github.com/normzhou/yolo-blank-canvas/issues/6#issuecomment-59891973665",
+        "fa6ec88ec06849e35b69929f7b9264263ff97562"
+      ],
+      "detail": "RESOLVED. Maintainer normzhou accepted Charter/authority revision bf5cd380 and authorized activation; acceptance is an authenticated comment bound to that revision, cited in .yolo/adoption.json authority.acceptance. Applied with no intervening governance edit, so the acceptance was not invalidated."
+    },
+    {
+      "rule": "issues",
+      "status": "resolved",
+      "evidence": [
+        "https://github.com/normzhou/yolo-blank-canvas/labels"
+      ],
+      "detail": "RESOLVED. yolo:state:deferred created with its protocol description; all five reserved labels present. Unrelated default labels preserved."
+    },
+    {
+      "rule": "verification",
+      "status": "resolved",
+      "evidence": [
+        "https://github.com/normzhou/yolo-blank-canvas/actions/runs/37283186723",
+        "e6efe781c0cc6414c4697d453fa7285dd31412a7"
+      ],
+      "detail": "RESOLVED. Real CI delivered in PR #9 as .github/workflows/ci.yml: npm ci, npm test, npx tsc --noEmit on pushes to main and all pull requests, contents:read, no placeholder steps. Required check passed on the PR head before merge and again on the delivered main revision. Issue #8 closed only after that delivered evidence."
+    },
+    {
+      "rule": "issues",
+      "status": "recorded",
+      "evidence": [
+        "https://github.com/normzhou/yolo-blank-canvas/issues/2",
+        "https://github.com/normzhou/yolo-blank-canvas/issues/3",
+        "docs/verification.md"
+      ],
+      "detail": "STANDING DEVIATION, deliberate. Closed fixtures #2 and #3 keep yolo:state:* labels, which the reserved-state rule disallows, so check.py keeps reporting issue_state: conflicting. Cause: the labels are the live fixtures for the 'Status needs reconciliation' display that docs/verification.md cites. Impact: a persistent factual gap that blocks a fully clean helper exit; the fixture behaviour remains covered by 17 unit tests. Remedy: revisit only if maintaining the live evidence costs more than the deviation. Repaired by removing evidence would be worse than recorded."
+    },
+    {
+      "rule": "issues",
+      "status": "recorded",
+      "evidence": [
+        "https://github.com/normzhou/yolo-blank-canvas/issues/2#issuecomment-5974369089"
+      ],
+      "detail": "STANDING, pre-adoption. The YOLO status summary on #2 cites PR #1, which has never existed. Retained as known-inaccurate historical evidence rather than rewritten; it demonstrates the summary format, not a delivery. Post-adoption summaries cite real PRs."
+    },
+    {
+      "rule": "continuity",
+      "status": "unresolved",
+      "evidence": [
+        ".yolo/adoption.json"
+      ],
+      "detail": "OPEN. Fresh-session instruction loading is unobserved, so Q1 and Q5 cannot pass. Cause: this session performed the adoption. Impact: qualification blocked. Remedy: run a new authorized session in this checkout and record what it loads and does next without settled-intent rebriefing."
+    },
+    {
+      "rule": "delivery",
+      "status": "unresolved",
+      "evidence": [
+        "https://github.com/normzhou/yolo-blank-canvas/issues/5"
+      ],
+      "detail": "OPEN. No user-facing outcome has been delivered and observed in the running app yet; the only delivered outcome so far is CI infrastructure, verified by check runs rather than by app availability. Cause: the first admitted app outcome (#5) has not been worked. Impact: Q4 is evidenced only for a non-user-facing change. Remedy: work #5 to merged, verified acceptance observed in the running app."
+    },
+    {
+      "rule": "architecture",
+      "status": "compliant",
+      "evidence": [
+        ".yolo/governance/ARCHITECTURE.md",
+        ".github/workflows/ci.yml"
+      ],
+      "detail": "Congruent. Verification/delivery route now names a real workflow that exists, with Node pinned to the declared engines floor and read-only permissions; no architecture drift between document and repository."
+    },
+    {
+      "rule": "layout",
+      "status": "compliant",
+      "evidence": [
+        ".yolo/",
+        "README.md"
+      ],
+      "detail": ".yolo/ holds only protocol.md, adoption.json, governance/ and reports/; all three governing roles use canonical slots; the shared bundle and bindings stay outside .yolo/; README links the governing documents."
+    }
+  ],
+  "verification": [
+    {
+      "revision": "e6efe781c0cc6414c4697d453fa7285dd31412a7",
+      "result": "pass",
+      "evidence": "Harness run on Node v24.21.0: npm test 7 files / 64 tests passed; npx tsc --noEmit clean. GitHub Actions 'Test and type check' passed on delivered main e6efe781 (run 37283186723)."
+    },
+    {
+      "revision": "b0cf4bbf06d7bcc0bafaae121d313662aa36009d",
+      "result": "pass",
+      "evidence": "Same deterministic checks re-run on the proposal subject before acceptance; recorded in the preceding report."
+    }
+  ],
+  "qualification": {
+    "level": 1,
+    "criteria": [
+      {
+        "id": "Q1",
+        "verdict": "unverified",
+        "reason": "Protocol snapshot, digest, governance documents, reserved labels and preserved baseline are all evidenced, but normal instruction loading by a fresh session is not yet observed.",
+        "evidence": [
+          "fa6ec88ec06849e35b69929f7b9264263ff97562",
+          ".yolo/adoption.json"
+        ]
+      },
+      {
+        "id": "Q2",
+        "verdict": "pass",
+        "reason": "Real outcome #8 with interpreted need, applicable grant, observable acceptance and recorded decisions, executed to merge. Significance notification was not required: CI is routine implementation work within the accepted architecture.",
+        "evidence": [
+          "https://github.com/normzhou/yolo-blank-canvas/issues/8",
+          "https://github.com/normzhou/yolo-blank-canvas/pull/9"
+        ]
+      },
+      {
+        "id": "Q3",
+        "verdict": "pass",
+        "reason": "All four obligations reviewed against the current setup and work, every commit from baseline 520a81e to main, and live GitHub records; findings above carry reasons, evidence and cited resolutions, and the two retained deviations stay visible rather than repaired.",
+        "evidence": [
+          ".yolo/reports/onboarding-l1-proposal.json"
+        ]
+      },
+      {
+        "id": "Q4",
+        "verdict": "pass",
+        "reason": "Acceptance for #8 passed on the identified delivered revision e6efe781, distinguished from the inspected head 67da3cc7 and the squash merge commit. Limit: the delivered change is CI infrastructure, so no app availability was demonstrated; that remains open under the delivery finding.",
+        "evidence": [
+          "https://github.com/normzhou/yolo-blank-canvas/actions/runs/37283186723"
+        ]
+      },
+      {
+        "id": "Q5",
+        "verdict": "unverified",
+        "reason": "No fresh authorized session has loaded the local instructions and reconciled shared work yet.",
+        "evidence": []
+      }
+    ]
+  },
+  "next": "Work admitted outcome #5 (list does not refresh after creating a request) to merged and verified acceptance observed in the running app, then open a fresh authorized session to observe Q1/Q5 continuation. Standing decisions awaiting the maintainer: the #2/#3 fixture-label deviation, and whether #4's Tetris scope questions should be answered by the requester."
+}

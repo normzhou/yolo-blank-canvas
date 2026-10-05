@@ -155,15 +155,18 @@
   "upgrades": [],
   "checkpoint": null,
   "unresolved": [
-    "Fresh-session instruction loading is unobserved; Q5 pending a new authorized session in this checkout.",
-    "No GitHub Actions workflow yet; tracked as admitted work.",
-    "No pull request had ever existed in this repository before adoption, so the YOLO status summary on #2 cites a nonexistent PR; retained as pre-adoption evidence with a known inaccuracy.",
-    "Closed fixtures #2 and #3 retain yolo:state:* labels as a deliberate, cited deviation that preserves the evidence docs/verification.md depends on.",
-    "Live gaps from docs/verification.md remain open: first-login path, missing-gh path, browser-open behaviour, multi-page pagination, mid-session auth loss, --repo against a second repository."
+    "Q1/Q5: fresh-session instruction loading and continuation not yet observed; qualification cannot reach qualified until a new authorized session loads AGENTS.md and the shared skill and reconciles shared work.",
+    "Q4 scope limit: the only delivered outcome is CI infrastructure verified by check runs; no user-facing outcome has been verified in the running app yet.",
+    "Standing deviation: closed fixtures #2 and #3 retain yolo:state:* labels, so check.py reports issue_state: conflicting. Deliberate, to preserve evidence cited in docs/verification.md.",
+    "Open requests admitted: #5 queued first, #4 waiting on requester answers.",
+    "Pre-adoption inaccuracies retained: the YOLO status summary on #2 cites PR #1, which never existed.",
+    "Live gaps from docs/verification.md unchanged: first-login path, missing-gh path, browser-open behaviour, multi-page pagination, mid-session auth loss, --repo against a second repository."
   ],
   "qualification": {
     "level": 1,
-    "status": "unverified",
-    "evidence": []
+    "status": "prepared",
+    "evidence": [
+      ".yolo/reports/activation-2026-10-05.json \u2014 accepted active setup observed on the default branch at fa6ec88/e6efe78; Q2, Q3, Q4 pass, Q1 and Q5 pending fresh-session evidence"
+    ]
   }
 }
