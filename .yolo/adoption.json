@@ -154,15 +154,15 @@
   "adopted_at": "520a81e8ec824b9ce31a7fbc8a8c08d152eb81ae",
   "upgrades": [],
   "checkpoint": {
-    "commit": "e6efe781c0cc6414c4697d453fa7285dd31412a7",
-    "report": ".yolo/reports/activation-2026-10-05.json"
+    "commit": "b4d07db78f89c386b4ed05e715fe72b54bf0d5b9",
+    "report": ".yolo/reports/delivery-2026-10-05-5.json"
   },
   "unresolved": [
-    "Q1/Q5: fresh-session instruction loading and continuation not yet observed; qualification cannot reach qualified until a new authorized session loads AGENTS.md and the shared skill and reconciles shared work.",
-    "Q4 scope limit: the only delivered outcome is CI infrastructure verified by check runs; no user-facing outcome has been verified in the running app yet.",
-    "Standing deviation: closed fixtures #2 and #3 retain yolo:state:* labels, so check.py reports issue_state: conflicting. Deliberate, to preserve evidence cited in docs/verification.md.",
-    "Open requests admitted: #5 queued first, #4 waiting on requester answers.",
-    "Pre-adoption inaccuracies retained: the YOLO status summary on #2 cites PR #1, which never existed.",
+    "Q1/Q5: no independent fresh session has loaded the local instructions and reconciled shared work; qualification cannot reach qualified until one does.",
+    "Agent delivery deviation recorded and retained: PR #23 was merged on a pending required check (content verified after the fact, process was not correct).",
+    "Standing deviation: closed fixtures #2 and #3 retain yolo:state:* labels, so check.py reports issue_state: conflicting; deliberate, to preserve evidence cited in docs/verification.md. Maintainer has not ruled on it.",
+    "Open admitted work: #22 queued (list blanks on background refresh); #4 waiting on requester answers.",
+    "Pre-adoption inaccuracy retained: the YOLO status summary on #2 cites PR #1, which never existed.",
     "Live gaps from docs/verification.md unchanged: first-login path, missing-gh path, browser-open behaviour, multi-page pagination, mid-session auth loss, --repo against a second repository."
   ],
   "qualification": {
