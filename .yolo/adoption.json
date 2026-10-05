@@ -1,0 +1,164 @@
+{
+  "schema_version": 2,
+  "protocol": {
+    "format": "github-v1",
+    "repository": "https://github.com/normzhou/yolo-dev",
+    "revision": "811b996740d19face87c4f7b7dc0d741b84111d4",
+    "source": "skills/yolo/references/protocol.md",
+    "inputs": [
+      {
+        "path": "ARCHITECTURE.md",
+        "sha256": "6ae6484ba07769c0f9d57e53e63d00751417f4c612bdb572a7439ac2262bc801",
+        "selection": "Adoption levels through Product source and applied adoption"
+      },
+      {
+        "path": "specs/operating-protocol.md",
+        "sha256": "5df7193fe884a64cac780ab995fca105c5ddc4d20362245b41fc40eb6e002911",
+        "selection": "whole document"
+      },
+      {
+        "path": "specs/activities.md",
+        "sha256": "fccd68a3eb2c87c21d9f7bafd2be09c1dd488a1acdefccc965b2d935467a0e33",
+        "selection": "whole document"
+      },
+      {
+        "path": "specs/repo-layout.md",
+        "sha256": "7fa8420ff0b713e8738ad530899e5c24abd875653c0aba336095a858c5bc5934",
+        "selection": "whole document"
+      },
+      {
+        "path": "specs/issue-management.md",
+        "sha256": "6494fdf0dfc4e741e58e906ca8bd87560d4444646bc0338624c10f25564ba722",
+        "selection": "whole document"
+      },
+      {
+        "path": "specs/repo-rules.md",
+        "sha256": "8302fa0e5060ef91543782741d79e08ddbd15736305f453c37173367f4cfa24c",
+        "selection": "whole document"
+      },
+      {
+        "path": "specs/verification-delivery.md",
+        "sha256": "01dbb9df1892b40c0f94852aa81c8e2ba57518e7f2e58291375244f4929e0784",
+        "selection": "whole document"
+      },
+      {
+        "path": "specs/qualification.md",
+        "sha256": "3d926e773a1a2f7d66231cbceeb2ea43854ff4d32850571ba401a1aa6493b432",
+        "selection": "whole document"
+      },
+      {
+        "path": "specs/adoption-records.md",
+        "sha256": "771cb5a3a9c57c8371d500b87d28d1bed7401ed07a4d483aeeec4b7eb8c46491",
+        "selection": "whole document"
+      },
+      {
+        "path": "specs/github-workflow.md",
+        "sha256": "42de236100f4df02ff74bddd3219d0bf73918522b56882f72fe88e1c6cc4c3d9",
+        "selection": "whole document"
+      },
+      {
+        "path": "specs/request-interface.md",
+        "sha256": "bdaf3d5c05071b2c244a32298ceeeafae167d9ac82844a6a0bd9e3b2fad4968b",
+        "selection": "whole document"
+      },
+      {
+        "path": "specs/onboarding.md",
+        "sha256": "b3d08a22aa9aaf4ff99a908342437dc7afb9bc2f9a972737d966cd746c36a7d5",
+        "selection": "whole document"
+      },
+      {
+        "path": "specs/assisted-development.md",
+        "sha256": "03c69a0a2f237d90be2b88ae315bbfbef1ad257369f984f89e775445ab1e403d",
+        "selection": "whole document"
+      },
+      {
+        "path": "specs/issue-delivery.md",
+        "sha256": "aa7e684557f190ca039093c639553bf32a46dfbe0c3b85cf9d958226451edcad",
+        "selection": "whole document"
+      },
+      {
+        "path": "specs/repo-layout.schema.json",
+        "sha256": "588372c7cb991f5648baad93bc3953d683fd0ec5ecd463bb28e48b9babd2281d",
+        "selection": "whole document"
+      }
+    ],
+    "path": ".yolo/protocol.md",
+    "sha256": "ea7504ab00bd5b7ef72bf931891243f69c7c52aa14cc4c70cbb2de338af0ebff"
+  },
+  "target": {
+    "repository": "normzhou/yolo-blank-canvas",
+    "default_branch": "main",
+    "level": 1,
+    "scope": "L1 Assisted adoption of the yolo-blank-canvas app repository, including its own agent-run workflow. Source-input revision identifies the committed design inputs; the installed publication revision below is the bundle actually obtained by this target."
+  },
+  "documents": {
+    "charter": ".yolo/governance/CHARTER.md",
+    "architecture": ".yolo/governance/ARCHITECTURE.md",
+    "instructions": "AGENTS.md",
+    "authority": ".yolo/governance/AUTHORITY.md",
+    "specs": [
+      ".yolo/governance/specs/status-presentation.md"
+    ]
+  },
+  "authority": {
+    "maintainers": [
+      "normzhou"
+    ],
+    "source": [
+      "Repository owner policy of normzhou/yolo-blank-canvas, observed at onboarding: normzhou is the sole account with push access. No team or CODEOWNERS policy exists."
+    ],
+    "acceptance": [],
+    "pending": [
+      "Maintainer acceptance of the identified Charter/grant revision is absent; .yolo/governance/AUTHORITY.md is a proposal, not a grant."
+    ]
+  },
+  "harness": {
+    "name": "pi coding agent (harness name/version to be recorded in the onboarding report)",
+    "version": "unverified",
+    "instructions": [
+      "AGENTS.md",
+      "CLAUDE.md",
+      "GEMINI.md"
+    ],
+    "skill": {
+      "path": ".agents/skills/yolo",
+      "revision": "4b7e248d1e394143ddc59159d577cbe542641d1d"
+    }
+  },
+  "verification": {
+    "checks": [
+      "npm test (vitest, deterministic, network-free)",
+      "npx tsc --noEmit",
+      "npm run build"
+    ],
+    "delivery": [
+      "npm/npx launch of a tagged revision, e.g. npx --yes github:normzhou/yolo-blank-canvas#v0.1.0; GET /api/version reports serverBuild/clientBuild"
+    ],
+    "recovery": [
+      "pending maintainer decision"
+    ],
+    "limits": [
+      "L1 harness-run checks; no GitHub Actions workflow exists in this repository",
+      "Live gaps recorded in docs/verification.md: first-login path, missing-gh path, browser-open behaviour, multi-page pagination, mid-session auth loss, --repo against a second repository"
+    ]
+  },
+  "activation": {
+    "state": "proposed",
+    "evidence": []
+  },
+  "adopted_at": "520a81e8ec824b9ce31a7fbc8a8c08d152eb81ae",
+  "upgrades": [],
+  "checkpoint": null,
+  "unresolved": [
+    "Maintainer acceptance of the proposed Charter/AUTHORITY revision is required before activation; see onboarding issue.",
+    "Reserved label yolo:state:deferred is absent from the repository; creation is proposed, not yet applied.",
+    "Closed integration issues #2 and #3 retain yolo:state:* labels, which conflicts with the adopted reserved-state rule; pre-existing at baseline, repair proposed.",
+    "No recovery scope is accepted for the server release/delivery route.",
+    "Harness version and fresh-session instruction-loading evidence are unverified."
+  ],
+  "qualification": {
+    "level": 1,
+    "status": "unverified",
+    "evidence": []
+  }
+}
