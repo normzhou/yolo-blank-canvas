@@ -1,79 +1,101 @@
-# yolo-blank-canvas: Project Charter
+# blank canvas: Project Charter
 
-> **Status: proposal pending acceptance.** Proposed by an AI agent during onboarding at
-> baseline `520a81e8ec824b9ce31a7fbc8a8c08d152eb81ae`. Nothing here is accepted intent or
-> granted authority until the maintainer accepts the identified revision. Open questions are
-> listed in the onboarding issue and `.yolo/reports/`, not as extra governing files.
+> **Status: proposal pending acceptance.** Drafted by an AI agent during onboarding at baseline
+> `520a81e8ec824b9ce31a7fbc8a8c08d152eb81ae`. Nothing here is accepted intent or granted
+> authority until the maintainer accepts the identified revision.
 
 ## Purpose
 
-Give an individual builder a place to say what they want next and watch it become real work in
-their own repository. The product is a local web app — a blank canvas with a **Requests**
-overlay — whose entire job is to turn a typed intention into an ordinary GitHub issue, keep the
-discussion and reported status readable, and never invent progress that GitHub records do not
-show.
+**Start from a blank canvas and let its users decide what it grows into.**
 
-Audience: the repository's maintainer and the AI agents working in this repository on their
-behalf. Secondary audience: anyone who installs the app with
-`npx --yes github:normzhou/yolo-blank-canvas#v0.1.0` and uses it against a repository they can
-already reach through `gh`.
+There is no predefined feature list, product category or roadmap for this project. The canvas is
+empty on purpose, and what appears in it is decided by the requests people bring — "what would you
+like to build or change?" — rather than by a prior. The project's aspiration is that its users,
+not its maintainer, define its direction.
 
-The app should become the smallest reliable front end for a GitHub-backed, agent-run workflow:
-useful enough to keep using daily, deliberately narrow enough that its correctness can be
-argued from a short, testable specification. It is also the first target adopting the YOLO Dev
-protocol at **L1 Assisted**, so its own repository is a working demonstration of that protocol
-rather than a special case.
+What makes that possible is the method. This project develops itself through the **YOLO Dev
+methodology** adopted in this repository: people describe needs, an AI agent manages the work
+under a standing grant, GitHub holds the durable records, and progress is only claimed when
+evidence shows it. The method is the stable thing here; the product is deliberately not.
+
+**blank canvas and YOLO Dev are two separate projects with distinct charters.** blank canvas
+*adopts* YOLO Dev's methodology as the way it makes progress. It is not YOLO Dev, not its user
+interface, and not governed by it. YOLO Dev's revisions never decide this product's direction —
+they only change how work is done here. This project's own defects stay here; methodology defects
+are reported upstream, linked to the evidence that exposed them.
 
 ## Optimization goal
 
-Useful progress means a request becomes a traceable outcome: filed as a real issue, decided
-explicitly, worked visibly, delivered with verified evidence, and reported at the source.
+**Maximize useful, dependable progress with less human effort.**
 
-Tradeoffs this product deliberately accepts:
+Count specification, clarification, support, troubleshooting and recovery as human effort — not
+just typing code. Evaluation weighs correctness, reliability, maintainability, safety and user
+trust alongside speed. A merge, a passing check, or a queue position is an intermediate fact, not
+success. Success is a requested outcome, delivered and verified on an identified version, that the
+requester can see and use.
 
-- **Truth over optimism.** A wrong or stale status is worse than an absent one. Presentation
-  never implies scheduling, availability, or delivery that no record establishes.
-- **Narrow surface over general GitHub client.** Four operations, no arbitrary proxy. Capability
-  that is not needed for the journey is not built.
-- **Zero setup over convenience.** `gh` owns credentials; there is no token, secret, or app
-  registration to manage.
-- **Reproducible releases over fast edits.** Committed build output is preferred so the
-  one-command launch runs the same assets that were reviewed.
+Because the product's direction is user-driven, the deeper goal is that **asking costs almost
+nothing**. A person should be able to state a wish and get a real, traceable outcome without
+learning project mechanics, managing tools, or babysitting an agent.
 
-## Constraints
+## How direction is set
 
-Durable guiding boundaries, with reasons:
+- Requests arrive as ordinary GitHub issues — typed through the app or directly in GitHub.
+- Agents interpret, admit, prioritize, plan and deliver them. They do not invent direction.
+- Capabilities are added for an **observed** request, bug or inefficiency, not for symmetry,
+  completeness or speculation.
+- With no accepted request behind it, new surface is not built. "Useful to imagine" is not a
+  reason.
 
-- **GitHub is the only store of work.** Issues, comments, labels and PRs are the record. The app
-  keeps no project database, workflow state machine or separate tracker, because a second source
-  of truth would drift from the first. *(Human intent, reinforced by the build spec and the
-  implemented design.)*
-- **The browser never names a GitHub endpoint, command or repository.** The backend shells out
-  through one fixed call site with repository-scoped argument arrays; user text travels as JSON on
-  stdin. This is a security boundary, not a style choice.
-- **Credentials stay inside `gh`.** The app must never read, copy or persist a token; the browser
-  holds only an opaque HttpOnly session cookie.
-- **Loopback-only, same-origin, untrusted-Markdown-safe.** Remote exposure is out of scope until
-  the maintainer decides otherwise.
-- **Tests verify intended behavior; they do not define purpose.** A test cannot create authority
-  or intent, and passing checks never imply a delivered outcome.
+Where product decisions land is a design matter, recorded in
+[ARCHITECTURE.md](ARCHITECTURE.md) and the issues themselves.
 
-Provisional inference, flagged as such: release/versioning policy and long-term scope beyond the
-Requests journey are **not** established by existing evidence and remain maintainer questions
-(see pending decisions in the onboarding issue).
+## Durable constraints
+
+These survive any product direction the users choose, because they protect the method and the
+people using it — not any particular feature set.
+
+1. **GitHub holds the record of work.** Requests, interpretation, decisions, progress and results
+   live in issues, comments, labels and pull requests. No second store of work, no private
+   tracker, no private database — two sources of truth drift, and then the project lies.
+2. **Humans own the Charter and the authority; the agent cannot widen its own grant.** Approval
+   follows repository ownership. A label, a document, a passing check or a confident summary is
+   never a grant.
+3. **Progress is reported truthfully.** Nothing is displayed or claimed — queued, scheduled,
+   merged, available, complete — unless a record establishes it. Uncertainty and failure are
+   reported as themselves.
+4. **Credentials and authority are not laundered through the product.** Authentication belongs to
+   the GitHub CLI; the product must not read, copy or persist a token. The browser must not be able
+   to name an arbitrary GitHub operation, endpoint or repository. Every write follows the
+   repository's owners' authority rules.
+5. **People are not surprised by consequential effects.** Destructive, irreversible or externally
+   visible actions — rewriting history, deleting work, changing access or visibility, publishing,
+   spending someone's account — need identified human approval first.
+6. **The direction of the product is itself a human decision.** Because scope is user-driven,
+   narrowing or redirecting what the project is for is a Charter change, not a quiet refactor.
+
+## What this Charter deliberately does not decide
+
+Product scope, feature set, access model, hosting, supported forges, UI surface, and roadmap.
+Those are open by design and are settled request by request. Their absence here is intentional
+and is not a gap to be filled by default.
+
+Present-day technical choices — a local loopback server, a fixed small API surface, GitHub-only
+integration, committed build output — belong to [ARCHITECTURE.md](ARCHITECTURE.md) and may change
+as requests arrive. They are current design, not protected intent.
 
 ## Ownership and authority
 
-The recognized maintainer is the repository owner, `normzhou` — currently the sole owner with
-push access. Humans own this Charter and the [authority record](AUTHORITY.md); AI owns routine
-implementation, verification and delivery within the accepted grant. No document, label, or
-agent summary expands the grant; approval follows ownership.
+The recognized maintainer and the proposed grant are in [AUTHORITY.md](AUTHORITY.md). In short:
+humans own this Charter and the grant; an AI agent owns interpretation, implementation,
+verification and delivery within it, and follows the adopted
+[protocol](../protocol.md) as closely as it specifies, exercising judgement only where the
+protocol is silent.
 
 ## Learn through use
 
-Watch which requests actually get filed and delivered through the app versus typed directly into
-GitHub; whether reported status stays truthful as issue volume grows; how much effort each
-request costs the maintainer; and which verification gaps recur. Evidence lives in
+Watch what users actually ask for versus what gets built; where they leave the app to finish
+something in GitHub instead; which status displays had to be reconciled; how much intervention
+each outcome costs; and which requests get declined or deferred. Evidence lives in
 [docs/verification.md](../../docs/verification.md), the onboarding report, and the issues
-themselves. These observations should reshape the Charter and architecture deliberately, not by
-accumulation.
+themselves. These observations should reshape this Charter and the architecture deliberately.

@@ -23,6 +23,24 @@ Upstream submission requires explicit reporting authority and reviewed destinati
 newer installed skill cannot impose activities absent from the active protocol; resolve that gap
 through explicit upgrade.
 
+## Watermark what you create
+
+Commits, pull requests and app-filed issues post under the repository owner account, so authorship
+alone does not distinguish agent action. Everything the agent creates carries a `yolo` watermark:
+prefix pull request titles with `[yolo]`, and end issues, pull requests and comments with the
+visible footer and marker described in
+[`.yolo/governance/AUTHORITY.md`](.yolo/governance/AUTHORITY.md#agent-identity-and-watermark). The
+watermark is a human recognition aid, not proof of authority. Requests typed by users through the
+app are theirs, not the agent's, and are not watermarked.
+
+## Where the protocol is silent
+
+The grant follows the adopted methodology as closely as it specifies. Where the protocol does not
+address something, use your own judgement to advance the goals of the
+[Charter](.yolo/governance/CHARTER.md), and record consequential judgements in the outcome issue
+so a human can contest them. Judgement fills gaps; it never overrides the protocol, and the
+Charter's durable constraints always hold.
+
 ## This project
 
 `yolo-blank-canvas` is a local web app: a blank canvas with a **Requests** overlay over one
@@ -47,3 +65,7 @@ security boundaries and verification record.
 - If you change the status presentation contract, update the spec and its fixtures together.
 - Significant architecture changes notify the maintainer; Charter and authority edits require
   their approval.
+- The canvas stays empty by intent. Do not add built-in projects, boards, documents or views
+  without an observed request behind them — see "The empty canvas as a design commitment" in the
+  architecture.
+- Change what this project *is for* only through a Charter edit; it is not a refactor.
