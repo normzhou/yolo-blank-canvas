@@ -9,6 +9,7 @@ import {
   UNCONFIRMED_LABEL,
   UNCONFIRMED_NOTE,
 } from '../../shared/listReconciliation';
+import { planListRead } from '../../shared/listRefresh';
 import { StatusBadge } from '../components/StatusBadge';
 import { ErrorNotice } from '../components/ErrorNotice';
 import { formatRelativeTime } from '../usePolling';
@@ -36,11 +37,13 @@ export function ListView({
 }) {
   const [items, setItems] = useState<IssueSummary[]>([]);
   const [page, setPage] = useState(1);
+  const lastFilterRef = useRef(filter);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [loadedOnce, setLoadedOnce] = useState(false);
   const inFlight = useRef(false);
+  const pageRef = useRef(1);
 
   const load = useCallback(
     async (targetPage: number, mode: 'replace' | 'append') => {
@@ -52,6 +55,7 @@ export function ListView({
         setItems((previous) => (mode === 'replace' ? result.items : [...previous, ...result.items]));
         setHasMore(result.hasMore);
         setPage(result.page);
+        pageRef.current = result.page;
         setError(null);
         setLoadedOnce(true);
         onStale(false);
@@ -68,10 +72,23 @@ export function ListView({
     [filter, loadedOnce, onRefreshed, onStale],
   );
 
+  // A re-read of the same query (timer, manual refresh, reconciliation) must not
+  // blank the rows already on screen: they stay until the response replaces them,
+  // which also keeps the reader's scroll position. Only a new filter — a different
+  // query — clears immediately.
   useEffect(() => {
-    setItems([]);
-    setLoadedOnce(false);
-    void load(1, 'replace');
+    const trigger = lastFilterRef.current === filter ? 'refresh' : 'filter';
+    lastFilterRef.current = filter;
+    const plan = planListRead(trigger, pageRef.current);
+    if (!plan.keepPreviousRows) {
+      setItems([]);
+      setLoadedOnce(false);
+    }
+    if (plan.resetPagination) {
+      setHasMore(false);
+      setPage(1);
+    }
+    void load(plan.page, plan.mode);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter, refreshToken]);
 
@@ -93,7 +110,7 @@ export function ListView({
     if (reconcileAttempt.current >= MAX_RECONCILE_ATTEMPTS) return undefined;
     const timer = setTimeout(() => {
       reconcileAttempt.current += 1;
-      void load(1, 'replace');
+      void load(planListRead('retry', pageRef.current).page, 'replace');
     }, retryDelayMs(reconcileAttempt.current));
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -113,7 +130,14 @@ export function ListView({
         <button type="button" className="primary" onClick={onNew}>
           New request
         </button>
-        <button type="button" onClick={() => void load(1, 'replace')} disabled={loading}>
+        <button
+          type="button"
+          onClick={() => {
+            const plan = planListRead('manual', pageRef.current);
+            void load(plan.page, plan.mode);
+          }}
+          disabled={loading}
+        >
           Refresh
         </button>
       </div>
@@ -157,7 +181,14 @@ export function ListView({
       ) : null}
 
       {hasMore ? (
-        <button type="button" onClick={() => void load(page + 1, 'append')} disabled={loading}>
+        <button
+          type="button"
+          onClick={() => {
+            const plan = planListRead('more', pageRef.current);
+            void load(plan.page, plan.mode);
+          }}
+          disabled={loading}
+        >
           Load more
         </button>
       ) : null}
