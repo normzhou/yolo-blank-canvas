@@ -2,7 +2,7 @@
 
 Protocol format: `github-v1` · Candidate L1 distribution
 
-Source: [811b996740d19face87c4f7b7dc0d741b84111d4](https://github.com/normzhou/yolo-dev/tree/811b996740d19face87c4f7b7dc0d741b84111d4). All required rules and procedures are below; upstream links are optional publisher context or tool documentation. The target supplies its own purpose and accepted authority, not YOLO Dev's Charter. Installing these rules does not qualify or authorize a target. L2 descriptions do not activate an unbuilt runner.
+Source: [8370cbbb2afd5c161e5ad82c434f7656c45297af](https://github.com/normzhou/yolo-dev/tree/8370cbbb2afd5c161e5ad82c434f7656c45297af). All required rules and procedures are below; upstream links are optional publisher context or tool documentation. The target supplies its own purpose and accepted authority, not YOLO Dev's Charter. Installing these rules does not qualify or authorize a target. L2 descriptions do not activate an unbuilt runner.
 
 Source status notes describe the publisher at that revision, not this target's setup. This generated document preserves the design text; source links are rewritten to local sections wherever the referenced contract is included. The bundle's `provenance.json` records source digests and selections. Target adoption records retain this source identity and this file's digest.
 
@@ -40,7 +40,7 @@ Source status notes describe the publisher at that revision, not this target's s
 <a id="architecture-adoption-levels"></a>
 ### Adoption levels
 
-![L0 Baseline, L1 Assisted, L2 Autopilot, L3 Self-directed and L4 Living App progressively close the app's improvement loop.](https://github.com/normzhou/yolo-dev/blob/811b996740d19face87c4f7b7dc0d741b84111d4/assets/adoption-levels.svg)
+![L0 Baseline, L1 Assisted, L2 Autopilot, L3 Self-directed and L4 Living App progressively close the app's improvement loop.](https://github.com/normzhou/yolo-dev/blob/8370cbbb2afd5c161e5ad82c434f7656c45297af/assets/adoption-levels.svg)
 
 | Level | Capability |
 | --- | --- |
@@ -112,6 +112,8 @@ flowchart LR
 [Init/check](#onboarding-onboarding-and-check) propose/apply setup and review ongoing work. The [standalone bundle](#assisted-development-assisted-distribution) carries enough information for another harness without upstream checkout/chat. Ordinary loading, factual observation and semantic review sustain conformity; L2 also enforces execution preconditions.
 
 Repair the lowest sufficient layer. Target defects stay there; YOLO defects feed back here. Setup, active preparedness and qualification are distinct evidence claims.
+
+Keep product engineering separate from the reusable methodology. YOLO Dev validates its own tooling/bundle and harness behavior under [publisher acceptance](#assisted-development-acceptance); its concrete commands and CI status live in [development instructions](https://github.com/normzhou/yolo-dev/blob/8370cbbb2afd5c161e5ad82c434f7656c45297af/docs/development.md). Each adopted repo defines its own tests and delivery route under the shared [verification contract](#verification-delivery-verification-and-delivery). [Target qualification](#qualification-compliance-and-qualification-evidence) needs that target's actual delivery/continuation evidence; publisher tests cannot supply it.
 
 <a id="architecture-product-source-and-applied-adoption"></a>
 ### Product source and applied adoption
@@ -197,7 +199,7 @@ Charter → architecture/specs → implementation and published artifacts. The [
 
 | Activity | Destination | Result |
 | --- | --- | --- |
-| `init` | Target | Propose/apply [adoption](#onboarding-onboarding-and-check); `init --dry-run` retains a local preview without publication or activation. |
+| `init` | Target | Propose/apply [adoption](#onboarding-onboarding-and-check); `--upgrade <publisher-ref>` explicitly migrates existing adoption; `--dry-run` retains a local preview without publication or activation. |
 | `check` | Target | Review conformity, diagnose drift and retain evidence. |
 | `request` | Target | Discuss, file or follow an app need or question. |
 | `work` | Target | Advance issue-backed outcomes through verified delivery. |
@@ -282,7 +284,7 @@ All three governing roles are required. New documents use canonical slots. Equiv
 
 Questions belong in reports/issues, not extra governing files. Ownership follows meaning, including draft Charter/authority and proposed controls; location cannot grant permission.
 
-The adopted source revision identifies the layout contract. The [schema](https://github.com/normzhou/yolo-dev/blob/811b996740d19face87c4f7b7dc0d741b84111d4/specs/repo-layout.schema.json) supplies its reserved entries/types/role paths in the manifest. Check reports unexpected entries, wrong types, missing roles and invalid mappings without deleting evidence or relocating files. An incompatible/missing definition is a coverage gap; structural success does not prove meaning or approval.
+The adopted source revision identifies the layout contract. The [schema](https://github.com/normzhou/yolo-dev/blob/8370cbbb2afd5c161e5ad82c434f7656c45297af/specs/repo-layout.schema.json) supplies its reserved entries/types/role paths in the manifest. Check reports unexpected entries, wrong types, missing roles and invalid mappings without deleting evidence or relocating files. An incompatible/missing definition is a coverage gap; structural success does not prove meaning or approval.
 
 <a id="repo-layout-native-entrypoints-and-ordinary-context"></a>
 ### Native entrypoints and ordinary context
@@ -341,6 +343,8 @@ Work: executor/attempt, branch/PR, revision and stage
 Evidence / result: checks, delivered version/destination, user action and limits
 ```
 
+Edit that same comment as work progresses; ordinary dated comments retain decisions/history without the status heading. Reconcile its executor, branch/PR, stage and next action with actual records when those change. An old issue body or superseded comment is not the current plan.
+
 Mark unknowns. A heading or user success claim is not execution evidence. Dated comments preserve material decisions, changed scope/priority, failures, handoffs and results. Reply at source requests; explain declined/deferred scope and link release updates to verified versions. Split requests summarize delivered, remaining and declined outcomes.
 
 Keep ordered **Now / Next** with reasons in the work issue, or one planning issue when needed. Use native sub-issues/dependencies for actual decomposition/blocking. Queue order is not an ETA; forecasts need supporting evidence and uncertainty.
@@ -377,6 +381,8 @@ Before merge, reconcile exact head/base, feedback/pause, accepted authority, cor
 
 Approval binds to the current proposed revision; further edits invalidate it. Accepted base policy identifies approvers: candidates cannot add an approver, expand their grant or certify their own authority gate. Historical cosmetic exceptions apply until an authorized upgrade; publisher text cannot amend a target Charter.
 
+The grant, Charter and adopted protocol must agree about each affected action. Conflicting delegation/reservation or a local exception to the active rules blocks that action until recognized clarification, amendment or a scoped override; AI judgement cannot resolve it by choosing the more permissive text.
+
 <a id="repo-rules-enforcement-by-level"></a>
 ### Enforcement by level
 
@@ -396,6 +402,8 @@ AI maintains configuration within the grant. Authority-control changes retain hu
 ## Verification and delivery
 
 **Verify the delivered outcome, not just the work that produced it.** Target architecture/specs define proportionate checks, destination/version observation, recovery scope and binding limits. AI owns testing, CI/CD and maintenance within that grant; no universal suite, service or retry budget is imposed.
+
+This reusable contract governs evidence and delivery, not test implementations. Each target chooses its suites, build commands and workflows; it does not inherit YOLO Dev's own bundle tests or release tooling.
 
 <a id="verification-delivery-checks-and-github-actions"></a>
 ### Checks and GitHub Actions
@@ -418,6 +426,8 @@ Record revision/action/destination intent before merge/publication and actual re
 | Current availability | The relevant app/client currently serves it, supported by current version evidence. |
 
 Close fulfilled work only after delivered verification. Link version/destination, acceptance, access/update steps and limits; release updates identify the verified version. App interfaces follow the optional [interface contract](#request-interface-request-to-result-interface).
+
+Use the outcome's declared delivery route: verification in a development checkout does not establish availability through an advertised package, tag or deployment. A local checkout can itself be the agreed destination; state that scope explicitly. Otherwise keep work open through publication and verification of the version users obtain.
 
 <a id="verification-delivery-failure-and-maintenance"></a>
 ### Failure and maintenance
@@ -452,6 +462,8 @@ Known, verified platform capability limits are L1 context, not enforcement evide
 Factual tools only collect observations. AI reviews [ownership, congruence, verification and continuity](#operating-protocol-shared-loop-and-boundary), diagnoses cause/impact and cites findings/resolutions. Repair the lowest sufficient layer within authority.
 
 Use [records/checkpoints](#adoption-records-reports-and-checkpoints) for subject identity, complete history, published evidence and preserved failures. Qualification adds actual harness/version and a verdict, reason and source for every criterion. If qualification was unsupported, retain its evidence and reassess; only active prepared setup can retain prepared status.
+
+Reconcile narrative claims with primary records, including subject IDs and event/completion times. Distinguish an action's actual result from what its executor had verified at decision time. Correct mistaken reports with cited evidence, preserving the earlier claim. Merely recording a required deviation does not resolve it or make conformance pass.
 
 <a id="qualification-l1-acceptance"></a>
 ### L1 acceptance
@@ -502,6 +514,8 @@ Use full commit IDs, stable GitHub references and repo-relative paths. Unknowns/
 | Qualified | The [level criteria](#qualification-compliance-and-qualification-evidence) pass with cited evidence. |
 
 Pending acceptance is a readiness gap, not malformedness. A summary cannot authenticate approval. Keep one active record; if both supported markers exist, report conflict, both candidates and no selected context, stopping before governing evaluation. Reconcile explicitly.
+
+Status describes the record's identified pin. An upgrade proposal cannot inherit the old pin's active/prepared/qualified claims; retain those as historical evidence. Append upgrade history only after observing an actual effective commit; proposed operations belong in the report.
 
 <a id="adoption-records-reports-and-checkpoints"></a>
 ### Reports and checkpoints
@@ -590,13 +604,13 @@ Demonstrate app/GitHub request and reply, clarification/admission/reasons, all r
 
 Start with L1 in an existing harness. The [bundle](#assisted-development-assisted-distribution) supplies local rules, procedures, templates, encoding, provenance and factual tooling. The target supplies intent, authority, instructions, verification/delivery context and authorized access.
 
-Reuse accepted context. Ask only for missing human decisions or required access. Without GitHub access, retain a local proposal and its gaps. Installation supplies no credentials or grant; never silently switch accounts or expand authority. Unsupported L2 is a gap, not activation of an unbuilt runner.
+Reuse accepted context; confirm Charter direction through the initial interview below. Ask only for unresolved human decisions or required access. Without GitHub access, retain a local proposal and its gaps. Installation supplies no credentials or grant; never silently switch accounts or expand authority. Unsupported L2 is a gap, not activation of an unbuilt runner.
 
 <a id="onboarding-init"></a>
 ### Init
 
 1. **Inspect:** deeply read intent, ownership/grant, design, instructions, Git/GitHub state and verification/delivery. Record the pre-setup baseline. Existing bugs remain target work, not adoption blockers.
-2. **Propose:** draft concrete Charter/grant text, evidenced maintainer mapping, design/check/delivery choices and the smallest setup/gap plan. Preserve useful app paths, instructions and unrelated metadata. Apply [intent discovery](#onboarding-discover-governing-intent) and [proposal review](#onboarding-proposal-review).
+2. **Interview and propose:** present a repo-informed interpretation and conduct the [Charter interview](#onboarding-discover-governing-intent), then shape concrete Charter/grant text, evidenced maintainer mapping, design/check/delivery choices and the smallest setup/gap plan. Preserve useful app paths, instructions and unrelated metadata. Apply [proposal review](#onboarding-proposal-review).
 3. **Resolve ownership:** cite existing acceptance; obtain missing recognized approval of the identified Charter/grant revision before activation. Bootstrap follows ownership even before adoption. Notify significant design changes under [repository rules](#repo-rules-repository-rules-and-authority).
 4. **Apply:** install the pinned contract/provenance, governing/native mappings, ordinary instruction loading and authorized GitHub conventions under [layout](#repo-layout-repository-layout). Configure required labels, inspect rules/checks and report gaps. No placeholder CI or L1 runner/bypass service.
 5. **Assess:** factual check plus semantic review; publish evidence/gaps and next action. Use the [result table](#onboarding-observable-result), not install success, to report readiness.
@@ -612,9 +626,24 @@ Protection follows meaning, not whole directories: human Charter/authority, co-o
 
 Prefill audience, desired outcomes, optimization goals and durable boundaries. Keep mechanics in architecture/specs and delegation in authority. Intended behavior governs; tests verify it. Explain discrepancies with current implementation and recommend evolution, retention or investigation.
 
-For consequential missing intent, offer hypotheses and ask short, discrete questions in small batches. Resolve foundational choices first; reuse answers, skip routine AI decisions and stop when direction suffices. Roughly ten initial questions is a ceiling, not a script. Retain unanswered choices when the maintainer is unavailable.
+**Every initial adoption includes a Charter interview.** After inspection, present a few sentences interpreting the repo, distinguishing stated intent from inference. Keep the inspection inventory in a report. Invite the maintainer to confirm or correct the interpretation in the smallest first batch covering:
 
-Answers steer a draft; approval binds to its final revision. Additional restrictions need accepted intent or an explicit provisional rationale; uncertainty cannot invent approval gates.
+- Why the repo exists and whom it should serve.
+- What the maintainer hopes it will become, beyond what exists today.
+- What useful progress means and which tradeoffs matter.
+- What it should not become: non-goals and durable boundaries.
+
+Offer concise suggested answers where evidence supports them, with uncertainty visible. An existing accepted Charter can supply the answers; ask whether its direction still holds rather than repeating settled questions. Current implementation cannot establish unstated aspirations or non-goals. This first round concerns **Charter direction only**; resolve delegation with the later grant proposal and leave routine CI, hosting and release mechanics to AI. Technical details belong here only when they express a human product boundary.
+
+**Inspection → interpretation/questions → maintainer reply → proposal.** End the first onboarding discussion turn with the interpretation and questions; wait for answers before drafting a new Charter or dependent design/grant documents. Existing drafts may inform the questions, but do not continue rewriting them or performing setup assessment while awaiting answers. Installation and inspection can precede the conversation; an issue/PR cannot substitute for it.
+
+Dry run uses the same interview. A noninteractive session returns the questions and stops; it does not treat lack of a reply as permission to generate the full proposal. If the maintainer explicitly defers the interview and requests a provisional draft, preserve the missing answers and pending status. Keep the interpretation, answers and unanswered choices in the issue/proposal report, not as a transcript in the Charter.
+
+Follow up only on consequential ambiguity; reuse answers and stop when direction suffices. Prefer short phrases, single sentences or discrete choices; do not pad the batch to a question quota. Answers steer a draft; approval still binds to its final revision.
+
+Additional restrictions need accepted intent or an explicit provisional rationale; uncertainty cannot invent approval gates.
+
+An intentionally open product direction and few non-goals are valid answers. YAGNI limits present investment, not what the product may eventually become.
 
 <a id="onboarding-proposal-review"></a>
 ### Proposal review
@@ -623,15 +652,17 @@ Before committing, inspect actual files and record **pass/fail, reason and evide
 
 | Check | Question |
 | --- | --- |
-| Purpose | Does Charter name audience, desired future and useful progress? |
+| Purpose | Does Charter name audience, desired future, useful progress and non-goals? Cite the repo-informed interview and distinguish confirmed answers from pending hypotheses. |
 | Layer boundaries | Are purpose, design, delegation and evidence in their respective homes? Tests verify intended behavior. Protected boundaries need human-intent evidence, not just current mechanics. |
 | Authority | Is bounded AI scope proposed across management, implementation, verification, merge, delivery and recovery, without invented acceptance? |
-| Congruence | Do documents, mappings and rules agree? Approval gates need an intent/authority source; notification is not approval. Preserve ordinary AI autonomy and recovery limits. |
+| Congruence | Do Charter, grant and protocol agree for each delegated/reserved action, including release and protected edits? Approval gates need an intent/authority source; notification is not approval. Preserve ordinary AI autonomy and recovery limits. |
 | Structure and truth | Do paths, references and provenance conform? Do claims match evidence, with pending choices/gaps visible? |
 | Reviewability | Are direction, grant and missing decisions easy to find? Verify full/focused content diffs, including new files; dry run preserves its source. |
 | Compression | Can this be shorter without losing meaning, permissions, acceptance, exceptions or uncertainty? Prefer principles, one home per rule and links to evidence. Remove repetition and transcripts; word count is not the goal. |
 
 Apply the final compression check to governing-document and protocol edits too. This is semantic review, not a new service or qualification proof. Classify concerns as contract defects, draft errors, expected pending observations or ordinary target work; do not turn every finding into a new rule.
+
+Keep changing acceptance/setup status in the adoption record and issue, with exact approval links. Governing prose should link that evidence rather than embed status that needs a protected edit whenever setup advances. Refresh AI-owned context references after actual changes; preserve historical observations as dated history.
 
 <a id="onboarding-dry-run"></a>
 ### Dry run
@@ -661,7 +692,18 @@ Distinguish proposed, installed, committed/merged and default-branch-observed fa
 
 Load existing pin/context first. Preserve intent, original baseline, checkpoints, findings, reports and prior rule applicability. Missing snapshots need diagnosis; a newer installed skill is not upgrade authority.
 
-Explicit migration identifies old/new rules and effective target revision, resolves ownership conflicts and preserves history. Follow layout with one active marker; competing markers select neither. Self-use follows this same route, not independent file renaming.
+`init --upgrade <publisher-ref>` requests migration to an identified publication; it is an agent procedure, not a CLI updater. Add `--dry-run` for a retained local proposal with no source/GitHub changes. Without an explicit upgrade request, repeat init/check retain the active pin.
+
+1. **Reconcile under the old rules.** Read the current pin/grant, installed publication, local modifications, open work and executors. Do not race active writers; carry gaps forward rather than using upgrade to erase them.
+2. **Stage and compare.** Resolve the requested publisher commit/tag once, obtain its complete bundle and verify provenance/output digest. Compare rules, encoding, tooling and bindings. For each affected action, cite its delegations **and restrictions** across Charter, grant, old pin and candidate; record compatible/conflicting/unknown with reason and contrary evidence. Unchanged text and historical exceptions still need comparison. Publisher updates cannot supply target intent or expand authority.
+3. **Propose a migration.** Use one outcome issue and linked PR, or a retained dry-run report/diff. Reuse accepted purpose; no new initial interview unless intent is genuinely missing. Report migration deltas, conflicts, planned operations, pending owner decisions and restoration steps; link existing context/evidence instead of repeating it.
+4. **Prepare without blind overwrite.** Reconcile publisher-owned bundle/bindings against their identified old publication, preserving target modifications and unrelated instructions. Stage the complete new bundle, byte-identical snapshot and candidate mapping together; no mixing versions. A pending candidate uses proposed activation and unverified qualification, with conflicts in pending/unresolved references; preserve old applicability/evidence in Git and the report. The installer refuses conflicts; resolving an authorized replacement belongs to this migration, not ordinary install.
+5. **Apply within current authority.** Protected edits/authority-control changes need the old policy's identified approval or override; significant design changes notify. Missing decisions leave the old default-branch adoption in force. Publish an authorized migration through its PR, observe the landed revision, append the upgrade's effective commit/evidence and retain historical applicability.
+6. **Check and resume.** Verify delivered bundle/snapshot/context, reassess affected criteria and preserve unresolved findings. Loading evidence for the previous pin remains historical, not proof of the new rules being loaded. Reload/restart the harness and record a fresh continuation before restoring dependent claims.
+
+Follow layout with one active marker; competing markers select neither. Self-use follows this same route. New publication, installed candidate and active target pin remain separate facts; rollback also records an explicit migration and cannot undo external effects or erase failures.
+
+For each conflict, propose the smallest resolution, its owner and blocked scope. Draft protected corrections for review under existing approval rules; do not invent acceptance. Separate migration decisions from ordinary target work. Passing byte checks cannot support a no-conflict verdict, and known findings are not an exhaustive blocker list without review.
 
 <a id="onboarding-check-and-repair"></a>
 ### Check and repair
@@ -681,7 +723,7 @@ For dry run, observe source preservation/no GitHub writes, a complete retained d
 <a id="assisted-development-assisted-distribution"></a>
 ## Assisted distribution
 
-**Publisher artifact requirements.** Package the [protocol](#operating-protocol-operating-protocol) and [onboarding process](#onboarding-onboarding-and-check) so a target harness can operate without this checkout or prior chat. The [candidate skill](https://github.com/normzhou/yolo-dev/blob/811b996740d19face87c4f7b7dc0d741b84111d4/skills/yolo/SKILL.md) implements them; observed qualification remains separate.
+**Publisher artifact requirements.** Package the [protocol](#operating-protocol-operating-protocol) and [onboarding process](#onboarding-onboarding-and-check) so a target harness can operate without this checkout or prior chat. The [candidate skill](https://github.com/normzhou/yolo-dev/blob/8370cbbb2afd5c161e5ad82c434f7656c45297af/skills/yolo/SKILL.md) implements them; observed qualification remains separate.
 
 <a id="assisted-development-standalone-bundle"></a>
 ### Standalone bundle
@@ -699,6 +741,7 @@ The helper observes local context/history and GitHub metadata, issues/comments, 
 | --- | --- |
 | Init | Mode, prerequisites/access, full rules, informed intent discovery, proposal/approval procedure, templates, encoding and readiness meanings. |
 | Dry run | Isolation/no-write boundary, retained proposal/report and actual review commands. |
+| Upgrade | Identified old/new publications, rule/tooling diff, preservation/replacement procedure, existing approval rules, effective migration and affected qualification. |
 | Check | Active-pin lookup, supported versions, observations, history review, diagnosis/repair and checkpoint rules. |
 | Request/work/feedback | Activity procedure, destination, admission versus intake, scope and reporting authority. |
 | Ordinary session | Loading entrypoint plus local context/shared work sufficient for continuation without settled-intent rebriefing. |
@@ -726,12 +769,26 @@ Preserve other skills, commands and active instructions. Repeated installation i
 
 Use `AGENTS.md` as the ordinary entrypoint. Install thin [Claude](https://code.claude.com/docs/en/memory) and [Gemini](https://geminicli.com/docs/cli/gemini-md/) imports in `CLAUDE.md` and `GEMINI.md`; preserve existing instructions with the same import, otherwise stop for reconciliation. Init supplies the shared local protocol/context through `AGENTS.md`. Native trust, permissions and reload requirements remain in force. Skill discovery, explicit invocation and ordinary instruction loading require separate observations.
 
-Ordinary requests use [work](#activities-work-shared-development-procedure) without per-session manual invocation. YOLO self-use follows the same identified publication/adoption route; a mutable authoring link cannot upgrade or qualify it. Older [protocol](https://github.com/normzhou/yolo-dev/blob/811b996740d19face87c4f7b7dc0d741b84111d4/skills/yolo/references/assisted-protocol.md)/encoding remain compatibility material.
+Ordinary requests use [work](#activities-work-shared-development-procedure) without per-session manual invocation. YOLO self-use follows the same identified publication/adoption route; a mutable authoring link cannot upgrade or qualify it. Older [protocol](https://github.com/normzhou/yolo-dev/blob/8370cbbb2afd5c161e5ad82c434f7656c45297af/skills/yolo/references/assisted-protocol.md)/encoding remain compatibility material.
 
 <a id="assisted-development-acceptance"></a>
 ### Acceptance
 
-From a disposable ordinary checkout with source/prior conversation unavailable, demonstrate installation, informed proposal, authorized setup, truthful gaps and ordinary-session context using only bundle and target inputs. Exercise [onboarding cases](#onboarding-product-artifacts-and-acceptance) and [activities](#activities-acceptance), verify source reproduction, and observe actual loading/continuation. Generated text or factual tests cannot establish harness behavior; [qualification](#qualification-compliance-and-qualification-evidence) requires the real delivered task and cited level evidence.
+This is YOLO Dev's **publisher** acceptance, not a test suite or CI configuration for every adopter. Targets follow the shared [verification contract](#verification-delivery-verification-and-delivery) using their own product-specific checks.
+
+Publication follows committed design inputs → reproduced complete bundle → validation and disposable-target exercise of the changed procedure → immutable release. Release notes identify inputs/output/publication, changes and verification limits, with versioned installation/upgrade instructions. A source push alone is not a tested bundle release.
+
+| Verification scope | Evidence establishes |
+| --- | --- |
+| Deterministic checks | Tooling behavior, bundle reproduction/digests and reference integrity; not agent judgement. |
+| Behavioral trial | An identified publication's observed procedure in a stated harness/model; not general reliability or target activation. |
+| Target qualification | Actual adopted context, authorized delivery and fresh continuation under [Q1–Q5](#qualification-l1-acceptance); not every target/version. |
+
+Start behavioral trials fresh and isolated, supplying published instructions and raw target context rather than expected answers or prior diagnoses. Inspect actual files/actions, not just the agent's verdict. Preserve the first attempt and distinguish unaided results from correction after critique. Re-run for changed behavior, new evidence or unresolved concerns, not merely until a pass appears. AI owns review and repair within authority; no routine human code-review gate is introduced.
+
+Targets opt in through [init upgrade](#onboarding-repeat-init-and-upgrade). The versioned agent guide bootstraps older installations that do not understand the newer option; read the staged skill directly instead of relying on a cached command. Release notes announce available fixes without rewriting target pins. No updater service, registry or automatic rollout is required for L1.
+
+From a disposable ordinary checkout with source/prior conversation unavailable, demonstrate installation, informed proposal, authorized setup, truthful gaps and ordinary-session context using only bundle and target inputs. Exercise [onboarding cases](#onboarding-product-artifacts-and-acceptance) and [activities](#activities-acceptance), verify source reproduction, and observe actual loading/continuation.
 
 For each claimed harness/version, launch a fresh session after one installation, observe discovery/invocation and argument preservation, and verify help/status do not mutate the target. Switch harnesses without copying rules or reinstalling. Check repeat-install/conflict preservation, native ordinary loading and shared-pin continuity. Unrun harnesses remain unverified; a dry-run proposal alone establishes neither activation nor L1 qualification.
 

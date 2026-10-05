@@ -21,7 +21,11 @@ Preserve accepted intent, baseline, checkpoints, failed findings and historical 
 
 Default to **L1 Assisted**; no L2 runner is supplied. Follow **Onboarding → Init / Discover governing intent / Proposal review** in the applicable protocol:
 
-Prepare a concrete purpose/grant/design proposal from deep target inspection and the protocol's informed intent interview. Review actual files, not intentions. Missing human decisions remain pending; AI supplies recommendations and routine technical choices. Publish a pending issue/draft PR only when authorized. Activation requires recognized acceptance of the identified Charter/grant revision.
+For existing adoption, repeat init retains its pin. An explicit `init --upgrade <publisher-ref>` follows **Upgrade** below instead of restarting initial onboarding.
+
+Start with deep target inspection and the protocol's **Charter interview**. End the first discussion turn with a few sentences of interpretation and the smallest batch about product purpose, aspirations and boundaries. Keep inspection inventory in a report; grant questions come later and routine engineering choices stay with AI. Wait for the maintainer's reply before drafting Charter/dependent documents or assessing setup. Dry run/noninteractive sessions also return questions and stop. Existing drafts inform the interview; only explicit maintainer deferral permits a provisional draft without answers.
+
+Shape the concrete purpose/grant/design proposal from that direction. Review actual files, not intentions. Missing human decisions remain pending; AI supplies recommendations and routine technical choices. Publish a pending issue/draft PR only when authorized. Activation requires recognized acceptance of the identified Charter/grant revision.
 
 Apply authorized setup using the local protocol, canonical/mapped context and ordinary harness binding. Copy `references/protocol.md` byte-for-byte to `.yolo/protocol.md`; record manifest provenance/digest. Assess factual and semantic conformity under the protocol's result states and Q1–Q5. No placeholder CI, L2 runner or new bypass privilege.
 
@@ -32,6 +36,12 @@ Requirements: Git/Python 3.9+ and existing authorized `gh` access for GitHub obs
 ### Init --dry-run
 
 Follow **Onboarding → Dry run**: prepare/commit the complete proposal in a separate retained checkout, preserving the source, GitHub and earlier drafts. Return an external report and tested, shell-quoted full/focused diff commands using actual revisions. End **proposal pending — dry run**; later activation needs separate direction/acceptance. Read-only observation is allowed; publication or other remote effects are not.
+
+## Upgrade
+
+`init --upgrade <publisher-ref> [--dry-run]` requests an identified migration. Read the active old rules/grant and reconcile work/writers first; then read **Onboarding → Repeat init and upgrade** in the requested staged bundle. Resolve publication once and verify provenance. Compare rules/tooling and preserve accepted target purpose, instructions, original baseline, checkpoints, findings and history. Propose one issue/PR or an isolated dry-run diff; replace bundle/bindings, snapshot and mapping as one reviewed change, preserving local customizations. Installer conflicts require explicit reconciliation, never a blind overwrite.
+
+Compare permissions and restrictions per affected action, including contrary evidence; propose owned resolutions for conflicts. Apply only within old authority. A pending candidate record is proposed/unverified; preserve old status as history. Obtain required protected approval, notify significant changes and record actual effective revision. Recheck affected qualification; old loading evidence cannot attest a new pin. Reload the harness for fresh continuation. New skill files alone do not change an active pin. Older installations bootstrap from the versioned agent guide and read the staged skill directly.
 
 ## Check
 
@@ -55,6 +65,8 @@ Use **Agent activities** in the active snapshot (the [bundle](references/protoco
 
 Ordinary development requests follow this procedure without manual skill invocation. Direct conversation is steering; a bypass needs a scoped owner override. L1's maintainer starts sessions; AI may admit/plan within them. L2 automatic initiation remains unbuilt.
 
+Maintain the existing status-summary comment as work changes. Follow the target's declared delivery route through usable publication; a development checkout does not establish a package/release's availability. Reconcile governing conflicts and primary evidence before claiming conformity or completion.
+
 ## Feedback
 
 `feedback` concerns **YOLO Dev upstream**, not the target app; no target adoption is required. Resolve the publisher from provenance, search related issues/plan and prefer existing threads. Review exact destination/content and use explicit reporting authority; otherwise retain a draft. Sanitize diagnostics, excluding target identities, code, URLs, paths, logs and credentials. Never forward automatically.
@@ -70,7 +82,7 @@ YOLO Dev
 Usage: /yolo <activity> [details]
 Codex CLI/IDE: $yolo <activity> [details]
 
-init      Propose onboarding; --dry-run prepares an isolated preview.
+init      Propose onboarding; --upgrade <ref> migrates; --dry-run previews.
 check     Review conformity and report gaps.
 request   Discuss, file or follow a target-app request.
 work      Advance issue-backed work under active adoption and authority.
