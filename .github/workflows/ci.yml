@@ -1,0 +1,28 @@
+name: CI
+
+# Required evidence for delivery: the repository's existing deterministic checks,
+# recorded under .yolo/governance/ARCHITECTURE.md. No placeholder jobs.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Test and type check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          # package.json engines.node floor; no .nvmrc in this repository.
+          node-version: '20.10'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npx tsc --noEmit
