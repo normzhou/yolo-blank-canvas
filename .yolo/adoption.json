@@ -110,11 +110,7 @@
     "acceptance": [
       "Issue #6 comment recording maintainer normzhou's acceptance of revision bf5cd3806b6228164db9a8cca80d7b414be789e1 (session 01a10ab0-bdac-76d7-bd0a-729ba1945ea8), authenticated on GitHub on 2026-10-05. https://github.com/normzhou/yolo-blank-canvas/issues/6"
     ],
-    "pending": [
-      "Candidate upgrade to publication 2cf0ee8529e56d1913e682a666d0a465a72d9422 (source inputs 8370cbbb2afd5c161e5ad82c434f7656c45297af) is proposed and unverified; the prior accepted grant revision bf5cd3806b6228164db9a8cca80d7b414be789e1 remains the accepted authority until the maintainer accepts this upgrade. See .yolo/reports/upgrade-2cf0ee8-proposal.json.",
-      "Conflict on external release publication: CHARTER.md durable constraint 5 requires identified human approval for externally visible actions including publishing, while AUTHORITY.md delegates creating/cutting tags and releases within the versioning policy and reserves deleting them. Maintainer clarification is required; see conflicts[release-publication].",
-      "Conflict on cosmetic Charter/authority edits: AUTHORITY.md permits cosmetic edits to proceed without approval, while the old and candidate protocol require all protected edits to have identified approval or an override, allowing historical cosmetic exceptions only until an authorized upgrade. Maintainer clarification/amendment is required; see conflicts[cosmetic-protected-edits]."
-    ]
+    "pending": []
   },
   "harness": {
     "name": "pi coding agent",
@@ -128,7 +124,7 @@
       "path": ".agents/skills/yolo",
       "revision": "2cf0ee8529e56d1913e682a666d0a465a72d9422"
     },
-    "gap": "Candidate loading unverified: no fresh-session observation of publication 2cf0ee8529e56d1913e682a666d0a465a72d9422 (source inputs 8370cbbb2afd5c161e5ad82c434f7656c45297af). Session 01a10cc7-ef06-76d7-bd0a-729d0b008133 is historical loading evidence for the old publication 4b7e248d1e394143ddc59159d577cbe542641d1d only (see .yolo/reports/delivery-2026-10-05-22.json) and cannot attest the candidate pin."
+    "gap": "Fresh-session loading of the landed publication 2cf0ee8529e56d1913e682a666d0a465a72d9422 (source inputs 8370cbbb2afd5c161e5ad82c434f7656c45297af) is unobserved. Session 01a10cc7-ef06-76d7-bd0a-729d0b008133 is historical loading evidence for the old publication 4b7e248d1e394143ddc59159d577cbe542641d1d only (see .yolo/reports/delivery-2026-10-05-22.json) and cannot attest the landed pin. Reload/restart the harness and record a fresh continuation before restoring any prepared/qualified claim."
   },
   "verification": {
     "checks": [
@@ -148,13 +144,24 @@
     ]
   },
   "activation": {
-    "state": "proposed",
+    "state": "active",
     "evidence": [
-      "Historical activation for the old pin (source inputs 811b996740d19face87c4f7b7dc0d741b84111d4, publication 4b7e248d1e394143ddc59159d577cbe542641d1d) is retained in Git and the migration report, including the issue #6 acceptance of revision bf5cd3806b6228164db9a8cca80d7b414be789e1. This candidate protocol/publication is proposed; no new activation evidence exists and no maintainer acceptance of the upgrade is supplied."
+      "Maintainer direction in authenticated harness session 01a10ce5-ac19-76d7-bd0a-729fc320bc5e delegated acceptance of the migration to the agent's review ('you be the judge if it looks good we should just accept it'); review verdict pass. Acceptance recorded on issue #28: https://github.com/normzhou/yolo-blank-canvas/issues/28#issuecomment-6001459478",
+      "Publication 2cf0ee8529e56d1913e682a666d0a465a72d9422 (source inputs 8370cbbb2afd5c161e5ad82c434f7656c45297af) landed on main as 0ffce2a241e6bc40dba7efd1ca539e7d6cfc81c1 via PR #29 and was observed on the default branch.",
+      "Historical activation for the old pin (source inputs 811b996740d19face87c4f7b7dc0d741b84111d4, publication 4b7e248d1e394143ddc59159d577cbe542641d1d), including the issue #6 acceptance of revision bf5cd3806b6228164db9a8cca80d7b414be789e1, is retained in Git and the migration reports."
     ]
   },
   "adopted_at": "520a81e8ec824b9ce31a7fbc8a8c08d152eb81ae",
-  "upgrades": [],
+  "upgrades": [
+    {
+      "from": "811b996740d19face87c4f7b7dc0d741b84111d4",
+      "to": "8370cbbb2afd5c161e5ad82c434f7656c45297af",
+      "effective_commit": "0ffce2a241e6bc40dba7efd1ca539e7d6cfc81c1",
+      "evidence": [
+        "Maintainer direction in authenticated harness session 01a10ce5-ac19-76d7-bd0a-729fc320bc5e delegated acceptance of the migration to the agent's review ('you be the judge if it looks good we should just accept it'); review verdict pass. Acceptance recorded on issue #28: https://github.com/normzhou/yolo-blank-canvas/issues/28#issuecomment-6001459478"
+      ]
+    }
+  ],
   "checkpoint": {
     "commit": "0c8038f164bd2a744780d7d2913a00b8bfb593a9",
     "report": ".yolo/reports/delivery-2026-10-05-22.json"
@@ -165,8 +172,8 @@
     "Open admitted work: #4 waiting on requester answers.",
     "Pre-adoption inaccuracy retained: the YOLO status summary on #2 cites PR #1, which never existed.",
     "Live gaps from docs/verification.md unchanged: first-login path, missing-gh path, browser-open behaviour, multi-page pagination, mid-session auth loss, --repo against a second repository.",
-    "Upgrade candidate pending: activation is proposed and qualification is unverified until a recognized maintainer accepts the identified migration; the old default-branch adoption (main 21a0b3e67dc17a16de92961c51c17114e7de885c) remains in force.",
-    "Upgrade candidate gap: no fresh-session loading of the new skill/protocol has been observed, and the installed diagnostic helper's checkpoint-chain check does not attest the new pin.",
+    "Upgrade landed at 0ffce2a241e6bc40dba7efd1ca539e7d6cfc81c1 (publication 2cf0ee8, source inputs 8370cbb); qualification remains unverified until a fresh authorized session observes the new pin's instruction loading and the affected criteria are reassessed.",
+    "Upgrade landing gap: no fresh-session loading of publication 2cf0ee8529e56d1913e682a666d0a465a72d9422 has been observed; session 01a10cc7 attests the old publication 4b7e248 only. Reload/restart and record a fresh continuation before restoring any prepared/qualified claim.",
     "Preserved target finding (not fixed by this upgrade): .yolo/governance/CHARTER.md and AUTHORITY.md still carry a 'proposal pending acceptance' status banner although the record cites accepted revision bf5cd380. Correcting it is a protected edit governed by conflicts[cosmetic-protected-edits].",
     "Candidate congruence finding: two accepted target clauses do not agree cleanly with the adopted protocol (release publication authorization; cosmetic protected-edit exception). Recorded as conflicts[release-publication] and conflicts[cosmetic-protected-edits] in .yolo/reports/upgrade-2cf0ee8-proposal.json with smallest resolution, owner and blocked scope; maintainer decision pending."
   ],

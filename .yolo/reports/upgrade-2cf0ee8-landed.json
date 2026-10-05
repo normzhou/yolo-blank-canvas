@@ -1,0 +1,53 @@
+{
+  "schema_version": 2,
+  "target": "normzhou/yolo-blank-canvas",
+  "kind": "upgrade-landed",
+  "status": "landed-unverified",
+  "protocol": {
+    "revision": "8370cbbb2afd5c161e5ad82c434f7656c45297af",
+    "sha256": "67db943911b38623f8a4b6e6872e652cf0efe04dd98368470063d38db66c1e6c"
+  },
+  "upgrade": {
+    "old_publication": "4b7e248d1e394143ddc59159d577cbe542641d1d",
+    "old_source_inputs": "811b996740d19face87c4f7b7dc0d741b84111d4",
+    "new_publication": "2cf0ee8529e56d1913e682a666d0a465a72d9422",
+    "new_source_inputs": "8370cbbb2afd5c161e5ad82c434f7656c45297af",
+    "effective_commit": "0ffce2a241e6bc40dba7efd1ca539e7d6cfc81c1",
+    "effective_commit_subject": "Propose YOLO Dev upgrade to publication 2cf0ee8 (#29)",
+    "acceptance_evidence": "Maintainer direction in authenticated harness session 01a10ce5-ac19-76d7-bd0a-729fc320bc5e delegated acceptance of the migration to the agent's review; the review passed (byte-identical bundle/snapshot, full provenance, no purpose/grant/authority change, CI green, no new factual regression). Recorded on issue #28: https://github.com/normzhou/yolo-blank-canvas/issues/28#issuecomment-6001459478",
+    "proposal": {
+      "issue": "https://github.com/normzhou/yolo-blank-canvas/issues/28",
+      "pr": "https://github.com/normzhou/yolo-blank-canvas/pull/29",
+      "proposal_commit": "70856cc163e2a69f864c19e5b6c0d81fa8f02d77",
+      "report": ".yolo/reports/upgrade-2cf0ee8-proposal.json"
+    }
+  },
+  "delivered_verification": [
+    "The landed default branch at 0ffce2a2 carries `.agents/skills/yolo` byte-identical to publication 2cf0ee8 (verified by `diff -r` against the staged bundle).",
+    "`.yolo/protocol.md` on the landed revision is byte-identical to the bundle snapshot, sha256 67db943911b38623f8a4b6e6872e652cf0efe04dd98368470063d38db66c1e6c.",
+    "`scripts/check.py`, `scripts/install.py`, `assets/` and the compatibility references are unchanged from the old publication, so the upgrade adds no new tool behavior.",
+    "The installer was re-run during preparation and reported no conflicting bindings; the same bundle is exposed through `.claude/skills/yolo`, `.pi/prompts/yolo.md`, `.opencode/commands/yolo.md` and `.gemini/commands/yolo.toml`.",
+    "CI (`npm test`, `npx tsc --noEmit`) passed on PR #29 before the squash merge."
+  ],
+  "reassessment": {
+    "activation": "active - the accepted migration is published and observed on the default branch.",
+    "qualification": "unverified - the landed pin has no fresh-session instruction-loading observation; old-pin loading/qualification evidence (checkpoint 0c8038f, report delivery-2026-10-05-22.json) is historical and cannot attest the new rules.",
+    "q1_q5": "Not claimed for the landed pin. Q1/Q5 require a fresh authorized session observing the new skill/protocol loading; Q2-Q4 need reassessment against the landed revision."
+  },
+  "preserved_findings": [
+    "conflicts[release-publication] remains unresolved: CHARTER durable constraint 5 versus the standing Release delegation. Owner normzhou; blocks release publication authorization only.",
+    "conflicts[cosmetic-protected-edits] remains unresolved: AUTHORITY's cosmetic-edit exception versus the protocol's all-protected-edits rule. Owner normzhou; blocks cosmetic protected edits, including correcting the stale 'proposal pending acceptance' banner in CHARTER.md/AUTHORITY.md.",
+    "Standing deviation: closed fixtures #2/#3 retain `yolo:state:*` labels; `check.py` reports issue_state: conflicting.",
+    "Retained: PR #23 merged on a pending required check; the #2 summary cites a non-existent PR #1; unresolved #4 waiting on requester answers.",
+    "Pre-existing checkpoint coverage gap: the delivery report does not cover its full declared history interval."
+  ],
+  "next_action": [
+    "Reload/restart the harness and run a fresh authorized session that observes publication 2cf0ee8 loading, then reassess Q1-Q5 and the affected qualification claim.",
+    "Maintainer decisions on the two recorded conflicts and the stale status banner.",
+    "No release, tag or repository-setting change was made by this migration."
+  ],
+  "limits": [
+    "A successful merge, a passing helper run or this report is not fresh-continuation evidence and does not establish qualification.",
+    "The conflicts and preserved findings constrain only their identified actions; they are not an exhaustive blocker list without review."
+  ]
+}
