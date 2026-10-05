@@ -58,8 +58,32 @@ These are acceptance criteria, not styling preferences:
    available; the UI must not silently repair metadata.
 6. Unrelated labels are displayed unchanged.
 
+## Just-created requests and list reconciliation
+
+GitHub's issue **list** endpoint is eventually consistent. A freshly created issue can be absent
+from list queries for seconds, or — as observed in this repository — for well over twenty
+seconds, while a direct read of the same issue returns it at once. The app must therefore never
+conclude "not created" from "not listed".
+
+| Situation | Required behavior |
+| --- | --- |
+| Request created and the list confirms it | Shown as an ordinary listed request, once, with no duplicate row. |
+| Request created and the list does not yet include it | Shown as an explicitly **unconfirmed** row, marked *Not listed yet*, with a note saying the create succeeded and the list is catching up. Never omitted, never shown as if the list contained it. |
+| Created request still unconfirmed after the bounded retries | The unconfirmed row stays, and the footer tells the user the list re-reads itself and that Refresh is available. |
+| List read fails | Existing content is preserved and marked stale; the unconfirmed row is not treated as confirmation. |
+
+The app never fabricates list membership: an unconfirmed row is derived from the confirmed create
+result, and it is marked as unconfirmed until the server's list actually contains that number.
+Retries are bounded and backed off, so a slow list cannot spin the server.
+
+Home: `src/shared/listReconciliation.ts`. Verified by `test/list-reconciliation.test.ts`.
+
 ## Observable acceptance
 
-`test/status.test.ts` is the executable form of this contract and must cover every row above.
+`test/status.test.ts` is the executable form of the status contract and must cover every row above.
 Acceptance of the presentation contract is: the suite passes, and the live round-trip recorded
 in `docs/verification.md` shows the same derivation against real issue records.
+
+List reconciliation adds `test/list-reconciliation.test.ts`, covering unconfirmed, confirmed,
+deduplicated, ordering and retry-bound cases. Its live evidence is recorded in the issue it
+fixed; the GitHub-side lag it absorbs is intermittent, so it cannot be forced on demand.

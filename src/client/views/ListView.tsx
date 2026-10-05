@@ -1,6 +1,14 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api, ApiError, type IssueSummary } from '../api';
 import { deriveIssueStatus } from '../../shared/status';
+import {
+  buildListRows,
+  MAX_RECONCILE_ATTEMPTS,
+  retryDelayMs,
+  shouldRetryFor,
+  UNCONFIRMED_LABEL,
+  UNCONFIRMED_NOTE,
+} from '../../shared/listReconciliation';
 import { StatusBadge } from '../components/StatusBadge';
 import { ErrorNotice } from '../components/ErrorNotice';
 import { formatRelativeTime } from '../usePolling';
@@ -15,6 +23,7 @@ export function ListView({
   refreshToken,
   onRefreshed,
   onStale,
+  createdIssues,
 }: {
   filter: 'open' | 'closed' | 'all';
   onFilterChange: (next: 'open' | 'closed' | 'all') => void;
@@ -23,6 +32,7 @@ export function ListView({
   refreshToken: number;
   onRefreshed: (at: number) => void;
   onStale: (stale: boolean) => void;
+  createdIssues: IssueSummary[];
 }) {
   const [items, setItems] = useState<IssueSummary[]>([]);
   const [page, setPage] = useState(1);
@@ -65,6 +75,30 @@ export function ListView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter, refreshToken]);
 
+  const rows = useMemo(() => buildListRows(items, createdIssues), [items, createdIssues]);
+
+  // A request the user just made must not vanish because GitHub's list endpoint
+  // is still catching up. Re-read the list on a bounded backoff while any
+  // created request is unconfirmed, instead of making the user press Refresh.
+  const reconcileAttempt = useRef(0);
+  useEffect(() => {
+    if (!loadedOnce || items.length === 0) {
+      if (loadedOnce && !shouldRetryFor(createdIssues, items)) reconcileAttempt.current = 0;
+      return undefined;
+    }
+    if (!shouldRetryFor(createdIssues, items)) {
+      reconcileAttempt.current = 0;
+      return undefined;
+    }
+    if (reconcileAttempt.current >= MAX_RECONCILE_ATTEMPTS) return undefined;
+    const timer = setTimeout(() => {
+      reconcileAttempt.current += 1;
+      void load(1, 'replace');
+    }, retryDelayMs(reconcileAttempt.current));
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items, loadedOnce, createdIssues]);
+
   return (
     <div>
       <div className="toolbar">
@@ -86,7 +120,7 @@ export function ListView({
 
       <ErrorNotice error={error} onRetry={() => void load(1, 'replace')} />
 
-      {items.length === 0 && loadedOnce && !error ? (
+      {rows.length === 0 && loadedOnce && !error ? (
         <div className="empty">
           <p>No requests here yet.</p>
           <button type="button" className="primary" onClick={onNew}>
@@ -96,21 +130,31 @@ export function ListView({
       ) : null}
 
       <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-        {items.map((issue) => {
-          const status = deriveIssueStatus(issue);
+        {rows.map((row) => {
+          const status = deriveIssueStatus(row.issue);
           return (
-            <li key={issue.number} className="issue-row">
-              <button type="button" className="issue-title" onClick={() => onSelect(issue)}>
-                #{issue.number} {issue.title}
+            <li key={row.issue.number} className="issue-row">
+              <button type="button" className="issue-title" onClick={() => onSelect(row.issue)}>
+                #{row.issue.number} {row.issue.title}
               </button>
               <div className="meta">
                 <StatusBadge status={status} />
-                <span>updated {formatRelativeTime(issue.updated_at)}</span>
+                {row.kind === 'unconfirmed' ? (
+                  <span className="stale">{UNCONFIRMED_LABEL}</span>
+                ) : null}
+                <span>updated {formatRelativeTime(row.issue.updated_at)}</span>
               </div>
+              {row.kind === 'unconfirmed' ? <p className="note">{UNCONFIRMED_NOTE}</p> : null}
             </li>
           );
         })}
       </ul>
+
+      {rows.some((row) => row.kind === 'unconfirmed') ? (
+        <p className="note">
+          The list re-reads itself for a short while. If {UNCONFIRMED_LABEL.toLowerCase()} stays, press Refresh.
+        </p>
+      ) : null}
 
       {hasMore ? (
         <button type="button" onClick={() => void load(page + 1, 'append')} disabled={loading}>
@@ -118,6 +162,7 @@ export function ListView({
         </button>
       ) : null}
       {items.length > 0 && !hasMore ? <p className="note">End of list ({items.length} shown).</p> : null}
+      {/* Unconfirmed rows are appended to the server's list, so the count stays the server's. */}
     </div>
   );
 }

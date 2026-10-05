@@ -20,6 +20,8 @@ export function Panel({
   onBack,
   newDraft,
   onNewDraftChange,
+  createdIssues,
+  onCreated,
   replyDraft,
   onReplyDraftChange,
   refreshToken,
@@ -41,6 +43,8 @@ export function Panel({
   onBack: () => void;
   newDraft: { title: string; body: string };
   onNewDraftChange: (next: { title: string; body: string }) => void;
+  createdIssues: IssueSummary[];
+  onCreated: (issue: IssueSummary) => void;
   replyDraft: { title: string; body: string };
   onReplyDraftChange: (next: { title: string; body: string }) => void;
   refreshToken: number;
@@ -111,6 +115,7 @@ export function Panel({
               refreshToken={refreshToken}
               onRefreshed={onRefreshed}
               onStale={onStale}
+              createdIssues={createdIssues}
             />
           ) : null}
           {view.name === 'new' ? (
@@ -118,7 +123,12 @@ export function Panel({
               draft={newDraft}
               onDraftChange={onNewDraftChange}
               onCancel={onCancelNew}
-              onCreated={(issue) => onSelect(issue)}
+              onCreated={(issue) => {
+                // Record the confirmed create result before opening the detail
+                // view, so the list can reconcile if GitHub has not caught up.
+                onCreated(issue);
+                onSelect(issue);
+              }}
             />
           ) : null}
           {view.name === 'detail' ? (
