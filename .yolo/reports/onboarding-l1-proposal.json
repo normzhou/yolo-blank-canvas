@@ -5,7 +5,7 @@
     "revision": "811b996740d19face87c4f7b7dc0d741b84111d4",
     "sha256": "ea7504ab00bd5b7ef72bf931891243f69c7c52aa14cc4c70cbb2de338af0ebff"
   },
-  "revision": "PROPOSAL_COMMIT",
+  "revision": "b0cf4bbf06d7bcc0bafaae121d313662aa36009d",
   "default_revision": "520a81e8ec824b9ce31a7fbc8a8c08d152eb81ae",
   "from": "520a81e8ec824b9ce31a7fbc8a8c08d152eb81ae",
   "previous_report": null,
@@ -131,7 +131,7 @@
   ],
   "verification": [
     {
-      "revision": "PROPOSAL_COMMIT",
+      "revision": "b0cf4bbf06d7bcc0bafaae121d313662aa36009d",
       "result": "pass",
       "evidence": "npm test: 7 files / 64 tests passed; npx tsc --noEmit clean (Node v24.21.0, macOS). python3 .agents/skills/yolo/scripts/check.py reported factual_status=gaps, exit 1, which is expected before acceptance and is not qualification."
     }
