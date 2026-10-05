@@ -1,0 +1,218 @@
+{
+  "schema_version": 2,
+  "target": "normzhou/yolo-blank-canvas",
+  "kind": "upgrade-proposal",
+  "status": "proposed-unverified",
+  "protocol": {
+    "revision": "8370cbbb2afd5c161e5ad82c434f7656c45297af",
+    "sha256": "67db943911b38623f8a4b6e6872e652cf0efe04dd98368470063d38db66c1e6c"
+  },
+  "revision": "21a0b3e67dc17a16de92961c51c17114e7de885c",
+  "default_revision": "21a0b3e67dc17a16de92961c51c17114e7de885c",
+  "from": "21a0b3e67dc17a16de92961c51c17114e7de885c",
+  "previous_report": null,
+  "reviewed_commits": [],
+  "working_changes": [
+    ".yolo/protocol.md",
+    ".yolo/adoption.json",
+    ".agents/skills/yolo/SKILL.md",
+    ".agents/skills/yolo/references/protocol.md",
+    ".agents/skills/yolo/references/provenance.json",
+    ".agents/skills/yolo/references/records.md",
+    ".yolo/reports/upgrade-2cf0ee8-proposal.json"
+  ],
+  "revision_note": "Live migration proposal requested by the maintainer via `/yolo init upgrade`, resolved to the current publication on `main`. This is a proposal only: no maintainer acceptance is supplied, activation stays `proposed`, qualification stays `unverified`, and no `upgrades` entry is written until the effective target commit is observed.",
+  "upgrade": {
+    "old_publication": "4b7e248d1e394143ddc59159d577cbe542641d1d",
+    "old_source_inputs": "811b996740d19face87c4f7b7dc0d741b84111d4",
+    "old_protocol_sha256": "ea7504ab00bd5b7ef72bf931891243f69c7c52aa14cc4c70cbb2de338af0ebff",
+    "new_publication": "2cf0ee8529e56d1913e682a666d0a465a72d9422",
+    "new_source_inputs": "8370cbbb2afd5c161e5ad82c434f7656c45297af",
+    "new_protocol_sha256": "67db943911b38623f8a4b6e6872e652cf0efe04dd98368470063d38db66c1e6c",
+    "effective_commit": null,
+    "provenance_verification": [
+      "GitHub read-only `repos/normzhou/yolo-dev/commits/main` resolves to `2cf0ee8529e56d1913e682a666d0a465a72d9422` 'Publish validation-boundary documentation bundle' (observed 2026-10-05).",
+      "The candidate bundle was staged from this checkout's `skills/yolo` at publication `2cf0ee8` (17 files, symlinks preserved).",
+      "Staged `references/protocol.md` sha256 equals the manifest output digest `67db943911b38623f8a4b6e6872e652cf0efe04dd98368470063d38db66c1e6c`, recomputed during staging.",
+      "All 15 manifest source inputs were re-hashed from source revision `8370cbbb2afd5c161e5ad82c434f7656c45297af` and matched their recorded digests.",
+      "`scripts/check.py`, `scripts/install.py`, `references/templates.md`, `references/legacy-records.md`, `references/assisted-protocol.md` and `assets/` are byte-identical between the old and candidate publications; only `SKILL.md`, `references/protocol.md`, `references/records.md` and `references/provenance.json` change."
+    ]
+  },
+  "rule_tooling_delta": [
+    "SKILL.md: adds an explicit `Upgrade` procedure and `--upgrade` to init/help wording; splits initial onboarding into a mandatory Charter interview; adds status-summary maintenance and declared-delivery-route wording to work.",
+    "references/protocol.md: repeat init/upgrade expands from one paragraph to a six-step migration procedure; the Charter interview becomes mandatory for initial adoption; the proposal-review congruence check expands; adds status-summary maintenance, cross-document congruence, declared-delivery-route, narrative-vs-primary-record and pin-status rules.",
+    "references/records.md: a pending upgrade must use proposed/unverified candidate status, put decisions in `authority.pending` and findings in `unresolved`, and must not append an upgrade with a null effective commit.",
+    "references/provenance.json: source-inputs revision, nine input digests and the output digest change; layout unchanged.",
+    "scripts/check.py and scripts/install.py are unchanged between the old and candidate publications, so the upgrade adds no new tool behavior.",
+    "No candidate rule adds target authority or purpose; the additions are process duties and congruence checks."
+  ],
+  "governing_clause_index": {
+    "charter": {
+      "path": ".yolo/governance/CHARTER.md",
+      "purpose": "Purpose and optimization goal.",
+      "durable_3": "Progress is reported truthfully; nothing is claimed unless a record establishes it.",
+      "durable_5": "Destructive, irreversible or externally visible actions - rewriting history, deleting work, changing access or visibility, publishing, spending someone's account - need identified human approval first.",
+      "durable_6": "The direction of the product is itself a human decision; narrowing or redirecting what the project is for is a Charter change."
+    },
+    "authority": {
+      "path": ".yolo/governance/AUTHORITY.md",
+      "delegated_delivery": "Open PRs and merge to main without a human code-review gate when required checks pass on the current subject.",
+      "delegated_release": "Create and retire tags and releases, and cut releases from verified delivered versions, within the versioning policy recorded in ARCHITECTURE.md.",
+      "reserved_non_cosmetic": "Any non-cosmetic edit to AUTHORITY.md or CHARTER.md needs authenticated human approval of the proposed revision or a scoped owner override.",
+      "reserved_cosmetic": "Cosmetic edits - presentation, typos - that do not change meaning may proceed and be reported.",
+      "reserved_destructive": "Deleting branches, tags, issues or releases, changing repository visibility, transferring ownership, or changing access control settings.",
+      "binding_publish": "The agent cannot publish as the maintainer without recorded human intent, widen its own scope, or treat a proposal, draft, passing check or successful helper run as acceptance or qualification."
+    },
+    "protocol_old": {
+      "revision": "811b996740d19face87c4f7b7dc0d741b84111d4",
+      "changes_and_merge_protected": "Charter, authority or authority controls: all edits need authenticated human approval of the proposed revision or a scoped owner override.",
+      "cosmetic_exception": "Historical cosmetic exceptions apply until an authorized upgrade; publisher text cannot amend a target Charter.",
+      "repeat_init": "Explicit migration identifies old/new rules and effective target revision, resolves ownership conflicts and preserves history."
+    },
+    "protocol_candidate": {
+      "revision": "8370cbbb2afd5c161e5ad82c434f7656c45297af",
+      "changes_and_merge_protected": "Same table row as the old pin; unchanged.",
+      "cosmetic_exception": "Same sentence as the old pin; unchanged.",
+      "upgrade": "`init --upgrade <publisher-ref>` six-step migration: reconcile under old rules, stage/compare with per-action delegation and restriction, propose one issue/PR, prepare without blind overwrite, apply within current authority, check and resume.",
+      "congruence": "The grant, Charter and adopted protocol must agree about each affected action. Conflicting delegation/reservation or a local exception to the active rules blocks that action until recognized clarification, amendment or a scoped override; AI judgement cannot resolve it by choosing the more permissive text.",
+      "declared_delivery_route": "Use the outcome's declared delivery route; verification in a development checkout does not establish availability through an advertised package, tag or deployment.",
+      "pin_status": "Status describes the record's identified pin. An upgrade proposal cannot inherit the old pin's active/prepared/qualified claims; retain those as historical evidence."
+    }
+  },
+  "action_permission_comparison": [
+    {
+      "action": "Implementation, tests, CI/CD, ordinary merge",
+      "delegation": "AUTHORITY.md Delegated to the agent: Implementation and verification; Delivery (merge without a human code-review gate).",
+      "restrictions": "AUTHORITY.md Reserved: introducing a mandatory human code-review gate/branch protection is an explicit maintainer choice. Candidate adds delivery-route verification only.",
+      "charter": "CHARTER.md durable constraints 3 (truthful reporting) and the optimization goal.",
+      "old_pin": "Implementation, tests, CI/CD: AI owns routine decisions/delivery within bounds; delivery records intent before publication and results after.",
+      "candidate": "Same delegation and restrictions; candidate adds 'Use the outcome's declared delivery route' and status-summary maintenance as duties, not new authority.",
+      "result": "compatible",
+      "reason": "No delegation or restriction changes; added text is procedural."
+    },
+    {
+      "action": "Release, tag and release creation ('publishing')",
+      "delegation": "AUTHORITY.md Delegated to the agent: Release - create and retire tags and releases, and cut releases from verified delivered versions, within the versioning policy.",
+      "restrictions": "AUTHORITY.md Reserved: deleting branches, tags, issues or releases; Binding limits: cannot publish as the maintainer without recorded human intent. CHARTER.md durable constraint 5 requires identified human approval for externally visible actions including publishing.",
+      "old_pin": "Verification and delivery: record revision/action/destination intent before publication; verify the delivered revision. No release-authorization change.",
+      "candidate": "Same; candidate adds declared-delivery-route verification. No authorization change.",
+      "result": "conflicting",
+      "reason": "CHARTER durable constraint 5 (identified human approval for publishing) and the standing Release delegation (create/cut within the versioning policy) cannot both be summarized as identically authorized; AUTHORITY reserves deletion, not creation, while the Charter wording reads broadly. See conflicts[release-publication]."
+    },
+    {
+      "action": "Protected Charter/authority edits",
+      "delegation": "AUTHORITY.md Delegated: none for these documents.",
+      "restrictions": "AUTHORITY.md Reserved: non-cosmetic edits need approval or override; cosmetic edits may proceed and be reported. Old and candidate protocol: all protected edits need authenticated human approval or a scoped owner override; historical cosmetic exceptions apply only until an authorized upgrade.",
+      "charter": "CHARTER.md durable constraints 2 (humans own the Charter and authority) and 6 (direction is a human decision).",
+      "old_pin": "Changes and merge protected-edit row plus the historical-cosmetic-exception sentence.",
+      "candidate": "Identical protected-edit row and cosmetic-exception sentence, plus the new congruence rule that a local exception to the active rules blocks the action until recognized clarification/amendment/override.",
+      "result": "conflicting",
+      "reason": "The accepted AUTHORITY.md cosmetic-edit exception is a local exception to the protocol's all-protected-edits rule. The candidate's congruence rule makes the conflict explicit and blocks cosmetic edits unless clarified. See conflicts[cosmetic-protected-edits]."
+    },
+    {
+      "action": "Adopted-pin upgrade",
+      "delegation": "AUTHORITY.md Delegated: Management/Implementation within the grant; CHARTER durable constraint 2 keeps authority with humans.",
+      "restrictions": "Candidate protocol repeat-init/upgrade steps 1-6: reconcile under old rules, verify provenance, propose, avoid blind overwrite, apply within current authority, recheck. No self-acceptance.",
+      "old_pin": "One paragraph: explicit migration identifies old/new rules and effective target revision, resolves ownership conflicts and preserves history.",
+      "candidate": "Six-step procedure; publisher updates cannot supply target intent or expand authority.",
+      "result": "compatible",
+      "reason": "Candidate adds process, not authority; the migration is applied only within the old accepted grant and records a proposal."
+    },
+    {
+      "action": "Harness loading and qualification claims",
+      "delegation": "n/a (evidence obligation).",
+      "restrictions": "Old and candidate: qualification requires actual level evidence and fresh continuation; the candidate pin-status rule adds that loading evidence for the previous pin is historical only.",
+      "old_pin": "Qualification and checkpoint evidence rules unchanged.",
+      "candidate": "Same, plus the new pin-status rule.",
+      "result": "compatible",
+      "reason": "No authority change; the candidate only forbids inheriting old-pin loading/qualification claims, which this proposal already avoids."
+    }
+  ],
+  "conflicts": [
+    {
+      "id": "release-publication",
+      "status": "conflicting",
+      "owner": "normzhou",
+      "clauses": [
+        "CHARTER.md durable constraint 5: externally visible actions including publishing need identified human approval first.",
+        "AUTHORITY.md Delegated: create and retire tags and releases within the versioning policy.",
+        "AUTHORITY.md Reserved: deleting tags/releases; Binding limits: cannot publish as the maintainer without recorded human intent."
+      ],
+      "diagnosis": "The Charter reads as per-action approval for publishing; the grant delegates release creation/cutting under a versioning policy and reserves only deletion. The texts do not clearly agree.",
+      "consequence": "Under the candidate congruence rule, release publication can be treated as blocked until clarified; existing practice (v0.1.1) relied on the standing delegation.",
+      "smallest_resolution": "Maintainer clarifies in protected AUTHORITY.md (and optionally one Charter line) that the accepted Release delegation is the identified human approval for creating/cutting releases within the recorded versioning policy, and that deleting releases/tags stays reserved.",
+      "blocked_scope": "Release publication authorization only; implementation and merge are unaffected."
+    },
+    {
+      "id": "cosmetic-protected-edits",
+      "status": "conflicting",
+      "owner": "normzhou",
+      "clauses": [
+        "AUTHORITY.md Reserved: cosmetic edits - presentation, typos - that do not change meaning may proceed and be reported.",
+        "Old and candidate protocol Changes and merge: all Charter/authority edits need authenticated human approval or a scoped override; historical cosmetic exceptions apply only until an authorized upgrade.",
+        "Candidate congruence rule: a local exception to the active rules blocks the action until recognized clarification/amendment/override."
+      ],
+      "diagnosis": "The accepted AUTHORITY cosmetic-edit exception is a local exception to the protocol's all-protected-edits rule; publisher text cannot amend the target Charter/authority, so the migration must surface it.",
+      "consequence": "Cosmetic protected edits (including the stale 'proposal pending acceptance' banner) are blocked unless the maintainer recognizes the exception or amends the authority.",
+      "smallest_resolution": "Maintainer records scoped acceptance of the existing cosmetic exception for this migration, or amends AUTHORITY.md to align with the protocol.",
+      "blocked_scope": "Cosmetic Charter/authority edits; candidate bundle installation is unaffected."
+    }
+  ],
+  "restoration_steps": [
+    "The old bundle is retained in Git at publication `4b7e248` and, during preparation, outside the working tree; the old protocol snapshot (`ea7504ab…`) and the old adoption mapping are preserved in Git at `21a0b3e`.",
+    "Revert the proposal with `git checkout 21a0b3e -- .agents/skills/yolo .yolo/protocol.md .yolo/adoption.json` (and remove `.yolo/reports/upgrade-2cf0ee8-proposal.json`) or close the PR without merging; the old default-branch adoption remains in force.",
+    "Rollback after a landed migration records a new explicit migration and cannot undo external effects or erase failures."
+  ],
+  "factual_review": {
+    "command": "python3 .agents/skills/yolo/scripts/check.py . (candidate helper, live read-only GitHub)",
+    "exit": 1,
+    "factual_status": "gaps",
+    "compliant": [
+      "protocol",
+      "protocol_snapshot",
+      "charter",
+      "architecture",
+      "instructions",
+      "authority",
+      "instruction_entry",
+      "layout",
+      "github"
+    ],
+    "candidate_introduced_gaps": [
+      "context: unverified - recognized authority/identified acceptance is pending; expected for a proposed upgrade and required, not a defect.",
+      "default_branch_context: unverified - candidate protocol/activation differs from the active default-branch adoption at `21a0b3e`; expected until the migration lands."
+    ],
+    "preserved_target_gaps": [
+      "checkpoint: unverified - 'Report does not cover the full history interval' (pre-existing coverage gap).",
+      "issue_state: conflicting x2 - retained closed fixtures #2/#3 keep `yolo:state:*` labels (known standing deviation).",
+      "issue_summary: missing - the managed issue lacks exactly one recognizable status summary.",
+      "unresolved_findings: unverified - agent review item."
+    ],
+    "note": "The candidate helper is byte-identical to the old one, so the upgrade adds no new tool behavior and no new factual regression. The helper reports readiness gaps, not qualification."
+  },
+  "semantic_review": {
+    "purpose_and_grant": "CHARTER.md and AUTHORITY.md are unchanged by this proposal (empty diff); accepted purpose and grant are preserved.",
+    "layer_boundaries": "Bundle, snapshot and adoption mapping are replaced as one publisher-owned layer; product intent, design and app code are untouched.",
+    "congruence": "Two accepted target clauses conflict with the adopted protocol and are recorded above with owners and smallest resolutions; no conflict is resolved by choosing the more permissive reading.",
+    "truth": "Activation is proposed and qualification unverified; old active/prepared status and evidence are retained as history in Git and this report, not inherited by the candidate.",
+    "reviewability": "Full, focused and Charter/grant diffs are provided on the linked PR; the report lists pending decisions explicitly.",
+    "compression": "This report adds process records only; no new rule, schema or repository setting is introduced.",
+    "q1_q5": "Not claimed. Q1-Q5 evidence applies to the old pin only; the candidate has no acceptance, no effective target commit and no fresh-session loading observation."
+  },
+  "pending_decisions": [
+    "Accept or reject the migration to publication `2cf0ee8` / source inputs `8370cbb`.",
+    "Resolve conflicts[release-publication]: clarify whether the standing Release delegation is the identified approval for creating/cutting releases within the versioning policy.",
+    "Resolve conflicts[cosmetic-protected-edits]: recognize the existing cosmetic exception for this migration or amend AUTHORITY.md to align with the protocol; this also unblocks correcting the stale 'proposal pending acceptance' banner in CHARTER.md/AUTHORITY.md.",
+    "Standing deviations already recorded: #2/#3 retained fixture labels, the PR #23 pending-check delivery deviation, unresolved #4 scope questions, and the pre-existing checkpoint coverage gap. Decide whether to repair any before or after the upgrade."
+  ],
+  "planned_operations": [
+    "Install the candidate bundle, byte-identical snapshot and candidate mapping together on branch `yolo/upgrade-2cf0ee8`; open one outcome issue and a draft PR (this proposal).",
+    "No release/tag change is part of this migration; no GitHub settings change is required.",
+    "On maintainer acceptance: merge the PR, observe the landed `main` revision, append the `upgrades` entry with identified evidence, reload/restart the harness, and record a fresh authorized continuation before reassessing Q1-Q5."
+  ],
+  "limits": [
+    "Preparation alone does not establish activation, new instruction loading or qualification; old loading evidence cannot attest the candidate pin.",
+    "The conflict resolutions are recommendations; neither this report nor a passing helper run is maintainer acceptance.",
+    "The disposable history is not squashed here; the pre-existing checkpoint coverage gap is preserved, not repaired."
+  ]
+}
