@@ -89,6 +89,28 @@ Deterministic coverage of the same contract: `test/list-reconciliation.test.ts` 
 
 Also observed in the browser during this work, filed as [#22](https://github.com/normzhou/yolo-blank-canvas/issues/22): the list blanks briefly on each background refresh because the list effect clears items before every load.
 
+## List refresh keeps the visible rows (issue #22)
+
+Browser-driven against the real app (headless Chrome over CDP from a scratch profile; `puppeteer-core`
+installed outside the checkout, so the project itself adds no dependency). The list endpoint was
+intercepted and delayed by 3s so the response was observably in flight while the refresh happened.
+The panel was opened, the list was scrolled to a known offset, and the visible rows, empty state and
+scroll offset were sampled every 250ms for 5s.
+
+| Step | Candidate `e39b750` (fix) | Baseline `d8875e0` (pre-fix) |
+| --- | --- | --- |
+| Rows before refresh | 2 | 2 |
+| Minimum rows during a manual Refresh | 2 | 2 |
+| Minimum rows during a background refresh | 2 | 0 — list blanked |
+| Empty state rendered during refresh | no | no |
+| Scroll offset before → after background refresh | 40 → 40 | 40 → 0 |
+| Console errors | none | none |
+
+The control run against the pre-fix revision fails the same checks, so the browser observation
+distinguishes the bug from the fix rather than merely passing.
+
+Deterministic coverage of the same contract: `test/list-refresh.test.ts` (5 cases).
+
 ## Cleanup
 
 Integration issues [#1](https://github.com/normzhou/yolo-blank-canvas/issues/1), [#2](https://github.com/normzhou/yolo-blank-canvas/issues/2), and [#3](https://github.com/normzhou/yolo-blank-canvas/issues/3) were closed after the checks; their comments and labels were left in place as the evidence trail. GitHub CLI credentials were untouched by the app throughout (verified by `gh api user` after the session ended).
