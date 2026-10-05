@@ -107,15 +107,14 @@
     "source": [
       "Repository owner policy of normzhou/yolo-blank-canvas, observed at onboarding: normzhou is the sole account with admin and push. No team or CODEOWNERS policy exists."
     ],
-    "acceptance": [],
-    "pending": [
-      "Maintainer acceptance of the identified Charter/grant revision is absent; .yolo/governance/AUTHORITY.md remains a proposal, not a grant.",
-      "Maintainer-directed revision b (2026-10-05): Charter reframed around an empty canvas whose users set direction, YOLO Dev as method rather than product, product non-goals deliberately NOT fixed in the Charter; grant aligned to the methodology (merge without human code gate, no branch protection, agent-owned CI/release/upstream feedback), watermark convention for agent-created content recorded. These revisions await acceptance."
-    ]
+    "acceptance": [
+      "Issue #6 comment recording maintainer normzhou's acceptance of revision bf5cd3806b6228164db9a8cca80d7b414be789e1 (session 01a10ab0-bdac-76d7-bd0a-729ba1945ea8), authenticated on GitHub on 2026-10-05. https://github.com/normzhou/yolo-blank-canvas/issues/6"
+    ],
+    "pending": []
   },
   "harness": {
-    "name": "pi coding agent (harness name/version to be recorded in the onboarding report)",
-    "version": "unverified",
+    "name": "pi coding agent",
+    "version": "1.0.1",
     "instructions": [
       "AGENTS.md",
       "CLAUDE.md",
@@ -124,7 +123,8 @@
     "skill": {
       "path": ".agents/skills/yolo",
       "revision": "4b7e248d1e394143ddc59159d577cbe542641d1d"
-    }
+    },
+    "gap": "Fresh-session instruction loading is not yet observed; see unresolved."
   },
   "verification": {
     "checks": [
@@ -144,19 +144,22 @@
     ]
   },
   "activation": {
-    "state": "proposed",
-    "evidence": []
+    "state": "active",
+    "evidence": [
+      "Issue #6 comment recording maintainer normzhou's acceptance of revision bf5cd3806b6228164db9a8cca80d7b414be789e1 (session 01a10ab0-bdac-76d7-bd0a-729ba1945ea8), authenticated on GitHub on 2026-10-05. https://github.com/normzhou/yolo-blank-canvas/issues/6",
+      "Reserved labels observed present on 2026-10-05 including yolo:state:deferred created under the accepted grant.",
+      "Setup published and observed on main; see checkpoint."
+    ]
   },
   "adopted_at": "520a81e8ec824b9ce31a7fbc8a8c08d152eb81ae",
   "upgrades": [],
   "checkpoint": null,
   "unresolved": [
-    "Maintainer acceptance of the revised Charter/AUTHORITY revision is required before activation; see onboarding issue #6.",
-    "Harness version is recorded (pi coding agent 1.0.1) but fresh-session instruction loading is unobserved.",
-    "No GitHub Actions workflow exists; adding a real one is authorized ordinary work pending activation.",
-    "Reserved label yolo:state:deferred is absent; creation is authorized ordinary work pending activation.",
-    "Closed integration fixtures #2 and #3 retain yolo:state:* labels by deliberate decision to preserve the evidence cited in docs/verification.md; recorded as a cited deviation, not silently repaired.",
-    "No pull request has ever existed in this repository, so the YOLO status summary on #2 cites a nonexistent PR; pre-adoption evidence with a known inaccuracy."
+    "Fresh-session instruction loading is unobserved; Q5 pending a new authorized session in this checkout.",
+    "No GitHub Actions workflow yet; tracked as admitted work.",
+    "No pull request had ever existed in this repository before adoption, so the YOLO status summary on #2 cites a nonexistent PR; retained as pre-adoption evidence with a known inaccuracy.",
+    "Closed fixtures #2 and #3 retain yolo:state:* labels as a deliberate, cited deviation that preserves the evidence docs/verification.md depends on.",
+    "Live gaps from docs/verification.md remain open: first-login path, missing-gh path, browser-open behaviour, multi-page pagination, mid-session auth loss, --repo against a second repository."
   ],
   "qualification": {
     "level": 1,
