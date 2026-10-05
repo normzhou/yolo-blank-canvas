@@ -118,6 +118,17 @@ There is no app configuration file, client ID, or secret. Options are launch fla
 
 See [docs/verification.md](docs/verification.md) for the commands run, results, tested revision, and open gaps.
 
+## Governance
+
+This repository is adopted under the YOLO Dev protocol at **L1 Assisted** (proposal pending
+maintainer acceptance). Ordinary agent work starts from [AGENTS.md](AGENTS.md).
+
+- [Charter](.yolo/governance/CHARTER.md) — purpose, audience, durable boundaries
+- [Authority](.yolo/governance/AUTHORITY.md) — recognized maintainers, grant, reserved decisions
+- [Architecture](.yolo/governance/ARCHITECTURE.md) — intended design and verification/delivery route
+- [Status presentation spec](.yolo/governance/specs/status-presentation.md)
+- [Adopted protocol](.yolo/protocol.md) and [adoption record](.yolo/adoption.json)
+
 ## License
 
 MIT

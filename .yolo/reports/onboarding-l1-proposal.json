@@ -1,0 +1,191 @@
+{
+  "schema_version": 2,
+  "target": "normzhou/yolo-blank-canvas",
+  "protocol": {
+    "revision": "811b996740d19face87c4f7b7dc0d741b84111d4",
+    "sha256": "ea7504ab00bd5b7ef72bf931891243f69c7c52aa14cc4c70cbb2de338af0ebff"
+  },
+  "revision": "b0cf4bbf06d7bcc0bafaae121d313662aa36009d",
+  "default_revision": "520a81e8ec824b9ce31a7fbc8a8c08d152eb81ae",
+  "from": "520a81e8ec824b9ce31a7fbc8a8c08d152eb81ae",
+  "previous_report": null,
+  "reviewed_commits": [],
+  "working_changes": [
+    "README.md",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "GEMINI.md",
+    ".agents/skills/yolo/**",
+    ".claude/skills/yolo",
+    ".gemini/commands/yolo.toml",
+    ".opencode/commands/yolo.md",
+    ".pi/prompts/yolo.md",
+    ".yolo/**"
+  ],
+  "harness": {
+    "name": "pi coding agent",
+    "version": "1.0.1",
+    "loading_evidence": [
+      "Installer reported harness_support: requires observed fresh-session verification",
+      "Shared bundle and command bindings installed at .agents/skills/yolo/ with all repo-local bindings committed together",
+      "AGENTS.md created as the ordinary instruction entrypoint; CLAUDE.md and GEMINI.md import it",
+      "Actual fresh-session loading of AGENTS.md/.agents/skills/yolo is UNVERIFIED until a new session runs in this checkout"
+    ]
+  },
+  "github": [
+    "2026-10-05: default branch main at 520a81e; branch protection disabled; 0 rulesets; 0 GitHub Actions workflows",
+    "2026-10-05: labels present: yolo:work, yolo:state:active, yolo:state:queued, yolo:state:waiting; yolo:state:deferred ABSENT; unrelated default labels preserved",
+    "2026-10-05: closed issues #2 (yolo:work + yolo:state:active) and #3 (yolo:work + queued + waiting) retain state labels after closure",
+    "2026-10-05: no pull requests have ever existed in this repository; issue #2 summary comment references pull/1, which does not exist",
+    "2026-10-05: sole account with admin/push is normzhou; no team or CODEOWNERS policy",
+    "2026-10-05: open unmanaged requests #4 (Tetris) and #5 (list not refreshed after creating a request)",
+    "2026-10-05: no separate agent identity exists; all writes post as normzhou, which is why the yolo watermark convention was adopted"
+  ],
+  "findings": [
+    {
+      "rule": "authority",
+      "status": "unverified",
+      "evidence": [
+        ".yolo/governance/AUTHORITY.md",
+        "#6"
+      ],
+      "detail": "No recognized acceptance of the revised Charter/grant exists. Maintainer direction on 2026-10-05 reframed the Charter (empty canvas whose users set direction; YOLO Dev as method, not product; product non-goals deliberately left open) and aligned the grant to the methodology, including a watermark convention for agent-created content. Cause: init proposes, humans accept. Impact: activation blocked; adoption stays state=proposed, qualification=unverified. Remedy: maintainer accepts the identified revision in issue #6, then Apply runs."
+    },
+    {
+      "rule": "issues",
+      "status": "unverified",
+      "evidence": [
+        "https://github.com/normzhou/yolo-blank-canvas/labels"
+      ],
+      "detail": "Reserved label yolo:state:deferred is absent. Cause: never created. Impact: the Postponed state cannot be represented; the app's own status contract cannot be fully exercised. Remedy: AI-maintained label creation, proposed as part of Apply after acceptance."
+    },
+    {
+      "rule": "issues",
+      "status": "recorded",
+      "evidence": [
+        "https://github.com/normzhou/yolo-blank-canvas/issues/2",
+        "https://github.com/normzhou/yolo-blank-canvas/issues/3",
+        "docs/verification.md"
+      ],
+      "detail": "DECIDED under the grant's judgement clause: closed fixtures #2 and #3 retain yolo:state:* labels. Their purpose is to exercise the 'Status needs reconciliation' display that docs/verification.md cites as evidence; relabelling would destroy that trail. Retained deliberately as a cited deviation from the reserved-state rule, visible rather than repaired. Re-verify if a future request changes the display contract."
+    },
+    {
+      "rule": "issues",
+      "status": "unverified",
+      "evidence": [
+        "https://github.com/normzhou/yolo-blank-canvas/issues/2#issuecomment-5974369089"
+      ],
+      "detail": "The YOLO status summary on #2 cites PR #1, which does not exist; no pull request has ever been opened here. Cause: the comment was hand-written during live verification. Impact: the summary demonstrates the format but not a real PR link. Remedy: treat as pre-adoption evidence with a known inaccuracy, not as delivery evidence."
+    },
+    {
+      "rule": "verification",
+      "status": "unverified",
+      "evidence": [
+        ".yolo/governance/ARCHITECTURE.md",
+        "docs/verification.md"
+      ],
+      "detail": "DECIDED under the grant's judgement clause: add a real GitHub Actions workflow (npm test + npx tsc --noEmit on push and pull request) as ordinary work after activation. A placeholder job remains unacceptable. Until it exists, L1 evidence is harness-run and cited from docs/verification.md."
+    },
+    {
+      "rule": "continuity",
+      "status": "unverified",
+      "evidence": [
+        ".yolo/adoption.json"
+      ],
+      "detail": "Harness version and fresh-session instruction loading are unverified; the adoption record leaves them explicitly open. Cause: this session is the installing session. Impact: Q1/Q5 cannot pass yet. Remedy: observe a fresh authorized session in this checkout and record the evidence."
+    },
+    {
+      "rule": "ownership",
+      "status": "compliant",
+      "evidence": [
+        ".yolo/governance/AUTHORITY.md",
+        "gh api repos/normzhou/yolo-blank-canvas"
+      ],
+      "detail": "Recognized maintainer evidence is direct: normzhou is the sole account with admin and push. No agent-supplied approver, and no grant has been self-certified."
+    },
+    {
+      "rule": "layout",
+      "status": "compliant",
+      "evidence": [
+        ".yolo/"
+      ],
+      "detail": ".yolo/ contains only protocol.md, adoption.json, governance/ and reports/; governing roles use canonical slots; the shared bundle and bindings stay outside .yolo/; README links the governing documents."
+    },
+    {
+      "rule": "verification",
+      "status": "compliant",
+      "evidence": [
+        "npm test",
+        "npx tsc --noEmit"
+      ],
+      "detail": "Deterministic checks were re-run on the proposal subject and passed: 7 files / 64 tests, tsc clean, Node v24.21.0."
+    },
+    {
+      "rule": "architecture",
+      "status": "compliant",
+      "evidence": [
+        ".yolo/governance/ARCHITECTURE.md",
+        ".yolo/governance/specs/status-presentation.md"
+      ],
+      "detail": "Architecture describes the smallest intended design and names the discrepancies (no CI, unexercised live paths) rather than ratifying them."
+    },
+    {
+      "rule": "authority",
+      "status": "unverified",
+      "evidence": [
+        ".yolo/governance/AUTHORITY.md#agent-identity-and-watermark",
+        "AGENTS.md"
+      ],
+      "detail": "Agent-authored commits, PRs and issues post under the maintainer's account because the method and app reuse one authenticated gh session. DECIDED: agent-created content carries a 'yolo' watermark (PR title prefix plus visible footer and HTML marker naming the outcome issue), recorded in the authority document and AGENTS.md. Cause: no separate agent identity exists in the adopted methodology. Impact: without the watermark, human and agent action are indistinguishable in the record. Limit: the watermark is a recognition aid only; it neither authenticates the maintainer nor proves authority, and it may change with later YOLO Dev revisions."
+    }
+  ],
+  "verification": [
+    {
+      "revision": "b0cf4bbf06d7bcc0bafaae121d313662aa36009d",
+      "result": "pass",
+      "evidence": "npm test: 7 files / 64 tests passed; npx tsc --noEmit clean (Node v24.21.0, macOS). python3 .agents/skills/yolo/scripts/check.py reported factual_status=gaps, exit 1, which is expected before acceptance and is not qualification."
+    }
+  ],
+  "qualification": {
+    "level": 1,
+    "criteria": [
+      {
+        "id": "Q1",
+        "verdict": "unverified",
+        "reason": "Protocol snapshot and governance documents are installed and digest-verified, but acceptance is pending, yolo:state:deferred is absent and fresh-session loading is unobserved.",
+        "evidence": [
+          ".yolo/adoption.json"
+        ]
+      },
+      {
+        "id": "Q2",
+        "verdict": "unverified",
+        "reason": "No outcome has been admitted and executed under an accepted grant; the grant itself is a proposal.",
+        "evidence": [
+          ".yolo/governance/AUTHORITY.md"
+        ]
+      },
+      {
+        "id": "Q3",
+        "verdict": "unverified",
+        "reason": "Semantic review above is recorded with cited resolutions pending maintainer decisions; nothing to advance yet.",
+        "evidence": [
+          ".yolo/reports/"
+        ]
+      },
+      {
+        "id": "Q4",
+        "verdict": "unverified",
+        "reason": "No delivery has occurred under adoption.",
+        "evidence": []
+      },
+      {
+        "id": "Q5",
+        "verdict": "unverified",
+        "reason": "No fresh continuation has been observed.",
+        "evidence": []
+      }
+    ]
+  },
+  "next": "Maintainer accepts or amends the revised Charter/AUTHORITY revision in issue #6 and draft PR #7, and answers the two remaining operational questions (admit open requests #4 and #5 under the new user-driven charter; confirm the watermark convention is wanted in app-filed issues too). On acceptance: apply (create yolo:state:deferred, add real CI, record harness identity), set activation=active with cited acceptance, publish the checkpoint report, merge, then work one real outcome end to end and observe a fresh session for Q1-Q5."
+}
