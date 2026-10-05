@@ -109,6 +109,14 @@ scroll offset were sampled every 250ms for 5s.
 The control run against the pre-fix revision fails the same checks, so the browser observation
 distinguishes the bug from the fix rather than merely passing.
 
+Delivered and re-verified after merge:
+
+| Step | Result |
+| --- | --- |
+| Delivered revision | `0c8038f` (squash merge of PR #26); `GET /api/version` on it reports build `e39b750` |
+| Acceptance re-run on the delivered revision | Same PASS table above (2 rows kept, scroll 40 → 40, no console errors) |
+| Released artifact `npx --yes github:normzhou/yolo-blank-canvas#v0.1.1` | Serves build `e39b750`; the browser check passes against the installed copy |
+
 Deterministic coverage of the same contract: `test/list-refresh.test.ts` (5 cases).
 
 ## Cleanup
@@ -126,4 +134,9 @@ Integration issues [#1](https://github.com/normzhou/yolo-blank-canvas/issues/1),
 
 ## Tested revision
 
-Source revision `3b507ee` ("Add README and verification record"); release tag `v0.1.0` points at the follow-up commit that carries the assets built from that source (`dist/client/.build-id` and `server/build-id.generated.js` both report `3b507ee…`). The build ID identifies the source revision the running assets were produced from; the assets-only commit follows it, which is the usual ordering for a committed build output.
+Source revision `e39b750` ("Keep list rows visible across a background refresh"); release tag
+`v0.1.1` points at the squash merge `0c8038f` that carries that source together with the assets
+built from it (`dist/client/.build-id` and `server/build-id.generated.js` both report `e39b750…`,
+and `GET /api/version` on the release reports the same). The build ID identifies the source revision
+the running assets were produced from. The earlier `v0.1.0` tag followed the separate source/assets
+ordering described in this section's history.

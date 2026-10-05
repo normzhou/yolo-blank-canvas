@@ -1,0 +1,183 @@
+{
+  "schema_version": 2,
+  "target": "normzhou/yolo-blank-canvas",
+  "protocol": {
+    "revision": "811b996740d19face87c4f7b7dc0d741b84111d4",
+    "sha256": "ea7504ab00bd5b7ef72bf931891243f69c7c52aa14cc4c70cbb2de338af0ebff"
+  },
+  "revision": "0c8038f164bd2a744780d7d2913a00b8bfb593a9",
+  "default_revision": "0c8038f164bd2a744780d7d2913a00b8bfb593a9",
+  "from": "b4d07db78f89c386b4ed05e715fe72b54bf0d5b9",
+  "previous_report": ".yolo/reports/delivery-2026-10-05-5.json",
+  "reviewed_commits": [
+    "404cd543e8c38087b2756d3cfced249fd9c37bc3",
+    "d8875e0c5df6ede17afb6b10e5cf0e77da2f4f08",
+    "0c8038f164bd2a744780d7d2913a00b8bfb593a9",
+    "6baeaec85faba1aaca8b4e6e862b8560b774407e"
+  ],
+  "working_changes": [],
+  "harness": {
+    "name": "pi coding agent",
+    "version": "1.0.1",
+    "loading_evidence": [
+      "Fresh authorized session 01a10cc7-ef06-76d7-bd0a-729d0b008133, started by the maintainer with the /yolo binding. The harness loaded the ordinary project instructions (AGENTS.md, CLAUDE.md, GEMINI.md) at session start, and the binding forwarded the 'work' activity to the shared skill.",
+      "The session reconciled shared work without rebriefing: it read .yolo/adoption.json, the pinned protocol and AUTHORITY.md, listed the open managed issues, and selected the already-queued outcome #22 as the next action, leaving #4 waiting.",
+      "The full work procedure was followed: reconcile, plan/admit within the grant, execute through a watermarked PR referencing #22, verify the delivered revision and released artifact, release, record.",
+      "Session transcript retained at /Users/normzhou/pi-sessions/sessions/2026-10-05T16-01-46-671Z_01a10cc7-ef06-76d7-bd0a-729d0b008133.jsonl"
+    ]
+  },
+  "github": [
+    "2026-10-05: #22 admitted active from queued, executed and delivered via PR #26 (source e39b750, assets+docs in the squash merge 0c8038f).",
+    "2026-10-05: required check 'Test and type check' passed on the PR #26 head 0145fd0 and again on main 0c8038f (runs 37340047370 and the push run).",
+    "2026-10-05: patch release v0.1.1 created from 0c8038f; GET /api/version reports build e39b750.",
+    "2026-10-05: #4 unchanged, still waiting on requester answers; no new requests arrived during the interval.",
+    "2026-10-05: closed fixtures #2 and #3 keep their yolo:state:* labels; check.py still reports issue_state: conflicting (retained deliberately)."
+  ],
+  "findings": [
+    {
+      "rule": "delivery",
+      "status": "resolved",
+      "evidence": [
+        "https://github.com/normzhou/yolo-blank-canvas/pull/26",
+        "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.1.1"
+      ],
+      "detail": "RESOLVED. #22's acceptance passes on the delivered revision 0c8038f and on the artifact users receive (npx tag v0.1.1, build e39b750): a background reflection keeps the two visible rows and scroll offset 40, with no console errors. A control run against the pre-fix revision d8875e0 under the same script blanked to zero rows and lost scroll, so the observation discriminates the bug from the fix."
+    },
+    {
+      "rule": "verification",
+      "status": "resolved",
+      "evidence": [
+        "test/list-refresh.test.ts",
+        "docs/verification.md"
+      ],
+      "detail": "RESOLVED. The refresh contract is covered deterministically by 5 new cases (77 tests total), and the browser procedure, the pre-fix control result and the release re-check are recorded in docs/verification.md."
+    },
+    {
+      "rule": "continuity",
+      "status": "resolved",
+      "evidence": [
+        "session 01a10cc7-ef06-76d7-bd0a-729d0b008133",
+        ".yolo/adoption.json"
+      ],
+      "detail": "RESOLVED for the Q1/Q5 question. The prior checkpoint's open item \u2014 no independent fresh session had loaded the local rules and reconciled shared work \u2014 is now observed: this session loaded the ordinary instructions and the shared skill, reconciled the queued outcomes and executed #22 without settled-intent rebriefing. Qualification status itself stays 'prepared' only because the standing #2/#3 label deviation below remains an unresolved conformance finding."
+    },
+    {
+      "rule": "issues",
+      "status": "recorded",
+      "evidence": [
+        "https://github.com/normzhou/yolo-blank-canvas/issues/22",
+        "https://github.com/normzhou/yolo-blank-canvas/pull/26"
+      ],
+      "detail": "RESOLVED AS WORK, retained as history. #22 was interpreted from its queued summary, admitted active, implemented, verified, delivered in PR #26 and released as v0.1.1. The summary comment is updated with the delivered revision, release and limits before closure."
+    },
+    {
+      "rule": "issues",
+      "status": "recorded",
+      "evidence": [
+        "https://github.com/normzhou/yolo-blank-canvas/issues/4"
+      ],
+      "detail": "UNCHANGED. #4 (Tetris) remains waiting on the requester's answers to the recorded scope questions; no invented acceptance and no implementation. Queue order is still not a schedule."
+    },
+    {
+      "rule": "github",
+      "status": "recorded",
+      "evidence": [
+        "https://github.com/normzhou/yolo-blank-canvas/issues/2",
+        "https://github.com/normzhou/yolo-blank-canvas/issues/3"
+      ],
+      "detail": "STANDING DEVIATION, unchanged. Closed fixtures #2 and #3 retain yolo:state:* labels, so check.py keeps reporting issue_state: conflicting. Retained because the labels are the live evidence docs/verification.md cites; deleting them would destroy the trail. Maintainer has still not ruled; this is why qualification remains 'prepared' rather than 'qualified'."
+    },
+    {
+      "rule": "delivery",
+      "status": "recorded",
+      "evidence": [
+        "https://github.com/normzhou/yolo-blank-canvas/pull/23"
+      ],
+      "detail": "PRIOR AGENT PROCESS DEVIATION, retained. PR #23 was merged on a pending required check. No new occurrence in this interval: PR #26 waited for a terminal passing 'Test and type check' on its current head before merge, and the release follows a passing check on main."
+    },
+    {
+      "rule": "ownership",
+      "status": "compliant",
+      "evidence": [
+        "https://github.com/normzhou/yolo-blank-canvas/issues/22",
+        ".yolo/governance/AUTHORITY.md"
+      ],
+      "detail": "Congruent. The outcome was ordinary implementation with no reserved decision; no Charter or Authority edit; every created artifact carries the yolo watermark; priority and queueing were the agent's within the grant, and the release is a patch release, which the accepted versioning policy permits after delivered acceptance passes."
+    }
+  ],
+  "verification": [
+    {
+      "revision": "0c8038f164bd2a744780d7d2913a00b8bfb593a9",
+      "result": "pass",
+      "evidence": "npm test 9 files / 77 tests passed; npx tsc --noEmit clean; npm run build clean (Node v24.21.0). GitHub Actions 'Test and type check' passed on PR #26 head 0145fd0 and on delivered main 0c8038f."
+    },
+    {
+      "revision": "e39b75059145a8a88fff3bbc37efe03f3f423773",
+      "result": "pass",
+      "evidence": "Browser-driven acceptance for #22 against the delivered revision: list endpoint delayed 3s, rows sampled every 250ms. Manual refresh kept 2 rows (scroll 40 -> 40); background refresh kept 2 rows (scroll 40 -> 40); no empty state, no console errors. Recorded in docs/verification.md."
+    },
+    {
+      "revision": "d8875e0717489c2e6dd0b5126491f8758a46ef08",
+      "result": "pass",
+      "evidence": "Negative control: the same browser script against the pre-fix revision fails as expected \u2014 background refresh dropped to 0 rows and scroll went 40 -> 0. Confirms the check actually detects the defect."
+    },
+    {
+      "revision": "v0.1.1 (installed artifact)",
+      "result": "pass",
+      "evidence": "npx --yes github:normzhou/yolo-blank-canvas#v0.1.1 served build e39b750 and passed the same browser check against the installed copy."
+    }
+  ],
+  "qualification": {
+    "level": 1,
+    "status": "prepared",
+    "reason": "All five L1 criteria now have evidence, including the previously missing fresh-session observation. Status stays 'prepared' because one deliberate conformance deviation is still unresolved by its owner: closed fixtures #2 and #3 retain yolo:state:* labels, so factual subject verification reports issue_state: conflicting. The protocol requires all Q1-Q5 to pass with no unresolved required finding before 'qualified'.",
+    "criteria": [
+      {
+        "id": "Q1",
+        "verdict": "pass",
+        "reason": "Intact pinned rules and digest, mapped Charter/Authority/Architecture/instructions, reserved labels present, baseline preserved. Normal instruction loading is now observed: the fresh session's harness loaded AGENTS.md/CLAUDE.md/GEMINI.md and the shared skill, with no upstream checkout needed.",
+        "evidence": [
+          ".yolo/adoption.json",
+          ".yolo/protocol.md",
+          "session 01a10cc7-ef06-76d7-bd0a-729d0b008133"
+        ]
+      },
+      {
+        "id": "Q2",
+        "verdict": "pass",
+        "reason": "A third real outcome (#22) was interpreted, admitted with observable acceptance, prioritised, executed to a merged PR and a released artifact, with the judgement calls recorded in the issue. #4 was left waiting rather than given invented acceptance.",
+        "evidence": [
+          "https://github.com/normzhou/yolo-blank-canvas/issues/22",
+          "https://github.com/normzhou/yolo-blank-canvas/pull/26"
+        ]
+      },
+      {
+        "id": "Q3",
+        "verdict": "pass",
+        "reason": "All four obligations were reviewed against current setup and work, every commit since the previous checkpoint (b4d07db -> 0c8038f plus the bookkeeping commit 6baeaec) and live GitHub records. Failures and deviations stay visible: the standing #2/#3 label deviation, the prior PR #23 pending-check deviation, and the unresolved qualification status itself.",
+        "evidence": [
+          ".yolo/reports/delivery-2026-10-05-5.json"
+        ]
+      },
+      {
+        "id": "Q4",
+        "verdict": "pass",
+        "reason": "Acceptance passes on the identified delivered result for a user-facing outcome: #22 verified in a real browser on delivered main 0c8038f and again on the released artifact v0.1.1 (build e39b750), with a falsifying control run against the pre-fix revision. Inspected, merged and released revisions are distinguished. Limits retained: headless Chrome over a scratch profile; the refresh was observed via the visibility tick and manual refresh, not by waiting out a natural 30s poll; the lag injection uses request interception.",
+        "evidence": [
+          "docs/verification.md",
+          "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.1.1"
+        ]
+      },
+      {
+        "id": "Q5",
+        "verdict": "pass",
+        "reason": "A fresh authorized session (01a10cc7) loaded the normal instructions and local rules, reconciled the shared work and performed the correct next action \u2014 delivering #22 \u2014 without settled-intent rebriefing. Cited harness: pi coding agent 1.0.1.",
+        "evidence": [
+          "session 01a10cc7-ef06-76d7-bd0a-729d0b008133",
+          ".yolo/reports/delivery-2026-10-05-22.json"
+        ]
+      }
+    ]
+  },
+  "next": "Close #22 after the summary comment records the delivered revision and release. Remaining admitted work: #4 waiting on requester answers. The only open qualification blocker is the maintainer's disposition of the #2/#3 fixture-label deviation; if the maintainer rules to keep the labels, reclassify it as an accepted exception and Q1-Q5 would then read as qualified. Live gaps from docs/verification.md unchanged."
+}
