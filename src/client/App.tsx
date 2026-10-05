@@ -31,6 +31,8 @@ export function App() {
   const [lastRefreshedAt, setLastRefreshedAt] = useState<number | null>(null);
   const [stale, setStale] = useState(false);
   const [newDraft, setNewDraft] = useState(() => loadDraft(storeRef.current ?? undefined, NEW_REQUEST_KEY) ?? EMPTY_DRAFT);
+  // Requests created in this session, kept until GitHub's list confirms them.
+  const [createdIssues, setCreatedIssues] = useState<IssueSummary[]>([]);
   const [replyDrafts, setReplyDrafts] = useState<Record<number, { title: string; body: string }>>({});
   const [serverClientBuild, setServerClientBuild] = useState<string | null>(null);
   const [reloadPromptDismissed, setReloadPromptDismissed] = useState(false);
@@ -177,11 +179,15 @@ export function App() {
           onFilterChange={setFilter}
           onClose={closePanel}
           onSelect={(issue: IssueSummary) => setView({ name: 'detail', issue, number: issue.number })}
+          onCreated={(issue) =>
+            setCreatedIssues((previous) => [...previous.filter((item) => item.number !== issue.number), issue])
+          }
           onNew={() => setView({ name: 'new' })}
           onCancelNew={() => setView({ name: 'list' })}
           onBack={() => setView({ name: 'list' })}
           newDraft={newDraft}
           onNewDraftChange={setNewDraft}
+          createdIssues={createdIssues}
           replyDraft={currentDraft}
           onReplyDraftChange={(next) => {
             if (view.name === 'detail') setReplyDraft(view.number, next);
