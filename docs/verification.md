@@ -70,6 +70,25 @@ Browser-driven checks (headless Chrome against the running app):
 - Changing the served client build ID produced the banner **“App version changed — reload to use the version this server is running.”** with user-initiated Reload / Not now.
 - No console errors during these runs.
 
+## Just-created request and list reconciliation (issue #5)
+
+Browser-driven against the real app (headless Chrome over CDP from a scratch profile; no new dependencies), with the list endpoint stubbed to drop the new issue for the first two reads to reproduce GitHub's lagging list replica deterministically.
+
+| Step | Result |
+| --- | --- |
+| Create a request through **New request** | Issue confirmed by the API; detail view opens on it |
+| Back to the list, list lagging | New request at the top, marked **Not listed yet**, with the note that the create succeeded and the list is catching up |
+| Duplicate rows | None |
+| After a later re-read | Row stops being marked and stays present exactly once |
+| Bounded retries | List re-read on 5s/10s/… backoff; stops once confirmed or bounded out |
+| Console errors | None |
+
+Root cause measured directly: `POST /api/issues` created #12 and the immediate `GET /api/issues?state=open` returned `[5, 4]`, while `GET /api/issues/12` returned the issue at once; the list still lacked it after 20s. A second probe (#13) appeared in 2s, so the lag is intermittent rather than a wrong query. GitHub's list endpoint is served from a lagging replica.
+
+Deterministic coverage of the same contract: `test/list-reconciliation.test.ts` (8 cases). Delivered revision `1f22d77`, assets built from `123c4c5`.
+
+Also observed in the browser during this work, filed as [#22](https://github.com/normzhou/yolo-blank-canvas/issues/22): the list blanks briefly on each background refresh because the list effect clears items before every load.
+
 ## Cleanup
 
 Integration issues [#1](https://github.com/normzhou/yolo-blank-canvas/issues/1), [#2](https://github.com/normzhou/yolo-blank-canvas/issues/2), and [#3](https://github.com/normzhou/yolo-blank-canvas/issues/3) were closed after the checks; their comments and labels were left in place as the evidence trail. GitHub CLI credentials were untouched by the app throughout (verified by `gh api user` after the session ended).
