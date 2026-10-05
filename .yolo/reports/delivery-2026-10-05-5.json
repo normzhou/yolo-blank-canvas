@@ -5,12 +5,13 @@
     "revision": "811b996740d19face87c4f7b7dc0d741b84111d4",
     "sha256": "ea7504ab00bd5b7ef72bf931891243f69c7c52aa14cc4c70cbb2de338af0ebff"
   },
-  "revision": "1f22d77b03457c437c81aa28d6827922442782b9",
-  "default_revision": "1f22d77b03457c437c81aa28d6827922442782b9",
+  "revision": "b4d07db78f89c386b4ed05e715fe72b54bf0d5b9",
+  "default_revision": "b4d07db78f89c386b4ed05e715fe72b54bf0d5b9",
   "from": "e6efe781c0cc6414c4697d453fa7285dd31412a7",
   "previous_report": ".yolo/reports/activation-2026-10-05.json",
   "reviewed_commits": [
-    "1f22d77b03457c437c81aa28d6827922442782b9"
+    "1f22d77b03457c437c81aa28d6827922442782b9",
+    "b4d07db78f89c386b4ed05e715fe72b54bf0d5b9"
   ],
   "working_changes": [],
   "harness": {
@@ -90,6 +91,15 @@
         ".yolo/governance/AUTHORITY.md"
       ],
       "detail": "Congruent. The outcome was admitted by the agent within its own grant, judged routine implementation with no reserved decision; no charter or authority edit was made; every created artifact carries the agreed yolo watermark; the changelog entry was recorded against the source issue."
+    },
+    {
+      "rule": "delivery",
+      "status": "recorded",
+      "evidence": [
+        "https://github.com/normzhou/yolo-blank-canvas/pull/23",
+        "https://github.com/normzhou/yolo-blank-canvas/actions/runs/37335533445"
+      ],
+      "detail": "AGENT PROCESS DEVIATION, self-reported and retained. PR #23 (this review) was merged while its required check 'Test and type check' was still pending, which the adopted protocol forbids: required evidence must pass on the current subject before a dependent merge. Cause: the agent waited for SUCCESS in a poll loop but merged on the iteration where the loop's own output still read pending. Impact: none to the delivered content \u2014 the check passed on the identical PR head 004d30f6 and the main-branch run passed on b4d07db7, so the merged content is verified \u2014 but the merge decision was made on unverified evidence, which is exactly the behaviour the delivery contract exists to prevent. Remedy: record the correct wait-and-recheck behaviour for the merge step; the two earlier merges in this cycle did wait, and this one did not."
     }
   ],
   "verification": [
@@ -149,5 +159,5 @@
       }
     ]
   },
-  "next": "Work admitted outcome #22 (list blanks on background refresh), then open a fresh authorized session to close Q1 and Q5. Standing maintainer decisions: the #2/#3 fixture-label deviation, and the scope questions for #4."
+  "next": "Work admitted outcome #22 (list blanks on background refresh), then open a fresh authorized session to close Q1 and Q5. Before the next merge, confirm the required check reports a terminal passing state rather than polling once and proceeding. Standing maintainer decisions: the #2/#3 fixture-label deviation, and the scope questions for #4."
 }
