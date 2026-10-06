@@ -1,0 +1,49 @@
+{
+  "schema_version": 2,
+  "target": "normzhou/yolo-blank-canvas",
+  "kind": "protected-amendment",
+  "status": "landed",
+  "protocol": {
+    "revision": "a8a4efe4aba400883ddd9567b4921df9ea78ff71",
+    "sha256": "109ac362ed02f2ab8870907dc814b37d702acb9aa89def33d5c710189d2ef674"
+  },
+  "issue": "https://github.com/normzhou/yolo-blank-canvas/issues/34",
+  "pr": "https://github.com/normzhou/yolo-blank-canvas/pull/35",
+  "approved_revision": "56842cde1bb7c1d9107afff321c64e60a808da1b",
+  "approval": "Maintainer approval ('approved! ship it') in authenticated harness session 01a10f3e-21cd-76d7-bd0a-72a0965aedff; approval bound to revision 56842cd, and no edits were made after approval. Acceptance recorded on issue #34.",
+  "effective_commit": "373e53a12f6e579849a9b640986c1fe0b9f10584",
+  "changes": [
+    "AUTHORITY.md Release delegation now states it is the identified human approval that CHARTER durable constraint 5 requires for creating and cutting releases within the versioning policy; deleting tags/releases stays reserved.",
+    "AUTHORITY.md protected edits: the cosmetic-edit carve-out is replaced by the protocol rule that all edits to AUTHORITY.md or CHARTER.md, cosmetic included, need authenticated approval of the proposed revision or a scoped owner override.",
+    "AUTHORITY.md and CHARTER.md status banners corrected from 'proposal pending acceptance' to 'accepted and active', linking adoption.json."
+  ],
+  "resolutions": [
+    {
+      "finding": "release-publication",
+      "resolution": "The standing Release delegation is the identified approval for creating/cutting releases within the recorded versioning policy; deleting tags/releases remains reserved.",
+      "citation": "373e53a12f6e579849a9b640986c1fe0b9f10584"
+    },
+    {
+      "finding": "cosmetic-protected-edits",
+      "resolution": "All Charter/Authority edits, cosmetic included, require approval of the proposed revision or a scoped override; no separate cosmetic exception applies.",
+      "citation": "373e53a12f6e579849a9b640986c1fe0b9f10584"
+    },
+    {
+      "finding": "stale-status-banners",
+      "resolution": "CHARTER.md and AUTHORITY.md banners now read accepted/active and link the adoption record.",
+      "citation": "373e53a12f6e579849a9b640986c1fe0b9f10584"
+    }
+  ],
+  "verification": [
+    "yolo-check . --structure passed on the approved revision.",
+    "GitHub Actions 'Test and type check' passed on PR #35 before the squash merge."
+  ],
+  "remaining": [
+    "Continuity/qualification: no fresh authorized session has loaded the current pin; reload and record a fresh continuation.",
+    "The published checkpoint report records the ownership finding as pending; the resolution above enters the next checkpoint review rather than rewriting that report."
+  ],
+  "limits": [
+    "No release, tag or repository-setting change was part of this amendment.",
+    "Approval covers only revision 56842cd; later edits would need fresh approval."
+  ]
+}
