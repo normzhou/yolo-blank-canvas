@@ -69,6 +69,7 @@ The durable observable contracts, verified by the test suite:
 | Untrusted Markdown safety | `src/client/components/Markdown.tsx` | `test/markdown.test.tsx` |
 | Draft preservation across panel/refresh/reload | `src/client/drafts.ts` | `test/drafts.test.ts` |
 | Tetris rules and board state (local to the view, not a GitHub record) | `src/shared/tetris.ts` | `test/tetris.test.ts` |
+| Tetris melody and pitch mapping | `src/shared/tetrisMusic.ts` | `test/tetris-music.test.ts` |
 
 The app also presents the shared YOLO request-to-result vocabulary, and its behavior is
 contractual where it is in scope. Its observed gaps are listed under Decisions and limits.
