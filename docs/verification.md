@@ -14,14 +14,19 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
  ✓ test/launcher.test.ts (12 tests)        gh missing, first login, cancellation, noninteractive, port fallback
  ✓ test/markdown.test.tsx (5 tests)        untrusted Markdown cannot execute; links stay safe
  ✓ test/drafts.test.ts (5 tests)           draft preservation and clearing only after confirmation
+ ✓ test/list-refresh.test.ts (5 tests)     background refresh keeps rows; filter changes clear
+ ✓ test/list-reconciliation.test.ts (8 tests)  created-issue reconciliation against the list
+ ✓ test/tetris.test.ts (17 tests)          Tetris pieces, collision, line clear, scoring, game over
 
- Test Files  7 passed (7)
-      Tests  64 passed (64)
+ Test Files  10 passed (10)
+      Tests  94 passed (94)
 ```
 
-Also run: `npx tsc --noEmit` (clean), `npm run build` (clean).
+Also run: `npx tsc --noEmit` (clean), `npm run build` (clean). Run at source revision `5e0aff8` (the Tetris canvas view, #4/#47); not yet a released version, so the release-level sections below still describe `v0.1.1`.
 
 Fixture coverage required by the spec, all in `test/status.test.ts`: untagged open issue → **Request open**; all four managed states; missing state, duplicate states, and state without `yolo:work` → **Status needs reconciliation** with raw labels; closure reasons `not_planned` / `duplicate` / `completed`; **Completed (reported)** vs **Closed**; unknown reason → **Closed — reason unavailable**; leftover state labels on a closed issue; reported-summary detection rules, most-recent-match selection, and `No progress summary yet.` / `Delivery timing not yet estimated.` fallbacks. No fixture asserts scheduling or availability.
+
+Tetris coverage (`test/tetris.test.ts`): 7-bag fairness, piece geometry across rotations, spawn centering, wall/floor/settled-cell collision, line clearing and the classic score table, level/speed scaling, wall stops, soft/hard drop, lock-and-spawn on gravity, and game over when the next piece cannot spawn. The game state is local to the view; no test writes to GitHub.
 
 ## Live integration (real GitHub records)
 
@@ -131,6 +136,7 @@ Integration issues [#1](https://github.com/normzhou/yolo-blank-canvas/issues/1),
 - **Pagination beyond one page** was verified only with fixtures (`hasMore`, page parameters); the live repository has too few issues to exercise multi-page loads.
 - **Browser-open behaviour** (`open`, `xdg-open`, `start`) was not observed live; the one-command check used `--no-open`. The launcher prints the URL regardless, so opening is a best-effort convenience.
 - **Lost authentication during a running session** was verified through the API surface and unit tests (explicit `auth_required` state with the login command and Retry connection), not by revoking real credentials mid-session.
+- **The Tetris view was not exercised in a live browser.** Its rules and state transitions are covered by `test/tetris.test.ts`, but keyboard handling (arrow/space/Escape), gravity timing and rendering were not observed in a browser session against a running build.
 
 ## Tested revision
 
