@@ -1,6 +1,6 @@
 # yolo-blank-canvas
 
-A minimal local web app: a blank canvas with a **Requests** overlay for creating, discussing, and following GitHub issues in one configured repository. The app is a thin presentation of GitHub records — issues and comments live in GitHub, and nothing else is stored.
+A minimal local web app: a blank canvas with a **Requests** overlay for creating, discussing, and following GitHub issues in one configured repository. The app is a thin presentation of GitHub records — issues and comments live in GitHub, and nothing else is stored. A **Tetris** game, added in response to [request #4](https://github.com/normzhou/yolo-blank-canvas/issues/4), is the first canvas content beyond the prompt; its board and score are local to the view and are never written to GitHub.
 
 Built to the [Blank Canvas UI build spec](https://github.com/normzhou/yolo-dev/blob/main/brainstorm/blank-canvas-ui-build-spec.md).
 
@@ -49,6 +49,10 @@ The canvas asks *"What would you like to build or change?"*. **Requests** opens 
 
 Escape closes the panel and focus returns to the Requests button. While the panel is open, records refresh about every 30 seconds (paused when the page is hidden); the footer shows the last successful refresh, and content is marked stale if a refresh fails. Drafts survive opening/closing, refreshing, sign-in failures, and reload.
 
+### Tetris
+
+**Play Tetris** in the header opens a classic game (10×20 board, all seven tetrominoes) as canvas content. Controls are keyboard-only: **←/→** move, **↑** rotates, **↓** soft-drops, **Space** hard-drops, **Escape** closes. Score, lines, level and the next piece are shown beside the board; gravity speeds up every ten lines. The board and score live only in the view — they are not GitHub records, are not written back, and are lost when the view closes. The game is generated from a request and does not change the Requests workflow.
+
 ### Status display
 
 Status is text first; colour is decoration. The app only renders what GitHub records and never implies that something was scheduled or is available in this browser.
@@ -92,6 +96,8 @@ Layout:
 | `server/security.js` | loopback Host guard, same-origin/cross-site guard, security headers |
 | `server/session.js` | in-memory opaque session; browser holds only an HttpOnly cookie |
 | `src/shared/status.ts` | status and reported-summary derivation (shared, pure) |
+| `src/shared/tetris.ts` | Tetris rules and board state (shared, pure; local to the view) |
+| `src/client/views/TetrisView.tsx` | the Tetris canvas view |
 | `src/client/` | React UI (canvas, panel, list/new/detail views, Markdown rendering) |
 | `dist/client/` | committed build output, so the one-command launch needs no build |
 
@@ -120,8 +126,7 @@ See [docs/verification.md](docs/verification.md) for the commands run, results, 
 
 ## Governance
 
-This repository is adopted under the YOLO Dev protocol at **L1 Assisted** (proposal pending
-maintainer acceptance). Ordinary agent work starts from [AGENTS.md](AGENTS.md).
+This repository is adopted under the YOLO Dev protocol at **L1 Assisted** (active; qualification `prepared`). Ordinary agent work starts from [AGENTS.md](AGENTS.md).
 
 - [Charter](.yolo/governance/CHARTER.md) — purpose, audience, durable boundaries
 - [Authority](.yolo/governance/AUTHORITY.md) — recognized maintainers, grant, reserved decisions

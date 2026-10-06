@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, ApiError, type IssueSummary, type SessionInfo } from './api';
 import { Panel, type PanelView } from './components/Panel';
 import { ErrorNotice } from './components/ErrorNotice';
+import { TetrisView } from './views/TetrisView';
 import { useVisible } from './usePolling';
 import {
   NEW_REQUEST_KEY,
@@ -26,6 +27,7 @@ export function App() {
   const [sessionError, setSessionError] = useState<ApiError | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
+  const [gameOpen, setGameOpen] = useState(false);
   const [view, setView] = useState<PanelView>({ name: 'list' });
   const [filter, setFilter] = useState<'open' | 'closed' | 'all'>('open');
   const [lastRefreshedAt, setLastRefreshedAt] = useState<number | null>(null);
@@ -124,9 +126,14 @@ export function App() {
     <div className="canvas">
       <header className="canvas-header">
         <h1 className="canvas-title">Blank canvas</h1>
-        <button type="button" ref={triggerRef} onClick={openPanel}>
-          Requests
-        </button>
+        <span className="canvas-actions">
+          <button type="button" onClick={() => setGameOpen(true)}>
+            Play Tetris
+          </button>
+          <button type="button" ref={triggerRef} onClick={openPanel}>
+            Requests
+          </button>
+        </span>
       </header>
 
       {serverSuggestsReload && !reloadPromptDismissed ? (
@@ -169,7 +176,11 @@ export function App() {
         </p>
       )}
 
-      <p className="canvas-prompt">What would you like to build or change?</p>
+      {gameOpen ? (
+        <TetrisView onClose={() => setGameOpen(false)} />
+      ) : (
+        <p className="canvas-prompt">What would you like to build or change?</p>
+      )}
 
       {panelOpen && session ? (
         <Panel

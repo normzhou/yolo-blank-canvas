@@ -37,19 +37,24 @@ Boundary rules that are load-bearing rather than incidental:
 State ownership: GitHub owns all work records; the server owns only its session; the client
 derives presentation from records and never repairs metadata silently.
 
-## The empty canvas as a design commitment
+## The canvas and requested content
 
-The canvas shows a prompt and one action — a request — and nothing else. That emptiness is
-intentional and worth protecting from well-meant additions:
+The canvas starts empty: a prompt and one action — a request — and nothing else. Emptiness is the
+starting condition, not a prohibition, and substance comes from Requests:
 
-- It carries no built-in project, board, document or view model. Substance comes from Requests.
+- The canvas carries no hidden project, board, document or view model; content originates as
+  Requests and is added deliberately.
 - Agent and user both get their content from the same GitHub records, so nothing on screen has a
   second source of truth.
 - A request typed here and one typed directly into GitHub are indistinguishable to the workflow,
   because they are literally the same record.
 
-If a future request calls for persistent canvas content, that is an architecture and data-model
-change with a stated source of truth — not a quiet addition to a component.
+Content a request calls for (for example a game) is presented as a view with a stated source of
+truth. GitHub remains the source of truth for the request and its work. Any in-app state that is
+not a GitHub record — such as a game's score — is explicitly local to the view, is never written
+back or presented as a repository record, and is lost when the view closes. Adding persistent
+content is an architecture and data-model change recorded here, not a quiet addition to a
+component; the first such content is the Tetris view (#4).
 
 ## Behavior contracts
 
@@ -63,18 +68,18 @@ The durable observable contracts, verified by the test suite:
 | Launcher prerequisites, auth reuse, port fallback | `server/cli.js`, `server/launch.js` | `test/launcher.test.ts` |
 | Untrusted Markdown safety | `src/client/components/Markdown.tsx` | `test/markdown.test.tsx` |
 | Draft preservation across panel/refresh/reload | `src/client/drafts.ts` | `test/drafts.test.ts` |
+| Tetris rules and board state (local to the view, not a GitHub record) | `src/shared/tetris.ts` | `test/tetris.test.ts` |
 
 The app also presents the shared YOLO request-to-result vocabulary, and its behavior is
 contractual where it is in scope. Its observed gaps are listed under Decisions and limits.
 
 ## Verification and delivery
 
-- **Checks (existing):** `npm test` (vitest — 64 deterministic, network-free tests),
+- **Checks (existing):** `npm test` (vitest — deterministic, network-free tests),
   `npx tsc --noEmit`, `npm run build`. No network, no writes.
-- **CI:** none exists today, so L1 evidence is harness-run and cited from
-  [docs/verification.md](../../docs/verification.md). Under the grant, a real GitHub Actions
-  workflow running `npm test` and `npx tsc --noEmit` on push and pull request is added as
-  ordinary work; a placeholder job is not acceptable.
+- **CI:** GitHub Actions runs `npm test` and `npx tsc --noEmit` on pull requests and pushes to
+  `main` ([.github/workflows/ci.yml](../../.github/workflows/ci.yml)); harness-run evidence is
+  cited from [docs/verification.md](../../docs/verification.md).
 - **Delivery route:** one-command `npx` install of a tagged revision
   (`github:normzhou/yolo-blank-canvas#v0.1.0`).
 - **Versioning policy:** semantic versioning on the delivered artifact. A patch release may be cut
