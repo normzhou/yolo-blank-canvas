@@ -49,6 +49,12 @@ Run through the local backend at `http://localhost:4317` (`node server/cli.js --
 | Request addressed to a non-loopback `Host` | `400` |
 | UI served | `GET /` returned the built canvas; assets served from `dist/client` |
 
+### Tetris live check (maintainer)
+
+| Step | Result |
+| --- | --- |
+| Maintainer ran the merged `main` (`3896a2a`) from a checkout and played the game | Confirmed on 2026-10-06 that it plays correctly in a live browser: the board, keyboard controls and game flow all work. Acceptance for [#4](https://github.com/normzhou/yolo-blank-canvas/issues/4) is therefore verified on the delivered revision. |
+
 ## One-command install outside the checkout
 
 Run from an empty directory (`/tmp/npx-check`, no source checkout present):
@@ -137,6 +143,7 @@ Integration issues [#1](https://github.com/normzhou/yolo-blank-canvas/issues/1),
 - **Browser-open behaviour** (`open`, `xdg-open`, `start`) was not observed live; the one-command check used `--no-open`. The launcher prints the URL regardless, so opening is a best-effort convenience.
 - **Lost authentication during a running session** was verified through the API surface and unit tests (explicit `auth_required` state with the login command and Retry connection), not by revoking real credentials mid-session.
 - **The Tetris view was not exercised in a live browser.** Its rules and state transitions are covered by `test/tetris.test.ts`, but keyboard handling (arrow/space/Escape), gravity timing and rendering were not observed in a browser session against a running build.
+  **Resolved 2026-10-06:** the maintainer played the merged `main` in a live browser and confirmed it works; see the Tetris live check above. The deterministic tests remain the regression guard.
 
 ## Tested revision
 
