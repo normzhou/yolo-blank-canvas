@@ -1,7 +1,8 @@
 # blank canvas: Authority
 
-> **Status: proposal pending acceptance.** This document **proposes** a grant; it does not confer
-> one. Until the maintainer accepts the identified revision, no delegated scope below is active.
+> **Status: accepted and active.** The recognized acceptance and current activation state live in
+> [`adoption.json`](../adoption.json); this document is the grant it identifies. Further edits
+> need the approval under **Reserved to the maintainer**.
 
 ## Recognized maintainers
 

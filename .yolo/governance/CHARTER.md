@@ -1,8 +1,9 @@
 # blank canvas: Project Charter
 
-> **Status: proposal pending acceptance.** Drafted by an AI agent during onboarding at baseline
-> `520a81e8ec824b9ce31a7fbc8a8c08d152eb81ae`. Nothing here is accepted intent or granted
-> authority until the maintainer accepts the identified revision.
+> **Status: accepted and active.** Drafted by an AI agent at baseline
+> `520a81e8ec824b9ce31a7fbc8a8c08d152eb81ae` and accepted with the repository's L1 setup; the
+> recognized acceptance and current activation state live in
+> [`adoption.json`](../adoption.json).
 
 ## Purpose
 
