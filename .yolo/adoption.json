@@ -210,14 +210,14 @@
     }
   ],
   "checkpoint": {
-    "commit": "870c1e23c36645c86b656f906d85da19f2af9e61",
-    "report": ".yolo/reports/delivery-2026-10-06-alpha13.json"
+    "commit": "6f0ec1ec41d13c7e932f1b3278e0bdfad88c911b",
+    "report": ".yolo/reports/delivery-2026-10-06-final.json"
   },
   "unresolved": [
     "Resolved: release-publication and cosmetic-protected-edits. Protected revision 56842cde1bb7c1d9107afff321c64e60a808da1b (issue #34, PR #35) was approved ('approved! ship it', session 01a10f3e-21cd-76d7-bd0a-72a0965aedff) and landed at 373e53a. AUTHORITY now identifies the Release delegation as the approval for creating/cutting releases within the versioning policy and requires approval for all protected edits; the stale Charter/Authority banners are corrected. See .yolo/reports/authority-amendment-2026-10-06.json.",
     "AI repair completed (routine): package.json#version remains the native release source and is set to the next unused version 0.1.2 for a future release. The historical mismatch is preserved, not rewritten: package.json was 0.1.0 at both tagged revisions v0.1.0 and v0.1.1. No tag was moved or created and nothing was published for this migration.",
     "Evidence recorded: the semver-v1 release convention and the verification.release binding became applicable to this target when it adopted the alpha.11 bundle (landed 6efd602, 2026-10-06). The repository's earlier versioning-policy mention dates to the L1 adoption fa6ec88ec06849e35b69929f7b9264263ff97562 but carried no tag/native-source binding; alpha.13 forbids backdating, so effective_commit is 6efd602.",
-    "Checkpoint repaired: advanced to 870c1e2 with .yolo/reports/delivery-2026-10-06-alpha13.json, which covers every commit in the interval 0c8038f..870c1e2.",
+    "Checkpoint advanced to 6f0ec1e with .yolo/reports/delivery-2026-10-06-final.json, covering 870c1e2..6f0ec1e and recording the resolutions. The earlier checkpoint report is preserved and not rewritten.",
     "AI repair applied: closed fixtures #2/#3 had their stale yolo:state:* labels removed and #3 received a status summary; docs/verification.md records that the labels were removed after the observation. This resolves the issue_state/issue_summary findings; the change enters the next checkpoint review (published reports are not rewritten).",
     "Active-pin loading gap: no fresh-session observation of the landed publication.",
     "Standing retained findings: PR #23 merged on a pending required check; the #2 summary cites a non-existent PR #1; unresolved #4 waiting on requester answers; live gaps in docs/verification.md (first-login path, missing-gh path, browser-open behaviour, multi-page pagination, mid-session auth loss, --repo against a second repository)."
