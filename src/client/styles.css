@@ -144,3 +144,54 @@ textarea { min-height: 140px; resize: vertical; }
   .panel { width: 100vw; border-left: none; }
   .canvas-prompt { font-size: 18px; margin-top: 8vh; }
 }
+.canvas-actions { display: flex; gap: 8px; }
+
+.tetris {
+  margin: 4vh auto 0;
+  width: fit-content;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.tetris-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.tetris-title { margin: 0; font-size: 15px; font-weight: 600; }
+.tetris-body { display: flex; gap: 16px; align-items: flex-start; }
+.tetris-board {
+  display: grid;
+  grid-template-columns: repeat(10, 22px);
+  grid-auto-rows: 22px;
+  gap: 1px;
+  background: #c9ced6;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px;
+}
+.tetris-cell { background: #f2f4f7; border-radius: 2px; }
+.tetris-cell.tetromino-i { background: #4dd0e1; }
+.tetris-cell.tetromino-j { background: #5b8def; }
+.tetris-cell.tetromino-l { background: #f2a03d; }
+.tetris-cell.tetromino-o { background: #f6d743; }
+.tetris-cell.tetromino-s { background: #5fc27e; }
+.tetris-cell.tetromino-t { background: #b06bd8; }
+.tetris-cell.tetromino-z { background: #e0605f; }
+.tetris-side { display: flex; flex-direction: column; gap: 10px; min-width: 92px; }
+.tetris-stat { display: flex; flex-direction: column; gap: 2px; }
+.tetris-label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+.tetris-value { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.tetris-next {
+  display: grid;
+  grid-template-columns: repeat(4, 14px);
+  grid-auto-rows: 14px;
+  gap: 1px;
+  background: #c9ced6;
+  border-radius: 4px;
+  padding: 1px;
+  width: fit-content;
+}
+.tetris-next .tetris-cell { border-radius: 2px; }
+.tetris-over { color: var(--problem); font-weight: 600; margin: 0; }
+.tetris-help { color: var(--muted); font-size: 12px; margin: 0; }

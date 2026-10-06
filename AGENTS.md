@@ -65,7 +65,4 @@ security boundaries and verification record.
 - If you change the status presentation contract, update the spec and its fixtures together.
 - Significant architecture changes notify the maintainer; Charter and authority edits require
   their approval.
-- The canvas stays empty by intent. Do not add built-in projects, boards, documents or views
-  without an observed request behind them — see "The empty canvas as a design commitment" in the
-  architecture.
 - Change what this project *is for* only through a Charter edit; it is not a refactor.
