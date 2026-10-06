@@ -2,7 +2,7 @@
 
 Protocol format: `github-v1` · Candidate L1 distribution
 
-Source: [8370cbbb2afd5c161e5ad82c434f7656c45297af](https://github.com/normzhou/yolo-dev/tree/8370cbbb2afd5c161e5ad82c434f7656c45297af). All required rules and procedures are below; upstream links are optional publisher context or tool documentation. The target supplies its own purpose and accepted authority, not YOLO Dev's Charter. Installing these rules does not qualify or authorize a target. L2 descriptions do not activate an unbuilt runner.
+Source: [a983c2b44b0bd9212f0ff960ce4c1927171fb24f](https://github.com/normzhou/yolo-dev/tree/a983c2b44b0bd9212f0ff960ce4c1927171fb24f). All required rules and procedures are below; upstream links are optional publisher context or tool documentation. The target supplies its own purpose and accepted authority, not YOLO Dev's Charter. Installing these rules does not qualify or authorize a target. L2 descriptions do not activate an unbuilt runner.
 
 Source status notes describe the publisher at that revision, not this target's setup. This generated document preserves the design text; source links are rewritten to local sections wherever the referenced contract is included. The bundle's `provenance.json` records source digests and selections. Target adoption records retain this source identity and this file's digest.
 
@@ -22,6 +22,10 @@ Source status notes describe the publisher at that revision, not this target's s
 
 - [verification-delivery](#verification-delivery-verification-and-delivery)
 
+- [releases](#releases-product-releases)
+
+- [conformance-checks](#conformance-checks-conformance-checks)
+
 - [qualification](#qualification-compliance-and-qualification-evidence)
 
 - [adoption-records](#adoption-records-adoption-and-evidence-records)
@@ -40,7 +44,7 @@ Source status notes describe the publisher at that revision, not this target's s
 <a id="architecture-adoption-levels"></a>
 ### Adoption levels
 
-![L0 Baseline, L1 Assisted, L2 Autopilot, L3 Self-directed and L4 Living App progressively close the app's improvement loop.](https://github.com/normzhou/yolo-dev/blob/8370cbbb2afd5c161e5ad82c434f7656c45297af/assets/adoption-levels.svg)
+![L0 Baseline, L1 Assisted, L2 Autopilot, L3 Self-directed and L4 Living App progressively close the app's improvement loop.](https://github.com/normzhou/yolo-dev/blob/a983c2b44b0bd9212f0ff960ce4c1927171fb24f/assets/adoption-levels.svg)
 
 | Level | Capability |
 | --- | --- |
@@ -76,7 +80,7 @@ GitHub/pushed Git hold durable state. Disposable sessions restart by reconciling
 <a id="architecture-agent-interaction"></a>
 #### Agent interaction
 
-One repo installation exposes a shared `yolo` skill through [native harness bindings](#assisted-development-harness-bindings), with [init, check, request, work, feedback and help](#activities-agent-activities). Bindings pass text to the same procedures; switching harnesses retains adopted rules and shared progress. L1's maintainer starts sessions; L2 automatically starts the same work procedure. Direct conversation steers through shared records; a bypass requires an explicit owner override.
+One repo installation exposes a shared `yolo` skill through [native harness bindings](#assisted-development-harness-bindings), with [init, upgrade, check, request, work, feedback and help](#activities-agent-activities). Bindings pass text to the same procedures; switching harnesses retains adopted rules and shared progress. L1's maintainer starts sessions; L2 automatically starts the same work procedure. Direct conversation steers through shared records; a bypass requires an explicit owner override.
 
 <a id="architecture-request-surface-and-user-visible-delivery"></a>
 #### Request surface and user-visible delivery
@@ -91,7 +95,7 @@ Users/maintainers discuss through issues/comments, optionally [inside the app](#
 | Governing context | Separate intent, design and implementation; complete local rules and ordinary loading. | [Protocol](#operating-protocol-operating-protocol), [layout](#repo-layout-repository-layout) |
 | Project management | AI admits outcomes and manages labels, summaries and linked PRs; people steer/contest. | [Issues](#issue-management-issue-management), [workflow](#github-workflow-github-operating-workflow) |
 | Authority | PRs with current authorization/evidence; protected approval, ordinary autonomy, identifiable overrides. | [Repo rules](#repo-rules-repository-rules-and-authority) |
-| Delivery | Target-defined checks/routes; verify actual delivered outcomes. | [Verification/delivery](#verification-delivery-verification-and-delivery) |
+| Delivery | Target-defined checks/routes; shared semantic release tags and immutable identities; verify actual delivered outcomes. | [Verification/delivery](#verification-delivery-verification-and-delivery), [releases](#releases-product-releases) |
 | Evidence | Preserved identity, context, history and findings; cited capability. | [Records](#adoption-records-adoption-and-evidence-records), [qualification](#qualification-compliance-and-qualification-evidence) |
 
 Reserve `.yolo/` for governing context, adopted protocol, adoption record and optional reports. [Layout](#repo-layout-repository-layout) defines exact slots/mappings; app and native tooling keep useful conventions.
@@ -109,11 +113,11 @@ flowchart LR
     E -->|Product feedback| S
 ```
 
-[Init/check](#onboarding-onboarding-and-check) propose/apply setup and review ongoing work. The [standalone bundle](#assisted-development-assisted-distribution) carries enough information for another harness without upstream checkout/chat. Ordinary loading, factual observation and semantic review sustain conformity; L2 also enforces execution preconditions.
+[Init/check](#onboarding-onboarding-and-check) propose/apply setup and review ongoing work. The [standalone bundle](#assisted-development-assisted-distribution) carries enough information for another harness without upstream checkout/chat. The [check catalog](#conformance-checks-conformance-checks) separates deterministic requirements, advisory warnings and agent judgment. The shared validator checks facts; agents review purpose, authority and behavior. Init, upgrade and check converge on the same canonical structure, with dry-run proposals validated before activation. Ordinary loading and both forms of review sustain conformity; L2 also enforces execution preconditions.
 
 Repair the lowest sufficient layer. Target defects stay there; YOLO defects feed back here. Setup, active preparedness and qualification are distinct evidence claims.
 
-Keep product engineering separate from the reusable methodology. YOLO Dev validates its own tooling/bundle and harness behavior under [publisher acceptance](#assisted-development-acceptance); its concrete commands and CI status live in [development instructions](https://github.com/normzhou/yolo-dev/blob/8370cbbb2afd5c161e5ad82c434f7656c45297af/docs/development.md). Each adopted repo defines its own tests and delivery route under the shared [verification contract](#verification-delivery-verification-and-delivery). [Target qualification](#qualification-compliance-and-qualification-evidence) needs that target's actual delivery/continuation evidence; publisher tests cannot supply it.
+Keep product engineering separate from the reusable methodology. YOLO Dev validates its own tooling/bundle and harness behavior under [publisher acceptance](#assisted-development-acceptance); its concrete commands and CI status live in [development instructions](https://github.com/normzhou/yolo-dev/blob/a983c2b44b0bd9212f0ff960ce4c1927171fb24f/docs/development.md). Each adopted repo defines its own tests and delivery route under the shared [verification contract](#verification-delivery-verification-and-delivery). [Target qualification](#qualification-compliance-and-qualification-evidence) needs that target's actual delivery/continuation evidence; publisher tests cannot supply it.
 
 <a id="architecture-product-source-and-applied-adoption"></a>
 ### Product source and applied adoption
@@ -199,8 +203,9 @@ Charter → architecture/specs → implementation and published artifacts. The [
 
 | Activity | Destination | Result |
 | --- | --- | --- |
-| `init` | Target | Propose/apply [adoption](#onboarding-onboarding-and-check); `--upgrade <publisher-ref>` explicitly migrates existing adoption; `--dry-run` retains a local preview without publication or activation. |
-| `check` | Target | Review conformity, diagnose drift and retain evidence. |
+| `init [preview\|ref]` | Target | Propose/apply [adoption](#onboarding-onboarding-and-check); `--dry-run` retains a local preview. |
+| `upgrade [preview\|ref]` | Target | Propose migration to latest stable, latest preview or an explicit publication; `--dry-run` previews. |
+| `check` | Target | Read-only conformity review, then optional upstream feedback; `--dry-run` proposes isolated repair under the same pin. |
 | `request` | Target | Discuss, file or follow an app need or question. |
 | `work` | Target | Advance issue-backed outcomes through verified delivery. |
 | `feedback` | YOLO Dev | Discuss, submit or follow an upstream problem or improvement. |
@@ -239,14 +244,18 @@ L1's maintainer starts sessions; AI may admit and plan within them. Between sess
 
 Resolve upstream from adoption/bundle publisher provenance; never default to the target's origin. Search related issues/plan and prefer existing threads. Keep target requests in the target repo.
 
-Show the exact destination/content; use explicit reporting authorization covering both, otherwise obtain it. Sanitize diagnostic drafts: exclude target identities, code, URLs, paths, logs and credentials; include only necessary behavior, bundle identity and safe reproduction. Never forward automatically. Confirm submission and return its actual link, or retain an unsent draft.
+Draft useful bugs, questions or improvements arising from actual use of YOLO: unclear, conflicting or ineffective guidance, tooling failures or unnecessary friction. During check and the final init/upgrade assessment, briefly consider these causes; ordinary target defects and successful checks need no upstream report. Separate observed evidence from hypotheses.
 
-Submission implies no admission or ETA. Upstream fixes require explicit target upgrade; unavailable upstream access does not block unrelated target work.
+**Default: draft → show destination/content → ask the harness user → submit if authorized.** Group the same cause in one issue; search before filing, reuse related threads and add only substantive new evidence. Sanitize before showing or sending: exclude target identities, code, URLs, paths, raw logs and credentials. Include only YOLO release, relevant harness/activity, expected versus observed behavior, impact and a safe reproduction when available.
+
+An active target may opt into automatic submission through its [adoption record](#adoption-records-adoption-and-evidence-records). A recognized maintainer must explicitly accept that scope at an identified revision; the flag alone grants nothing. Check the active pin, accepted consent and governing restrictions before using it. This permits only the sanitized feedback above to the provenance-identified publisher, never broader telemetry or target disclosure. Without valid consent, retain drafts and ask. **Dry runs never submit**, regardless of the setting.
+
+Keep assessment read-only; any authorized submission is a separate, visible feedback step. Confirm its actual issue/comment link, or retain an unsent draft with the access gap. Submission implies no admission or ETA; upstream fixes require explicit target upgrade and unavailable access does not block unrelated work.
 
 <a id="activities-acceptance"></a>
 ### Acceptance
 
-Demonstrate the activities from a standalone bundle: read-only help/status, intake without premature admission, direct harness work with durable progress/fresh continuation, and upstream routing without unauthorized submission/disclosure. Use [qualification](#qualification-compliance-and-qualification-evidence) for level claims.
+Demonstrate the activities from a standalone bundle: read-only help/status, intake without premature admission, direct harness work with durable progress/fresh continuation, and upstream routing with default consent, accepted automatic opt-in, draft-only dry runs and no unauthorized submission/disclosure. Use [qualification](#qualification-compliance-and-qualification-evidence) for level claims.
 
 
 <a id="repo-layout-repository-layout"></a>
@@ -280,11 +289,20 @@ Demonstrate the activities from a standalone bundle: read-only help/status, inta
 
 Names and types are exact and case-sensitive. Only the tree's entries are allowed inside `.yolo/`; names/subdirectories within specs/reports are target-defined. Create optional directories only for content. App code, installed skills, caches, credentials and parallel issue databases stay out.
 
-All three governing roles are required. New documents use canonical slots. Equivalent documents existing outside `.yolo/` before onboarding may remain explicitly mapped after semantic review; mapped documents inside it use canonical slots. Existing accepted layouts change only through explicit migration.
+All three governing documents use the canonical slots above; durable governing specs use `.yolo/governance/specs/`. Existing documents are migration inputs, not permanent location exemptions. Preserve their accepted meaning while moving them, update active references and native tooling that depends on those paths, and remove competing active copies. Active governing/instruction links must agree with those mappings; migration is a move, not a parallel document tier. Historical evidence retains its original content and cited revision. Earlier pins keep their earlier rules until an explicit upgrade.
 
 Questions belong in reports/issues, not extra governing files. Ownership follows meaning, including draft Charter/authority and proposed controls; location cannot grant permission.
 
-The adopted source revision identifies the layout contract. The [schema](https://github.com/normzhou/yolo-dev/blob/8370cbbb2afd5c161e5ad82c434f7656c45297af/specs/repo-layout.schema.json) supplies its reserved entries/types/role paths in the manifest. Check reports unexpected entries, wrong types, missing roles and invalid mappings without deleting evidence or relocating files. An incompatible/missing definition is a coverage gap; structural success does not prove meaning or approval.
+The adopted source revision identifies the layout contract. The [schema](https://github.com/normzhou/yolo-dev/blob/a983c2b44b0bd9212f0ff960ce4c1927171fb24f/specs/repo-layout.schema.json) supplies its reserved entries/types/role paths in the manifest. The strict validator reports missing canonical homes, unexpected entries, wrong types and invalid mappings without changing files. Init/upgrade propose the required repair; do not mark setup prepared while required structure fails. An incompatible/missing definition is a coverage gap; structural success does not prove meaning or approval.
+
+<a id="repo-layout-governing-file-review"></a>
+### Governing-file review
+
+Check each canonical governing slot independently: exact spelling, regular non-symlink file, nonempty content and matching role mapping. Then inventory files with the same basename (case-insensitive) elsewhere using Git's tracked and unignored working files. Ignored untracked dependencies/builds and nested repos are outside this scan; tracked artifacts still count. Report candidate path, canonical role, file/symlink type and byte equality when safely readable. Never follow a candidate symlink outside the repo.
+
+Filename or byte equality is a **review signal**, not a ban or deletion instruction. Before completing init/upgrade/check review, classify every candidate with content/reference/history evidence: unintended active replica, intentional non-governing template/fixture/history/distinct scope, or unresolved. Preserve intentional artifacts; reconcile replicas through an authorized move and reference/tooling repair. Unknown purpose stays unresolved. Record classifications in the normal report; no permanent allowlist is required.
+
+Review ordinary entrypoints and README too. Calling this repo's own Charter/design “publisher source” does not establish an independent role or justify copies that may drift. Reusable methodology implementation and installed rules remain separate artifacts; this distinction cannot create two governing homes for the same decision. Use [the consistency checklist](#onboarding-proposal-review); structural success cannot clear semantic candidates.
 
 <a id="repo-layout-native-entrypoints-and-ordinary-context"></a>
 ### Native entrypoints and ordinary context
@@ -415,6 +433,8 @@ Use GitHub Actions for automated CI/CD, retaining useful workflows. L1 may use c
 <a id="verification-delivery-delivery-and-completion"></a>
 ### Delivery and completion
 
+Follow the shared [release convention](#releases-product-releases): semantic release tags, immutable identity, mapped native versions and preserved migration history. Targets choose their release tooling and cadence within authority.
+
 Record revision/action/destination intent before merge/publication and actual results afterward in native PR/check/release/deployment records and issue summaries. Reconcile uncertain effects before retrying or dependent actions.
 
 | Evidence | Establishes |
@@ -437,6 +457,80 @@ Use the [adaptive work loop](#issue-management-l2-coordination-and-recovery): di
 Retain prior intent/failures; revised acceptance is prospective. Recovery cannot expand authority. Reconcile rollback/current availability without erasing historical delivery. Pause and binding limits survive restart.
 
 
+<a id="releases-product-releases"></a>
+## Product releases
+
+**Every YOLO-enabled product uses immutable `vMAJOR.MINOR.PATCH` release tags.** Optional [SemVer](https://semver.org/) prereleases, such as `v0.2.0-alpha.1`, are allowed; native app/package versions omit `v`.
+
+Target architecture/specs define the compatibility promise, native version source and delivery route. Stable releases increment major for incompatible changes, minor for compatible capabilities, patch for compatible fixes. Before 1.0 compatibility is experimental; breaking changes still explain migration. AI chooses cadence and bumps within its grant; changing the major version supplies no additional authority.
+
+Published tags and contents are immutable. Corrections use new versions. Record tag, full commit, delivered artifact/destination, verified acceptance and update/migration steps; rollback identifies the restored version. A tag proves neither delivery nor current availability. Changes may be batched; commits/deployment attempts retain their own identities. Reuse native version files and delivery records, without an extra reserved file or mandatory per-deployment GitHub Release.
+
+<a id="releases-establish-and-check"></a>
+### Establish and check
+
+Init proposes the smallest release-policy/version-source migration. Preserve existing compatible versions; default new products to `0.1.0-alpha.1`. Record the effective revision and the exact legacy product tags/commits; those keep their earlier rules. Every subsequent product release conforms. Other tooling tags can coexist, with their purpose reviewed.
+
+Unreleased projects declare their initial version and unreleased status. Prepared setup requires mapped policy and a valid native version; do not manufacture publication. Q4 demonstrates tagged, verified release when product publication is in scope. Local-checkout-only delivery remains explicitly scoped.
+
+Explicit upgrades reconcile the same policy, releases and history in their migration. Updating the YOLO installation alone does not bump the target product. Dry runs create no remote tags/releases; publication remains within existing authority.
+
+Read-only check reviews default-branch setup, current release records and the interval since effective adoption/checkpoint. Factual checks observe names, tag/commit mappings and changes to retained observations. AI verifies native versions, artifact identity, compatibility bumps, migration and delivery. Persist dated tag/commit observations in ordinary evidence records; current refs cannot prove historical immutability. Missing evidence stays unverified; violations need cited resolution, not rewritten tags/history.
+
+The [record encoding](https://github.com/normzhou/yolo-dev/blob/a983c2b44b0bd9212f0ff960ce4c1927171fb24f/skills/yolo/references/records.md) realizes these bindings. Target product versions and adopted YOLO releases are independent; upstream publication never upgrades a target automatically.
+
+
+<a id="conformance-checks-conformance-checks"></a>
+## Conformance checks
+
+**Programs check facts; agents judge meaning. Both are required.** This reusable catalog applies under the target's adopted version. Linked contracts define the details.
+
+<a id="conformance-checks-deterministic-checks"></a>
+### Deterministic checks
+
+The read-only validator implements these tests. Deterministic violations cannot be waived; missing observations remain unverified. L1 is procedural: a check is not an enforced merge gate. [L2 controls](#repo-rules-enforcement-by-level) require separate evidence.
+
+| Check | Required fact |
+| --- | --- |
+| [Layout](#repo-layout-repository-layout) | One active adoption marker; exact reserved slots/types; nonempty mapped governing documents; specs in their canonical home; no unexpected reserved entries or escaping paths. |
+| [Rule identity](#assisted-development-information-delivery) | Snapshot, provenance, manifest and complete skill inventory match recorded digests/publication bindings. |
+| [Agent entrypoints](#assisted-development-harness-bindings) | Native bindings/imports are intact; instructions reference local adoption/protocol; checked governing Markdown links resolve to mapped homes. |
+| [Record encoding](#adoption-records-adoption-and-evidence-records) | Required context/migration fields and references have valid shape; feedback settings are boolean with consent references when enabled. |
+| [History](#adoption-records-reports-and-checkpoints) | Baseline/checkpoint ancestry, report chain and interval identities agree; recorded unresolved findings prevent factual readiness; checkpoint/report history remains intact. |
+| [Issues](#issue-management-reserved-labels-and-states) | Reserved labels exist; managed open issues have one state, closed issues none; states require `yolo:work`; each outcome has one status-summary comment. |
+| [Releases](#releases-establish-and-check) | Release bindings/effective history exist; product-tag candidates follow naming rules; published releases have tags; retained tag/commit observations remain unchanged. |
+| [Default branch](#qualification-required-observations) | Declared branch matches GitHub; landed adoption identity agrees with inspected setup. Unavailable/unpublished context remains unverified. |
+
+`--structure` covers local layout, identity, entrypoints and structural encoding. Full check adds context/history and GitHub facts; offline leaves remote checks unverified. Earlier pins retain their coverage. Findings: `compliant/missing/conflicting/unverified`. Structure: `pass/fail/unverified`. Exits: 0 ready for review, 1 gaps, 2 invocation/Git error.
+
+The validator observes repository settings; it does **not** authenticate approval/provenance, judge document/report/summary contents, inspect every PR review/check, validate native versions, execute target tests or prove delivery. Agents reconcile that evidence.
+
+<a id="conformance-checks-advisory-warnings"></a>
+### Advisory warnings
+
+Matching-name governing files are **review candidates**, not automatic violations. `replica_candidates` provides paths/type/byte comparison. Candidates alone do not fail structural checks; an incomplete inventory is unverified.
+
+Classify each from content/references/history: active duplicate, intentional template/fixture/history/distinct scope, or unresolved. Record evidence and an authorized next action. Preserve intentional artifacts; never delete or exempt by filename alone. Confirmed active duplication fails conformance; unresolved required review prevents a conformance claim.
+
+Flag other ambiguity for judgment. Warnings cannot waive an underlying requirement.
+
+<a id="conformance-checks-agent-judgment"></a>
+### Agent judgment
+
+Record **pass / fail / unverified, evidence and next action** for each review:
+
+| Review | Question |
+| --- | --- |
+| Purpose and congruence | Do all layers serve confirmed goals, with concise documents, one governing home and correct active references? |
+| Ownership and authority | Do grant, Charter and pin agree? Are approvals authentic/revision-bound, significant changes notified and overrides scoped? |
+| Work and adaptation | Do issues, acceptance, plans, replies, PRs and closures reflect actual work? Are failures/replanning explained without retrospective success? |
+| Verification and delivery | Are checks trustworthy/current, versions and compatibility justified, and outcomes verified on the actual delivered artifact? |
+| Continuity | Does full history preserve decisions/failures, including repaired violations, and support recovery without hidden session state? |
+| Capability | Was loading/fresh continuation observed? Does the claimed level satisfy [qualification](#qualification-compliance-and-qualification-evidence), including effective L2 controls? |
+
+Init, upgrade and standalone check use this same boundary and the [proposal checklist](#onboarding-proposal-review). A structural pass or exit 0 opens review; neither establishes authorization, activation or qualification.
+
+
 <a id="qualification-compliance-and-qualification-evidence"></a>
 ## Compliance and qualification evidence
 
@@ -445,12 +539,14 @@ Retain prior intent/failures; revised acceptance is prospective. Recovery cannot
 <a id="qualification-required-observations"></a>
 ### Required observations
 
+The [check catalog](#conformance-checks-conformance-checks) defines deterministic coverage, advisory warnings and required agent judgment.
+
 | Contract | Inspect |
 | --- | --- |
 | [Layout](#repo-layout-repository-layout) | Intact local rules, mapped context/grant, native bindings/ordinary loading, baseline, applicability and evidence references. |
 | [Issues](#issue-management-issue-management) | Labels, states/closures, summaries, source/PR links, plan/decisions, replies including closed issues; L2 control/handoff. |
 | [Repository rules](#repo-rules-repository-rules-and-authority) | Current branch/PR/history, effective settings, recognized identity, revision-specific approval, notifications, overrides and action authority. |
-| [Delivery](#verification-delivery-verification-and-delivery) | Declared checks/routes, actual runs/versions, delivered acceptance and relevant current availability. |
+| [Delivery](#verification-delivery-verification-and-delivery), [releases](#releases-product-releases) | Declared checks/routes/native version, release naming and immutable identities, actual delivery/acceptance and relevant availability; legacy applicability and unreleased setup remain explicit. |
 
 Reconcile current default-branch state, local changes, every intervening commit since baseline/checkpoint, and GitHub records/configuration. Investigate intermediate violations even when repaired.
 
@@ -501,7 +597,8 @@ Reconcile changed feedback, authority and actual outcomes before proceeding. Act
 | Governing context | Repo-relative Charter, authority, architecture, ordinary instructions and applicable specs; follow [layout mappings](#repo-layout-repository-layout). Paths stay inside the target. |
 | Authority | Recognized maintainers/accepted source, identified grant/bootstrap acceptance and pending conflicts. |
 | Native bindings | Harness/version, loading route and installed skill identity/location or explicit gap. |
-| Verification/delivery | References to checks, destination/version observation, accepted recovery/limits and optional app interface. Do not duplicate the grant or workflow state. |
+| Verification/delivery | References to checks, destination/version observation, release policy/native version source/effective revision and preserved tag/commit evidence, accepted recovery/limits and optional app interface. Do not duplicate the grant or workflow state. |
+| Feedback | Optional automatic sanitized upstream reporting, disabled when absent. Record explicit recognized-maintainer consent; preserve the choice across upgrades without broadening its scope. Changes are authority controls, not ordinary setup facts. |
 | Activation | Proposed or active; active requires accepted governing decisions and installed identified context. |
 | History/status | Original baseline, effective upgrades, successful checkpoint/report, unresolved references and level evidence. |
 
@@ -610,14 +707,18 @@ Reuse accepted context; confirm Charter direction through the initial interview 
 ### Init
 
 1. **Inspect:** deeply read intent, ownership/grant, design, instructions, Git/GitHub state and verification/delivery. Record the pre-setup baseline. Existing bugs remain target work, not adoption blockers.
-2. **Interview and propose:** present a repo-informed interpretation and conduct the [Charter interview](#onboarding-discover-governing-intent), then shape concrete Charter/grant text, evidenced maintainer mapping, design/check/delivery choices and the smallest setup/gap plan. Preserve useful app paths, instructions and unrelated metadata. Apply [proposal review](#onboarding-proposal-review).
+2. **Interview and propose:** present a repo-informed interpretation and conduct the [Charter interview](#onboarding-discover-governing-intent), then shape concrete Charter/grant text, evidenced maintainer mapping, design/check/delivery choices and the smallest setup/gap plan. Preserve useful app paths, instructions and unrelated metadata; propose governing documents in the canonical homes, preserving accepted meaning and repairing active references/tooling. Apply [proposal review](#onboarding-proposal-review).
 3. **Resolve ownership:** cite existing acceptance; obtain missing recognized approval of the identified Charter/grant revision before activation. Bootstrap follows ownership even before adoption. Notify significant design changes under [repository rules](#repo-rules-repository-rules-and-authority).
 4. **Apply:** install the pinned contract/provenance, governing/native mappings, ordinary instruction loading and authorized GitHub conventions under [layout](#repo-layout-repository-layout). Configure required labels, inspect rules/checks and report gaps. No placeholder CI or L1 runner/bypass service.
-5. **Assess:** factual check plus semantic review; publish evidence/gaps and next action. Use the [result table](#onboarding-observable-result), not install success, to report readiness.
+5. **Assess:** run the strict structural validator on actual setup, then full factual check plus semantic review; publish evidence/gaps and next action. Use the [result table](#onboarding-observable-result), not install success, to report readiness.
 
 Present reviewable files before asking for acceptance. Use one onboarding outcome issue and an issue-referencing draft PR when publication is authorized; otherwise retain/show files and diff. Missing activation approval blocks activation/merge, not drafting or authorized proposal publication.
 
 Protection follows meaning, not whole directories: human Charter/authority, co-owned design, AI-maintained facts. Existing rules forcing routine human code approval are a gap to propose resolving, not permission to bypass. AI chooses proportionate checks/CI/recovery mechanics; humans resolve intent/authority tradeoffs.
+
+During init or upgrade, offer [automatic sanitized feedback](#activities-feedback-upstream-yolo-interaction) with the grant/settings proposal, default off. Record explicit consent before enabling; preserve an existing choice and its evidence without asking again. Installing a newer bundle cannot enable reporting or override governing restrictions.
+
+Establish the [release policy](#releases-establish-and-check) and native version binding during init. Preserve legacy tag/commit observations; unreleased setup stays explicit. Repeat this reconciliation during explicit upgrade, without manufacturing a release or bumping the product for a skill update. Check the landed setup before claiming conformity.
 
 <a id="onboarding-discover-governing-intent"></a>
 ### Discover governing intent
@@ -648,17 +749,21 @@ An intentionally open product direction and few non-goals are valid answers. YAG
 <a id="onboarding-proposal-review"></a>
 ### Proposal review
 
-Before committing, inspect actual files and record **pass/fail, reason and evidence** in the report. Test contrary evidence; correct errors and recommend concrete answers for pending human choices. Draft status does not relax document boundaries.
+Init, upgrade and standalone check use this line-item consistency review on actual files, records and actions. Before committing a proposal or reporting readiness, record **pass/fail/unverified, evidence and next action** per line. Missing evidence is not a pass; a script cannot settle ownership or document purpose.
 
-| Check | Question |
+| Line | Review |
 | --- | --- |
-| Purpose | Does Charter name audience, desired future, useful progress and non-goals? Cite the repo-informed interview and distinguish confirmed answers from pending hypotheses. |
-| Layer boundaries | Are purpose, design, delegation and evidence in their respective homes? Tests verify intended behavior. Protected boundaries need human-intent evidence, not just current mechanics. |
-| Authority | Is bounded AI scope proposed across management, implementation, verification, merge, delivery and recovery, without invented acceptance? |
-| Congruence | Do Charter, grant and protocol agree for each delegated/reserved action, including release and protected edits? Approval gates need an intent/authority source; notification is not approval. Preserve ordinary AI autonomy and recovery limits. |
-| Structure and truth | Do paths, references and provenance conform? Do claims match evidence, with pending choices/gaps visible? |
-| Reviewability | Are direction, grant and missing decisions easy to find? Verify full/focused content diffs, including new files; dry run preserves its source. |
-| Compression | Can this be shorter without losing meaning, permissions, acceptance, exceptions or uncertainty? Prefer principles, one home per rule and links to evidence. Remove repetition and transcripts; word count is not the goal. |
+| Canonical files | Required exact slots/types/nonempty content, role/spec mappings and reserved entries pass the structural validator. |
+| One governing home | Classify every [replica candidate](#repo-layout-governing-file-review); remove unintended active duplication through authorized migration. Distinguish reusable artifacts from this repo's governing decisions using evidence, not directory labels. |
+| References | Ordinary instructions, README, governing links and native tooling agree on current authoritative homes; historical links are explicitly historical. |
+| Purpose and design | Charter reflects confirmed audience/aspiration/useful progress/boundaries; architecture/specs express intended behavior. Proposals distinguish inference and current-code discrepancies. |
+| Authority and controls | Reconcile each delegated/reserved action across Charter, grant and pin, including feedback consent/settings. Configuration cannot override a prohibition. |
+| Protected approval | Recognized acceptance/override covers the final protected revision; later edits cannot inherit earlier approval. Significant design changes notify co-owners. |
+| Installed identity | Snapshot, complete bundle, manifest, bindings and active/proposed publication match; installed/source/published/adopted versions remain distinct. |
+| Harness observation | Record the actual harness/version/loading route or explicit unknown; retain earlier evidence as history. File presence and a prior harness cannot prove current loading. |
+| Work and delivery | Issues/PRs, labels, summaries, checks, release/artifact identity and actual outcomes agree. A merge or install is not verified fulfillment. |
+| Continuity and status | Preserve baseline/checkpoint/findings and prior applicability; adoption, README and reports state current facts consistently without claiming missing level evidence. |
+| Reviewability and compression | Full/focused diffs include new files, choices are visible and content is concise without losing permissions, exceptions or uncertainty. |
 
 Apply the final compression check to governing-document and protocol edits too. This is semantic review, not a new service or qualification proof. Classify concerns as contract defects, draft errors, expected pending observations or ordinary target work; do not turn every finding into a new rule.
 
@@ -671,7 +776,7 @@ Keep changing acceptance/setup status in the adoption record and issue, with exa
 
 1. Use a separate retained checkout. Identify baseline/excluded local changes; preserve source work, pins and previous evidence. Install/edit/commit only in the preview.
 2. Draft under init with proposed status. Read-only GitHub observation is allowed; no pushes, issue/comment/PR writes, labels/settings changes, activation, merge, release/deploy or remote-effect automation. Describe planned operations in the report.
-3. Run check and proposal review; retain gaps. Commit **all files, including new ones**, locally.
+3. Run strict structural validation, full check and proposal review. Repair structural failures in the preview and rerun; retain earlier findings and separate pending acceptance/history/GitHub limits. A failed or unverified structure is an incomplete proposal, not a prepared setup. Commit **all files, including new ones**, locally.
 4. Keep a short external report: target/baseline/bundle/proposal identities, changes, pending decisions, planned GitHub operations, results/gaps and next action. Return absolute paths and tested, shell-quoted complete/focused diff and report commands using actual revisions.
 
 End **proposal pending — dry run**. An unstaged diff misses new files. Retain previews/reports until maintainer cleanup direction. Later live adoption needs explicit direction, reconciliation and identified acceptance; Git revert cannot undo external labels/settings.
@@ -692,25 +797,29 @@ Distinguish proposed, installed, committed/merged and default-branch-observed fa
 
 Load existing pin/context first. Preserve intent, original baseline, checkpoints, findings, reports and prior rule applicability. Missing snapshots need diagnosis; a newer installed skill is not upgrade authority.
 
-`init --upgrade <publisher-ref>` requests migration to an identified publication; it is an agent procedure, not a CLI updater. Add `--dry-run` for a retained local proposal with no source/GitHub changes. Without an explicit upgrade request, repeat init/check retain the active pin.
+`upgrade [preview|<publisher-ref>]` requests migration. These are agent procedures, not CLI updaters. Add `--dry-run` for a retained local proposal with no source/GitHub changes. Without an explicit upgrade request, repeat init/check retain the active pin.
+
+Select releases using [publisher channels](#assisted-development-release-selection), then pin the chosen publication for the entire migration. If already adopted, check conformity and repair drift under that pin; same-version selection is not an unconditional no-op.
 
 1. **Reconcile under the old rules.** Read the current pin/grant, installed publication, local modifications, open work and executors. Do not race active writers; carry gaps forward rather than using upgrade to erase them.
-2. **Stage and compare.** Resolve the requested publisher commit/tag once, obtain its complete bundle and verify provenance/output digest. Compare rules, encoding, tooling and bindings. For each affected action, cite its delegations **and restrictions** across Charter, grant, old pin and candidate; record compatible/conflicting/unknown with reason and contrary evidence. Unchanged text and historical exceptions still need comparison. Publisher updates cannot supply target intent or expand authority.
+2. **Stage and compare.** Resolve the selected publisher tag/commit once, obtain its complete bundle and verify provenance/output digest. Compare rules, encoding, tooling and bindings. For each affected action, cite its delegations **and restrictions** across Charter, grant, old pin and candidate; record compatible/conflicting/unknown with reason and contrary evidence. Unchanged text and historical exceptions still need comparison. Publisher updates cannot supply target intent or expand authority.
 3. **Propose a migration.** Use one outcome issue and linked PR, or a retained dry-run report/diff. Reuse accepted purpose; no new initial interview unless intent is genuinely missing. Report migration deltas, conflicts, planned operations, pending owner decisions and restoration steps; link existing context/evidence instead of repeating it.
-4. **Prepare without blind overwrite.** Reconcile publisher-owned bundle/bindings against their identified old publication, preserving target modifications and unrelated instructions. Stage the complete new bundle, byte-identical snapshot and candidate mapping together; no mixing versions. A pending candidate uses proposed activation and unverified qualification, with conflicts in pending/unresolved references; preserve old applicability/evidence in Git and the report. The installer refuses conflicts; resolving an authorized replacement belongs to this migration, not ordinary install.
+4. **Prepare without blind overwrite.** Reconcile publisher-owned bundle/bindings against their identified old publication, preserving target modifications and unrelated instructions. Stage the complete new bundle, byte-identical snapshot, canonical governing context and candidate mapping together; no mixing versions. A pending candidate uses proposed activation and unverified qualification, with conflicts in pending/unresolved references; preserve old applicability/evidence in Git and the report. The installer refuses conflicts; resolving an authorized replacement belongs to this migration, not ordinary install.
 5. **Apply within current authority.** Protected edits/authority-control changes need the old policy's identified approval or override; significant design changes notify. Missing decisions leave the old default-branch adoption in force. Publish an authorized migration through its PR, observe the landed revision, append the upgrade's effective commit/evidence and retain historical applicability.
-6. **Check and resume.** Verify delivered bundle/snapshot/context, reassess affected criteria and preserve unresolved findings. Loading evidence for the previous pin remains historical, not proof of the new rules being loaded. Reload/restart the harness and record a fresh continuation before restoring dependent claims.
+6. **Check and resume.** Run strict structural validation before dependent activation and again on delivered setup. Verify delivered bundle/snapshot/context, reassess affected criteria and preserve unresolved findings. Loading evidence for the previous pin remains historical, not proof of the new rules being loaded. Reload/restart the harness and record a fresh continuation before restoring dependent claims.
 
-Follow layout with one active marker; competing markers select neither. Self-use follows this same route. New publication, installed candidate and active target pin remain separate facts; rollback also records an explicit migration and cannot undo external effects or erase failures.
+Follow layout with one active marker; competing markers select neither. Upgrade changes applied adoption, not target product or publisher source. Limit implementation edits to necessary relocation repairs; unrelated improvements are separate work. Self-use follows this same route. New publication, installed candidate and active target pin remain separate facts; rollback also records an explicit migration and cannot undo external effects or erase failures.
 
 For each conflict, propose the smallest resolution, its owner and blocked scope. Draft protected corrections for review under existing approval rules; do not invent acceptance. Separate migration decisions from ordinary target work. Passing byte checks cannot support a no-conflict verdict, and known findings are not an exhaustive blocker list without review.
 
 <a id="onboarding-check-and-repair"></a>
 ### Check and repair
 
-Reconcile [required observations](#qualification-required-observations), current work and full intervening history under the active contract. Incompatible tooling/unavailable evidence stays a gap. Factual readiness opens semantic review, not qualification.
+Reconcile [required observations](#qualification-required-observations), current work and full intervening history under the active contract; apply [the same consistency checklist](#onboarding-proposal-review). Incompatible tooling/unavailable evidence stays a gap. Factual readiness opens semantic review, not qualification.
 
-Diagnose cause/impact, repair the lowest sufficient layer within authority, retain failed evidence and cite resolutions, then recheck. [Checkpoint rules](#adoption-records-reports-and-checkpoints) prevent failure from resetting history. Optional sanitized upstream drafts use [feedback authority](#activities-feedback-upstream-yolo-interaction).
+`check` is read-only by default. `check --dry-run` uses the retained-checkout procedure to propose repair under the same active rules, with no silent upgrade or live changes. Init/upgrade also check and repair existing structure; never weaken a rule to preserve drift.
+
+Diagnose cause/impact, repair the lowest sufficient layer within authority, retain failed evidence and cite resolutions, then recheck. [Checkpoint rules](#adoption-records-reports-and-checkpoints) prevent failure from resetting history. Standalone check and the final init/upgrade assessment briefly evaluate the effectiveness of YOLO guidance/tooling, then use the separate [feedback procedure](#activities-feedback-upstream-yolo-interaction) for useful findings. Dry runs retain drafts only.
 
 <a id="onboarding-product-artifacts-and-acceptance"></a>
 ### Product artifacts and acceptance
@@ -723,7 +832,7 @@ For dry run, observe source preservation/no GitHub writes, a complete retained d
 <a id="assisted-development-assisted-distribution"></a>
 ## Assisted distribution
 
-**Publisher artifact requirements.** Package the [protocol](#operating-protocol-operating-protocol) and [onboarding process](#onboarding-onboarding-and-check) so a target harness can operate without this checkout or prior chat. The [candidate skill](https://github.com/normzhou/yolo-dev/blob/8370cbbb2afd5c161e5ad82c434f7656c45297af/skills/yolo/SKILL.md) implements them; observed qualification remains separate.
+**Publisher artifact requirements.** Package the [protocol](#operating-protocol-operating-protocol) and [onboarding process](#onboarding-onboarding-and-check) so a target harness can operate without this checkout or prior chat. The [candidate skill](https://github.com/normzhou/yolo-dev/blob/a983c2b44b0bd9212f0ff960ce4c1927171fb24f/skills/yolo/SKILL.md) implements them; observed qualification remains separate.
 
 <a id="assisted-development-standalone-bundle"></a>
 ### Standalone bundle
@@ -741,12 +850,12 @@ The helper observes local context/history and GitHub metadata, issues/comments, 
 | --- | --- |
 | Init | Mode, prerequisites/access, full rules, informed intent discovery, proposal/approval procedure, templates, encoding and readiness meanings. |
 | Dry run | Isolation/no-write boundary, retained proposal/report and actual review commands. |
-| Upgrade | Identified old/new publications, rule/tooling diff, preservation/replacement procedure, existing approval rules, effective migration and affected qualification. |
+| Upgrade | Stable/preview selection, identified old/new publications, rule/tooling diff, preservation/replacement procedure, existing approval rules, effective migration and affected qualification. |
 | Check | Active-pin lookup, supported versions, observations, history review, diagnosis/repair and checkpoint rules. |
 | Request/work/feedback | Activity procedure, destination, admission versus intake, scope and reporting authority. |
 | Ordinary session | Loading entrypoint plus local context/shared work sufficient for continuation without settled-intent rebriefing. |
 
-Link supporting files with read conditions. Required information cannot depend on upstream access; optional source/tool links provide context. Copied folders retain source identity, input/output digests and installed publication identity. Broken references, unfilled required context and unknown provenance are gaps. Incompatible versions are diagnosed, never substituted.
+Link supporting files with read conditions. Required information cannot depend on upstream access; optional source/tool links provide context. Copied folders retain source identity, input/output digests, installed publication identity and a complete file-hash inventory. Adoption binds the manifest digest. Verify all shipped files, not just the protocol; verify every required native binding/import separately. Broken references, unfilled required context and unknown provenance are gaps. Incompatible versions are diagnosed, never substituted.
 
 <a id="assisted-development-harness-bindings"></a>
 ### Harness bindings
@@ -769,7 +878,29 @@ Preserve other skills, commands and active instructions. Repeated installation i
 
 Use `AGENTS.md` as the ordinary entrypoint. Install thin [Claude](https://code.claude.com/docs/en/memory) and [Gemini](https://geminicli.com/docs/cli/gemini-md/) imports in `CLAUDE.md` and `GEMINI.md`; preserve existing instructions with the same import, otherwise stop for reconciliation. Init supplies the shared local protocol/context through `AGENTS.md`. Native trust, permissions and reload requirements remain in force. Skill discovery, explicit invocation and ordinary instruction loading require separate observations.
 
-Ordinary requests use [work](#activities-work-shared-development-procedure) without per-session manual invocation. YOLO self-use follows the same identified publication/adoption route; a mutable authoring link cannot upgrade or qualify it. Older [protocol](https://github.com/normzhou/yolo-dev/blob/8370cbbb2afd5c161e5ad82c434f7656c45297af/skills/yolo/references/assisted-protocol.md)/encoding remain compatibility material.
+Ordinary requests use [work](#activities-work-shared-development-procedure) without per-session manual invocation. YOLO self-use follows the same identified publication/adoption route; a mutable authoring link cannot upgrade or qualify it. Older [protocol](https://github.com/normzhou/yolo-dev/blob/a983c2b44b0bd9212f0ff960ce4c1927171fb24f/skills/yolo/references/assisted-protocol.md)/encoding remain compatibility material.
+
+<a id="assisted-development-release-selection"></a>
+### Release selection
+
+`upgrade` defaults to GitHub's latest published **stable** release. `upgrade preview` selects the most recently published non-draft release, including prereleases. Both are explicit one-time requests, not background update subscriptions. GitHub's `prerelease` flag defines preview; drafts and bare tags are excluded. If the requested channel has no release, stop with a helpful alternative; never silently switch channels or use `main`.
+
+Init uses the same selection (`init` or `init preview`). An explicit tag/commit remains available for reproducibility; `main` is an explicitly requested unreleased candidate.
+
+Resolve selection once to a release tag and full publication commit; obtain all files and the versioned guide from that commit, verify manifest identity, and retain it through review/activation. Do not reselect mid-proposal. Source-input provenance remains separate. Selection changes neither target authority nor its active pin. When already adopted, still check conformity; report no change only if no repair is required. Preview access permits experimental rules, not expanded authority.
+
+The versioned executable supplies read-only release resolution. Older installations bootstrap through the publisher's current agent guide, then follow the selected publication's staged rules. Test missing stable releases, preview selection and fixed identity without target mutations. These are YOLO Dev's distribution channels, not a requirement for target products to publish both channels.
+
+<a id="assisted-development-strict-validation"></a>
+### Strict validation
+
+Ship one read-only validator with the skill, following the [check catalog](#conformance-checks-conformance-checks). `yolo-check <target> --structure` checks local canonical layout, required documents/spec mappings and references, snapshot/manifest/full-bundle identity, one active marker and native bindings/imports. Emit actionable rule/path/expected/observed findings and a structural pass, fail or unverified result; do not silently waive failed rules. For profiles declaring replica review, emit matching-name candidates separately for agent classification; their presence alone does not fail structural validation. Inventory failure is a coverage gap. No GitHub access is needed for this local check.
+
+Init, repeat init, upgrades and check use this same validator on actual files. Dry-run proposals must pass structural validation while human acceptance/activation may remain pending. Full check additionally observes GitHub/release/history and requires semantic review. Structural success proves neither accepted intent, protected approval, actual harness loading nor L1 qualification. Missing evidence remains unverified; historical qualification gaps do not masquerade as a structural failure.
+
+Distribute the validator, installer and release resolver in one prebuilt Go executable for macOS amd64/arm64, Linux amd64/arm64 and Windows amd64, without a Python/Go runtime requirement. Git and authorized `gh` access remain operational dependencies. Versioned release assets include SHA-256 checksums and executable version/publication identity; fetch and verify the selected publication's artifact before execution. Keep tools outside the immutable skill inventory. Unavailable platforms stay unsupported; cross-compilation alone does not attest native execution. Earlier publications retain their own tools and rules. New target installation, upgrade selection and checks require no Python or Go runtime. Explicit `install --bundle <skill-folder> <target>` validates the full bundle inventory and preflights conflicts before writes; it installs only the skill/native bindings, never activation or GitHub state. `resolve [stable|preview|ref]` uses read-only GitHub access and returns one fixed publication. Default check remains read-only.
+
+The validator uses the matching adopted bundle's rules. A staged newer bundle checks the explicitly proposed migration after its mapping/snapshot are drafted; it cannot silently change an older active pin. Test both invalid examples and repaired proposals, preserving original findings.
 
 <a id="assisted-development-acceptance"></a>
 ### Acceptance
@@ -786,7 +917,9 @@ Publication follows committed design inputs → reproduced complete bundle → v
 
 Start behavioral trials fresh and isolated, supplying published instructions and raw target context rather than expected answers or prior diagnoses. Inspect actual files/actions, not just the agent's verdict. Preserve the first attempt and distinguish unaided results from correction after critique. Re-run for changed behavior, new evidence or unresolved concerns, not merely until a pass appears. AI owns review and repair within authority; no routine human code-review gate is introduced.
 
-Targets opt in through [init upgrade](#onboarding-repeat-init-and-upgrade). The versioned agent guide bootstraps older installations that do not understand the newer option; read the staged skill directly instead of relying on a cached command. Release notes announce available fixes without rewriting target pins. No updater service, registry or automatic rollout is required for L1.
+Targets opt in through [upgrade](#onboarding-repeat-init-and-upgrade). The versioned agent guide bootstraps older installations that do not understand the newer option; read the staged skill directly instead of relying on a cached command. Release notes announce available fixes without rewriting target pins. No updater service, registry or automatic rollout is required for L1.
+
+Publish bundles using the [release convention](#releases-product-releases). The target records the adopted YOLO release name and resolved publication alongside source-input/digest identity. Resolve the requested tag once and use its bundled manifest; diagnose legacy missing identity once. Target product releases and YOLO upgrades remain independent.
 
 From a disposable ordinary checkout with source/prior conversation unavailable, demonstrate installation, informed proposal, authorized setup, truthful gaps and ordinary-session context using only bundle and target inputs. Exercise [onboarding cases](#onboarding-product-artifacts-and-acceptance) and [activities](#activities-acceptance), verify source reproduction, and observe actual loading/continuation.
 
@@ -804,6 +937,8 @@ For each claimed harness/version, launch a fresh session after one installation,
 Use a user-controlled dev box, foreground operation, one target/selected issue and one coordinator; add intake polling next. GitHub Actions handles CI/CD; the target supplies destination/access. Host outages suspend local work, not already-started Actions.
 
 Use isolated workspaces/scoped access with publishing/authority privilege outside untrusted candidates. Credentials/model access are operator inputs, never project-record secrets. Load the active target pin/context. Updates and self-use follow explicit adoption, not mutable publisher source.
+
+Start with a noninteractive reconciliation loop using periodic GitHub polling; foreground launch needs no ongoing terminal answers. Missing maintainer decisions wait in shared records while other authorized work can proceed. A future webhook may wake this same loop sooner; notification delivery cannot be required for recovery or replace reading current state. No public endpoint is required initially.
 
 GitHub/pushed Git hold durable state; caches, checkouts and sessions are disposable. Direct and [app-backed](#request-interface-request-to-result-interface) requests share admission/progress records.
 

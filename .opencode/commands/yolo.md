@@ -1,5 +1,5 @@
 ---
-description: YOLO Dev — init, check, request, work, feedback, help
+description: YOLO Dev — init, upgrade, check, request, work, feedback, help
 ---
 
 Read `.agents/skills/yolo/SKILL.md` from the repository root and follow the requested activity.
