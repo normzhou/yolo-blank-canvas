@@ -1,0 +1,60 @@
+{
+  "schema_version": 2,
+  "target": "normzhou/yolo-blank-canvas",
+  "kind": "upgrade-landed",
+  "status": "landed-unverified",
+  "protocol": {
+    "revision": "a8a4efe4aba400883ddd9567b4921df9ea78ff71",
+    "sha256": "109ac362ed02f2ab8870907dc814b37d702acb9aa89def33d5c710189d2ef674"
+  },
+  "upgrade": {
+    "old_publication": "9585abf598375c41e6c8ef698b9f60614135a1dd",
+    "old_source_inputs": "a983c2b44b0bd9212f0ff960ce4c1927171fb24f",
+    "new_release": "v0.1.0-alpha.13",
+    "new_publication": "6a8d704a6ab0a104d48fc43da3d6e5f98c4b1e80",
+    "new_source_inputs": "a8a4efe4aba400883ddd9567b4921df9ea78ff71",
+    "manifest_sha256": "1e939e3d66e8487e487aa796c4840656a8233231e90bd262b61dd95997ebc9bc",
+    "effective_commit": "870c1e23c36645c86b656f906d85da19f2af9e61",
+    "effective_commit_subject": "Propose YOLO Dev upgrade to release v0.1.0-alpha.13 (#37)",
+    "acceptance_evidence": "Maintainer direction in authenticated harness session 01a10f3e-21cd-76d7-bd0a-72a0965aedff: '/yolo upgrade preview' with an explicit grant to make routine choices and continue authorized work; acceptance recorded on issue #36. https://github.com/normzhou/yolo-blank-canvas/issues/36",
+    "proposal": {
+      "issue": "https://github.com/normzhou/yolo-blank-canvas/issues/36",
+      "pr": "https://github.com/normzhou/yolo-blank-canvas/pull/37",
+      "proposal_commit": "2c6ed4d",
+      "report": ".yolo/reports/upgrade-alpha13-proposal.json"
+    }
+  },
+  "delivered_verification": [
+    "The landed default branch carries `.agents/skills/yolo` byte-identical to publication 6a8d704 (verified by `diff -rq` against the staged bundle).",
+    "`.yolo/protocol.md` is byte-identical to the bundle snapshot, sha256 109ac362ed02f2ab8870907dc814b37d702acb9aa89def33d5c710189d2ef674.",
+    "`yolo-check . --structure` (v0.1.0-alpha.13) returned exit 0 with structure pass.",
+    "CI ('Test and type check') passed on PR #37; npm test reported 77 passed and npx tsc --noEmit was clean."
+  ],
+  "repairs": [
+    "Release binding: `verification.release` records policy, version_source package.json#version, effective_commit 6efd602 (convention applicability), legacy_tags v0.1.0/v0.1.1 and committed observations .yolo/reports/releases-observed-2026-10-06.json.",
+    "Version: package.json set to the next unused 0.1.2; the already-published v0.1.0/v0.1.1 mismatch is preserved; no tag moved or created and nothing published.",
+    "Checkpoint: advanced to 870c1e2 with .yolo/reports/delivery-2026-10-06-alpha13.json covering the full interval 0c8038f..870c1e2."
+  ],
+  "reassessment": {
+    "activation": "active - the authorized migration is published and observed on the default branch.",
+    "qualification": "unverified - required findings remain: the protected revision 56842cd is pending owner approval and no fresh authorized session has loaded the landed pin.",
+    "q1_q5": "Not claimed for the landed pin."
+  },
+  "preserved_findings": [
+    "Protected revision 56842cd (issue #34 / PR #35) is the complete protected proposal resolving release-publication and cosmetic-protected-edits and correcting the stale Charter/Authority banners; awaiting approval of the exact final revision.",
+    "Closed fixtures #2/#3 retain yolo:state:* labels and #3 lacks a status summary; classified as an unapplied AI repair candidate, not deleted silently.",
+    "No fresh-session loading observation of the landed pin; qualification stays unverified.",
+    "Retained: PR #23 merged on a pending required check; the #2 summary cites a non-existent PR #1; unresolved #4 waiting on requester answers.",
+    "Excluded as unrelated per alpha.13: updating README/ARCHITECTURE tagged-revision examples."
+  ],
+  "next_action": [
+    "Obtain maintainer approval of protected revision 56842cd (issue #34 / PR #35); then record the cited resolution.",
+    "Apply the fixture #2/#3 repair and update the docs/verification.md reference.",
+    "Reload/restart the harness and record a fresh authorized continuation that observes the landed pin loading.",
+    "No release, tag or repository-setting change was made."
+  ],
+  "limits": [
+    "A successful merge, a passing structural run or this report is not fresh-continuation evidence and does not establish qualification.",
+    "The findings are not an exhaustive blocker list without review."
+  ]
+}
