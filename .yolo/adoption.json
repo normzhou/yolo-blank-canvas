@@ -125,9 +125,7 @@
     "acceptance": [
       "Issue #6 comment recording maintainer normzhou's acceptance of revision bf5cd3806b6228164db9a8cca80d7b414be789e1 (session 01a10ab0-bdac-76d7-bd0a-729ba1945ea8), authenticated on GitHub on 2026-10-05. https://github.com/normzhou/yolo-blank-canvas/issues/6"
     ],
-    "pending": [
-      "Protected revision 56842cd (issue #34, PR #35) is prepared and awaiting maintainer approval of its exact final revision. It resolves release-publication and cosmetic-protected-edits and corrects the stale Charter/Authority status banners."
-    ]
+    "pending": []
   },
   "harness": {
     "name": "pi coding agent",
@@ -216,7 +214,7 @@
     "report": ".yolo/reports/delivery-2026-10-06-alpha13.json"
   },
   "unresolved": [
-    "Human decision pending: protected revision 56842cd (issue #34, PR #35) resolves release-publication (the Release delegation is the identified approval for creating/cutting releases within the versioning policy) and cosmetic-protected-edits (all Charter/Authority edits need approval), and corrects the stale status banners. Awaiting approval of the exact final revision; no affected action proceeds until then.",
+    "Resolved: release-publication and cosmetic-protected-edits. Protected revision 56842cde1bb7c1d9107afff321c64e60a808da1b (issue #34, PR #35) was approved ('approved! ship it', session 01a10f3e-21cd-76d7-bd0a-72a0965aedff) and landed at 373e53a. AUTHORITY now identifies the Release delegation as the approval for creating/cutting releases within the versioning policy and requires approval for all protected edits; the stale Charter/Authority banners are corrected. See .yolo/reports/authority-amendment-2026-10-06.json.",
     "AI repair completed (routine): package.json#version remains the native release source and is set to the next unused version 0.1.2 for a future release. The historical mismatch is preserved, not rewritten: package.json was 0.1.0 at both tagged revisions v0.1.0 and v0.1.1. No tag was moved or created and nothing was published for this migration.",
     "Evidence recorded: the semver-v1 release convention and the verification.release binding became applicable to this target when it adopted the alpha.11 bundle (landed 6efd602, 2026-10-06). The repository's earlier versioning-policy mention dates to the L1 adoption fa6ec88ec06849e35b69929f7b9264263ff97562 but carried no tag/native-source binding; alpha.13 forbids backdating, so effective_commit is 6efd602.",
     "Checkpoint repaired: advanced to 870c1e2 with .yolo/reports/delivery-2026-10-06-alpha13.json, which covers every commit in the interval 0c8038f..870c1e2.",
