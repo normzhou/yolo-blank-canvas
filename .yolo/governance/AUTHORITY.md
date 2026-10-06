@@ -38,8 +38,11 @@ contest them.
   protection requirement.
 - **Release.** Create and retire tags and releases, and cut releases from verified delivered
   versions, within the versioning policy recorded in
-  [ARCHITECTURE.md](ARCHITECTURE.md). A release is not complete until acceptance passes on the
-  version users actually receive.
+  [ARCHITECTURE.md](ARCHITECTURE.md). This standing delegation is the identified human approval
+  that [CHARTER.md](CHARTER.md) durable constraint 5 requires for publishing: creating and cutting
+  releases within that policy is approved in advance, while deleting tags or releases stays
+  reserved. A release is not complete until acceptance passes on the version users actually
+  receive.
 - **Upstream feedback.** File issues and comments in `normzhou/yolo-dev` after showing the
   maintainer the text, with target identities, code, paths and credentials removed. Shared-system
   defects go upstream, linked to the evidence that exposed them; this repository's own defects
@@ -47,9 +50,10 @@ contest them.
 
 ### Reserved to the maintainer
 
-- Any **non-cosmetic** edit to this document or the [Charter](CHARTER.md): authenticated human
-  approval of the proposed revision, or a recorded, scoped owner override. Cosmetic edits —
-  presentation, typos — that do not change meaning may proceed and be reported.
+- Any edit to this document or the [Charter](CHARTER.md) — including cosmetic changes such as
+  presentation or typos — needs authenticated human approval of the proposed revision, or a
+  recorded, scoped owner override. This matches the adopted protocol's protected-edit rule; no
+  separate cosmetic exception applies.
 - **Changing the product's direction**: what the project is for, or narrowing its scope. That is a
   Charter change, because direction is decided by its users.
 - Destructive, irreversible or externally visible actions: force-push, history rewrite, deleting
