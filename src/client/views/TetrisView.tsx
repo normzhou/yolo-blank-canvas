@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { TetrisMusic } from '../audio/tetrisMusic';
 import {
   BOARD_HEIGHT,
   BOARD_WIDTH,
@@ -48,8 +49,19 @@ function NextPreview({ type }: { type: Tetromino }) {
 export function TetrisView({ onClose }: { onClose: () => void }) {
   const [game, setGame] = useState<TetrisState>(() => createGame());
   const [paused, setPaused] = useState(false);
+  const [musicOn, setMusicOn] = useState(false);
+  const musicRef = useRef<TetrisMusic | null>(null);
+  if (musicRef.current === null) musicRef.current = new TetrisMusic();
   const gameRef = useRef(game);
   gameRef.current = game;
+
+  // Drive playback from game state. The audio context itself is created by the
+  // Music button click, because browsers require a user gesture to start audio.
+  useEffect(() => {
+    musicRef.current?.setActive(musicOn && game.status === 'playing' && !paused);
+  }, [musicOn, paused, game.status]);
+
+  useEffect(() => () => musicRef.current?.dispose(), []);
 
   // Gravity. Restarts when the level (speed) changes and stops when not playing.
   useEffect(() => {
@@ -105,6 +117,17 @@ export function TetrisView({ onClose }: { onClose: () => void }) {
       <header className="tetris-header">
         <h2 className="tetris-title">Tetris</h2>
         <div className="row">
+          <button
+            type="button"
+            aria-pressed={musicOn}
+            onClick={() => {
+              const next = !musicOn;
+              if (next && !(musicRef.current?.ensureContext() ?? false)) return; // no Web Audio available
+              setMusicOn(next);
+            }}
+          >
+            Music {musicOn ? 'on' : 'off'}
+          </button>
           <button type="button" onClick={() => setPaused((value) => !value)} disabled={game.status !== 'playing'}>
             {paused ? 'Resume' : 'Pause'}
           </button>

@@ -17,16 +17,19 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
  ✓ test/list-refresh.test.ts (5 tests)     background refresh keeps rows; filter changes clear
  ✓ test/list-reconciliation.test.ts (8 tests)  created-issue reconciliation against the list
  ✓ test/tetris.test.ts (17 tests)          Tetris pieces, collision, line clear, scoring, game over
+ ✓ test/tetris-music.test.ts (6 tests)     pitch mapping, melody shape, timeline planning
 
- Test Files  10 passed (10)
-      Tests  94 passed (94)
+ Test Files  11 passed (11)
+      Tests  100 passed (100)
 ```
 
-Also run: `npx tsc --noEmit` (clean), `npm run build` (clean). Run at source revision `5e0aff8` (the Tetris canvas view, #4/#47); not yet a released version, so the release-level sections below still describe `v0.1.1`.
+Also run: `npx tsc --noEmit` (clean), `npm run build` (clean). Run at source revision `26feaa6` (the Tetris canvas view and music, #4/#47, #50); not yet a released version, so the release-level sections below still describe `v0.1.1`.
 
 Fixture coverage required by the spec, all in `test/status.test.ts`: untagged open issue → **Request open**; all four managed states; missing state, duplicate states, and state without `yolo:work` → **Status needs reconciliation** with raw labels; closure reasons `not_planned` / `duplicate` / `completed`; **Completed (reported)** vs **Closed**; unknown reason → **Closed — reason unavailable**; leftover state labels on a closed issue; reported-summary detection rules, most-recent-match selection, and `No progress summary yet.` / `Delivery timing not yet estimated.` fallbacks. No fixture asserts scheduling or availability.
 
 Tetris coverage (`test/tetris.test.ts`): 7-bag fairness, piece geometry across rotations, spawn centering, wall/floor/settled-cell collision, line clearing and the classic score table, level/speed scaling, wall stops, soft/hard drop, lock-and-spawn on gravity, and game over when the next piece cannot spawn. The game state is local to the view; no test writes to GitHub.
+
+Music coverage (`test/tetris-music.test.ts`): equal-tempered pitch mapping, the melody's note shapes and lengths, and sequential timeline planning. The Web Audio playback wrapper is not covered by tests.
 
 ## Live integration (real GitHub records)
 
@@ -144,6 +147,7 @@ Integration issues [#1](https://github.com/normzhou/yolo-blank-canvas/issues/1),
 - **Lost authentication during a running session** was verified through the API surface and unit tests (explicit `auth_required` state with the login command and Retry connection), not by revoking real credentials mid-session.
 - **The Tetris view was not exercised in a live browser.** Its rules and state transitions are covered by `test/tetris.test.ts`, but keyboard handling (arrow/space/Escape), gravity timing and rendering were not observed in a browser session against a running build.
   **Resolved 2026-10-06:** the maintainer played the merged `main` in a live browser and confirmed it works; see the Tetris live check above. The deterministic tests remain the regression guard.
+- **Tetris music was not observed in a live browser.** The pitch mapping and melody are covered by `test/tetris-music.test.ts`, but the Web Audio playback wrapper (context creation on the user gesture, scheduling and the toggle) is untested and was not exercised live.
 
 ## Tested revision
 
