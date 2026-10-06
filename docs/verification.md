@@ -23,7 +23,7 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
       Tests  100 passed (100)
 ```
 
-Also run: `npx tsc --noEmit` (clean), `npm run build` (clean). Run at the source revision carrying the Tetris canvas view and music (#4/#47, #50); not yet a released version, so the release-level sections below still describe `v0.1.1`.
+Also run: `npx tsc --noEmit` (clean), `npm run build` (clean). Run at source revision `26feaa6` (the Tetris canvas view and music, #4/#47, #50); not yet a released version, so the release-level sections below still describe `v0.1.1`.
 
 Fixture coverage required by the spec, all in `test/status.test.ts`: untagged open issue → **Request open**; all four managed states; missing state, duplicate states, and state without `yolo:work` → **Status needs reconciliation** with raw labels; closure reasons `not_planned` / `duplicate` / `completed`; **Completed (reported)** vs **Closed**; unknown reason → **Closed — reason unavailable**; leftover state labels on a closed issue; reported-summary detection rules, most-recent-match selection, and `No progress summary yet.` / `Delivery timing not yet estimated.` fallbacks. No fixture asserts scheduling or availability.
 
