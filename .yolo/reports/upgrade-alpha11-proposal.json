@@ -1,0 +1,264 @@
+{
+  "schema_version": 2,
+  "target": "normzhou/yolo-blank-canvas",
+  "kind": "upgrade-proposal",
+  "status": "proposed-unverified",
+  "protocol": {
+    "revision": "a983c2b44b0bd9212f0ff960ce4c1927171fb24f",
+    "sha256": "e2be59556246a60b90a5bdecf69514a8fee0a7d186a94f82053af97f206ab202"
+  },
+  "revision": "fda9fca9a9fe84d2656fb19cd315406cd868a0df",
+  "default_revision": "fda9fca9a9fe84d2656fb19cd315406cd868a0df",
+  "from": "fda9fca9a9fe84d2656fb19cd315406cd868a0df",
+  "previous_report": ".yolo/reports/upgrade-2cf0ee8-landed.json",
+  "reviewed_commits": [
+    "fda9fca9a9fe84d2656fb19cd315406cd868a0df"
+  ],
+  "working_changes": [
+    ".agents/skills/yolo/SKILL.md",
+    ".agents/skills/yolo/assets/architecture.md",
+    ".agents/skills/yolo/references/checker.md",
+    ".agents/skills/yolo/references/protocol.md",
+    ".agents/skills/yolo/references/provenance.json",
+    ".agents/skills/yolo/references/records.md",
+    ".agents/skills/yolo/references/templates.md",
+    ".agents/skills/yolo/scripts/check.py",
+    ".agents/skills/yolo/scripts/install.py",
+    ".gemini/commands/yolo.toml",
+    ".opencode/commands/yolo.md",
+    ".pi/prompts/yolo.md",
+    ".yolo/adoption.json",
+    ".yolo/protocol.md",
+    ".yolo/reports/upgrade-alpha11-proposal.json"
+  ],
+  "revision_note": "Live migration requested by the maintainer in the current authenticated harness session (`/yolo update preview`, choice 2). Selection is the publisher's preview channel; activation for the candidate stays `proposed` and qualification stays `unverified` until the PR lands and a fresh authorized session observes the new pin. No `upgrades` entry is written for a null effective commit.",
+  "upgrade": {
+    "old_release": null,
+    "old_publication": "2cf0ee8529e56d1913e682a666d0a465a72d9422",
+    "old_source_inputs": "8370cbbb2afd5c161e5ad82c434f7656c45297af",
+    "old_protocol_sha256": "67db943911b38623f8a4b6e6872e652cf0efe04dd98368470063d38db66c1e6c",
+    "new_release": "v0.1.0-alpha.11",
+    "new_publication": "9585abf598375c41e6c8ef698b9f60614135a1dd",
+    "new_source_inputs": "a983c2b44b0bd9212f0ff960ce4c1927171fb24f",
+    "new_protocol_sha256": "e2be59556246a60b90a5bdecf69514a8fee0a7d186a94f82053af97f206ab202",
+    "manifest_sha256": "9db776a55c3ef9c5b90c1ed307a268f1e6cba17518cbd27adc337aa4866b65a8",
+    "effective_commit": null,
+    "channel": "preview (prereleases; publisher has no stable release)",
+    "selection_evidence": [
+      "`yolo-check resolve stable` returned {\"error\":\"No stable release available (or repository inaccessible). Use upgrade preview for prereleases.\"}.",
+      "`yolo-check resolve preview` returned release `v0.1.0-alpha.11`, publication `9585abf598375c41e6c8ef698b9f60614135a1dd`, guide at 9585abf.",
+      "The macOS ARM64 release asset `yolo-check_darwin_arm64` matched `SHA256SUMS` entry 673c653c2c49119c6801e6f47290402bf4c3277ae07550efb5e8868dee20dd48 and `--version` reported {\"version\":\"0.1.0-alpha.11\",\"publication\":\"9585abf598375c41e6c8ef698b9f60614135a1dd\"}.",
+      "Release `v0.1.0-alpha.11` \"Python-free delivered tools\" is a published non-draft prerelease (2026-10-06T03:22:24Z); GitHub's prerelease flag defines the preview channel."
+    ],
+    "provenance_verification": [
+      "All 18 manifest source inputs were re-hashed from source revision `a983c2b44b0bd9212f0ff960ce4c1927171fb24f` and matched their recorded digests.",
+      "The generated output `references/protocol.md` matched digest `e2be59556246a60b90a5bdecf69514a8fee0a7d186a94f82053af97f206ab202`.",
+      "All 15 entries of `provenance.json.files` matched their recorded digests.",
+      "The installed bundle was byte-identical to the old publication `2cf0ee8` before migration (`diff -rq`), so no target customization was overwritten.",
+      "The installed bundle after `yolo-check install` is byte-identical to the selected publication's `skills/yolo` archive (`diff -rq`)."
+    ]
+  },
+  "rule_tooling_delta": [
+    "SKILL.md (+39/-15): splits `upgrade [preview|<publisher-ref>] [--dry-run]` out of init; adds `resolve`, structural validation, release selection, feedback consent and `check --dry-run`; earlier installation uses the current agent guide to bootstrap selection.",
+    "references/protocol.md (+174/-39): adds Conformance checks (Deterministic checks / Advisory warnings / Agent judgment), Governing-file review, Product releases + Establish and check, Release selection, Strict validation; expands Repeat init and upgrade to a six-step migration.",
+    "references/records.md (+31/-2): adds `harness.skill.manifest_sha256`, `harness.skill.release`, optional `feedback` setting and `verification.release` bindings for `release_convention: semver-v1`.",
+    "references/checker.md (new): documents the versioned prebuilt Go executable (install/resolve/check) and platform assets.",
+    "references/templates.md and assets/architecture.md: small text updates.",
+    "scripts/check.py and scripts/install.py are removed; installation, release selection and checking now use the verified Go executable with no Python or Go runtime.",
+    "No candidate rule adds target authority; new text is process, tooling and consent-dependent capability."
+  ],
+  "governing_clause_index": {
+    "charter": {
+      "path": ".yolo/governance/CHARTER.md",
+      "purpose": "Blank-canvas product whose direction users set; YOLO Dev methodology adopted separately.",
+      "durable_3": "Progress is reported truthfully; nothing is claimed unless a record establishes it.",
+      "durable_5": "Destructive, irreversible or externally visible actions - rewriting history, deleting work, changing access or visibility, publishing, spending someone's account - need identified human approval first.",
+      "durable_6": "The direction of the product is itself a human decision; narrowing or redirecting what the project is for is a Charter change."
+    },
+    "authority": {
+      "path": ".yolo/governance/AUTHORITY.md",
+      "delegated_delivery": "Open PRs and merge to main without a human code-review gate when required checks pass on the current subject.",
+      "delegated_release": "Create and retire tags and releases, and cut releases from verified delivered versions, within the versioning policy recorded in ARCHITECTURE.md.",
+      "delegated_feedback": "File issues and comments in normzhou/yolo-dev after showing the maintainer the text, with target identities, code, paths and credentials removed.",
+      "reserved_non_cosmetic": "Any non-cosmetic edit to AUTHORITY.md or CHARTER.md needs authenticated human approval of the proposed revision or a scoped owner override.",
+      "reserved_cosmetic": "Cosmetic edits - presentation, typos - that do not change meaning may proceed and be reported.",
+      "binding_limits": "Cannot publish as the maintainer without recorded human intent, widen its own scope, or treat a proposal, draft, passing check or successful helper run as acceptance or qualification."
+    },
+    "protocol_old": {
+      "revision": "8370cbbb2afd5c161e5ad82c434f7656c45297af",
+      "changes_and_merge_protected": "Charter, authority or authority controls: all edits need authenticated human approval of the proposed revision or a scoped owner override.",
+      "cosmetic_exception": "Historical cosmetic exceptions apply until an authorized upgrade; publisher text cannot amend a target Charter.",
+      "repeat_init": "Explicit migration identifies old/new rules and effective target revision, resolves ownership conflicts and preserves history."
+    },
+    "protocol_candidate": {
+      "revision": "a983c2b44b0bd9212f0ff960ce4c1927171fb24f",
+      "changes_and_merge_protected": "Same table row as the old pin; unchanged.",
+      "cosmetic_exception": "Same sentence as the old pin; unchanged (line-level), so the local cosmetic exception still conflicts.",
+      "upgrade": "`upgrade [preview|<ref>] [--dry-run]`: resolve once, verify manifest identity, compare per-action delegation/restriction, propose, prepare without blind overwrite, apply within old authority, recheck and resume.",
+      "release_selection": "Defaults to latest stable; preview selects the newest published non-draft release including prereleases; never silently switch channels or use main.",
+      "release_bindings": "`release_convention: semver-v1` requires `verification.release` with policy, native version source, effective commit, legacy tags and observations; target product versions and adopted YOLO releases are independent.",
+      "feedback_setting": "Optional `feedback.automatic` default off; true needs explicit recognized-maintainer acceptance; a new bundle cannot enable reporting.",
+      "strict_validation": "Structure check on actual files; canonical governing homes; snapshot/manifest/full-bundle identity; replica candidates classified with evidence."
+    }
+  },
+  "action_permission_comparison": [
+    {
+      "action": "Implementation, tests, CI/CD, ordinary merge",
+      "old_pin": "AI owns routine decisions/delivery within the grant.",
+      "candidate": "Same delegation; adds structural validation and declared-delivery-route duties.",
+      "result": "compatible",
+      "reason": "No delegation or restriction changes; added text is procedural."
+    },
+    {
+      "action": "Adopted-pin upgrade",
+      "delegation": "Maintainer direction in the current session requested this live migration; AUTHORITY delegates management/implementation within the grant and CHARTER durable 2 keeps authority with humans.",
+      "old_pin": "One paragraph: explicit migration identifies old/new rules and effective target revision.",
+      "candidate": "Six-step procedure; publisher updates cannot supply target intent or expand authority.",
+      "result": "compatible",
+      "reason": "Candidate adds process, not authority; the migration is applied within the old accepted grant and records a proposal."
+    },
+    {
+      "action": "Release, tag and release creation ('publishing')",
+      "delegation": "AUTHORITY.md Delegated: create and retire tags and releases and cut releases from verified delivered versions within the versioning policy.",
+      "restrictions": "CHARTER durable 5 requires identified human approval for externally visible actions including publishing; AUTHORITY reserves deleting tags/releases and cannot publish as the maintainer without recorded human intent.",
+      "old_pin": "No release-authorization change.",
+      "candidate": "Adds the semver release convention and `verification.release` bindings; still does not identify the human approval for publishing.",
+      "result": "conflicting",
+      "reason": "Unchanged across publications; see conflicts[release-publication]. Owner normzhou; blocks release publication authorization only."
+    },
+    {
+      "action": "Protected Charter/authority edits (incl. cosmetic)",
+      "restrictions": "AUTHORITY permits cosmetic edits to proceed; old and candidate protocol require all protected edits to have identified approval or a scoped override, allowing historical cosmetic exceptions only until an authorized upgrade.",
+      "old_pin": "Identical protected-edit row and cosmetic-exception sentence.",
+      "candidate": "Identical, plus the congruence rule that a local exception to the active rules blocks the action until clarified/amended/overridden.",
+      "result": "conflicting",
+      "reason": "Unchanged across publications; see conflicts[cosmetic-protected-edits]. Owner normzhou; blocks the stale status banner fix."
+    },
+    {
+      "action": "Upstream feedback / report submission",
+      "delegation": "AUTHORITY delegates filing upstream issues/comments after showing the maintainer the text, sanitized.",
+      "old_pin": "Feedback is a manual, shown-first procedure.",
+      "candidate": "Adds optional `feedback.automatic` (default off). Enabling needs explicit authenticated maintainer acceptance; a new bundle cannot enable it.",
+      "result": "compatible",
+      "reason": "This migration records `feedback.automatic: false`; no reporting authority is added."
+    },
+    {
+      "action": "Harness loading and qualification claims",
+      "restrictions": "Both pins require actual level evidence and fresh continuation.",
+      "old_pin": "Loading evidence for the previous pin is historical only.",
+      "candidate": "Same, with explicit pin-status and release binding rules.",
+      "result": "compatible",
+      "reason": "No authority change; this candidate makes no qualification claim."
+    }
+  ],
+  "replica_review": {
+    "candidates": [
+      {
+        "candidate": ".agents/skills/yolo/assets/architecture.md",
+        "canonical": ".yolo/governance/ARCHITECTURE.md",
+        "role": "architecture",
+        "classification": "intentional non-governing starter template",
+        "evidence": "Publisher bundle `assets/` are starter templates ('Templates supply structure, never target purpose or acceptance'); bytes differ from the adopted ARCHITECTURE.md."
+      },
+      {
+        "candidate": ".agents/skills/yolo/assets/authority.md",
+        "canonical": ".yolo/governance/AUTHORITY.md",
+        "role": "authority",
+        "classification": "intentional non-governing starter template",
+        "evidence": "Publisher bundle starter template; bytes differ from the adopted AUTHORITY.md."
+      },
+      {
+        "candidate": ".agents/skills/yolo/assets/charter.md",
+        "canonical": ".yolo/governance/CHARTER.md",
+        "role": "charter",
+        "classification": "intentional non-governing starter template",
+        "evidence": "Publisher bundle starter template; bytes differ from the adopted CHARTER.md."
+      }
+    ],
+    "note": "No active duplicate governing home exists: every canonical governing slot resolves to exactly one file under `.yolo/governance/`. The three candidates are hosted inside the immutable skill bundle and are not active instructions."
+  },
+  "conflicts": [
+    {
+      "id": "release-publication",
+      "status": "conflicting",
+      "owner": "normzhou",
+      "clauses": [
+        "CHARTER.md durable constraint 5: externally visible actions including publishing need identified human approval first.",
+        "AUTHORITY.md Delegated: create and retire tags and releases within the versioning policy.",
+        "AUTHORITY.md Reserved: deleting tags/releases; Binding limits: cannot publish as the maintainer without recorded human intent."
+      ],
+      "diagnosis": "The Charter reads as per-action approval for publishing; the grant delegates release creation/cutting under a versioning policy and reserves only deletion.",
+      "consequence": "Under the candidate congruence rule, release publication can be treated as blocked until clarified; existing practice (v0.1.1) relied on the standing delegation.",
+      "smallest_resolution": "Maintainer clarifies in protected AUTHORITY.md (and optionally one Charter line) that the accepted Release delegation is the identified human approval for creating/cutting releases within the recorded versioning policy, and that deleting releases/tags stays reserved.",
+      "blocked_scope": "Release publication authorization only; implementation and merge are unaffected."
+    },
+    {
+      "id": "cosmetic-protected-edits",
+      "status": "conflicting",
+      "owner": "normzhou",
+      "clauses": [
+        "AUTHORITY.md Reserved: cosmetic edits that do not change meaning may proceed and be reported.",
+        "Old and candidate protocol Changes and merge: all Charter/authority edits need authenticated human approval or a scoped override; historical cosmetic exceptions apply only until an authorized upgrade.",
+        "Candidate congruence rule: a local exception to the active rules blocks the action until recognized clarification/amendment/override."
+      ],
+      "diagnosis": "The accepted AUTHORITY cosmetic-edit exception is a local exception to the protocol's all-protected-edits rule; publisher text cannot amend the target Charter/authority.",
+      "consequence": "Cosmetic protected edits (including the stale 'proposal pending acceptance' banner) remain blocked unless the maintainer recognizes the exception or amends the authority.",
+      "smallest_resolution": "Maintainer records scoped acceptance of the existing cosmetic exception for this migration, or amends AUTHORITY.md to align with the protocol.",
+      "blocked_scope": "Cosmetic Charter/authority edits; candidate bundle installation is unaffected."
+    }
+  ],
+  "restoration_steps": [
+    "The old bundle is retained in Git at publication `2cf0ee8` and the target default branch `fda9fca`.",
+    "Revert the proposal with `git checkout fda9fca9a9fe84d2656fb19cd315406cd868a0df -- .agents/skills/yolo .yolo/protocol.md .yolo/adoption.json .pi/prompts/yolo.md .opencode/commands/yolo.md .gemini/commands/yolo.toml` and remove `.yolo/reports/upgrade-alpha11-proposal.json`, or close the PR without merging; the old default-branch adoption remains in force.",
+    "Rollback after a landed migration records a new explicit migration and cannot undo external effects or erase failures."
+  ],
+  "factual_review": {
+    "command": "yolo-check_darwin_arm64 (v0.1.0-alpha.11, publication 9585abf) . --structure",
+    "exit": 0,
+    "factual_status": "ready_for_review",
+    "structure_status": "pass",
+    "compliant": [
+      "protocol",
+      "protocol_snapshot",
+      "charter",
+      "architecture",
+      "instructions",
+      "authority",
+      "instruction_entry",
+      "feedback_settings",
+      "layout",
+      "replica_scan",
+      "bundle",
+      "bindings",
+      "context_refs"
+    ],
+    "replica_candidates": 3,
+    "note": "The new structural validator reports a pass; structural success proves neither accepted intent, protected approval, actual harness loading nor qualification."
+  },
+  "semantic_review": {
+    "purpose_and_grant": "CHARTER.md and AUTHORITY.md are unchanged by this proposal (empty governing diff); accepted purpose and grant are preserved.",
+    "layer_boundaries": "Bundle, snapshot and adoption mapping are replaced as one publisher-owned layer; product intent, design and app code are untouched.",
+    "congruence": "Two accepted target clauses conflict with the adopted protocol and are recorded above with owners and smallest resolutions; no conflict is resolved by choosing the more permissive reading.",
+    "truth": "Activation is proposed and qualification unverified; old active/prepared status and evidence are retained as history in Git and this report, not inherited by the candidate.",
+    "reviewability": "Full, focused and governing diffs are provided on the linked PR; this report lists pending decisions explicitly.",
+    "compression": "This report adds process records only; no new target rule, schema or repository setting is introduced.",
+    "q1_q5": "Not claimed. Q1-Q5 evidence applies to the old pin only; the candidate has no acceptance, no effective target commit and no fresh-session loading observation."
+  },
+  "pending_decisions": [
+    "Accept or reject the migration to release `v0.1.0-alpha.11` / publication `9585abf` / source inputs `a983c2b`.",
+    "Resolve conflicts[release-publication]: clarify whether the standing Release delegation is the identified approval for creating/cutting releases within the versioning policy.",
+    "Resolve conflicts[cosmetic-protected-edits]: recognize the existing cosmetic exception for this migration or amend AUTHORITY.md; this also unblocks correcting the stale 'proposal pending acceptance' banner.",
+    "Release version-source mismatch: decide whether package.json#version should be bumped at the next release or a different native version source declared; the current value is 0.1.0 while tags v0.1.0/v0.1.1 exist.",
+    "Standing deviations already recorded: #2/#3 retained fixture labels, the PR #23 pending-check deviation, unresolved #4 scope questions, and the pre-existing checkpoint coverage gap. Decide whether to repair any before or after the upgrade."
+  ],
+  "planned_operations": [
+    "Install the candidate bundle, byte-identical snapshot and candidate mapping together on branch `yolo/upgrade-alpha11`; open one watermarked outcome issue and a draft PR (this proposal).",
+    "No release/tag change is part of this migration; no GitHub settings change is required. The target product was not re-versioned.",
+    "On merge: observe the landed `main` revision, append the `upgrades` entry with identified evidence, set activation to active and qualification to unverified, then reload/restart the harness and record a fresh authorized continuation before reassessing Q1-Q5."
+  ],
+  "limits": [
+    "Preparation alone does not establish activation, new instruction loading or qualification; old loading evidence cannot attest the candidate pin.",
+    "The conflict resolutions and the version-source decision are recommendations; neither this report nor a passing structural run is maintainer acceptance.",
+    "The target product version (package.json 0.1.0) was not changed; no tag, release or deployed artifact was touched."
+  ]
+}

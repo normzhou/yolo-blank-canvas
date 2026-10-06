@@ -14,6 +14,8 @@
 
 {{Observable acceptance, proportionate checks, authorized publication route, delivered-version observation, recovery authority and binding limits.}}
 
+{{Release compatibility promise, native version source, semantic release tags and user upgrade route; distinguish unreleased setup from actual publication.}}
+
 ## Decisions and limits
 
 {{Durable choices and reasons; link known gaps and observations in issue/report records instead of copying their history.}}

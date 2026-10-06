@@ -35,7 +35,7 @@ Use `.yolo/adoption.json`. This is an example shape, not accepted target facts:
   "harness": {
     "name": "SELECTED_HARNESS", "version": "OBSERVED_VERSION",
     "instructions": ["AGENTS.md"],
-    "skill": {"path": ".agents/skills/yolo", "revision": "IDENTIFIED_PUBLISHED_BUNDLE_COMMIT"}
+    "skill": {"path": ".agents/skills/yolo", "revision": "IDENTIFIED_PUBLISHED_BUNDLE_COMMIT", "release": "SELECTED_YOLO_RELEASE_TAG"}
   },
   "verification": {
     "checks": ["TARGET_CHECK_REQUIREMENTS_REFERENCE"],
@@ -43,6 +43,7 @@ Use `.yolo/adoption.json`. This is an example shape, not accepted target facts:
     "recovery": ["ACCEPTED_RECOVERY_SCOPE_REFERENCE"],
     "limits": ["ACCEPTED_BINDING_LIMITS_REFERENCE"]
   },
+  "feedback": {"automatic": false, "acceptance": []},
   "activation": {"state": "active", "evidence": ["ACCEPTED_SETUP_REVISION_AND_PUBLICATION_EVIDENCE"]},
   "adopted_at": "ORIGINAL_PRE_SETUP_TARGET_COMMIT",
   "upgrades": [],
@@ -52,9 +53,37 @@ Use `.yolo/adoption.json`. This is an example shape, not accepted target facts:
 }
 ```
 
+Bundles with a full file inventory require `harness.skill.manifest_sha256`: SHA-256 of the exact obtained `references/provenance.json` bytes. Retain it independently in adoption; the inventory covers all shipped files except that manifest itself. Bindings/imports are verified separately.
+
 Copy **all** `inputs`, source repository/revision and protocol digest from the installed manifest, not this abbreviated example. Verify the manifest output digest before copying the protocol. Source-input revision identifies committed design inputs; the generated file need not exist there. Installed publication revision identifies the bundle obtained by the target and may be later. Unknown identity blocks qualification.
 
-Paths remain inside the target; document references may include a heading fragment. New governing documents use the canonical layout slots; map existing equivalents outside `.yolo/` before creating replacements. `documents.specs` contains applicable repo-relative spec references when needed. `harness.instructions` records actual loading/import entrypoints; `skill.path` is the selected native installation, with an explicit gap if absent. File presence cannot attest actual harness loading.
+### Feedback setting
+
+Optional `feedback` contains only `automatic` (a JSON boolean) and `acceptance` (a list of nonempty evidence references, default `[]`). Missing `feedback` means automatic reporting is off. `true` requires explicit recognized-maintainer acceptance of sanitized upstream submission to the identified publisher; cite the consent/revision, not generic install or merge authority. The field records a decision, never authenticates or expands it.
+
+A proposed record may stage `true` with consent still in `authority.pending`; this requests the setting and permits no submission. Enabling it needs authenticated approval of the identified proposed revision. Treat setting changes as authority controls. Preserve the choice/evidence across upgrade and check compatibility with old/new rules and target restrictions; older pins do not acquire this capability from a new helper. Dry runs never submit. See **Agent activities → Feedback** in the protocol for scope and submission procedure.
+
+### Release bindings
+
+Bundles declaring `release_convention: "semver-v1"` require `verification.release`:
+
+```json
+{
+  "policy": ".yolo/governance/ARCHITECTURE.md#releases",
+  "version_source": "package.json#version",
+  "effective_commit": null,
+  "legacy_tags": {},
+  "observations": []
+}
+```
+
+Map the target's real policy/native source; do not add a second version file or copy its changing version into this record. AI verifies the source's SemVer value at the inspected default-branch revision. `effective_commit` stays null in a proposal; after landing, record the observed policy-introduction commit. `legacy_tags` maps pre-policy product tag names to full commits; capture it during migration and preserve it thereafter. Tooling tags remain distinct and need semantic classification, not blanket exemption for later product releases.
+
+`observations` references unchanged committed JSON evidence with `schema_version: 2` and `releases: [{"tag": "v0.1.0", "commit": "FULL_COMMIT"}]`. Persist observed mappings when releases exist and retain prior observations. These are supporting evidence, not checkpoint/qualification reports unless they also meet the full report contract. The helper detects changed/deleted recorded mappings; artifact bytes and unobserved historical changes require agent evidence.
+
+`harness.skill.release` records the selected YOLO tag separately from the target app version. An unreleased publisher candidate uses null and proposed/unverified status, not a guessed tag. Earlier bundles without this convention retain their encoding; a new helper cannot impose these fields on an old pin.
+
+Paths remain inside the target; document references may include a heading fragment. For `canonical-v1` layout, all governing roles and specs use the reserved canonical homes; existing content is migrated rather than exempted. Older pins retain earlier mappings. `documents.specs` contains applicable repo-relative spec references when needed. `harness.instructions` records actual loading/import entrypoints; `skill.path` is the selected native installation, with an explicit gap if absent. File presence cannot attest actual harness loading.
 
 References identify accepted source/revision and observations, not duplicated grants or workflow state. Maintainers come from accepted owner policy. Human acceptance/authenticity is reviewed from the source; strings in this marker cannot authenticate it. Targets describe no recovery authority or no additional binding limits explicitly when that is the accepted policy.
 
