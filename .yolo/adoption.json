@@ -126,7 +126,6 @@
       "Issue #6 comment recording maintainer normzhou's acceptance of revision bf5cd3806b6228164db9a8cca80d7b414be789e1 (session 01a10ab0-bdac-76d7-bd0a-729ba1945ea8), authenticated on GitHub on 2026-10-05. https://github.com/normzhou/yolo-blank-canvas/issues/6"
     ],
     "pending": [
-      "Candidate upgrade to publication 9585abf598375c41e6c8ef698b9f60614135a1dd (release v0.1.0-alpha.11, source inputs a983c2b44b0bd9212f0ff960ce4c1927171fb24f) is proposed and unverified; the prior accepted grant revision bf5cd3806b6228164db9a8cca80d7b414be789e1 remains the accepted authority until the maintainer accepts this upgrade. See .yolo/reports/upgrade-alpha11-proposal.json.",
       "Conflict on external release publication: CHARTER.md durable constraint 5 requires identified human approval for externally visible actions including publishing, while AUTHORITY.md delegates creating/cutting tags and releases within the versioning policy and reserves deleting them. Maintainer clarification is required; see conflicts[release-publication].",
       "Conflict on cosmetic Charter/authority edits: AUTHORITY.md permits cosmetic edits to proceed without approval, while the old and candidate protocol require all protected edits to have identified approval or an override, allowing historical cosmetic exceptions only until an authorized upgrade. Maintainer clarification/amendment is required; see conflicts[cosmetic-protected-edits].",
       "Release version-source mismatch: the only native version source (package.json#version) is 0.1.0 while released tags are v0.1.0 and v0.1.1. The candidate release binding maps package.json#version; maintainer decision is needed on whether to bump it at the next release or declare a different native version source."
@@ -146,7 +145,7 @@
       "release": "v0.1.0-alpha.11",
       "manifest_sha256": "9db776a55c3ef9c5b90c1ed307a268f1e6cba17518cbd27adc337aa4866b65a8"
     },
-    "gap": "Candidate loading unverified: no fresh-session observation of publication 9585abf598375c41e6c8ef698b9f60614135a1dd (release v0.1.0-alpha.11, source inputs a983c2b44b0bd9212f0ff960ce4c1927171fb24f). Session 01a10f3e-21cd-76d7-bd0a-72a0965aedff reconciled shared work and produced this migration but read the candidate guide manually; it is not skill-discovery/loading evidence. Prior loading evidence (e.g. session 01a10cc7-ef06-76d7-bd0a-729d0b008133) attests only the earlier publication 4b7e248. Reload/restart the harness and record a fresh continuation before restoring any prepared/qualified claim."
+    "gap": "Active-pin loading unverified: no fresh-session observation of the landed publication 9585abf598375c41e6c8ef698b9f60614135a1dd (release v0.1.0-alpha.11, source inputs a983c2b44b0bd9212f0ff960ce4c1927171fb24f). Session 01a10f3e-21cd-76d7-bd0a-72a0965aedff performed the migration but is not loading evidence; prior loading evidence attests only earlier publications. Reload/restart the harness and record a fresh continuation before restoring any prepared/qualified claim."
   },
   "verification": {
     "checks": [
@@ -176,10 +175,11 @@
     }
   },
   "activation": {
-    "state": "proposed",
+    "state": "active",
     "evidence": [
-      "Historical activation for the old pin (source inputs 8370cbbb2afd5c161e5ad82c434f7656c45297af, publication 2cf0ee8529e56d1913e682a666d0a465a72d9422, landed effective commit 0ffce2a241e6bc40dba7efd1ca539e7d6cfc81c1) is retained in Git and .yolo/reports/upgrade-2cf0ee8-landed.json, including the issue #6 acceptance of revision bf5cd3806b6228164db9a8cca80d7b414be789e1.",
-      "Candidate upgrade to publication 9585abf598375c41e6c8ef698b9f60614135a1dd (release v0.1.0-alpha.11, source inputs a983c2b44b0bd9212f0ff960ce4c1927171fb24f) is proposed and unverified; no new activation evidence exists and no maintainer acceptance of this upgrade is supplied."
+      "Maintainer direction in authenticated harness session 01a10f3e-21cd-76d7-bd0a-72a0965aedff: requested the preview-channel upgrade and then directed merge ('merge it'). Acceptance recorded on issue #31. https://github.com/normzhou/yolo-blank-canvas/issues/31",
+      "Publication 9585abf598375c41e6c8ef698b9f60614135a1dd (release v0.1.0-alpha.11, source inputs a983c2b44b0bd9212f0ff960ce4c1927171fb24f) landed on main as 6efd602c6a184320271916d37b6876073d1c546b via PR #32 and was observed on the default branch.",
+      "Historical activation for the old pin (source inputs 8370cbbb2afd5c161e5ad82c434f7656c45297af, publication 2cf0ee8529e56d1913e682a666d0a465a72d9422, landed effective commit 0ffce2a241e6bc40dba7efd1ca539e7d6cfc81c1) is retained in Git and .yolo/reports/upgrade-2cf0ee8-landed.json."
     ]
   },
   "adopted_at": "520a81e8ec824b9ce31a7fbc8a8c08d152eb81ae",
@@ -190,6 +190,15 @@
       "effective_commit": "0ffce2a241e6bc40dba7efd1ca539e7d6cfc81c1",
       "evidence": [
         "Maintainer direction in authenticated harness session 01a10ce5-ac19-76d7-bd0a-729fc320bc5e delegated acceptance of the migration to the agent's review ('you be the judge if it looks good we should just accept it'); review verdict pass. Acceptance recorded on issue #28: https://github.com/normzhou/yolo-blank-canvas/issues/28#issuecomment-6001459478"
+      ]
+    },
+    {
+      "from": "8370cbbb2afd5c161e5ad82c434f7656c45297af",
+      "to": "a983c2b44b0bd9212f0ff960ce4c1927171fb24f",
+      "effective_commit": "6efd602c6a184320271916d37b6876073d1c546b",
+      "evidence": [
+        "Maintainer direction in authenticated harness session 01a10f3e-21cd-76d7-bd0a-72a0965aedff ('merge it'); acceptance recorded on issue #31. https://github.com/normzhou/yolo-blank-canvas/issues/31",
+        "Proposal PR #32 (proposal commit 8bb24638fddb32c5bbd68d9f6267d59276a2fc1c); report .yolo/reports/upgrade-alpha11-proposal.json."
       ]
     }
   ],
@@ -203,8 +212,8 @@
     "Open admitted work: #4 waiting on requester answers.",
     "Pre-adoption inaccuracy retained: the YOLO status summary on #2 cites PR #1, which never existed.",
     "Live gaps from docs/verification.md unchanged: first-login path, missing-gh path, browser-open behaviour, multi-page pagination, mid-session auth loss, --repo against a second repository.",
-    "Upgrade candidate pending: activation is proposed and qualification is unverified until the candidate publication 9585abf598375c41e6c8ef698b9f60614135a1dd (source inputs a983c2b44b0bd9212f0ff960ce4c1927171fb24f) is reviewed and accepted; the old default-branch adoption (main fda9fca9a9fe84d2656fb19cd315406cd868a0df) remains in force.",
-    "Upgrade candidate gap: no fresh-session loading of the new skill/protocol has been observed.",
+    "Upgrade landed and active: publication 9585abf (release v0.1.0-alpha.11) is in force on main 6efd602c6a184320271916d37b6876073d1c546b; qualification remains unverified until a fresh authorized session observes the new pin. The prior default-branch adoption is retained as history in Git and .yolo/reports/upgrade-alpha11-landed.json.",
+    "Active-pin loading gap: no fresh-session loading of the new skill/protocol has been observed; old loading evidence cannot attest it.",
     "Preserved target finding (not fixed by this upgrade): .yolo/governance/CHARTER.md and AUTHORITY.md still carry a 'proposal pending acceptance' status banner although the record cites accepted revision bf5cd380. Correcting it is a protected edit governed by conflicts[cosmetic-protected-edits].",
     "Candidate congruence finding: two accepted target clauses do not agree cleanly with the adopted protocol (release publication authorization; cosmetic protected-edit exception). Recorded as conflicts[release-publication] and conflicts[cosmetic-protected-edits] in .yolo/reports/upgrade-alpha11-proposal.json with smallest resolution, owner and blocked scope; maintainer decision pending.",
     "New candidate requirement: feedback.automatic is recorded false (automatic sanitized upstream submission off). Enabling it needs explicit authenticated maintainer acceptance; a new bundle cannot enable reporting.",
@@ -214,7 +223,7 @@
     "level": 1,
     "status": "unverified",
     "evidence": [
-      "Historical qualification evidence for the old pin is retained (checkpoint commit 0c8038f164bd2a744780d7d2913a00b8bfb593a9, report .yolo/reports/delivery-2026-10-05-22.json); this candidate makes no qualification claim and has no fresh-session loading evidence for the new rules."
+      "Historical qualification evidence for the old pin is retained (checkpoint commit 0c8038f164bd2a744780d7d2913a00b8bfb593a9, report .yolo/reports/delivery-2026-10-05-22.json); the landed publication 9585abf has no fresh-session loading observation yet and is therefore unverified."
     ]
   },
   "feedback": {

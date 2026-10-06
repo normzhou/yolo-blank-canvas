@@ -1,0 +1,59 @@
+{
+  "schema_version": 2,
+  "target": "normzhou/yolo-blank-canvas",
+  "kind": "upgrade-landed",
+  "status": "landed-unverified",
+  "protocol": {
+    "revision": "a983c2b44b0bd9212f0ff960ce4c1927171fb24f",
+    "sha256": "e2be59556246a60b90a5bdecf69514a8fee0a7d186a94f82053af97f206ab202"
+  },
+  "upgrade": {
+    "old_publication": "2cf0ee8529e56d1913e682a666d0a465a72d9422",
+    "old_source_inputs": "8370cbbb2afd5c161e5ad82c434f7656c45297af",
+    "new_release": "v0.1.0-alpha.11",
+    "new_publication": "9585abf598375c41e6c8ef698b9f60614135a1dd",
+    "new_source_inputs": "a983c2b44b0bd9212f0ff960ce4c1927171fb24f",
+    "manifest_sha256": "9db776a55c3ef9c5b90c1ed307a268f1e6cba17518cbd27adc337aa4866b65a8",
+    "effective_commit": "6efd602c6a184320271916d37b6876073d1c546b",
+    "effective_commit_subject": "Propose YOLO Dev upgrade to release v0.1.0-alpha.11 (#32)",
+    "acceptance_evidence": "Maintainer direction in authenticated harness session 01a10f3e-21cd-76d7-bd0a-72a0965aedff: requested the preview-channel upgrade, chose the live migration, and then directed merge ('merge it'). Acceptance recorded on issue #31: https://github.com/normzhou/yolo-blank-canvas/issues/31",
+    "proposal": {
+      "issue": "https://github.com/normzhou/yolo-blank-canvas/issues/31",
+      "pr": "https://github.com/normzhou/yolo-blank-canvas/pull/32",
+      "proposal_commit": "8bb24638fddb32c5bbd68d9f6267d59276a2fc1c",
+      "report": ".yolo/reports/upgrade-alpha11-proposal.json"
+    }
+  },
+  "delivered_verification": [
+    "The landed default branch at 6efd602 carries `.agents/skills/yolo` byte-identical to publication 9585abf (verified by `diff -r` against the staged bundle before commit).",
+    "`.yolo/protocol.md` on the landed revision is byte-identical to the bundle snapshot, sha256 e2be59556246a60b90a5bdecf69514a8fee0a7d186a94f82053af97f206ab202.",
+    "`references/checker.md` is added; `scripts/check.py` and `scripts/install.py` are removed; SKILL.md, assets/architecture.md and references/{protocol,records,templates,provenance} change. Installation, release selection and checking now run through the verified prebuilt Go executable.",
+    "The installer was re-run during preparation after resolving the publisher-owned replacement; it reported changed install and intact bindings (`.gemini/commands/yolo.toml`, `.opencode/commands/yolo.md`, `.pi/prompts/yolo.md`, `CLAUDE.md`, `GEMINI.md`, `.claude/skills/yolo`).",
+    "`yolo-check . --structure` (v0.1.0-alpha.11) returned exit 0 with `structure.status: pass`; the three in-bundle replica candidates were classified as intentional non-governing starter templates.",
+    "CI (`Test and type check`) passed on PR #32 before the squash merge; `npm test` reported 77 passed and `npx tsc --noEmit` was clean."
+  ],
+  "reassessment": {
+    "activation": "active - the accepted migration is published and observed on the default branch at 6efd602.",
+    "qualification": "unverified - the landed pin has no fresh-session instruction-loading observation; old-pin loading/qualification evidence (checkpoint 0c8038f, report delivery-2026-10-05-22.json) is historical and cannot attest the new rules.",
+    "q1_q5": "Not claimed for the landed pin. Q1/Q5 require a fresh authorized session observing the new skill/protocol loading; Q2-Q4 need reassessment against the landed revision."
+  },
+  "preserved_findings": [
+    "conflicts[release-publication] remains unresolved: CHARTER durable constraint 5 versus the standing Release delegation. Owner normzhou; blocks release publication authorization only.",
+    "conflicts[cosmetic-protected-edits] remains unresolved: AUTHORITY's cosmetic-edit exception versus the protocol's all-protected-edits rule. Owner normzhou; blocks cosmetic protected edits, including correcting the stale 'proposal pending acceptance' banner in CHARTER.md/AUTHORITY.md.",
+    "Release version-source mismatch: package.json#version is 0.1.0 while tags v0.1.0/v0.1.1 exist; `verification.release.effective_commit` stays null and observations are empty.",
+    "Standing deviation: closed fixtures #2/#3 retain `yolo:state:*` labels; the checker reports issue_state: conflicting.",
+    "Retained: PR #23 merged on a pending required check; the #2 summary cites a non-existent PR #1; unresolved #4 waiting on requester answers.",
+    "Pre-existing checkpoint coverage gap: the delivery report does not cover its full declared history interval.",
+    "Reconciled: issue #28 (2cf0ee8 upgrade) was closed as delivered and its stale state label removed."
+  ],
+  "next_action": [
+    "Reload/restart the harness and run a fresh authorized session that observes publication 9585abf loading, then reassess Q1-Q5 and the affected qualification claim.",
+    "Maintainer decisions on the two recorded conflicts and the release version-source mismatch.",
+    "Close issue #31 after this landing record merges.",
+    "No release, tag, product re-version or repository-setting change was made by this migration."
+  ],
+  "limits": [
+    "A successful merge, a passing structural run or this report is not fresh-continuation evidence and does not establish qualification.",
+    "The conflicts and preserved findings constrain only their identified actions; they are not an exhaustive blocker list without review."
+  ]
+}
