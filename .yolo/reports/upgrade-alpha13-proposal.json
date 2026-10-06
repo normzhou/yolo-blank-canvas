@@ -1,0 +1,176 @@
+{
+  "schema_version": 2,
+  "target": "normzhou/yolo-blank-canvas",
+  "kind": "upgrade-proposal",
+  "status": "proposed-unverified",
+  "protocol": {
+    "revision": "a8a4efe4aba400883ddd9567b4921df9ea78ff71",
+    "sha256": "109ac362ed02f2ab8870907dc814b37d702acb9aa89def33d5c710189d2ef674"
+  },
+  "revision": "fc40d8c0d7de65864248f1c7eebb21d839246c53",
+  "default_revision": "fc40d8c0d7de65864248f1c7eebb21d839246c53",
+  "from": "fc40d8c0d7de65864248f1c7eebb21d839246c53",
+  "previous_report": ".yolo/reports/upgrade-alpha11-landed.json",
+  "reviewed_commits": [
+    "fc40d8c0d7de65864248f1c7eebb21d839246c53"
+  ],
+  "working_changes": [
+    ".agents/skills/yolo/SKILL.md",
+    ".agents/skills/yolo/references/protocol.md",
+    ".agents/skills/yolo/references/records.md",
+    ".agents/skills/yolo/references/provenance.json",
+    ".yolo/protocol.md",
+    ".yolo/adoption.json",
+    "package.json",
+    ".yolo/reports/releases-observed-2026-10-06.json",
+    ".yolo/reports/upgrade-alpha13-proposal.json"
+  ],
+  "revision_note": "Routine authorized upgrade requested by the maintainer (`/yolo upgrade preview`, preview channel resolves to v0.1.0-alpha.13). Alpha.13 adds finding classification (human decision / AI repair / evidence gap), minimal-conformity-repair scope, and release-applicability rules. Activation for the candidate stays proposed and qualification unverified until the PR lands. The protected corrections to CHARTER.md/AUTHORITY.md are a separate proposal (issue #34, PR #35) and are not bundled here.",
+  "upgrade": {
+    "old_publication": "9585abf598375c41e6c8ef698b9f60614135a1dd",
+    "old_source_inputs": "a983c2b44b0bd9212f0ff960ce4c1927171fb24f",
+    "new_release": "v0.1.0-alpha.13",
+    "new_publication": "6a8d704a6ab0a104d48fc43da3d6e5f98c4b1e80",
+    "new_source_inputs": "a8a4efe4aba400883ddd9567b4921df9ea78ff71",
+    "new_protocol_sha256": "109ac362ed02f2ab8870907dc814b37d702acb9aa89def33d5c710189d2ef674",
+    "manifest_sha256": "1e939e3d66e8487e487aa796c4840656a8233231e90bd262b61dd95997ebc9bc",
+    "effective_commit": null,
+    "channel": "preview (prereleases; publisher has no stable release)",
+    "selection_evidence": [
+      "`yolo-check resolve preview` returned release `v0.1.0-alpha.13`, publication `6a8d704a6ab0a104d48fc43da3d6e5f98c4b1e80`.",
+      "The macOS ARM64 release asset matched `SHA256SUMS` and `--version` reported {\"version\":\"0.1.0-alpha.13\",\"publication\":\"6a8d704…\"}.",
+      "Release `v0.1.0-alpha.13` \"Clear upgrade repair boundaries\" is a published non-draft prerelease (2026-10-06T16:52:41Z). Alpha.12 (legacy layout observer fix) and alpha.13 are the only publications between the active pin and this selection."
+    ],
+    "provenance_verification": [
+      "All 18 manifest source inputs re-hashed at source revision `a8a4efe4aba400883ddd9567b4921df9ea78ff71` and matched.",
+      "Generated `references/protocol.md` matched digest `109ac362ed02f2ab8870907dc814b37d702acb9aa89def33d5c710189d2ef674`.",
+      "All 15 `provenance.json.files` entries matched.",
+      "The installed bundle after `yolo-check install --bundle` is byte-identical to the selected publication's `skills/yolo` archive (`diff -rq`)."
+    ]
+  },
+  "rule_tooling_delta": [
+    "SKILL.md (+2/-2): Upgrade now says to include the minimal implementation/tooling repairs required for conformity within the current grant (unrelated improvements/publisher-source changes are separate work); it adopts the protocol's finding classification and says to prepare complete protected corrections before requesting final-revision approval and to continue independent authorized work while affected actions wait.",
+    "references/protocol.md (+18/-10): adds the release rule that the native version at the tagged revision and in the delivered artifact must match the tag, HEAD may carry an unreleased version, and changing HEAD cannot repair an already-published mismatch - preserve it and prepare a consistent next unused version; adds finding classification (human decision / AI repair / evidence gap) and 'keep only genuine owner decisions in authority.pending'; release selection records when the adopted convention became applicable and that an older versioning mention cannot backdate newly adopted requirements.",
+    "references/records.md (+1/-1): `effective_commit` stays null for a newly introduced convention until the applicable setup is observed landed; preserve an established boundary on upgrade and identify newly applicable requirements in upgrade evidence; `legacy_tags` retain earlier rules rather than exempting policy violations.",
+    "references/provenance.json: source-inputs revision, digests and output digest change; layout and `release_convention: semver-v1` unchanged. `references/checker.md`, `references/templates.md` and `assets/` are byte-identical to alpha.11.",
+    "No candidate rule adds target authority; the additions are process rules and release-applicability clarification."
+  ],
+  "governing_clause_index": {
+    "charter": {
+      "path": ".yolo/governance/CHARTER.md",
+      "durable_3": "Progress is reported truthfully; nothing is claimed unless a record establishes it.",
+      "durable_5": "Externally visible actions including publishing need identified human approval first; the Release delegation now identifies that approval (pending protected approval in issue #34)."
+    },
+    "authority": {
+      "path": ".yolo/governance/AUTHORITY.md",
+      "delegated_delivery": "Merge PRs without a human code-review gate when required checks pass on the current subject.",
+      "delegated_release": "Create and retire tags and releases within the versioning policy; the pending protected revision records this as the identified approval for publishing.",
+      "protected_edit": "All Charter/Authority edits need approval of the proposed revision or a scoped override (pending protected approval in issue #34)."
+    },
+    "protocol_old": {
+      "revision": "a983c2b44b0bd9212f0ff960ce4c1927171fb24f",
+      "release_binding": "verification.release with policy, version_source, effective_commit, legacy_tags, observations; effective_commit null until a landing."
+    },
+    "protocol_candidate": {
+      "revision": "a8a4efe4aba400883ddd9567b4921df9ea78ff71",
+      "release_applicability": "Record when the adopted convention became applicable; earlier tags retain their earlier rules; an older versioning mention cannot backdate newly adopted requirements.",
+      "finding_classification": "Human decision (intent/delegation/protected edits) vs AI repair (routine engineering within the grant) vs evidence gap. Keep only genuine owner decisions in authority.pending; track the rest in ordinary records; continue independent authorized work."
+    }
+  },
+  "action_permission_comparison": [
+    {
+      "action": "Implementation, tests, CI/CD, ordinary merge, routine repairs",
+      "old_pin": "AI owns routine decisions/delivery within the grant.",
+      "candidate": "Same delegation; explicitly adds 'AI chooses authorized routine repairs' and 'unrelated improvements are separate work'.",
+      "result": "compatible",
+      "reason": "No delegation or restriction change; added text clarifies scope."
+    },
+    {
+      "action": "Release, tag and release creation ('publishing')",
+      "delegation": "AUTHORITY Release delegation.",
+      "restrictions": "CHARTER durable 5; AUTHORITY reserves deleting tags/releases and cannot publish as the maintainer without recorded human intent.",
+      "old_pin": "No release-authorization change.",
+      "candidate": "Clarifies applicability and the native-version/tag match; does not change who may publish.",
+      "result": "conflicting-until-protected-approval",
+      "reason": "The conflict is addressed by the pending protected revision (issue #34); no release is performed by this migration."
+    },
+    {
+      "action": "Protected Charter/authority edits",
+      "restrictions": "All edits need approval of the proposed revision or a scoped override.",
+      "old_pin": "Local cosmetic exception (superseded by the pending protected revision).",
+      "candidate": "Same all-edits rule; no change.",
+      "result": "conflicting-until-protected-approval",
+      "reason": "Resolved by the pending protected revision (issue #34); this migration does not touch CHARTER.md/AUTHORITY.md."
+    },
+    {
+      "action": "Adopted-pin upgrade",
+      "old_pin": "Migration procedure.",
+      "candidate": "Adds minimal-conformity-repair scope and finding classification.",
+      "result": "compatible",
+      "reason": "Routine authorized upgrade; publisher updates cannot supply target intent or expand authority."
+    },
+    {
+      "action": "Harness loading and qualification claims",
+      "restrictions": "Loading evidence for the previous pin is historical only.",
+      "result": "compatible",
+      "reason": "This candidate makes no qualification claim."
+    }
+  ],
+  "release_applicability": {
+    "finding": "The semver-v1 release convention and the verification.release binding became applicable to this target when it adopted the alpha.11 bundle, landed at 6efd602c6a184320271916d37b6876073d1c546b on 2026-10-06.",
+    "earlier_policy": "ARCHITECTURE.md has carried a versioning-policy mention since the L1 adoption fa6ec88ec06849e35b69929f7b9264263ff97562 (2026-10-05), but that policy had no tag/native-source binding. Alpha.13 forbids backdating newly adopted requirements, so the earlier mention does not make the binding applicable at fa6ec88.",
+    "legacy_tags": "v0.1.0 (520a81e) and v0.1.1 (0c8038f) predate the convention and retain their earlier rules; both carry package.json version 0.1.0.",
+    "effective_commit": "6efd602c6a184320271916d37b6876073d1c546b"
+  },
+  "version_repair": {
+    "decision": "Keep package.json#version as the native source.",
+    "action": "Set package.json to the next unused version 0.1.2 for a future release (HEAD may carry an unreleased version).",
+    "preserved_mismatch": "package.json was 0.1.0 at both tagged revisions v0.1.0 and v0.1.1; that already-published mismatch is preserved and is not rewritten.",
+    "no_publication": "No tag was moved or created and no release was published for this migration."
+  },
+  "restoration_steps": [
+    "The alpha.11 bundle is retained in Git at publication 9585abf and the target default branch fc40d8c.",
+    "Revert with `git checkout fc40d8c0d7de65864248f1c7eebb21d839246c53 -- .agents/skills/yolo .yolo/protocol.md .yolo/adoption.json package.json` and remove `.yolo/reports/releases-observed-2026-10-06.json` and `.yolo/reports/upgrade-alpha13-proposal.json`, or close the PR without merging; the alpha.11 adoption remains in force.",
+    "Rollback after a landed migration records a new explicit migration and cannot undo external effects or erase failures."
+  ],
+  "finding_classification": {
+    "human_decision": [
+      "Protected revision 56842cd (issue #34, PR #35): release-publication approval, the protected-edit rule, and the stale Charter/Authority banners. Awaiting approval of its exact final revision."
+    ],
+    "ai_repair": [
+      "Release binding: keep package.json#version, record the applicability boundary 6efd602, preserve legacy tags, and set package.json to the next unused version 0.1.2.",
+      "Candidate (not applied): remove stale yolo:state:* labels from closed fixtures #2/#3 and update the docs/verification.md evidence trail; add a recognizable status summary to #3."
+    ],
+    "evidence_gap": [
+      "Checkpoint coverage: prepare a report covering the commits after 0c8038f.",
+      "No fresh-session loading observation of the landed pin; qualification stays unverified."
+    ]
+  },
+  "factual_review": {
+    "command": "yolo-check_darwin_arm64 (v0.1.0-alpha.13, publication 6a8d704) . --structure",
+    "exit": 0,
+    "factual_status": "ready_for_review",
+    "structure_status": "pass",
+    "note": "Structural success proves neither accepted intent, protected approval, actual harness loading nor qualification."
+  },
+  "semantic_review": {
+    "purpose_and_grant": "CHARTER.md and AUTHORITY.md are unchanged by this proposal; accepted purpose and grant are preserved.",
+    "layer_boundaries": "Bundle, snapshot and adoption mapping are replaced as one publisher-owned layer; the package.json bump is a target product change; app code is otherwise untouched.",
+    "congruence": "The two recorded conflicts remain pending the separate protected revision; this migration invents no authority.",
+    "truth": "Activation is proposed and qualification unverified; the historical mismatch and applicability boundary are recorded, not smoothed over.",
+    "compression": "Adds process and evidence records only; no new target rule or repository setting."
+  },
+  "pending_decisions": [
+    "Maintainer approval of the complete protected revision 56842cd (issue #34, PR #35)."
+  ],
+  "planned_operations": [
+    "Install the candidate bundle, byte-identical snapshot and candidate mapping together on branch `yolo/upgrade-alpha13`; open one watermarked outcome issue and a PR.",
+    "Land the routine migration; no tag, release or repository-setting change is part of it.",
+    "On merge: observe the landed `main` revision, append the `upgrades` entry, set activation active, then reload the harness and record a fresh continuation."
+  ],
+  "limits": [
+    "Preparation alone does not establish activation, new instruction loading or qualification.",
+    "The release-applicability finding and the finding classifications are recommendations grounded in alpha.13's rules; only the protected revision is an owner decision.",
+    "No tag, release or deployed artifact was touched; README/ARCHITECTURE tagged-revision examples were intentionally not changed as unrelated improvements."
+  ]
+}

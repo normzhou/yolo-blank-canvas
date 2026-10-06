@@ -2,11 +2,11 @@
   "schema_version": 1,
   "protocol_format": "github-v1",
   "repository": "https://github.com/normzhou/yolo-dev",
-  "revision": "a983c2b44b0bd9212f0ff960ce4c1927171fb24f",
+  "revision": "a8a4efe4aba400883ddd9567b4921df9ea78ff71",
   "inputs": [
     {
       "path": "ARCHITECTURE.md",
-      "sha256": "8d7beb3f1df8c5192f7ab24450256a2151a488f385d2dc405315325439dc0416",
+      "sha256": "10ab3b8dacc9e2c0aa4748b531dfc225f9020944decc36f2a6dadf9bd180a213",
       "selection": "Adoption levels through Product source and applied adoption"
     },
     {
@@ -41,7 +41,7 @@
     },
     {
       "path": "specs/releases.md",
-      "sha256": "aa1afcec485c6ab40ac476fd266c3751fbb10f984c5ee66647e8adc250101652",
+      "sha256": "0c2c4c1605c5cd5f412896ddcb06c22a0486f8181b4ba20128192102e17e19ba",
       "selection": "whole document"
     },
     {
@@ -71,7 +71,7 @@
     },
     {
       "path": "specs/onboarding.md",
-      "sha256": "342ee074017940aeaed171543e36b696b3593221715e95dd23b05d6b4fdfcfd2",
+      "sha256": "071aa2b75b4da9aba5b63bf56611bb7fcda5cd8ccdbc816acd66d19a793d636a",
       "selection": "whole document"
     },
     {
@@ -91,13 +91,13 @@
     },
     {
       "path": "VERSION",
-      "sha256": "412add22cfb25b45efd3b395c4ea4a36916f066dc274bdda51c3da56edb81e92",
+      "sha256": "edae853e6390485e8aa0317eead465da4b2014411a753f2c7a0c009099b7f2fa",
       "selection": "whole document"
     }
   ],
   "output": {
     "path": "references/protocol.md",
-    "sha256": "e2be59556246a60b90a5bdecf69514a8fee0a7d186a94f82053af97f206ab202"
+    "sha256": "109ac362ed02f2ab8870907dc814b37d702acb9aa89def33d5c710189d2ef674"
   },
   "layout": {
     "root": {
@@ -122,9 +122,9 @@
     "replica_review": "tracked-unignored-v1"
   },
   "release_convention": "semver-v1",
-  "release": "v0.1.0-alpha.11",
+  "release": "v0.1.0-alpha.13",
   "files": {
-    "SKILL.md": "a52a8fd8fd82c9ca600e2c3e2edbe0ff7e266d75f0b790548562446cc56add70",
+    "SKILL.md": "09e75fb1299bc6ea62d5b4ee239ced5e51f8e522fd5ac15937b1417984c0e9f7",
     "assets/agent-instructions.md": "33df5ce3e827d66cc04a3ea36f5c45afb8e208d25deb077118a1fde13c48d24f",
     "assets/architecture.md": "b74c1fcff2e2a10f4d20978173d3d7bb8b94074aac24fcc414a9c1ab58620455",
     "assets/authority.md": "d53a8e5c46e576103483457fbffe0f25f11ab32cc8ae1f588b3594126efd271f",
@@ -136,8 +136,8 @@
     "references/assisted-protocol.md": "1f65afd40890eb06a475918564e0bd4cde4491ae4450bc56b6a9b22b60263b45",
     "references/checker.md": "e79058159a3d0a0781f32a01bf5742f48de76d7564bbee1f28a3e6f639ef6bf8",
     "references/legacy-records.md": "9cddd17a5a7aec52f67cf1cb20a3be3669359527a459d46fdc8ec74b0810b59f",
-    "references/protocol.md": "e2be59556246a60b90a5bdecf69514a8fee0a7d186a94f82053af97f206ab202",
-    "references/records.md": "90cd0ee3cf13ff6dabee78140b9ca050a7bff1f9ca6121bb07d4091209da2d97",
+    "references/protocol.md": "109ac362ed02f2ab8870907dc814b37d702acb9aa89def33d5c710189d2ef674",
+    "references/records.md": "4067510565333a1e856f175792bc0093db1d7b36c4d792764d36b18ee10f99af",
     "references/templates.md": "813428363250c4cb5b80e6537549983b61969557b1541a415653f605f3e5d2d1"
   }
 }
