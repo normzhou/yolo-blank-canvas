@@ -67,7 +67,8 @@ test('Requests panel lists real issues and opens a real detail page', async ({ p
   await expect(firstRow).toBeVisible();
   await snap('live-02-list');
   await firstRow.click();
-  await expect(page.getByRole('heading', { name: 'Reported summary' })).toBeVisible();
+  // `exact`: real issue titles can contain the words "Reported summary".
+  await expect(page.getByRole('heading', { name: 'Reported summary', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: '← Back' })).toBeVisible();
   await snap('live-03-detail');
   expectClean(errors);
