@@ -104,7 +104,7 @@
     },
     {
       "selector": "span",
-      "text": "Last refresh: 11:57:52 AM",
+      "text": "Last refresh: 5:00:00 AM",
       "ratio": 6.11,
       "needs": 4.5,
       "fontSizePx": 12,
@@ -136,7 +136,7 @@
     },
     {
       "selector": "div.meta",
-      "text": "In progressupdated 7 hours ago",
+      "text": "In progressupdated just now",
       "ratio": 6.11,
       "needs": 4.5,
       "fontSizePx": 12,
@@ -216,7 +216,7 @@
     },
     {
       "selector": "span",
-      "text": "Last refresh: 11:57:52 AM",
+      "text": "Last refresh: 5:00:00 AM",
       "ratio": 6.11,
       "needs": 4.5,
       "fontSizePx": 12,
@@ -240,7 +240,7 @@
     },
     {
       "selector": "span.note",
-      "text": "opened 7 hours ago by normzhou · updated 7 hours ago",
+      "text": "opened just now by normzhou · updated just now",
       "ratio": 6.11,
       "needs": 4.5,
       "fontSizePx": 12,
@@ -328,7 +328,7 @@
     },
     {
       "selector": "span",
-      "text": "Last refresh: 11:57:52 AM",
+      "text": "Last refresh: 5:00:00 AM",
       "ratio": 6.11,
       "needs": 4.5,
       "fontSizePx": 12,

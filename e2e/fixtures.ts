@@ -49,6 +49,17 @@ export const test = base.extend<{ errors: string[]; snap: (name: string) => Prom
 
 export { expect };
 
+/**
+ * Freeze the page clock so review evidence is reproducible: the panel footer
+ * renders a wall-clock time, which would otherwise change every PNG and make
+ * "regenerate and diff" useless for committed review images.
+ */
+export const FROZEN_TIME = new Date('2026-10-07T12:00:00Z');
+
+export async function freezeClock(page: Page) {
+  await page.clock.install({ time: FROZEN_TIME });
+}
+
 /** Assert no console errors/page errors were seen on this page. */
 export function expectClean(errors: string[]) {
   // Audio autoplay rejections are policy, not a defect; CSP media violations are errors we keep.

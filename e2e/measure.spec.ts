@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures';
+import { test, expect, freezeClock } from './fixtures';
 import { startStubApp, makeStubGithub, withoutSummaryGithub, densityIssues, type RunningStub } from './stub-server';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -114,6 +114,7 @@ test('measure contrast, type scale and spacing on the list and detail views', as
   const stub: RunningStub = await startStubApp();
   try {
     await page.setViewportSize({ width: 1280, height: 900 });
+    await freezeClock(page);
     await page.goto(stub.base);
     await page.getByRole('button', { name: 'Requests', exact: true }).click();
     await expect(page.locator('.issue-row').first()).toBeVisible();
@@ -159,6 +160,7 @@ test('measure the density list and the no-summary detail state', async ({ page }
   const plain = await startStubApp(withoutSummaryGithub());
   try {
     await page.setViewportSize({ width: 1280, height: 900 });
+    await freezeClock(page);
     await page.goto(density.base);
     await page.getByRole('button', { name: 'Requests', exact: true }).click();
     await expect(page.locator('.issue-row')).toHaveCount(30);

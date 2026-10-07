@@ -13,6 +13,9 @@ import { startStubApp } from './stub-server';
  * Frame offsets are sampling points, not a stopwatch: they say what is visible
  * at that moment, and the timing claim itself comes from the CSS and the
  * layer-removal timeout in `TetrisView`.
+ *
+ * Deliberately not clock-frozen: freezing time would pause the CSS animation
+ * being sampled, and the frames would show nothing.
  */
 
 const OFFSETS = [
