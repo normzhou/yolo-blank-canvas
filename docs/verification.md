@@ -74,6 +74,20 @@ yolo-blank-canvas (3b507ee3d8560f3473add648f559dca9e73da408)
 
 From that installed copy: `POST /api/session` returned the authenticated identity, `GET /api/issues?state=all` listed the real issues with their labels, and `GET /api/version` reported the release build identity. The command runs in the foreground until stopped; `--no-open` was used here only to keep the check headless, and the browser-open path was not observed (see gaps).
 
+A later release, `v0.1.2`, was verified the same way from an empty directory (`/tmp/npx-check-v012`, no checkout):
+
+```
+$ npx --yes github:normzhou/yolo-blank-canvas#v0.1.2 --no-open --port 4401
+yolo-blank-canvas (26feaa62ef978a4193fee87343f7a030c2e9fa63)
+  repository: normzhou/yolo-blank-canvas
+  signed in as: normzhou (via GitHub CLI)
+  http://localhost:4401
+  Open http://localhost:4401
+  Press Ctrl-C to stop.
+```
+
+`GET /api/version` reported `26feaa6` for both `serverBuild` and `clientBuild`, and the served bundle contained the Tetris view and the music synth (`AudioContext`, `square`). Audible playback was not verified here (see gaps).
+
 Browser-driven checks (headless Chrome against the running app):
 
 - Canvas renders the prompt and Requests button; the session is established automatically.
@@ -151,9 +165,11 @@ Integration issues [#1](https://github.com/normzhou/yolo-blank-canvas/issues/1),
 
 ## Tested revision
 
-Source revision `e39b750` ("Keep list rows visible across a background refresh"); release tag
-`v0.1.1` points at the squash merge `0c8038f` that carries that source together with the assets
-built from it (`dist/client/.build-id` and `server/build-id.generated.js` both report `e39b750…`,
-and `GET /api/version` on the release reports the same). The build ID identifies the source revision
-the running assets were produced from. The earlier `v0.1.0` tag followed the separate source/assets
-ordering described in this section's history.
+Source revision `26feaa6` ("Add chiptune music to the Tetris view"); release tag `v0.1.2` points at
+the squash merge `878854e` (PR #51) that carries that source together with the assets built from it
+(`dist/client/.build-id` and `server/build-id.generated.js` both report `26feaa6…`, and
+`GET /api/version` on the installed release reports the same). The build ID identifies the source
+revision the running assets were produced from.
+
+History: `v0.1.1` (source `e39b750`, squash merge `0c8038f`) kept list rows visible across a
+background refresh; `v0.1.0` followed the separate source/assets ordering described above.
