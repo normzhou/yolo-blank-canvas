@@ -31,6 +31,8 @@ export interface TetrisState {
   status: 'playing' | 'over';
   /** Remaining pieces of the current 7-bag. */
   bag: Tetromino[];
+  /** Number of four-line clears so far, used to cycle the view's backdrop. */
+  tetrisCount: number;
 }
 
 export const BOARD_WIDTH = 10;
@@ -216,6 +218,7 @@ export function createGame(rng: () => number = Math.random): TetrisState {
     level: 1,
     status: 'playing',
     bag: afterSecond.bag,
+    tetrisCount: 0,
   };
   return withPiece(base, afterFirst.type);
 }
@@ -227,6 +230,7 @@ function lockAndSpawn(state: TetrisState, rng: () => number): TetrisState {
   const lines = state.lines + cleared;
   const level = levelForLines(lines);
   const score = state.score + scoreForLines(cleared, state.level);
+  const tetrisCount = state.tetrisCount + (cleared === 4 ? 1 : 0);
   const taken = takeFromBag(state.bag, rng);
   const next: TetrisState = {
     ...state,
@@ -236,6 +240,7 @@ function lockAndSpawn(state: TetrisState, rng: () => number): TetrisState {
     score,
     next: taken.type,
     bag: taken.bag,
+    tetrisCount,
   };
   return withPiece(next, state.next);
 }

@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { TetrisMusic } from '../audio/tetrisMusic';
 import {
+  BACKGROUNDS,
+  nextBackgroundIndex,
+  type PixelArt,
+} from '../../shared/tetrisBackgrounds';
+import {
   BOARD_HEIGHT,
   BOARD_WIDTH,
   createGame,
@@ -32,6 +37,27 @@ function cellClass(cell: Cell): string {
   return cell ? `tetris-cell ${CELL_CLASS[cell]}` : 'tetris-cell';
 }
 
+function PixelBackdrop({ art }: { art: PixelArt }) {
+  return (
+    <svg
+      key={art.id}
+      className="tetris-art"
+      viewBox={`0 0 ${art.width} ${art.height}`}
+      preserveAspectRatio="xMidYMid slice"
+      shapeRendering="crispEdges"
+      aria-hidden="true"
+    >
+      {art.rows.map((row, y) =>
+        Array.from(row).map((key, x) =>
+          key === '.' ? null : (
+            <rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} fill={art.palette[key]} />
+          ),
+        ),
+      )}
+    </svg>
+  );
+}
+
 function NextPreview({ type }: { type: Tetromino }) {
   const cells = rotationCells(type, 0);
   const filled = new Set(cells.map(([x, y]) => `${x},${y}`));
@@ -50,10 +76,21 @@ export function TetrisView({ onClose }: { onClose: () => void }) {
   const [game, setGame] = useState<TetrisState>(() => createGame());
   const [paused, setPaused] = useState(false);
   const [musicOn, setMusicOn] = useState(false);
+  const [backgroundIndex, setBackgroundIndex] = useState(0);
   const musicRef = useRef<TetrisMusic | null>(null);
   if (musicRef.current === null) musicRef.current = new TetrisMusic();
   const gameRef = useRef(game);
   gameRef.current = game;
+  const tetrisCountRef = useRef(game.tetrisCount);
+
+  // Clearing four lines at once advances the backdrop to the next scene. A new
+  // game resets the counter, which only lowers the ref and never cycles.
+  useEffect(() => {
+    if (game.tetrisCount > tetrisCountRef.current) {
+      setBackgroundIndex((index) => nextBackgroundIndex(index));
+    }
+    tetrisCountRef.current = game.tetrisCount;
+  }, [game.tetrisCount]);
 
   // Drive playback from game state. The audio context itself is created by the
   // Music button click, because browsers require a user gesture to start audio.
@@ -114,6 +151,7 @@ export function TetrisView({ onClose }: { onClose: () => void }) {
 
   return (
     <section className="tetris" aria-label="Tetris game">
+      <PixelBackdrop art={BACKGROUNDS[backgroundIndex]} />
       <header className="tetris-header">
         <h2 className="tetris-title">Tetris</h2>
         <div className="row">
@@ -164,13 +202,20 @@ export function TetrisView({ onClose }: { onClose: () => void }) {
         </aside>
       </div>
 
+      {BACKGROUNDS.length > 1 ? (
+        <p className="tetris-scene" aria-live="polite">
+          Scene {backgroundIndex + 1}/{BACKGROUNDS.length}: {BACKGROUNDS[backgroundIndex].title}
+        </p>
+      ) : null}
+
       {game.status === 'over' ? (
         <p className="tetris-over" role="status">
           Game over — score {game.score}. Start a new game to play again.
         </p>
       ) : (
         <p className="tetris-help">
-          Arrow keys move and rotate; down soft-drops; space hard-drops. {paused ? 'Paused.' : ''}
+          Arrow keys move and rotate; down soft-drops; space hard-drops. Clear four lines at once to
+          change the scene. {paused ? 'Paused.' : ''}
         </p>
       )}
     </section>
