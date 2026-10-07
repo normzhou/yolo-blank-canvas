@@ -1,0 +1,429 @@
+{
+  "generatedFor": "#75 UI review — density and no-summary states",
+  "density": {
+    "samples": [
+      {
+        "selector": "h1.canvas-title",
+        "text": "Blank canvas",
+        "color": "rgb(31, 35, 40)",
+        "background": "rgb(247,248,250)",
+        "ratio": 14.87,
+        "fontSizePx": 16,
+        "fontWeight": 600,
+        "lineHeight": "normal",
+        "needs": 4.5
+      },
+      {
+        "selector": "p.canvas-identity",
+        "text": "normzhou/yolo-blank-canvas · signed in as normzhou",
+        "color": "rgb(89, 99, 110)",
+        "background": "rgb(247,248,250)",
+        "ratio": 5.75,
+        "fontSizePx": 13,
+        "fontWeight": 400,
+        "lineHeight": "normal",
+        "needs": 4.5
+      },
+      {
+        "selector": "p.canvas-prompt",
+        "text": "What would you like to build or change?",
+        "color": "rgb(89, 99, 110)",
+        "background": "rgb(247,248,250)",
+        "ratio": 5.75,
+        "fontSizePx": 22,
+        "fontWeight": 400,
+        "lineHeight": "normal",
+        "needs": 4.5
+      },
+      {
+        "selector": "div.panel-repo",
+        "text": "normzhou/yolo-blank-canvas",
+        "color": "rgb(31, 35, 40)",
+        "background": "rgb(255,255,255)",
+        "ratio": 15.8,
+        "fontSizePx": 16,
+        "fontWeight": 600,
+        "lineHeight": "normal",
+        "needs": 4.5
+      },
+      {
+        "selector": "div.panel-identity",
+        "text": "signed in as normzhou",
+        "color": "rgb(89, 99, 110)",
+        "background": "rgb(255,255,255)",
+        "ratio": 6.11,
+        "fontSizePx": 12,
+        "fontWeight": 400,
+        "lineHeight": "normal",
+        "needs": 4.5
+      },
+      {
+        "selector": "span",
+        "text": "Last refresh: 11:57:53 AM",
+        "color": "rgb(89, 99, 110)",
+        "background": "rgb(255,255,255)",
+        "ratio": 6.11,
+        "fontSizePx": 12,
+        "fontWeight": 400,
+        "lineHeight": "normal",
+        "needs": 4.5
+      },
+      {
+        "selector": "button",
+        "text": "Open",
+        "color": "rgb(11, 63, 143)",
+        "background": "rgb(221,235,255)",
+        "ratio": 8.2,
+        "fontSizePx": 16,
+        "fontWeight": 400,
+        "lineHeight": "normal",
+        "needs": 4.5
+      },
+      {
+        "selector": "button",
+        "text": "Closed",
+        "color": "rgb(31, 35, 40)",
+        "background": "rgb(255,255,255)",
+        "ratio": 15.8,
+        "fontSizePx": 16,
+        "fontWeight": 400,
+        "lineHeight": "normal",
+        "needs": 4.5
+      },
+      {
+        "selector": "button.primary",
+        "text": "New request",
+        "color": "rgb(255, 255, 255)",
+        "background": "rgb(31,111,235)",
+        "ratio": 4.63,
+        "fontSizePx": 16,
+        "fontWeight": 400,
+        "lineHeight": "normal",
+        "needs": 4.5
+      },
+      {
+        "selector": "button.issue-title",
+        "text": "#229 Request 30 with a title of a fairly typical length for ",
+        "color": "rgb(31, 35, 40)",
+        "background": "rgb(255,255,255)",
+        "ratio": 15.8,
+        "fontSizePx": 16,
+        "fontWeight": 600,
+        "lineHeight": "normal",
+        "needs": 4.5
+      },
+      {
+        "selector": "div.meta",
+        "text": "In progressupdated 7 hours ago",
+        "color": "rgb(89, 99, 110)",
+        "background": "rgb(255,255,255)",
+        "ratio": 6.11,
+        "fontSizePx": 12,
+        "fontWeight": 400,
+        "lineHeight": "normal",
+        "needs": 4.5
+      },
+      {
+        "selector": "span.badge.progress",
+        "text": "In progress",
+        "color": "rgb(11, 63, 143)",
+        "background": "rgb(221,235,255)",
+        "ratio": 8.2,
+        "fontSizePx": 12,
+        "fontWeight": 600,
+        "lineHeight": "normal",
+        "needs": 4.5
+      },
+      {
+        "selector": "span.badge.neutral",
+        "text": "Planned",
+        "color": "rgb(89, 99, 110)",
+        "background": "rgb(242,244,247)",
+        "ratio": 5.55,
+        "fontSizePx": 12,
+        "fontWeight": 600,
+        "lineHeight": "normal",
+        "needs": 4.5
+      },
+      {
+        "selector": "span.badge.waiting",
+        "text": "Waiting",
+        "color": "rgb(154, 103, 0)",
+        "background": "rgb(255,248,197)",
+        "ratio": 4.52,
+        "fontSizePx": 12,
+        "fontWeight": 600,
+        "lineHeight": "normal",
+        "needs": 4.5
+      }
+    ],
+    "spacing": {
+      ".canvas": {
+        "padding": "20px 24px",
+        "margin": "0px",
+        "gap": "16px",
+        "radius": "0px",
+        "border": "0px none rgb(31, 35, 40)"
+      },
+      ".panel-body": {
+        "padding": "16px",
+        "margin": "0px",
+        "gap": "normal",
+        "radius": "0px",
+        "border": "0px none rgb(31, 35, 40)"
+      },
+      ".toolbar": {
+        "padding": "0px",
+        "margin": "0px 0px 12px",
+        "gap": "8px",
+        "radius": "0px",
+        "border": "0px none rgb(31, 35, 40)"
+      },
+      ".issue-row": {
+        "padding": "10px 12px",
+        "margin": "0px 0px 8px",
+        "gap": "normal",
+        "radius": "8px",
+        "border": "1px solid rgb(216, 220, 227)"
+      }
+    },
+    "tokens": {
+      "--bg": "#f7f8fa",
+      "--surface": "#ffffff",
+      "--border": "#d8dce3",
+      "--text": "#1f2328",
+      "--muted": "#59636e",
+      "--accent": "#1f6feb",
+      "--accent-weak": "#ddebff",
+      "--positive": "#1a7f37",
+      "--warning": "#9a6700",
+      "--warning-weak": "#fff8c5",
+      "--problem": "#b35900",
+      "--closed": "#59636e",
+      "--radius": "8px"
+    },
+    "fontSizes": [
+      12,
+      13,
+      16,
+      22
+    ]
+  },
+  "noSummary": {
+    "samples": [
+      {
+        "selector": "h1.canvas-title",
+        "text": "Blank canvas",
+        "color": "rgb(31, 35, 40)",
+        "background": "rgb(247,248,250)",
+        "ratio": 14.87,
+        "fontSizePx": 16,
+        "fontWeight": 600,
+        "lineHeight": "normal",
+        "needs": 4.5
+      },
+      {
+        "selector": "p.canvas-identity",
+        "text": "normzhou/yolo-blank-canvas · signed in as normzhou",
+        "color": "rgb(89, 99, 110)",
+        "background": "rgb(247,248,250)",
+        "ratio": 5.75,
+        "fontSizePx": 13,
+        "fontWeight": 400,
+        "lineHeight": "normal",
+        "needs": 4.5
+      },
+      {
+        "selector": "p.canvas-prompt",
+        "text": "What would you like to build or change?",
+        "color": "rgb(89, 99, 110)",
+        "background": "rgb(247,248,250)",
+        "ratio": 5.75,
+        "fontSizePx": 22,
+        "fontWeight": 400,
+        "lineHeight": "normal",
+        "needs": 4.5
+      },
+      {
+        "selector": "div.panel-repo",
+        "text": "normzhou/yolo-blank-canvas",
+        "color": "rgb(31, 35, 40)",
+        "background": "rgb(255,255,255)",
+        "ratio": 15.8,
+        "fontSizePx": 16,
+        "fontWeight": 600,
+        "lineHeight": "normal",
+        "needs": 4.5
+      },
+      {
+        "selector": "div.panel-identity",
+        "text": "signed in as normzhou",
+        "color": "rgb(89, 99, 110)",
+        "background": "rgb(255,255,255)",
+        "ratio": 6.11,
+        "fontSizePx": 12,
+        "fontWeight": 400,
+        "lineHeight": "normal",
+        "needs": 4.5
+      },
+      {
+        "selector": "span",
+        "text": "Last refresh: 11:57:53 AM",
+        "color": "rgb(89, 99, 110)",
+        "background": "rgb(255,255,255)",
+        "ratio": 6.11,
+        "fontSizePx": 12,
+        "fontWeight": 400,
+        "lineHeight": "normal",
+        "needs": 4.5
+      },
+      {
+        "selector": "button",
+        "text": "← Back",
+        "color": "rgb(31, 35, 40)",
+        "background": "rgb(255,255,255)",
+        "ratio": 15.8,
+        "fontSizePx": 16,
+        "fontWeight": 400,
+        "lineHeight": "normal",
+        "needs": 4.5
+      },
+      {
+        "selector": "span.badge.progress",
+        "text": "In progress",
+        "color": "rgb(11, 63, 143)",
+        "background": "rgb(221,235,255)",
+        "ratio": 8.2,
+        "fontSizePx": 12,
+        "fontWeight": 600,
+        "lineHeight": "normal",
+        "needs": 4.5
+      },
+      {
+        "selector": "span.note",
+        "text": "opened 7 hours ago by normzhou · updated 7 hours ago",
+        "color": "rgb(89, 99, 110)",
+        "background": "rgb(255,255,255)",
+        "ratio": 6.11,
+        "fontSizePx": 12,
+        "fontWeight": 400,
+        "lineHeight": "normal",
+        "needs": 4.5
+      },
+      {
+        "selector": "p.note",
+        "text": "No progress summary yet.",
+        "color": "rgb(89, 99, 110)",
+        "background": "rgb(247,251,255)",
+        "ratio": 5.88,
+        "fontSizePx": 12,
+        "fontWeight": 400,
+        "lineHeight": "normal",
+        "needs": 4.5
+      },
+      {
+        "selector": "label",
+        "text": "Reply",
+        "color": "rgb(31, 35, 40)",
+        "background": "rgb(255,255,255)",
+        "ratio": 15.8,
+        "fontSizePx": 13,
+        "fontWeight": 600,
+        "lineHeight": "normal",
+        "needs": 4.5
+      },
+      {
+        "selector": "p.hint",
+        "text": "Replies are GitHub comments on this request.",
+        "color": "rgb(89, 99, 110)",
+        "background": "rgb(255,255,255)",
+        "ratio": 6.11,
+        "fontSizePx": 12,
+        "fontWeight": 400,
+        "lineHeight": "normal",
+        "needs": 4.5
+      },
+      {
+        "selector": "p",
+        "text": "Please add light and dark themes.",
+        "color": "rgb(31, 35, 40)",
+        "background": "rgb(255,255,255)",
+        "ratio": 15.8,
+        "fontSizePx": 14,
+        "fontWeight": 400,
+        "lineHeight": "normal",
+        "needs": 4.5
+      },
+      {
+        "selector": "h3",
+        "text": "Reported summary",
+        "color": "rgb(31, 35, 40)",
+        "background": "rgb(247,251,255)",
+        "ratio": 15.19,
+        "fontSizePx": 14,
+        "fontWeight": 700,
+        "lineHeight": "normal",
+        "needs": 4.5
+      }
+    ],
+    "spacing": {
+      ".canvas": {
+        "padding": "20px 24px",
+        "margin": "0px",
+        "gap": "16px",
+        "radius": "0px",
+        "border": "0px none rgb(31, 35, 40)"
+      },
+      ".panel-body": {
+        "padding": "16px",
+        "margin": "0px",
+        "gap": "normal",
+        "radius": "0px",
+        "border": "0px none rgb(31, 35, 40)"
+      },
+      ".toolbar": {
+        "padding": "0px",
+        "margin": "0px 0px 12px",
+        "gap": "8px",
+        "radius": "0px",
+        "border": "0px none rgb(31, 35, 40)"
+      },
+      ".field": {
+        "padding": "0px",
+        "margin": "0px 0px 12px",
+        "gap": "normal",
+        "radius": "0px",
+        "border": "0px none rgb(31, 35, 40)"
+      },
+      ".summary-box": {
+        "padding": "12px",
+        "margin": "0px 0px 16px",
+        "gap": "normal",
+        "radius": "8px",
+        "border": "1px solid rgb(31, 111, 235)"
+      }
+    },
+    "tokens": {
+      "--bg": "#f7f8fa",
+      "--surface": "#ffffff",
+      "--border": "#d8dce3",
+      "--text": "#1f2328",
+      "--muted": "#59636e",
+      "--accent": "#1f6feb",
+      "--accent-weak": "#ddebff",
+      "--positive": "#1a7f37",
+      "--warning": "#9a6700",
+      "--warning-weak": "#fff8c5",
+      "--problem": "#b35900",
+      "--closed": "#59636e",
+      "--radius": "8px"
+    },
+    "fontSizes": [
+      12,
+      13,
+      14,
+      16,
+      22
+    ]
+  }
+}

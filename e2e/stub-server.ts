@@ -81,7 +81,63 @@ export function fixtureIssues(): StubIssue[] {
       created_at: NOW,
       updated_at: NOW,
     },
+    // Content stress: a long title, nested Markdown with a table and a code
+    // block, and unrelated labels long enough to wrap the row meta. Number 1
+    // so it sorts to the top of the newest-updated list.
+    {
+      number: 1,
+      title:
+        'A deliberately long issue title that runs past one hundred characters to see how the row wraps and truncates',
+      body: [
+        '## Outcome',
+        '',
+        'A paragraph with **bold**, *italic*, `inline code` and a [link](https://example.com).',
+        '',
+        '### Nested detail',
+        '',
+        '1. first',
+        '2. second',
+        '',
+        '| column | another column |',
+        '| --- | --- |',
+        '| a | b |',
+        '',
+        '```ts',
+        'const x: number = 1;',
+        'console.log(x);',
+        '```',
+      ].join('\n'),
+      state: 'open',
+      state_reason: null,
+      html_url: 'https://github.com/normzhou/yolo-blank-canvas/issues/6',
+      labels: [
+        { name: 'enhancement' },
+        { name: 'needs-design-review-before-anyone-picks-this-up' },
+        { name: 'yolo:work' },
+        { name: 'yolo:state:deferred' },
+      ],
+      user: { login: 'someone-else' },
+      created_at: NOW,
+      updated_at: NOW,
+    },
   ];
+}
+
+/** Issues for the density check: 34 rows across all four managed states. */
+export function densityIssues(): StubIssue[] {
+  const states = ['yolo:state:queued', 'yolo:state:active', 'yolo:state:waiting', 'yolo:state:deferred'];
+  return Array.from({ length: 34 }, (_, index) => ({
+    number: 200 + index,
+    title: `Request ${index + 1} with a title of a fairly typical length for this project`,
+    body: '',
+    state: 'open',
+    state_reason: null,
+    html_url: `https://github.com/normzhou/yolo-blank-canvas/issues/${200 + index}`,
+    labels: index % 5 === 0 ? [] : [{ name: 'yolo:work' }, { name: states[index % states.length] }],
+    user: { login: 'normzhou' },
+    created_at: NOW,
+    updated_at: NOW,
+  }));
 }
 
 export function fixtureComments(number: number): StubComment[] {
@@ -106,8 +162,8 @@ export function fixtureComments(number: number): StubComment[] {
   ];
 }
 
-export function makeStubGithub() {
-  const issues = fixtureIssues();
+export function makeStubGithub(overrides: { issues?: StubIssue[] } = {}) {
+  const issues = overrides.issues ?? fixtureIssues();
   const comments = new Map<number, StubComment[]>([[7, fixtureComments(7)]]);
   let nextIssue = 100;
   return {
@@ -143,6 +199,20 @@ export function makeStubGithub() {
       comments.set(Number(number), list);
       return item;
     },
+  };
+}
+
+/** An issue whose comments contain no `## YOLO status` summary. */
+export function withoutSummaryGithub() {
+  const github = makeStubGithub();
+  const inner = github.listComments;
+  const plain: StubComment[] = [
+    { id: 101, body: 'A reply with no summary heading.', user: { login: 'normzhou' }, created_at: NOW, updated_at: NOW },
+  ];
+  return {
+    ...github,
+    listComments: async (target: unknown, number: string, options: { page: number; perPage: number }): Promise<StubComment[]> =>
+      Number(number) === 7 ? plain : inner(target, number, options),
   };
 }
 

@@ -11,6 +11,20 @@ import { fileURLToPath } from 'node:url';
  */
 export const ARTIFACTS = path.join(path.dirname(fileURLToPath(import.meta.url)), 'artifacts');
 
+/** Artifacts the UI review commits for review rather than regenerating. */
+export const REVIEW_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), 'review');
+
+/**
+ * Viewports the UI is captured at: the README only promises the panel goes
+ * full width on narrow screens, so narrow is a first-class review target.
+ */
+export const VIEWPORTS = {
+  desktop: { width: 1280, height: 900 },
+  narrow: { width: 390, height: 844 },
+} as const;
+
+export type ViewportName = keyof typeof VIEWPORTS;
+
 export const test = base.extend<{ errors: string[]; snap: (name: string) => Promise<string> }>({
   errors: async ({ page }, use) => {
     const errors: string[] = [];
@@ -22,8 +36,11 @@ export const test = base.extend<{ errors: string[]; snap: (name: string) => Prom
   },
   snap: async ({ page }, use) => {
     await use(async (name: string) => {
-      fs.mkdirSync(ARTIFACTS, { recursive: true });
-      const file = path.join(ARTIFACTS, `${name}.png`);
+      // `visual/…` and `motion/…` are review evidence, committed under
+      // e2e/review/; everything else is a scratch artifact.
+      const review = name.startsWith('visual/') || name.startsWith('motion/');
+      const file = path.join(review ? REVIEW_DIR : ARTIFACTS, `${name}.png`);
+      fs.mkdirSync(path.dirname(file), { recursive: true });
       await page.screenshot({ path: file, fullPage: true });
       return file;
     });

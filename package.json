@@ -24,7 +24,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test --config playwright.config.ts",
-    "e2e:live": "playwright test --config playwright.live.config.ts"
+    "e2e:live": "playwright test --config playwright.live.config.ts",
+    "e2e:visual": "playwright test --config playwright.config.ts visual motion",
+    "e2e:measure": "playwright test --config playwright.config.ts measure"
   },
   "dependencies": {
     "express": "^4.19.2",
