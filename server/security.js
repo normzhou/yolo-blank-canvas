@@ -74,6 +74,7 @@ export function securityHeaders(req, res, next) {
       "script-src 'self'",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data:",
+      "media-src 'self'",
       "connect-src 'self'",
       "base-uri 'none'",
       "form-action 'none'",

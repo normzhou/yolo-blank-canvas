@@ -279,6 +279,19 @@ describe('issue operations', () => {
     }
   });
 
+  it('serves the UI with a CSP that permits same-origin media (Tetris audio)', async () => {
+    const { server, base } = await start();
+    try {
+      const response = await fetch(`${base}/`);
+      expect(response.status).toBe(200);
+      const csp = response.headers.get('content-security-policy') ?? '';
+      expect(csp).toContain("default-src 'none'");
+      expect(csp).toContain("media-src 'self'");
+    } finally {
+      server.close();
+    }
+  });
+
   it('reports non-secret build identity', async () => {
     const { server, request } = await start();
     try {
