@@ -161,12 +161,13 @@
     "release": {
       "policy": ".yolo/governance/ARCHITECTURE.md#verification-and-delivery",
       "version_source": "package.json#version",
-      "effective_commit": "dbfdacf246b5b42c208e5f1fb4a7913c195d2f67",
+      "effective_commit": "80bf5f860c4a360e855c8b0a786df7a04f3a70e6",
       "legacy_tags": {
         "v0.1.0": "520a81e8ec824b9ce31a7fbc8a8c08d152eb81ae",
         "v0.1.1": "0c8038f164bd2a744780d7d2913a00b8bfb593a9",
         "v0.1.2": "878854e3f1a53524f4952ef0b35cc01acc6c4b36",
-        "v0.2.0": "eaf7cc2b74b9eba89ee434742c5df97f84c54637"
+        "v0.2.0": "eaf7cc2b74b9eba89ee434742c5df97f84c54637",
+        "v0.3.0": "dbfdacf246b5b42c208e5f1fb4a7913c195d2f67"
       },
       "observations": [
         ".yolo/reports/releases-observed-2026-10-07.json"
