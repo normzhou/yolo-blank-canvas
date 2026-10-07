@@ -179,11 +179,16 @@ Source revision `819724d`, deterministic tests only. `KOROBEINIKI` is now the fa
 
 ## Tested revision
 
-Source revision `26feaa6` ("Add chiptune music to the Tetris view"); release tag `v0.1.2` points at
-the squash merge `878854e` (PR #51) that carries that source together with the assets built from it
-(`dist/client/.build-id` and `server/build-id.generated.js` both report `26feaa6…`, and
-`GET /api/version` on the installed release reports the same). The build ID identifies the source
-revision the running assets were produced from.
+Release tag `v0.2.0` points at the squash merge `eaf7cc2` that carries the #54/#55/#58 work together
+with the assets built from source `828b21d` (`dist/client/.build-id` and
+`server/build-id.generated.js` both report `828b21d…`). The native version at the tagged revision
+(`package.json`) is `0.2.0`. The published artifact was verified outside the checkout:
+`npx --yes github:normzhou/yolo-blank-canvas#v0.2.0 --no-open` served `GET /api/version` with
+`serverBuild`/`clientBuild` = `828b21d`, `GET /` returned 200, and the served bundle contains the
+six tune titles and six scene titles. Dated tag/commit observations are in
+[`.yolo/reports/releases-observed-2026-10-07.json`](../../.yolo/reports/releases-observed-2026-10-07.json).
+The build ID identifies the source revision the running assets were produced from.
 
-History: `v0.1.1` (source `e39b750`, squash merge `0c8038f`) kept list rows visible across a
+History: `v0.1.2` (source `26feaa6`, squash merge `878854e`) added Tetris and the first chiptune
+melody; `v0.1.1` (source `e39b750`, squash merge `0c8038f`) kept list rows visible across a
 background refresh; `v0.1.0` followed the separate source/assets ordering described above.
