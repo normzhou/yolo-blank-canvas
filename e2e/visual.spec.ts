@@ -1,4 +1,4 @@
-import { test, expect, VIEWPORTS, type ViewportName, freezeClock } from './fixtures';
+import { test, expect, VIEWPORTS, type ViewportName, freezeClock, settled, listSettled } from './fixtures';
 import { startStubApp, makeStubGithub, withoutSummaryGithub, densityIssues } from './stub-server';
 import type { Page } from '@playwright/test';
 
@@ -42,22 +42,27 @@ capture('canvas and list', makeStubGithub, async ({ page, snap }) => {
   await expect(page.getByText('What would you like to build or change?')).toBeVisible();
   await snap('01-canvas');
   await openPanel(page);
-  await expect(page.locator('.issue-row').first()).toBeVisible();
+  await listSettled(page);
+  // 5 fixtures, but the default filter is Open and #4 is closed.
+  await expect(page.locator('.issue-row')).toHaveCount(4);
   await snap('02-list');
 });
 
 capture('list with 34 rows (density)', () => makeStubGithub({ issues: densityIssues() }), async ({ page, snap }) => {
   await openPanel(page);
   await expect(page.locator('.issue-row')).toHaveCount(30);
+  await listSettled(page);
   await snap('03-list-density-30');
   await page.getByRole('button', { name: 'Load more' }).click();
   await expect(page.locator('.issue-row')).toHaveCount(34);
+  await listSettled(page);
   await snap('04-list-density-34');
 });
 
 capture('closed filter', makeStubGithub, async ({ page, snap }) => {
   await openPanel(page);
   await page.getByRole('button', { name: 'Closed', exact: true }).click();
+  await listSettled(page);
   await expect(page.getByText('#4 Tetris')).toBeVisible();
   await snap('05-list-closed');
 });
@@ -65,13 +70,15 @@ capture('closed filter', makeStubGithub, async ({ page, snap }) => {
 capture('detail with reported summary', makeStubGithub, async ({ page, snap }) => {
   await openPanel(page);
   await page.getByRole('button', { name: '#7 Make the canvas respond to themes' }).click();
-  await expect(page.getByRole('heading', { name: 'Reported summary', exact: true })).toBeVisible();
+  await settled(page);
+  await expect(page.getByText('Outcome: shipped themes.').first()).toBeVisible();
   await snap('06-detail-summary');
 });
 
 capture('detail without a summary comment', withoutSummaryGithub, async ({ page, snap }) => {
   await openPanel(page);
   await page.getByRole('button', { name: '#7 Make the canvas respond to themes' }).click();
+  await settled(page);
   await expect(page.getByText('No progress summary yet.')).toBeVisible();
   await expect(page.getByText('Delivery timing not yet estimated.')).toBeVisible();
   await snap('07-detail-no-summary');
@@ -80,7 +87,7 @@ capture('detail without a summary comment', withoutSummaryGithub, async ({ page,
 capture('detail with content stress', makeStubGithub, async ({ page, snap }) => {
   await openPanel(page);
   await page.getByRole('button', { name: /^#1 A deliberately long issue title/ }).click();
-  await expect(page.getByRole('heading', { name: 'Reported summary', exact: true })).toBeVisible();
+  await settled(page);
   await snap('08-detail-content-stress');
 });
 
@@ -119,6 +126,10 @@ capture('connection error surface', makeStubGithub, async ({ page, snap }) => {
 capture('tetris board and stats', makeStubGithub, async ({ page, snap }) => {
   await page.getByRole('button', { name: 'Play Tetris' }).click();
   await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
+  // Pause before capturing: gravity would otherwise move the piece between the
+  // board becoming visible and the shutter.
+  await page.getByRole('button', { name: 'Pause' }).click();
+  await expect(page.getByRole('button', { name: 'Resume' })).toBeVisible();
   await snap('13-tetris-board');
   await page.getByRole('button', { name: /Music off/ }).click();
   await expect(page.locator('.tetris-scene')).toContainText('Music:');

@@ -1,4 +1,4 @@
-import { test, expect, freezeClock } from './fixtures';
+import { test, expect, freezeClock, settled, listSettled } from './fixtures';
 import { startStubApp, makeStubGithub, withoutSummaryGithub, densityIssues, type RunningStub } from './stub-server';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -117,11 +117,11 @@ test('measure contrast, type scale and spacing on the list and detail views', as
     await freezeClock(page);
     await page.goto(stub.base);
     await page.getByRole('button', { name: 'Requests', exact: true }).click();
-    await expect(page.locator('.issue-row').first()).toBeVisible();
+    await listSettled(page);
     const list = await measure(page);
 
     await page.getByRole('button', { name: '#7 Make the canvas respond to themes' }).click();
-    await expect(page.getByRole('heading', { name: 'Reported summary', exact: true })).toBeVisible();
+    await settled(page);
     const detail = await measure(page);
 
     await page.goto(stub.base);
@@ -164,11 +164,13 @@ test('measure the density list and the no-summary detail state', async ({ page }
     await page.goto(density.base);
     await page.getByRole('button', { name: 'Requests', exact: true }).click();
     await expect(page.locator('.issue-row')).toHaveCount(30);
+    await listSettled(page);
     const rows = await measure(page);
 
     await page.goto(plain.base);
     await page.getByRole('button', { name: 'Requests', exact: true }).click();
     await page.getByRole('button', { name: '#7 Make the canvas respond to themes' }).click();
+    await settled(page);
     await expect(page.getByText('No progress summary yet.')).toBeVisible();
     const noSummary = await measure(page);
 

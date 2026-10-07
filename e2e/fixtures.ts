@@ -50,14 +50,52 @@ export const test = base.extend<{ errors: string[]; snap: (name: string) => Prom
 export { expect };
 
 /**
- * Freeze the page clock so review evidence is reproducible: the panel footer
- * renders a wall-clock time, which would otherwise change every PNG and make
- * "regenerate and diff" useless for committed review images.
+ * Make review evidence reproducible. Committed review images are only useful
+ * if regenerating them produces no diff, which needs three things pinned:
+ *
+ * 1. **The clock** — the panel footer renders a wall-clock time.
+ * 2. **Randomness** — the Tetris 7-bag and the music shuffle read
+ *    `Math.random`, so the board and the playing track would differ per run.
+ *    Seeded with a small deterministic PRNG rather than stubbing the product,
+ *    which already takes an injectable `rng`.
+ * 3. **Load completion** — callers must additionally wait for the content they
+ *    intend to photograph; see `settled()`.
  */
 export const FROZEN_TIME = new Date('2026-10-07T12:00:00Z');
 
+/** mulberry32: small, fast, deterministic. */
+const SEED_RNG = `(() => {
+  let a = 0x9e3779b9;
+  Math.random = () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+})()`;
+
 export async function freezeClock(page: Page) {
   await page.clock.install({ time: FROZEN_TIME });
+  await page.addInitScript(SEED_RNG);
+}
+
+/**
+ * Wait for the panel to have finished loading what it will show.
+ *
+ * The Reported summary box renders before its comments arrive, so a capture
+ * taken on that heading alone photographs either state depending on timing.
+ * Waiting for the discussion to report its end is the observable signal that
+ * the view is complete.
+ */
+export async function settled(page: Page) {
+  await page.waitForLoadState('networkidle');
+  await expect(page.getByText(/End of discussion|No comments yet\./)).toBeVisible();
+}
+
+/** Wait for the list to finish its first read, so a capture is not mid-load. */
+export async function listSettled(page: Page) {
+  await page.waitForLoadState('networkidle');
+  await expect(page.getByText(/End of list|Load more/).first()).toBeVisible();
 }
 
 /** Assert no console errors/page errors were seen on this page. */
