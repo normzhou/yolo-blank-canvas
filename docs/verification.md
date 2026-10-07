@@ -17,14 +17,14 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
  ✓ test/list-refresh.test.ts (5 tests)     background refresh keeps rows; filter changes clear
  ✓ test/list-reconciliation.test.ts (8 tests)  created-issue reconciliation against the list
  ✓ test/tetris.test.ts (19 tests)          Tetris pieces, collision, line clear, scoring, game over, tetris count
- ✓ test/tetris-music.test.ts (10 tests)    playlist, second strain, shuffle, pitch mapping, timeline planning
+ ✓ test/tetris-music.test.ts (11 tests)    playlist length, second strain, shuffle, pitch mapping, timeline planning
  ✓ test/tetris-backgrounds.test.ts (4 tests)  scene grids, palettes, four-line cycle helper
 
  Test Files  12 passed (12)
-      Tests  110 passed (110)
+      Tests  111 passed (111)
 ```
 
-Also run: `npx tsc --noEmit` (clean), `npm run build` (clean). Run at source revision `819724d` plus the backdrop work (#54/#55); not yet a released version, so the release-level sections below still describe `v0.1.1`/`v0.1.2`.
+Also run: `npx tsc --noEmit` (clean), `npm run build` (clean). Run at the #58 improvements source revision; not yet a released version, so the release-level sections below still describe `v0.1.1`/`v0.1.2`.
 
 Fixture coverage required by the spec, all in `test/status.test.ts`: untagged open issue → **Request open**; all four managed states; missing state, duplicate states, and state without `yolo:work` → **Status needs reconciliation** with raw labels; closure reasons `not_planned` / `duplicate` / `completed`; **Completed (reported)** vs **Closed**; unknown reason → **Closed — reason unavailable**; leftover state labels on a closed issue; reported-summary detection rules, most-recent-match selection, and `No progress summary yet.` / `Delivery timing not yet estimated.` fallbacks. No fixture asserts scheduling or availability.
 
@@ -162,8 +162,12 @@ Integration issues [#1](https://github.com/normzhou/yolo-blank-canvas/issues/1),
 - **Lost authentication during a running session** was verified through the API surface and unit tests (explicit `auth_required` state with the login command and Retry connection), not by revoking real credentials mid-session.
 - **The Tetris view was not exercised in a live browser.** Its rules and state transitions are covered by `test/tetris.test.ts`, but keyboard handling (arrow/space/Escape), gravity timing and rendering were not observed in a browser session against a running build.
   **Resolved 2026-10-06:** the maintainer played the merged `main` in a live browser and confirmed it works; see the Tetris live check above. The deterministic tests remain the regression guard.
-- **Tetris music was not observed in a live browser.** The pitch mapping, the full *Korobeiniki* (both strains), the playlist and its shuffle are covered by `test/tetris-music.test.ts`, but the Web Audio playback wrapper (context creation on the user gesture, per-tune scheduling across tune boundaries and the toggle) is untested and was not exercised live. The maintainer's listen check on `v0.1.2` confirmed the original single melody was audible (see #50); the extended playlist awaits the same check.
-- **The pixel-art backdrop was not observed in a live browser.** The scene data and the four-line cycle are covered by `test/tetris-backgrounds.test.ts` and the `tetrisCount` cases in `test/tetris.test.ts`, but the SVG rendering, the fade transition and the readability of the board over each scene were not observed in a browser session against a running build.
+- **Tetris music was not observed in a live browser.** The pitch mapping, the full *Korobeiniki* (both strains), the playlist and its shuffle are covered by `test/tetris-music.test.ts`, but the Web Audio playback wrapper (context creation on the user gesture, per-tune scheduling across tune boundaries and the toggle) is untested and was not exercised live. The maintainer's listen check on `v0.1.2` confirmed the original single melody was audible (see #50), and the four-tune playlist was received (#58); the longer six-tune playlist and the "now playing" display await the same check.
+- **The pixel-art backdrop was not observed in a live browser.** The scene data and the four-line cycle are covered by `test/tetris-backgrounds.test.ts` and the `tetrisCount` cases in `test/tetris.test.ts`, but the SVG rendering, the crossfade transition and the readability of the board over each scene were not observed in a browser session against a running build. The four-scene set was received (#58); the two new scenes and the crossfade await the same check.
+
+## Fuller tunes and a backdrop crossfade (issue #58)
+
+Source revision committed with the #58 improvements; deterministic tests only. Each tune is now a sectioned arrangement: *Korobeiniki* is A–B–A, *Greensleeves* verse–second–verse, *Ode to Joy* and *Mountain King* add a second phrase, and two more public-domain melodies (*Kalinka*, *Scarborough Fair*) join the playlist. At the player's 2.2 beats/second each tune runs ~20–43s (playlist total ~173s, up from ~94s). The background set grew to six scenes, and the view now crossfades between them (new scene fades in, old fades out) and names the tune now playing. `test/tetris-music.test.ts` (11 cases) checks the second strain, the per-tune minimum length, playlist well-formedness and the shuffle; `test/tetris-backgrounds.test.ts` continues to validate every scene. The copyrighted original-game music and artwork were **declined** — see #58 for the recorded reasoning — so no third-party asset was added. Live browser playback/render of the crossfade remains unverified.
 
 ## Pixel-art backdrops (issue #55)
 

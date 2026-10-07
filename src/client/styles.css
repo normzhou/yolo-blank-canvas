@@ -162,16 +162,24 @@ textarea { min-height: 140px; resize: vertical; }
 .tetris-art {
   position: absolute;
   inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.tetris-art-layer {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
-  z-index: 0;
-  opacity: 0.55;
-  pointer-events: none;
-  animation: tetris-art-fade 700ms ease;
 }
-@keyframes tetris-art-fade {
+.tetris-art-layer.is-current { animation: tetris-art-in 700ms ease forwards; }
+.tetris-art-layer.is-past { animation: tetris-art-out 700ms ease forwards; }
+@keyframes tetris-art-in {
   from { opacity: 0; }
   to { opacity: 0.55; }
+}
+@keyframes tetris-art-out {
+  from { opacity: 0.55; }
+  to { opacity: 0; }
 }
 .tetris-header, .tetris-body, .tetris-over, .tetris-help, .tetris-scene {
   position: relative;

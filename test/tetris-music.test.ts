@@ -58,10 +58,10 @@ describe('tetris music', () => {
     expect(KOROBEINIKI_A[0]).toEqual(['E5', 1]);
   });
 
-  it('extends Korobeiniki with a non-empty second strain', () => {
+  it('extends Korobeiniki with a non-empty second strain and a return', () => {
     expect(KOROBEINIKI_B.length).toBeGreaterThan(0);
-    expect(KOROBEINIKI).toHaveLength(KOROBEINIKI_A.length + KOROBEINIKI_B.length);
-    expect(melodyDuration(KOROBEINIKI, 2)).toBeGreaterThan(melodyDuration(KOROBEINIKI_A, 2));
+    expect(KOROBEINIKI).toHaveLength(KOROBEINIKI_A.length * 2 + KOROBEINIKI_B.length);
+    expect(melodyDuration(KOROBEINIKI, 2)).toBeGreaterThan(melodyDuration(KOROBEINIKI_A, 2) * 2);
   });
 });
 
@@ -79,6 +79,13 @@ describe('tetris playlist', () => {
         expect(beats).toBeGreaterThan(0);
         if (pitch !== null) expect(noteFrequency(pitch)).toBeGreaterThan(0);
       }
+    }
+  });
+
+  it('gives each tune a substantial pass rather than a short loop', () => {
+    for (const melody of PLAYLIST) {
+      // At the player's 2.2 beats/second, every tune should run for a while.
+      expect(melodyDuration(melody.notes, 2.2)).toBeGreaterThan(15);
     }
   });
 

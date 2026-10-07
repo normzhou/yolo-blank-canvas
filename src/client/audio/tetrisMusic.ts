@@ -24,6 +24,7 @@ function audioContextCtor(): AudioContextCtor | null {
 }
 
 export class TetrisMusic {
+  private readonly onMelodyChange?: (melody: Melody) => void;
   private context: AudioContext | null = null;
   private master: GainNode | null = null;
   private timer: number | null = null;
@@ -32,6 +33,10 @@ export class TetrisMusic {
   private current: Melody | null = null;
   private noteIndex = 0;
   private lastMelodyId: string | null = null;
+
+  constructor(onMelodyChange?: (melody: Melody) => void) {
+    this.onMelodyChange = onMelodyChange;
+  }
 
   /** Create/resume the context. Must be called in a user gesture. */
   ensureContext(): boolean {
@@ -86,6 +91,7 @@ export class TetrisMusic {
     this.current = next;
     this.noteIndex = 0;
     this.lastMelodyId = next.id;
+    this.onMelodyChange?.(next);
   }
 
   private stopScheduler(): void {

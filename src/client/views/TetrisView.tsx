@@ -37,11 +37,10 @@ function cellClass(cell: Cell): string {
   return cell ? `tetris-cell ${CELL_CLASS[cell]}` : 'tetris-cell';
 }
 
-function PixelBackdrop({ art }: { art: PixelArt }) {
+function ArtLayer({ art, past }: { art: PixelArt; past: boolean }) {
   return (
     <svg
-      key={art.id}
-      className="tetris-art"
+      className={`tetris-art-layer ${past ? 'is-past' : 'is-current'}`}
       viewBox={`0 0 ${art.width} ${art.height}`}
       preserveAspectRatio="xMidYMid slice"
       shapeRendering="crispEdges"
@@ -55,6 +54,37 @@ function PixelBackdrop({ art }: { art: PixelArt }) {
         ),
       )}
     </svg>
+  );
+}
+
+/**
+ * Crossfades between scenes: the new scene fades in while the previous one
+ * fades out. The outgoing layer is dropped once the transition finishes.
+ */
+function PixelBackdrop({ art }: { art: PixelArt }) {
+  const [layers, setLayers] = useState<Array<{ key: number; art: PixelArt }>>([{ key: 0, art }]);
+  const keyRef = useRef(0);
+
+  useEffect(() => {
+    setLayers((current) => {
+      if (current[current.length - 1].art.id === art.id) return current;
+      keyRef.current += 1;
+      return [...current, { key: keyRef.current, art }];
+    });
+  }, [art]);
+
+  useEffect(() => {
+    if (layers.length <= 1) return;
+    const id = window.setTimeout(() => setLayers((current) => current.slice(-1)), 700);
+    return () => window.clearTimeout(id);
+  }, [layers]);
+
+  return (
+    <div className="tetris-art" aria-hidden="true">
+      {layers.map((layer, index) => (
+        <ArtLayer key={layer.key} art={layer.art} past={index < layers.length - 1} />
+      ))}
+    </div>
   );
 }
 
@@ -77,8 +107,11 @@ export function TetrisView({ onClose }: { onClose: () => void }) {
   const [paused, setPaused] = useState(false);
   const [musicOn, setMusicOn] = useState(false);
   const [backgroundIndex, setBackgroundIndex] = useState(0);
+  const [nowPlaying, setNowPlaying] = useState<string | null>(null);
   const musicRef = useRef<TetrisMusic | null>(null);
-  if (musicRef.current === null) musicRef.current = new TetrisMusic();
+  if (musicRef.current === null) {
+    musicRef.current = new TetrisMusic((melody) => setNowPlaying(melody.title));
+  }
   const gameRef = useRef(game);
   gameRef.current = game;
   const tetrisCountRef = useRef(game.tetrisCount);
@@ -205,6 +238,7 @@ export function TetrisView({ onClose }: { onClose: () => void }) {
       {BACKGROUNDS.length > 1 ? (
         <p className="tetris-scene" aria-live="polite">
           Scene {backgroundIndex + 1}/{BACKGROUNDS.length}: {BACKGROUNDS[backgroundIndex].title}
+          {nowPlaying ? ` · Music: ${nowPlaying}` : ''}
         </p>
       ) : null}
 
