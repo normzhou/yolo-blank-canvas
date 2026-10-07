@@ -44,7 +44,7 @@ test('detail view renders the ## YOLO status summary', async ({ page, errors, sn
   await page.goto(stub.base);
   await page.getByRole('button', { name: 'Requests', exact: true }).click();
   await page.getByRole('button', { name: '#7 Make the canvas respond to themes' }).click();
-  await expect(page.getByRole('heading', { name: 'Reported summary' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Reported summary', exact: true })).toBeVisible();
   await expect(page.getByText('Outcome: shipped themes.').first()).toBeVisible();
   await expect(page.getByText('Timing: delivered 2026-10-07.').first()).toBeVisible();
   await expect(page.getByText('First reply from the maintainer.').first()).toBeVisible();
