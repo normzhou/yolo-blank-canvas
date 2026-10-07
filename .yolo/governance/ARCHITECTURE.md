@@ -79,6 +79,11 @@ contractual where it is in scope. Its observed gaps are listed under Decisions a
 
 - **Checks (existing):** `npm test` (vitest — deterministic, network-free tests),
   `npx tsc --noEmit`, `npm run build`. No network, no writes.
+- **Browser-driven checks (added for #71):** `npm run e2e` (Playwright against the real app with a
+  stubbed GitHub client, deterministic fixtures, no repository writes) and `npm run e2e:live`
+  (Playwright, read-only, against the real dev app with real `gh` credentials). Both run headless
+  system Google Chrome and capture per-step screenshots for agent review. They are harness-run
+  evidence cited in [docs/verification.md](../../docs/verification.md); they are not CI gates.
 - **CI:** GitHub Actions runs `npm test` and `npx tsc --noEmit` on pull requests and pushes to
   `main` ([.github/workflows/ci.yml](../../.github/workflows/ci.yml)); harness-run evidence is
   cited from [docs/verification.md](../../docs/verification.md).

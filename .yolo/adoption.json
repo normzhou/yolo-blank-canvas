@@ -146,7 +146,9 @@
     "checks": [
       "npm test (vitest, deterministic, network-free)",
       "npx tsc --noEmit",
-      "npm run build"
+      "npm run build",
+      "npm run e2e (Playwright, headless system Chrome, stubbed GitHub client, no writes)",
+      "npm run e2e:live (Playwright, headless system Chrome, read-only against the real dev app)"
     ],
     "delivery": [
       "npm/npx launch of a tagged revision, e.g. npx --yes github:normzhou/yolo-blank-canvas#v0.1.1; GET /api/version reports serverBuild/clientBuild"
@@ -155,8 +157,8 @@
       "Proposed: diagnose, retry on new evidence, change approach, replan, wait/defer or propose governing changes; repair the lowest sufficient layer without expanding the grant"
     ],
     "limits": [
-      "L1 checks run by the harness (`npm test`, `npx tsc --noEmit`, `npm run build`) plus the GitHub Actions workflow .github/workflows/ci.yml, which runs `npm test` and `npx tsc --noEmit` on pull requests and pushes to main",
-      "Live gaps recorded in docs/verification.md: first-login path, missing-gh path, browser-open behaviour, multi-page pagination, mid-session auth loss, --repo against a second repository"
+      "L1 checks run by the harness (`npm test`, `npx tsc --noEmit`, `npm run build`, `npm run e2e`, `npm run e2e:live`) plus the GitHub Actions workflow .github/workflows/ci.yml, which runs `npm test` and `npx tsc --noEmit` on pull requests and pushes to main. The E2E runs require system Google Chrome (channel 'chrome') and the live run requires an authenticated `gh`; neither is a CI gate",
+      "Live gaps recorded in docs/verification.md: first-login path, missing-gh path, browser-open behaviour, multi-page pagination, credential revocation mid-session. Second-repository --repo runs and forced auth-loss surfaces are covered read-only by the live E2E (issue #71)"
     ],
     "release": {
       "policy": ".yolo/governance/ARCHITECTURE.md#verification-and-delivery",
