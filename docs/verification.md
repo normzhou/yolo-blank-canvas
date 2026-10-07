@@ -10,7 +10,7 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
  ✓ test/status.test.ts (17 tests)          status/summary derivation from fixtures
  ✓ test/github-client.test.ts (8 tests)    target validation, argument isolation, PR exclusion, pagination
  ✓ test/gh-process.test.ts (4 tests)       real process boundary against a stand-in `gh` executable
- ✓ test/app-api.test.ts (13 tests)         session, cross-site, host, identity, write-ambiguity, endpoint scope
+ ✓ test/app-api.test.ts (14 tests)         session, cross-site, host, identity, write-ambiguity, endpoint scope, CSP media-src
  ✓ test/launcher.test.ts (12 tests)        gh missing, first login, cancellation, noninteractive, port fallback
  ✓ test/markdown.test.tsx (5 tests)        untrusted Markdown cannot execute; links stay safe
  ✓ test/drafts.test.ts (5 tests)           draft preservation and clearing only after confirmation
@@ -21,11 +21,11 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
  ✓ test/tetris-backgrounds.test.ts (3 tests)  bundled scenes, four-line cycle helper, bundled files exist
 
  Test Files  12 passed (12)
-      Tests  103 passed (103)
+      Tests  104 passed (104)
 ```
 
-Also run: `npx tsc --noEmit` (clean), `npm run build` (clean). Last full pass at the #63 work
-(`50887c1`) and the v0.3.0 release bump (`dbfdacf`); see the per-issue sections below for
+Also run: `npx tsc --noEmit` (clean), `npm run build` (clean). Last full pass at the v0.3.1
+release (`80bf5f8`, on top of the #67 CSP fix `7ffb324`); see the per-issue sections below for
 earlier results. Earlier counts are preserved in their sections; the playlist/backdrop tests
 were rewritten for the sourced-assets change.
 
@@ -182,24 +182,33 @@ Source revision `819724d`, deterministic tests only. `KOROBEINIKI` is now the fa
 
 ## Sourced assets for the Tetris music and backdrops (issue #63)
 
-Dedicated branch `yolo/asset-replacement`; deterministic checks only. The in-repo synth melodies and generated pixel grids were replaced with bundled sourced assets: five CC0 chiptune tracks (SketchyLogic, "NES Shooter Music" pack, converted WAV→AAC `.m4a`) and six CC0 backdrops (LuminousDragonGames night sky, FisherG city, Emcee Flesher desert, Quantiset Mars, Scribe space, biodegradableguy castle GIF). Provenance and licenses: `docs/assets.md`. `src/shared/tetrisMusic.ts` now lists tracks and `shuffledTracks`; `src/client/audio/tetrisMusic.ts` plays them with a single `HTMLAudioElement` (no Web Audio synth). `src/shared/tetrisBackgrounds.ts` lists backdrops; the view `<img>` crossfade replaces the SVG grid. `test/tetris-music.test.ts` (4 cases) and `test/tetris-backgrounds.test.ts` (3 cases) now validate playlist/backdrop well-formedness, shuffle determinism and that the bundled files exist under `public/`. `npm test` (103 passed), `npx tsc --noEmit` and `npm run build` all pass; the build copies `public/tetris/` into `dist/client/tetris/`. Live browser playback/render of the new assets remains unverified (same standing gap as before).
+Dedicated branch `yolo/asset-replacement`; deterministic checks only. The in-repo synth melodies and generated pixel grids were replaced with bundled sourced assets: five CC0 chiptune tracks (SketchyLogic, "NES Shooter Music" pack, converted WAV→AAC `.m4a`) and six CC0 backdrops (LuminousDragonGames night sky, FisherG city, Emcee Flesher desert, Quantiset Mars, Scribe space, biodegradableguy castle GIF). Provenance and licenses: `docs/assets.md`. `src/shared/tetrisMusic.ts` now lists tracks and `shuffledTracks`; `src/client/audio/tetrisMusic.ts` plays them with a single `HTMLAudioElement` (no Web Audio synth). `src/shared/tetrisBackgrounds.ts` lists backdrops; the view `<img>` crossfade replaces the SVG grid. `test/tetris-music.test.ts` (4 cases) and `test/tetris-backgrounds.test.ts` (3 cases) now validate playlist/backdrop well-formedness, shuffle determinism and that the bundled files exist under `public/`. `npm test` (103 passed), `npx tsc --noEmit` and `npm run build` all pass; the build copies `public/tetris/` into `dist/client/tetris/`. Live browser playback of these assets was verified on the delivered `v0.3.1` artifact (see issue #67 below); before that the gap was real — the CSP blocked every audio load (#67).
+
+## Tetris music playback blocked by CSP (issue #67)
+
+Root cause: `server/security.js` set `Content-Security-Policy` to `default-src 'none'` with no
+`media-src` directive, so every `tetris/*.m4a` load was blocked. The Tetris player's
+`error -> next track` path then spun through the queue — the on-screen "Music: …" label
+scrolled many times per second with no audio. Fix (PR #68, released in `v0.3.1`): add
+`media-src 'self'` and a regression test asserting the CSP contains it. Verified on the
+delivered artifact: `npx --yes github:normzhou/yolo-blank-canvas#v0.3.1 --no-open` served
+`GET /api/version` with `serverBuild`/`clientBuild` `7ffb324`; headless Chrome (Play Tetris →
+Music on) showed no CSP media violations, the track loaded over HTTP 206, and the one-playing-
+track label stayed stable across 6s. This closes the earlier "live browser playback of the new
+assets remains unverified" gap from issue #63.
 
 ## Tested revision
 
-Release tag `v0.3.0` points at the squash merge `dbfdacf` (release bump) on top of
-`50887c1` (the #63 asset work). Assets were built from source `350852b` (the v0.3.0
-version-bump commit; `dist/client/.build-id` and `server/build-id.generated.js`
-report `350852b…`). The native version at the tagged revision (`package.json`) is
-`0.3.0`. The published artifact was verified outside the checkout:
-`npx --yes github:normzhou/yolo-blank-canvas#v0.3.0 --no-open` served `GET /api/version` with
-`serverBuild`/`clientBuild` = `350852b`, `GET /` returned 200, and the bundled
-CC0 tracks/backdrops under `dist/client/tetris/` served 200. Dated tag/commit
-observations are in
-[`.yolo/reports/releases-observed-2026-10-07.json`](../../.yolo/reports/releases-observed-2026-10-07.json).
-The build ID identifies the source revision the running assets were produced from.
+Release tag `v0.3.1` points at the squash merge `80bf5f8` (release bump) on top of
+`7ffb324` (the #68 CSP fix). Assets were built from source `7ffb324` (the fix commit;
+`dist/client/.build-id` and `server/build-id.generated.js` report `7ffb324…`). The native
+version at the tagged revision (`package.json`) is `0.3.1`. The published artifact was verified
+outside the checkout as described in the issue #67 section and
+[`.yolo/reports/releases-observed-2026-10-07.json`](../.yolo/reports/releases-observed-2026-10-07.json).
 
-History: `v0.2.0` (`eaf7cc2`, assets from `828b21d`) added the longer tunes, more
-backdrops and the crossfade; `v0.1.2` (source `26feaa6`, squash merge `878854e`) added
-Tetris and the first chiptune melody; `v0.1.1` (source `e39b750`, squash merge `0c8038f`)
-kept list rows visible across a background refresh; `v0.1.0` followed the separate
-source/assets ordering described above.
+History: `v0.3.0` (`dbfdacf`, assets from `350852b`) shipped the sourced CC0 music/backdrops;
+`v0.2.0` (`eaf7cc2`, assets from `828b21d`) added the longer tunes, more backdrops and the
+crossfade; `v0.1.2` (source `26feaa6`, squash merge `878854e`) added Tetris and the first
+chiptune melody; `v0.1.1` (source `e39b750`, squash merge `0c8038f`) kept list rows visible
+across a background refresh; `v0.1.0` followed the separate source/assets ordering described
+above.

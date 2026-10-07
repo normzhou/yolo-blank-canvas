@@ -33,6 +33,15 @@
         "build": "350852bb162afededb12a6c400148027972a298b",
         "notes": "served GET /api/version with serverBuild=clientBuild=350852b; GET / 200; bundled assets (tetris/map.m4a 298752 bytes) served"
       }
+    },
+    {
+      "tag": "v0.3.1",
+      "commit": "80bf5f860c4a360e855c8b0a786df7a04f3a70e6",
+      "artifact_verified": {
+        "command": "npx --yes github:normzhou/yolo-blank-canvas#v0.3.1 --no-open",
+        "build": "7ffb324946645187d8be93c2705e057c7efcda8a",
+        "notes": "served GET /api/version with serverBuild=clientBuild=7ffb324; GET / 200; headless Chrome: no CSP media violations, tetris track loads with HTTP 206, and the one-playing-track label stays stable (was: rapid cycling, no playback)"
+      }
     }
   ]
 }
