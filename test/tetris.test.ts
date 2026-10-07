@@ -130,6 +130,7 @@ describe('tetris game flow', () => {
     expect(game.piece).not.toBeNull();
     expect(TETROMINOES).toContain(game.next);
     expect(game.board.flat().every((cell) => cell === null)).toBe(true);
+    expect(game.tetrisCount).toBe(0);
   });
 
   it('moves the piece and stops at the wall', () => {
@@ -176,6 +177,37 @@ describe('tetris game flow', () => {
     const after = tick(stuck);
     expect(after.status).toBe('over');
     expect(after.piece).toBeNull();
+  });
+
+  it('counts a four-line clear', () => {
+    const game = createGame(() => 0.5);
+    const rows: Partial<Record<number, Partial<Record<number, Tetromino>>>> = {};
+    for (let y = BOARD_HEIGHT - 4; y < BOARD_HEIGHT; y += 1) {
+      const columns: Partial<Record<number, Tetromino>> = {};
+      for (let x = 0; x < BOARD_WIDTH - 1; x += 1) columns[x] = 'I';
+      rows[y] = columns;
+    }
+    // A vertical I fills the single empty column and completes all four rows.
+    const prepared: TetrisState = { ...game, board: boardWith(rows), tetrisCount: 0 };
+    const vertical = withPiece(prepared, 'I', BOARD_WIDTH - 3, 0, 1);
+    const after = hardDrop(vertical);
+    expect(after.lines).toBe(4);
+    expect(after.tetrisCount).toBe(1);
+  });
+
+  it('does not count smaller clears', () => {
+    const game = createGame(() => 0.5);
+    const columns: Partial<Record<number, Tetromino>> = {};
+    for (let x = 0; x < BOARD_WIDTH - 4; x += 1) columns[x] = 'I';
+    const prepared: TetrisState = {
+      ...game,
+      board: boardWith({ [BOARD_HEIGHT - 1]: columns }),
+      tetrisCount: 0,
+    };
+    const horizontal = withPiece(prepared, 'I', BOARD_WIDTH - 4, 0, 0);
+    const after = hardDrop(horizontal);
+    expect(after.lines).toBe(1);
+    expect(after.tetrisCount).toBe(0);
   });
 
   it('renders the active piece on top of the settled board', () => {
