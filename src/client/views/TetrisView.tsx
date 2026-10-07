@@ -116,6 +116,17 @@ export function TetrisView({ onClose }: { onClose: () => void }) {
     tetrisCountRef.current = game.tetrisCount;
   }, [game.tetrisCount]);
 
+  // Browser-driven test hook: a synthetic four-line clear, as the game would
+  // record on a real one, so the cycle can be exercised without scripted
+  // gameplay. Play rules are unchanged.
+  useEffect(() => {
+    function forceFourLineClear() {
+      setGame((current) => ({ ...current, tetrisCount: current.tetrisCount + 1 }));
+    }
+    window.addEventListener('yolo:tetris:four-line-clear', forceFourLineClear);
+    return () => window.removeEventListener('yolo:tetris:four-line-clear', forceFourLineClear);
+  }, []);
+
   // Drive playback from game state. The audio context itself is created by the
   // Music button click, because browsers require a user gesture to start audio.
   useEffect(() => {

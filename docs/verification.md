@@ -155,18 +155,42 @@ Deterministic coverage of the same contract: `test/list-refresh.test.ts` (5 case
 
 Integration issues [#1](https://github.com/normzhou/yolo-blank-canvas/issues/1), [#2](https://github.com/normzhou/yolo-blank-canvas/issues/2), and [#3](https://github.com/normzhou/yolo-blank-canvas/issues/3) were closed after the checks; their comments remain as the evidence trail. The deliberate leftover `yolo:state:*` labels on [#2](https://github.com/normzhou/yolo-blank-canvas/issues/2)/[#3](https://github.com/normzhou/yolo-blank-canvas/issues/3) were later removed so the repository itself conforms to the managed-state contract (a closed issue carries no state label), and a status summary was recorded on #3. GitHub CLI credentials were untouched by the app throughout (verified by `gh api user` after the session ended).
 
+## E2E visual checks (issue #71)
+
+Two Playwright runs complement the deterministic vitest layer; both use system Google
+Chrome (`channel: 'chrome'`), headless, and capture a full-page screenshot per step into
+`e2e/artifacts/` (git-ignored). Representative images are committed under
+`e2e/screenshots/`.
+
+- `npm run e2e` — deterministic: `e2e/stub-server.ts` launches the real `createApp` with a
+  stubbed GitHub client on a random port (same seam as `test/app-api.test.ts`). Covers the
+  canvas empty state, the Requests panel (issue-state variants), refresh, the detail view's
+  rendered `## YOLO status` summary, the new-request flow incl. draft persistence, the
+  version-changed banner, session/auth-retry surfaces, and Tetris (board render, Music
+  toggle, stable track label, scene cycle via a four-line clear). 6 specs passing.
+- `npm run e2e:live` — read-only against the real dev app (`server/cli.js --no-open`, random
+  port, real `gh` credentials, no GitHub writes): canvas with real identity, real issue list
+  and detail, forced mid-session auth loss, and a second run targeting `--repo
+  normzhou/yolo-dev`. 4 specs passing, no console errors, no CSP media violations.
+
+The four-line-clear scene cycle is exercised through the `yolo:tetris:four-line-clear`
+window event handled by `TetrisView` (a real clear advances `tetrisCount` the same way);
+pixel-perfect gameplay scripting is not attempted. Live gaps closed by these runs:
+**multi-repository `--repo` access** and **mid-session auth-loss surfaces** (now observed
+read-only); **Tetris music/backdrop in a live browser** is additionally covered by the
+deterministic browser run (track label stays stable across 3s, scene label advances).
+
 ## Unverified / gaps
 
 - **First-login path was not exercised end-to-end**: this machine already had an authenticated `gh`, so the interactive `gh auth login --web` branch is covered by unit tests (spawn arguments, single invocation, cancellation, and the noninteractive print-the-command path) but was not run against a real browser authorization.
 - **`gh` missing path** is unit tested with a failing runner; it was not observed on a machine without the CLI.
-- **The `--repo` flag targeting a second repository** was not exercised live; repository access checking was verified only for `normzhou/yolo-blank-canvas`.
 - **Pagination beyond one page** was verified only with fixtures (`hasMore`, page parameters); the live repository has too few issues to exercise multi-page loads.
 - **Browser-open behaviour** (`open`, `xdg-open`, `start`) was not observed live; the one-command check used `--no-open`. The launcher prints the URL regardless, so opening is a best-effort convenience.
-- **Lost authentication during a running session** was verified through the API surface and unit tests (explicit `auth_required` state with the login command and Retry connection), not by revoking real credentials mid-session.
+- **Lost authentication during a running session** is unit tested through the API surface (`auth_required` state with the login command and Retry connection) and was forced read-only in the live E2E (`e2e/live.spec.ts`), but was not observed by revoking real credentials mid-session.
 - **The Tetris view was not exercised in a live browser.** Its rules and state transitions are covered by `test/tetris.test.ts`, but keyboard handling (arrow/space/Escape), gravity timing and rendering were not observed in a browser session against a running build.
-  **Resolved 2026-10-06:** the maintainer played the merged `main` in a live browser and confirmed it works; see the Tetris live check above. The deterministic tests remain the regression guard.
-- **Tetris music was not observed in a live browser.** As of #63 the audio is bundled CC0 tracks played through a single `HTMLAudioElement`; the playlist shuffle and track list are covered by `test/tetris-music.test.ts`, but audible playback of the streamed `.m4a` tracks through the Music button was not exercised live.
-- **The pixel-art backdrop was not observed in a live browser.** As of #63 the scenes are bundled sourced images; ids/files and the four-line cycle are covered by `test/tetris-backgrounds.test.ts` and the `tetrisCount` cases in `test/tetris.test.ts`, but the `<img>` rendering, the crossfade transition and the readability of the board over each scene were not observed in a browser session against a running build.
+  **Resolved 2026-10-06:** the maintainer played the merged `main` in a live browser and confirmed it works; see the Tetris live check above. Keyboard hard-drop (space), Pause, New game, Close and Escape are additionally driven in the deterministic E2E (`e2e/deterministic.spec.ts`).
+- **Tetris music was not observed in a live browser.** As of #63 the audio is bundled CC0 tracks played through a single `HTMLAudioElement`; the playlist shuffle and track list are covered by `test/tetris-music.test.ts`, and the Music toggle + stable track label are exercised in the deterministic E2E. Audible playback was verified on the delivered `v0.3.1` artifact (see issue #67 below).
+- **The pixel-art backdrop was not observed in a live browser.** As of #63 the scenes are bundled sourced images; ids/files and the four-line cycle are covered by `test/tetris-backgrounds.test.ts` and the `tetrisCount` cases in `test/tetris.test.ts`, and the scene label + crossfade layers are exercised in the deterministic E2E. Readability over every scene in a live browser remains a human check.
 
 ## Fuller tunes and a backdrop crossfade (issue #58)
 

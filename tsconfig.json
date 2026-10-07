@@ -13,5 +13,5 @@
     "allowJs": true,
     "types": ["vite/client", "node"]
   },
-  "include": ["src", "test", "vite.config.ts"]
+  "include": ["src", "test", "e2e", "vite.config.ts", "playwright.config.ts", "playwright.live.config.ts"]
 }

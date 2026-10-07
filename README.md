@@ -82,6 +82,8 @@ npm run build          # build the client into dist/client and record the build 
 npm start              # launch (add -- --repo owner/name to target another repository)
 npm test               # deterministic tests (vitest), no network, no writes
 npx tsc --noEmit       # type check
+npm run e2e            # browser checks (Playwright, system Chrome): stubbed GitHub client, no writes
+npm run e2e:live       # browser checks, read-only, against the real dev app (needs authenticated gh)
 ```
 
 Layout:
@@ -100,6 +102,7 @@ Layout:
 | `src/shared/tetrisMusic.ts` | Tetris track list and shuffled playlist (shared, pure) |
 | `src/shared/tetrisBackgrounds.ts` | Tetris backdrop scenes and the four-line cycle (shared, pure) |
 | `src/client/audio/tetrisMusic.ts` | HTMLAudio playback of bundled tracks; reports the tune now playing |
+| `e2e/` | Playwright specs: stubbed-GitHub deterministic run, read-only live run, per-step screenshots |
 | `src/client/views/TetrisView.tsx` | the Tetris canvas view |
 | `src/client/` | React UI (canvas, panel, list/new/detail views, Markdown rendering) |
 | `dist/client/` | committed build output, so the one-command launch needs no build |

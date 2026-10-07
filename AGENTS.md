@@ -62,6 +62,7 @@ security boundaries and verification record.
 - Never commit credentials. `gh` owns authentication; the backend must keep using the single
   fixed call site in `server/gh.js` for all GitHub access.
 - Run `npm test` and `npx tsc --noEmit` before proposing a merge; record real results.
+- Browser-driven checks: `npm run e2e` (deterministic, stubbed GitHub client) and `npm run e2e:live` (read-only against the real dev app); both need system Google Chrome.
 - If you change the status presentation contract, update the spec and its fixtures together.
 - Significant architecture changes notify the maintainer; Charter and authority edits require
   their approval.
