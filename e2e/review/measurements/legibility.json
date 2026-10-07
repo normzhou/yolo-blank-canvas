@@ -1,0 +1,354 @@
+{
+  "generatedFor": "#75 UI review — measured legibility",
+  "tokens": {
+    "--bg": "#f7f8fa",
+    "--surface": "#ffffff",
+    "--border": "#d8dce3",
+    "--text": "#1f2328",
+    "--muted": "#59636e",
+    "--accent": "#1f6feb",
+    "--accent-weak": "#ddebff",
+    "--positive": "#1a7f37",
+    "--warning": "#9a6700",
+    "--warning-weak": "#fff8c5",
+    "--problem": "#b35900",
+    "--closed": "#59636e",
+    "--radius": "8px"
+  },
+  "fontSizes": [
+    12,
+    13,
+    16,
+    22
+  ],
+  "spacing": {
+    ".canvas": {
+      "padding": "20px 24px",
+      "margin": "0px",
+      "gap": "16px",
+      "radius": "0px",
+      "border": "0px none rgb(31, 35, 40)"
+    },
+    ".panel-body": {
+      "padding": "16px",
+      "margin": "0px",
+      "gap": "normal",
+      "radius": "0px",
+      "border": "0px none rgb(31, 35, 40)"
+    },
+    ".toolbar": {
+      "padding": "0px",
+      "margin": "0px 0px 12px",
+      "gap": "8px",
+      "radius": "0px",
+      "border": "0px none rgb(31, 35, 40)"
+    },
+    ".issue-row": {
+      "padding": "10px 12px",
+      "margin": "0px 0px 8px",
+      "gap": "normal",
+      "radius": "8px",
+      "border": "1px solid rgb(216, 220, 227)"
+    }
+  },
+  "samples": 36,
+  "belowFloor": [
+    {
+      "selector": "span.badge.problem",
+      "text": "Status needs reconciliation",
+      "ratio": 4.09,
+      "needs": 4.5,
+      "fontSizePx": 12
+    }
+  ],
+  "all": [
+    {
+      "selector": "h1.canvas-title",
+      "text": "Blank canvas",
+      "ratio": 14.87,
+      "needs": 4.5,
+      "fontSizePx": 16,
+      "fontWeight": 600
+    },
+    {
+      "selector": "p.canvas-identity",
+      "text": "normzhou/yolo-blank-canvas · signed in as normzhou",
+      "ratio": 5.75,
+      "needs": 4.5,
+      "fontSizePx": 13,
+      "fontWeight": 400
+    },
+    {
+      "selector": "p.canvas-prompt",
+      "text": "What would you like to build or change?",
+      "ratio": 5.75,
+      "needs": 4.5,
+      "fontSizePx": 22,
+      "fontWeight": 400
+    },
+    {
+      "selector": "div.panel-repo",
+      "text": "normzhou/yolo-blank-canvas",
+      "ratio": 15.8,
+      "needs": 4.5,
+      "fontSizePx": 16,
+      "fontWeight": 600
+    },
+    {
+      "selector": "div.panel-identity",
+      "text": "signed in as normzhou",
+      "ratio": 6.11,
+      "needs": 4.5,
+      "fontSizePx": 12,
+      "fontWeight": 400
+    },
+    {
+      "selector": "span",
+      "text": "Last refresh: 11:57:52 AM",
+      "ratio": 6.11,
+      "needs": 4.5,
+      "fontSizePx": 12,
+      "fontWeight": 400
+    },
+    {
+      "selector": "button",
+      "text": "Closed",
+      "ratio": 15.8,
+      "needs": 4.5,
+      "fontSizePx": 16,
+      "fontWeight": 400
+    },
+    {
+      "selector": "button.primary",
+      "text": "New request",
+      "ratio": 4.63,
+      "needs": 4.5,
+      "fontSizePx": 16,
+      "fontWeight": 400
+    },
+    {
+      "selector": "button.issue-title",
+      "text": "#7 Make the canvas respond to themes",
+      "ratio": 15.8,
+      "needs": 4.5,
+      "fontSizePx": 16,
+      "fontWeight": 600
+    },
+    {
+      "selector": "div.meta",
+      "text": "In progressupdated 7 hours ago",
+      "ratio": 6.11,
+      "needs": 4.5,
+      "fontSizePx": 12,
+      "fontWeight": 400
+    },
+    {
+      "selector": "span.badge.progress",
+      "text": "In progress",
+      "ratio": 8.2,
+      "needs": 4.5,
+      "fontSizePx": 12,
+      "fontWeight": 600
+    },
+    {
+      "selector": "span.badge.problem",
+      "text": "Status needs reconciliation",
+      "ratio": 4.09,
+      "needs": 4.5,
+      "fontSizePx": 12,
+      "fontWeight": 600
+    },
+    {
+      "selector": "span.badge.neutral",
+      "text": "Request open",
+      "ratio": 5.55,
+      "needs": 4.5,
+      "fontSizePx": 12,
+      "fontWeight": 600
+    },
+    {
+      "selector": "p.note",
+      "text": "End of list (4 shown).",
+      "ratio": 6.11,
+      "needs": 4.5,
+      "fontSizePx": 12,
+      "fontWeight": 400
+    },
+    {
+      "selector": "h1.canvas-title",
+      "text": "Blank canvas",
+      "ratio": 14.87,
+      "needs": 4.5,
+      "fontSizePx": 16,
+      "fontWeight": 600
+    },
+    {
+      "selector": "p.canvas-identity",
+      "text": "normzhou/yolo-blank-canvas · signed in as normzhou",
+      "ratio": 5.75,
+      "needs": 4.5,
+      "fontSizePx": 13,
+      "fontWeight": 400
+    },
+    {
+      "selector": "p.canvas-prompt",
+      "text": "What would you like to build or change?",
+      "ratio": 5.75,
+      "needs": 4.5,
+      "fontSizePx": 22,
+      "fontWeight": 400
+    },
+    {
+      "selector": "div.panel-repo",
+      "text": "normzhou/yolo-blank-canvas",
+      "ratio": 15.8,
+      "needs": 4.5,
+      "fontSizePx": 16,
+      "fontWeight": 600
+    },
+    {
+      "selector": "div.panel-identity",
+      "text": "signed in as normzhou",
+      "ratio": 6.11,
+      "needs": 4.5,
+      "fontSizePx": 12,
+      "fontWeight": 400
+    },
+    {
+      "selector": "span",
+      "text": "Last refresh: 11:57:52 AM",
+      "ratio": 6.11,
+      "needs": 4.5,
+      "fontSizePx": 12,
+      "fontWeight": 400
+    },
+    {
+      "selector": "button",
+      "text": "← Back",
+      "ratio": 15.8,
+      "needs": 4.5,
+      "fontSizePx": 16,
+      "fontWeight": 400
+    },
+    {
+      "selector": "span.badge.progress",
+      "text": "In progress",
+      "ratio": 8.2,
+      "needs": 4.5,
+      "fontSizePx": 12,
+      "fontWeight": 600
+    },
+    {
+      "selector": "span.note",
+      "text": "opened 7 hours ago by normzhou · updated 7 hours ago",
+      "ratio": 6.11,
+      "needs": 4.5,
+      "fontSizePx": 12,
+      "fontWeight": 400
+    },
+    {
+      "selector": "p.note",
+      "text": "No progress summary yet.",
+      "ratio": 5.88,
+      "needs": 4.5,
+      "fontSizePx": 12,
+      "fontWeight": 400
+    },
+    {
+      "selector": "label",
+      "text": "Reply",
+      "ratio": 15.8,
+      "needs": 4.5,
+      "fontSizePx": 13,
+      "fontWeight": 600
+    },
+    {
+      "selector": "p.hint",
+      "text": "Replies are GitHub comments on this request.",
+      "ratio": 6.11,
+      "needs": 4.5,
+      "fontSizePx": 12,
+      "fontWeight": 400
+    },
+    {
+      "selector": "p",
+      "text": "Please add light and dark themes.",
+      "ratio": 15.8,
+      "needs": 4.5,
+      "fontSizePx": 14,
+      "fontWeight": 400
+    },
+    {
+      "selector": "h3",
+      "text": "Reported summary",
+      "ratio": 15.19,
+      "needs": 4.5,
+      "fontSizePx": 14,
+      "fontWeight": 700
+    },
+    {
+      "selector": "h1.canvas-title",
+      "text": "Blank canvas",
+      "ratio": 14.87,
+      "needs": 4.5,
+      "fontSizePx": 16,
+      "fontWeight": 600
+    },
+    {
+      "selector": "p.canvas-identity",
+      "text": "normzhou/yolo-blank-canvas · signed in as normzhou",
+      "ratio": 5.75,
+      "needs": 4.5,
+      "fontSizePx": 13,
+      "fontWeight": 400
+    },
+    {
+      "selector": "p.canvas-prompt",
+      "text": "What would you like to build or change?",
+      "ratio": 5.75,
+      "needs": 4.5,
+      "fontSizePx": 22,
+      "fontWeight": 400
+    },
+    {
+      "selector": "div.panel-repo",
+      "text": "normzhou/yolo-blank-canvas",
+      "ratio": 15.8,
+      "needs": 4.5,
+      "fontSizePx": 16,
+      "fontWeight": 600
+    },
+    {
+      "selector": "div.panel-identity",
+      "text": "signed in as normzhou",
+      "ratio": 6.11,
+      "needs": 4.5,
+      "fontSizePx": 12,
+      "fontWeight": 400
+    },
+    {
+      "selector": "span",
+      "text": "Last refresh: 11:57:52 AM",
+      "ratio": 6.11,
+      "needs": 4.5,
+      "fontSizePx": 12,
+      "fontWeight": 400
+    },
+    {
+      "selector": "label",
+      "text": "Title",
+      "ratio": 15.8,
+      "needs": 4.5,
+      "fontSizePx": 13,
+      "fontWeight": 600
+    },
+    {
+      "selector": "p.hint",
+      "text": "Describe the desired behavior, the observed bug, or any rele",
+      "ratio": 6.11,
+      "needs": 4.5,
+      "fontSizePx": 12,
+      "fontWeight": 400
+    }
+  ]
+}
