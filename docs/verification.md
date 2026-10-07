@@ -17,13 +17,13 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
  ✓ test/list-refresh.test.ts (5 tests)     background refresh keeps rows; filter changes clear
  ✓ test/list-reconciliation.test.ts (8 tests)  created-issue reconciliation against the list
  ✓ test/tetris.test.ts (17 tests)          Tetris pieces, collision, line clear, scoring, game over
- ✓ test/tetris-music.test.ts (6 tests)     pitch mapping, melody shape, timeline planning
+ ✓ test/tetris-music.test.ts (10 tests)    playlist, second strain, shuffle, pitch mapping, timeline planning
 
  Test Files  11 passed (11)
-      Tests  100 passed (100)
+      Tests  104 passed (104)
 ```
 
-Also run: `npx tsc --noEmit` (clean), `npm run build` (clean). Run at source revision `26feaa6` (the Tetris canvas view and music, #4/#47, #50); not yet a released version, so the release-level sections below still describe `v0.1.1`.
+Also run: `npx tsc --noEmit` (clean), `npm run build` (clean). Run at source revision `819724d` (the longer tune and shuffled playlist, #54); not yet a released version, so the release-level sections below still describe `v0.1.1`/`v0.1.2`.
 
 Fixture coverage required by the spec, all in `test/status.test.ts`: untagged open issue → **Request open**; all four managed states; missing state, duplicate states, and state without `yolo:work` → **Status needs reconciliation** with raw labels; closure reasons `not_planned` / `duplicate` / `completed`; **Completed (reported)** vs **Closed**; unknown reason → **Closed — reason unavailable**; leftover state labels on a closed issue; reported-summary detection rules, most-recent-match selection, and `No progress summary yet.` / `Delivery timing not yet estimated.` fallbacks. No fixture asserts scheduling or availability.
 
@@ -161,7 +161,11 @@ Integration issues [#1](https://github.com/normzhou/yolo-blank-canvas/issues/1),
 - **Lost authentication during a running session** was verified through the API surface and unit tests (explicit `auth_required` state with the login command and Retry connection), not by revoking real credentials mid-session.
 - **The Tetris view was not exercised in a live browser.** Its rules and state transitions are covered by `test/tetris.test.ts`, but keyboard handling (arrow/space/Escape), gravity timing and rendering were not observed in a browser session against a running build.
   **Resolved 2026-10-06:** the maintainer played the merged `main` in a live browser and confirmed it works; see the Tetris live check above. The deterministic tests remain the regression guard.
-- **Tetris music was not observed in a live browser.** The pitch mapping and melody are covered by `test/tetris-music.test.ts`, but the Web Audio playback wrapper (context creation on the user gesture, scheduling and the toggle) is untested and was not exercised live.
+- **Tetris music was not observed in a live browser.** The pitch mapping, the full *Korobeiniki* (both strains), the playlist and its shuffle are covered by `test/tetris-music.test.ts`, but the Web Audio playback wrapper (context creation on the user gesture, per-tune scheduling across tune boundaries and the toggle) is untested and was not exercised live. The maintainer's listen check on `v0.1.2` confirmed the original single melody was audible (see #50); the extended playlist awaits the same check.
+
+## Music playlist (issue #54)
+
+Source revision `819724d`, deterministic tests only. `KOROBEINIKI` is now the familiar strain followed by a second strain; `PLAYLIST` adds *Greensleeves*, *Ode to Joy* and *In the Hall of the Mountain King*, and `shuffledMelodies` orders them so the audio wrapper plays one after another without a back-to-back repeat. `test/tetris-music.test.ts` (10 cases) checks pitch mapping, positive note lengths, resolvable pitches, the second strain, playlist well-formedness and the shuffle permutation/determinism. Live browser playback of the playlist remains unverified — see the gap above. The changed assets were built from the same source (`dist/client/.build-id` and `server/build-id.generated.js` report `819724d…`).
 
 ## Tested revision
 
