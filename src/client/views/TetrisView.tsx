@@ -3,7 +3,7 @@ import { TetrisMusic } from '../audio/tetrisMusic';
 import {
   BACKGROUNDS,
   nextBackgroundIndex,
-  type PixelArt,
+  type Backdrop,
 } from '../../shared/tetrisBackgrounds';
 import {
   BOARD_HEIGHT,
@@ -37,23 +37,14 @@ function cellClass(cell: Cell): string {
   return cell ? `tetris-cell ${CELL_CLASS[cell]}` : 'tetris-cell';
 }
 
-function ArtLayer({ art, past }: { art: PixelArt; past: boolean }) {
+function ArtLayer({ art, past }: { art: Backdrop; past: boolean }) {
   return (
-    <svg
+    <img
       className={`tetris-art-layer ${past ? 'is-past' : 'is-current'}`}
-      viewBox={`0 0 ${art.width} ${art.height}`}
-      preserveAspectRatio="xMidYMid slice"
-      shapeRendering="crispEdges"
+      src={art.src}
+      alt=""
       aria-hidden="true"
-    >
-      {art.rows.map((row, y) =>
-        Array.from(row).map((key, x) =>
-          key === '.' ? null : (
-            <rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} fill={art.palette[key]} />
-          ),
-        ),
-      )}
-    </svg>
+    />
   );
 }
 
@@ -61,8 +52,8 @@ function ArtLayer({ art, past }: { art: PixelArt; past: boolean }) {
  * Crossfades between scenes: the new scene fades in while the previous one
  * fades out. The outgoing layer is dropped once the transition finishes.
  */
-function PixelBackdrop({ art }: { art: PixelArt }) {
-  const [layers, setLayers] = useState<Array<{ key: number; art: PixelArt }>>([{ key: 0, art }]);
+function PixelBackdrop({ art }: { art: Backdrop }) {
+  const [layers, setLayers] = useState<Array<{ key: number; art: Backdrop }>>([{ key: 0, art }]);
   const keyRef = useRef(0);
 
   useEffect(() => {
@@ -110,7 +101,7 @@ export function TetrisView({ onClose }: { onClose: () => void }) {
   const [nowPlaying, setNowPlaying] = useState<string | null>(null);
   const musicRef = useRef<TetrisMusic | null>(null);
   if (musicRef.current === null) {
-    musicRef.current = new TetrisMusic((melody) => setNowPlaying(melody.title));
+    musicRef.current = new TetrisMusic((track) => setNowPlaying(track.title));
   }
   const gameRef = useRef(game);
   gameRef.current = game;
