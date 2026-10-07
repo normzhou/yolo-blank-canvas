@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { KOROBEINIKI, melodyDuration, noteFrequency, planNotes } from '../src/shared/tetrisMusic';
+import {
+  KOROBEINIKI,
+  KOROBEINIKI_A,
+  KOROBEINIKI_B,
+  PLAYLIST,
+  melodyDuration,
+  noteFrequency,
+  planNotes,
+  shuffledMelodies,
+} from '../src/shared/tetrisMusic';
 
 describe('tetris music', () => {
   it('maps equal-tempered pitches to frequencies', () => {
@@ -46,5 +55,44 @@ describe('tetris music', () => {
 
   it('opens the tune on the Korobeiniki pickup', () => {
     expect(KOROBEINIKI[0]).toEqual(['E5', 1]);
+    expect(KOROBEINIKI_A[0]).toEqual(['E5', 1]);
+  });
+
+  it('extends Korobeiniki with a non-empty second strain', () => {
+    expect(KOROBEINIKI_B.length).toBeGreaterThan(0);
+    expect(KOROBEINIKI).toHaveLength(KOROBEINIKI_A.length + KOROBEINIKI_B.length);
+    expect(melodyDuration(KOROBEINIKI, 2)).toBeGreaterThan(melodyDuration(KOROBEINIKI_A, 2));
+  });
+});
+
+describe('tetris playlist', () => {
+  it('offers several distinct, well-formed melodies', () => {
+    expect(PLAYLIST.length).toBeGreaterThanOrEqual(3);
+    const ids = new Set<string>();
+    for (const melody of PLAYLIST) {
+      expect(melody.id.length).toBeGreaterThan(0);
+      expect(melody.title.length).toBeGreaterThan(0);
+      expect(melody.notes.length).toBeGreaterThan(0);
+      expect(ids.has(melody.id)).toBe(false);
+      ids.add(melody.id);
+      for (const [pitch, beats] of melody.notes) {
+        expect(beats).toBeGreaterThan(0);
+        if (pitch !== null) expect(noteFrequency(pitch)).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it('shuffles into a permutation of the playlist', () => {
+    const shuffled = shuffledMelodies(() => 0.42);
+    expect([...shuffled].map((melody) => melody.id).sort()).toEqual(
+      [...PLAYLIST].map((melody) => melody.id).sort(),
+    );
+    expect(shuffled).toHaveLength(PLAYLIST.length);
+  });
+
+  it('is deterministic for a given random source', () => {
+    expect(shuffledMelodies(() => 0.5).map((melody) => melody.id)).toEqual(
+      shuffledMelodies(() => 0.5).map((melody) => melody.id),
+    );
   });
 });
