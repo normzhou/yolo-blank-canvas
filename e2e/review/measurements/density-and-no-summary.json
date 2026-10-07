@@ -59,7 +59,7 @@
       },
       {
         "selector": "span",
-        "text": "Last refresh: 11:57:53 AM",
+        "text": "Last refresh: 5:00:00 AM",
         "color": "rgb(89, 99, 110)",
         "background": "rgb(255,255,255)",
         "ratio": 6.11,
@@ -114,7 +114,7 @@
       },
       {
         "selector": "div.meta",
-        "text": "In progressupdated 7 hours ago",
+        "text": "In progressupdated just now",
         "color": "rgb(89, 99, 110)",
         "background": "rgb(255,255,255)",
         "ratio": 6.11,
@@ -268,7 +268,7 @@
       },
       {
         "selector": "span",
-        "text": "Last refresh: 11:57:53 AM",
+        "text": "Last refresh: 5:00:00 AM",
         "color": "rgb(89, 99, 110)",
         "background": "rgb(255,255,255)",
         "ratio": 6.11,
@@ -301,7 +301,7 @@
       },
       {
         "selector": "span.note",
-        "text": "opened 7 hours ago by normzhou · updated 7 hours ago",
+        "text": "opened just now by normzhou · updated just now",
         "color": "rgb(89, 99, 110)",
         "background": "rgb(255,255,255)",
         "ratio": 6.11,

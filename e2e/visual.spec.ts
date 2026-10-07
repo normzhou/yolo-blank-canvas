@@ -1,4 +1,4 @@
-import { test, expect, VIEWPORTS, type ViewportName } from './fixtures';
+import { test, expect, VIEWPORTS, type ViewportName, freezeClock } from './fixtures';
 import { startStubApp, makeStubGithub, withoutSummaryGithub, densityIssues } from './stub-server';
 import type { Page } from '@playwright/test';
 
@@ -20,6 +20,7 @@ function capture(name: string, github: () => Stub, body: (ctx: Ctx) => Promise<v
       const stub = await startStubApp(github());
       try {
         await page.setViewportSize(VIEWPORTS[viewport]);
+        await freezeClock(page);
         await page.goto(stub.base);
         await body({ page, snap: (n) => snap(`visual/${viewport}-${n}`) });
         // A capture that errored is not usable evidence.
