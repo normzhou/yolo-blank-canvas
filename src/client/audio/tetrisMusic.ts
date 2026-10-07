@@ -1,7 +1,9 @@
-import { KOROBEINIKI, melodyDuration, noteFrequency } from '../../shared/tetrisMusic';
+import { noteFrequency, shuffledMelodies, type Melody } from '../../shared/tetrisMusic';
 
 /**
- * Plays the Tetris tune with a square-wave synth, evoking an old-school game.
+ * Plays the Tetris background tunes with a square-wave synth, evoking an
+ * old-school game. One shuffled tune plays after another, so the music keeps
+ * varying across a session.
  *
  * Browser autoplay policy means the AudioContext must be created or resumed from
  * a user gesture, so `ensureContext()` is called from the Music button; the view
@@ -26,7 +28,10 @@ export class TetrisMusic {
   private master: GainNode | null = null;
   private timer: number | null = null;
   private nextNoteAt = 0;
+  private queue: Melody[] = [];
+  private current: Melody | null = null;
   private noteIndex = 0;
+  private lastMelodyId: string | null = null;
 
   /** Create/resume the context. Must be called in a user gesture. */
   ensureContext(): boolean {
@@ -38,7 +43,7 @@ export class TetrisMusic {
       this.master.gain.value = 0.12;
       this.master.connect(this.context.destination);
       this.nextNoteAt = this.context.currentTime;
-      this.noteIndex = 0;
+      this.advanceMelody();
     }
     void this.context.resume();
     return true;
@@ -64,6 +69,25 @@ export class TetrisMusic {
     this.master = null;
   }
 
+  /** Move to the next queued tune, reshuffling and avoiding an immediate repeat. */
+  private advanceMelody(): void {
+    if (this.queue.length === 0) {
+      this.queue = shuffledMelodies();
+      if (this.queue.length > 1 && this.queue[0].id === this.lastMelodyId) {
+        const distinct = this.queue.findIndex((melody) => melody.id !== this.lastMelodyId);
+        if (distinct > 0) {
+          const [melody] = this.queue.splice(distinct, 1);
+          this.queue.unshift(melody);
+        }
+      }
+    }
+    const next = this.queue.shift();
+    if (!next) return;
+    this.current = next;
+    this.noteIndex = 0;
+    this.lastMelodyId = next.id;
+  }
+
   private stopScheduler(): void {
     if (this.timer !== null) {
       window.clearInterval(this.timer);
@@ -80,7 +104,9 @@ export class TetrisMusic {
     }
     const horizon = context.currentTime + LOOKAHEAD_SECONDS;
     while (this.nextNoteAt < horizon) {
-      const [pitch, beats] = KOROBEINIKI[this.noteIndex % KOROBEINIKI.length];
+      if (!this.current || this.noteIndex >= this.current.notes.length) this.advanceMelody();
+      if (!this.current) return;
+      const [pitch, beats] = this.current.notes[this.noteIndex];
       const duration = beats / BEATS_PER_SECOND;
       if (pitch) {
         this.playNote(noteFrequency(pitch), this.nextNoteAt, duration * 0.9);
@@ -106,8 +132,4 @@ export class TetrisMusic {
     oscillator.start(at);
     oscillator.stop(at + duration + 0.02);
   }
-}
-
-export function totalMelodySeconds(): number {
-  return melodyDuration(KOROBEINIKI, BEATS_PER_SECOND);
 }
