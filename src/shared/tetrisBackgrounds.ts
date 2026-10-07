@@ -153,8 +153,78 @@ const BLOCKS: PixelArt = {
   ],
 };
 
+/** Deep space with stars, a nebula and a ringed planet. */
+const SPACE: PixelArt = {
+  id: 'space',
+  title: 'Deep space',
+  width: ART_WIDTH,
+  height: ART_HEIGHT,
+  palette: {
+    '1': '#05060f',
+    '2': '#ffffff',
+    '3': '#7a4fd0',
+    '4': '#4dd0e1',
+    '5': '#f2a03d',
+    '6': '#b06bd8',
+  },
+  rows: [
+    '111111111111111111111111',
+    '111211111111111111111211',
+    '111111111111211111111111',
+    '111111111111111111111111',
+    '113111111111111111311111',
+    '111111111111111111111111',
+    '111111111111111111111111',
+    '111111111111111144441111',
+    '111111111111111444444111',
+    '111111111111111455554111',
+    '111111111111111444444111',
+    '111111111111111144441111',
+    '111131111111111111113111',
+    '111111111111111111111111',
+  ],
+};
+
+/** A torch-lit castle wall, a classic retro level backdrop. */
+const CASTLE: PixelArt = {
+  id: 'castle',
+  title: 'Castle wall',
+  width: ART_WIDTH,
+  height: ART_HEIGHT,
+  palette: {
+    '1': '#0d0d1a',
+    '2': '#3a3a5a',
+    '3': '#6a6a94',
+    '4': '#f2d24b',
+    '5': '#1a1a2e',
+  },
+  rows: [
+    '111111111111111111111111',
+    '111111111111111111111111',
+    '113311331133113311331133',
+    '113311331133113311331133',
+    '111111111111111111111111',
+    '111111111111111111111111',
+    '333333333333333333333333',
+    '322222222222222222222223',
+    '322222222222222222222223',
+    '322224222222242222222223',
+    '333333333333333333333333',
+    '322222222222222222222223',
+    '322222222222222222222223',
+    '333333333333333333333333',
+  ],
+};
+
 /** The scenes, cycled in order each time the player clears four lines. */
-export const BACKGROUNDS: ReadonlyArray<PixelArt> = [NIGHT_SKY, CITY, MOUNTAIN, BLOCKS];
+export const BACKGROUNDS: ReadonlyArray<PixelArt> = [
+  NIGHT_SKY,
+  CITY,
+  MOUNTAIN,
+  BLOCKS,
+  SPACE,
+  CASTLE,
+];
 
 /**
  * Flat, row-major list of CSS colours for one scene; `null` is transparent.

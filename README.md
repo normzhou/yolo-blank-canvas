@@ -51,7 +51,7 @@ Escape closes the panel and focus returns to the Requests button. While the pane
 
 ### Tetris
 
-**Play Tetris** in the header opens a classic game (10×20 board, all seven tetrominoes) as canvas content. Controls are keyboard-only: **←/→** move, **↑** rotates, **↓** soft-drops, **Space** hard-drops, **Escape** closes. Score, lines, level and the next piece are shown beside the board; gravity speeds up every ten lines. **Music** toggles an old-school square-wave synth that plays a shuffled playlist of public-domain tunes — the full traditional *Korobeiniki* (both strains of the folk song, not the original game's copyrighted arrangement), *Greensleeves*, Beethoven's *Ode to Joy* and Grieg's *In the Hall of the Mountain King* — moving to the next tune without repeating one back to back; audio starts on the click, per browser autoplay policy. A pixel-art backdrop (generated locally from in-repo pixel data — no network fetch) cycles to the next scene each time four lines are cleared at once; the current scene is named below the board. The board and score live only in the view — they are not GitHub records, are not written back, and are lost when the view closes. The game is generated from a request and does not change the Requests workflow.
+**Play Tetris** in the header opens a classic game (10×20 board, all seven tetrominoes) as canvas content. Controls are keyboard-only: **←/→** move, **↑** rotates, **↓** soft-drops, **Space** hard-drops, **Escape** closes. Score, lines, level and the next piece are shown beside the board; gravity speeds up every ten lines. **Music** toggles an old-school square-wave synth that plays a shuffled playlist of six public-domain tunes — the full traditional *Korobeiniki* (not the original game's copyrighted arrangement), *Greensleeves*, *Kalinka*, *Scarborough Fair*, Beethoven's *Ode to Joy* and Grieg's *In the Hall of the Mountain King* — each a sectioned arrangement of roughly half a minute, moving to the next without repeating one back to back; audio starts on the click, per browser autoplay policy. A pixel-art backdrop (generated locally from in-repo pixel data — no network fetch) crossfades to the next of six scenes each time four lines are cleared at once; the current scene and tune are named below the board. The board and score live only in the view — they are not GitHub records, are not written back, and are lost when the view closes. The game is generated from a request and does not change the Requests workflow.
 
 ### Status display
 
@@ -99,7 +99,7 @@ Layout:
 | `src/shared/tetris.ts` | Tetris rules and board state (shared, pure; local to the view) |
 | `src/shared/tetrisMusic.ts` | Tetris melodies, playlist shuffle and pitch mapping (shared, pure) |
 | `src/shared/tetrisBackgrounds.ts` | Pixel-art backdrop scenes and the four-line cycle (shared, pure) |
-| `src/client/audio/tetrisMusic.ts` | Web Audio square-wave playback for the playlist |
+| `src/client/audio/tetrisMusic.ts` | Web Audio square-wave playback; reports the tune now playing |
 | `src/client/views/TetrisView.tsx` | the Tetris canvas view |
 | `src/client/` | React UI (canvas, panel, list/new/detail views, Markdown rendering) |
 | `dist/client/` | committed build output, so the one-command launch needs no build |

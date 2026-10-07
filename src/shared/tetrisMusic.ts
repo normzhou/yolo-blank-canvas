@@ -1,12 +1,15 @@
 /**
  * The Tetris background tunes.
  *
- * A small playlist of public-domain folk and classical melodies — traditional
+ * A playlist of public-domain folk and classical melodies — traditional
  * *Korobeiniki* (the Russian folk song, not the copyrighted Game Boy
- * arrangement), traditional *Greensleeves*, Beethoven's *Ode to Joy* and
- * Grieg's *In the Hall of the Mountain King* — arranged simply for the
- * square-wave synth. Kept in `src/shared` so the melodies, pitch mapping and
- * shuffle can be tested without a browser audio context.
+ * arrangement), traditional *Greensleeves*, traditional *Kalinka*, traditional
+ * *Scarborough Fair*, Beethoven's *Ode to Joy* and Grieg's *In the Hall of the
+ * Mountain King* — arranged for the square-wave synth. Each entry is a sectioned
+ * arrangement rather than a one-strain loop, so a pass lasts a while.
+ *
+ * Kept in `src/shared` so the melodies, pitch mapping and shuffle can be tested
+ * without a browser audio context.
  */
 
 export type Note = [pitch: string | null, beats: number];
@@ -15,7 +18,7 @@ export type Note = [pitch: string | null, beats: number];
 export interface Melody {
   /** Stable identifier, used to avoid repeating a tune back to back. */
   id: string;
-  /** Human-readable title shown nowhere but useful in reports/tests. */
+  /** Human-readable title. */
   title: string;
   notes: ReadonlyArray<Note>;
 }
@@ -48,7 +51,7 @@ export function noteFrequency(pitch: string): number {
 
 /**
  * Korobeiniki, main strain (the familiar Tetris theme). `[pitch, beats]`,
- * `null` is a rest. One pass is four bars of 4/4.
+ * `null` is a rest.
  */
 export const KOROBEINIKI_A: ReadonlyArray<Note> = [
   ['E5', 1], ['B4', 0.5], ['C5', 0.5], ['D5', 1], ['C5', 0.5], ['B4', 0.5],
@@ -61,11 +64,7 @@ export const KOROBEINIKI_A: ReadonlyArray<Note> = [
   ['C5', 1], ['A4', 1], ['A4', 1], [null, 1],
 ];
 
-/**
- * Korobeiniki, second strain — the part of the folk song after the familiar
- * opening. A simple arranged continuation in the same key and feel, not the
- * copyrighted game arrangement.
- */
+/** Korobeiniki, second strain — the part of the folk song after the opening. */
 export const KOROBEINIKI_B: ReadonlyArray<Note> = [
   ['A4', 1], ['B4', 0.5], ['C5', 0.5], ['D5', 1], ['E5', 1],
   ['E5', 1], ['D5', 0.5], ['C5', 0.5], ['B4', 1], ['A4', 1],
@@ -77,38 +76,95 @@ export const KOROBEINIKI_B: ReadonlyArray<Note> = [
   ['A4', 1], ['A4', 1], [null, 1],
 ];
 
-/**
- * The full Korobeiniki tune: the familiar strain followed by its second part.
- * Kept as a single export so existing callers and the melody-length test still
- * see one complete tune.
- */
-export const KOROBEINIKI: ReadonlyArray<Note> = [...KOROBEINIKI_A, ...KOROBEINIKI_B];
+/** The full Korobeiniki arrangement: opening strain, second strain, opening again. */
+export const KOROBEINIKI: ReadonlyArray<Note> = [
+  ...KOROBEINIKI_A,
+  ...KOROBEINIKI_B,
+  ...KOROBEINIKI_A,
+];
 
-/** Traditional Greensleeves, the opening phrase. */
-const GREENSLEEVES: ReadonlyArray<Note> = [
+/** Traditional Greensleeves, verse phrase. */
+const GREENSLEEVES_VERSE: ReadonlyArray<Note> = [
   ['A4', 1], ['C5', 2], ['D5', 1], ['E5', 1.5], ['F5', 0.5], ['E5', 1],
   ['D5', 2], ['B4', 1], ['G4', 1.5], ['A4', 0.5], ['B4', 1],
   ['C5', 2], ['A4', 1], ['A4', 1.5], ['G#4', 0.5], ['A4', 1],
   ['B4', 2], ['G#4', 1], ['E4', 3],
 ];
 
+/** Traditional Greensleeves, second phrase. */
+const GREENSLEEVES_SECOND: ReadonlyArray<Note> = [
+  ['G4', 1], ['A4', 1], ['B4', 1], ['C5', 1.5], ['D5', 0.5], ['E5', 1],
+  ['D5', 1], ['C5', 1], ['B4', 1], ['A4', 2], ['G#4', 1],
+  ['A4', 1], ['B4', 1], ['C5', 1], ['D5', 1.5], ['E5', 0.5], ['F5', 1],
+  ['E5', 1], ['D5', 1], ['C5', 1], ['B4', 2], ['A4', 1],
+];
+
+const GREENSLEEVES: ReadonlyArray<Note> = [
+  ...GREENSLEEVES_VERSE,
+  ...GREENSLEEVES_SECOND,
+  ...GREENSLEEVES_VERSE,
+];
+
 /** Beethoven, *Ode to Joy* (Symphony No. 9 theme). */
-const ODE_TO_JOY: ReadonlyArray<Note> = [
+const ODE_TO_JOY_THEME: ReadonlyArray<Note> = [
   ['E4', 1], ['E4', 1], ['F4', 1], ['G4', 1],
   ['G4', 1], ['F4', 1], ['E4', 1], ['D4', 1],
   ['C4', 1], ['C4', 1], ['D4', 1], ['E4', 1],
   ['E4', 1.5], ['D4', 0.5], ['D4', 2],
+];
+
+/** A lifting second phrase for the Ode to Joy arrangement. */
+const ODE_TO_JOY_BRIDGE: ReadonlyArray<Note> = [
   ['E4', 1], ['E4', 1], ['F4', 1], ['G4', 1],
   ['G4', 1], ['F4', 1], ['E4', 1], ['D4', 1],
   ['C4', 1], ['C4', 1], ['D4', 1], ['E4', 1],
   ['D4', 1.5], ['C4', 0.5], ['C4', 2],
 ];
 
+const ODE_TO_JOY: ReadonlyArray<Note> = [
+  ...ODE_TO_JOY_THEME,
+  ...ODE_TO_JOY_BRIDGE,
+  ...ODE_TO_JOY_THEME,
+];
+
 /** Grieg, *In the Hall of the Mountain King* — opening theme. */
-const MOUNTAIN_KING: ReadonlyArray<Note> = [
+const MOUNTAIN_KING_THEME: ReadonlyArray<Note> = [
   ['B4', 1], ['C#5', 1], ['D5', 1], ['E5', 1], ['F#5', 1], ['D5', 1], ['F#5', 0.5], ['F#5', 0.5],
   ['E5', 1], ['D5', 1], ['C#5', 1], ['B4', 1], ['C#5', 1], ['D5', 1], ['E5', 0.5], ['E5', 0.5],
   ['C#5', 1], ['D5', 0.5], ['D5', 0.5], ['C#5', 1], ['B4', 1], ['B4', 2],
+];
+
+/** A higher register for the Mountain King arrangement. */
+const MOUNTAIN_KING_HIGH: ReadonlyArray<Note> = [
+  ['F#5', 1], ['G#5', 1], ['A5', 1], ['B5', 1], ['A5', 1], ['F#5', 1], ['A5', 0.5], ['A5', 0.5],
+  ['G#5', 1], ['F#5', 1], ['E5', 1], ['D5', 1], ['E5', 1], ['F#5', 1], ['G#5', 0.5], ['G#5', 0.5],
+  ['E5', 1], ['F#5', 0.5], ['F#5', 0.5], ['E5', 1], ['D5', 1], ['D5', 2],
+];
+
+const MOUNTAIN_KING: ReadonlyArray<Note> = [
+  ...MOUNTAIN_KING_THEME,
+  ...MOUNTAIN_KING_HIGH,
+  ...MOUNTAIN_KING_THEME,
+];
+
+/** Traditional Kalinka — the chorus, then a faster answering phrase. */
+const KALINKA: ReadonlyArray<Note> = [
+  ['E5', 1], ['D5', 1], ['C5', 1], ['B4', 1], ['A4', 1], ['B4', 1], ['C5', 1], ['A4', 2],
+  ['E5', 1], ['D5', 1], ['C5', 1], ['B4', 1], ['A4', 1], ['B4', 1], ['C5', 1], ['A4', 2],
+  ['A4', 1], ['B4', 1], ['C5', 1], ['D5', 1], ['E5', 1], ['D5', 1], ['C5', 1], ['B4', 2],
+  ['C5', 1], ['B4', 1], ['A4', 1], ['B4', 1], ['C5', 1], ['A4', 1], ['A4', 2],
+  ['A4', 0.5], ['B4', 0.5], ['C5', 0.5], ['D5', 0.5], ['E5', 1], ['E5', 1], ['D5', 1], ['C5', 1],
+  ['B4', 0.5], ['C5', 0.5], ['D5', 0.5], ['E5', 0.5], ['F5', 1], ['E5', 1], ['D5', 1], ['C5', 1],
+];
+
+/** Traditional Scarborough Fair. */
+const SCARBOROUGH_FAIR: ReadonlyArray<Note> = [
+  ['A4', 1], ['A4', 1], ['E5', 2], ['E5', 1], ['B4', 1], ['C5', 1], ['B4', 1], ['A4', 2],
+  ['A4', 1], ['A4', 1], ['E5', 2], ['E5', 1], ['B4', 1], ['C5', 1], ['B4', 1], ['A4', 2],
+  ['D5', 1], ['D5', 1], ['D5', 1], ['E5', 2], ['F5', 1], ['E5', 1], ['D5', 1], ['B4', 2],
+  ['A4', 1], ['A4', 1], ['E5', 2], ['E5', 1], ['B4', 1], ['C5', 1], ['B4', 1], ['A4', 2],
+  ['A4', 1], ['B4', 1], ['C5', 1], ['D5', 1], ['E5', 1], ['D5', 1], ['C5', 1], ['B4', 2],
+  ['A4', 1], ['B4', 1], ['C5', 1], ['B4', 1], ['A4', 1], ['G#4', 1], ['A4', 2],
 ];
 
 /**
@@ -118,6 +174,8 @@ const MOUNTAIN_KING: ReadonlyArray<Note> = [
 export const PLAYLIST: ReadonlyArray<Melody> = [
   { id: 'korobeiniki', title: 'Korobeiniki', notes: KOROBEINIKI },
   { id: 'greensleeves', title: 'Greensleeves', notes: GREENSLEEVES },
+  { id: 'kalinka', title: 'Kalinka', notes: KALINKA },
+  { id: 'scarborough-fair', title: 'Scarborough Fair', notes: SCARBOROUGH_FAIR },
   { id: 'ode-to-joy', title: 'Ode to Joy', notes: ODE_TO_JOY },
   { id: 'mountain-king', title: 'In the Hall of the Mountain King', notes: MOUNTAIN_KING },
 ];
