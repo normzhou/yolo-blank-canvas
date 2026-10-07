@@ -17,14 +17,17 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
  ✓ test/list-refresh.test.ts (5 tests)     background refresh keeps rows; filter changes clear
  ✓ test/list-reconciliation.test.ts (8 tests)  created-issue reconciliation against the list
  ✓ test/tetris.test.ts (19 tests)          Tetris pieces, collision, line clear, scoring, game over, tetris count
- ✓ test/tetris-music.test.ts (11 tests)    playlist length, second strain, shuffle, pitch mapping, timeline planning
- ✓ test/tetris-backgrounds.test.ts (4 tests)  scene grids, palettes, four-line cycle helper
+ ✓ test/tetris-music.test.ts (4 tests)     bundled track list, shuffle permutation/determinism, bundled files exist
+ ✓ test/tetris-backgrounds.test.ts (3 tests)  bundled scenes, four-line cycle helper, bundled files exist
 
  Test Files  12 passed (12)
-      Tests  111 passed (111)
+      Tests  103 passed (103)
 ```
 
-Also run: `npx tsc --noEmit` (clean), `npm run build` (clean). Run at the #58 improvements source revision; not yet a released version, so the release-level sections below still describe `v0.1.1`/`v0.1.2`.
+Also run: `npx tsc --noEmit` (clean), `npm run build` (clean). Last full pass at the #63 work
+(`50887c1`) and the v0.3.0 release bump (`dbfdacf`); see the per-issue sections below for
+earlier results. Earlier counts are preserved in their sections; the playlist/backdrop tests
+were rewritten for the sourced-assets change.
 
 Fixture coverage required by the spec, all in `test/status.test.ts`: untagged open issue → **Request open**; all four managed states; missing state, duplicate states, and state without `yolo:work` → **Status needs reconciliation** with raw labels; closure reasons `not_planned` / `duplicate` / `completed`; **Completed (reported)** vs **Closed**; unknown reason → **Closed — reason unavailable**; leftover state labels on a closed issue; reported-summary detection rules, most-recent-match selection, and `No progress summary yet.` / `Delivery timing not yet estimated.` fallbacks. No fixture asserts scheduling or availability.
 
@@ -183,16 +186,20 @@ Dedicated branch `yolo/asset-replacement`; deterministic checks only. The in-rep
 
 ## Tested revision
 
-Release tag `v0.2.0` points at the squash merge `eaf7cc2` that carries the #54/#55/#58 work together
-with the assets built from source `828b21d` (`dist/client/.build-id` and
-`server/build-id.generated.js` both report `828b21d…`). The native version at the tagged revision
-(`package.json`) is `0.2.0`. The published artifact was verified outside the checkout:
-`npx --yes github:normzhou/yolo-blank-canvas#v0.2.0 --no-open` served `GET /api/version` with
-`serverBuild`/`clientBuild` = `828b21d`, `GET /` returned 200, and the served bundle contains the
-six tune titles and six scene titles. Dated tag/commit observations are in
+Release tag `v0.3.0` points at the squash merge `dbfdacf` (release bump) on top of
+`50887c1` (the #63 asset work). Assets were built from source `350852b` (the v0.3.0
+version-bump commit; `dist/client/.build-id` and `server/build-id.generated.js`
+report `350852b…`). The native version at the tagged revision (`package.json`) is
+`0.3.0`. The published artifact was verified outside the checkout:
+`npx --yes github:normzhou/yolo-blank-canvas#v0.3.0 --no-open` served `GET /api/version` with
+`serverBuild`/`clientBuild` = `350852b`, `GET /` returned 200, and the bundled
+CC0 tracks/backdrops under `dist/client/tetris/` served 200. Dated tag/commit
+observations are in
 [`.yolo/reports/releases-observed-2026-10-07.json`](../../.yolo/reports/releases-observed-2026-10-07.json).
 The build ID identifies the source revision the running assets were produced from.
 
-History: `v0.1.2` (source `26feaa6`, squash merge `878854e`) added Tetris and the first chiptune
-melody; `v0.1.1` (source `e39b750`, squash merge `0c8038f`) kept list rows visible across a
-background refresh; `v0.1.0` followed the separate source/assets ordering described above.
+History: `v0.2.0` (`eaf7cc2`, assets from `828b21d`) added the longer tunes, more
+backdrops and the crossfade; `v0.1.2` (source `26feaa6`, squash merge `878854e`) added
+Tetris and the first chiptune melody; `v0.1.1` (source `e39b750`, squash merge `0c8038f`)
+kept list rows visible across a background refresh; `v0.1.0` followed the separate
+source/assets ordering described above.

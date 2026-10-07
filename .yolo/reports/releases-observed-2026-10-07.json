@@ -24,6 +24,15 @@
         "build": "828b21d64f0f7f89113fae7162fbda72013fe3d6",
         "notes": "served GET /api/version with serverBuild=clientBuild=828b21d; GET / 200; bundle contains the six tune titles and six scene titles"
       }
+    },
+    {
+      "tag": "v0.3.0",
+      "commit": "dbfdacf246b5b42c208e5f1fb4a7913c195d2f67",
+      "artifact_verified": {
+        "command": "npx --yes github:normzhou/yolo-blank-canvas#v0.3.0 --no-open",
+        "build": "350852bb162afededb12a6c400148027972a298b",
+        "notes": "served GET /api/version with serverBuild=clientBuild=350852b; GET / 200; bundled assets (tetris/map.m4a 298752 bytes) served"
+      }
     }
   ]
 }
