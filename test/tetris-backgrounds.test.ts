@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
 import {
   BACKGROUNDS,
   nextBackgroundIndex,
-  pixelCells,
 } from '../src/shared/tetrisBackgrounds';
 
 describe('tetris backgrounds', () => {
@@ -12,33 +13,17 @@ describe('tetris backgrounds', () => {
     for (const art of BACKGROUNDS) {
       expect(art.id.length).toBeGreaterThan(0);
       expect(art.title.length).toBeGreaterThan(0);
+      expect(art.src).toMatch(/^tetris\/.+\.(png|jpg|gif|svg)$/);
       expect(ids.has(art.id)).toBe(false);
       ids.add(art.id);
     }
   });
 
-  it('keeps every scene a non-empty rectangular grid with a complete palette', () => {
+  it('points at bundled image files that actually exist', () => {
     for (const art of BACKGROUNDS) {
-      expect(art.width).toBeGreaterThan(0);
-      expect(art.height).toBeGreaterThan(0);
-      expect(art.rows).toHaveLength(art.height);
-      for (const row of art.rows) {
-        expect(row).toHaveLength(art.width);
-        for (const key of row) {
-          if (key !== '.') expect(art.palette[key]).toBeTruthy();
-        }
-      }
-    }
-  });
-
-  it('flattens a scene to one resolvable colour per cell', () => {
-    for (const art of BACKGROUNDS) {
-      const cells = pixelCells(art);
-      expect(cells).toHaveLength(art.width * art.height);
-      expect(cells.some((color) => color !== null)).toBe(true);
-      for (const color of cells) {
-        if (color !== null) expect(color).toMatch(/^#[0-9a-fA-F]{6}$/);
-      }
+      const file = path.resolve(__dirname, '../public', art.src);
+      expect(fs.existsSync(file), `${art.src} should exist under public/`).toBe(true);
+      expect(fs.statSync(file).size).toBeGreaterThan(1000);
     }
   });
 
