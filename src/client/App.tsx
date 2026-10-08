@@ -123,7 +123,7 @@ export function App() {
     serverClientBuild !== CLIENT_BUILD;
 
   return (
-    <div className="canvas">
+    <div className={panelOpen && session ? 'canvas panel-open' : 'canvas'}>
       <header className="canvas-header">
         <h1 className="canvas-title">Blank canvas</h1>
         <span className="canvas-actions">
