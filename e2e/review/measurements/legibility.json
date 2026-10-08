@@ -51,7 +51,7 @@
       "border": "1px solid rgb(216, 220, 227)"
     }
   },
-  "samples": 37,
+  "samples": 38,
   "belowFloor": [],
   "all": [
     {
@@ -243,6 +243,14 @@
       "text": "by normzhou · updated just now · source",
       "ratio": 5.88,
       "needs": 4.5,
+      "fontSizePx": 13,
+      "fontWeight": 400
+    },
+    {
+      "selector": "p.note",
+      "text": "End of discussion (2 shown).",
+      "ratio": 6.11,
+      "needs": 4.5,
       "fontSizePx": 12,
       "fontWeight": 400
     },
@@ -273,9 +281,9 @@
     {
       "selector": "h3",
       "text": "Reported summary",
-      "ratio": 15.19,
+      "ratio": 5.88,
       "needs": 4.5,
-      "fontSizePx": 14,
+      "fontSizePx": 12,
       "fontWeight": 700
     },
     {
