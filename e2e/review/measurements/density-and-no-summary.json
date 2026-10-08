@@ -180,11 +180,11 @@
         "border": "0px none rgb(31, 35, 40)"
       },
       ".issue-row": {
-        "padding": "10px 12px",
-        "margin": "0px 0px 8px",
+        "padding": "10px 4px",
+        "margin": "0px",
         "gap": "normal",
-        "radius": "8px",
-        "border": "1px solid rgb(216, 220, 227)"
+        "radius": "0px",
+        "border": "0px none rgb(31, 35, 40)"
       }
     },
     "tokens": {
