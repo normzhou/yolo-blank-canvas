@@ -259,6 +259,50 @@ no rule and falling back to the initial value. Pre-existing on `main` before thi
 to layer removal, and filed as [#90](https://github.com/normzhou/yolo-blank-canvas/issues/90)
 rather than folded in.
 
+## Backdrop rests at one strength and the on-art Tetris text is legible (issue #90)
+
+Deterministic browser measurement with a control run, on the merge of PR #92 (`fdee727`, commit
+`23959b8`). `npm test` 122 passed, `npx tsc --noEmit` clean, `npm run build` clean, `npm run e2e`
+52 passed + 1 skipped, GitHub CI green on the pre-merge tip.
+
+Two defects, one cause. The backdrop's resting opacity was only ever the endpoint of the fade-in
+keyframe, and three text elements sat directly on the artwork. Composited-pixel contrast was sampled
+across all six bundled scenes under both motion preferences:
+
+| Element | Worst before | Scenes under the 4.5:1 AA floor |
+| --- | --- | --- |
+| `.tetris-help` (12px muted) | **1.28:1** | 6 of 6 |
+| `.tetris-scene` (12px muted) | **1.28:1** | 6 of 6 |
+| `.tetris-title` (15px/600) | **3.96:1** | 3 of 6 |
+
+Settled backdrop opacity:
+
+| Motion preference | Before | After |
+| --- | --- | --- |
+| `no-preference` | 0.55 | 0.55 |
+| `reduce` | **1** | 0.55 |
+
+Under `reduce`, `animation: none` cancelled the fade-in and left no rule applying 0.55, so the layer
+fell back to its initial value. The reduce path was showing a materially stronger picture, not the
+same picture cut instead of faded.
+
+After the fix: 15.8:1 (title) and 6.11:1 (help, scene), identical on every scene under both
+preferences. `.tetris-title`, `.tetris-help` and `.tetris-scene` carry the same opaque `--surface`
+background `.tetris-side` already uses, for the reason recorded in the stylesheet — a translucent
+fill pulls an arbitrary art pixel toward mid-grey, where mid-grey text has no contrast.
+
+**Control run.** With `src/client/styles.css` reverted and nothing else changed,
+`e2e/on-art-text.spec.ts` fails 3 of 4: `Night Sky .tetris-title: must be opaque, otherwise the art
+reaches the text`, and `the settled backdrop opacity should be the same under both preferences`.
+
+One existing assertion was corrected rather than preserved: `e2e/crossfade.spec.ts` had required the
+outgoing layer to sit at opacity > 0.9 under `reduce`, which was true only because of this bug. It
+now requires the resting strength and no mid-fade value.
+
+This is a visible design change — the title and the two bottom lines sit on white plates inside the
+card. It matches the stat panel's existing treatment, but it is a direction call, recorded on #90 for
+the maintainer to keep or reverse alongside #75's stage-4 variant work.
+
 ## Tested revision
 
 Release tag `v0.3.1` points at the squash merge `80bf5f8` (release bump) on top of
