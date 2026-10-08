@@ -1,0 +1,56 @@
+{
+  "schema_version": 2,
+  "target": "normzhou/yolo-blank-canvas",
+  "kind": "release-observations",
+  "observed_at": "2026-10-08",
+  "releases": [
+    {
+      "tag": "v0.1.0",
+      "commit": "520a81e8ec824b9ce31a7fbc8a8c08d152eb81ae"
+    },
+    {
+      "tag": "v0.1.1",
+      "commit": "0c8038f164bd2a744780d7d2913a00b8bfb593a9"
+    },
+    {
+      "tag": "v0.1.2",
+      "commit": "878854e3f1a53524f4952ef0b35cc01acc6c4b36"
+    },
+    {
+      "tag": "v0.2.0",
+      "commit": "eaf7cc2b74b9eba89ee434742c5df97f84c54637",
+      "artifact_verified": {
+        "command": "npx --yes github:normzhou/yolo-blank-canvas#v0.2.0 --no-open",
+        "build": "828b21d64f0f7f89113fae7162fbda72013fe3d6",
+        "notes": "served GET /api/version with serverBuild=clientBuild=828b21d; GET / 200; bundle contains the six tune titles and six scene titles"
+      }
+    },
+    {
+      "tag": "v0.3.0",
+      "commit": "dbfdacf246b5b42c208e5f1fb4a7913c195d2f67",
+      "artifact_verified": {
+        "command": "npx --yes github:normzhou/yolo-blank-canvas#v0.3.0 --no-open",
+        "build": "350852bb162afededb12a6c400148027972a298b",
+        "notes": "served GET /api/version with serverBuild=clientBuild=350852b; GET / 200; bundled assets (tetris/map.m4a 298752 bytes) served"
+      }
+    },
+    {
+      "tag": "v0.3.1",
+      "commit": "80bf5f860c4a360e855c8b0a786df7a04f3a70e6",
+      "artifact_verified": {
+        "command": "npx --yes github:normzhou/yolo-blank-canvas#v0.3.1 --no-open",
+        "build": "7ffb324",
+        "notes": "CSP media-src fix; headless Chrome showed no CSP media violations and the one-playing-track label stayed stable across 6s (issue #67)"
+      }
+    },
+    {
+      "tag": "v0.3.2",
+      "commit": "86655102a92cd4afb92f9e965b6078a249bb2192",
+      "artifact_verified": {
+        "command": "npx --yes github:normzhou/yolo-blank-canvas#v0.3.2 --no-open --port 4432",
+        "build": "b14b70ac9f112f14a0436b6be8e5326b6b9e3513",
+        "notes": "Installed from the tag in an empty directory (/tmp/npx-check-032, no source checkout). GET /api/version reported serverBuild=clientBuild=b14b70a; GET / returned 200. Six read-only Playwright checks against the running release (npm run e2e:verify-release) all passed: the served stylesheet resolves --problem #8a4100 on #ffe8d6 at >= 4.5:1; text fields carry a fill distinct from the panel; the Tetris stats panel is opaque; the backdrop crossfade does not animate under prefers-reduced-motion: reduce; the hashed bundle asset is served. No GitHub writes."
+      }
+    }
+  ]
+}

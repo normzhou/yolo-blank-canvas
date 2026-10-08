@@ -169,10 +169,12 @@
         "v0.1.1": "0c8038f164bd2a744780d7d2913a00b8bfb593a9",
         "v0.1.2": "878854e3f1a53524f4952ef0b35cc01acc6c4b36",
         "v0.2.0": "eaf7cc2b74b9eba89ee434742c5df97f84c54637",
-        "v0.3.0": "dbfdacf246b5b42c208e5f1fb4a7913c195d2f67"
+        "v0.3.0": "dbfdacf246b5b42c208e5f1fb4a7913c195d2f67",
+        "v0.3.2": "86655102a92cd4afb92f9e965b6078a249bb2192"
       },
       "observations": [
-        ".yolo/reports/releases-observed-2026-10-07.json"
+        ".yolo/reports/releases-observed-2026-10-07.json",
+        ".yolo/reports/releases-observed-2026-10-08.json"
       ]
     }
   },

@@ -26,7 +26,8 @@
     "e2e": "playwright test --config playwright.config.ts",
     "e2e:live": "playwright test --config playwright.live.config.ts",
     "e2e:visual": "playwright test --config playwright.config.ts visual motion",
-    "e2e:measure": "playwright test --config playwright.config.ts measure"
+    "e2e:measure": "playwright test --config playwright.config.ts measure",
+    "e2e:verify-release": "playwright test --config playwright.verify.config.ts"
   },
   "dependencies": {
     "express": "^4.19.2",
