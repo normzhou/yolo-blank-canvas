@@ -144,7 +144,17 @@ textarea { min-height: 140px; resize: vertical; }
 .comment-body table { border-collapse: collapse; }
 .comment-body th, .comment-body td { border: 1px solid var(--border); padding: 4px 8px; }
 .comment-body img { max-width: 100%; }
-.comment-body a { color: var(--accent); }
+.comment-body a { color: var(--accent-weak-text); }
+
+/* The app's own links — Open in GitHub, each comment's source. Without this they
+   inherit the UA stylesheet's blue, so a link inside an issue author's Markdown
+   and the app's own link rendered in different colours (#94). `--accent` is not
+   usable here: measured against the surfaces these links sit on it reaches
+   4.63:1 on white and 4.46:1 on the summary note — under the 4.5:1 floor on
+   both. `--accent-weak-text` is the token this project already chose for
+   link-coloured text on pale fills, and measures 9.90:1 / 9.52:1. */
+a { color: var(--accent-weak-text); }
+a:visited { color: var(--accent-weak-text); }
 
 .summary-box { border: 1px solid var(--accent); border-radius: var(--radius); padding: 12px; margin-bottom: 16px; background: #f7fbff; }
 .summary-box h3 { margin: 0 0 8px; font-size: 14px; }

@@ -8,7 +8,7 @@ import { defineConfig } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './e2e',
-  testMatch: /(deterministic|visual|motion|measure|determinism|legibility|crossfade|on-art-text)\.spec\.ts/,
+  testMatch: /(deterministic|visual|motion|measure|determinism|legibility|crossfade|on-art-text|link-colour)\.spec\.ts/,
   fullyParallel: false,
   workers: 1,
   timeout: 30_000,
