@@ -14,7 +14,7 @@ No checkout, build step, pasted token, client secret, or GitHub App registration
 ## Launch
 
 ```sh
-npx --yes github:normzhou/yolo-blank-canvas#v0.3.1
+npx --yes github:normzhou/yolo-blank-canvas#v0.3.2
 ```
 
 Opens `http://localhost:4317` (falls back to the next free loopback port) and prints the URL if the browser does not open. Press Ctrl-C to stop.
@@ -22,9 +22,9 @@ Opens `http://localhost:4317` (falls back to the next free loopback port) and pr
 Useful options:
 
 ```sh
-npx --yes github:normzhou/yolo-blank-canvas#v0.3.1 --repo owner/name   # choose the target repository for this run
-npx --yes github:normzhou/yolo-blank-canvas#v0.3.1 --port 5000        # choose a preferred port
-npx --yes github:normzhou/yolo-blank-canvas#v0.3.1 --no-open          # do not open a browser
+npx --yes github:normzhou/yolo-blank-canvas#v0.3.2 --repo owner/name   # choose the target repository for this run
+npx --yes github:normzhou/yolo-blank-canvas#v0.3.2 --port 5000        # choose a preferred port
+npx --yes github:normzhou/yolo-blank-canvas#v0.3.2 --no-open          # do not open a browser
 ```
 
 Default repository: this app's own repository (`normzhou/yolo-blank-canvas`).
