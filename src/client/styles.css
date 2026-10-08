@@ -182,6 +182,12 @@ textarea { min-height: 140px; resize: vertical; }
   pointer-events: none;
 }
 .tetris-art-layer {
+  /* Resting strength of the backdrop. Declared here rather than left to the
+     fade-in's endpoint so it holds when no animation runs: under
+     `prefers-reduced-motion: reduce` the animation is cancelled, and an
+     endpoint-only value left the layer at its initial `1` — full-strength art
+     where `no-preference` shows 0.55. */
+  opacity: 0.55;
   position: absolute;
   inset: 0;
   width: 100%;
@@ -210,7 +216,17 @@ textarea { min-height: 140px; resize: vertical; }
   z-index: 1;
 }
 .tetris-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.tetris-title { margin: 0; font-size: 15px; font-weight: 600; }
+.tetris-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  /* Also sits directly on the backdrop, and measured across the bundled scenes
+     it fell to 3.96:1 on the darkest ones. Same opaque rule as the lines below;
+     15px/600 is not large text, so the 4.5:1 floor applies. */
+  background: var(--surface);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
 .tetris-body { display: flex; gap: 16px; align-items: flex-start; }
 .tetris-board {
   display: grid;
@@ -259,5 +275,17 @@ textarea { min-height: 140px; resize: vertical; }
 }
 .tetris-next .tetris-cell { border-radius: 2px; }
 .tetris-over { color: var(--problem); font-weight: 600; margin: 0; }
-.tetris-help { color: var(--muted); font-size: 12px; margin: 0; }
-.tetris-scene { color: var(--muted); font-size: 12px; margin: 0; }
+.tetris-help, .tetris-scene {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 0;
+  /* Opaque for the same reason as `.tetris-side`: these lines sit directly on
+     the backdrop, and measured across every bundled scene the muted 12px text
+     landed between 1.28:1 and 3.90:1 against the worst pixel behind it — every
+     scene under the AA 4.5:1 floor. Same reasoning applies: a translucent fill
+     pulls an arbitrary pixel toward mid-grey, where mid-grey text has no
+     contrast. */
+  background: var(--surface);
+  padding: 6px 8px;
+  border-radius: 6px;
+}

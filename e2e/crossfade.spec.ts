@@ -27,6 +27,13 @@ const REMOVED_AT_OR_BELOW = 0.05;
 const SETTLE_MS = 1600;
 
 /**
+ * Strength a backdrop layer rests at, and the one the fade-in animates to. Under
+ * `prefers-reduced-motion: reduce` no animation runs, so this is the value the
+ * layer has to hold without one — see `e2e/on-art-text.spec.ts`.
+ */
+const RESTING_ART_OPACITY = 0.55;
+
+/**
  * Appends a stylesheet overriding only the animation duration — the exact edit
  * that used to break this. Run with the fix in place, the layer survives to
  * opacity 0 at t≈1476ms; run with the old timeout, it vanished at 0.115 around
@@ -106,9 +113,14 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
             `outgoing layer was removed at opacity ${lastPair.opacities[0]} (t=${lastPair.t}ms)`,
           ).toBeLessThanOrEqual(REMOVED_AT_OR_BELOW);
         } else {
-          // No fade runs, so there is nothing to reach zero: the cut must be
-          // immediate instead, with the layer hidden from the frame it turns past.
-          expect(lastPair.opacities[0], 'the past layer should not be faded under reduce').toBeGreaterThan(0.9);
+          // No fade runs, so there is nothing to reach zero. The layer that is
+          // going away sits at the resting strength and is cut from the frame it
+          // turns past — it is never at some value in between, which is what a
+          // half-run fade would look like.
+          expect(
+            lastPair.opacities[0],
+            'the past layer should be at rest, not mid-fade, under reduce',
+          ).toBeCloseTo(RESTING_ART_OPACITY, 2);
           // A layer on its way out must not be drawn over the new scene.
           await expect(page.locator('.tetris-art-layer.is-past')).toBeHidden();
         }
