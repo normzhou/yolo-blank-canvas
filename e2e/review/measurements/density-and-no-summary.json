@@ -316,6 +316,17 @@
         "color": "rgb(89, 99, 110)",
         "background": "rgb(247,251,255)",
         "ratio": 5.88,
+        "fontSizePx": 13,
+        "fontWeight": 400,
+        "lineHeight": "normal",
+        "needs": 4.5
+      },
+      {
+        "selector": "p.note",
+        "text": "End of discussion (1 shown).",
+        "color": "rgb(89, 99, 110)",
+        "background": "rgb(255,255,255)",
+        "ratio": 6.11,
         "fontSizePx": 12,
         "fontWeight": 400,
         "lineHeight": "normal",
@@ -357,10 +368,10 @@
       {
         "selector": "h3",
         "text": "Reported summary",
-        "color": "rgb(31, 35, 40)",
+        "color": "rgb(89, 99, 110)",
         "background": "rgb(247,251,255)",
-        "ratio": 15.19,
-        "fontSizePx": 14,
+        "ratio": 5.88,
+        "fontSizePx": 12,
         "fontWeight": 700,
         "lineHeight": "normal",
         "needs": 4.5
@@ -414,11 +425,11 @@
         "border": "0px none rgb(31, 35, 40)"
       },
       ".summary-box": {
-        "padding": "12px",
+        "padding": "14px 16px",
         "margin": "0px 0px 16px",
         "gap": "normal",
         "radius": "8px",
-        "border": "1px solid rgb(31, 111, 235)"
+        "border": "2px solid rgb(31, 111, 235)"
       }
     },
     "tokens": {

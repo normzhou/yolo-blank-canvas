@@ -203,8 +203,13 @@ textarea { min-height: 140px; resize: vertical; }
 a { color: var(--accent-weak-text); }
 a:visited { color: var(--accent-weak-text); }
 
-.summary-box { border: 1px solid var(--accent); border-radius: var(--radius); padding: 12px; margin-bottom: 16px; background: #f7fbff; }
-.summary-box h3 { margin: 0 0 8px; font-size: var(--text-base); }
+.summary-box { border: 2px solid var(--accent); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; background: #f7fbff; }
+/* Chosen Q3 direction (#75 finding 6): leave an issue author's Markdown headings
+   exactly as written and give the app's own label a stronger, quieter voice —
+   uppercase, muted, letter-spaced — so scanning for what the app reports does
+   not depend on shrinking someone else's writing. */
+.summary-box h3 { margin: 0 0 10px; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.summary-box .note { font-size: var(--text-sm); }
 
 .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .empty { color: var(--muted); padding: 24px 0; text-align: center; }
