@@ -221,6 +221,44 @@ Music on) showed no CSP media violations, the track loaded over HTTP 206, and th
 track label stayed stable across 6s. This closes the earlier "live browser playback of the new
 assets remains unverified" gap from issue #63.
 
+## Backdrop crossfade removes its outgoing layer on its own animationend (issue #88)
+
+Deterministic browser measurement plus a negative control, on the merge of PR #89
+(`66802db`; fix commit `eb487d8`). `npm test` 122 passed, `npx tsc --noEmit` clean,
+`npm run build` clean, `npm run e2e` 48 passed + 1 skipped (48 passed before this change),
+GitHub CI green on the pre-merge tip.
+
+The outgoing layer used to be dropped by a `setTimeout(…, 700)` in `TetrisView.tsx` that
+repeated the CSS animation's length in another file. Nothing tied the two together. Layer count
+and computed opacity were sampled every animation frame in the running app (`e2e/crossfade.spec.ts`,
+committed):
+
+| Case | Outgoing layer's opacity when removed |
+| --- | --- |
+| Shipped build before the fix, durations in step | **0.00017** at ≈699ms — within one frame of the fade ending, so no visible pop |
+| Only CSS changed to 1400ms, before the fix | **0.115** at t≈740ms, incoming scene still at 0.435 — a visible pop |
+| Only CSS changed to 1400ms, after the fix | **0** at t≈1476ms |
+
+The first row is the correction to #75 finding 8: the shipped build was not visibly broken, the
+coupling was. The second row is the defect: editing one file was enough to produce the pop.
+
+The committed check overrides **only** the CSS duration and asserts the removal follows the fade,
+so it fails if the coupling returns. Control run: with `src/client/views/TetrisView.tsx` reverted
+to its pre-fix state and nothing else changed, it fails with
+`layer removed at opacity 0.115347 (t=739ms) — mid-fade`.
+
+Three checks run under both `no-preference` and `reduce` (5 passed, 1 skipped — the duration
+override needs an animated fade to override): removal lands at opacity ≤ 0.05; removal follows
+the fade when only CSS changes; layer count returns to 1 across three consecutive scene changes,
+so nothing accumulates. Under `reduce` no animation runs, so removal happens on the next animation
+frame and a layer on its way out is asserted hidden rather than faded.
+
+**Not fixed here, and now measured.** Under `reduce` the settled backdrop renders at opacity **1**
+rather than 0.55 — `animation: none` cancels the fade-in that carries the opacity endpoint, leaving
+no rule and falling back to the initial value. Pre-existing on `main` before this work, unrelated
+to layer removal, and filed as [#90](https://github.com/normzhou/yolo-blank-canvas/issues/90)
+rather than folded in.
+
 ## Tested revision
 
 Release tag `v0.3.1` points at the squash merge `80bf5f8` (release bump) on top of
