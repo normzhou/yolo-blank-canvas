@@ -348,6 +348,43 @@ defects. Recorded in full on [#75](https://github.com/normzhou/yolo-blank-canvas
 - **Finding 7** confirmed from the running app: five steps at two weights — 12/400, 12/600, 13/400,
   16/400, 16/600, 22/400. Stage 4's token work is its deliverable.
 
+## UI review stage 4: the chosen direction (issue #75)
+
+The maintainer delegated the variant choice on 2026-10-08 (*"go, use your best judgement"*), so
+the recommended set — canvas/panel **1b**, narrow actions **2a**, hierarchy **3b**, list treatment
+**4a** — was implemented as four PRs, each guarded by a committed browser check. `npm test` 122
+passed, `npx tsc --noEmit` clean, `npm run build` clean, `npm run e2e` 61 passed + 1 skipped,
+GitHub CI green on every merge.
+
+| Question | Chosen | PR | Guard |
+| --- | --- | --- | --- |
+| Canvas / panel | `1b` panel is a column | #97 | `e2e/panel-push.spec.ts` |
+| Narrow action emphasis | `2a` Refresh joins the filters | #98 | `e2e/narrow-toolbar.spec.ts` |
+| Chrome vs issue content | `3b` elevate the label, leave Markdown | #99 | `e2e/summary-hierarchy.spec.ts` |
+| List treatment | `4a` hairline rows | #100 | `e2e/list-treatment.spec.ts` |
+
+**Tokens.** `:root` now names the type, spacing, radius and elevation steps, and existing
+declarations use them; values are unchanged. The near-duplicate type steps are named as measured
+rather than silently collapsed — consolidation is filed as #103.
+
+**Two judgements recorded so they can be contested:**
+
+- The panel's scrim stays modal (it still catches the outside click and keeps `aria-modal`
+honest); only its tint was removed. The rendered `1b` variant made it non-interactive; keeping it
+modal is the smaller change and avoids a half-modal focus trap.
+- The hairline rows drop the old 8px card gap along with the card border, so the divider is the
+separation. The rendered `4a` variant kept the gap; removing it is what makes the density claim
+hold (measured: 12 row titles visible in the 30-row capture, guarded at ≥11).
+
+**Findings filed as their own outcomes**, each with observable acceptance: #101 (narrow empty
+canvas), #102 (`Disconnect` treatment), #103 (type-scale consolidation), #104 (list scroll
+affordance). Finding 10 (Tetris stat legibility on untested backdrops) is covered by measurement
+after the opaque stat panel of #76/#90.
+
+**Regenerated evidence.** `e2e/review/visual/**` and `e2e/review/measurements/**` were regenerated
+by the committed commands. `desktop-02-list.png` now shows the whole prompt with the panel open
+(before: truncated at *build*), and `desktop-03-list-density-30.png` shows the hairline rows.
+
 ## Tested revision
 
 Release tag `v0.3.1` points at the squash merge `80bf5f8` (release bump) on top of
