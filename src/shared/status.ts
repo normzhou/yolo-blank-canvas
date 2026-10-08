@@ -169,10 +169,39 @@ export interface CommentLike {
   user?: { login?: string } | null;
 }
 
+/**
+ * The body's prose lines: fenced code and indented code are dropped, because
+ * content inside them is an example, not a statement. A `## YOLO status` line
+ * quoted inside a code fence is not the comment's heading, and a `Timing: …`
+ * line inside a fence is not a reported delivery date — reading either one
+ * would have the app assert something the author never claimed.
+ */
+export function proseLines(body: string | undefined | null): string[] {
+  if (typeof body !== 'string') return [];
+  const out: string[] = [];
+  let fence: string | null = null;
+  for (const rawLine of body.split('\n')) {
+    const line = rawLine.trim();
+    const fenceMatch = /^(`{3,}|~{3,})/.exec(line);
+    if (fence) {
+      // A closing fence must not itself be content.
+      if (fenceMatch && fenceMatch[1][0] === fence[0] && fenceMatch[1].length >= fence.length) fence = null;
+      continue;
+    }
+    if (fenceMatch) {
+      fence = fenceMatch[1];
+      continue;
+    }
+    // Four leading spaces (or a tab) is an indented code block.
+    if (/^(?: {4}|\t)/.test(rawLine)) continue;
+    out.push(rawLine);
+  }
+  return out;
+}
+
 /** The comment's first Markdown heading, if the body starts with one. */
 export function firstHeading(body: string | undefined | null): { level: number; text: string } | null {
-  if (typeof body !== 'string') return null;
-  for (const rawLine of body.split('\n')) {
+  for (const rawLine of proseLines(body)) {
     const line = rawLine.trim();
     if (!line) continue;
     const match = /^(#{1,6})\s+(.*)$/.exec(line);
@@ -212,8 +241,8 @@ const TIMING_HEADING = /^(timing|when|delivery timing|estimated delivery|schedul
  * estimated from prose.
  */
 export function reportedTiming(summary: CommentLike | null): string | null {
-  if (!summary || typeof summary.body !== 'string') return null;
-  const lines = summary.body.split('\n');
+  if (!summary) return null;
+  const lines = proseLines(summary.body);
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index].trim();
     if (!/^#{1,6}\s+/.test(line)) continue;

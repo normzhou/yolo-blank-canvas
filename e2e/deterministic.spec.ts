@@ -21,7 +21,7 @@ test('canvas empty state, Requests panel with issue-state variants, and refresh'
   await expect(page.getByRole('dialog', { name: 'Requests' })).toBeVisible();
   await expect(page.getByText('In progress').first()).toBeVisible();
   await expect(page.getByText('Status needs reconciliation')).toBeVisible();
-  await expect(page.getByText('Request open')).toBeVisible();
+  await expect(page.getByText('Request open').first()).toBeVisible();
   await snap('02-list');
 
   await page.getByRole('button', { name: 'Refresh' }).click();
@@ -46,7 +46,14 @@ test('detail view renders the ## YOLO status summary', async ({ page, errors, sn
   await page.getByRole('button', { name: '#7 Make the canvas respond to themes' }).click();
   await expect(page.getByRole('heading', { name: 'Reported summary', exact: true })).toBeVisible();
   await expect(page.getByText('Outcome: shipped themes.').first()).toBeVisible();
-  await expect(page.getByText('Timing: delivered 2026-10-07.').first()).toBeVisible();
+  // The summary states its own timing, so the body is the display and no
+  // derived timing note may duplicate it (#73). Scoped to the summary box: the
+  // same comment also appears in the discussion, which the spec requires.
+  const box = page.locator('.summary-box');
+  await expect(box.getByText('Timing: delivered 2026-10-07.')).toHaveCount(1);
+  await expect(box.locator('p.note', { hasText: /^Timing:/ })).toHaveCount(0);
+  await expect(page.getByText('Timing: Timing:')).toHaveCount(0);
+  await expect(page.getByText('Delivery timing not yet estimated.')).toHaveCount(0);
   await expect(page.getByText('First reply from the maintainer.').first()).toBeVisible();
   await snap('04-detail-summary');
   expectClean(errors);
@@ -106,6 +113,20 @@ test('session-required and auth-retry error surfaces are explicit', async ({ pag
   await expect(page.getByText('gh auth login --hostname github.com --web --skip-ssh-key')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Retry connection' })).toBeVisible();
   await snap('08-auth-retry');
+  expectClean(errors);
+});
+
+test('a timing quoted inside a code example is not read as a reported timing', async ({ page, errors, snap }) => {
+  await page.goto(stub.base);
+  await page.getByRole('button', { name: 'Requests', exact: true }).click();
+  await page.getByRole('button', { name: '#5 A summary that quotes the panel as an example' }).click();
+  await expect(page.getByText('Outcome: not delivered yet.').first()).toBeVisible();
+  // The example is rendered, because it is the author's text, but nothing in it
+  // counts as a delivery statement — so the panel says it has no timing, and
+  // derives no timing note from the quoted line.
+  await expect(page.getByText('Delivery timing not yet estimated.')).toBeVisible();
+  await expect(page.locator('.summary-box p.note', { hasText: /^Timing:/ })).toHaveCount(0);
+  await snap('12-summary-quoted-timing');
   expectClean(errors);
 });
 

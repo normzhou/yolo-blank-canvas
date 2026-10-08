@@ -143,14 +143,6 @@
       "fontWeight": 600
     },
     {
-      "selector": "span.badge.problem",
-      "text": "Status needs reconciliation",
-      "ratio": 6.26,
-      "needs": 4.5,
-      "fontSizePx": 12,
-      "fontWeight": 600
-    },
-    {
       "selector": "span.badge.neutral",
       "text": "Request open",
       "ratio": 5.55,
@@ -159,8 +151,16 @@
       "fontWeight": 600
     },
     {
+      "selector": "span.badge.problem",
+      "text": "Status needs reconciliation",
+      "ratio": 6.26,
+      "needs": 4.5,
+      "fontSizePx": 12,
+      "fontWeight": 600
+    },
+    {
       "selector": "p.note",
-      "text": "End of list (4 shown).",
+      "text": "End of list (5 shown).",
       "ratio": 6.11,
       "needs": 4.5,
       "fontSizePx": 12,

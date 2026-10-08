@@ -81,6 +81,18 @@ export function fixtureIssues(): StubIssue[] {
       created_at: NOW,
       updated_at: NOW,
     },
+    {
+      number: 5,
+      title: 'A summary that quotes the panel as an example',
+      body: 'The summary body contains a fenced timing example.',
+      state: 'open',
+      state_reason: null,
+      html_url: 'https://github.com/normzhou/yolo-blank-canvas/issues/5',
+      labels: [],
+      user: { login: 'normzhou' },
+      created_at: NOW,
+      updated_at: NOW,
+    },
     // Content stress: a long title, nested Markdown with a table and a code
     // block, and unrelated labels long enough to wrap the row meta. Number 1
     // so it sorts to the top of the newest-updated list.
@@ -141,6 +153,29 @@ export function densityIssues(): StubIssue[] {
 }
 
 export function fixtureComments(number: number): StubComment[] {
+  if (number === 5) {
+    // The shape that produced the duplicated-timing defect: a summary that
+    // quotes the panel's own output as an example. The panel must not read a
+    // delivery date out of it.
+    return [
+      {
+        id: 91,
+        body: [
+          '## YOLO status',
+          '',
+          'Outcome: not delivered yet.',
+          '',
+          '```text',
+          'Timing: delivered 2026-10-07.',
+          '```',
+        ].join('\n'),
+        user: { login: 'normzhou' },
+        created_at: NOW,
+        updated_at: NOW,
+        html_url: 'https://github.com/normzhou/yolo-blank-canvas/issues/5#issuecomment-91',
+      },
+    ];
+  }
   if (number !== 7) return [];
   return [
     {
@@ -164,7 +199,10 @@ export function fixtureComments(number: number): StubComment[] {
 
 export function makeStubGithub(overrides: { issues?: StubIssue[] } = {}) {
   const issues = overrides.issues ?? fixtureIssues();
-  const comments = new Map<number, StubComment[]>([[7, fixtureComments(7)]]);
+  const comments = new Map<number, StubComment[]>([
+    [5, fixtureComments(5)],
+    [7, fixtureComments(7)],
+  ]);
   let nextIssue = 100;
   return {
     listIssues: async (_target: unknown, { state, page, perPage }: { state: string; page: number; perPage: number }) => {

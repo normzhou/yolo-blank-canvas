@@ -43,8 +43,8 @@ capture('canvas and list', makeStubGithub, async ({ page, snap }) => {
   await snap('01-canvas');
   await openPanel(page);
   await listSettled(page);
-  // 5 fixtures, but the default filter is Open and #4 is closed.
-  await expect(page.locator('.issue-row')).toHaveCount(4);
+  // 6 fixtures, but the default filter is Open and #4 is closed.
+  await expect(page.locator('.issue-row')).toHaveCount(5);
   await snap('02-list');
 });
 

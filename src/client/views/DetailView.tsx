@@ -168,7 +168,15 @@ export function DetailView({
               ) : null}
             </p>
             <Markdown>{summary.body}</Markdown>
-            <p className="note">Timing: {timing ?? NO_TIMING_TEXT}</p>
+            {/*
+              The summary's own words are the display for timing. `reportedTiming`
+              only ever resolves when the body literally states a timing, and that
+              body is rendered above, so a derived line could only repeat it —
+              which is how the panel came to read "Timing: Timing: …". The
+              fallback is what this element is for: saying, honestly, that no
+              delivery timing was reported.
+            */}
+            {timing === null ? <p className="note">{NO_TIMING_TEXT}</p> : null}
             {otherSummaries.length > 0 ? (
               <p className="note">
                 {otherSummaries.length} earlier summary comment{otherSummaries.length === 1 ? '' : 's'} also appear in the
