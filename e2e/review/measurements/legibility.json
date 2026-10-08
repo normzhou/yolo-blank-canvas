@@ -23,7 +23,7 @@
   ],
   "spacing": {
     ".canvas": {
-      "padding": "20px 24px",
+      "padding": "20px 560px 20px 24px",
       "margin": "0px",
       "gap": "16px",
       "radius": "0px",
