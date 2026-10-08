@@ -172,6 +172,10 @@ textarea { min-height: 140px; resize: vertical; }
   gap: 12px;
 }
 .tetris-art {
+  /* The one place the crossfade length is written down. Removing the outgoing
+     layer is driven by the animation's own end (TetrisView), so this length is
+     never restated in JS. */
+  --tetris-art-fade: 700ms;
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -184,8 +188,8 @@ textarea { min-height: 140px; resize: vertical; }
   height: 100%;
   object-fit: cover;
 }
-.tetris-art-layer.is-current { animation: tetris-art-in 700ms ease forwards; }
-.tetris-art-layer.is-past { animation: tetris-art-out 700ms ease forwards; }
+.tetris-art-layer.is-current { animation: tetris-art-in var(--tetris-art-fade) ease forwards; }
+.tetris-art-layer.is-past { animation: tetris-art-out var(--tetris-art-fade) ease forwards; }
 @keyframes tetris-art-in {
   from { opacity: 0; }
   to { opacity: 0.55; }

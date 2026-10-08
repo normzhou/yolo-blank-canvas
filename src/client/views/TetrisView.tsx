@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { TetrisMusic } from '../audio/tetrisMusic';
 import {
   BACKGROUNDS,
@@ -23,6 +23,11 @@ import {
   type Tetromino,
 } from '../../shared/tetris';
 
+/** `prefers-reduced-motion: reduce`, where the crossfade is cut, not animated. */
+function motionReduced(): boolean {
+  return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
 const CELL_CLASS: Record<Tetromino, string> = {
   I: 'tetromino-i',
   J: 'tetromino-j',
@@ -37,24 +42,42 @@ function cellClass(cell: Cell): string {
   return cell ? `tetris-cell ${CELL_CLASS[cell]}` : 'tetris-cell';
 }
 
-function ArtLayer({ art, past }: { art: Backdrop; past: boolean }) {
+function ArtLayer({ art, past, onFaded }: { art: Backdrop; past: boolean; onFaded: () => void }) {
   return (
     <img
       className={`tetris-art-layer ${past ? 'is-past' : 'is-current'}`}
       src={art.src}
       alt=""
       aria-hidden="true"
+      // The fade decides when the layer goes: removing it on a second copy of
+      // the duration lets the two drift apart and pop the art mid-fade.
+      onAnimationEnd={
+        past
+          ? (event) => {
+              if (event.animationName === 'tetris-art-out') onFaded();
+            }
+          : undefined
+      }
     />
   );
 }
 
 /**
  * Crossfades between scenes: the new scene fades in while the previous one
- * fades out. The outgoing layer is dropped once the transition finishes.
+ * fades out.
+ *
+ * The outgoing layer is removed by its own `animationend`, so the unmount
+ * happens where the fade actually ends rather than at a second copy of its
+ * length. Under `prefers-reduced-motion: reduce` no animation runs, so that
+ * event never arrives and the layer is dropped on the next frame instead —
+ * there is nothing to fade, and leaving it in the DOM would accumulate one
+ * hidden layer per scene change.
  */
 function PixelBackdrop({ art }: { art: Backdrop }) {
   const [layers, setLayers] = useState<Array<{ key: number; art: Backdrop }>>([{ key: 0, art }]);
   const keyRef = useRef(0);
+
+  const dropPastLayers = useCallback(() => setLayers((current) => current.slice(-1)), []);
 
   useEffect(() => {
     setLayers((current) => {
@@ -64,16 +87,17 @@ function PixelBackdrop({ art }: { art: Backdrop }) {
     });
   }, [art]);
 
+  // Cut, not crossfade: no animation means no `animationend` to wait for.
   useEffect(() => {
-    if (layers.length <= 1) return;
-    const id = window.setTimeout(() => setLayers((current) => current.slice(-1)), 700);
-    return () => window.clearTimeout(id);
-  }, [layers]);
+    if (layers.length <= 1 || !motionReduced()) return;
+    const id = window.requestAnimationFrame(dropPastLayers);
+    return () => window.cancelAnimationFrame(id);
+  }, [layers, dropPastLayers]);
 
   return (
     <div className="tetris-art" aria-hidden="true">
       {layers.map((layer, index) => (
-        <ArtLayer key={layer.key} art={layer.art} past={index < layers.length - 1} />
+        <ArtLayer key={layer.key} art={layer.art} past={index < layers.length - 1} onFaded={dropPastLayers} />
       ))}
     </div>
   );
