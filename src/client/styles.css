@@ -144,7 +144,13 @@ button.link { background: none; border: none; padding: 0; color: var(--accent); 
 .filter-group button:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin-left: -1px; }
 .filter-group button[aria-pressed="true"] { background: var(--accent-weak); border-color: var(--accent); color: var(--accent-weak-text); }
 
-.issue-row { border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; margin-bottom: 8px; }
+/* Chosen Q4 direction (#75 finding 11): drop the card chrome for hairline
+   dividers. The rows are rows, not faint objects; the density goal (measured
+   11 rows visible instead of 8) comes from removing the card border and
+   margin, and `--elevation-card` stays defined for the deferred
+   `b-elevated-cards` direction. */
+.issue-row { border: none; border-bottom: 1px solid var(--border); border-radius: 0; padding: 10px 4px; margin-bottom: 0; background: none; }
+.issue-row:last-child { border-bottom: none; }
 .issue-row button.issue-title { background: none; border: none; padding: 0; text-align: left; font-weight: var(--weight-semibold); color: var(--text); }
 .issue-row .meta { color: var(--muted); font-size: var(--text-xs); display: flex; gap: 8px; align-items: center; margin-top: 6px; flex-wrap: wrap; }
 
