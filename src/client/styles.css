@@ -214,6 +214,16 @@ a:visited { color: var(--accent-weak-text); }
   /* The panel already covers the viewport here, so the canvas reclaims its width. */
   .canvas.panel-open { padding-right: 0; }
   .canvas-prompt { font-size: var(--text-xl); margin-top: 8vh; }
+
+  /* Chosen Q2 direction (#75 finding 3): at 390px the toolbar used to wrap
+     `Refresh` onto a line of its own, left-aligned — the recovery control was
+     the most orphaned. It now sits with the state filters it recovers, and the
+     primary action takes the row beneath. */
+  .toolbar { display: grid; grid-template-columns: 1fr auto; gap: 8px 10px; }
+  .toolbar .filter-group { grid-column: 1; grid-row: 1; justify-self: start; }
+  .toolbar .spacer { display: none; }
+  .toolbar button:not(.primary) { grid-column: 2; grid-row: 1; justify-self: end; }
+  .toolbar button.primary { grid-column: 1 / -1; grid-row: 2; justify-self: start; }
 }
 .canvas-actions { display: flex; gap: 8px; }
 
