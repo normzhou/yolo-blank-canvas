@@ -112,7 +112,7 @@ test.describe('review evidence is reproducible', () => {
       steps: async (page) => {
         await openPanel(page);
         await listSettled(page);
-        await expect(page.locator('.issue-row')).toHaveCount(4);
+        await expect(page.locator('.issue-row')).toHaveCount(5);
       },
     },
     {

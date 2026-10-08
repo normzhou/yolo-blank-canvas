@@ -107,6 +107,14 @@ describe('reported summary detection', () => {
     expect(firstHeading('\n\n## YOLO status')).toEqual({ level: 2, text: 'YOLO status' });
   });
 
+  it('does not treat a heading quoted inside a code fence as the comment heading', () => {
+    // A comment that opens with an example is not a status summary, however
+    // much its fence contains the words.
+    expect(isSummaryComment(comment({ body: 'Example:\n\n```md\n## YOLO status\n```\n' }))).toBe(false);
+    expect(firstHeading('```\n## YOLO status\n```')).toBeNull();
+    expect(isSummaryComment(comment({ body: '## YOLO status\n\n```md\n## Plan\n```\n' }))).toBe(true);
+  });
+
   it('identifies the most recently updated match and keeps the others accessible', () => {
     const comments = [
       comment({ id: 1, body: '## YOLO status\n\nOutcome: first', updated_at: '2026-01-01T00:00:00Z' }),
@@ -131,5 +139,39 @@ describe('reported summary detection', () => {
   it('never invents a delivery estimate from ordinary prose', () => {
     const prose = comment({ body: '## YOLO status\n\nOutcome: done. It will be ready soon.' });
     expect(reportedTiming(prose)).toBeNull();
+  });
+
+  it('never reads a delivery date out of a code example', () => {
+    // The shape that produced the duplicated-timing defect: an issue body that
+    // quotes the panel's own output as an example. Reading it made the app
+    // assert a delivery date the author never stated.
+    const example = comment({
+      body: [
+        '## YOLO status',
+        '',
+        'Outcome: not yet delivered.',
+        '',
+        '```text',
+        'Timing: delivered 2026-10-07.',
+        '```',
+        '',
+        '```',
+        '## Timing',
+        '',
+        'quoted heading',
+        '```',
+      ].join('\n'),
+    });
+    expect(reportedTiming(example)).toBeNull();
+  });
+
+  it('ignores an indented code block as well as a fence', () => {
+    const indented = comment({ body: '## YOLO status\n\n    Timing: delivered 2026-10-07.\n' });
+    expect(reportedTiming(indented)).toBeNull();
+  });
+
+  it('still reads timing stated in the summary as prose', () => {
+    const inline = comment({ body: '## YOLO status\n\nOutcome: shipped.\nTiming: delivered 2026-10-07.' });
+    expect(reportedTiming(inline)).toBe('Timing: delivered 2026-10-07.');
   });
 });

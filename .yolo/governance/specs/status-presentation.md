@@ -42,14 +42,27 @@ statement that the record says so, not an independent verification of delivery.
 
 A comment whose **first heading** is `## YOLO status` is the *Reported summary*. The most
 recently updated matching comment wins; earlier ones remain visible in the discussion. With no
-matching comment the panel says **No progress summary yet.** Timing is shown only when the
-summary states it; otherwise **Delivery timing not yet estimated.**
+matching comment the panel says **No progress summary yet.**
+
+Timing is shown only when the summary states it; otherwise **Delivery timing not yet
+estimated.** Two consequences are part of the contract:
+
+- **The summary's own words are the display for timing.** A summary that states a timing
+  shows it in its own body, and the panel adds no derived timing line. Duplicating it would
+  repeat the same words twice and assert nothing extra. The panel's only timing text is the
+  **not estimated** fallback, which exists to say honestly that no timing was reported.
+- **A timing is only read from prose.** Content inside fenced or indented code is an example,
+  not a statement, so neither a `Timing:` line nor a `Timing` heading inside a code block
+  counts as the summary stating a timing. Reading one would have the panel assert a delivery
+  date the author never claimed. The same rule governs summary detection: a `## YOLO status`
+  heading quoted inside a code block is not the comment's first heading.
 
 ## Truthfulness rules
 
 These are acceptance criteria, not styling preferences:
 
 1. No fixture, view or copy asserts that work is scheduled, queued for execution, or available.
+   A delivery timing is read only from the summary's prose, never from a quoted example.
 2. Untagged open issues read as **Request open** — never as work that an agent has read,
    accepted or scheduled.
 3. Closing an unmanaged conversation does not display as delivery.
