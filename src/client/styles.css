@@ -1,15 +1,22 @@
 :root {
   --bg: #f7f8fa;
   --surface: #ffffff;
+  --field: #f6f8fa;
   --border: #d8dce3;
   --text: #1f2328;
   --muted: #59636e;
   --accent: #1f6feb;
   --accent-weak: #ddebff;
+  /* Darker text for text on the pale accent fill: --accent itself only reaches
+     ~4.4:1 there, which is under the 4.5:1 floor. */
+  --accent-weak-text: #0b3f8f;
   --positive: #1a7f37;
   --warning: #9a6700;
   --warning-weak: #fff8c5;
-  --problem: #b35900;
+  --error-bg: #fff4e6;
+  --error-text: #7a3d00;
+  --problem: #8a4100;
+  --problem-weak: #ffe8d6;
   --closed: #59636e;
   --radius: 8px;
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -88,7 +95,7 @@ button.link { background: none; border: none; padding: 0; color: var(--accent); 
 .filter-group button { border-radius: 0; }
 .filter-group button:first-child { border-radius: 6px 0 0 6px; }
 .filter-group button:last-child { border-radius: 0 6px 6px 0; margin-left: -1px; }
-.filter-group button[aria-pressed="true"] { background: var(--accent-weak); border-color: var(--accent); color: #0b3f8f; }
+.filter-group button[aria-pressed="true"] { background: var(--accent-weak); border-color: var(--accent); color: var(--accent-weak-text); }
 
 .issue-row { border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; margin-bottom: 8px; }
 .issue-row button.issue-title { background: none; border: none; padding: 0; text-align: left; font-weight: 600; color: var(--text); }
@@ -99,16 +106,16 @@ button.link { background: none; border: none; padding: 0; color: var(--accent); 
   font-size: 12px; font-weight: 600; border: 1px solid var(--border); color: var(--muted); background: #f2f4f7;
   white-space: nowrap;
 }
-.badge.progress { background: var(--accent-weak); border-color: var(--accent); color: #0b3f8f; }
+.badge.progress { background: var(--accent-weak); border-color: var(--accent); color: var(--accent-weak-text); }
 .badge.waiting { background: var(--warning-weak); border-color: #d4a72c; color: var(--warning); }
-.badge.problem { background: #ffe8d6; border-color: #d08b3c; color: var(--problem); }
+.badge.problem { background: var(--problem-weak); border-color: #d08b3c; color: var(--problem); }
 .badge.closed { background: #eceef1; color: var(--closed); }
 
 .label-chip { font-size: 11px; padding: 0 6px; border: 1px dashed var(--border); border-radius: 4px; color: var(--muted); }
 
 .note { color: var(--muted); font-size: 12px; margin-top: 6px; }
 .error {
-  border: 1px solid #d08b3c; background: #fff4e6; color: #7a3d00;
+  border: 1px solid #d08b3c; background: var(--error-bg); color: var(--error-text);
   padding: 10px 12px; border-radius: var(--radius); margin-bottom: 12px; font-size: 14px;
 }
 .error code { background: #f6e6d3; padding: 1px 4px; border-radius: 3px; word-break: break-all; }
@@ -116,7 +123,12 @@ button.link { background: none; border: none; padding: 0; color: var(--accent); 
 
 label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; }
 input[type="text"], textarea {
-  width: 100%; font: inherit; padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: #fff; color: var(--text);
+  /* The field fill, not its border, is what makes a text field read as a
+     field: it sat on a white panel with the same white background, so only a
+     1px hairline marked it. WCAG 1.4.11 does not require a 3:1 boundary here
+     because the visible label already identifies the control. */
+  width: 100%; font: inherit; padding: 8px; border: 1px solid #c8ced8; border-radius: 6px;
+  background: var(--field); color: var(--text);
 }
 textarea { min-height: 140px; resize: vertical; }
 .field { margin-bottom: 12px; }
@@ -182,6 +194,13 @@ textarea { min-height: 140px; resize: vertical; }
   from { opacity: 0.55; }
   to { opacity: 0; }
 }
+
+/* Honour the OS motion preference: cut between scenes instead of crossfading. */
+@media (prefers-reduced-motion: reduce) {
+  .tetris-art-layer.is-current,
+  .tetris-art-layer.is-past { animation: none; }
+  .tetris-art-layer.is-past { display: none; }
+}
 .tetris-header, .tetris-body, .tetris-over, .tetris-help, .tetris-scene {
   position: relative;
   z-index: 1;
@@ -214,7 +233,12 @@ textarea { min-height: 140px; resize: vertical; }
   min-width: 92px;
   padding: 8px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.6);
+  /* Opaque, not a translucent veil. Measured against every bundled backdrop, a
+     60% white veil put the label at 1.06:1–2.38:1 against the darkest pixel of
+     the dark scenes, and raising the opacity made it worse: a veil pulls a
+     dark pixel toward mid-grey, exactly where mid-grey text has no contrast.
+     No alpha value works over arbitrary art. */
+  background: var(--surface);
 }
 .tetris-stat { display: flex; flex-direction: column; gap: 2px; }
 .tetris-label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
