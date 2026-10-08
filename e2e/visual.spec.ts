@@ -1,4 +1,4 @@
-import { test, expect, VIEWPORTS, type ViewportName, freezeClock, settled, listSettled } from './fixtures';
+import { test, expect, VIEWPORTS, type ViewportName, freezeClock, settled, listSettled, imagesLoaded } from './fixtures';
 import { startStubApp, makeStubGithub, withoutSummaryGithub, densityIssues } from './stub-server';
 import type { Page } from '@playwright/test';
 
@@ -123,6 +123,28 @@ capture('connection error surface', makeStubGithub, async ({ page, snap }) => {
   await snap('12-auth-error');
 });
 
+capture('tetris stats legible on every backdrop', makeStubGithub, async ({ page, snap }) => {
+  await page.getByRole('button', { name: 'Play Tetris' }).click();
+  await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
+  await page.getByRole('button', { name: 'Pause' }).click();
+  await expect(page.getByRole('button', { name: 'Resume' })).toBeVisible();
+  await imagesLoaded(page);
+  // Every bundled backdrop, because legibility over artwork cannot be judged
+  // from one scene (#76 row 3).
+  const titles = ['Night Sky', 'City at Night', 'Desert Dunes', 'Red Planet', 'Deep Space', 'Castle in the Dark'];
+  for (let index = 0; index < titles.length; index += 1) {
+    await expect(page.locator('.tetris-scene')).toContainText(titles[index]);
+    await snap(`15-tetris-scene-${index + 1}-${titles[index].toLowerCase().replace(/[^a-z]+/g, '-')}`);
+    if (index < titles.length - 1) {
+      await page.evaluate(() => window.dispatchEvent(new Event('yolo:tetris:four-line-clear')));
+      await expect(page.locator('.tetris-scene')).toContainText(titles[index + 1]);
+      // The next backdrop is a new image; wait for it or the capture races its
+      // decode and differs from a warm-cache run.
+      await imagesLoaded(page);
+    }
+  }
+});
+
 capture('tetris board and stats', makeStubGithub, async ({ page, snap }) => {
   await page.getByRole('button', { name: 'Play Tetris' }).click();
   await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
@@ -130,6 +152,7 @@ capture('tetris board and stats', makeStubGithub, async ({ page, snap }) => {
   // board becoming visible and the shutter.
   await page.getByRole('button', { name: 'Pause' }).click();
   await expect(page.getByRole('button', { name: 'Resume' })).toBeVisible();
+  await imagesLoaded(page);
   await snap('13-tetris-board');
   await page.getByRole('button', { name: /Music off/ }).click();
   await expect(page.locator('.tetris-scene')).toContainText('Music:');

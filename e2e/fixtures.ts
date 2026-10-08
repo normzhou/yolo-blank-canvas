@@ -41,7 +41,14 @@ export const test = base.extend<{ errors: string[]; snap: (name: string) => Prom
       const review = name.startsWith('visual/') || name.startsWith('motion/');
       const file = path.join(review ? REVIEW_DIR : ARTIFACTS, `${name}.png`);
       fs.mkdirSync(path.dirname(file), { recursive: true });
-      await page.screenshot({ path: file, fullPage: true });
+      // CSS animations are fast-forwarded to their end state so a capture never
+      // lands mid-fade. The motion strip is excluded: sampling mid-transition
+      // is the whole point of it.
+      const animations = name.startsWith('motion/') ? 'allow' : 'disabled';
+      if (animations === 'disabled') await stableFrame(page);
+      // `caret: 'hide'`: a focused text input blinks its caret, which is a
+      // pixel-level difference unrelated to anything the review is looking at.
+      await page.screenshot({ path: file, fullPage: true, animations, caret: 'hide' });
       return file;
     });
   },
@@ -96,6 +103,30 @@ export async function settled(page: Page) {
 export async function listSettled(page: Page) {
   await page.waitForLoadState('networkidle');
   await expect(page.getByText(/End of list|Load more/).first()).toBeVisible();
+}
+
+/**
+ * Wait for every image to finish decoding.
+ *
+ * The Tetris backdrops are `<img>` layers over the card. A capture taken before
+ * they decode photographs a different panel from the one a warm cache produces,
+ * which made the committed board capture churn between runs.
+ */
+export async function imagesLoaded(page: Page) {
+  await page.waitForFunction(() => Array.from(document.images).every((img) => img.complete && img.naturalWidth > 0));
+}
+
+/**
+ * Wait for a frame that will not change: fonts resolved, then two animation
+ * frames painted. Under load, a screenshot can otherwise land on a frame whose
+ * layers have not finished rasterising, which shows up as a handful of stray
+ * pixels and makes a byte comparison flaky.
+ */
+export async function stableFrame(page: Page) {
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+  });
 }
 
 /** Assert no console errors/page errors were seen on this page. */

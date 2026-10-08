@@ -198,7 +198,7 @@
       "--positive": "#1a7f37",
       "--warning": "#9a6700",
       "--warning-weak": "#fff8c5",
-      "--problem": "#b35900",
+      "--problem": "#8a4100",
       "--closed": "#59636e",
       "--radius": "8px"
     },
@@ -364,6 +364,17 @@
         "fontWeight": 700,
         "lineHeight": "normal",
         "needs": 4.5
+      },
+      {
+        "selector": "div.comment-header",
+        "text": "normzhoujust now",
+        "color": "rgb(89, 99, 110)",
+        "background": "rgb(255,255,255)",
+        "ratio": 6.11,
+        "fontSizePx": 12,
+        "fontWeight": 400,
+        "lineHeight": "normal",
+        "needs": 4.5
       }
     ],
     "spacing": {
@@ -387,6 +398,13 @@
         "gap": "8px",
         "radius": "0px",
         "border": "0px none rgb(31, 35, 40)"
+      },
+      ".comment": {
+        "padding": "12px 0px",
+        "margin": "0px",
+        "gap": "normal",
+        "radius": "0px",
+        "border": "1px solid rgb(216, 220, 227)"
       },
       ".field": {
         "padding": "0px",
@@ -414,7 +432,7 @@
       "--positive": "#1a7f37",
       "--warning": "#9a6700",
       "--warning-weak": "#fff8c5",
-      "--problem": "#b35900",
+      "--problem": "#8a4100",
       "--closed": "#59636e",
       "--radius": "8px"
     },

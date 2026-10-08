@@ -11,7 +11,7 @@
     "--positive": "#1a7f37",
     "--warning": "#9a6700",
     "--warning-weak": "#fff8c5",
-    "--problem": "#b35900",
+    "--problem": "#8a4100",
     "--closed": "#59636e",
     "--radius": "8px"
   },
@@ -51,16 +51,8 @@
       "border": "1px solid rgb(216, 220, 227)"
     }
   },
-  "samples": 36,
-  "belowFloor": [
-    {
-      "selector": "span.badge.problem",
-      "text": "Status needs reconciliation",
-      "ratio": 4.09,
-      "needs": 4.5,
-      "fontSizePx": 12
-    }
-  ],
+  "samples": 37,
+  "belowFloor": [],
   "all": [
     {
       "selector": "h1.canvas-title",
@@ -153,7 +145,7 @@
     {
       "selector": "span.badge.problem",
       "text": "Status needs reconciliation",
-      "ratio": 4.09,
+      "ratio": 6.26,
       "needs": 4.5,
       "fontSizePx": 12,
       "fontWeight": 600
@@ -248,7 +240,7 @@
     },
     {
       "selector": "p.note",
-      "text": "No progress summary yet.",
+      "text": "by normzhou · updated just now · source",
       "ratio": 5.88,
       "needs": 4.5,
       "fontSizePx": 12,
@@ -285,6 +277,14 @@
       "needs": 4.5,
       "fontSizePx": 14,
       "fontWeight": 700
+    },
+    {
+      "selector": "div.comment-header",
+      "text": "normzhoujust nowsource",
+      "ratio": 6.11,
+      "needs": 4.5,
+      "fontSizePx": 12,
+      "fontWeight": 400
     },
     {
       "selector": "h1.canvas-title",
