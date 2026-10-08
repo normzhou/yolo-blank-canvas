@@ -303,6 +303,51 @@ This is a visible design change — the title and the two bottom lines sit on wh
 card. It matches the stat panel's existing treatment, but it is a direction call, recorded on #90 for
 the maintainer to keep or reverse alongside #75's stage-4 variant work.
 
+## The app's own links use the project token (issue #94)
+
+Deterministic browser measurement with a control run, on the merge of PR #95 (`8fe531b`, commit
+`a3cf257`). `npm test` 122 passed, `npx tsc --noEmit` clean, `npm run build` clean, `npm run e2e`
+53 passed + 1 skipped, GitHub CI green on the pre-merge tip.
+
+`styles.css` had `.comment-body a { color: var(--accent) }` and no rule for the anchors the app
+renders itself, so all four of those (`Open in GitHub ↗` and three `source` links) computed to
+`rgb(0, 0, 238)` — the browser's UA default blue. Measured on the surfaces they actually sit over:
+
+| Candidate | on `--surface` #ffffff | on `.note` #f7fbff | on `--bg` #f7f8fa |
+| --- | --- | --- | --- |
+| `#0000ee` (before) | 9.40:1 | 9.04:1 | 8.84:1 |
+| `--accent` #1f6feb | 4.63:1 | **4.46:1** | **4.36:1** |
+| `--accent-weak-text` #0b3f8f | 9.90:1 | 9.52:1 | 9.31:1 |
+
+`--accent` clears 4.5:1 on white by 0.13 and fails on the summary note, where the Reported summary's
+own `source` link sits — so the obvious fix would have traded an unstyled-but-legible link for a
+styled-but-illegible one. `--accent-weak-text` already existed in `:root` for this reason and is now
+applied to all anchors; Markdown links moved to the same token (4.63:1 → 9.90:1, behaviour
+unchanged).
+
+**Control run.** With `src/client/styles.css` reverted, `e2e/link-colour.spec.ts` fails with
+`Open in GitHub ↗: inherited a colour the app did not choose (browser default)`. The spec asserts
+the computed colour rather than "is it blue", resolves the effective background by walking up
+translucent layers instead of assuming white, and requires more than one distinct surface so it
+cannot pass by measuring the toolbar link alone.
+
+## Findings 2, 5, 7 and 11 re-verified against the running app
+
+The four findings this audit left unfiled were checked by measurement rather than by reading the
+screenshots and the stylesheet. Two were misdescribed; two are direction questions rather than
+defects. Recorded in full on [#75](https://github.com/normzhou/yolo-blank-canvas/issues/75):
+
+- **Finding 5** claimed `Disconnect` and `Open in GitHub ↗` were styled identically. Measured,
+  `Disconnect` is `--accent` and the anchors were the UA default — the real defect was that the
+  app's own links had no styling, filed and fixed as #94.
+- **Finding 11** claimed the footer cuts the last list row. Measured, `.panel-body` is the scroller
+  and the footer sits below it (`bodyBottom` 868 = `footerTop` 868, no overlap); the row is clipped
+  by the scroller at 73%, with no scrollbar at rest. Real friction, wrong element named.
+- **Finding 2** confirmed (prompt at y=193 of 844) but every fix is a direction decision for
+  stage 4.
+- **Finding 7** confirmed from the running app: five steps at two weights — 12/400, 12/600, 13/400,
+  16/400, 16/600, 22/400. Stage 4's token work is its deliverable.
+
 ## Tested revision
 
 Release tag `v0.3.1` points at the squash merge `80bf5f8` (release bump) on top of
