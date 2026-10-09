@@ -127,7 +127,27 @@ button.link { background: none; border: none; padding: 0; color: var(--accent); 
 }
 .panel-repo { font-weight: var(--weight-semibold); }
 .panel-identity { color: var(--muted); font-size: var(--text-xs); }
-.panel-body { flex: 1; overflow: auto; padding: 16px; }
+.panel-body {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+  /* Scroll affordance (#104): the panel's scroller has no scrollbar at rest on
+     macOS, so a clipped row used to be the only cue that more content existed
+     below. The standard background-attachment technique paints a soft edge at
+     the top and bottom only while content is scrolled out of view: the two
+     `local` cover layers scroll with the content and hide the two `scroll`
+     shadows at each end. No element is added and nothing overlaps the content. */
+  background-color: var(--surface);
+  background-image:
+    linear-gradient(var(--surface) 30%, rgba(255, 255, 255, 0)),
+    linear-gradient(rgba(255, 255, 255, 0), var(--surface) 70%),
+    radial-gradient(farthest-side at 50% 0, rgba(31, 35, 40, 0.14), rgba(31, 35, 40, 0)),
+    radial-gradient(farthest-side at 50% 100%, rgba(31, 35, 40, 0.14), rgba(31, 35, 40, 0));
+  background-position: top, bottom, top, bottom;
+  background-size: 100% 24px, 100% 24px, 100% 8px, 100% 8px;
+  background-repeat: no-repeat;
+  background-attachment: local, local, scroll, scroll;
+}
 .panel-footer {
   border-top: 1px solid var(--border);
   padding: 8px 16px;

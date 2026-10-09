@@ -57,6 +57,11 @@ capture('list with 34 rows (density)', () => makeStubGithub({ issues: densityIss
   await expect(page.locator('.issue-row')).toHaveCount(34);
   await listSettled(page);
   await snap('04-list-density-34');
+  // At the end of the list the scroll affordance should be gone (#104).
+  await page.locator('.panel-body').evaluate((el) => {
+    el.scrollTop = el.scrollHeight;
+  });
+  await snap('04b-list-density-34-end');
 });
 
 capture('closed filter', makeStubGithub, async ({ page, snap }) => {

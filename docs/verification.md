@@ -385,6 +385,27 @@ after the opaque stat panel of #76/#90.
 by the committed commands. `desktop-02-list.png` now shows the whole prompt with the panel open
 (before: truncated at *build*), and `desktop-03-list-density-30.png` shows the hairline rows.
 
+## List scroll affordance (issue #104)
+
+The panel's scroller (`.panel-body`) has no scrollbar at rest on macOS, so a clipped row was the only
+cue that more requests existed below. The fix is the standard background-attachment scroll shadow:
+two `local` cover layers over two `scroll` radial-gradient shadows, added to `.panel-body`. No element
+was added and nothing overlaps the content.
+
+Measured in the running app with 30 fixture rows after the fix: `scrollHeight` 2027 vs
+`clientHeight` 810; `scrollWidth` 559 = `clientWidth` 559, so no horizontal scrollbar; focusing row
+25 scrolls the container (`scrollTop` > 0).
+
+Human-reviewed evidence is committed, not pixel-diffed:
+
+- `e2e/review/visual/desktop-03-list-density-30.png` — the soft edge at the bottom while rows remain below.
+- `e2e/review/visual/desktop-04b-list-density-34-end.png` — the edge is gone at the end of the list.
+
+Guard: `e2e/scroll-affordance.spec.ts` asserts the mechanism (`background-attachment: local, local,
+scroll, scroll`; exactly two radial gradients), that content overflows at rest, that no horizontal
+scrollbar was introduced, and that keyboard focus still reaches the end. `npm test` 122 passed,
+`npx tsc --noEmit` clean, `npm run build` clean, `npm run e2e` 63 passed + 1 skipped.
+
 ## Tested revision
 
 Release tag `v0.3.1` points at the squash merge `80bf5f8` (release bump) on top of
