@@ -21,21 +21,14 @@
 
   /* ---- Design tokens ------------------------------------------------------
      The direction chosen in the UI review (#75, stage 4), written down once so
-     it is not tribal knowledge buried in individual rules. The type steps are
-     the sizes measured from the running app in stage 2
-     (`e2e/review/measurements/legibility.json`); the near-duplicate steps
-     (11/12/13/14/15px) are named as they are rather than silently collapsed,
-     because consolidating them is a separate decision the maintainer has not
-     made. Colour roles above predate this block and are unchanged. */
-  --text-2xs: 11px;   /* dashed label chips */
-  --text-xs: 12px;    /* metadata, badges, notes, footer */
-  --text-sm: 13px;    /* field labels, identity line */
-  --text-base: 14px;  /* body copy, controls, banners */
-  --text-md: 15px;    /* Tetris title */
-  --text-lg: 16px;    /* headings, panel title */
-  --text-xl: 18px;    /* canvas prompt on narrow screens */
-  --text-2xl: 20px;   /* Tetris stat value */
-  --text-3xl: 22px;   /* canvas prompt */
+     it is not tribal knowledge buried in individual rules. The type scale was
+     consolidated in #103: the nine measured steps (11-22px) had three adjacent
+     sizes differing by 1px, which is why hierarchy read as accidental, so they
+     collapse to four role-named steps. Colour roles above are unchanged. */
+  --text-xs: 12px;     /* metadata, badges, labels, notes, footer, identity */
+  --text-base: 14px;   /* body copy, controls, banners, form labels */
+  --text-lg: 16px;     /* headings, panel title, Tetris title */
+  --text-display: clamp(18px, 5vw, 22px); /* canvas prompt, Tetris stat value */
   --weight-regular: 400;
   --weight-semibold: 600;
 
@@ -94,12 +87,12 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 .canvas.panel-open { padding-right: var(--panel-width); }
 .canvas-header { display: flex; align-items: center; justify-content: space-between; }
 .canvas-title { font-size: var(--text-lg); font-weight: var(--weight-semibold); margin: 0; }
-.canvas-prompt { margin: 12vh auto 0; text-align: center; font-size: var(--text-3xl); color: var(--muted); max-width: 520px; }
+.canvas-prompt { margin: 12vh auto 0; text-align: center; font-size: var(--text-display); color: var(--muted); max-width: 520px; }
 /* On a phone the prompt alone left the first screen an empty grey wall with
    nothing to do (#101). The hint names the way in; it is hidden on wider
    screens, where the header action is enough. */
-.canvas-empty-hint { display: none; color: var(--muted); font-size: var(--text-sm); text-align: center; margin: 0 auto; max-width: 320px; }
-.canvas-identity { color: var(--muted); font-size: var(--text-sm); }
+.canvas-empty-hint { display: none; color: var(--muted); font-size: var(--text-xs); text-align: center; margin: 0 auto; max-width: 320px; }
+.canvas-identity { color: var(--muted); font-size: var(--text-xs); }
 
 .banner {
   border: 1px solid var(--border);
@@ -190,7 +183,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 .badge.problem { background: var(--problem-weak); border-color: #d08b3c; color: var(--problem); }
 .badge.closed { background: #eceef1; color: var(--closed); }
 
-.label-chip { font-size: var(--text-2xs); padding: 0 6px; border: 1px dashed var(--border); border-radius: var(--radius-xs); color: var(--muted); }
+.label-chip { font-size: var(--text-xs); padding: 0 6px; border: 1px dashed var(--border); border-radius: var(--radius-xs); color: var(--muted); }
 
 .note { color: var(--muted); font-size: var(--text-xs); margin-top: 6px; }
 .error {
@@ -200,7 +193,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 .error code { background: #f6e6d3; padding: 1px 4px; border-radius: 3px; word-break: break-all; }
 .stale { color: var(--problem); font-weight: var(--weight-semibold); }
 
-label { display: block; font-weight: var(--weight-semibold); font-size: var(--text-sm); margin-bottom: 4px; }
+label { display: block; font-weight: var(--weight-semibold); font-size: var(--text-base); margin-bottom: 4px; }
 input[type="text"], textarea {
   /* The field fill, not its border, is what makes a text field read as a
      field: it sat on a white panel with the same white background, so only a
@@ -241,7 +234,7 @@ a:visited { color: var(--accent-weak-text); }
    uppercase, muted, letter-spaced — so scanning for what the app reports does
    not depend on shrinking someone else's writing. */
 .summary-box h3 { margin: 0 0 10px; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
-.summary-box .note { font-size: var(--text-sm); }
+.summary-box .note { font-size: var(--text-base); }
 
 .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .empty { color: var(--muted); padding: 24px 0; text-align: center; }
@@ -250,7 +243,7 @@ a:visited { color: var(--accent-weak-text); }
   .panel { width: 100vw; border-left: none; }
   /* The panel already covers the viewport here, so the canvas reclaims its width. */
   .canvas.panel-open { padding-right: 0; }
-  .canvas-prompt { font-size: var(--text-xl); margin-top: 24px; }
+  .canvas-prompt { margin-top: var(--space-6); }
   .canvas-empty-hint { display: block; }
 
   /* Chosen Q2 direction (#75 finding 3): at 390px the toolbar used to wrap
@@ -325,7 +318,7 @@ a:visited { color: var(--accent-weak-text); }
 .tetris-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .tetris-title {
   margin: 0;
-  font-size: var(--text-md);
+  font-size: var(--text-lg);
   font-weight: var(--weight-semibold);
   /* Also sits directly on the backdrop, and measured across the bundled scenes
      it fell to 3.96:1 on the darkest ones. Same opaque rule as the lines below;
@@ -369,7 +362,7 @@ a:visited { color: var(--accent-weak-text); }
 }
 .tetris-stat { display: flex; flex-direction: column; gap: 2px; }
 .tetris-label { color: var(--muted); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.04em; }
-.tetris-value { font-size: var(--text-2xl); font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums; }
+.tetris-value { font-size: var(--text-display); font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums; }
 .tetris-next {
   display: grid;
   grid-template-columns: repeat(4, 14px);

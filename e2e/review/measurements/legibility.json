@@ -17,7 +17,6 @@
   },
   "fontSizes": [
     12,
-    13,
     16,
     22
   ],
@@ -67,7 +66,7 @@
       "text": "normzhou/yolo-blank-canvas · signed in as normzhou",
       "ratio": 5.75,
       "needs": 4.5,
-      "fontSizePx": 13,
+      "fontSizePx": 12,
       "fontWeight": 400
     },
     {
@@ -179,7 +178,7 @@
       "text": "normzhou/yolo-blank-canvas · signed in as normzhou",
       "ratio": 5.75,
       "needs": 4.5,
-      "fontSizePx": 13,
+      "fontSizePx": 12,
       "fontWeight": 400
     },
     {
@@ -243,7 +242,7 @@
       "text": "by normzhou · updated just now · source",
       "ratio": 5.88,
       "needs": 4.5,
-      "fontSizePx": 13,
+      "fontSizePx": 14,
       "fontWeight": 400
     },
     {
@@ -259,7 +258,7 @@
       "text": "Reply",
       "ratio": 15.8,
       "needs": 4.5,
-      "fontSizePx": 13,
+      "fontSizePx": 14,
       "fontWeight": 600
     },
     {
@@ -307,7 +306,7 @@
       "text": "normzhou/yolo-blank-canvas · signed in as normzhou",
       "ratio": 5.75,
       "needs": 4.5,
-      "fontSizePx": 13,
+      "fontSizePx": 12,
       "fontWeight": 400
     },
     {
@@ -347,7 +346,7 @@
       "text": "Title",
       "ratio": 15.8,
       "needs": 4.5,
-      "fontSizePx": 13,
+      "fontSizePx": 14,
       "fontWeight": 600
     },
     {

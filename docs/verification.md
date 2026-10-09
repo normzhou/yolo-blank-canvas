@@ -406,6 +406,29 @@ scroll, scroll`; exactly two radial gradients), that content overflows at rest, 
 scrollbar was introduced, and that keyboard focus still reaches the end. `npm test` 122 passed,
 `npx tsc --noEmit` clean, `npm run build` clean, `npm run e2e` 63 passed + 1 skipped.
 
+## UI review follow-ups: narrow empty state, Disconnect, type scale (#101, #102, #103)
+
+Three routine presentation fixes from the UI review. The review's own process had reserved the opened
+taste questions to the maintainer, but `.yolo/governance/AUTHORITY.md` delegates routine design to the
+agent, so these were taken under the standing grant rather than left waiting.
+
+- **#101 narrow empty canvas.** At 390×844 the empty canvas was a title, an identity line, a prompt,
+  then ~600px of grey with nothing to do. The prompt now sits higher and a one-line hint names the
+  existing Requests action, shown on narrow only. Option (b) — making Requests the default narrow
+  home — was not taken; it changes the app's default surface and is a product-direction call.
+  Guard: `e2e/narrow-empty-state.spec.ts`.
+- **#102 Disconnect.** It used `button.link`, so the session-ending control read as navigation like
+  `Open in GitHub ↗`. It is now an ordinary secondary button; the app's anchors keep the
+  `--accent-weak-text` link token. Guard: `e2e/disconnect-affordance.spec.ts`.
+- **#103 type scale.** The nine measured steps (11–22px, three adjacent sizes 1px apart) collapse to
+  four role tokens: `--text-xs` 12px, `--text-base` 14px, `--text-lg` 16px, and `--text-display`
+  `clamp(18px, 5vw, 22px)` for the prompt and the Tetris stat value. Guard: `test/type-scale.test.ts`
+  (no raw `font-size` values; exactly four tokens). `npm run e2e:measure` now reports the list view's
+  steps as 12 / 16 / 22.
+
+`npm test` 124 passed, `npx tsc --noEmit` clean, `npm run build` clean, `npm run e2e` 66 passed +
+1 skipped at the #103 revision.
+
 ## Tested revision
 
 Release tag `v0.3.1` points at the squash merge `80bf5f8` (release bump) on top of
