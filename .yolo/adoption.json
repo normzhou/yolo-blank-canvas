@@ -3,32 +3,32 @@
   "protocol": {
     "format": "github-v1",
     "repository": "https://github.com/normzhou/yolo-dev",
-    "revision": "a8a4efe4aba400883ddd9567b4921df9ea78ff71",
+    "revision": "4a199bde872fda89292ebf0924f59e971274d9c3",
     "source": "skills/yolo/references/protocol.md",
     "inputs": [
       {
-        "path": "ARCHITECTURE.md",
-        "sha256": "10ab3b8dacc9e2c0aa4748b531dfc225f9020944decc36f2a6dadf9bd180a213",
+        "path": ".yolo/governance/ARCHITECTURE.md",
+        "sha256": "e129daeec15e46f9f197276a557db586e22d6adf4789a3950713ad7d06ca7ce2",
         "selection": "Adoption levels through Product source and applied adoption"
       },
       {
         "path": "specs/operating-protocol.md",
-        "sha256": "5df7193fe884a64cac780ab995fca105c5ddc4d20362245b41fc40eb6e002911",
+        "sha256": "6aabea911eec34a61cbe5ffc97e5be8993623941f7c8166d7e27b1826d6097aa",
         "selection": "whole document"
       },
       {
         "path": "specs/activities.md",
-        "sha256": "8a02591c7f1990ac5d5e306df3c05adeb467d1f1757a7e1e0ac67f9553ecd0df",
+        "sha256": "004ec7eaaa0c47d5d810234a76d5695ab19339ea4363c7e9c82f9971ddc4bdc8",
         "selection": "whole document"
       },
       {
         "path": "specs/repo-layout.md",
-        "sha256": "4f8bda43396859502a7d611d198c77b03e6e68c2c7769384abdc0d7e8f162436",
+        "sha256": "2e99e59d48d2182c6292f777bb8b6119e9336ca80540c67827c9415d93082f2b",
         "selection": "whole document"
       },
       {
         "path": "specs/issue-management.md",
-        "sha256": "b2acd415ab03786c4cd742919182ef94d97e2f5dd6cd0de9bd38e6b483a0d530",
+        "sha256": "cb33269cb8cdd0612282c4c469784f02ac0b1eca27f5a5ac6406b00965c65161",
         "selection": "whole document"
       },
       {
@@ -38,52 +38,57 @@
       },
       {
         "path": "specs/verification-delivery.md",
-        "sha256": "17336c024db53d9e73f3bf11ed7c0ac426285d306d4d10a0f1d54dd76f63d207",
+        "sha256": "923c44dd1b5d5ec7a38b7974fe7cc44ac3cc55f71676b06457acdd7ab7c220ff",
         "selection": "whole document"
       },
       {
-        "path": "specs/releases.md",
-        "sha256": "0c2c4c1605c5cd5f412896ddcb06c22a0486f8181b4ba20128192102e17e19ba",
+        "path": ".yolo/governance/specs/releases.md",
+        "sha256": "2311b6c77f5704cbd785ea03a870923caacac71c7aff04207f70078df06547a9",
         "selection": "whole document"
       },
       {
         "path": "specs/conformance-checks.md",
-        "sha256": "a1104ceb8f79cc13b787066d8476cda71ac4b4350fede1ea6752fe3e1c6bafcd",
+        "sha256": "6a4da041ef0c81139e1137580a54766daef0c5e4269643a83ff60262bfb3d001",
         "selection": "whole document"
       },
       {
         "path": "specs/qualification.md",
-        "sha256": "8691f17e867e644de63e647dd08778c3817a9a8e4d7543352dd71bcbac3709db",
+        "sha256": "f8d159c64f13b0e9b23f06fdf167b2fcc47be5e9e01c5941c00e5c4c70bdc688",
         "selection": "whole document"
       },
       {
         "path": "specs/adoption-records.md",
-        "sha256": "5f8d5e5ced3b90dd8e9c8e552d0c55da80a40e087ba7e8ac3c510b01a293dafe",
+        "sha256": "0687324da42730b286fd3d751713af62a353271e2bdb8b08a104c806d619d2ec",
         "selection": "whole document"
       },
       {
         "path": "specs/github-workflow.md",
-        "sha256": "42de236100f4df02ff74bddd3219d0bf73918522b56882f72fe88e1c6cc4c3d9",
+        "sha256": "2342285fc9f460f9c11b024c21b3ab22fc79320443a394aa9ade37c046e92a22",
         "selection": "whole document"
       },
       {
         "path": "specs/request-interface.md",
-        "sha256": "bdaf3d5c05071b2c244a32298ceeeafae167d9ac82844a6a0bd9e3b2fad4968b",
+        "sha256": "3268901ad2feef31905b0a76e01cc3f4525d25769be70a28cffe57917bda5ad7",
         "selection": "whole document"
       },
       {
-        "path": "specs/onboarding.md",
-        "sha256": "071aa2b75b4da9aba5b63bf56611bb7fcda5cd8ccdbc816acd66d19a793d636a",
+        "path": ".yolo/governance/specs/onboarding.md",
+        "sha256": "279e604720a1a483ca22e5ebb3537c1ff87915e97f6cdc0635b3fc937f810d75",
         "selection": "whole document"
       },
       {
-        "path": "specs/assisted-development.md",
-        "sha256": "b714ad500acf41a7a1b875716445b43948fc5071b4b6855fd829297d4fb0f9ea",
+        "path": ".yolo/governance/specs/assisted-development.md",
+        "sha256": "06d08df8f13ed60d5bd23bac8c5012eb0b14256956ee10ae0420acd8b94f311d",
         "selection": "whole document"
       },
       {
         "path": "specs/issue-delivery.md",
         "sha256": "b7da78014c6510d0dfbce552ddd473b502bbb507983218593c95c021ca7eb89f",
+        "selection": "whole document"
+      },
+      {
+        "path": ".yolo/governance/specs/observation.md",
+        "sha256": "3ff8d83aa15ab3bf9dae760658024052353a5be4cd7e64f94f1666100241dd1a",
         "selection": "whole document"
       },
       {
@@ -93,12 +98,12 @@
       },
       {
         "path": "VERSION",
-        "sha256": "edae853e6390485e8aa0317eead465da4b2014411a753f2c7a0c009099b7f2fa",
+        "sha256": "d5d967a5776ba1a0b1ccaf06c6ea56764c9e102eb9cabd1f1fb379aff6c6f7aa",
         "selection": "whole document"
       }
     ],
     "path": ".yolo/protocol.md",
-    "sha256": "109ac362ed02f2ab8870907dc814b37d702acb9aa89def33d5c710189d2ef674"
+    "sha256": "2f1a92e492267b9d670b0c1923b43108fb25967383c267229dc602e0b7620473"
   },
   "target": {
     "repository": "normzhou/yolo-blank-canvas",
@@ -125,7 +130,9 @@
     "acceptance": [
       "Issue #6 comment recording maintainer normzhou's acceptance of revision bf5cd3806b6228164db9a8cca80d7b414be789e1 (session 01a10ab0-bdac-76d7-bd0a-729ba1945ea8), authenticated on GitHub on 2026-10-05. https://github.com/normzhou/yolo-blank-canvas/issues/6"
     ],
-    "pending": []
+    "pending": [
+      "Protected AUTHORITY.md revision in this migration's PR: the delegated Management and Issue metadata bullets name only 'yolo:work' and 'yolo:state:*' and place ordered Now/Next in the work issue, while publication v0.1.0-alpha.16 requires the reserved 'yolo:request' label, a '## YOLO request' triage comment and a linked planning issue for cross-outcome coordination. The prepared revision needs authenticated maintainer approval of its exact final text before it can be applied."
+    ]
   },
   "harness": {
     "name": "pi coding agent",
@@ -137,9 +144,9 @@
     ],
     "skill": {
       "path": ".agents/skills/yolo",
-      "revision": "6a8d704a6ab0a104d48fc43da3d6e5f98c4b1e80",
-      "release": "v0.1.0-alpha.13",
-      "manifest_sha256": "1e939e3d66e8487e487aa796c4840656a8233231e90bd262b61dd95997ebc9bc"
+      "revision": "5f92e6c2d36b66ba02631ebebf21ef10ec00a4ac",
+      "release": "v0.1.0-alpha.16",
+      "manifest_sha256": "8e4c48ea884f861fec627201f0f594868fe309cb5bc622cb96cd30d434f0f71d"
     }
   },
   "verification": {
@@ -163,14 +170,15 @@
     "release": {
       "policy": ".yolo/governance/ARCHITECTURE.md#verification-and-delivery",
       "version_source": "package.json#version",
-      "effective_commit": "80bf5f860c4a360e855c8b0a786df7a04f3a70e6",
+      "effective_commit": "6efd602c6a184320271916d37b6876073d1c546b",
       "legacy_tags": {
         "v0.1.0": "520a81e8ec824b9ce31a7fbc8a8c08d152eb81ae",
         "v0.1.1": "0c8038f164bd2a744780d7d2913a00b8bfb593a9",
         "v0.1.2": "878854e3f1a53524f4952ef0b35cc01acc6c4b36",
         "v0.2.0": "eaf7cc2b74b9eba89ee434742c5df97f84c54637",
         "v0.3.0": "dbfdacf246b5b42c208e5f1fb4a7913c195d2f67",
-        "v0.3.2": "86655102a92cd4afb92f9e965b6078a249bb2192"
+        "v0.3.2": "86655102a92cd4afb92f9e965b6078a249bb2192",
+        "v0.3.1": "80bf5f860c4a360e855c8b0a786df7a04f3a70e6"
       },
       "observations": [
         ".yolo/reports/releases-observed-2026-10-07.json",
@@ -179,11 +187,11 @@
     }
   },
   "activation": {
-    "state": "active",
+    "state": "proposed",
     "evidence": [
-      "Maintainer direction in authenticated harness session 01a10f3e-21cd-76d7-bd0a-72a0965aedff: ran '/yolo upgrade preview' and granted routine choices and continued authorized work. Acceptance recorded on issue #36. https://github.com/normzhou/yolo-blank-canvas/issues/36",
-      "Publication 6a8d704a6ab0a104d48fc43da3d6e5f98c4b1e80 (release v0.1.0-alpha.13, source inputs a8a4efe4aba400883ddd9567b4921df9ea78ff71) landed on main as 870c1e23c36645c86b656f906d85da19f2af9e61 via PR #37 and was observed on the default branch.",
-      "Historical activation for earlier pins (2cf0ee8 at 0ffce2a; alpha.11 at 6efd602) is retained in Git and .yolo/reports/upgrade-2cf0ee8-landed.json and upgrade-alpha11-landed.json."
+      "Maintainer direction in authenticated harness session (this one): ran '/yolo upgrade' on the stable channel, which resolved no release because all 14 published YOLO Dev releases are prereleases, then explicitly selected '/yolo upgrade preview' to v0.1.0-alpha.16. Acceptance recorded on issue #111: https://github.com/normzhou/yolo-blank-canvas/issues/111",
+      "Candidate upgrade to publication 5f92e6c2d36b66ba02631ebebf21ef10ec00a4ac (release v0.1.0-alpha.16, design inputs 4a199bde872fda89292ebf0924f59e971274d9c3) is proposed and unverified until its PR is landed; the default-branch adoption at cb3e2e3430c264cd788d9e25bf4c2944c32f1efc remains in force until then.",
+      "Historical activation for the old pin (release v0.1.0-alpha.13, publication 6a8d704a6ab0a104d48fc43da3d6e5f98c4b1e80, landed effective commit 870c1e23c36645c86b656f906d85da19f2af9e61) is retained in Git and .yolo/reports/upgrade-alpha13-landed.json."
     ]
   },
   "adopted_at": "520a81e8ec824b9ce31a7fbc8a8c08d152eb81ae",
@@ -225,9 +233,9 @@
   ],
   "qualification": {
     "level": 1,
-    "status": "prepared",
+    "status": "unverified",
     "evidence": [
-      "Accepted active setup is observed on the default branch and the fresh continuation required by the alpha.13 migration is now recorded: session 01a112ab-ef31-7326-b490-8d4ab61da81d loaded the pinned /yolo bundle and ran check. See .yolo/reports/delivery-2026-10-06-check-reconciliation.json. Q4 product-outcome verification remains pending and the upstream checkpoint rule (https://github.com/normzhou/yolo-dev/issues/40) is an unresolved external finding, so no qualified claim is made."
+      "Historical qualification evidence for the old pin is retained (checkpoint commit 31c0f8b64ea192ba9becadbe531c871e602d14bf, report .yolo/reports/delivery-2026-10-06-check-reconciliation.json); the candidate publication 5f92e6c2 has no fresh-session loading observation and is therefore unverified. alpha.16 adds a continuation-recording route (Qualification -> L1 acceptance) that permits the observing session to publish its own loading evidence under existing write authority."
     ]
   },
   "feedback": {

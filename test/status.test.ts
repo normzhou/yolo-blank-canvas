@@ -32,6 +32,19 @@ describe('open issue status', () => {
     expect(labelNames(issue({ labels: ['bug'] }))).toEqual(['bug']);
   });
 
+  it('shows a yolo:request-labelled issue as Request open, not as admitted work', () => {
+    const status = deriveIssueStatus(issue({ labels: ['yolo:request'] }));
+    expect(status.label).toBe('Request open');
+    expect(status.needsReconciliation).toBe(false);
+    expect(status.note).toMatch(/does not mean an agent has read or scheduled/i);
+  });
+
+  it('does not treat a request-only label as workflow state on a closed issue', () => {
+    const status = deriveIssueStatus(issue({ state: 'closed', state_reason: 'completed', labels: ['yolo:request'] }));
+    expect(status.label).toBe('Closed');
+    expect(status.needsReconciliation).toBe(false);
+  });
+
   it.each([
     ['yolo:state:queued', 'Planned'],
     ['yolo:state:active', 'In progress'],
@@ -113,6 +126,13 @@ describe('reported summary detection', () => {
     expect(isSummaryComment(comment({ body: 'Example:\n\n```md\n## YOLO status\n```\n' }))).toBe(false);
     expect(firstHeading('```\n## YOLO status\n```')).toBeNull();
     expect(isSummaryComment(comment({ body: '## YOLO status\n\n```md\n## Plan\n```\n' }))).toBe(true);
+  });
+
+  it('does not treat a request triage summary as a reported summary', () => {
+    // `## YOLO request` records intake disposition, not outcome status: the panel
+    // must not read state, timing or delivery from it.
+    expect(isSummaryComment(comment({ body: '## YOLO request\n\nInterpretation: …' }))).toBe(false);
+    expect(summaryComments([comment({ id: 4, body: '## YOLO request\n\nDeferred to #12.' })])).toEqual([]);
   });
 
   it('identifies the most recently updated match and keeps the others accessible', () => {

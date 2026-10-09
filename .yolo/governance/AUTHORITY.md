@@ -25,12 +25,15 @@ contest them.
 
 ### Delegated to the agent
 
-- **Management.** Interpret requests; clarify them; define one outcome with observable
-  acceptance; admit, prioritize, queue, wait on, defer, decline or split work. Maintain one
-  `## YOLO status` summary comment per outcome, and ordered **Now / Next** with reasons. Read
-  replies on closed issues; reopen or link follow-ups without erasing prior results.
-- **Issue metadata.** Create and maintain the reserved `yolo:work` and `yolo:state:*` labels on
-  issues it manages, and remove stale state labels from closed issues. Preserve unrelated labels.
+- **Management.** Interpret requests; clarify them; group them into bounded outcomes; define
+  observable acceptance; admit, prioritize, queue, wait on, defer, decline, split or promote work.
+  Maintain one `## YOLO status` summary comment per admitted outcome, at most one `## YOLO request`
+  triage comment per classified request, and a linked planning issue carrying ordered **Now / Next**
+  with reasons when coordination spans outcomes. Read replies on closed issues; reopen or link
+  follow-ups without erasing prior results.
+- **Issue metadata.** Create and maintain the reserved `yolo:request`, `yolo:work` and
+  `yolo:state:*` labels on issues it manages, and remove stale state labels from closed issues.
+  Preserve unrelated labels.
 - **Implementation and verification.** Routine design and technical choices; tests; type
   checking; CI/CD; improving verification within the accepted architecture.
 - **Delivery.** Open pull requests referencing their outcome issue, and **merge them to `main`

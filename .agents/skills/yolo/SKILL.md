@@ -76,15 +76,17 @@ Read-only exit **0** means factual readiness for agent review, **1** gaps, **2**
 
 Follow **Onboarding → Check and repair** and **Qualification**. Inspect every intervening commit, local/default-branch state, issues/replies, related PRs/reviews/checks, effective configuration and delivery. Reconcile evidence beyond the helper's declared coverage. Review ownership, congruence, verification and continuity; use Q1–Q5 for L1 claims. Keep assessment read-only; propose repairs and apply them only when separately requested and authorized. Retain failures and publish successful evidence before advancing a checkpoint. `check --dry-run` prepares an isolated repair under the same pin using **Onboarding → Dry run**; it never silently upgrades. If stricter rules are needed, report the explicit upgrade required.
 
+If this fresh session observes loading/continuation, present the evidence and name `work` as the recording step. Separately authorized work may publish that observation in this same fresh session; another restart is unnecessary. Follow **Qualification → L1 acceptance** and [report encoding](references/records.md#review-reports); never attest an unobserved future session or write during read-only check.
+
 Briefly assess YOLO guidance/tooling effectiveness after check and final init/upgrade assessment; use **Feedback** for useful findings. Assessment remains read-only; report any separate authorized feedback submission and its link.
 
 ## Request and work
 
 Use **Agent activities** in the active snapshot (the [bundle](references/protocol.md#activities-agent-activities) for new init). Report missing activity support rather than silently upgrading.
 
-`request` discusses/files/follows **target-app** needs. Search existing issues, preserve consequential direction when filing is authorized, and return a real link or unsent draft. Intake is not admission or execution permission.
+`request` discusses/files/follows **target-app** needs. It shares **Issue management → Intake and admission** with upstream feedback. Search existing issues, preserve consequential direction and apply an existing `yolo:request` label when filing is authorized and permissions allow; otherwise leave classification to the receiving AI. Return a real link or unsent draft. Intake is not admission or execution permission; follow the active pin, never silently upgrade it.
 
-`work` requires active adoption: **reconcile → plan/admit → execute → record/continue or hand off**. Capture outcomes in issues before implementation. AI manages priority, acceptance, state, PRs and authorized delivery; distinguish verified fulfillment from decline/duplicate disposition. Significant design changes notify; protected changes need identified approval. Reconcile interrupted effects and other writers before acting. Preserve result/version, failures and next action.
+`work` requires active adoption: **reconcile → plan/admit → execute → record/continue or hand off**. Under **Issue management → Planning across outcomes**, review incoming issues/replies alongside existing work; consolidate or split into useful outcomes instead of one ticket per input. Reuse covering work, or promote a suitable source in place before creating another ticket. Preserve source coverage/dispositions and use a linked Now/Next plan when coordinating outcomes. AI manages priority, acceptance, state, PRs and authorized delivery; distinguish verified fulfillment from decline/duplicate disposition. Significant design changes notify; protected changes need identified approval. Reconcile interrupted effects and other writers before acting. Preserve result/version, failures and next action.
 
 Ordinary development requests follow this procedure without manual skill invocation. Direct conversation is steering; a bypass needs a scoped owner override. L1's maintainer starts sessions; AI may admit/plan within them. L2 automatic initiation remains unbuilt.
 
@@ -95,6 +97,8 @@ Maintain the existing status-summary comment as work changes. Follow the target'
 `feedback` concerns **YOLO Dev upstream**, not the target app; no target adoption is required. Follow **Agent activities → Feedback** in the applicable protocol: sanitize useful findings, resolve publisher provenance and deduplicate. Default to a draft, show exact destination/content and ask before sending. Only active, explicitly accepted `feedback.automatic` permits automatic sanitized submission within the pin/grant; verify consent, not just the flag. Dry runs always retain drafts. Read [feedback encoding](references/records.md#feedback-setting) when evaluating settings.
 
 Confirm actual submission and return its link/status. Upstream fixes do not upgrade the target pin; missing upstream access does not block unrelated work.
+
+Feedback is intake in the publisher's repo: apply its existing `yolo:request` label when permitted, otherwise file normally. Never change upstream settings or mark submitted feedback as admitted work. The receiving AI owns triage and planning.
 
 ## Help
 

@@ -44,6 +44,7 @@ Use `.yolo/adoption.json`. This is an example shape, not accepted target facts:
     "limits": ["ACCEPTED_BINDING_LIMITS_REFERENCE"]
   },
   "feedback": {"automatic": false, "acceptance": []},
+  "observation": {"enabled": false, "adoption_id": null, "acceptance": []},
   "activation": {"state": "active", "evidence": ["ACCEPTED_SETUP_REVISION_AND_PUBLICATION_EVIDENCE"]},
   "adopted_at": "ORIGINAL_PRE_SETUP_TARGET_COMMIT",
   "upgrades": [],
@@ -62,6 +63,10 @@ Copy **all** `inputs`, source repository/revision and protocol digest from the i
 Optional `feedback` contains only `automatic` (a JSON boolean) and `acceptance` (a list of nonempty evidence references, default `[]`). Missing `feedback` means automatic reporting is off. `true` requires explicit recognized-maintainer acceptance of sanitized upstream submission to the identified publisher; cite the consent/revision, not generic install or merge authority. The field records a decision, never authenticates or expands it.
 
 A proposed record may stage `true` with consent still in `authority.pending`; this requests the setting and permits no submission. Enabling it needs authenticated approval of the identified proposed revision. Treat setting changes as authority controls. Preserve the choice/evidence across upgrade and check compatibility with old/new rules and target restrictions; older pins do not acquire this capability from a new helper. Dry runs never submit. See **Agent activities → Feedback** in the protocol for scope and submission procedure.
+
+### Observation setting
+
+Optional `observation` is distinct from `feedback` and enables [activity observation](protocol.md#observation-activity-observation). It contains only `enabled` (a JSON boolean), `adoption_id` (a stable opaque identifier, null only for an explicitly requested local pre-adoption trial) and `acceptance` (nonempty evidence references when enabled, default `[]`). Missing `observation` means capture and transmission are off. `enabled: true` requires explicit recognized-maintainer acceptance of the identified destination and permitted fields; the field records a decision and cannot authenticate or expand it. A proposed record may stage it under `authority.pending` while permitting no transmission. Preserve `adoption_id` and the choice across repeat init, upgrade and worktrees; revocation stops queued and new transmission, and dry runs never transmit. Remote observations are not authority; analysis credentials are separately read-only. See **Activity observation** in the protocol for scope and transmission-consent procedure.
 
 ### Release bindings
 
@@ -115,6 +120,8 @@ File reports may use `.yolo/reports/`; issue/PR records remain the primary inter
 }
 ```
 
-Include all four obligations, with cited resolutions of earlier findings. Qualification needs **all Q1–Q5**, not this shortened example; omit qualification only for a non-qualification review. Factual helper output is supporting observation, not a semantic report. Missing/unverified/conflicting findings block a successful checkpoint and qualification.
+Every successful report, including each `previous_report`, includes the exact rule IDs `ownership`, `congruence`, `verification` and `continuity`. Each finding needs nonempty `evidence` references and `detail`. Use `compliant` for supported conformity or `resolved` for an earlier failure with a cited repair and explanation; both are accepted. `missing`, `conflicting`, `unverified`, `pending`, `recorded` and unknown statuses block a successful checkpoint. A citation alone does not resolve a finding. Keep failed reports unchanged outside the successful chain and cite them from the resolving report; do not relabel history to pass the checker.
+
+Qualification needs **all Q1–Q5**, not this shortened example; omit qualification only for a non-qualification review. Factual helper output is supporting observation, not a semantic report. For Q5, `harness.loading_evidence` identifies the observing fresh session separately from setup/upgrade, the actual instructions/pin loaded and the reconciled next action. A read-only `check` presents those observations; separately authorized `work` publishes them, in the same observing session or later. Neither session can attest a future restart or unobserved continuation.
 
 A checkpoint is `{ "commit": "REVIEWED_COMMIT", "report": ".yolo/reports/PUBLISHED_SUCCESSFUL_REPORT.json" }`. Publish the report before recording its checkpoint; retain the chain back to the original baseline. Later bookkeeping belongs to the next review. Schema 1 historical reports remain valid under their original rules; upgrades do not retroactively change acceptance. A supported structure/digest does not prove truth or authorized delivery.

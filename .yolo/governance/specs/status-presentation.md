@@ -44,6 +44,20 @@ A comment whose **first heading** is `## YOLO status` is the *Reported summary*.
 recently updated matching comment wins; earlier ones remain visible in the discussion. With no
 matching comment the panel says **No progress summary yet.**
 
+A comment whose **first heading** is `## YOLO request` is the *Request triage summary*. It records
+interpretation, disposition and covering outcomes for intake that has not been admitted. It is not a
+*Reported summary*: the panel does not read timing, state or delivery from it, and its presence does
+not change an issue's derived status. Where a request has been promoted, the work issue's
+*Reported summary* carries current status and the triage comment stays as history.
+
+## One summary per outcome
+
+The workflow writes **one** `## YOLO status` summary per admitted outcome and edits it as work
+progresses; earlier dated comments record decisions and results rather than restating the summary.
+Several matching comments on one outcome, or none on a completed one, mean the record needs
+reconciliation. The panel still shows the most recently updated matching comment — it never guesses
+which of several was meant to be current.
+
 Timing is shown only when the summary states it; otherwise **Delivery timing not yet
 estimated.** Two consequences are part of the contract:
 
@@ -64,7 +78,9 @@ These are acceptance criteria, not styling preferences:
 1. No fixture, view or copy asserts that work is scheduled, queued for execution, or available.
    A delivery timing is read only from the summary's prose, never from a quoted example.
 2. Untagged open issues read as **Request open** — never as work that an agent has read,
-   accepted or scheduled.
+   accepted or scheduled. Under the adopted `request-outcome-v1` issue policy, an issue labelled
+   `yolo:request` and not yet promoted to `yolo:work` reads the same way: intake classification is
+   not evidence of review, admission or scheduling.
 3. Closing an unmanaged conversation does not display as delivery.
 4. Merge, a passing check, or a stage name never displays as delivered acceptance.
 5. Conflicting or missing record data shows **Status needs reconciliation** with raw records

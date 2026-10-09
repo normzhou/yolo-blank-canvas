@@ -2,31 +2,31 @@
   "schema_version": 1,
   "protocol_format": "github-v1",
   "repository": "https://github.com/normzhou/yolo-dev",
-  "revision": "a8a4efe4aba400883ddd9567b4921df9ea78ff71",
+  "revision": "4a199bde872fda89292ebf0924f59e971274d9c3",
   "inputs": [
     {
-      "path": "ARCHITECTURE.md",
-      "sha256": "10ab3b8dacc9e2c0aa4748b531dfc225f9020944decc36f2a6dadf9bd180a213",
+      "path": ".yolo/governance/ARCHITECTURE.md",
+      "sha256": "e129daeec15e46f9f197276a557db586e22d6adf4789a3950713ad7d06ca7ce2",
       "selection": "Adoption levels through Product source and applied adoption"
     },
     {
       "path": "specs/operating-protocol.md",
-      "sha256": "5df7193fe884a64cac780ab995fca105c5ddc4d20362245b41fc40eb6e002911",
+      "sha256": "6aabea911eec34a61cbe5ffc97e5be8993623941f7c8166d7e27b1826d6097aa",
       "selection": "whole document"
     },
     {
       "path": "specs/activities.md",
-      "sha256": "8a02591c7f1990ac5d5e306df3c05adeb467d1f1757a7e1e0ac67f9553ecd0df",
+      "sha256": "004ec7eaaa0c47d5d810234a76d5695ab19339ea4363c7e9c82f9971ddc4bdc8",
       "selection": "whole document"
     },
     {
       "path": "specs/repo-layout.md",
-      "sha256": "4f8bda43396859502a7d611d198c77b03e6e68c2c7769384abdc0d7e8f162436",
+      "sha256": "2e99e59d48d2182c6292f777bb8b6119e9336ca80540c67827c9415d93082f2b",
       "selection": "whole document"
     },
     {
       "path": "specs/issue-management.md",
-      "sha256": "b2acd415ab03786c4cd742919182ef94d97e2f5dd6cd0de9bd38e6b483a0d530",
+      "sha256": "cb33269cb8cdd0612282c4c469784f02ac0b1eca27f5a5ac6406b00965c65161",
       "selection": "whole document"
     },
     {
@@ -36,52 +36,57 @@
     },
     {
       "path": "specs/verification-delivery.md",
-      "sha256": "17336c024db53d9e73f3bf11ed7c0ac426285d306d4d10a0f1d54dd76f63d207",
+      "sha256": "923c44dd1b5d5ec7a38b7974fe7cc44ac3cc55f71676b06457acdd7ab7c220ff",
       "selection": "whole document"
     },
     {
-      "path": "specs/releases.md",
-      "sha256": "0c2c4c1605c5cd5f412896ddcb06c22a0486f8181b4ba20128192102e17e19ba",
+      "path": ".yolo/governance/specs/releases.md",
+      "sha256": "2311b6c77f5704cbd785ea03a870923caacac71c7aff04207f70078df06547a9",
       "selection": "whole document"
     },
     {
       "path": "specs/conformance-checks.md",
-      "sha256": "a1104ceb8f79cc13b787066d8476cda71ac4b4350fede1ea6752fe3e1c6bafcd",
+      "sha256": "6a4da041ef0c81139e1137580a54766daef0c5e4269643a83ff60262bfb3d001",
       "selection": "whole document"
     },
     {
       "path": "specs/qualification.md",
-      "sha256": "8691f17e867e644de63e647dd08778c3817a9a8e4d7543352dd71bcbac3709db",
+      "sha256": "f8d159c64f13b0e9b23f06fdf167b2fcc47be5e9e01c5941c00e5c4c70bdc688",
       "selection": "whole document"
     },
     {
       "path": "specs/adoption-records.md",
-      "sha256": "5f8d5e5ced3b90dd8e9c8e552d0c55da80a40e087ba7e8ac3c510b01a293dafe",
+      "sha256": "0687324da42730b286fd3d751713af62a353271e2bdb8b08a104c806d619d2ec",
       "selection": "whole document"
     },
     {
       "path": "specs/github-workflow.md",
-      "sha256": "42de236100f4df02ff74bddd3219d0bf73918522b56882f72fe88e1c6cc4c3d9",
+      "sha256": "2342285fc9f460f9c11b024c21b3ab22fc79320443a394aa9ade37c046e92a22",
       "selection": "whole document"
     },
     {
       "path": "specs/request-interface.md",
-      "sha256": "bdaf3d5c05071b2c244a32298ceeeafae167d9ac82844a6a0bd9e3b2fad4968b",
+      "sha256": "3268901ad2feef31905b0a76e01cc3f4525d25769be70a28cffe57917bda5ad7",
       "selection": "whole document"
     },
     {
-      "path": "specs/onboarding.md",
-      "sha256": "071aa2b75b4da9aba5b63bf56611bb7fcda5cd8ccdbc816acd66d19a793d636a",
+      "path": ".yolo/governance/specs/onboarding.md",
+      "sha256": "279e604720a1a483ca22e5ebb3537c1ff87915e97f6cdc0635b3fc937f810d75",
       "selection": "whole document"
     },
     {
-      "path": "specs/assisted-development.md",
-      "sha256": "b714ad500acf41a7a1b875716445b43948fc5071b4b6855fd829297d4fb0f9ea",
+      "path": ".yolo/governance/specs/assisted-development.md",
+      "sha256": "06d08df8f13ed60d5bd23bac8c5012eb0b14256956ee10ae0420acd8b94f311d",
       "selection": "whole document"
     },
     {
       "path": "specs/issue-delivery.md",
       "sha256": "b7da78014c6510d0dfbce552ddd473b502bbb507983218593c95c021ca7eb89f",
+      "selection": "whole document"
+    },
+    {
+      "path": ".yolo/governance/specs/observation.md",
+      "sha256": "3ff8d83aa15ab3bf9dae760658024052353a5be4cd7e64f94f1666100241dd1a",
       "selection": "whole document"
     },
     {
@@ -91,13 +96,13 @@
     },
     {
       "path": "VERSION",
-      "sha256": "edae853e6390485e8aa0317eead465da4b2014411a753f2c7a0c009099b7f2fa",
+      "sha256": "d5d967a5776ba1a0b1ccaf06c6ea56764c9e102eb9cabd1f1fb379aff6c6f7aa",
       "selection": "whole document"
     }
   ],
   "output": {
     "path": "references/protocol.md",
-    "sha256": "109ac362ed02f2ab8870907dc814b37d702acb9aa89def33d5c710189d2ef674"
+    "sha256": "2f1a92e492267b9d670b0c1923b43108fb25967383c267229dc602e0b7620473"
   },
   "layout": {
     "root": {
@@ -122,9 +127,10 @@
     "replica_review": "tracked-unignored-v1"
   },
   "release_convention": "semver-v1",
-  "release": "v0.1.0-alpha.13",
+  "issue_management": "request-outcome-v1",
+  "release": "v0.1.0-alpha.16",
   "files": {
-    "SKILL.md": "09e75fb1299bc6ea62d5b4ee239ced5e51f8e522fd5ac15937b1417984c0e9f7",
+    "SKILL.md": "1d9dd8d21c2a62647ad0438ff6dab8fdc442395426a77f2335fc9e25baf486e6",
     "assets/agent-instructions.md": "33df5ce3e827d66cc04a3ea36f5c45afb8e208d25deb077118a1fde13c48d24f",
     "assets/architecture.md": "b74c1fcff2e2a10f4d20978173d3d7bb8b94074aac24fcc414a9c1ab58620455",
     "assets/authority.md": "d53a8e5c46e576103483457fbffe0f25f11ab32cc8ae1f588b3594126efd271f",
@@ -134,10 +140,10 @@
     "assets/charter.md": "4b87c4fc41efce2be2b4307c59e3a90099be8c84d60cbdb8c1ee38598d05ab66",
     "assets/readme.md": "d55bd98a23633b2d8dae90667645a98057b6361d39514f179f1eabb361e8d2da",
     "references/assisted-protocol.md": "1f65afd40890eb06a475918564e0bd4cde4491ae4450bc56b6a9b22b60263b45",
-    "references/checker.md": "e79058159a3d0a0781f32a01bf5742f48de76d7564bbee1f28a3e6f639ef6bf8",
+    "references/checker.md": "1cd0abec939ffdeee1d15b8d26a4a09f81423ff0eccb77804bd6b2f3c58a0d9e",
     "references/legacy-records.md": "9cddd17a5a7aec52f67cf1cb20a3be3669359527a459d46fdc8ec74b0810b59f",
-    "references/protocol.md": "109ac362ed02f2ab8870907dc814b37d702acb9aa89def33d5c710189d2ef674",
-    "references/records.md": "4067510565333a1e856f175792bc0093db1d7b36c4d792764d36b18ee10f99af",
+    "references/protocol.md": "2f1a92e492267b9d670b0c1923b43108fb25967383c267229dc602e0b7620473",
+    "references/records.md": "30b5c0ef3c70126234ebdc17fc7cae5a494f9955be5db50b44d8eae22454209e",
     "references/templates.md": "813428363250c4cb5b80e6537549983b61969557b1541a415653f605f3e5d2d1"
   }
 }
