@@ -2,7 +2,7 @@
   "schema_version": 2,
   "target": "normzhou/yolo-blank-canvas",
   "kind": "upgrade-proposal",
-  "status": "proposed-unverified",
+  "status": "landed",
   "protocol": {
     "revision": "4a199bde872fda89292ebf0924f59e971274d9c3",
     "sha256": "2f1a92e492267b9d670b0c1923b43108fb25967383c267229dc602e0b7620473"
@@ -298,5 +298,21 @@
     "The release finding cannot be cleared in this repository at all; see release_applicability.",
     "The migration is a preview-channel pin: experimental rules, unchanged authority.",
     "Untagged/one-summary-per-outcome drift and the live verification gaps in docs/verification.md are carried forward untouched."
-  ]
+  ],
+  "landed": {
+    "effective_commit": "f40a18010c3c62f8316405501a1d1caa0661f461",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/112",
+    "proposal_commit": "bea7d07",
+    "ci": "Test and type check passed on bea7d07 (run 37990557687) before merge.",
+    "protected_approval": "Maintainer normzhou approved the prepared AUTHORITY.md Management and Issue metadata clauses as scoped owner approval of that exact final revision in an authenticated harness session, recorded on issue #111 before merge. authority.pending is now empty.",
+    "post_landing_operations_completed": [
+      "activation.state moved from proposed to active with the landed revision observed on the default branch.",
+      "upgrades[] appended with from a8a4efe4 / to 4a199bde and effective commit f40a18010c3c62f8316405501a1d1caa0661f461.",
+      "unresolved[] updated: the checkpoint blocker is recorded as cleared by the candidate pin, the seven summary findings and the unfixable release finding are carried forward with cited evidence."
+    ],
+    "post_landing_operations_pending": [
+      "Classify issue #110 with yolo:request and post its ## YOLO request triage summary.",
+      "Reload the harness and record a fresh continuation under Qualification -> L1 acceptance before any dependent claim."
+    ]
+  }
 }
