@@ -115,6 +115,11 @@ Present-day choices, revisitable by request rather than protected:
   maintainer's account; see [Authority](AUTHORITY.md#agent-identity-and-watermark).
 - **Pagination is implemented but unexercised live** — too few issues to exercise multi-page
   loads.
+- **A `yolo:request` label does not change the derived status.** Under the adopted
+  `request-outcome-v1` issue policy, intake classification, `## YOLO request` triage comments and
+  covering-outcome links exist in the records but are not surfaced by the panel; a request-only open
+  issue reads **Request open**, the same as an unlabelled one. Presenting recorded disposition and
+  covering outcomes is a display request, not a derivation fix.
 - **First-login, missing-`gh`, browser-open and mid-session auth-loss paths are unit tested, not
   observed live.** Known verification limits, not defects.
 - **The app derives status from labels but does not write labels.** It creates ordinary issues and

@@ -33,6 +33,10 @@ yolo-check <repo-root>               local and GitHub facts
 
 JSON and exits: **0** factual readiness for semantic review; **1** gaps; **2** invocation/Git error. `--version` and `--help` inspect no target. None establishes activation or qualification. Default check is read-only. Explicit installation writes only the skill and bindings; repairs/activation remain agent procedures governed by authority.
 
+## Activity observation
+
+The same executable realizes the adopted **Activity observation** contract. `yolo-check observe emit` validates one versioned event read as JSON from stdin, writes it to a local JSONL sink (`--sink`, else `YOLO_OBSERVE_SINK`) and transmits only with both `--consent` and `--endpoint`. `--dry-run` suppresses transmission. `yolo-check observe query --sink <path>` deduplicates a sink by `event_id` and returns counts, observed effort, report findings, agent verdicts and missing finishes. Unknown fields, arbitrary strings and custom labels are dropped; an unavailable sink or endpoint is reported and fails open without changing development or checker exit semantics. Observation never replaces the report, advances a checkpoint or qualifies an adoption.
+
 ## Installation and selection
 
 ```text

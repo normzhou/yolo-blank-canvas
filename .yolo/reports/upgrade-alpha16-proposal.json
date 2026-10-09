@@ -1,0 +1,302 @@
+{
+  "schema_version": 2,
+  "target": "normzhou/yolo-blank-canvas",
+  "kind": "upgrade-proposal",
+  "status": "proposed-unverified",
+  "protocol": {
+    "revision": "4a199bde872fda89292ebf0924f59e971274d9c3",
+    "sha256": "2f1a92e492267b9d670b0c1923b43108fb25967383c267229dc602e0b7620473"
+  },
+  "revision": "cb3e2e3430c264cd788d9e25bf4c2944c32f1efc",
+  "default_revision": "cb3e2e3430c264cd788d9e25bf4c2944c32f1efc",
+  "from": "cb3e2e3430c264cd788d9e25bf4c2944c32f1efc",
+  "previous_report": ".yolo/reports/upgrade-alpha13-landed.json",
+  "reviewed_commits": {
+    "checkpoint": "31c0f8b64ea192ba9becadbe531c871e602d14bf",
+    "commits_since_checkpoint": 42,
+    "head_at_proposal": "cb3e2e3430c264cd788d9e25bf4c2944c32f1efc",
+    "note": "No intervening commit was rewritten; history and published reports are untouched."
+  },
+  "working_changes": [
+    " M .agents/skills/yolo/SKILL.md",
+    " M .agents/skills/yolo/references/checker.md",
+    " M .agents/skills/yolo/references/protocol.md",
+    " M .agents/skills/yolo/references/provenance.json",
+    " M .agents/skills/yolo/references/records.md",
+    " M .yolo/adoption.json",
+    " M .yolo/governance/ARCHITECTURE.md",
+    " M .yolo/governance/AUTHORITY.md",
+    " M .yolo/governance/specs/status-presentation.md",
+    " M .yolo/protocol.md",
+    " M test/status.test.ts"
+  ],
+  "revision_note": "Routine authorized upgrade requested by the maintainer in an authenticated harness session: '/yolo upgrade' on the stable channel resolved no release, and the maintainer then selected '/yolo upgrade preview' explicitly. Acceptance recorded on issue #111.",
+  "upgrade": {
+    "channel": "preview (prereleases; the publisher has published no stable release)",
+    "old_release": "v0.1.0-alpha.13",
+    "old_publication": "6a8d704a6ab0a104d48fc43da3d6e5f98c4b1e80",
+    "old_source_inputs": "a8a4efe4aba400883ddd9567b4921df9ea78ff71",
+    "new_release": "v0.1.0-alpha.16",
+    "new_publication": "5f92e6c2d36b66ba02631ebebf21ef10ec00a4ac",
+    "new_source_inputs": "4a199bde872fda89292ebf0924f59e971274d9c3",
+    "new_protocol_sha256": "2f1a92e492267b9d670b0c1923b43108fb25967383c267229dc602e0b7620473",
+    "manifest_sha256": "8e4c48ea884f861fec627201f0f594868fe309cb5bc622cb96cd30d434f0f71d",
+    "effective_commit": null,
+    "selection_evidence": [
+      "yolo-check (pinned alpha.13 tool) resolve -> exit 1: 'No stable release available (or repository inaccessible). Use upgrade preview for prereleases.' All 14 published releases in normzhou/yolo-dev are prereleases with no draft, confirmed through the GitHub releases API.",
+      "yolo-check resolve preview -> {\"publication\": \"5f92e6c2d36b66ba02631ebebf21ef10ec00a4ac\", \"release\": \"v0.1.0-alpha.16\", \"guide\": \"https://github.com/normzhou/yolo-dev/blob/5f92e6c2d36b66ba02631ebebf21ef10ec00a4ac/docs/agent-onboarding.md\"}. Resolved once and retained through the proposal."
+    ],
+    "provenance_verification": [
+      "Complete bundle fetched from publication 5f92e6c2d36b66ba02631ebebf21ef10ec00a4ac: 16 blobs under skills/yolo/.",
+      "All 15 files in references/provenance.json reproduced their recorded SHA-256; references/protocol.md matched output.sha256; no unlisted file other than the manifest itself.",
+      "yolo-check_darwin_arm64 downloaded for v0.1.0-alpha.16, checksum entry verified with shasum -a 256 -c, and --version returned version 0.1.0-alpha.16 / publication 5f92e6c2d36b66ba02631ebebf21ef10ec00a4ac.",
+      "Installed through the selected publication's own installer: install --bundle <verified skill folder> <target> reported the pre-existing alpha.13 bundle as a conflict and wrote nothing; the publisher-owned bundle was then replaced wholesale and the installer re-run, reporting changed=true with all seven native bindings intact."
+    ]
+  },
+  "rule_tooling_delta": [
+    {
+      "area": "reports and checkpoints",
+      "old": "A checkpoint report finding must be status \"compliant\" with evidence and detail.",
+      "new": "A successful report finding may be \"compliant\" or \"resolved\"; a cited repair with an explanation counts as resolved. Unknown, pending, missing, conflicting, unverified and recorded statuses still block.",
+      "effect": "Clears the impossible requirement behind this repository's checkpoint finding: its published reports use \"resolved\", which alpha.13 could never accept. Upstream cause yolo-dev#40, fixed by publisher PR #59. The finding now reads \"Report omits a required semantic rule\", which is achievable.",
+      "restriction": "Historical reports stay unchanged; failures are cited from a later successful report rather than relabelled."
+    },
+    {
+      "area": "issue policy",
+      "old": "No request label. Intake reused the source issue; one managed issue is one outcome.",
+      "new": "Manifest declares issue_management \"request-outcome-v1\": a reserved yolo:request label, at most one \"## YOLO request\" triage comment per classified request, promotion of a source issue in place, many-to-many request/outcome coverage, and a linked Now/Next planning issue when coordination spans outcomes.",
+      "effect": "The reserved yolo:request label was created in this repository. Issue #110 is classified after landing, not before, because the old pin governs until then.",
+      "restriction": "A request label alone grants no authority, no workflow state and no admission. Only the adopted manifest may require the label; older pins keep their requirements."
+    },
+    {
+      "area": "qualification continuation",
+      "old": "A fresh session records loading evidence; the upgrade session cannot attest it and another restart is required.",
+      "new": "The observing fresh session may publish its own loading and continuation evidence through separately authorized work in that same session, recording facts under existing write authority.",
+      "effect": "Shortens the route to a Q5 observation without changing what counts as evidence.",
+      "restriction": "No session may attest a future restart or unobserved continuation; reports are published before any checkpoint is recorded."
+    },
+    {
+      "area": "activity observation",
+      "old": "No observation contract, setting or executable subcommand.",
+      "new": "A new protocol section, an optional adoption \"observation\" consent, and yolo-check observe emit|query.",
+      "effect": "None here. The setting is deliberately absent, which means capture and transmission are off; no adoption field was added and nothing transmits.",
+      "restriction": "Opt-in only, separate from feedback consent, failing open, and never a checkpoint or qualification input."
+    },
+    {
+      "area": "request interface (the app)",
+      "old": "Untagged open issues read \"Request open\"; nothing records disposition.",
+      "new": "Unlabelled or request-only open issues read \"Request open\" and the panel shows recorded disposition and covering outcomes.",
+      "effect": "The status derivation is unchanged and already satisfies the first half; the second half is an unimplemented display, recorded as a limit in ARCHITECTURE.md rather than silently built.",
+      "restriction": "Classification alone still proves no review, admission or scheduling."
+    },
+    {
+      "area": "release binding",
+      "old": "Same rule in both publications.",
+      "new": "Same rule in both publications.",
+      "effect": "No change. See release_applicability.",
+      "restriction": "n/a"
+    }
+  ],
+  "governing_clause_index": {
+    "charter": {
+      "path": ".yolo/governance/CHARTER.md",
+      "changed": false,
+      "note": "Purpose, audience and durable constraints are unchanged; the upgrade supplies no target intent."
+    },
+    "authority": {
+      "path": ".yolo/governance/AUTHORITY.md",
+      "changed": true,
+      "protected": true,
+      "clauses": [
+        "Delegated to the agent > Management",
+        "Delegated to the agent > Issue metadata"
+      ],
+      "note": "Prepared revision. Both bullets named only yolo:work and yolo:state:* and placed Now/Next in the work issue; the candidate pin requires the reserved yolo:request label, a YOLO request triage comment and a linked planning issue. Needs authenticated approval of this exact text; recorded in authority.pending."
+    },
+    "architecture": {
+      "path": ".yolo/governance/ARCHITECTURE.md",
+      "changed": true,
+      "protected": false,
+      "note": "One decision-and-limit bullet recording that a yolo:request label does not change derived status and that disposition display is unimplemented."
+    },
+    "specs": {
+      "path": ".yolo/governance/specs/status-presentation.md",
+      "changed": true,
+      "note": "Truthfulness rule 2 extended to request-labelled issues; new Request triage summary and One summary per outcome sections. Behaviour unchanged, so the fixtures were extended rather than rewritten: three new status cases and one summary-detection case in test/status.test.ts."
+    },
+    "protocol_old": ".yolo/protocol.md at 109ac362ed02f2ab8870907dc814b37d702acb9aa89def33d5c710189d2ef674 (a8a4efe4)",
+    "protocol_candidate": ".yolo/protocol.md at 2f1a92e492267b9d670b0c1923b43108fb25967383c267229dc602e0b7620473 (4a199bde)"
+  },
+  "action_permission_comparison": [
+    {
+      "action": "Manage issues: admit, prioritize, defer, split, promote",
+      "charter": "silent",
+      "grant_old": "delegated",
+      "grant_candidate": "delegated, same",
+      "pin_old": "delegated",
+      "pin_candidate": "delegated, adds grouping and promotion",
+      "verdict": "compatible"
+    },
+    {
+      "action": "Write one ## YOLO status summary per outcome",
+      "charter": "silent",
+      "grant_old": "delegated",
+      "grant_candidate": "delegated, same, scoped to admitted outcomes",
+      "pin_old": "delegated",
+      "pin_candidate": "same rule for outcomes",
+      "verdict": "compatible"
+    },
+    {
+      "action": "Write a ## YOLO request triage comment",
+      "charter": "silent",
+      "grant_old": "not named",
+      "grant_candidate": "delegated (prepared)",
+      "pin_old": "not defined",
+      "pin_candidate": "delegated, at most one per classified request",
+      "verdict": "compatible once the prepared grant revision is approved; recorded in authority.pending"
+    },
+    {
+      "action": "Create and maintain reserved labels",
+      "charter": "silent",
+      "grant_old": "delegated for yolo:work and yolo:state:*",
+      "grant_candidate": "delegated for yolo:request, yolo:work and yolo:state:*",
+      "pin_old": "requires yolo:work and yolo:state:*",
+      "pin_candidate": "adds yolo:request",
+      "verdict": "compatible; the label was created under this migration, not by ordinary install"
+    },
+    {
+      "action": "Classify an unlabelled incoming issue",
+      "charter": "silent",
+      "grant_old": "interpret requests",
+      "grant_candidate": "same",
+      "pin_old": "no request label",
+      "pin_candidate": "receiving AI applies yolo:request including to unlabelled issues",
+      "verdict": "compatible; #110 is classified only after landing"
+    },
+    {
+      "action": "Maintain ordered Now/Next",
+      "charter": "silent",
+      "grant_old": "delegated, in the work issue",
+      "grant_candidate": "delegated, in a linked planning issue when coordination spans outcomes",
+      "pin_old": "work issue or one planning issue",
+      "pin_candidate": "per-outcome summary suffices; planning issue when coordination spans outcomes",
+      "verdict": "compatible"
+    },
+    {
+      "action": "Transmit observation events",
+      "charter": "silent",
+      "grant_old": "not defined",
+      "grant_candidate": "not delegated",
+      "pin_old": "not defined",
+      "pin_candidate": "opt-in consent, absent here",
+      "verdict": "compatible, no authority granted; the setting is absent so capture and transmission are off"
+    },
+    {
+      "action": "File upstream feedback",
+      "charter": "silent",
+      "grant_old": "delegated after showing the maintainer the text",
+      "grant_candidate": "same",
+      "pin_old": "default draft and ask",
+      "pin_candidate": "same; may apply the existing yolo:request label upstream when permitted",
+      "verdict": "compatible; feedback.automatic stays false and no upstream label was applied"
+    },
+    {
+      "action": "Edit Charter or Authority",
+      "charter": "durable constraints",
+      "grant_old": "reserved, approval required",
+      "grant_candidate": "unchanged",
+      "pin_old": "protected",
+      "pin_candidate": "protected",
+      "verdict": "compatible, unchanged; this proposal edits Authority and therefore needs approval of the final revision"
+    },
+    {
+      "action": "Advance a checkpoint",
+      "charter": "silent",
+      "grant_old": "not delegated",
+      "grant_candidate": "not delegated",
+      "pin_old": "needs a successful report",
+      "pin_candidate": "needs a successful report, now reachable with resolved findings",
+      "verdict": "compatible; no checkpoint is advanced by this proposal"
+    }
+  ],
+  "release_applicability": {
+    "finding": "verification.release.effective_commit had been rewritten three times in published history: 6efd602 (recorded at adoption of the binding), then dbfdacf2 (the v0.3.0 release commit), then 80bf5f86 (the v0.3.1 release commit). The validator compares the current value against every published revision of the marker and requires them all to match.",
+    "action_taken": "Restored the boundary this repository itself published in .yolo/reports/upgrade-alpha13-proposal.json (release_applicability.effective_commit = 6efd602c6a184320271916d37b6876073d1c546b), and recorded the observed v0.3.1 -> 80bf5f86 mapping that was missing from legacy_tags while already present in .yolo/reports/releases-observed-2026-10-08.json.",
+    "probe_result": "Both the pinned alpha.13 tool and the candidate alpha.16 tool still report 'Release convention history boundary changed' with that corrected record. Verified by direct probe, not inference.",
+    "root_cause": "No single current value can satisfy the rule, because Git history contains three different published values and published history is not rewritten: choosing 6efd602 fails against dbfdacf2 and 80bf5f86; choosing 80bf5f86 fails against 6efd602 and dbfdacf2; choosing dbfdacf2 fails against the other two. This is a target record that outgrew a validator assumption, not a repairable local defect.",
+    "contradicting_evidence": "specs/releases.md (design inputs of this publication) says later migrations preserve established boundaries and identify new requirements in their upgrade evidence, which implies a boundary may be revised. The validator's rule instead requires it never to change once published.",
+    "upstream_report": "Draft prepared for yolo-dev; not sent. feedback.automatic is false in this adoption, so submission needs explicit maintainer authorization.",
+    "earlier_policy": "ARCHITECTURE.md has carried a versioning-policy mention since the L1 adoption fa6ec88, before the semver-v1 binding; that earlier mention is not backdated to the convention."
+  },
+  "version_repair": {
+    "decision": "Keep package.json#version as the native version source. No version change is part of this migration.",
+    "action": "None. package.json stays at 0.3.2.",
+    "rationale": "Upgrading the YOLO installation alone does not bump the target product. The alpha.13 migration set 0.1.2 for a future release; releases since then advanced the field normally, so no repair is outstanding."
+  },
+  "restoration_steps": [
+    "git revert <merge-commit> restores the alpha.13 bundle, snapshot and record byte-for-byte from Git.",
+    "Re-create the yolo:request label if it should not survive: gh label delete yolo:request --repo normzhou/yolo-blank-canvas (external effect; not undone by a Git revert).",
+    "Comments and labels applied after landing (#110 classification) are external effects and are not reverted by Git.",
+    "authority.pending and this proposal report remain as dated history; do not delete them to hide the attempt."
+  ],
+  "finding_classification": {
+    "human_decision": [
+      "AUTHORITY.md Management and Issue metadata clauses (protected): the prepared text needs authenticated approval of this exact revision.",
+      "The seven issue_summary findings: each outcome carries 2-5 '## YOLO status' comments where exactly one is required, and #86 has none. The choice between deleting published GitHub comments (external, irreversible) and amending the status-presentation contract is a maintainer decision. This proposal only makes the contract state the rule explicitly; it does not delete comments."
+    ],
+    "ai_repair": [
+      "Bundle, byte-identical snapshot and adoption mapping replaced as one publisher-owned change.",
+      "yolo:request reserved label created for the adopted manifest.",
+      "status-presentation.md extended so the contract matches the adopted policy; three status fixtures and one summary-detection fixture added, because the spec makes test/status.test.ts the executable form of the contract.",
+      "ARCHITECTURE.md decision-and-limit bullet recording the unimplemented disposition display.",
+      "verification.release.effective_commit restored to the adjudicated boundary and the v0.3.1 mapping recorded."
+    ],
+    "evidence_gap": [
+      "The release finding cannot be cleared locally; proven by probe and routed upstream.",
+      "checkpoint now reports 'Report omits a required semantic rule'. A later review report must name ownership, congruence, verification and continuity with evidence and detail. That is checkpoint advancement work, not part of this migration.",
+      "default_branch_context is unverified until this proposal lands on main."
+    ]
+  },
+  "factual_review": {
+    "structural": "yolo-check_darwin_arm64 (0.1.0-alpha.16, publication 5f92e6c2) . --structure -> exit 0, structure.status = pass, factual_status = ready_for_review.",
+    "full": "yolo-check_darwin_arm64 (0.1.0-alpha.16, publication 5f92e6c2) . -> exit 1, factual_status = gaps. Non-compliant findings: unresolved_findings (unverified), checkpoint (unverified, now \"Report omits a required semantic rule\"), context (unverified, authority.pending non-empty), default_branch_context (unverified, main still carries alpha.13), release (unverified, unfixable locally), issue_summary x7 (missing, carried forward unchanged from alpha.13).",
+    "under_old_pin": "The pinned alpha.13 tool reported the same issue_summary x7 and release findings plus checkpoint \"Report has unresolved or uncited findings\", which alpha.16 cannot accept at all.",
+    "target_checks": "npm test -> 127 passed (14 files). npx tsc --noEmit -> clean. npm run build and the Playwright suites are not part of this migration; the change touches no app runtime file.",
+    "replica_candidates": [
+      ".agents/skills/yolo/assets/architecture.md",
+      ".agents/skills/yolo/assets/authority.md",
+      ".agents/skills/yolo/assets/charter.md"
+    ],
+    "note": "Structural success proves neither accepted intent, protected approval, actual harness loading nor L1 qualification."
+  },
+  "semantic_review": {
+    "purpose_and_grant": "CHARTER.md is unchanged. The candidate pin supplies no target intent: purpose, audience and durable constraints are reused as accepted. The one protected edit is confined to the two delegated clauses that the new issue policy forces, and it is prepared rather than applied.",
+    "layer_boundaries": "Bundle, byte-identical snapshot and adoption mapping are replaced together as one publisher-owned unit. No mixing of versions: the installed bundle, .yolo/protocol.md and adoption.json all name publication 5f92e6c2 and digest 2f1a92e4. The installer refused the pre-existing alpha.13 bundle as a conflict, so the replacement was made explicitly here rather than by an ordinary install.",
+    "installed_identity": "Installed bundle, source-input revision and adopted release remain distinct facts: source inputs 4a199bde, publication 5f92e6c2, release v0.1.0-alpha.16, manifest digest 8e4c48ea884f861fec627201f0f594868fe309cb5bc622cb96cd30d434f0f71d, protocol digest 2f1a92e4.",
+    "congruence": "The three replicas are the publisher's own starter templates inside the immutable skill folder, byte-different from the canonical governance documents by design. They are classified as intentional templates and preserved; the canonical homes remain .yolo/governance/.",
+    "truth": "Activation is proposed and qualification unverified. authority.pending carries only the protected revision awaiting approval. authority.acceptance still cites the alpha.13 acceptance; it is not inherited by this candidate.",
+    "work_and_delivery": "No outcome is claimed as delivered by this proposal. Issue #111 records the migration; the summary comment is the '## YOLO request' triage summary for intake, not a '## YOLO status' summary, so no summary finding is added by it.",
+    "compression": "Adds process and evidence records only: no new target rule, no product behaviour change, no repository setting beyond the one reserved label the adopted manifest requires."
+  },
+  "pending_decisions": [
+    "Maintainer approval of the prepared AUTHORITY.md revision (Delegated to the agent > Management and > Issue metadata) recorded in authority.pending.",
+    "Maintainer decision on the seven issue_summary findings: delete duplicate published summaries, or amend the contract. Deliberately excluded from this proposal.",
+    "Maintainer authorization before any upstream yolo-dev report is sent about the release-history rule. feedback.automatic is false."
+  ],
+  "planned_operations": [
+    "Create the reserved label yolo:request in this repository. DONE before this proposal: the adopted manifest requires it.",
+    "Publish the migration PR from branch yolo/upgrade-alpha16.",
+    "On maintainer approval of the exact AUTHORITY.md text, that revision lands with the migration.",
+    "After landing: observe the landed revision, append the upgrade's effective commit and evidence to upgrades[], move activation to active, and restore the old pin's historical evidence.",
+    "After landing: classify issue #110 with yolo:request and post its '## YOLO request' triage summary. Not done before landing, because the alpha.13 pin governs until then.",
+    "After landing: reload the harness and record a fresh continuation under Qualification -> L1 acceptance before any dependent claim.",
+    "Checkpoint advancement is separate work and is not performed here."
+  ],
+  "limits": [
+    "Qualification is unverified. No Q1-Q5 claim is made or restored by this proposal.",
+    "The checkpoint finding is not cleared by this proposal; only the impossible rule behind it is removed. A later report must still satisfy the obligation requirements.",
+    "The release finding cannot be cleared in this repository at all; see release_applicability.",
+    "The migration is a preview-channel pin: experimental rules, unchanged authority.",
+    "Untagged/one-summary-per-outcome drift and the live verification gaps in docs/verification.md are carried forward untouched."
+  ]
+}

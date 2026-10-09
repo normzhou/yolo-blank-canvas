@@ -2,7 +2,7 @@
 
 Protocol format: `github-v1` · Candidate L1 distribution
 
-Source: [a8a4efe4aba400883ddd9567b4921df9ea78ff71](https://github.com/normzhou/yolo-dev/tree/a8a4efe4aba400883ddd9567b4921df9ea78ff71). All required rules and procedures are below; upstream links are optional publisher context or tool documentation. The target supplies its own purpose and accepted authority, not YOLO Dev's Charter. Installing these rules does not qualify or authorize a target. L2 descriptions do not activate an unbuilt runner.
+Source: [4a199bde872fda89292ebf0924f59e971274d9c3](https://github.com/normzhou/yolo-dev/tree/4a199bde872fda89292ebf0924f59e971274d9c3). All required rules and procedures are below; upstream links are optional publisher context or tool documentation. The target supplies its own purpose and accepted authority, not YOLO Dev's Charter. Installing these rules does not qualify or authorize a target. L2 descriptions do not activate an unbuilt runner.
 
 Source status notes describe the publisher at that revision, not this target's setup. This generated document preserves the design text; source links are rewritten to local sections wherever the referenced contract is included. The bundle's `provenance.json` records source digests and selections. Target adoption records retain this source identity and this file's digest.
 
@@ -40,11 +40,13 @@ Source status notes describe the publisher at that revision, not this target's s
 
 - [issue-delivery](#issue-delivery-issue-delivery-runner)
 
+- [observation](#observation-activity-observation)
+
 
 <a id="architecture-adoption-levels"></a>
 ### Adoption levels
 
-![L0 Baseline, L1 Assisted, L2 Autopilot, L3 Self-directed and L4 Living App progressively close the app's improvement loop.](https://github.com/normzhou/yolo-dev/blob/a8a4efe4aba400883ddd9567b4921df9ea78ff71/assets/adoption-levels.svg)
+![L0 Baseline, L1 Assisted, L2 Autopilot, L3 Self-directed and L4 Living App progressively close the app's improvement loop.](https://github.com/normzhou/yolo-dev/blob/4a199bde872fda89292ebf0924f59e971274d9c3/assets/adoption-levels.svg)
 
 | Level | Capability |
 | --- | --- |
@@ -93,10 +95,11 @@ Users/maintainers discuss through issues/comments, optionally [inside the app](#
 | Dimension | Opinion | Contract |
 | --- | --- | --- |
 | Governing context | Separate intent, design and implementation; complete local rules and ordinary loading. | [Protocol](#operating-protocol-operating-protocol), [layout](#repo-layout-repository-layout) |
-| Project management | AI admits outcomes and manages labels, summaries and linked PRs; people steer/contest. | [Issues](#issue-management-issue-management), [workflow](#github-workflow-github-operating-workflow) |
+| Project management | Shared request intake routes to target/publisher; AI groups inputs into bounded outcomes and manages a recoverable plan, summaries and linked PRs. People steer/contest. | [Issues](#issue-management-issue-management), [workflow](#github-workflow-github-operating-workflow) |
 | Authority | PRs with current authorization/evidence; protected approval, ordinary autonomy, identifiable overrides. | [Repo rules](#repo-rules-repository-rules-and-authority) |
 | Delivery | Target-defined checks/routes; shared semantic release tags and immutable identities; verify actual delivered outcomes. | [Verification/delivery](#verification-delivery-verification-and-delivery), [releases](#releases-product-releases) |
 | Evidence | Preserved identity, context, history and findings; cited capability. | [Records](#adoption-records-adoption-and-evidence-records), [qualification](#qualification-compliance-and-qualification-evidence) |
+| Observation | Opt-in native activity records with truthful measurements, separate from work state, reports and feedback consent. | [Observation](#observation-activity-observation) |
 
 Reserve `.yolo/` for governing context, adopted protocol, adoption record and optional reports. [Layout](#repo-layout-repository-layout) defines exact slots/mappings; app and native tooling keep useful conventions.
 
@@ -117,7 +120,7 @@ flowchart LR
 
 Repair the lowest sufficient layer. Target defects stay there; YOLO defects feed back here. Setup, active preparedness and qualification are distinct evidence claims.
 
-Keep product engineering separate from the reusable methodology. YOLO Dev validates its own tooling/bundle and harness behavior under [publisher acceptance](#assisted-development-acceptance); its concrete commands and CI status live in [development instructions](https://github.com/normzhou/yolo-dev/blob/a8a4efe4aba400883ddd9567b4921df9ea78ff71/docs/development.md). Each adopted repo defines its own tests and delivery route under the shared [verification contract](#verification-delivery-verification-and-delivery). [Target qualification](#qualification-compliance-and-qualification-evidence) needs that target's actual delivery/continuation evidence; publisher tests cannot supply it.
+Keep product engineering separate from the reusable methodology. YOLO Dev validates its own tooling/bundle and harness behavior under [publisher acceptance](#assisted-development-acceptance); its concrete commands and CI status live in [development instructions](https://github.com/normzhou/yolo-dev/blob/4a199bde872fda89292ebf0924f59e971274d9c3/docs/development.md). Each adopted repo defines its own tests and delivery route under the shared [verification contract](#verification-delivery-verification-and-delivery). [Target qualification](#qualification-compliance-and-qualification-evidence) needs that target's actual delivery/continuation evidence; publisher tests cannot supply it.
 
 <a id="architecture-product-source-and-applied-adoption"></a>
 ### Product source and applied adoption
@@ -191,7 +194,7 @@ AI chooses plans, alternatives and decomposition. Privileged operations require 
 <a id="operating-protocol-contracts-and-distribution"></a>
 ### Contracts and distribution
 
-Keep each decision in one governing home: [layout](#repo-layout-repository-layout), [issues](#issue-management-issue-management), [repository rules](#repo-rules-repository-rules-and-authority), [delivery](#verification-delivery-verification-and-delivery), [records](#adoption-records-adoption-and-evidence-records) and [qualification](#qualification-compliance-and-qualification-evidence). [Activities](#activities-agent-activities) and [onboarding](#onboarding-onboarding-and-check) define interaction; the optional [app interface](#request-interface-request-to-result-interface) presents the same records.
+Keep each decision in one governing home: [layout](#repo-layout-repository-layout), [issues](#issue-management-issue-management), [repository rules](#repo-rules-repository-rules-and-authority), [delivery](#verification-delivery-verification-and-delivery), [records](#adoption-records-adoption-and-evidence-records), [observation](#observation-activity-observation) and [qualification](#qualification-compliance-and-qualification-evidence). [Activities](#activities-agent-activities) and [onboarding](#onboarding-onboarding-and-check) define interaction; the optional [app interface](#request-interface-request-to-result-interface) presents the same records.
 
 Charter → architecture/specs → implementation and published artifacts. The [standalone bundle](#assisted-development-assisted-distribution) realizes these contracts without a second design tier. Targets adopt an identified revision under their own authority; publisher changes cannot silently upgrade it.
 
@@ -223,7 +226,7 @@ Bare invocation, `help` without a question and unknown activities return the ski
 
 Search related issues, discuss the need, and file/update when authorized. Quick answers need no ticket unless tracking is wanted. Return an actual link or an unsent draft/access gap.
 
-Apply [intake and admission](#issue-management-intake-and-admission): explain interpretation/disposition, reuse the source issue, and link split outcomes. Request does not start implementation unless execution is requested or standing authority permits it. Follow-up and roadmap questions use the same records.
+Apply the shared [intake model](#issue-management-intake-and-admission), also used by upstream feedback: classify with an existing `yolo:request` label when authorized; the receiving AI handles missing classification. Explain interpretation/disposition and covering outcomes without mechanical ticket duplication. Request does not start implementation unless execution is requested or standing authority permits it. Follow-up and roadmap questions use the same records.
 
 <a id="activities-work-shared-development-procedure"></a>
 ### Work: shared development procedure
@@ -231,7 +234,7 @@ Apply [intake and admission](#issue-management-intake-and-admission): explain in
 Accept an issue, desired outcome or direction to continue the plan. Capture the outcome in a target issue before implementation.
 
 1. **Reconcile:** load instructions, active rules, mapped intent/design/grant and shared work. Check replies, PRs, checks, delivery, pause and executor/handoff; resolve interrupted effects and coordinate writers.
-2. **Plan/admit:** interpret input authority, define observable acceptance and select ready work within scope. AI owns priority/decomposition; record blockers and apply protected-change approval/significance notification rules.
+2. **Plan/admit:** perform the [planning pass across requests/outcomes](#issue-management-planning-across-outcomes), define acceptance and select ready work within scope. Record grouping, priority/dependencies and a discoverable Now/Next when coordination spans outcomes. Apply protected-change approval/significance notification rules.
 3. **Execute:** maintain issue state/summary, implement through [PRs](#repo-rules-repository-rules-and-authority), verify and [deliver](#verification-delivery-verification-and-delivery). Replan when evidence changes.
 4. **Record/continue or hand off:** publish actual version, outcome, limits and next action; close fulfilled work only after verification. Preserve unfinished pushed work and truthful state. Continue within scope; a session ending does not prove its executor stopped.
 
@@ -239,10 +242,17 @@ Ordinary development requests enter this procedure without naming the skill. Con
 
 L1's maintainer starts sessions; AI may admit and plan within them. Between sessions there is no independent YOLO intake/scheduling, though started CI/CD may continue. L2's [runner](#issue-delivery-issue-delivery-runner) initiates this same procedure with enforced preconditions.
 
+<a id="activities-observation-automatic-activity-records"></a>
+### Observation: automatic activity records
+
+An opted-in and natively bound harness may [observe](#observation-activity-observation) an explicit activity's execution automatically: correlated `started`/`finished` events with native measurements and an allowlisted projection of the ordinary report. Observation is separate from feedback consent, defaults off, observes without adding prompts or gates, and never replaces the report, advances a checkpoint or qualifies the adoption. An activity absent from a pin that lacks an observer remains a coverage gap, not permission to upgrade it. Dry runs and non-consenting repositories emit nothing.
+
 <a id="activities-feedback-upstream-yolo-interaction"></a>
 ### Feedback: upstream YOLO interaction
 
 Resolve upstream from adoption/bundle publisher provenance; never default to the target's origin. Search related issues/plan and prefer existing threads. Keep target requests in the target repo.
+
+This is a request to the publisher: use the same intake classification and receiver-managed planning, not a separate feedback queue. Apply an existing `yolo:request` label when authorized and available; otherwise file normally and leave classification to the receiver. Never configure the upstream repository from a target harness.
 
 Draft useful bugs, questions or improvements arising from actual use of YOLO: unclear, conflicting or ineffective guidance, tooling failures or unnecessary friction. During check and the final init/upgrade assessment, briefly consider these causes; ordinary target defects and successful checks need no upstream report. Separate observed evidence from hypotheses.
 
@@ -255,7 +265,7 @@ Keep assessment read-only; any authorized submission is a separate, visible feed
 <a id="activities-acceptance"></a>
 ### Acceptance
 
-Demonstrate the activities from a standalone bundle: read-only help/status, intake without premature admission, direct harness work with durable progress/fresh continuation, and upstream routing with default consent, accepted automatic opt-in, draft-only dry runs and no unauthorized submission/disclosure. Use [qualification](#qualification-compliance-and-qualification-evidence) for level claims.
+Demonstrate the activities from a standalone bundle: read-only help/status, shared intake without premature admission, multi-request grouping/sequencing with durable planning and source coverage, direct harness work with fresh continuation, and upstream routing with default consent, accepted automatic opt-in, draft-only dry runs and no unauthorized submission/disclosure. Use [qualification](#qualification-compliance-and-qualification-evidence) for level claims.
 
 
 <a id="repo-layout-repository-layout"></a>
@@ -287,13 +297,13 @@ Demonstrate the activities from a standalone bundle: read-only help/status, inta
 <a id="repo-layout-reserved-namespace"></a>
 ### Reserved namespace
 
-Names and types are exact and case-sensitive. Only the tree's entries are allowed inside `.yolo/`; names/subdirectories within specs/reports are target-defined. Create optional directories only for content. App code, installed skills, caches, credentials and parallel issue databases stay out.
+Names and types are exact and case-sensitive. Only the tree's entries are allowed inside `.yolo/`; names/subdirectories within specs/reports are target-defined. Create optional directories only for content. App code, installed skills, caches, credentials, parallel issue databases and ephemeral [observation](#observation-activity-observation) counters/correlation stay out.
 
 All three governing documents use the canonical slots above; durable governing specs use `.yolo/governance/specs/`. Existing documents are migration inputs, not permanent location exemptions. Preserve their accepted meaning while moving them, update active references and native tooling that depends on those paths, and remove competing active copies. Active governing/instruction links must agree with those mappings; migration is a move, not a parallel document tier. Historical evidence retains its original content and cited revision. Earlier pins keep their earlier rules until an explicit upgrade.
 
 Questions belong in reports/issues, not extra governing files. Ownership follows meaning, including draft Charter/authority and proposed controls; location cannot grant permission.
 
-The adopted source revision identifies the layout contract. The [schema](https://github.com/normzhou/yolo-dev/blob/a8a4efe4aba400883ddd9567b4921df9ea78ff71/specs/repo-layout.schema.json) supplies its reserved entries/types/role paths in the manifest. The strict validator reports missing canonical homes, unexpected entries, wrong types and invalid mappings without changing files. Init/upgrade propose the required repair; do not mark setup prepared while required structure fails. An incompatible/missing definition is a coverage gap; structural success does not prove meaning or approval.
+The adopted source revision identifies the layout contract. The [schema](https://github.com/normzhou/yolo-dev/blob/4a199bde872fda89292ebf0924f59e971274d9c3/specs/repo-layout.schema.json) supplies its reserved entries/types/role paths in the manifest. The strict validator reports missing canonical homes, unexpected entries, wrong types and invalid mappings without changing files. Init/upgrade propose the required repair; do not mark setup prepared while required structure fails. An incompatible/missing definition is a coverage gap; structural success does not prove meaning or approval.
 
 <a id="repo-layout-governing-file-review"></a>
 ### Governing-file review
@@ -324,12 +334,18 @@ File presence is only one dimension of [qualification](#qualification-compliance
 
 **People describe needs; AI manages work.** Product requests, CI/CD and maintenance share GitHub issues/PRs.
 
+Issue policy: `request-outcome-v1`.
+
 <a id="issue-management-intake-and-admission"></a>
 ### Intake and admission
 
-Discuss ordinary issues before queuing them. AI clarifies, connects requests, defines an outcome and observable acceptance, then explains admission, waiting, deferral or decline within the grant.
+Target `request` and upstream `feedback` use the same intake model in different receiving repositories. Their routing, consent and authority remain distinct. AI classifies incoming needs/questions/evidence with `yolo:request`, including unlabelled issues and substantive new replies. Authorized submitters may apply an existing label; missing label permissions do not block filing or authorize repository configuration changes.
 
-Reuse the source issue when possible. One managed issue represents one outcome and may have several PRs; split broader requests into linked outcomes with progress at the source. Maintainers steer direction; AI manages priority and decomposition. No extra intake label or duplicate tracker is required.
+Intake is not admission. AI interprets requests and records disposition before queuing outcomes. Several requests may inform one bounded outcome; one request may require several. Promote a source issue in place when it already expresses that outcome, retaining `yolo:request`; otherwise link sources to covering work. One `yolo:work` issue represents one outcome and may have several PRs. Do not create a second ticket mechanically or group unrelated work merely by arrival time.
+
+Before admission, maintain at most one summary comment headed `## YOLO request`: interpretation, decision/reason, covered and remaining scope with outcome links, and next action or reconsideration condition. No summary means awaiting triage, not scheduled work. After promotion, use the work summary for current status and preserve earlier triage as history. AI verifies authorship/content; a heading proves neither review nor authority.
+
+Keep distinct source requests open while their promised scope is unfinished. Close verified fulfilled scope as completed, or duplicate/declined/answered input with an explicit disposition and canonical links where applicable. Consolidation, a plan or a merged PR does not prove delivery. Read later replies, including closed issues, and reopen or link follow-up without erasing earlier results.
 
 <a id="issue-management-reserved-labels-and-states"></a>
 ### Reserved labels and states
@@ -338,15 +354,27 @@ Preserve unrelated labels. AI maintains:
 
 | Label | Meaning |
 | --- | --- |
+| `yolo:request` | Incoming need, question or evidence; no execution commitment. Retained when promoted or closed. |
 | `yolo:work` | Admitted AI-managed outcome with acceptance, progress and evidence. |
 | `yolo:state:queued` | Ready and authorized, with clear acceptance/next action. |
 | `yolo:state:active` | Work underway, including diagnosis, recovery or replanning. |
 | `yolo:state:waiting` | Named dependency, information/authority gap, pause or binding limit blocks progress. |
 | `yolo:state:deferred` | Postponed with a reason and reconsideration condition. |
 
-After reconciliation, open managed work has exactly one state; closed work retains `yolo:work` and no state. Native closure means completed only after verified fulfillment, or not planned/duplicate with reason and replacement/canonical links where applicable. Conversations need no YOLO labels. Interrupted metadata updates establish neither permission nor completion.
+After reconciliation, open managed work has exactly one state; closed work retains `yolo:work` and no state. Requests without `yolo:work` have no execution state. AI-originated maintenance outcomes need no invented source request. Planning/general conversations need no request or work label. Interrupted metadata updates establish neither permission nor completion.
 
-Filter with `is:issue is:open label:"yolo:work"` and a state label. Build/test/deploy stages need no additional labels.
+Filter intake with `is:issue is:open label:"yolo:request" -label:"yolo:work"`; it includes reviewed sources tracked by other outcomes. Review summaries/replies to distinguish new input. Filter admitted work with `is:issue is:open label:"yolo:work"` and a state label. Build/test/deploy stages need no additional labels.
+
+Init/upgrade establish this version's required labels. Earlier pins retain earlier requirements; a request label alone supplies no new authority or workflow state.
+
+<a id="issue-management-planning-across-outcomes"></a>
+### Planning across outcomes
+
+At work startup and material changes, reconcile active execution/results, incoming requests/replies, dependencies and maintainer steering. Consolidate evidence, define useful bounded outcomes, select authorized work and explain ordering using Charter value, impact, risk, uncertainty, dependencies and effort. Frequency is evidence, not authority; no fixed scoring algorithm or oldest-first rule is required. Ask about consequential missing direction; use AI judgement for ordinary reversible choices.
+
+For one outcome its status summary suffices. When coordination spans outcomes, maintain one discoverable planning issue linked from affected work/request summaries; reuse the L2 control issue when applicable. Its current summary records focus, ordered **Now / Next**, reasons, blockers and material changes. Work issues own execution state/evidence; do not duplicate them or create a mandatory board, roadmap file or approval cycle. Queue order is not an ETA.
+
+Replan after failures, discoveries or changed steering; preserve earlier intent/failure and coordinate interruptions under the execution protocol. Advance independent ready work while blocked, explain deferral and reconsideration, and revisit neglected input. L1 planning occurs in maintainer-started sessions; L2 may initiate it automatically. Neither receipt nor a label guarantees admission or a response time.
 
 <a id="issue-management-progress-planning-and-feedback"></a>
 ### Progress, planning, and feedback
@@ -365,9 +393,7 @@ Edit that same comment as work progresses; ordinary dated comments retain decisi
 
 Mark unknowns. A heading or user success claim is not execution evidence. Dated comments preserve material decisions, changed scope/priority, failures, handoffs and results. Reply at source requests; explain declined/deferred scope and link release updates to verified versions. Split requests summarize delivered, remaining and declined outcomes.
 
-Keep ordered **Now / Next** with reasons in the work issue, or one planning issue when needed. Use native sub-issues/dependencies for actual decomposition/blocking. Queue order is not an ETA; forecasts need supporting evidence and uncertainty.
-
-Read replies on closed issues. Reopen or link follow-up without erasing the earlier result.
+Use native sub-issues/dependencies for actual decomposition/blocking. Update source requests for changed disposition/coverage and verified results; routine execution detail stays on linked work. Forecasts need supporting evidence and uncertainty.
 
 <a id="issue-management-l2-coordination-and-recovery"></a>
 ### L2 coordination and recovery
@@ -479,7 +505,7 @@ Explicit upgrades reconcile the same policy, releases and history in their migra
 
 Read-only check reviews default-branch setup, current release records and the interval since effective adoption/checkpoint. Factual checks observe names, tag/commit mappings and changes to retained observations. AI verifies native versions, artifact identity, compatibility bumps, migration and delivery. Persist dated tag/commit observations in ordinary evidence records; current refs cannot prove historical immutability. Missing evidence stays unverified; violations need cited resolution, not rewritten tags/history.
 
-The [record encoding](https://github.com/normzhou/yolo-dev/blob/a8a4efe4aba400883ddd9567b4921df9ea78ff71/skills/yolo/references/records.md) realizes these bindings. Target product versions and adopted YOLO releases are independent; upstream publication never upgrades a target automatically.
+The [record encoding](https://github.com/normzhou/yolo-dev/blob/4a199bde872fda89292ebf0924f59e971274d9c3/skills/yolo/references/records.md) realizes these bindings. Target product versions and adopted YOLO releases are independent; upstream publication never upgrades a target automatically.
 
 
 <a id="conformance-checks-conformance-checks"></a>
@@ -499,13 +525,15 @@ The read-only validator implements these tests. Deterministic violations cannot 
 | [Agent entrypoints](#assisted-development-harness-bindings) | Native bindings/imports are intact; instructions reference local adoption/protocol; checked governing Markdown links resolve to mapped homes. |
 | [Record encoding](#adoption-records-adoption-and-evidence-records) | Required context/migration fields and references have valid shape; feedback settings are boolean with consent references when enabled. |
 | [History](#adoption-records-reports-and-checkpoints) | Baseline/checkpoint ancestry, report chain and interval identities agree; recorded unresolved findings prevent factual readiness; checkpoint/report history remains intact. |
-| [Issues](#issue-management-reserved-labels-and-states) | Reserved labels exist; managed open issues have one state, closed issues none; states require `yolo:work`; each outcome has one status-summary comment. |
+| [Issues](#issue-management-reserved-labels-and-states) | Adopted-policy labels exist; request classification is not admission; states require `yolo:work`; managed open issues have one state, closed issues none; each outcome has one status summary, each classified request at most one request summary. |
 | [Releases](#releases-establish-and-check) | Release bindings/effective history exist; product-tag candidates follow naming rules; published releases have tags; retained tag/commit observations remain unchanged. |
 | [Default branch](#qualification-required-observations) | Declared branch matches GitHub; landed adoption identity agrees with inspected setup. Unavailable/unpublished context remains unverified. |
 
 `--structure` covers local layout, identity, entrypoints and structural encoding. Full check adds context/history and GitHub facts; offline leaves remote checks unverified. Earlier pins retain their coverage. Findings: `compliant/missing/conflicting/unverified`. Structure: `pass/fail/unverified`. Exits: 0 ready for review, 1 gaps, 2 invocation/Git error.
 
 The validator observes repository settings; it does **not** authenticate approval/provenance, judge document/report/summary contents, inspect every PR review/check, validate native versions, execute target tests or prove delivery. Agents reconcile that evidence.
+
+The publication manifest identifies `issue_management: request-outcome-v1`. Only that adopted policy requires `yolo:request`; older pins retain their label requirements. The classifier may coexist with older rules without granting execution. Zero request summaries means awaiting triage, not a deterministic failure; identifying unlabelled input, review/disposition quality, coverage, plan discoverability and sensible ordering require agent judgment.
 
 <a id="conformance-checks-advisory-warnings"></a>
 ### Advisory warnings
@@ -525,7 +553,7 @@ Record **pass / fail / unverified, evidence and next action** for each review:
 | --- | --- |
 | Purpose and congruence | Do all layers serve confirmed goals, with concise documents, one governing home and correct active references? |
 | Ownership and authority | Do grant, Charter and pin agree? Are approvals authentic/revision-bound, significant changes notified and overrides scoped? |
-| Work and adaptation | Do issues, acceptance, plans, replies, PRs and closures reflect actual work? Are failures/replanning explained without retrospective success? |
+| Work and adaptation | Are intake and committed outcomes distinct, with justified grouping, source coverage and recoverable Now/Next/dependencies? Do replies, actual progress, closures and replanning remain truthful, including neglected input and failures? |
 | Verification and delivery | Are checks trustworthy/current, versions and compatibility justified, and outcomes verified on the actual delivered artifact? |
 | Continuity | Does full history preserve decisions/failures, including repaired violations, and support recovery without hidden session state? |
 | Capability | Was loading/fresh continuation observed? Does the claimed level satisfy [qualification](#qualification-compliance-and-qualification-evidence), including effective L2 controls? |
@@ -576,6 +604,8 @@ Reconcile narrative claims with primary records, including subject IDs and event
 
 All Q1–Q5 must pass with no unresolved required finding. A marker, skill installation or factual exit success cannot substitute for this evidence. Qualification applies only to its inspected scope.
 
+A fresh session may record its own observed loading and continuation: identify the harness/version, distinguish it from the setup or upgrade session, and cite loaded context and reconciled actions. It cannot attest a future restart or unobserved session. When observed during read-only `check`, present the evidence and the next recording action; [authorized work](#activities-work-shared-development-procedure) may publish it in that same fresh session or a later one. Recording facts needs existing write authority, not a new grant or another fresh session. Publish the report before recording a successful checkpoint, and assess all criteria separately.
+
 <a id="qualification-l2-acceptance"></a>
 ### L2 acceptance
 
@@ -601,6 +631,7 @@ Reconcile changed feedback, authority and actual outcomes before proceeding. Act
 | Native bindings | Harness/version, loading route and installed skill identity/location or explicit gap. |
 | Verification/delivery | References to checks, destination/version observation, release policy/native version source/effective revision and preserved tag/commit evidence, accepted recovery/limits and optional app interface. Do not duplicate the grant or workflow state. |
 | Feedback | Optional automatic sanitized upstream reporting, disabled when absent. Record explicit recognized-maintainer consent; preserve the choice across upgrades without broadening its scope. Changes are authority controls, not ordinary setup facts. |
+| Observation | Optional [activity observation](#observation-activity-observation), disabled when absent, with a stable opaque adoption identity. Consent is separate from feedback, retained across init/upgrade/worktrees; disabling stops future transmission. Changes are authority controls, not ordinary setup facts. |
 | Activation | Proposed or active; active requires accepted governing decisions and installed identified context. |
 | History/status | Original baseline, effective upgrades, successful checkpoint/report, unresolved references and level evidence. |
 
@@ -616,12 +647,19 @@ Pending acceptance is a readiness gap, not malformedness. A summary cannot authe
 
 Status describes the record's identified pin. An upgrade proposal cannot inherit the old pin's active/prepared/qualified claims; retain those as historical evidence. Append upgrade history only after observing an actual effective commit; proposed operations belong in the report.
 
+<a id="adoption-records-observation-setting"></a>
+### Observation setting
+
+`observation` is a distinct optional consent from `feedback`. It records whether [activity observation](#observation-activity-observation) may capture and transmit, the stable opaque adoption identifier and the cited recognized-maintainer acceptance. It defaults off and is absent for repositories that never opted in; the field alone grants nothing. Preserve the identifier and decision across repeat init, upgrade and worktrees; revocation stops future transmission, and dry runs never transmit. The [bundle encoding](https://github.com/normzhou/yolo-dev/blob/4a199bde872fda89292ebf0924f59e971274d9c3/skills/yolo/references/records.md) implements its exact shape.
+
 <a id="adoption-records-reports-and-checkpoints"></a>
 ### Reports and checkpoints
 
 Reports identify target/protocol, default-branch and subject revisions, local changes, history interval/every reviewed commit, relevant GitHub observations, harness/version, findings with reason/source/impact and cited resolutions, subject verification, and next action. Qualification adds a verdict/reason/source per criterion.
 
 A successful checkpoint requires passing subject verification and names its reviewed commit and **published successful report**. Chained reports cover every commit back to the original baseline and cite all four [obligations](#operating-protocol-shared-loop-and-boundary). Later bookkeeping enters the next review; a report cannot attest its future publication. Failed reviews cannot advance/reset checkpoints or erase findings; retain failures with cited resolutions.
+
+Each successful report includes `ownership`, `congruence`, `verification` and `continuity` findings. `compliant` describes supported conformity; `resolved` describes a previously failed finding with a cited repair and explanation. Both require evidence and detail. Unresolved or unknown statuses do not establish success. Preserve historical reports unchanged; cite failed reviews from a later successful report rather than putting failures in the successful checkpoint chain.
 
 Helpers are read-only, diagnose incompatible/malformed records without rewriting, and report missing/stale/inaccessible evidence unverified. A digest proves byte identity, not authenticated acceptance or semantic compliance.
 
@@ -633,7 +671,7 @@ Helpers are read-only, diagnose incompatible/malformed records without rewriting
 
 ```mermaid
 flowchart LR
-    I[Request and discussion] --> P[AI interprets and plans]
+    I[Requests and discussion] --> P[AI groups, prioritizes and sequences outcomes]
     P -->|Admit ready work| W[Queued outcome]
     P -->|Clarify| I
     W --> C[PR and checks] --> M[Merge] --> D[Deliver and verify]
@@ -644,6 +682,8 @@ flowchart LR
 ```
 
 [Activities](#activities-agent-activities) execute the loop in L1 harness sessions or, later, L2 automatically. App requests stay in the target; YOLO feedback goes upstream.
+
+Both destinations use `yolo:request` intake. Relationships between requests and outcomes may be many-to-many; classification does not admit work. A linked Now/Next plan coordinates outcomes when needed, while each work issue owns its state and evidence. See [intake and planning](#issue-management-issue-management).
 
 The [conformity map](#architecture-dimensions-of-conformity) links the steady-state contracts; [onboarding](#onboarding-onboarding-and-check) reaches them. Add trackers, taxonomies or services only for observed needs.
 
@@ -667,12 +707,12 @@ Show the request/discussion, interpretation/acceptance, disposition/reason, next
 | --- | --- |
 | Submit | Confirmed ordinary issue and link; no automatic admission/queueing. Unconfirmed writes remain visibly unconfirmed. |
 | Discuss | AI interpretation, questions and corrections in source comments. |
-| Decide | Acceptance, admission/wait/deferral/decline and reason; managed labels only after admission. |
+| Decide | Interpretation/disposition and covering outcome links; `yolo:request` marks intake, while `yolo:work` and execution states follow admission. |
 | Develop | Actual stage/revision, PRs/checks, next step and failures/replanning while the app remains usable. |
 | Deliver/use | Actual destination/version, verified acceptance, access/refresh/update steps and limits; merge may precede availability. |
 | Respond | Replies after closure lead to reopening/linked follow-up without erasing prior results. |
 
-Map open managed states: queued → **Planned**, active → **In progress**, waiting → **Waiting**, deferred → **Postponed**. Untagged open issues are **Request open**, not evidence AI read/scheduled them. Native not-planned/duplicate closure shows its reason/canonical link; closing an unmanaged conversation proves no delivery.
+Map open managed states: queued → **Planned**, active → **In progress**, waiting → **Waiting**, deferred → **Postponed**. Unlabelled or request-only open issues are **Request open**; classification alone proves no AI review/scheduling. Show recorded disposition and covering outcomes, including many requests served by one outcome. Native not-planned/duplicate closure shows its reason/canonical link; closing an unmanaged conversation proves no delivery.
 
 Use existing labels and recorded explanations. Stages need native/summary evidence; passing checks or merge cannot imply delivered acceptance. Conflicting/missing state or required result data show **Status needs reconciliation**, with raw records available; UI must not silently repair metadata.
 
@@ -808,7 +848,7 @@ Select releases using [publisher channels](#assisted-development-release-selecti
 3. **Propose a migration.** Use one outcome issue and linked PR, or a retained dry-run report/diff. Reuse accepted purpose; no new initial interview unless intent is genuinely missing. Report migration deltas, conflicts, planned operations, pending owner decisions and restoration steps; link existing context/evidence instead of repeating it.
 4. **Prepare without blind overwrite.** Reconcile publisher-owned bundle/bindings against their identified old publication, preserving target modifications and unrelated instructions. Stage the complete new bundle, byte-identical snapshot, canonical governing context and candidate mapping together; no mixing versions. A pending candidate uses proposed activation and unverified qualification, with conflicts in pending/unresolved references; preserve old applicability/evidence in Git and the report. The installer refuses conflicts; resolving an authorized replacement belongs to this migration, not ordinary install.
 5. **Apply within current authority.** Protected edits/authority-control changes need the old policy's identified approval or override; significant design changes notify. Missing decisions leave the old default-branch adoption in force. Publish an authorized migration through its PR, observe the landed revision, append the upgrade's effective commit/evidence and retain historical applicability.
-6. **Check and resume.** Run strict structural validation before dependent activation and again on delivered setup. Verify delivered bundle/snapshot/context, reassess affected criteria and preserve unresolved findings. Loading evidence for the previous pin remains historical, not proof of the new rules being loaded. Reload/restart the harness and record a fresh continuation before restoring dependent claims.
+6. **Check and resume.** Run strict structural validation before dependent activation and again on delivered setup. Verify delivered bundle/snapshot/context, reassess affected criteria and preserve unresolved findings. Loading evidence for the previous pin remains historical, not proof of the new rules being loaded. Reload/restart the harness, then use the [continuation recording route](#qualification-l1-acceptance) before restoring dependent claims.
 
 Follow layout with one active marker; competing markers select neither. Upgrade changes applied adoption and includes the smallest implementation/tooling repairs necessary for conformity, within the current grant. Unrelated product improvements or publisher-source changes are separate work. Self-use follows this same route. New publication, installed candidate and active target pin remain separate facts; rollback also records an explicit migration and cannot undo external effects or erase failures.
 
@@ -829,6 +869,8 @@ Reconcile [required observations](#qualification-required-observations), current
 
 Diagnose cause/impact, repair the lowest sufficient layer within authority, retain failed evidence and cite resolutions, then recheck. [Checkpoint rules](#adoption-records-reports-and-checkpoints) prevent failure from resetting history. Standalone check and the final init/upgrade assessment briefly evaluate the effectiveness of YOLO guidance/tooling, then use the separate [feedback procedure](#activities-feedback-upstream-yolo-interaction) for useful findings. Dry runs retain drafts only.
 
+Read-only check returns observed continuation evidence and names `work` as the recording action when publication is needed; it does not write reports or adoption/checkpoint state. A later explicit work request or an existing applicable write grant authorizes that separate step. The [observing fresh session](#qualification-l1-acceptance) may perform it without another restart; unresolved criteria still prevent qualification.
+
 <a id="onboarding-product-artifacts-and-acceptance"></a>
 ### Product artifacts and acceptance
 
@@ -840,7 +882,7 @@ For dry run, observe source preservation/no GitHub writes, a complete retained d
 <a id="assisted-development-assisted-distribution"></a>
 ## Assisted distribution
 
-**Publisher artifact requirements.** Package the [protocol](#operating-protocol-operating-protocol) and [onboarding process](#onboarding-onboarding-and-check) so a target harness can operate without this checkout or prior chat. The [candidate skill](https://github.com/normzhou/yolo-dev/blob/a8a4efe4aba400883ddd9567b4921df9ea78ff71/skills/yolo/SKILL.md) implements them; observed qualification remains separate.
+**Publisher artifact requirements.** Package the [protocol](#operating-protocol-operating-protocol) and [onboarding process](#onboarding-onboarding-and-check) so a target harness can operate without this checkout or prior chat. The [candidate skill](https://github.com/normzhou/yolo-dev/blob/4a199bde872fda89292ebf0924f59e971274d9c3/skills/yolo/SKILL.md) implements them; observed qualification remains separate.
 
 <a id="assisted-development-standalone-bundle"></a>
 ### Standalone bundle
@@ -860,7 +902,7 @@ The helper observes local context/history and GitHub metadata, issues/comments, 
 | Dry run | Isolation/no-write boundary, retained proposal/report and actual review commands. |
 | Upgrade | Stable/preview selection, identified old/new publications, rule/tooling diff, preservation/replacement procedure, existing approval rules, effective migration and affected qualification. |
 | Check | Active-pin lookup, supported versions, observations, history review, diagnosis/repair and checkpoint rules. |
-| Request/work/feedback | Activity procedure, destination, admission versus intake, scope and reporting authority. |
+| Request/work/feedback | Shared intake, outcome admission/coverage, cross-outcome planning, destination and reporting authority. |
 | Ordinary session | Loading entrypoint plus local context/shared work sufficient for continuation without settled-intent rebriefing. |
 
 Link supporting files with read conditions. Required information cannot depend on upstream access; optional source/tool links provide context. Copied folders retain source identity, input/output digests, installed publication identity and a complete file-hash inventory. Adoption binds the manifest digest. Verify all shipped files, not just the protocol; verify every required native binding/import separately. Broken references, unfilled required context and unknown provenance are gaps. Incompatible versions are diagnosed, never substituted.
@@ -886,7 +928,7 @@ Preserve other skills, commands and active instructions. Repeated installation i
 
 Use `AGENTS.md` as the ordinary entrypoint. Install thin [Claude](https://code.claude.com/docs/en/memory) and [Gemini](https://geminicli.com/docs/cli/gemini-md/) imports in `CLAUDE.md` and `GEMINI.md`; preserve existing instructions with the same import, otherwise stop for reconciliation. Init supplies the shared local protocol/context through `AGENTS.md`. Native trust, permissions and reload requirements remain in force. Skill discovery, explicit invocation and ordinary instruction loading require separate observations.
 
-Ordinary requests use [work](#activities-work-shared-development-procedure) without per-session manual invocation. YOLO self-use follows the same identified publication/adoption route; a mutable authoring link cannot upgrade or qualify it. Older [protocol](https://github.com/normzhou/yolo-dev/blob/a8a4efe4aba400883ddd9567b4921df9ea78ff71/skills/yolo/references/assisted-protocol.md)/encoding remain compatibility material.
+Ordinary requests use [work](#activities-work-shared-development-procedure) without per-session manual invocation. YOLO self-use follows the same identified publication/adoption route; a mutable authoring link cannot upgrade or qualify it. Older [protocol](https://github.com/normzhou/yolo-dev/blob/4a199bde872fda89292ebf0924f59e971274d9c3/skills/yolo/references/assisted-protocol.md)/encoding remain compatibility material.
 
 <a id="assisted-development-release-selection"></a>
 ### Release selection
@@ -994,3 +1036,108 @@ On a disposable authorized target, demonstrate:
 5. Offline pause/new feedback apply before resume; concurrent harness work follows acknowledged handoff.
 
 Controls, packaging, runtime inputs and replacement activation must be resolved/proven before L2. A trial grants no unattended access elsewhere. See [qualification](#qualification-l2-acceptance).
+
+
+<a id="observation-activity-observation"></a>
+## Activity observation
+
+**Measure execution and outcomes through the harness, not the agent's cooperation.** Observation makes YOLO's effectiveness analyzable from activity execution, native harness measurements and the ordinary result report. It is a separate, opted-in reporting operation; it never replaces GitHub/Git work state, advances a checkpoint or qualifies an adoption.
+
+The reusable methodology here is shared. The concrete observer, sender, tests and harness adapters are publisher artifacts; each integration and its coverage limits are identified, and adopters do not inherit YOLO Dev's own test/CI configuration.
+
+<a id="observation-boundaries"></a>
+### Boundaries
+
+- Emit `started` and `finished` for each observed execution segment, correlated by an activity ID.
+- An explicit activity command starts a segment; terminal harness settlement, interruption or execution failure ends it. A follow-up interview or resumed work is a new segment, not a prolonged one.
+- An activity's cause can span many segments. Harness idle or stop does not prove a feature was fulfilled or a worker terminated.
+- A missing `finished` remains unknown; never invent a failure. Unknown child/nested coverage stays `partial`.
+- Hooks observe only. They add no prompts, approval decisions, continuations, permissions or progress gates.
+- Local ephemeral counters and correlation are measurement aids, never authoritative development state.
+
+<a id="observation-consent-and-transmission"></a>
+### Consent and transmission
+
+Telemetry is a distinct purpose from upstream [feedback](#activities-feedback-upstream-yolo-interaction); feedback consent grants no observation. Capture and transmission default **off**. Local capture requires an explicit trial selection; external reporting requires accepted opt-in recorded in the [adoption record](#adoption-records-observation-setting) under a recognized maintainer at an identified revision. Absent the setting a repository stays fully usable and sends nothing; first init without consent sends nothing.
+
+A consenting adoption has one stable opaque identifier, retained across repeat init, upgrades, worktrees and harnesses. Adoption identity may be null only for an explicitly requested local pre-adoption trial. Observers record event time separately from any server receipt time. Re-sending preserves the event ID for deduplication; nested checks correlate through `parent_activity_id` so they are not double-counted.
+
+Revocation stops queued and new transmission. Dry runs use local or disposable artifacts only and never transmit, even under prior consent. Pre-consent session data is never backfilled. The sender uses one disclosed destination and carries no analysis or administrative credentials to targets; analysis credentials are separately read-only.
+
+<a id="observation-event-envelope"></a>
+### Event envelope
+
+One versioned envelope is used by `init`, `upgrade`, `check`, `request`, `work` and `feedback`:
+
+```json
+{
+  "schema_version": 1,
+  "event_id": "opaque unique ID",
+  "activity_id": "opaque invocation ID",
+  "parent_activity_id": null,
+  "adoption_id": "opaque consenting-adoption ID",
+  "activity": "check",
+  "phase": "finished",
+  "timestamp": "UTC timestamp",
+  "context": {
+    "mode": "L1",
+    "dry_run": false,
+    "yolo_release": "identified active release or null",
+    "proposed_release": null,
+    "observer_version": "identified executable version",
+    "harness": { "name": "pi", "version": "observed version" },
+    "environment": { "os": "darwin", "arch": "arm64" }
+  },
+  "execution": { "status": "completed", "wall_ms": 42000 },
+  "measurements": {
+    "source": "pi-native-events",
+    "scope": "activity",
+    "coverage": "partial",
+    "model_requests": 3,
+    "tool_calls": 7,
+    "tool_failures": 1,
+    "models": []
+  },
+  "report_status": "present",
+  "report": {
+    "kind": "review",
+    "binary_observations": { "assessment": "gaps", "findings": [] },
+    "agent_assessment": { "verdict": "unverified" }
+  }
+}
+```
+
+The example defines responsibilities, not permission to fill unknown fields. A `started` event omits results and report. `finished.execution.status` is `completed`, `failed` or `interrupted`. `report_status` is `present`, `missing` or `invalid`; absent or invalid content is null. For upgrade, active/from and proposed/to release identities are retained separately: a proposal is not activation.
+
+<a id="observation-measurements"></a>
+### Measurements
+
+Keep observer and harness versions and the measurement source so adapters can evolve without misleading comparisons. Count model requests and tool executions rather than assuming a portable meaning of "turn". Normalize overlap explicitly: never blindly sum streaming chunks, cumulative counters or parent/subagent totals; tool/model durations can overlap wall time, and elapsed time is not human effort.
+
+Include native per-response provider/model and input/output/cache/reasoning breakdowns only when supplied. Label selected-model information separately from a model observed serving a request. Unsupported measurements are absent or null, never zero.
+
+<a id="observation-report-integration"></a>
+### Report integration
+
+The full ordinary report and its evidence stay in the target's normal report and GitHub locations. Init, upgrade and check reuse their review reports. `work`, `request` and `feedback` add a minimal structured outcome summary where no normal report exists: activity/result, evidence, unresolved findings and next action. This is normal progress recording, not a telemetry-writing task; an event cannot advance a checkpoint or qualify adoption.
+
+The binary validates activity correlation and schema and includes an allowlisted projection of the report in `finished`. Binary findings and agent judgments remain separate; a `completed` execution can carry a `failed` or `gaps` assessment, and a missing or malformed report still produces a finish event with the measured facts. A report arriving after segment settlement is retained locally and marked unsupported, not guessed onto another run.
+
+The remote report projection defaults to typed statuses, counts and known rule/category identifiers. It excludes arbitrary strings, evidence URLs, paths, repository identity, source code, prompts, bodies, commands, outputs, transcripts and credentials, including nested report fields; unknown or custom rule identifiers become a neutral category or stay local, and rich reasons stay local. Context metadata has its own bounded allowlist, and custom provider/model labels require the same disclosure review, never a raw configuration dump. Payloads are validated before projection, size-bounded, and reject non-finite or negative counters. A valid agent report is a claim, not authenticated evidence; confirmed GitHub/API operations may be mechanically recorded only when the integration actually observes structured results.
+
+<a id="observation-harness-bindings"></a>
+### Harness bindings
+
+A native binding detects the six explicit activities before prompt expansion, creates correlation, observes native model/tool events and calls the observer with bounded structured data. It obtains the normal report by an explicit correlated artifact path rather than parsing arbitrary conversation; reports that cannot be correlated are retained locally as unsupported. It preserves existing `/yolo <activity>` semantics, instructions, trust and unrelated bindings, reports unsupported interfaces as coverage gaps, and never infers parentage from a shared working directory. Concurrent sessions and targets use independent IDs, and temporary observable data stays outside reserved [`.yolo/` slots](#repo-layout-reserved-namespace).
+
+Other harnesses reuse native hooks, extensions, structured execution streams or OpenTelemetry, preferring existing instrumentation over parsing undocumented transcripts; an adapter is built only after a real trial establishes its contract. The future L2 runner creates correlation before launch and observes structured termination/usage; this contract defines compatibility, not an L2 implementation.
+
+<a id="observation-delivery-and-failure"></a>
+### Delivery and failure
+
+The observer uses the existing executable/release-asset distribution route; installing or checking a target needs no new Python or Go runtime. A local JSONL sink is always available; remote transmission requires the configured opt-in. Prefer Supabase/Postgres when a service is selected. Transmission uses bounded timeouts and fails open: unusable transmission is reported without blocking work or changing checker exit semantics. Any retry retains original event IDs and bounded local storage; an unlimited durable outbox is not required. Analysis is programmatic, read-only and deduplicates by event ID; hosted-endpoint deployment, access controls and target opt-in remain separate authorized work.
+
+<a id="observation-acceptance"></a>
+### Acceptance
+
+Demonstrate: an explicit activity produces correlated `started`/`finished` records with truthful native measurements; a normal report is attached by the allowlisted projection and a missing/invalid one degrades honestly; nested/repeated checks deduplicate; absent or revoked consent and dry runs never transmit; and an unavailable sink does not block development. Fixtures exercise ingestion, deduplication and the append-only write/read-only analysis contract. Publisher fixtures cannot establish target opt-in, real hosted configuration or general harness support.
