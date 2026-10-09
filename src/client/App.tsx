@@ -179,7 +179,12 @@ export function App() {
       {gameOpen ? (
         <TetrisView onClose={() => setGameOpen(false)} />
       ) : (
-        <p className="canvas-prompt">What would you like to build or change?</p>
+        <>
+          <p className="canvas-prompt">What would you like to build or change?</p>
+          <p className="canvas-empty-hint">
+            Open <strong>Requests</strong> to file one or follow an existing request.
+          </p>
+        </>
       )}
 
       {panelOpen && session ? (
