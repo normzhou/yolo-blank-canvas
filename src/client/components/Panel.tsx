@@ -150,7 +150,7 @@ export function Panel({
             {stale ? <span className="stale"> · stale</span> : null}
           </span>
           <span>UI build: {clientBuild === 'unknown' || !clientBuild ? 'Unknown' : clientBuild.slice(0, 7)}</span>
-          <button type="button" className="link" onClick={onDisconnect}>
+          <button type="button" onClick={onDisconnect}>
             Disconnect
           </button>
         </footer>

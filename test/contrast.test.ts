@@ -50,7 +50,7 @@ describe('colour tokens meet the legibility floor', () => {
     ['--muted', '--surface', 4.5, 'notes, panel footer, comment meta'],
     ['--muted', '--bg', 4.5, 'canvas identity line'],
     ['--text', '--field', 4.5, 'text typed into a field'],
-    ['--accent', '--surface', 4.5, 'links, Disconnect'],
+    ['--surface', '--accent', 4.5, 'primary button (white text on the accent fill)'],
     ['--problem', '--problem-weak', 4.5, 'Status needs reconciliation badge'],
     ['--problem', '--surface', 4.5, 'the stale marker'],
     ['--warning', '--warning-weak', 4.5, 'Waiting badge'],
