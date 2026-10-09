@@ -130,9 +130,7 @@
     "acceptance": [
       "Issue #6 comment recording maintainer normzhou's acceptance of revision bf5cd3806b6228164db9a8cca80d7b414be789e1 (session 01a10ab0-bdac-76d7-bd0a-729ba1945ea8), authenticated on GitHub on 2026-10-05. https://github.com/normzhou/yolo-blank-canvas/issues/6"
     ],
-    "pending": [
-      "Protected AUTHORITY.md revision in this migration's PR: the delegated Management and Issue metadata bullets name only 'yolo:work' and 'yolo:state:*' and place ordered Now/Next in the work issue, while publication v0.1.0-alpha.16 requires the reserved 'yolo:request' label, a '## YOLO request' triage comment and a linked planning issue for cross-outcome coordination. The prepared revision needs authenticated maintainer approval of its exact final text before it can be applied."
-    ]
+    "pending": []
   },
   "harness": {
     "name": "pi coding agent",
@@ -187,10 +185,10 @@
     }
   },
   "activation": {
-    "state": "proposed",
+    "state": "active",
     "evidence": [
-      "Maintainer direction in authenticated harness session (this one): ran '/yolo upgrade' on the stable channel, which resolved no release because all 14 published YOLO Dev releases are prereleases, then explicitly selected '/yolo upgrade preview' to v0.1.0-alpha.16. Acceptance recorded on issue #111: https://github.com/normzhou/yolo-blank-canvas/issues/111",
-      "Candidate upgrade to publication 5f92e6c2d36b66ba02631ebebf21ef10ec00a4ac (release v0.1.0-alpha.16, design inputs 4a199bde872fda89292ebf0924f59e971274d9c3) is proposed and unverified until its PR is landed; the default-branch adoption at cb3e2e3430c264cd788d9e25bf4c2944c32f1efc remains in force until then.",
+      "Maintainer direction in an authenticated harness session (this one): '/yolo upgrade' on the stable channel resolved no release, the maintainer then explicitly selected '/yolo upgrade preview' to v0.1.0-alpha.16, approved the prepared AUTHORITY.md revision as scoped owner approval of that exact text, and directed merge. Acceptance recorded on issue #111: https://github.com/normzhou/yolo-blank-canvas/issues/111",
+      "Publication 5f92e6c2d36b66ba02631ebebf21ef10ec00a4ac (release v0.1.0-alpha.16, design inputs 4a199bde872fda89292ebf0924f59e971274d9c3) landed on main as f40a18010c3c62f8316405501a1d1caa0661f461 via PR #112 and was observed on the default branch.",
       "Historical activation for the old pin (release v0.1.0-alpha.13, publication 6a8d704a6ab0a104d48fc43da3d6e5f98c4b1e80, landed effective commit 870c1e23c36645c86b656f906d85da19f2af9e61) is retained in Git and .yolo/reports/upgrade-alpha13-landed.json."
     ]
   },
@@ -221,6 +219,17 @@
         "Maintainer direction in authenticated harness session 01a10f3e-21cd-76d7-bd0a-72a0965aedff; acceptance recorded on issue #36. https://github.com/normzhou/yolo-blank-canvas/issues/36",
         "Proposal PR #37 (proposal commit 2c6ed4d); report .yolo/reports/upgrade-alpha13-proposal.json."
       ]
+    },
+    {
+      "from": "a8a4efe4aba400883ddd9567b4921df9ea78ff71",
+      "to": "4a199bde872fda89292ebf0924f59e971274d9c3",
+      "effective_commit": "f40a18010c3c62f8316405501a1d1caa0661f461",
+      "evidence": [
+        "Maintainer direction in an authenticated harness session: selected the preview channel after the stable channel resolved no release, approved the prepared AUTHORITY.md revision, and directed merge. Acceptance recorded on issue #111: https://github.com/normzhou/yolo-blank-canvas/issues/111",
+        "Proposal PR #112 (proposal commit bea7d07); report .yolo/reports/upgrade-alpha16-proposal.json.",
+        "Rule deltas: checkpoint reports accept a cited resolved finding (upstream yolo-dev#40, publisher PR #59); issue policy request-outcome-v1 adds the reserved yolo:request label and ## YOLO request triage; a fresh session may publish its own continuation evidence; optional observation consent left absent so capture and transmission stay off.",
+        "Protected edit: AUTHORITY.md Management and Issue metadata clauses approved by maintainer normzhou as scoped approval of that exact final revision, recorded on issue #111 before merge. No other protected document was touched."
+      ]
     }
   ],
   "checkpoint": {
@@ -229,13 +238,15 @@
   },
   "unresolved": [
     "Standing retained findings: PR #23 merged on a pending required check, which later completed and passed; the #2 status summary's stale `PR #1` citation was corrected under issue #43; live gaps in docs/verification.md (first-login path, missing-gh path, browser-open behaviour, multi-page pagination, mid-session auth loss, --repo against a second repository).",
-    "Checkpoint rule cause confirmed upstream: yolo-check requires every finding in the checkpoint report chain to use `status: \"compliant\"` and to cover ownership/congruence/verification/continuity; this target's published reports use `\"resolved\"`. Because the chain reaches the original baseline and published reports are not rewritten, the `checkpoint` rule cannot pass until the publisher fix. Filed upstream as https://github.com/normzhou/yolo-dev/issues/40; not a target defect. See issue #43."
+    "Checkpoint blocker cleared: the upstream rule that required `status: \"compliant\"` and blocked this target's published `\"resolved\"` reports is fixed by release v0.1.0-alpha.16 (publisher PR #59, https://github.com/normzhou/yolo-dev/issues/40). The finding now reads 'Report omits a required semantic rule', which a later review report can satisfy. No checkpoint is advanced by the upgrade itself.",
+    "One status summary per outcome is violated on seven closed outcomes (#50, #63, #67, #75, #86, #88, #90): each carries 2-5 `## YOLO status` comments where exactly one is required, and #86 has none. The contract now states the rule explicitly in .yolo/governance/specs/status-presentation.md; choosing between deleting published comments and amending the contract is a maintainer decision, deliberately excluded from the alpha.16 migration. See issue #111.",
+    "Release finding is not repairable in this repository: verification.release.effective_commit was published with three different values (6efd602, dbfdacf2, 80bf5f86) and the validator requires the current value to match every published revision of the marker. Restoring the adjudicated 6efd602 boundary and recording the missing v0.3.1 mapping were probed against both the alpha.13 and alpha.16 tools and neither clears it. Proven unfixable locally; upstream report drafted and not sent because feedback.automatic is false. See .yolo/reports/upgrade-alpha16-proposal.json release_applicability."
   ],
   "qualification": {
     "level": 1,
     "status": "unverified",
     "evidence": [
-      "Historical qualification evidence for the old pin is retained (checkpoint commit 31c0f8b64ea192ba9becadbe531c871e602d14bf, report .yolo/reports/delivery-2026-10-06-check-reconciliation.json); the candidate publication 5f92e6c2 has no fresh-session loading observation and is therefore unverified. alpha.16 adds a continuation-recording route (Qualification -> L1 acceptance) that permits the observing session to publish its own loading evidence under existing write authority."
+      "Historical qualification evidence for the old pin is retained (checkpoint commit 31c0f8b64ea192ba9becadbe531c871e602d14bf, report .yolo/reports/delivery-2026-10-06-check-reconciliation.json). Publication 5f92e6c2d36b66ba02631ebebf21ef10ec00a4ac has no fresh-session loading observation yet and is therefore unverified. alpha.16 adds a continuation-recording route (Qualification -> L1 acceptance) permitting the observing session to publish its own loading evidence under existing write authority, without another restart."
     ]
   },
   "feedback": {
