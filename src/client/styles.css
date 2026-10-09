@@ -95,6 +95,10 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 .canvas-header { display: flex; align-items: center; justify-content: space-between; }
 .canvas-title { font-size: var(--text-lg); font-weight: var(--weight-semibold); margin: 0; }
 .canvas-prompt { margin: 12vh auto 0; text-align: center; font-size: var(--text-3xl); color: var(--muted); max-width: 520px; }
+/* On a phone the prompt alone left the first screen an empty grey wall with
+   nothing to do (#101). The hint names the way in; it is hidden on wider
+   screens, where the header action is enough. */
+.canvas-empty-hint { display: none; color: var(--muted); font-size: var(--text-sm); text-align: center; margin: 0 auto; max-width: 320px; }
 .canvas-identity { color: var(--muted); font-size: var(--text-sm); }
 
 .banner {
@@ -246,7 +250,8 @@ a:visited { color: var(--accent-weak-text); }
   .panel { width: 100vw; border-left: none; }
   /* The panel already covers the viewport here, so the canvas reclaims its width. */
   .canvas.panel-open { padding-right: 0; }
-  .canvas-prompt { font-size: var(--text-xl); margin-top: 8vh; }
+  .canvas-prompt { font-size: var(--text-xl); margin-top: 24px; }
+  .canvas-empty-hint { display: block; }
 
   /* Chosen Q2 direction (#75 finding 3): at 390px the toolbar used to wrap
      `Refresh` onto a line of its own, left-aligned — the recovery control was
