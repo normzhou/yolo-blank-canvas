@@ -1,0 +1,234 @@
+{
+  "schema_version": 2,
+  "target": "normzhou/yolo-blank-canvas",
+  "protocol": {
+    "revision": "4a199bde872fda89292ebf0924f59e971274d9c3",
+    "sha256": "2f1a92e492267b9d670b0c1923b43108fb25967383c267229dc602e0b7620473"
+  },
+  "review_result": "not_successful",
+  "review_result_reason": "Findings below are unverified or missing, which blocks a successful checkpoint. This report is retained outside the successful chain; the checkpoint stays at 31c0f8b64ea192ba9becadbe531c871e602d14bf and its report .yolo/reports/delivery-2026-10-06-check-reconciliation.json. It exists to publish the fresh-session continuation evidence that the v0.1.0-alpha.16 upgrade left outstanding, and to record why qualification is still unverified on new grounds.",
+  "revision": "3273a661799f0b79891b827d64c36d9a8f0c814c",
+  "default_revision": "3273a661799f0b79891b827d64c36d9a8f0c814c",
+  "from": "31c0f8b64ea192ba9becadbe531c871e602d14bf",
+  "previous_report": ".yolo/reports/delivery-2026-10-06-check-reconciliation.json",
+  "reviewed_commits": [
+    "cebc7f6d50b3e1a50a15b5e56d41d69a787caa79",
+    "3896a2a4eb0f2209dbd24456ac8397c789adff4a",
+    "a8c33457a8c0fddc7efa6fd8f4f2b72125af01dc",
+    "878854e3f1a53524f4952ef0b35cc01acc6c4b36",
+    "7e33fb73590cda818248907918c0ce22fe1afd4a",
+    "f9f592122ca6016de9d30b0b08daf9b3bdbdbc61",
+    "9f04b715ef001b25ad49a67319b90777f882baa7",
+    "d4f6a6449b237bf8c3afeba97c5a6e088dad9298",
+    "eaf7cc2b74b9eba89ee434742c5df97f84c54637",
+    "b55eba69d9a00aca2aa424222679d7f614c154e9",
+    "50887c12ea5f5815f80b7f487c19f1792d34db44",
+    "dbfdacf246b5b42c208e5f1fb4a7913c195d2f67",
+    "6e36c17ef1d77903c6ba8d175e4252d2b332998c",
+    "7ffb324946645187d8be93c2705e057c7efcda8a",
+    "80bf5f860c4a360e855c8b0a786df7a04f3a70e6",
+    "c03d24341440603b751616a18ff7f692d2b41d0d",
+    "dad8c8b422c0f6775e43de96b911a98b9bd77b4b",
+    "16d4e46d45ded680ff9ddb3a48a6f413ff6413b9",
+    "4423694a493d85cc55e811918ed4a863755993b0",
+    "dde3e50c95d656f872f4849d25ed1b9a49c86b88",
+    "5d0f1f40ac80a8cd10bd7cf5bd4738d557ebcd4b",
+    "b14b70ac9f112f14a0436b6be8e5326b6b9e3513",
+    "75cfffb583bc0a241aa3270aa207dcdc21833cf4",
+    "e2c8f7dbc0771359bb6d8b3cd0ef678c7098d959",
+    "aa877422ee48bfedef9d0f0deb879ec905ccf81f",
+    "f020c1c3a45d35b81b9eab01cb4f83f24aa6bad5",
+    "3c748149150e08ed5c07b580dba48bb80be32462",
+    "66802dbd28517a539a7314ca7b1ede787714f24a",
+    "3d77ae976bc6d96de0914ff2c57bbf4007ddf071",
+    "fdee72758ac45c394f2b220316816e7cccc78b5f",
+    "95aa13510b9f22a9a54361aaf87b59aa3e83876a",
+    "8fe531bd91db71ad5767afe5c61894830ef62b93",
+    "9aa308f002869b332c0230cd493d239ca9ff66c4",
+    "b990857cf08d19c05bd3285c29d728ccdaf251e0",
+    "574631f0cdae304392f4f8ecc0269774e7eb369b",
+    "aadae24cc5348b4ccd43217d73ade6de787d5ee0",
+    "40735ca2fff4b3a0c17a8f81a28f5ebbd62ed1e2",
+    "6730e230dfc85aeaa391f34a7d93beff52fbbbae",
+    "7e011a4d8b785d1257bc6eb20d0c7d88be328cc2",
+    "6770b6082a269c29b67c80654933de601e103d47",
+    "5a91070e60275065bb0d2a0a41485c378c03a50b",
+    "cb3e2e3430c264cd788d9e25bf4c2944c32f1efc",
+    "f40a18010c3c62f8316405501a1d1caa0661f461",
+    "3273a661799f0b79891b827d64c36d9a8f0c814c"
+  ],
+  "working_changes": [],
+  "harness": {
+    "name": "opencode",
+    "version": "2.0.26",
+    "loading_evidence": [
+      "Fresh session, distinct from the alpha.16 upgrade/activation sessions recorded on issue #111. It observed its own loading and continuation, which is what Qualification -> L1 acceptance permits the observing session to publish under existing write authority.",
+      "Ordinary instructions loaded without a manual skill invocation: /Users/normzhou/Dev/AGENTS.md and the repository AGENTS.md, the latter directing every agent to read and apply .yolo/protocol.md and .yolo/adoption.json before planning or changing the repository.",
+      "Installed native binding .opencode/commands/yolo.md routed the activity to .agents/skills/yolo/SKILL.md, which routed `work` to the active snapshot rather than to the bundled references.",
+      "Pinned context loaded from the active snapshot: .yolo/adoption.json (protocol source revision 4a199bde872fda89292ebf0924f59e971274d9c3, skill publication 5f92e6c2d36b66ba02631ebebf21ef10ec00a4ac / v0.1.0-alpha.16), .yolo/protocol.md, and the mapped governing set CHARTER.md, AUTHORITY.md, ARCHITECTURE.md, specs/status-presentation.md.",
+      "Reconciled without settled-intent rebriefing: working tree clean and identical to origin/main at 3273a66; no open pull requests; CI green on runs 37991402430, 37991393547, 37991321306 and 37990557687; full yolo-check re-run under the alpha.16 tool against 3273a66; open issues #110 and #111 reviewed and their records repaired; next action identified as the seven issue_summary findings plus the maintainer's decision, not as the upgrade."
+    ],
+    "limitation": "This is not the harness named in .yolo/adoption.json#harness, which records `pi coding agent` 1.0.1. Four bindings are installed (.pi/prompts, .claude/skills, .gemini/commands, .opencode/commands) and all are intact per the validator, so the record's single-name field under-describes the installed bindings. Recorded as observed rather than silently rewritten."
+  },
+  "github": [
+    "2026-10-05: adoption baseline 520a81e; L1 setup accepted on issue #6.",
+    "2026-10-06: checkpoint advanced to 31c0f8b with the last successful report; upstream cause of the checkpoint finding filed as yolo-dev#40.",
+    "2026-10-07: release v0.3.2 (8665510) and v0.3.1 (80bf5f8) published; the v0.3.1 mapping was recorded late, which is part of the release finding below.",
+    "2026-10-08: issue #75 (UI review) closed completed with stages 1-4 delivered; findings split into #101-#104, each since closed completed.",
+    "2026-10-09: maintainer selected the preview channel for the upgrade after the stable channel resolved no release; AUTHORITY.md protected revision approved as scoped owner approval on issue #111.",
+    "2026-10-09: PR #112 (proposal) and PR #113 (landed record) merged; adoption activation moved to active with authority.pending empty; pin is v0.1.0-alpha.16.",
+    "2026-10-09: issue #110 classified with the new reserved yolo:request label and given one `## YOLO request` triage summary, as the upgrade required.",
+    "2026-10-10 (this session): issue #111's earlier status summary demoted to history with its body preserved verbatim, `yolo:work` applied, and the stale premise in #110's triage summary corrected by dated reply. Both are delegated metadata maintenance under AUTHORITY.md; no protected document was touched.",
+    "2026-10-10 (this session): no repository settings, workflow, release, tag or access-control change was made. Repository observed as public, admin/push for normzhou, no rulesets, no branch protection, one active workflow (CI)."
+  ],
+  "findings": [
+    {
+      "rule": "ownership",
+      "status": "compliant",
+      "evidence": [
+        ".yolo/governance/AUTHORITY.md",
+        "https://github.com/normzhou/yolo-blank-canvas/issues/111",
+        ".yolo/governance/CHARTER.md"
+      ],
+      "detail": "COMPLIANT. The grant, Charter and pin agree over this interval. The one protected edit in it - the two delegated bullets in AUTHORITY.md - was approved by the recognized maintainer normzhou as scoped owner approval of that exact final revision, recorded on issue #111 before PR #112 merged; no other protected document was edited. This session's record repairs on #111 and #110 are metadata maintenance explicitly delegated under 'Management' and 'Issue metadata', and the correction to #110 preserved the earlier claim rather than overwriting it. No override was used or claimed."
+    },
+    {
+      "rule": "congruence",
+      "status": "compliant",
+      "evidence": [
+        ".yolo/governance/CHARTER.md",
+        ".yolo/governance/ARCHITECTURE.md",
+        "https://github.com/normzhou/yolo-blank-canvas/issues/110"
+      ],
+      "detail": "COMPLIANT. Work in this interval is driven by observed requests and defects, not by speculation: the UI review's measured findings became four bounded outcomes, the Tetris/accessibility/legibility requests became their own releases, and #110 stays classified intake with an explicit scope question rather than an admitted restyle. No product surface was added on speculation and no product direction was changed. #110 is deliberately left awaiting the maintainer's scope answer because a restyle would supersede shipped work, which is a direction decision the Charter reserves to humans."
+    },
+    {
+      "rule": "verification",
+      "status": "compliant",
+      "evidence": [
+        "npm test (14 files, 127 tests) at 3273a66",
+        "npx tsc --noEmit at 3273a66",
+        "https://github.com/normzhou/yolo-blank-canvas/actions/runs/37991402430"
+      ],
+      "detail": "COMPLIANT. Both declared checks pass on the inspected subject 3273a66 in this session: npm test 14 files / 127 tests passed (Node v24.21.0), npx tsc --noEmit clean. GitHub Actions CI is green on the landed revision and on both upgrade PRs. yolo-check . --structure reports structure.status: pass with all 15 structural rules compliant. Limits, unchanged: npm run e2e and npm run e2e:live were NOT run in this session because they require system Google Chrome and an authenticated gh session against the dev app; the live gaps in docs/verification.md therefore remain open, and the most recent full E2E evidence in that document predates this interval."
+    },
+    {
+      "rule": "continuity",
+      "status": "compliant",
+      "evidence": [
+        ".yolo/reports/delivery-2026-10-06-check-reconciliation.json",
+        ".yolo/reports/upgrade-alpha16-proposal.json",
+        "https://github.com/normzhou/yolo-blank-canvas/issues/111"
+      ],
+      "detail": "COMPLIANT. History, baseline, prior reports and retained failures are preserved and chained; the alpha.13 activation evidence is retained in Git and .yolo/reports/upgrade-alpha13-landed.json rather than overwritten by the alpha.16 upgrade. The Q5 continuation the upgrade left outstanding is now recorded by the session that actually observed it, with harness and loading evidence, and no future or unobserved session is attested. Two prior failures are retained and cited rather than relabelled: PR #23 merged on a pending required check that later passed, and the #2 status summary's stale PR #1 citation corrected under #43."
+    },
+    {
+      "rule": "issue_summary",
+      "status": "missing",
+      "evidence": [
+        "https://github.com/normzhou/yolo-blank-canvas/issues/50",
+        "https://github.com/normzhou/yolo-blank-canvas/issues/63",
+        "https://github.com/normzhou/yolo-blank-canvas/issues/67",
+        "https://github.com/normzhou/yolo-blank-canvas/issues/75",
+        "https://github.com/normzhou/yolo-blank-canvas/issues/86",
+        "https://github.com/normzhou/yolo-blank-canvas/issues/88",
+        "https://github.com/normzhou/yolo-blank-canvas/issues/90"
+      ],
+      "detail": "MISSING, unchanged and not repaired here. Seven closed outcomes each carry two to five comments whose first heading is `## YOLO status` where the contract requires exactly one, and #86 carries none. Confirmed against live issue records and against yolo-check under the alpha.16 tool, which reports issue_summary: missing for exactly these seven. NOT REPAIRED BY DESIGN: deleting published GitHub comments is externally visible and irreversible, and amending .yolo/governance/specs/status-presentation.md is a co-owned durable contract change. Both were explicitly held for the maintainer on issue #111 and excluded from the alpha.16 migration, and that decision has not been made. This session applied the third option only prospectively, on the live outcome #111, by demoting a superseded summary's heading while preserving its body verbatim - a repair-forward policy that creates no new violation and rewrites no history. Repairing the seven historical records by the same means would erase the very evidence the finding cites, so it is not proposed without the maintainer's decision. Blocks a successful checkpoint."
+    },
+    {
+      "rule": "release",
+      "status": "unverified",
+      "evidence": [
+        ".yolo/adoption.json",
+        ".yolo/reports/upgrade-alpha16-proposal.json",
+        "https://github.com/normzhou/yolo-dev/issues/40"
+      ],
+      "detail": "UNVERIFIED and not repairable in this repository. verification.release.effective_commit has three different published values in this repository's own history (6efd602, dbfdacf2, 80bf5f86) and the validator requires the current value to match every published revision of the marker. Because all three are in history and history is not rewritten, no single current value can satisfy the rule. Both candidate repairs - restoring the adjudicated 6efd602 boundary, and recording the missing v0.3.1 mapping - were probed in the alpha.16 migration against both the alpha.13 and alpha.16 tools and neither clears the finding. Retained and cited here rather than relabelled. An upstream report was drafted in that migration and deliberately NOT sent, because feedback.automatic is false and no maintainer has accepted that scope; sending it needs a separate authorization. Blocks a successful checkpoint."
+    },
+    {
+      "rule": "release_tag_mapping",
+      "status": "unverified",
+      "evidence": [
+        ".yolo/adoption.json",
+        "git rev-parse v0.3.2 and v0.3.2^{commit}",
+        "git rev-list -n1 v0.3.0 and v0.3.1"
+      ],
+      "detail": "UNVERIFIED, found in this session, deliberately NOT 'fixed'. A second, independent inaccuracy in the same release record, distinct from the effective_commit history above. verification.release.legacy_tags records v0.3.2 as 86655102a92cd4afb92f9e965b6078a249bb2192, which is the annotated tag OBJECT, not a commit; the commit it points at is 75cfffb583bc0a241aa3270aa207dcdc21833cf4. The other six entries (v0.1.0 through v0.3.1) are lightweight tags whose recorded value is already the commit, so v0.3.2 is inconsistent with them and the field's stated meaning is 'full commit'. Verified by comparing every entry against git rev-list -n1. A repair was probed in a full clone with real history and tags against the alpha.16 tool: setting the entry to the real commit changes the release finding from 'Release convention history boundary changed; preserve original applicability' to 'Previously recorded legacy tag mapping was erased or changed'. That is strictly worse, because legacy_tags is a retained observation and the release contract requires retained tag/commit observations to remain unchanged - current refs cannot prove historical immutability, and correcting a record to match today's refs would assert a history the record never published. The change was therefore discarded and the observation recorded instead. This is a correctable-in-principle defect that the retained-observation rule makes uncorrectable in place; it belongs with the maintainer and, if useful, upstream. Does not by itself change the release finding, which remains as described above."
+    },
+    {
+      "rule": "harness_record",
+      "status": "unverified",
+      "evidence": [
+        ".yolo/adoption.json",
+        ".opencode/commands/yolo.md",
+        ".pi/prompts/yolo.md",
+        ".claude/skills/yolo"
+      ],
+      "detail": "UNVERIFIED, new in this report, minor. adoption.json#harness records a single harness identity (pi coding agent 1.0.1) while four native bindings are installed and validated intact (.pi/prompts/yolo.md, .claude/skills/yolo, .gemini/commands/yolo.toml, .opencode/commands/yolo.md). This session's continuation observation was made under opencode 2.0.26, a fifth identity. Qualification is scoped to an identified harness, so the record under-describes what is installed and what was actually observed. Left as found and recorded rather than rewritten, because correcting the binding identity is itself a record change that should be made deliberately. Does not block the checkpoint; it is corrected as part of the next successful review."
+    }
+  ],
+  "verification": [
+    {
+      "revision": "3273a661799f0b79891b827d64c36d9a8f0c814c",
+      "result": "pass",
+      "evidence": "npm test 14 files / 127 tests passed and npx tsc --noEmit clean on 3273a66 in this session (Node v24.21.0, npm 11.19.0); GitHub Actions CI green on runs 37991402430, 37991393547, 37991321306 and 37990557687; yolo-check . --structure (alpha.16 tool) reports structure.status: pass with all 15 structural rules compliant. Subject checks pass; the report as a whole is NOT successful because issue_summary, release and harness_record findings remain unverified or missing."
+    }
+  ],
+  "qualification": {
+    "level": 1,
+    "status": "unverified",
+    "reason": "Q5 is newly observed and recorded, which closes the gap the alpha.16 upgrade left open. Qualification nonetheless cannot pass, because the adopted rule requires all of Q1-Q5 with no unresolved required finding, and Q3 conformance fails on the seven issue_summary findings and the release finding. The blocker has moved from an external upstream rule to this repository's own records; it is now inside the agent's and maintainer's reach, not outside it.",
+    "criteria": [
+      {
+        "id": "Q1",
+        "verdict": "pass",
+        "reason": "Intact identified local rules: .yolo/protocol.md is byte-identical to the pinned bundle (2f1a92e4) and the full 15-file inventory matches the publication's provenance.json. Mapped governing context and authority present and mutually consistent; authority.pending empty. All six reserved labels exist, including the yolo:request label the new intake policy requires. Baseline 520a81e preserved. All four harness bindings resolve.",
+        "evidence": [
+          ".yolo/adoption.json",
+          ".yolo/protocol.md",
+          ".agents/skills/yolo/references/provenance.json"
+        ]
+      },
+      {
+        "id": "Q2",
+        "verdict": "pass",
+        "reason": "Real outcome issues with interpreted need, applicable grant, observable acceptance and recorded steering exist throughout the interval: #111 for the upgrade, #101-#104 for the UI review's measured findings, #110 for the current restyle request. The one significant-change approval in the interval is recorded as scoped owner approval on #111.",
+        "evidence": [
+          "https://github.com/normzhou/yolo-blank-canvas/issues/111",
+          "https://github.com/normzhou/yolo-blank-canvas/issues/110"
+        ]
+      },
+      {
+        "id": "Q3",
+        "verdict": "unverified",
+        "reason": "All 44 commits in 31c0f8b..3273a66 were reviewed by range and the four obligations are cited above with evidence, but required findings do not carry cited resolutions: seven issue_summary findings and the release finding remain open. This is why the report is not successful and the checkpoint is not advanced. Note also the reviewed_commits list in this file carries abbreviated SHAs and one explicit placeholder; the authoritative complete list is the Git range, not this array.",
+        "evidence": [
+          ".yolo/reports/upgrade-alpha16-proposal.json",
+          "https://github.com/normzhou/yolo-blank-canvas/issues/111"
+        ]
+      },
+      {
+        "id": "Q4",
+        "verdict": "unverified",
+        "reason": "The interval contains no new product release, so there is no new published version on which to verify acceptance. The last verified release in the record is v0.3.2 (86655102a92cd4afb92f9e965b6078a249bb2192) at tag v0.3.2, with acceptance recorded in the release issues of that interval; this report neither re-verifies it nor claims a newer one. Distinction retained: 3273a66 is a verified checkout subject, not a published release, and no availability claim is made.",
+        "evidence": [
+          "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.3.2"
+        ]
+      },
+      {
+        "id": "Q5",
+        "verdict": "pass",
+        "reason": "A fresh session under opencode 2.0.26 - distinct from the setup and upgrade sessions - loaded the ordinary instructions, the installed native binding, the pinned protocol and the mapped governing context, reconciled shared GitHub and Git work, and identified the correct next action without settled-intent rebriefing. Loading and reconciled actions are cited in harness.loading_evidence. This attests only this session; no future restart is claimed.",
+        "evidence": [
+          ".opencode/commands/yolo.md",
+          "AGENTS.md",
+          ".yolo/adoption.json"
+        ]
+      }
+    ]
+  },
+  "checkpoint_status": "not_advanced",
+  "next": "Two things, and only one of them is the agent's. Now, without maintainer input: correct adoption.json#harness so the record names the installed bindings and this session's observing harness, as bookkeeping the agent may do. Waiting on the maintainer: the decision between deleting the seven duplicate status summaries, amending .yolo/governance/specs/status-presentation.md, or adopting the repair-forward policy this session applied to #111; that decision is the single largest blocker to a clean checkpoint and to Q3. Also waiting: the scope answer on issue #110 (recommendation only, recommendation then switcher, or one combined outcome). Sending the drafted upstream report about the release finding needs separate authorization, since feedback.automatic is false. No release, tag or settings change; no protected document edit.",
+  "reviewed_commits_note": "Complete list of every commit in 31c0f8b64ea192ba9becadbe531c871e602d14bf..3273a661799f0b79891b827d64c36d9a8f0c814c, oldest first, produced by git log --reverse --format=%H. Count verified against git rev-list --count (44)."
+}
