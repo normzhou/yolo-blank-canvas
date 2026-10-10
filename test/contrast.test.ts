@@ -42,6 +42,10 @@ export function contrast(foreground: string, background: string): number {
   return Math.round(((high + 0.05) / (low + 0.05)) * 100) / 100;
 }
 
+// This guards the default palette (`:root` = Slate) with the contextual reasons
+// each pair matters. Since #110 the app has three themes, all validated in
+// `theme-contrast.test.ts` on both WCAG and APCA; this file remains the record of
+// why each pair is checked, and the floor for the theme the app ships by default.
 describe('colour tokens meet the legibility floor', () => {
   // Pairs that actually occur in the UI, so the guard cannot drift from what
   // ships. 4.5:1 is the WCAG 1.4.3 normal-text threshold.

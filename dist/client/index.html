@@ -4,8 +4,20 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Blank canvas</title>
-    <script type="module" crossorigin src="/assets/index-DP3QdhtL.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-BTvP-_BN.css">
+    <!-- Applied before first paint so a stored theme never flashes the default.
+         Kept in step with src/client/theme.ts by test/theme.test.ts. -->
+    <script>
+      (function(){try{
+      var t=localStorage.getItem('yolo.theme');
+      if(t!=='slate'&&t!=='sand'&&t!=='dusk'){
+      t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dusk':'slate';
+      }
+      document.documentElement.setAttribute('data-theme',t);
+      document.documentElement.style.colorScheme=t==='dusk'?'dark':'light';
+      }catch(e){}})();
+    </script>
+    <script type="module" crossorigin src="/assets/index-FwJjuYjJ.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BejA5PFJ.css">
   </head>
   <body>
     <div id="root"></div>

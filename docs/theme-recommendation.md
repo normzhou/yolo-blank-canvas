@@ -1,20 +1,25 @@
 # Theme recommendation for the blank canvas
 
-Research and recommendation requested in [#110](https://github.com/normzhou/yolo-blank-canvas/issues/110).
-This answers the first of the two scopes there — *"look at established free UI/UX resources, and propose
-the theme that fits this app"*. It deliberately does **not** restyle anything: the restyle is the second
-scope, and the recommendation here says what it should follow from.
+Research, recommendation and delivery for [#110](https://github.com/normzhou/yolo-blank-canvas/issues/110):
+*"look at established free UI/UX resources, and propose the theme that fits this app"*, then offer theme
+choice. Both halves are done.
 
 ## The short version
 
-**The theme is not the problem, and a three-theme switcher is the wrong feature.** What the app has is a
-neutral, low-chroma, content-first palette built on 12 role tokens — which is already the right shape for
-this product. The concrete defect I found is that **colour was only about 60% tokenized**, so no theme
-would have worked properly even if you had picked one.
+**The app now has three themes behind a switcher — Slate, Sand and Dusk.** The maintainer was asked for
+three candidates and picked the set; the recommendation I gave argued *against* a switcher, was
+overridden, and is kept below as the record of what was weighed.
 
-That defect is now fixed, invisibly, in
-[#120](https://github.com/normzhou/yolo-blank-canvas/pull/120) — verified as zero rendered change by
-diffing 172 elements' computed styles before and after.
+The useful discovery was not about colour preference at all. It was that **colour was only about 60%
+tokenized**: roughly twenty literals sat in the CSS below `:root`, so *no* theme could have worked —
+a switcher would have themed the panels and buttons and left every badge, border, banner, field, error
+state and the entire Tetris board stubbornly light. Fixing that first
+([#120](https://github.com/normzhou/yolo-blank-canvas/pull/120)) is what made theming possible at all,
+and it was verified as zero rendered change by diffing 172 elements' computed styles before and after.
+
+Shipping a dark theme also **changed the method**: contrast is now checked against APCA as well as WCAG
+2.1, because a palette can clear 4.5:1 and still be hard to read on a dark surface. That is not a
+theoretical concern here — two of Dusk's values failed it and had to be lifted.
 
 ## What I found in the app
 
@@ -61,37 +66,66 @@ correct on paper.
 a component distribution model; Primer is a full product system with brand assets. Neither should be
 adopted wholesale here.
 
-## What I'd recommend, in order
+## What was recommended, and what was actually built
 
-1. **Finish the tokenization.** Done, invisibly — verified as zero rendered change.
-2. **Map the 12 existing roles onto Radix's scale semantics**, keeping the app's own names. It is already
-   90% of the work, and it makes the palette defensible rather than taste-driven.
-3. **Then dark mode**, driven by `prefers-color-scheme`, with no persisted preference and no switcher.
-   Validate with APCA, not WCAG ratios.
-4. **Then, only if you still want it,** a theme switcher.
+The recommendation was: finish tokenization, map the roles onto a documented scale, then add dark mode
+via `prefers-color-scheme` — and **not** build a theme switcher, on the grounds that it adds persistent
+state to a deliberately blank canvas and makes a record viewer dress up the records it exists to show
+truthfully.
 
-## Why I would not build the switcher
+**The maintainer chose the switcher.** That is the system working: the Charter puts the direction of the
+product with the people who use it, and a recommendation that loses is still a recommendation rather than
+a veto. The switcher is built, and the arguments above are kept because they are the record of what was
+weighed — not because they were accepted.
 
-You floated "possibly three candidate themes behind a switcher". Three reasons not to:
+What the switcher needed that the recommendation had not costed:
 
-- **It adds persistent state to a product whose whole premise is a blank canvas.** The Charter says
-  surface is added for an *observed* request, not for symmetry. A switcher is a control for choosing
-  between things that do not exist yet.
-- **The canvas is deliberately empty and one local user.** Dark mode is an accessibility need — it serves
-  someone who needs it. A theme picker serves nobody yet.
-- **A theme switcher would make the record view less credible.** This app's job is showing GitHub
-  records truthfully. GitHub has a light and a dark mode; matching it keeps the app from looking like it
-  is dressing the records up.
+- **A third palette, not a dark mode.** Two light themes plus one dark gives three genuinely different
+  options rather than a light/dark pair with a novelty third.
+- **Every theme validated, not just the dark one.** Three full role sets, every text pair checked on
+  both axes. That is 45 checks per theme, and it is what surfaced the `--cell-empty` gap below.
+- **A persistence story**, which the recommendation had dismissed as the cost. It is small: one
+  `localStorage` key and a pre-paint script.
 
-If you want personality, the honest place for it is the artwork already in the canvas — which is what
-Tetris and the backdrops are doing — not in the chrome around it.
+## The three themes, and why
 
-## One thing that would change my mind
+| Theme | What it is | Why it is in the set |
+| --- | --- | --- |
+| **Slate** | The palette this project already had, unchanged | It was already measured and liked. Not replacing a working default to prove a point. |
+| **Sand** | The same lightness and chroma budget, rotated warm | The classic light-theme pairing. Two lights that differ by *temperature* feel like a choice; two lights that differ by *hue* just look like a mistake. |
+| **Dusk** | Dark, aligned with how GitHub renders dark | A record viewer should not make its records look unlike the records. Matching GitHub dark is the only dark palette that is *about* credibility rather than decoration. |
 
-If the goal is to *showcase* themes rather than to serve a user, say so and I'll build it. That is a
-legitimate goal and it would need a different token strategy — three full role sets, validated, with the
-Tetris pieces checked against each. I would just rather not assume it, because it is the one version of
-this that contradicts what the project says it is for.
+## How the dark theme was validated
+
+This is the part that changed the method rather than the colours. **APCA is now enforced alongside the
+existing WCAG floor**, on every text pair, in all three themes: WCAG 2.1 4.5:1 **and** |Lc| ≥ 60.
+
+Two of Dusk's values had to be lifted to reach it. Its muted text measured |Lc| 51 and its badge text 49,
+both clearing WCAG comfortably at ~6–7:1 and both *failing* the perceptual floor. That is the exact trap
+the recommendation warned about, found by measurement rather than by taste — and it is the reason the
+dark theme exists at two axes instead of one.
+
+The APCA implementation is checked against that package's published reference values
+(`#888` on white = 63.1 Lc, black on white = 106.0, white on black = −107.9) so the maths cannot silently
+rot. Full conformance with APCA's *font-size lookup* is deliberately **not** enforced: this app's
+12–14px type sits below what that table supports at any achievable contrast, and closing the gap would be
+a type-scale change — #103's settled decision, not this change's to make quietly.
+
+## A gap the validation found
+
+`--cell-empty` — the empty Tetris cell — was a colour role **no theme overrode**. It would have stayed
+light on Dusk's dark board and read as a glowing block. Found because the theme test asserts every theme
+covers the same set of colour roles, not because anyone looked at a screenshot.
+
+## One thing that did not go as planned
+
+Applying the stored theme before first paint needs one inline script, and this app's CSP is
+`script-src 'self'` with no `unsafe-inline` — correctly, because the panel renders untrusted Markdown.
+The first attempt hashed the script for the policy and got it wrong in a way that was invisible: the
+build's own check agreed with itself, because it made the same mistake. The browser's rejection message
+named the hash it wanted, which is what exposed it. Fixed by hashing the element's exact text content,
+and `test/csp.test.ts` now re-derives the digest independently and fails if `unsafe-inline` ever appears
+in `script-src`.
 
 ---
 Filed by an AI agent under the L1 grant in `.yolo/governance/AUTHORITY.md`. Outcome: #110.

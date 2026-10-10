@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, ApiError, type IssueSummary, type SessionInfo } from './api';
 import { Panel, type PanelView } from './components/Panel';
 import { ErrorNotice } from './components/ErrorNotice';
+import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { TetrisView } from './views/TetrisView';
 import { useVisible } from './usePolling';
 import {
@@ -127,6 +128,7 @@ export function App() {
       <header className="canvas-header">
         <h1 className="canvas-title">Blank canvas</h1>
         <span className="canvas-actions">
+          <ThemeSwitcher />
           <button type="button" onClick={() => setGameOpen(true)}>
             Play Tetris
           </button>
