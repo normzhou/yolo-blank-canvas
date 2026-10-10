@@ -12,8 +12,9 @@ neutral, low-chroma, content-first palette built on 12 role tokens — which is 
 this product. The concrete defect I found is that **colour was only about 60% tokenized**, so no theme
 would have worked properly even if you had picked one.
 
-That defect is now fixed, invisibly, in the same change that ships this document — see
-[the pull request](https://github.com/normzhou/yolo-blank-canvas/pulls) for the verification.
+That defect is now fixed, invisibly, in
+[#120](https://github.com/normzhou/yolo-blank-canvas/pull/120) — verified as zero rendered change by
+diffing 172 elements' computed styles before and after.
 
 ## What I found in the app
 
