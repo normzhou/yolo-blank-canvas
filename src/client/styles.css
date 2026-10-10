@@ -93,6 +93,103 @@
 }
 
 * { box-sizing: border-box; }
+/* ---- Themes (#110) ---------------------------------------------------------
+   Three palettes, each validated on two axes by test/theme-tokens.test.ts: the
+   WCAG 2.1 ratio floor this project already enforced, and APCA Lc. Every text
+   pair clears 4.5:1 AND |Lc| >= 60.
+
+   APCA is here because of Dusk. WCAG 2.x ratios overstate contrast for dark
+   colours to the point that a pair can pass 4.5:1 and still be hard to read, so
+   a dark theme validated by ratio alone is not validated. Dusk's muted text and
+   badge text were both lifted until they cleared the same perceptual floor as
+   the light themes.
+
+   These blocks hold colour literals on purpose - they ARE the theme definitions.
+   Everything else in this file takes its colours from tokens. */
+
+[data-theme='sand'] {
+  --bg: #faf7f2;
+  --surface: #fffdfa;
+  --field: #f5f0e8;
+  --border: #e2d9cb;
+  --border-hover: #c9bda9;
+  --field-border: #d3c6b2;
+  --text: #2b241b;
+  --muted: #6d6151;
+  --accent: #9a5518;
+  --accent-weak: #f7e6d2;
+  --accent-weak-text: #7a3f10;
+  --positive: #2f6b32;
+  --warning: #8a5a00;
+  --warning-weak: #fbf0cd;
+  --warning-border: #d9b64a;
+  --error-bg: #fbeade;
+  --error-text: #7a3d00;
+  --problem: #8a4100;
+  --problem-weak: #fbe4d2;
+  --problem-border: #d09a52;
+  --error-code-bg: #f6e2cc;
+  --closed: #6d6151;
+  --closed-weak: #efe8dc;
+  --neutral-weak: #f1ebe0;
+  --summary-bg: #fdf8f0;
+  --on-accent: #fffdfa;
+  --board-gap: #cfc4b1;
+  --cell-empty: rgba(241, 235, 224, 0.74);
+  --tetromino-i: #4fb8c9;
+  --tetromino-j: #5b8def;
+  --tetromino-l: #e09a3a;
+  --tetromino-o: #e6c53a;
+  --tetromino-s: #63b877;
+  --tetromino-t: #ad6bcf;
+  --tetromino-z: #d95f5e;
+  --elevation-scroll: rgba(43, 36, 27, 0.14);
+  --elevation-scroll-fade: rgba(43, 36, 27, 0);
+  --surface-transparent: rgba(255, 253, 250, 0);
+}
+[data-theme='dusk'] {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --field: #0d1117;
+  --border: #505966;
+  --border-hover: #6b7684;
+  --field-border: #6b7684;
+  --text: #e6edf3;
+  --muted: #b3bdc9;
+  --accent: #2f6fd0;
+  --accent-weak: #132b4d;
+  --accent-weak-text: #a9c8ff;
+  --positive: #63d17c;
+  --warning: #e0b45c;
+  --warning-weak: #3a2f10;
+  --warning-border: #9c7523;
+  --error-bg: #3a1f10;
+  --error-text: #f7bb84;
+  --problem: #f0a878;
+  --problem-weak: #3d2413;
+  --problem-border: #b0703a;
+  --error-code-bg: #43291a;
+  --closed: #b3bdc9;
+  --closed-weak: #21262d;
+  --neutral-weak: #21262d;
+  --summary-bg: #121a24;
+  --on-accent: #ffffff;
+  --board-gap: #505966;
+  /* The empty cell lightens the grid rather than glowing on it: at the
+     light-theme opacity over a mid-grey board it would read as a bright block. */
+  --cell-empty: rgba(139, 148, 158, 0.35);
+  --tetromino-i: #39c5cf;
+  --tetromino-j: #5b8def;
+  --tetromino-l: #e09a3a;
+  --tetromino-o: #e6c53a;
+  --tetromino-s: #3fb950;
+  --tetromino-t: #bc8cff;
+  --tetromino-z: #f0655f;
+  --elevation-scroll: rgba(230, 237, 243, 0.16);
+  --elevation-scroll-fade: rgba(230, 237, 243, 0);
+  --surface-transparent: rgba(22, 27, 34, 0);
+}
+
 }
 
 * { box-sizing: border-box; }
@@ -428,4 +525,25 @@ a:visited { color: var(--accent-weak-text); }
   background: var(--surface);
   padding: 6px 8px;
   border-radius: var(--radius-sm);
+}
+
+/* The theme control. A segmented group, so every option is visible rather than
+   hidden behind a menu; it reuses the filter-group join so the selected option
+   reads as pressed without a second visual language. */
+.theme-switcher { display: inline-flex; }
+.theme-switcher .theme-option { border-radius: 0; padding: 6px 10px; }
+.theme-switcher .theme-option:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+.theme-switcher .theme-option:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin-left: -1px; }
+.theme-switcher .theme-option.is-selected {
+  background: var(--accent-weak);
+  border-color: var(--accent);
+  color: var(--accent-weak-text);
+}
+/* Keep the header on one line as the control arrives, and let it drop to its own
+   row on a phone rather than pushing the canvas prompt off screen. */
+.canvas-header { flex-wrap: wrap; row-gap: var(--space-3); }
+.canvas-header .theme-switcher { order: 3; }
+@media (max-width: 640px) {
+  .canvas-header .theme-switcher { order: 4; width: 100%; }
+  .canvas-header .theme-switcher .theme-option { flex: 1; }
 }

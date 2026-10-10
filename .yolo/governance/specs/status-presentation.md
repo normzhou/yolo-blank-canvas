@@ -71,6 +71,42 @@ estimated.** Two consequences are part of the contract:
   date the author never claimed. The same rule governs summary detection: a `## YOLO status`
   heading quoted inside a code block is not the comment's first heading.
 
+## Themes
+
+The app offers three themes — **Slate** (default light), **Sand** (warm light) and **Dusk** (dark) —
+selected by a control in the canvas header. The choice persists in `localStorage`; with nothing stored
+the app follows `prefers-color-scheme`, so a user who has already told their OS they want dark gets dark
+without touching the control.
+
+**A theme changes presentation and nothing else.** It must not change:
+
+- which status word an issue displays — that is derived from records, and the derivation in
+  [Managed states](#managed-states) is theme-independent;
+- whether a record is present, missing, or in conflict — [Status needs
+  reconciliation](#managed-states) is shown with the same raw labels in every theme;
+- what the timing fallback says, or whether a timing is read from prose.
+
+**Colour is decoration; the derivation is not.** Every theme must therefore satisfy the same legibility
+floor, and the floor is two axes:
+
+| Axis | Threshold | Why |
+| --- | --- | --- |
+| WCAG 2.1 ratio | ≥ 4.5:1 for text | The floor this project always enforced. Unchanged. |
+| APCA \|Lc\| | ≥ 60 for text, ≥ 8 for separations | WCAG 2.x overstates contrast for dark colours badly enough that a pair can clear 4.5:1 and still be hard to read. A dark theme validated by ratio alone is not validated. |
+
+`Lc 60` is APCA's own level for "about as strong as WCAG 2's 4.5:1". Full conformance with APCA's
+font-size lookup table is deliberately **not** enforced: the app's 12–14px type sits below what that
+table supports at any achievable contrast, and closing that gap would change the type scale settled in
+#103. That is a deliberate, recorded limit rather than an oversight.
+
+Enforced by `test/theme-contrast.test.ts`, which checks every text and separation pair in all three
+themes and verifies the APCA implementation against published reference values; and by
+`test/theme-tokens.test.ts`, which fails if a theme fails to cover a colour role the others cover — the
+gap that would otherwise have left the empty Tetris cell light on a dark board.
+
+Home: `src/client/theme.ts`, `src/client/components/ThemeSwitcher.tsx`, and the `[data-theme]`
+blocks in `src/client/styles.css`. Verified by `e2e/theme.spec.ts`.
+
 ## Truthfulness rules
 
 These are acceptance criteria, not styling preferences:

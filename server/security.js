@@ -64,6 +64,8 @@ export function sameOriginGuard(req, res, next) {
   next();
 }
 
+import { INLINE_SCRIPT_SHA256 } from './inline-script-hash.generated.js';
+
 /** Security headers for the served UI. The panel renders untrusted Markdown. */
 export function securityHeaders(req, res, next) {
   void req;
@@ -71,7 +73,10 @@ export function securityHeaders(req, res, next) {
     'Content-Security-Policy',
     [
       "default-src 'none'",
-      "script-src 'self'",
+      // The one inline script is the theme applied before first paint, hashed at
+      // build time. Authorising it by hash keeps `unsafe-inline` out of a policy
+      // that has to hold on a page rendering untrusted Markdown.
+      `script-src 'self' 'sha256-${INLINE_SCRIPT_SHA256}'`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data:",
       "media-src 'self'",

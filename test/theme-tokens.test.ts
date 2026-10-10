@@ -28,9 +28,17 @@ const ROOT_END = css.indexOf('\n}\n', ROOT_START);
 
 const rootBlock = css.slice(ROOT_START, ROOT_END);
 
-/** Everything outside `:root`, with comments and the root block removed. */
+/**
+ * Everything outside `:root` and outside the theme definition blocks, with
+ * comments stripped. The theme blocks are excluded because colour literals are
+ * what a theme definition *is* — they are the one place a literal belongs. Every
+ * other rule must reach its colours through a token, or a theme cannot paint it.
+ */
+const themeBlocks = /\[data-theme='(?:sand|dusk)'\] \{[\s\S]*?\n\}/g;
+
 const bodyRules = css
   .slice(ROOT_END)
+  .replace(themeBlocks, '')
   .replace(/\/\*[\s\S]*?\*\//g, '');
 
 const definedTokens = new Set(
@@ -81,6 +89,19 @@ describe('colour lives in tokens', () => {
       offenders,
       `colour literals outside :root defeat theming:\n${offenders.join('\n')}`,
     ).toEqual([]);
+  });
+
+  it('themes reach the switcher and the board, not just the panels', () => {
+    // Regression guard for the gap found while building the themes: --cell-empty
+    // was a colour role no theme overrode, so the empty Tetris cell would have
+    // stayed light on a dark board.
+    for (const theme of ['sand', 'dusk']) {
+      const block = css.slice(css.indexOf(`[data-theme='${theme}'] {`));
+      const section = block.slice(0, block.indexOf('\n}'));
+      for (const token of ['--cell-empty', '--board-gap', '--surface', '--text', '--border']) {
+        expect(section, `${theme} does not override ${token}`).toContain(`${token}:`);
+      }
+    }
   });
 
   it('defines every token it uses', () => {
