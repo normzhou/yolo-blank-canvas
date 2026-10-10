@@ -130,10 +130,11 @@ There is no app configuration file, client ID, or secret. Options are launch fla
 ## Verification record
 
 See [docs/verification.md](docs/verification.md) for the commands run, results, tested revision, and open gaps.
+See [docs/theme-recommendation.md](docs/theme-recommendation.md) for the palette and theming recommendation raised in [#110](https://github.com/normzhou/yolo-blank-canvas/issues/110).
 
 ## Governance
 
-This repository is adopted under the YOLO Dev protocol at **L1 Assisted** (active; qualification `prepared`). Ordinary agent work starts from [AGENTS.md](AGENTS.md).
+This repository is adopted under the YOLO Dev protocol at **L1 Assisted** (active; qualification `unverified`). Ordinary agent work starts from [AGENTS.md](AGENTS.md).
 
 - [Charter](.yolo/governance/CHARTER.md) — purpose, audience, durable boundaries
 - [Authority](.yolo/governance/AUTHORITY.md) — recognized maintainers, grant, reserved decisions
