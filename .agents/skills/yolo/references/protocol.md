@@ -2,7 +2,7 @@
 
 Protocol format: `github-v1` · Candidate L1 distribution
 
-Source: [4a199bde872fda89292ebf0924f59e971274d9c3](https://github.com/normzhou/yolo-dev/tree/4a199bde872fda89292ebf0924f59e971274d9c3). All required rules and procedures are below; upstream links are optional publisher context or tool documentation. The target supplies its own purpose and accepted authority, not YOLO Dev's Charter. Installing these rules does not qualify or authorize a target. L2 descriptions do not activate an unbuilt runner.
+Source: [7b9d12fae425217b2651e9f4e5f1c25a0372bcf9](https://github.com/normzhou/yolo-dev/tree/7b9d12fae425217b2651e9f4e5f1c25a0372bcf9). All required rules and procedures are below; upstream links are optional publisher context or tool documentation. The target supplies its own purpose and accepted authority, not YOLO Dev's Charter. Installing these rules does not qualify or authorize a target. L2 descriptions do not activate an unbuilt runner.
 
 Source status notes describe the publisher at that revision, not this target's setup. This generated document preserves the design text; source links are rewritten to local sections wherever the referenced contract is included. The bundle's `provenance.json` records source digests and selections. Target adoption records retain this source identity and this file's digest.
 
@@ -46,7 +46,7 @@ Source status notes describe the publisher at that revision, not this target's s
 <a id="architecture-adoption-levels"></a>
 ### Adoption levels
 
-![L0 Baseline, L1 Assisted, L2 Autopilot, L3 Self-directed and L4 Living App progressively close the app's improvement loop.](https://github.com/normzhou/yolo-dev/blob/4a199bde872fda89292ebf0924f59e971274d9c3/assets/adoption-levels.svg)
+![L0 Baseline, L1 Assisted, L2 Autopilot, L3 Self-directed and L4 Living App progressively close the app's improvement loop.](https://github.com/normzhou/yolo-dev/blob/7b9d12fae425217b2651e9f4e5f1c25a0372bcf9/assets/adoption-levels.svg)
 
 | Level | Capability |
 | --- | --- |
@@ -120,7 +120,7 @@ flowchart LR
 
 Repair the lowest sufficient layer. Target defects stay there; YOLO defects feed back here. Setup, active preparedness and qualification are distinct evidence claims.
 
-Keep product engineering separate from the reusable methodology. YOLO Dev validates its own tooling/bundle and harness behavior under [publisher acceptance](#assisted-development-acceptance); its concrete commands and CI status live in [development instructions](https://github.com/normzhou/yolo-dev/blob/4a199bde872fda89292ebf0924f59e971274d9c3/docs/development.md). Each adopted repo defines its own tests and delivery route under the shared [verification contract](#verification-delivery-verification-and-delivery). [Target qualification](#qualification-compliance-and-qualification-evidence) needs that target's actual delivery/continuation evidence; publisher tests cannot supply it.
+Keep product engineering separate from the reusable methodology. YOLO Dev validates its own tooling/bundle and harness behavior under [publisher acceptance](#assisted-development-acceptance); its concrete commands and CI status live in [development instructions](https://github.com/normzhou/yolo-dev/blob/7b9d12fae425217b2651e9f4e5f1c25a0372bcf9/docs/development.md). Each adopted repo defines its own tests and delivery route under the shared [verification contract](#verification-delivery-verification-and-delivery). [Target qualification](#qualification-compliance-and-qualification-evidence) needs that target's actual delivery/continuation evidence; publisher tests cannot supply it.
 
 <a id="architecture-product-source-and-applied-adoption"></a>
 ### Product source and applied adoption
@@ -233,9 +233,9 @@ Apply the shared [intake model](#issue-management-intake-and-admission), also us
 
 Accept an issue, desired outcome or direction to continue the plan. Capture the outcome in a target issue before implementation.
 
-1. **Reconcile:** load instructions, active rules, mapped intent/design/grant and shared work. Check replies, PRs, checks, delivery, pause and executor/handoff; resolve interrupted effects and coordinate writers.
-2. **Plan/admit:** perform the [planning pass across requests/outcomes](#issue-management-planning-across-outcomes), define acceptance and select ready work within scope. Record grouping, priority/dependencies and a discoverable Now/Next when coordination spans outcomes. Apply protected-change approval/significance notification rules.
-3. **Execute:** maintain issue state/summary, implement through [PRs](#repo-rules-repository-rules-and-authority), verify and [deliver](#verification-delivery-verification-and-delivery). Replan when evidence changes.
+1. **Reconcile:** load instructions, active rules, mapped intent/design/grant and shared work. Check replies, later reversals, PRs, checks, delivery, pause and executor/handoff; resolve interrupted effects and coordinate writers. Superseded decisions are history, not current intent.
+2. **Plan/admit:** perform the [planning pass across requests/outcomes](#issue-management-planning-across-outcomes), define acceptance and select ready work within scope. [Maintainer-reserved actions](#issue-management-maintainer-reserved-actions) stay visible as blockers but are never selectable executable outcomes. Record grouping, priority/dependencies and a discoverable Now/Next when coordination spans outcomes. Apply protected-change approval/significance notification rules.
+3. **Execute:** maintain issue state/summary, implement through [PRs](#repo-rules-repository-rules-and-authority), verify and [deliver](#verification-delivery-verification-and-delivery). Before executing a replan, record revised acceptance and the original scope's disposition; a substitute result does not fulfill abandoned scope.
 4. **Record/continue or hand off:** publish actual version, outcome, limits and next action; close fulfilled work only after verification. Preserve unfinished pushed work and truthful state. Continue within scope; a session ending does not prove its executor stopped.
 
 Ordinary development requests enter this procedure without naming the skill. Conversation is steering; bypass requires a scoped [owner override](#repo-rules-owner-overrides).
@@ -303,7 +303,7 @@ All three governing documents use the canonical slots above; durable governing s
 
 Questions belong in reports/issues, not extra governing files. Ownership follows meaning, including draft Charter/authority and proposed controls; location cannot grant permission.
 
-The adopted source revision identifies the layout contract. The [schema](https://github.com/normzhou/yolo-dev/blob/4a199bde872fda89292ebf0924f59e971274d9c3/specs/repo-layout.schema.json) supplies its reserved entries/types/role paths in the manifest. The strict validator reports missing canonical homes, unexpected entries, wrong types and invalid mappings without changing files. Init/upgrade propose the required repair; do not mark setup prepared while required structure fails. An incompatible/missing definition is a coverage gap; structural success does not prove meaning or approval.
+The adopted source revision identifies the layout contract. The [schema](https://github.com/normzhou/yolo-dev/blob/7b9d12fae425217b2651e9f4e5f1c25a0372bcf9/specs/repo-layout.schema.json) supplies its reserved entries/types/role paths in the manifest. The strict validator reports missing canonical homes, unexpected entries, wrong types and invalid mappings without changing files. Init/upgrade propose the required repair; do not mark setup prepared while required structure fails. An incompatible/missing definition is a coverage gap; structural success does not prove meaning or approval.
 
 <a id="repo-layout-governing-file-review"></a>
 ### Governing-file review
@@ -334,7 +334,7 @@ File presence is only one dimension of [qualification](#qualification-compliance
 
 **People describe needs; AI manages work.** Product requests, CI/CD and maintenance share GitHub issues/PRs.
 
-Issue policy: `request-outcome-v1`.
+Issue policy: `request-outcome-v2`.
 
 <a id="issue-management-intake-and-admission"></a>
 ### Intake and admission
@@ -347,6 +347,8 @@ Before admission, maintain at most one summary comment headed `## YOLO request`:
 
 Keep distinct source requests open while their promised scope is unfinished. Close verified fulfilled scope as completed, or duplicate/declined/answered input with an explicit disposition and canonical links where applicable. Consolidation, a plan or a merged PR does not prove delivery. Read later replies, including closed issues, and reopen or link follow-up without erasing earlier results.
 
+Reconcile current intent from applicable authenticated direction, including later reversals. Superseded decisions remain history, not current authorization. Unresolved consequential contradictions block the affected work.
+
 <a id="issue-management-reserved-labels-and-states"></a>
 ### Reserved labels and states
 
@@ -356,16 +358,32 @@ Preserve unrelated labels. AI maintains:
 | --- | --- |
 | `yolo:request` | Incoming need, question or evidence; no execution commitment. Retained when promoted or closed. |
 | `yolo:work` | Admitted AI-managed outcome with acceptance, progress and evidence. |
+| `yolo:manual` | Action reserved to a recognized maintainer; tracked as a blocker, never AI-executable. |
 | `yolo:state:queued` | Ready and authorized, with clear acceptance/next action. |
 | `yolo:state:active` | Work underway, including diagnosis, recovery or replanning. |
 | `yolo:state:waiting` | Named dependency, information/authority gap, pause or binding limit blocks progress. |
 | `yolo:state:deferred` | Postponed with a reason and reconsideration condition. |
 
-After reconciliation, open managed work has exactly one state; closed work retains `yolo:work` and no state. Requests without `yolo:work` have no execution state. AI-originated maintenance outcomes need no invented source request. Planning/general conversations need no request or work label. Interrupted metadata updates establish neither permission nor completion.
+After reconciliation, open managed work has exactly one state; closed work retains `yolo:work` and no state. Requests without `yolo:work` have no execution state. A `yolo:manual` issue is never `yolo:work` and carries no state label; either combination is a conflict to reconcile, and a closed manual task keeps `yolo:manual` with no state. AI-originated maintenance outcomes need no invented source request. Planning/general conversations need no request or work label. Interrupted metadata updates establish neither permission nor completion.
 
-Filter intake with `is:issue is:open label:"yolo:request" -label:"yolo:work"`; it includes reviewed sources tracked by other outcomes. Review summaries/replies to distinguish new input. Filter admitted work with `is:issue is:open label:"yolo:work"` and a state label. Build/test/deploy stages need no additional labels.
+Filter intake with `is:issue is:open label:"yolo:request" -label:"yolo:work"`; it includes reviewed sources tracked by other outcomes. Review summaries/replies to distinguish new input. Filter admitted work with `is:issue is:open label:"yolo:work"` and a state label. Manual tasks surface through their blocked work rather than through the work filter, so they stay visible without becoming selectable outcomes. Build/test/deploy stages need no additional labels.
 
-Init/upgrade establish this version's required labels. Earlier pins retain earlier requirements; a request label alone supplies no new authority or workflow state.
+Init/upgrade establish this version's required labels and reconcile the target's existing maintainer-reserved actions. Earlier pins retain earlier requirements, so a target without `yolo:manual` is not a gap; a request or manual label alone supplies no new authority or workflow state.
+
+<a id="issue-management-maintainer-reserved-actions"></a>
+### Maintainer-reserved actions
+
+Some needs cannot be performed by AI: registering a domain, creating a cloud project, holding a credential, or making an authority decision. Record these as `yolo:manual` issues so planning can see them as blockers without their entering the execution queue.
+
+Make the action usable: name a maintainer assignee, state the specific action or decision, its completion condition and the work it blocks, and keep current instructions in the issue body. Search and reuse an existing manual task before creating another; do not file a second ticket for the same blocker or repeatedly remind about it.
+
+AI coordinates but does not perform the action. It may prepare instructions, verify evidence and reconcile status in later sessions, and continue independent ready work meanwhile. Assignment and labels grant no authority, and same-account agent authorship is not proof of human approval.
+
+Block genuinely blocked work with native `blocked by` relationships. Use `yolo:state:waiting` only while a real prerequisite prevents progress, recording the blocker and next action in the work summary and plan. Missing or invalid dependency metadata, no declared dependency, or all declared blockers closed requires agent reconciliation, not automatic resumption or a deterministic conflict. Closure may still need confirmation, evidence or replanning; waiting can also reflect a pause or authority gap. Keep explicit links when native relationships are unavailable and report the coverage gap. Retain satisfied dependency links as history.
+
+Verify before resuming. Closure alone does not prove the action happened: reconcile explicit maintainer confirmation and observable completion evidence under the repository's identity and authority rules. A declined or withdrawn action causes replanning, not automatic resumption. AI may close a satisfied manual task after that reconciliation and must never claim to have performed the human action.
+
+Reserve manual tasks for genuine owner actions, authority decisions and unavailable human-controlled setup. Ordinary authorized implementation, testing and delivery stay AI-owned; this classifier creates no new approval gate. Keep credentials and other secrets out of issues, reports and source.
 
 <a id="issue-management-planning-across-outcomes"></a>
 ### Planning across outcomes
@@ -375,6 +393,8 @@ At work startup and material changes, reconcile active execution/results, incomi
 For one outcome its status summary suffices. When coordination spans outcomes, maintain one discoverable planning issue linked from affected work/request summaries; reuse the L2 control issue when applicable. Its current summary records focus, ordered **Now / Next**, reasons, blockers and material changes. Work issues own execution state/evidence; do not duplicate them or create a mandatory board, roadmap file or approval cycle. Queue order is not an ETA.
 
 Replan after failures, discoveries or changed steering; preserve earlier intent/failure and coordinate interruptions under the execution protocol. Advance independent ready work while blocked, explain deferral and reconsideration, and revisit neglected input. L1 planning occurs in maintainer-started sessions; L2 may initiate it automatically. Neither receipt nor a label guarantees admission or a response time.
+
+Before executing revised scope, record its acceptance and the original scope's disposition in the current outcome and affected sources. A substitute result does not fulfill abandoned scope or satisfy its prerequisites. Replanning stays within ownership and authority.
 
 <a id="issue-management-progress-planning-and-feedback"></a>
 ### Progress, planning, and feedback
@@ -497,6 +517,8 @@ At release, the native version at the tagged revision and in the delivered artif
 <a id="releases-establish-and-check"></a>
 ### Establish and check
 
+Release history: `recoverable-v1`. Earlier bundles without this profile retain their earlier checks.
+
 Init proposes the smallest release-policy/version-source migration. AI selects the existing native source where suitable; this routine binding does not require a new human decision. Preserve existing compatible versions; default new products to `0.1.0-alpha.1`. Record when the adopted convention became applicable and the exact earlier product tags/commits; those retain their earlier rules, including any existing target policy. An older mention of versioning cannot backdate newly adopted requirements. Later migrations preserve established boundaries and identify new requirements in their upgrade evidence. Every subsequent product release conforms. Other tooling tags can coexist, with their purpose reviewed.
 
 Unreleased projects declare their initial version and unreleased status. Prepared setup requires mapped policy and a valid native version; do not manufacture publication. Q4 demonstrates tagged, verified release when product publication is in scope. Local-checkout-only delivery remains explicitly scoped.
@@ -505,7 +527,9 @@ Explicit upgrades reconcile the same policy, releases and history in their migra
 
 Read-only check reviews default-branch setup, current release records and the interval since effective adoption/checkpoint. Factual checks observe names, tag/commit mappings and changes to retained observations. AI verifies native versions, artifact identity, compatibility bumps, migration and delivery. Persist dated tag/commit observations in ordinary evidence records; current refs cannot prove historical immutability. Missing evidence stays unverified; violations need cited resolution, not rewritten tags/history.
 
-The [record encoding](https://github.com/normzhou/yolo-dev/blob/4a199bde872fda89292ebf0924f59e971274d9c3/skills/yolo/references/records.md) realizes these bindings. Target product versions and adopted YOLO releases are independent; upstream publication never upgrades a target automatically.
+Preserve the first established applicability boundary; restoring it after erroneous intermediate records is a repair, not a new boundary. Compare retained mappings by immutable commit identity: an annotated tag object may be corrected to the commit it peels to, never to another commit. Keep every prior mapping/reference and the erroneous history, with the correction explained in a later report. Missing objects or an incorrect first establishment require investigation; current refs alone cannot validate a correction or authorize moving applicability.
+
+The [record encoding](https://github.com/normzhou/yolo-dev/blob/7b9d12fae425217b2651e9f4e5f1c25a0372bcf9/skills/yolo/references/records.md) realizes these bindings. Target product versions and adopted YOLO releases are independent; upstream publication never upgrades a target automatically.
 
 
 <a id="conformance-checks-conformance-checks"></a>
@@ -525,15 +549,15 @@ The read-only validator implements these tests. Deterministic violations cannot 
 | [Agent entrypoints](#assisted-development-harness-bindings) | Native bindings/imports are intact; instructions reference local adoption/protocol; checked governing Markdown links resolve to mapped homes. |
 | [Record encoding](#adoption-records-adoption-and-evidence-records) | Required context/migration fields and references have valid shape; feedback settings are boolean with consent references when enabled. |
 | [History](#adoption-records-reports-and-checkpoints) | Baseline/checkpoint ancestry, report chain and interval identities agree; recorded unresolved findings prevent factual readiness; checkpoint/report history remains intact. |
-| [Issues](#issue-management-reserved-labels-and-states) | Adopted-policy labels exist; request classification is not admission; states require `yolo:work`; managed open issues have one state, closed issues none; each outcome has one status summary, each classified request at most one request summary. |
-| [Releases](#releases-establish-and-check) | Release bindings/effective history exist; product-tag candidates follow naming rules; published releases have tags; retained tag/commit observations remain unchanged. |
+| [Issues](#issue-management-reserved-labels-and-states) | Adopted-policy labels exist; states require `yolo:work`; managed open issues have one state, closed issues none; manual tasks carry neither work nor state and open tasks name a recognized maintainer assignee; dependency counts for waiting work are observed, with missing/invalid data, no declarations or all-closed blockers reported unverified for reconciliation; each outcome has one status summary, each classified request at most one request summary. |
+| [Releases](#releases-establish-and-check) | Release bindings/effective history exist; product-tag candidates follow naming rules; published releases have tags; retain mappings/references. Under `recoverable-v1`, current applicability equals its first establishment and historical tag objects compare by peeled commit; other commit changes remain gaps. Earlier pins keep their checks. |
 | [Default branch](#qualification-required-observations) | Declared branch matches GitHub; landed adoption identity agrees with inspected setup. Unavailable/unpublished context remains unverified. |
 
 `--structure` covers local layout, identity, entrypoints and structural encoding. Full check adds context/history and GitHub facts; offline leaves remote checks unverified. Earlier pins retain their coverage. Findings: `compliant/missing/conflicting/unverified`. Structure: `pass/fail/unverified`. Exits: 0 ready for review, 1 gaps, 2 invocation/Git error.
 
 The validator observes repository settings; it does **not** authenticate approval/provenance, judge document/report/summary contents, inspect every PR review/check, validate native versions, execute target tests or prove delivery. Agents reconcile that evidence.
 
-The publication manifest identifies `issue_management: request-outcome-v1`. Only that adopted policy requires `yolo:request`; older pins retain their label requirements. The classifier may coexist with older rules without granting execution. Zero request summaries means awaiting triage, not a deterministic failure; identifying unlabelled input, review/disposition quality, coverage, plan discoverability and sensible ordering require agent judgment.
+The publication manifest identifies the adopted issue-management policy. `request-outcome-v2` requires `yolo:request` and `yolo:manual`, and observes native issue dependencies; `request-outcome-v1` requires only `yolo:request`. Earlier pins retain their label requirements, so a target lacking `yolo:manual` is not a failure under `v1`, and the classifier may coexist with older rules without granting execution. Missing or conflicting facts are findings; an unobservable assignee, comment, or dependency summary is unverified rather than compliant — including waiting work that declares no native dependency, whose block may be real but cannot be evidenced. Zero request summaries means awaiting triage, not a deterministic failure; identifying unlabelled input, review/disposition quality, coverage, plan discoverability and sensible ordering require agent judgment.
 
 <a id="conformance-checks-advisory-warnings"></a>
 ### Advisory warnings
@@ -650,7 +674,7 @@ Status describes the record's identified pin. An upgrade proposal cannot inherit
 <a id="adoption-records-observation-setting"></a>
 ### Observation setting
 
-`observation` is a distinct optional consent from `feedback`. It records whether [activity observation](#observation-activity-observation) may capture and transmit, the stable opaque adoption identifier and the cited recognized-maintainer acceptance. It defaults off and is absent for repositories that never opted in; the field alone grants nothing. Preserve the identifier and decision across repeat init, upgrade and worktrees; revocation stops future transmission, and dry runs never transmit. The [bundle encoding](https://github.com/normzhou/yolo-dev/blob/4a199bde872fda89292ebf0924f59e971274d9c3/skills/yolo/references/records.md) implements its exact shape.
+`observation` is a distinct optional consent from `feedback`. It records whether [activity observation](#observation-activity-observation) may capture and transmit, the stable opaque adoption identifier and the cited recognized-maintainer acceptance. It defaults off and is absent for repositories that never opted in; the field alone grants nothing. Preserve the identifier and decision across repeat init, upgrade and worktrees; revocation stops future transmission, and dry runs never transmit. The [bundle encoding](https://github.com/normzhou/yolo-dev/blob/7b9d12fae425217b2651e9f4e5f1c25a0372bcf9/skills/yolo/references/records.md) implements its exact shape.
 
 <a id="adoption-records-reports-and-checkpoints"></a>
 ### Reports and checkpoints
@@ -882,7 +906,7 @@ For dry run, observe source preservation/no GitHub writes, a complete retained d
 <a id="assisted-development-assisted-distribution"></a>
 ## Assisted distribution
 
-**Publisher artifact requirements.** Package the [protocol](#operating-protocol-operating-protocol) and [onboarding process](#onboarding-onboarding-and-check) so a target harness can operate without this checkout or prior chat. The [candidate skill](https://github.com/normzhou/yolo-dev/blob/4a199bde872fda89292ebf0924f59e971274d9c3/skills/yolo/SKILL.md) implements them; observed qualification remains separate.
+**Publisher artifact requirements.** Package the [protocol](#operating-protocol-operating-protocol) and [onboarding process](#onboarding-onboarding-and-check) so a target harness can operate without this checkout or prior chat. The [candidate skill](https://github.com/normzhou/yolo-dev/blob/7b9d12fae425217b2651e9f4e5f1c25a0372bcf9/skills/yolo/SKILL.md) implements them; observed qualification remains separate.
 
 <a id="assisted-development-standalone-bundle"></a>
 ### Standalone bundle
@@ -928,7 +952,7 @@ Preserve other skills, commands and active instructions. Repeated installation i
 
 Use `AGENTS.md` as the ordinary entrypoint. Install thin [Claude](https://code.claude.com/docs/en/memory) and [Gemini](https://geminicli.com/docs/cli/gemini-md/) imports in `CLAUDE.md` and `GEMINI.md`; preserve existing instructions with the same import, otherwise stop for reconciliation. Init supplies the shared local protocol/context through `AGENTS.md`. Native trust, permissions and reload requirements remain in force. Skill discovery, explicit invocation and ordinary instruction loading require separate observations.
 
-Ordinary requests use [work](#activities-work-shared-development-procedure) without per-session manual invocation. YOLO self-use follows the same identified publication/adoption route; a mutable authoring link cannot upgrade or qualify it. Older [protocol](https://github.com/normzhou/yolo-dev/blob/4a199bde872fda89292ebf0924f59e971274d9c3/skills/yolo/references/assisted-protocol.md)/encoding remain compatibility material.
+Ordinary requests use [work](#activities-work-shared-development-procedure) without per-session manual invocation. YOLO self-use follows the same identified publication/adoption route; a mutable authoring link cannot upgrade or qualify it. Older [protocol](https://github.com/normzhou/yolo-dev/blob/7b9d12fae425217b2651e9f4e5f1c25a0372bcf9/skills/yolo/references/assisted-protocol.md)/encoding remain compatibility material.
 
 <a id="assisted-development-release-selection"></a>
 ### Release selection

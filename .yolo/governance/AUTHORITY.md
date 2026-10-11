@@ -31,9 +31,9 @@ contest them.
   triage comment per classified request, and a linked planning issue carrying ordered **Now / Next**
   with reasons when coordination spans outcomes. Read replies on closed issues; reopen or link
   follow-ups without erasing prior results.
-- **Issue metadata.** Create and maintain the reserved `yolo:request`, `yolo:work` and
-  `yolo:state:*` labels on issues it manages, and remove stale state labels from closed issues.
-  Preserve unrelated labels.
+- **Issue metadata.** Create and maintain the reserved `yolo:request`, `yolo:work`,
+  `yolo:manual` and `yolo:state:*` labels on issues it manages, and remove stale state labels
+  from closed issues. Preserve unrelated labels.
 - **Implementation and verification.** Routine design and technical choices; tests; type
   checking; CI/CD; improving verification within the accepted architecture.
 - **Delivery.** Open pull requests referencing their outcome issue, and **merge them to `main`
