@@ -45,7 +45,7 @@
     },
     {
       "tag": "v0.3.2",
-      "commit": "86655102a92cd4afb92f9e965b6078a249bb2192",
+      "commit": "75cfffb583bc0a241aa3270aa207dcdc21833cf4",
       "artifact_verified": {
         "command": "npx --yes github:normzhou/yolo-blank-canvas#v0.3.2 --no-open --port 4432",
         "build": "b14b70ac9f112f14a0436b6be8e5326b6b9e3513",

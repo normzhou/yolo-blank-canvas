@@ -90,6 +90,8 @@ Use **Agent activities** in the active snapshot (the [bundle](references/protoco
 
 Ordinary development requests follow this procedure without manual skill invocation. Direct conversation is steering; a bypass needs a scoped owner override. L1's maintainer starts sessions; AI may admit/plan within them. L2 automatic initiation remains unbuilt.
 
+Reconcile applicable current intent, including later reversals; superseded decisions remain history. Before executing a replan, record revised acceptance and the original scope's disposition in the outcome and affected sources. A substitute result cannot fulfill abandoned scope or waive its prerequisites; unresolved consequential contradictions block affected work.
+
 Maintain the existing status-summary comment as work changes. Follow the target's declared delivery route through usable publication; a development checkout does not establish a package/release's availability. Reconcile governing conflicts and primary evidence before claiming conformity or completion.
 
 ## Feedback

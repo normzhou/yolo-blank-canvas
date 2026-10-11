@@ -3,7 +3,7 @@
   "protocol": {
     "format": "github-v1",
     "repository": "https://github.com/normzhou/yolo-dev",
-    "revision": "4a199bde872fda89292ebf0924f59e971274d9c3",
+    "revision": "7b9d12fae425217b2651e9f4e5f1c25a0372bcf9",
     "source": "skills/yolo/references/protocol.md",
     "inputs": [
       {
@@ -18,7 +18,7 @@
       },
       {
         "path": "specs/activities.md",
-        "sha256": "004ec7eaaa0c47d5d810234a76d5695ab19339ea4363c7e9c82f9971ddc4bdc8",
+        "sha256": "977637f8f9576c88e627aa5944803ceddc7cf4c07755c464e542fc4be73d4f4f",
         "selection": "whole document"
       },
       {
@@ -28,7 +28,7 @@
       },
       {
         "path": "specs/issue-management.md",
-        "sha256": "cb33269cb8cdd0612282c4c469784f02ac0b1eca27f5a5ac6406b00965c65161",
+        "sha256": "b3bbd2922ab808c28695a91e5756bf61bf78a7f4cd8ac4b8dc29fddbc76fb461",
         "selection": "whole document"
       },
       {
@@ -43,12 +43,12 @@
       },
       {
         "path": ".yolo/governance/specs/releases.md",
-        "sha256": "2311b6c77f5704cbd785ea03a870923caacac71c7aff04207f70078df06547a9",
+        "sha256": "8c334bf9fa8e4032bf64c9f5608780a16d6e38b983942c7c5cc855fc94f91e7a",
         "selection": "whole document"
       },
       {
         "path": "specs/conformance-checks.md",
-        "sha256": "6a4da041ef0c81139e1137580a54766daef0c5e4269643a83ff60262bfb3d001",
+        "sha256": "ec51841444276e71f008207909ed5470f833d6bc476f52cfba878a461cb05925",
         "selection": "whole document"
       },
       {
@@ -98,12 +98,12 @@
       },
       {
         "path": "VERSION",
-        "sha256": "d5d967a5776ba1a0b1ccaf06c6ea56764c9e102eb9cabd1f1fb379aff6c6f7aa",
+        "sha256": "14bb63489b84806d8448fcfedf08036e0041e37c3d2c8d6b392f63113f675010",
         "selection": "whole document"
       }
     ],
     "path": ".yolo/protocol.md",
-    "sha256": "2f1a92e492267b9d670b0c1923b43108fb25967383c267229dc602e0b7620473"
+    "sha256": "3274be039611f16cd8eb474c6316340bbebde4f294a19d0a06d92f78ac6f28c8"
   },
   "target": {
     "repository": "normzhou/yolo-blank-canvas",
@@ -142,9 +142,9 @@
     ],
     "skill": {
       "path": ".agents/skills/yolo",
-      "revision": "5f92e6c2d36b66ba02631ebebf21ef10ec00a4ac",
-      "release": "v0.1.0-alpha.16",
-      "manifest_sha256": "8e4c48ea884f861fec627201f0f594868fe309cb5bc622cb96cd30d434f0f71d"
+      "revision": "ff3bc199bd2e33e660de0d65b5a0f3c62282278b",
+      "release": "v0.1.0-alpha.20",
+      "manifest_sha256": "54bff58b51536d501df2dfb480c7a76883becaf348df5ee02d71226d7416c072"
     }
   },
   "verification": {
@@ -175,21 +175,20 @@
         "v0.1.2": "878854e3f1a53524f4952ef0b35cc01acc6c4b36",
         "v0.2.0": "eaf7cc2b74b9eba89ee434742c5df97f84c54637",
         "v0.3.0": "dbfdacf246b5b42c208e5f1fb4a7913c195d2f67",
-        "v0.3.2": "86655102a92cd4afb92f9e965b6078a249bb2192",
+        "v0.3.2": "75cfffb583bc0a241aa3270aa207dcdc21833cf4",
         "v0.3.1": "80bf5f860c4a360e855c8b0a786df7a04f3a70e6"
       },
       "observations": [
+        ".yolo/reports/releases-observed-2026-10-06.json",
         ".yolo/reports/releases-observed-2026-10-07.json",
         ".yolo/reports/releases-observed-2026-10-08.json"
       ]
     }
   },
   "activation": {
-    "state": "active",
+    "state": "proposed",
     "evidence": [
-      "Maintainer direction in an authenticated harness session (this one): '/yolo upgrade' on the stable channel resolved no release, the maintainer then explicitly selected '/yolo upgrade preview' to v0.1.0-alpha.16, approved the prepared AUTHORITY.md revision as scoped owner approval of that exact text, and directed merge. Acceptance recorded on issue #111: https://github.com/normzhou/yolo-blank-canvas/issues/111",
-      "Publication 5f92e6c2d36b66ba02631ebebf21ef10ec00a4ac (release v0.1.0-alpha.16, design inputs 4a199bde872fda89292ebf0924f59e971274d9c3) landed on main as f40a18010c3c62f8316405501a1d1caa0661f461 via PR #112 and was observed on the default branch.",
-      "Historical activation for the old pin (release v0.1.0-alpha.13, publication 6a8d704a6ab0a104d48fc43da3d6e5f98c4b1e80, landed effective commit 870c1e23c36645c86b656f906d85da19f2af9e61) is retained in Git and .yolo/reports/upgrade-alpha13-landed.json."
+      "PENDING LANDING: candidate pin proposed on issue #123. Not active until the migration is observed on the default branch."
     ]
   },
   "adopted_at": "520a81e8ec824b9ce31a7fbc8a8c08d152eb81ae",
@@ -251,11 +250,7 @@
     "level": 1,
     "status": "unverified",
     "evidence": [
-      "Historical qualification evidence for the old pin (release v0.1.0-alpha.13, publication 6a8d704a6ab0a104d48fc43da3d6e5f98c4b1e80) is retained (checkpoint commit 31c0f8b64ea192ba9becadbe531c871e602d14bf, report .yolo/reports/delivery-2026-10-06-check-reconciliation.json). Historical evidence does not qualify a new pin.",
-      "Q5 fresh continuation for the active pin publication 5f92e6c2d36b66ba02631ebebf21ef10ec00a4ac (release v0.1.0-alpha.16) OBSERVED AND RECORDED on 2026-10-10 by a fresh session under harness opencode 2.0.26, distinct from the setup and upgrade sessions. Loaded: /Users/normzhou/Dev/AGENTS.md and the repository AGENTS.md, the native binding .opencode/commands/yolo.md, .agents/skills/yolo/SKILL.md, the pinned .yolo/adoption.json and .yolo/protocol.md, and the mapped governing set. Reconciled without settled-intent rebriefing: working tree identical to origin/main at 3273a66, no open PRs, CI green on four runs, full yolo-check re-run, issues #110 and #111 reviewed and their records repaired, next action identified. Report .yolo/reports/delivery-2026-10-10-continuation.json. It attests only that session; no future restart is claimed.",
-      "Status remains unverified, on new grounds. Q5 now passes, but the adopted rule requires all of Q1-Q5 with no unresolved required finding, and Q3 conformance fails on seven issue_summary findings plus the release finding. The blocker has moved from an external upstream rule to this repository's own records, so it is now inside the agent's and the maintainer's reach rather than outside it.",
-      "Q4 is also unverified: this interval contains no new product release, so there is no new published version on which to verify acceptance. The last verified release in the record is v0.3.2 at commit 75cfffb583bc0a241aa3270aa207dcdc21833cf4; it was neither re-verified nor superseded here, and no availability claim is made. The subject 3273a66 is a verified checkout revision, not a published release.",
-      "checkpoint is NOT advanced by the 2026-10-10 report: it is retained outside the successful chain because it carries unverified and missing findings, and the checkpoint stays at 31c0f8b64ea192ba9becadbe531c871e602d14bf."
+      "alpha.16 loading evidence is historical and is not proof that the alpha.20 rules were loaded; a fresh session must record continuation before any dependent claim is restored."
     ]
   },
   "feedback": {

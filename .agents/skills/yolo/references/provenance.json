@@ -2,7 +2,7 @@
   "schema_version": 1,
   "protocol_format": "github-v1",
   "repository": "https://github.com/normzhou/yolo-dev",
-  "revision": "4a199bde872fda89292ebf0924f59e971274d9c3",
+  "revision": "7b9d12fae425217b2651e9f4e5f1c25a0372bcf9",
   "inputs": [
     {
       "path": ".yolo/governance/ARCHITECTURE.md",
@@ -16,7 +16,7 @@
     },
     {
       "path": "specs/activities.md",
-      "sha256": "004ec7eaaa0c47d5d810234a76d5695ab19339ea4363c7e9c82f9971ddc4bdc8",
+      "sha256": "977637f8f9576c88e627aa5944803ceddc7cf4c07755c464e542fc4be73d4f4f",
       "selection": "whole document"
     },
     {
@@ -26,7 +26,7 @@
     },
     {
       "path": "specs/issue-management.md",
-      "sha256": "cb33269cb8cdd0612282c4c469784f02ac0b1eca27f5a5ac6406b00965c65161",
+      "sha256": "b3bbd2922ab808c28695a91e5756bf61bf78a7f4cd8ac4b8dc29fddbc76fb461",
       "selection": "whole document"
     },
     {
@@ -41,12 +41,12 @@
     },
     {
       "path": ".yolo/governance/specs/releases.md",
-      "sha256": "2311b6c77f5704cbd785ea03a870923caacac71c7aff04207f70078df06547a9",
+      "sha256": "8c334bf9fa8e4032bf64c9f5608780a16d6e38b983942c7c5cc855fc94f91e7a",
       "selection": "whole document"
     },
     {
       "path": "specs/conformance-checks.md",
-      "sha256": "6a4da041ef0c81139e1137580a54766daef0c5e4269643a83ff60262bfb3d001",
+      "sha256": "ec51841444276e71f008207909ed5470f833d6bc476f52cfba878a461cb05925",
       "selection": "whole document"
     },
     {
@@ -96,13 +96,13 @@
     },
     {
       "path": "VERSION",
-      "sha256": "d5d967a5776ba1a0b1ccaf06c6ea56764c9e102eb9cabd1f1fb379aff6c6f7aa",
+      "sha256": "14bb63489b84806d8448fcfedf08036e0041e37c3d2c8d6b392f63113f675010",
       "selection": "whole document"
     }
   ],
   "output": {
     "path": "references/protocol.md",
-    "sha256": "2f1a92e492267b9d670b0c1923b43108fb25967383c267229dc602e0b7620473"
+    "sha256": "3274be039611f16cd8eb474c6316340bbebde4f294a19d0a06d92f78ac6f28c8"
   },
   "layout": {
     "root": {
@@ -127,10 +127,11 @@
     "replica_review": "tracked-unignored-v1"
   },
   "release_convention": "semver-v1",
-  "issue_management": "request-outcome-v1",
-  "release": "v0.1.0-alpha.16",
+  "release_history": "recoverable-v1",
+  "issue_management": "request-outcome-v2",
+  "release": "v0.1.0-alpha.20",
   "files": {
-    "SKILL.md": "1d9dd8d21c2a62647ad0438ff6dab8fdc442395426a77f2335fc9e25baf486e6",
+    "SKILL.md": "8906d5d5164511c0133f0c985d763564aecbb453ea5751cd8a8b66c03a026ddc",
     "assets/agent-instructions.md": "33df5ce3e827d66cc04a3ea36f5c45afb8e208d25deb077118a1fde13c48d24f",
     "assets/architecture.md": "b74c1fcff2e2a10f4d20978173d3d7bb8b94074aac24fcc414a9c1ab58620455",
     "assets/authority.md": "d53a8e5c46e576103483457fbffe0f25f11ab32cc8ae1f588b3594126efd271f",
@@ -142,8 +143,8 @@
     "references/assisted-protocol.md": "1f65afd40890eb06a475918564e0bd4cde4491ae4450bc56b6a9b22b60263b45",
     "references/checker.md": "1cd0abec939ffdeee1d15b8d26a4a09f81423ff0eccb77804bd6b2f3c58a0d9e",
     "references/legacy-records.md": "9cddd17a5a7aec52f67cf1cb20a3be3669359527a459d46fdc8ec74b0810b59f",
-    "references/protocol.md": "2f1a92e492267b9d670b0c1923b43108fb25967383c267229dc602e0b7620473",
-    "references/records.md": "30b5c0ef3c70126234ebdc17fc7cae5a494f9955be5db50b44d8eae22454209e",
+    "references/protocol.md": "3274be039611f16cd8eb474c6316340bbebde4f294a19d0a06d92f78ac6f28c8",
+    "references/records.md": "d45dac572ec68e0657d13480eee8eb2683f92300d0cbce7f73eac7146f0b3db9",
     "references/templates.md": "813428363250c4cb5b80e6537549983b61969557b1541a415653f605f3e5d2d1"
   }
 }
