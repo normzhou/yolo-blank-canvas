@@ -154,7 +154,11 @@ export function App() {
 
       {serverSuggestsReload && !reloadPromptDismissed ? (
         <div className="banner warning" role="status">
-          <span>App version changed — reload to use the version this server is running.</span>
+          <span>App version changed — reload to use the version this server is running.
+              {/* The build identifiers belong where a mismatch is actually being
+                  diagnosed, not permanently in the product footer (#131). */}
+              {serverClientBuild ? <span className="build-id">server {serverClientBuild.slice(0, 7)} · page {CLIENT_BUILD.slice(0, 7)}</span> : null}
+            </span>
           <span className="row">
             <button
               type="button"
@@ -177,16 +181,19 @@ export function App() {
         <ErrorNotice error={sessionError} onRetry={() => void connect()} retryLabel="Retry connection" />
       ) : null}
 
-      {/* A status line only. The connect action moved to the primary control below,
-          because two controls offering the same thing made "which one is primary"
-          unanswerable (#130). */}
-      <p className="canvas-identity">
-        {session
-          ? `${session.repo} · signed in as ${session.identity}`
-          : connecting
-            ? 'Connecting to GitHub…'
-            : 'Not connected to GitHub.'}
-      </p>
+      {/* A status line only, and only when the canvas is visible. The panel header
+          shows the same identity when it is open; rendering both left the facts
+          duplicated on screen at the same time (#131). The connect action moved
+          to the primary control in #130. */}
+      {!panelOpen ? (
+        <p className="canvas-identity">
+          {session
+            ? `${session.repo} · signed in as ${session.identity}`
+            : connecting
+              ? 'Connecting to GitHub…'
+              : 'Not connected to GitHub.'}
+        </p>
+      ) : null}
 
       {gameOpen ? (
         <TetrisView onClose={() => setGameOpen(false)} />
@@ -242,7 +249,6 @@ export function App() {
           stale={stale}
           onRefreshed={setLastRefreshedAt}
           onStale={setStale}
-          clientBuild={CLIENT_BUILD || 'unknown'}
           onDisconnect={() => void disconnect()}
         />
       ) : null}

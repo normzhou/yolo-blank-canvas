@@ -87,6 +87,13 @@
   --elevation-panel: -8px 0 24px rgba(31, 35, 40, 0.08);
   --elevation-card: 0 1px 2px rgba(31, 35, 40, 0.06);
 
+  /* #131: the scrim is visible rather than a transparent click-catcher, because the
+     workflow is genuinely modal — the canvas behind it is not interactable. A
+     transparent scrim left an inert, full-height canvas looking like live working
+     space. A centred shadow replaces the right-docked one below. */
+  --scrim: rgba(31, 35, 40, 0.42);
+  --elevation-panel-centred: 0 8px 32px rgba(31, 35, 40, 0.18);
+
   --panel-width: min(560px, 100vw);
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   color: var(--text);
@@ -146,6 +153,9 @@
   --elevation-scroll: rgba(43, 36, 27, 0.14);
   --elevation-scroll-fade: rgba(43, 36, 27, 0);
   --surface-transparent: rgba(255, 253, 250, 0);
+  /* #131: warm scrim, matching this theme's ink rather than the default's. */
+  --scrim: rgba(43, 36, 27, 0.38);
+  --elevation-panel-centred: 0 8px 32px rgba(43, 36, 27, 0.16);
 }
 [data-theme='dusk'] {
   --bg: #0d1117;
@@ -188,6 +198,10 @@
   --elevation-scroll: rgba(230, 237, 243, 0.16);
   --elevation-scroll-fade: rgba(230, 237, 243, 0);
   --surface-transparent: rgba(22, 27, 34, 0);
+  /* #131: a dark theme needs a heavier scrim to read as a scrim, or the panel
+     reads as floating rather than modal. */
+  --scrim: rgba(1, 4, 9, 0.68);
+  --elevation-panel-centred: 0 8px 32px rgba(1, 4, 9, 0.6);
 }
 
 }
@@ -215,13 +229,15 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .canvas { min-height: 100vh; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
-/* The chosen Q1 direction (#75): the panel is a column, not an overlay. While it
-   is open the canvas gives up exactly the panel's width, so the centred prompt
-   is never truncated and no content sits under a scrim. The leftover scrim keeps
-   its modal role — it still catches the click that closes the panel and keeps
-   the background non-interactive, so `aria-modal` stays honest — but no longer
-   tints the canvas. */
-.canvas.panel-open { padding-right: var(--panel-width); }
+/* #131: the chosen Q1 direction (#75) made the panel a right-docked column and
+   removed the scrim tint, so the canvas reflowed beside it and stayed visible
+   at full prompt scale. That left ~56% of a wide viewport looking like live
+   working space while the scrim made it inert. The workflow is genuinely modal
+   and `aria-modal` is honest about that, so the fix is to make it look modal:
+   a visible scrim and a centred working surface. The canvas becomes the resting
+   state again rather than a permanent frame competing with the action it
+   exists to prompt. */
+.canvas.panel-open { }
 .canvas-header { display: flex; align-items: center; justify-content: space-between; }
 .canvas-title { font-size: var(--text-lg); font-weight: var(--weight-semibold); margin: 0; }
 /* #130: the prompt is a question and the primary control is its answer, so they
@@ -263,19 +279,21 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
   font-size: var(--text-base);
 }
 .banner.warning { background: var(--warning-weak); border-color: var(--warning-border); }
+/* #131: build identifiers, shown only inside the version-skew banner. */
+.build-id { display: block; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: var(--text-xs); color: var(--muted); margin-top: 4px; }
 
-.scrim { position: fixed; inset: 0; }
+.scrim { position: fixed; inset: 0; display: flex; justify-content: center; background: var(--scrim); }
 .panel {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
+  position: relative;
   width: var(--panel-width);
+  max-width: 100vw;
+  height: 100%;
   background: var(--surface);
   border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  box-shadow: var(--elevation-panel);
+  box-shadow: var(--elevation-panel-centred);
 }
 .panel-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -418,12 +436,12 @@ a:visited { color: var(--accent-weak-text); }
 .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .empty { color: var(--muted); padding: 24px 0; text-align: center; }
 
+/* `--panel-width` is already `min(560px, 100vw)`, so the panel is full-bleed at
+   390px without help; only the side borders need dropping. #131 removed the
+   canvas reflow, the dead `.canvas-empty-hint` rule (#130 superseded it), and
+   the prompt margin (#130 replaced it with layout-driven placement). */
 @media (max-width: 640px) {
-  .panel { width: 100vw; border-left: none; }
-  /* The panel already covers the viewport here, so the canvas reclaims its width. */
-  .canvas.panel-open { padding-right: 0; }
-  .canvas-prompt { margin-top: var(--space-6); }
-  .canvas-empty-hint { display: block; }
+  .panel { border-left: none; border-right: none; }
 
   /* Chosen Q2 direction (#75 finding 3): at 390px the toolbar used to wrap
      `Refresh` onto a line of its own, left-aligned — the recovery control was

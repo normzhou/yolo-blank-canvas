@@ -22,7 +22,7 @@
   ],
   "spacing": {
     ".canvas": {
-      "padding": "20px 560px 20px 24px",
+      "padding": "20px 24px",
       "margin": "0px",
       "gap": "16px",
       "radius": "0px",
@@ -50,7 +50,7 @@
       "border": "0px none rgb(31, 35, 40)"
     }
   },
-  "samples": 39,
+  "samples": 36,
   "belowFloor": [],
   "all": [
     {
@@ -60,14 +60,6 @@
       "needs": 4.5,
       "fontSizePx": 16,
       "fontWeight": 600
-    },
-    {
-      "selector": "p.canvas-identity",
-      "text": "normzhou/yolo-blank-canvas · signed in as normzhou",
-      "ratio": 5.75,
-      "needs": 4.5,
-      "fontSizePx": 12,
-      "fontWeight": 400
     },
     {
       "selector": "p.canvas-prompt",
@@ -180,14 +172,6 @@
       "needs": 4.5,
       "fontSizePx": 16,
       "fontWeight": 600
-    },
-    {
-      "selector": "p.canvas-identity",
-      "text": "normzhou/yolo-blank-canvas · signed in as normzhou",
-      "ratio": 5.75,
-      "needs": 4.5,
-      "fontSizePx": 12,
-      "fontWeight": 400
     },
     {
       "selector": "p.canvas-prompt",
@@ -308,14 +292,6 @@
       "needs": 4.5,
       "fontSizePx": 16,
       "fontWeight": 600
-    },
-    {
-      "selector": "p.canvas-identity",
-      "text": "normzhou/yolo-blank-canvas · signed in as normzhou",
-      "ratio": 5.75,
-      "needs": 4.5,
-      "fontSizePx": 12,
-      "fontWeight": 400
     },
     {
       "selector": "p.canvas-prompt",

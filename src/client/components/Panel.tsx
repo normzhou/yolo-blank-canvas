@@ -29,7 +29,6 @@ export function Panel({
   stale,
   onRefreshed,
   onStale,
-  clientBuild,
   onDisconnect,
 }: {
   session: SessionInfo;
@@ -52,7 +51,6 @@ export function Panel({
   stale: boolean;
   onRefreshed: (at: number) => void;
   onStale: (stale: boolean) => void;
-  clientBuild: string;
   onDisconnect: () => void;
 }) {
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -149,7 +147,10 @@ export function Panel({
             Last refresh: {formatClockTime(lastRefreshedAt)}
             {stale ? <span className="stale"> · stale</span> : null}
           </span>
-          <span>UI build: {clientBuild === 'unknown' || !clientBuild ? 'Unknown' : clientBuild.slice(0, 7)}</span>
+          {/* #131: the build identifier left this footer. It is diagnostic output
+              and sat permanently beside Disconnect, competing with a
+              session-ending control for the same row. It now appears only in the
+              version-skew banner, where a mismatch is actually being diagnosed. */}
           <button type="button" onClick={onDisconnect}>
             Disconnect
           </button>
