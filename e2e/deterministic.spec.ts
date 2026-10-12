@@ -67,10 +67,16 @@ test('new-request form creates via stubbed POST and persists a draft across pane
   await page.getByLabel('Title').fill('A draft that survives');
   await snap('05-new-request-draft');
 
-  // Close and reopen the panel: the typed draft must still be there (the
-  // panel reopens on the same view it closed on).
+  // Close and reopen: the typed draft must still be there. #132 moved the view
+  // into the URL, so closing now clears the location and reopening starts at the
+  // list — the way back to the composer is the canvas's primary control, which is
+  // where a real user would go. What this test protects is that the *draft* is
+  // session state and survives a full close, a route change and a reopen; it is
+  // not about which view the panel remembers.
   await page.keyboard.press('Escape');
-  await page.getByRole('button', { name: 'Open requests', exact: true }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await page.getByRole('button', { name: 'Start a request', exact: true }).click();
+  await expect(page).toHaveURL(/\?panel=new$/);
   await expect(page.getByLabel('Title')).toHaveValue('A draft that survives');
 
   // Submit the stubbed creation; the new row shows up in the list.

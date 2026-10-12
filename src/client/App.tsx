@@ -14,10 +14,17 @@ import {
   saveDraft,
   type DraftStore,
 } from './drafts';
+import { readRoute, routeTarget, routeUrl, type RouteTarget } from './route';
 
 const CLIENT_BUILD: string = typeof __CLIENT_BUILD__ === 'string' ? __CLIENT_BUILD__ : '';
 
 const EMPTY_DRAFT = { title: '', body: '' };
+
+/** A cold deep link names a location but has no list row behind it. */
+function toPanelView(target: RouteTarget, issue: IssueSummary | null = null): PanelView {
+  if (target.name === 'detail') return { name: 'detail', issue, number: target.number };
+  return { name: target.name };
+}
 
 export function App() {
   const storeRef = useRef<DraftStore | null>(null);
@@ -27,9 +34,9 @@ export function App() {
   const [session, setSession] = useState<SessionInfo | null>(null);
   const [sessionError, setSessionError] = useState<ApiError | null>(null);
   const [connecting, setConnecting] = useState(false);
-  const [panelOpen, setPanelOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(() => readRoute(window.location.search).open);
   const [gameOpen, setGameOpen] = useState(false);
-  const [view, setView] = useState<PanelView>({ name: 'list' });
+  const [view, setView] = useState<PanelView>(() => toPanelView(readRoute(window.location.search).target));
   const [filter, setFilter] = useState<'open' | 'closed' | 'all'>('open');
   const [lastRefreshedAt, setLastRefreshedAt] = useState<number | null>(null);
   const [stale, setStale] = useState(false);
@@ -95,33 +102,62 @@ export function App() {
     [store],
   );
 
+  // #132: the location is the state. Every view change pushes an entry, so browser
+  // back means back, a reload lands where you were, and `?panel=123` is a link.
+  // A cold deep link carries no list row, so `issue` is null and the detail view
+  // resolves it from the server.
+  const navigate = useCallback((target: RouteTarget | null, issue: IssueSummary | null = null) => {
+    window.history.pushState(null, '', routeUrl(target, window.location.pathname));
+    if (target === null) {
+      setPanelOpen(false);
+      setView({ name: 'list' });
+      return;
+    }
+    setPanelOpen(true);
+    setView(toPanelView(target, issue));
+  }, []);
+
+  // Back and forward replay history rather than push onto it, so this must only
+  // apply state — never call navigate, which would grow the stack as you undo it.
+  useEffect(() => {
+    const onPopState = () => {
+      const target = routeTarget(readRoute(window.location.search));
+      if (target === null) {
+        setPanelOpen(false);
+        setView({ name: 'list' });
+        return;
+      }
+      setPanelOpen(true);
+      setView(toPanelView(target));
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
   // The panel cannot render without a session, so entering it while signed out
   // used to be a dead control: the click set state that nothing read. Connecting
-  // first makes every entry point work in every state (#130).
-  // `destination` of null preserves the current view, which is what the browse
-  // entry must do: closing the panel and reopening it returns to where you were.
+  // first makes every entry point work in every state (#130). On a deep link the
+  // connection is already in flight from mount, so this is a no-op re-check.
   const enterRequests = useCallback(
-    async (destination: 'list' | 'new' | null) => {
+    async (destination: RouteTarget, issue: IssueSummary | null = null) => {
       if (!session) {
         const info = await connect();
         if (!info) return;
       }
-      if (destination) setView(destination === 'new' ? { name: 'new' } : { name: 'list' });
-      setPanelOpen(true);
+      navigate(destination, issue);
     },
-    [connect, session],
+    [connect, navigate, session],
   );
 
   const openPanel = useCallback(() => {
-    void enterRequests(null);
+    void enterRequests({ name: 'list' });
   }, [enterRequests]);
 
   const closePanel = useCallback(() => {
-    setPanelOpen(false);
-    setView((current) => (current.name === 'detail' ? { name: 'list' } : current));
+    navigate(null);
     // Focus returns to the canvas's primary control, which is the way back in.
     triggerRef.current?.focus();
-  }, []);
+  }, [navigate]);
 
   async function disconnect() {
     try {
@@ -207,7 +243,7 @@ export function App() {
             type="button"
             className="primary canvas-primary-action"
             ref={triggerRef}
-            onClick={() => void enterRequests('new')}
+            onClick={() => void enterRequests({ name: 'new' })}
             disabled={connecting}
           >
             {session ? 'Start a request' : 'Connect GitHub'}
@@ -230,13 +266,13 @@ export function App() {
           filter={filter}
           onFilterChange={setFilter}
           onClose={closePanel}
-          onSelect={(issue: IssueSummary) => setView({ name: 'detail', issue, number: issue.number })}
+          onSelect={(issue: IssueSummary) => navigate({ name: 'detail', number: issue.number }, issue)}
           onCreated={(issue) =>
             setCreatedIssues((previous) => [...previous.filter((item) => item.number !== issue.number), issue])
           }
-          onNew={() => setView({ name: 'new' })}
-          onCancelNew={() => setView({ name: 'list' })}
-          onBack={() => setView({ name: 'list' })}
+          onNew={() => navigate({ name: 'new' })}
+          onCancelNew={() => navigate({ name: 'list' })}
+          onBack={() => navigate({ name: 'list' })}
           newDraft={newDraft}
           onNewDraftChange={setNewDraft}
           createdIssues={createdIssues}
