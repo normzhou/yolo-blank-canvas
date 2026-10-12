@@ -267,5 +267,13 @@
   "feedback": {
     "automatic": false,
     "acceptance": []
+  },
+  "observation": {
+    "enabled": true,
+    "adoption_id": "adoption_0a4d468629262ec5cafee63f2ae63f3a",
+    "acceptance": [
+      ".yolo/reports/2026-10-12-telemetry-pilot-acceptance.md",
+      "https://github.com/normzhou/yolo-dev/issues/87#issuecomment-6128000560"
+    ]
   }
 }
