@@ -1,0 +1,47 @@
+{
+  "schema_version": 2,
+  "kind": "review",
+  "purpose": "alpha.23 observer artifact upgrade; not qualification",
+  "binary_observations": {
+    "assessment": "gaps",
+    "findings": [
+      {
+        "rule": "unresolved_findings",
+        "status": "unverified",
+        "detail": "Resolve and cite recorded findings before advancing",
+        "evidence": [
+          ".yolo/adoption.json"
+        ]
+      },
+      {
+        "rule": "checkpoint",
+        "status": "unverified",
+        "detail": "Report omits a required semantic rule",
+        "evidence": [
+          ".yolo/adoption.json"
+        ]
+      },
+      {
+        "rule": "issue_manual_owner",
+        "status": "missing",
+        "detail": "Open manual task has no assignee; name the recognized maintainer who must act",
+        "evidence": [
+          "https://github.com/normzhou/yolo-blank-canvas/issues/136"
+        ]
+      },
+      {
+        "rule": "default_branch_context",
+        "status": "unverified",
+        "detail": "Default-branch adoption is missing, different or not available locally; agent must fetch/reconcile before attesting it",
+        "evidence": [
+          "main",
+          "8a9be5ea2a76211af021a7c3f87a338b69224adb"
+        ]
+      }
+    ]
+  },
+  "agent_assessment": {
+    "verdict": "unverified"
+  },
+  "structure": "pass"
+}

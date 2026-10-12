@@ -11,6 +11,8 @@ For help, use **Help** below; unrelated protocol/history checks are unnecessary.
 
 ## Load the applicable rules
 
+When the harness supplies `YOLO_ACTIVITY_ID` and `YOLO_ACTIVITY_REPORT`, make the ordinary structured result available at that path with the matching `activity_id`. Keep durable evidence in its normal Git/GitHub location. Use `kind: "review"` for init/upgrade/check and `kind: "outcome"` for request/work/feedback; keep factual observations and agent assessment separate ([records](references/records.md#activity-result)). If waiting for the next user reply, include `awaiting_input: true`. This is normal result recording; native hooks collect measurements and handle transmission automatically.
+
 - Existing target: read its `.yolo/adoption.json` (or legacy `.yolo-dev/adoption.json`), pinned snapshot, mapped governing/instruction context and durable work. Two markers are a conflict; never select one implicitly. A newer skill cannot upgrade a pin.
 - New init: read the bundled [protocol](references/protocol.md), particularly **Operating protocol**, the layout/issue/repository/verification contracts, **Qualification**, and **Onboarding**. Read [record encoding](references/records.md), [template guidance](references/templates.md) and `references/provenance.json` when drafting. Required rules are local; source-input revision and installed publication revision are distinct identities.
 - Legacy check/repair: use [legacy encoding](references/legacy-records.md) and the target's earlier rules. The [earlier protocol](references/assisted-protocol.md) is compatibility material, not an upgrade.

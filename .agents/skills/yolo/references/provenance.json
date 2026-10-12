@@ -2,7 +2,7 @@
   "schema_version": 1,
   "protocol_format": "github-v1",
   "repository": "https://github.com/normzhou/yolo-dev",
-  "revision": "7b9d12fae425217b2651e9f4e5f1c25a0372bcf9",
+  "revision": "3cc04ef5f302993e1d3952bff00f08020d57dbcc",
   "inputs": [
     {
       "path": ".yolo/governance/ARCHITECTURE.md",
@@ -86,7 +86,7 @@
     },
     {
       "path": ".yolo/governance/specs/observation.md",
-      "sha256": "3ff8d83aa15ab3bf9dae760658024052353a5be4cd7e64f94f1666100241dd1a",
+      "sha256": "5bbadb5998854c8b1d23555a53208d71f6ad4019c7c76d4593884680f4cf99f8",
       "selection": "whole document"
     },
     {
@@ -96,13 +96,13 @@
     },
     {
       "path": "VERSION",
-      "sha256": "14bb63489b84806d8448fcfedf08036e0041e37c3d2c8d6b392f63113f675010",
+      "sha256": "cee35e3849309f4eaad3afbcc5675619e9771196bd5cba6b4813a9e8b877a3fe",
       "selection": "whole document"
     }
   ],
   "output": {
     "path": "references/protocol.md",
-    "sha256": "3274be039611f16cd8eb474c6316340bbebde4f294a19d0a06d92f78ac6f28c8"
+    "sha256": "9070f151a87c0c78f920aa22295ee976851dd98cbd65aee6cebe6502ac1a9613"
   },
   "layout": {
     "root": {
@@ -129,9 +129,10 @@
   "release_convention": "semver-v1",
   "release_history": "recoverable-v1",
   "issue_management": "request-outcome-v2",
-  "release": "v0.1.0-alpha.20",
+  "activity_observation": "pi-native-v1",
+  "release": "v0.1.0-alpha.23",
   "files": {
-    "SKILL.md": "8906d5d5164511c0133f0c985d763564aecbb453ea5751cd8a8b66c03a026ddc",
+    "SKILL.md": "493a2858447873d13d37015906b47b2c577af027b740d83384821f872bd71cb2",
     "assets/agent-instructions.md": "33df5ce3e827d66cc04a3ea36f5c45afb8e208d25deb077118a1fde13c48d24f",
     "assets/architecture.md": "b74c1fcff2e2a10f4d20978173d3d7bb8b94074aac24fcc414a9c1ab58620455",
     "assets/authority.md": "d53a8e5c46e576103483457fbffe0f25f11ab32cc8ae1f588b3594126efd271f",
@@ -139,12 +140,14 @@
     "assets/brainstorm-session.md": "ba7a405e2ed13ba21a140b3c9b84f11b9fc7ce890c33ebd9e3822f7bcf731fc5",
     "assets/brainstorm-topic.md": "1028a4c4121e231663b345b9436538f43b2846d58b9b57a4b395baaab4aae6da",
     "assets/charter.md": "4b87c4fc41efce2be2b4307c59e3a90099be8c84d60cbdb8c1ee38598d05ab66",
+    "assets/observer-core.mjs": "b4ce1a1be1dcbd14398903bc5acace95340822813472721f7508ccc661d7b3b3",
+    "assets/pi-observer.ts": "f3c753ef2fd264b7a3a070644e2593eb8ee1071f9b7334d382f5db92e061d982",
     "assets/readme.md": "d55bd98a23633b2d8dae90667645a98057b6361d39514f179f1eabb361e8d2da",
     "references/assisted-protocol.md": "1f65afd40890eb06a475918564e0bd4cde4491ae4450bc56b6a9b22b60263b45",
-    "references/checker.md": "1cd0abec939ffdeee1d15b8d26a4a09f81423ff0eccb77804bd6b2f3c58a0d9e",
+    "references/checker.md": "7dbb80a24da66bae650e0e0b447b57cf53a203aded99c23910142871235ebcc5",
     "references/legacy-records.md": "9cddd17a5a7aec52f67cf1cb20a3be3669359527a459d46fdc8ec74b0810b59f",
-    "references/protocol.md": "3274be039611f16cd8eb474c6316340bbebde4f294a19d0a06d92f78ac6f28c8",
-    "references/records.md": "d45dac572ec68e0657d13480eee8eb2683f92300d0cbce7f73eac7146f0b3db9",
+    "references/protocol.md": "9070f151a87c0c78f920aa22295ee976851dd98cbd65aee6cebe6502ac1a9613",
+    "references/records.md": "c21fe1ed4806331bb12fc1897d738634e8a67121cc3f5043a6887a923ba5cb1b",
     "references/templates.md": "813428363250c4cb5b80e6537549983b61969557b1541a415653f605f3e5d2d1"
   }
 }

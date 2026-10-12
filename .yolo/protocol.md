@@ -2,7 +2,7 @@
 
 Protocol format: `github-v1` · Candidate L1 distribution
 
-Source: [7b9d12fae425217b2651e9f4e5f1c25a0372bcf9](https://github.com/normzhou/yolo-dev/tree/7b9d12fae425217b2651e9f4e5f1c25a0372bcf9). All required rules and procedures are below; upstream links are optional publisher context or tool documentation. The target supplies its own purpose and accepted authority, not YOLO Dev's Charter. Installing these rules does not qualify or authorize a target. L2 descriptions do not activate an unbuilt runner.
+Source: [3cc04ef5f302993e1d3952bff00f08020d57dbcc](https://github.com/normzhou/yolo-dev/tree/3cc04ef5f302993e1d3952bff00f08020d57dbcc). All required rules and procedures are below; upstream links are optional publisher context or tool documentation. The target supplies its own purpose and accepted authority, not YOLO Dev's Charter. Installing these rules does not qualify or authorize a target. L2 descriptions do not activate an unbuilt runner.
 
 Source status notes describe the publisher at that revision, not this target's setup. This generated document preserves the design text; source links are rewritten to local sections wherever the referenced contract is included. The bundle's `provenance.json` records source digests and selections. Target adoption records retain this source identity and this file's digest.
 
@@ -46,7 +46,7 @@ Source status notes describe the publisher at that revision, not this target's s
 <a id="architecture-adoption-levels"></a>
 ### Adoption levels
 
-![L0 Baseline, L1 Assisted, L2 Autopilot, L3 Self-directed and L4 Living App progressively close the app's improvement loop.](https://github.com/normzhou/yolo-dev/blob/7b9d12fae425217b2651e9f4e5f1c25a0372bcf9/assets/adoption-levels.svg)
+![L0 Baseline, L1 Assisted, L2 Autopilot, L3 Self-directed and L4 Living App progressively close the app's improvement loop.](https://github.com/normzhou/yolo-dev/blob/3cc04ef5f302993e1d3952bff00f08020d57dbcc/assets/adoption-levels.svg)
 
 | Level | Capability |
 | --- | --- |
@@ -120,7 +120,7 @@ flowchart LR
 
 Repair the lowest sufficient layer. Target defects stay there; YOLO defects feed back here. Setup, active preparedness and qualification are distinct evidence claims.
 
-Keep product engineering separate from the reusable methodology. YOLO Dev validates its own tooling/bundle and harness behavior under [publisher acceptance](#assisted-development-acceptance); its concrete commands and CI status live in [development instructions](https://github.com/normzhou/yolo-dev/blob/7b9d12fae425217b2651e9f4e5f1c25a0372bcf9/docs/development.md). Each adopted repo defines its own tests and delivery route under the shared [verification contract](#verification-delivery-verification-and-delivery). [Target qualification](#qualification-compliance-and-qualification-evidence) needs that target's actual delivery/continuation evidence; publisher tests cannot supply it.
+Keep product engineering separate from the reusable methodology. YOLO Dev validates its own tooling/bundle and harness behavior under [publisher acceptance](#assisted-development-acceptance); its concrete commands and CI status live in [development instructions](https://github.com/normzhou/yolo-dev/blob/3cc04ef5f302993e1d3952bff00f08020d57dbcc/docs/development.md). Each adopted repo defines its own tests and delivery route under the shared [verification contract](#verification-delivery-verification-and-delivery). [Target qualification](#qualification-compliance-and-qualification-evidence) needs that target's actual delivery/continuation evidence; publisher tests cannot supply it.
 
 <a id="architecture-product-source-and-applied-adoption"></a>
 ### Product source and applied adoption
@@ -303,7 +303,7 @@ All three governing documents use the canonical slots above; durable governing s
 
 Questions belong in reports/issues, not extra governing files. Ownership follows meaning, including draft Charter/authority and proposed controls; location cannot grant permission.
 
-The adopted source revision identifies the layout contract. The [schema](https://github.com/normzhou/yolo-dev/blob/7b9d12fae425217b2651e9f4e5f1c25a0372bcf9/specs/repo-layout.schema.json) supplies its reserved entries/types/role paths in the manifest. The strict validator reports missing canonical homes, unexpected entries, wrong types and invalid mappings without changing files. Init/upgrade propose the required repair; do not mark setup prepared while required structure fails. An incompatible/missing definition is a coverage gap; structural success does not prove meaning or approval.
+The adopted source revision identifies the layout contract. The [schema](https://github.com/normzhou/yolo-dev/blob/3cc04ef5f302993e1d3952bff00f08020d57dbcc/specs/repo-layout.schema.json) supplies its reserved entries/types/role paths in the manifest. The strict validator reports missing canonical homes, unexpected entries, wrong types and invalid mappings without changing files. Init/upgrade propose the required repair; do not mark setup prepared while required structure fails. An incompatible/missing definition is a coverage gap; structural success does not prove meaning or approval.
 
 <a id="repo-layout-governing-file-review"></a>
 ### Governing-file review
@@ -529,7 +529,7 @@ Read-only check reviews default-branch setup, current release records and the in
 
 Preserve the first established applicability boundary; restoring it after erroneous intermediate records is a repair, not a new boundary. Compare retained mappings by immutable commit identity: an annotated tag object may be corrected to the commit it peels to, never to another commit. Keep every prior mapping/reference and the erroneous history, with the correction explained in a later report. Missing objects or an incorrect first establishment require investigation; current refs alone cannot validate a correction or authorize moving applicability.
 
-The [record encoding](https://github.com/normzhou/yolo-dev/blob/7b9d12fae425217b2651e9f4e5f1c25a0372bcf9/skills/yolo/references/records.md) realizes these bindings. Target product versions and adopted YOLO releases are independent; upstream publication never upgrades a target automatically.
+The [record encoding](https://github.com/normzhou/yolo-dev/blob/3cc04ef5f302993e1d3952bff00f08020d57dbcc/skills/yolo/references/records.md) realizes these bindings. Target product versions and adopted YOLO releases are independent; upstream publication never upgrades a target automatically.
 
 
 <a id="conformance-checks-conformance-checks"></a>
@@ -674,7 +674,7 @@ Status describes the record's identified pin. An upgrade proposal cannot inherit
 <a id="adoption-records-observation-setting"></a>
 ### Observation setting
 
-`observation` is a distinct optional consent from `feedback`. It records whether [activity observation](#observation-activity-observation) may capture and transmit, the stable opaque adoption identifier and the cited recognized-maintainer acceptance. It defaults off and is absent for repositories that never opted in; the field alone grants nothing. Preserve the identifier and decision across repeat init, upgrade and worktrees; revocation stops future transmission, and dry runs never transmit. The [bundle encoding](https://github.com/normzhou/yolo-dev/blob/7b9d12fae425217b2651e9f4e5f1c25a0372bcf9/skills/yolo/references/records.md) implements its exact shape.
+`observation` is a distinct optional consent from `feedback`. It records whether [activity observation](#observation-activity-observation) may capture and transmit, the stable opaque adoption identifier and the cited recognized-maintainer acceptance. It defaults off and is absent for repositories that never opted in; the field alone grants nothing. Preserve the identifier and decision across repeat init, upgrade and worktrees; revocation stops future transmission, and dry runs never transmit. The [bundle encoding](https://github.com/normzhou/yolo-dev/blob/3cc04ef5f302993e1d3952bff00f08020d57dbcc/skills/yolo/references/records.md) implements its exact shape.
 
 <a id="adoption-records-reports-and-checkpoints"></a>
 ### Reports and checkpoints
@@ -906,7 +906,7 @@ For dry run, observe source preservation/no GitHub writes, a complete retained d
 <a id="assisted-development-assisted-distribution"></a>
 ## Assisted distribution
 
-**Publisher artifact requirements.** Package the [protocol](#operating-protocol-operating-protocol) and [onboarding process](#onboarding-onboarding-and-check) so a target harness can operate without this checkout or prior chat. The [candidate skill](https://github.com/normzhou/yolo-dev/blob/7b9d12fae425217b2651e9f4e5f1c25a0372bcf9/skills/yolo/SKILL.md) implements them; observed qualification remains separate.
+**Publisher artifact requirements.** Package the [protocol](#operating-protocol-operating-protocol) and [onboarding process](#onboarding-onboarding-and-check) so a target harness can operate without this checkout or prior chat. The [candidate skill](https://github.com/normzhou/yolo-dev/blob/3cc04ef5f302993e1d3952bff00f08020d57dbcc/skills/yolo/SKILL.md) implements them; observed qualification remains separate.
 
 <a id="assisted-development-standalone-bundle"></a>
 ### Standalone bundle
@@ -952,7 +952,7 @@ Preserve other skills, commands and active instructions. Repeated installation i
 
 Use `AGENTS.md` as the ordinary entrypoint. Install thin [Claude](https://code.claude.com/docs/en/memory) and [Gemini](https://geminicli.com/docs/cli/gemini-md/) imports in `CLAUDE.md` and `GEMINI.md`; preserve existing instructions with the same import, otherwise stop for reconciliation. Init supplies the shared local protocol/context through `AGENTS.md`. Native trust, permissions and reload requirements remain in force. Skill discovery, explicit invocation and ordinary instruction loading require separate observations.
 
-Ordinary requests use [work](#activities-work-shared-development-procedure) without per-session manual invocation. YOLO self-use follows the same identified publication/adoption route; a mutable authoring link cannot upgrade or qualify it. Older [protocol](https://github.com/normzhou/yolo-dev/blob/7b9d12fae425217b2651e9f4e5f1c25a0372bcf9/skills/yolo/references/assisted-protocol.md)/encoding remain compatibility material.
+Ordinary requests use [work](#activities-work-shared-development-procedure) without per-session manual invocation. YOLO self-use follows the same identified publication/adoption route; a mutable authoring link cannot upgrade or qualify it. Older [protocol](https://github.com/normzhou/yolo-dev/blob/3cc04ef5f302993e1d3952bff00f08020d57dbcc/skills/yolo/references/assisted-protocol.md)/encoding remain compatibility material.
 
 <a id="assisted-development-release-selection"></a>
 ### Release selection
@@ -1065,6 +1065,8 @@ Controls, packaging, runtime inputs and replacement activation must be resolved/
 <a id="observation-activity-observation"></a>
 ## Activity observation
 
+Observer capability: `pi-native-v1`. The first executable adapter supports verified Pi 1.1.0; other harnesses/versions remain unverified.
+
 **Measure execution and outcomes through the harness, not the agent's cooperation.** Observation makes YOLO's effectiveness analyzable from activity execution, native harness measurements and the ordinary result report. It is a separate, opted-in reporting operation; it never replaces GitHub/Git work state, advances a checkpoint or qualifies an adoption.
 
 The reusable methodology here is shared. The concrete observer, sender, tests and harness adapters are publisher artifacts; each integration and its coverage limits are identified, and adopters do not inherit YOLO Dev's own test/CI configuration.
@@ -1155,6 +1157,16 @@ The remote report projection defaults to typed statuses, counts and known rule/c
 A native binding detects the six explicit activities before prompt expansion, creates correlation, observes native model/tool events and calls the observer with bounded structured data. It obtains the normal report by an explicit correlated artifact path rather than parsing arbitrary conversation; reports that cannot be correlated are retained locally as unsupported. It preserves existing `/yolo <activity>` semantics, instructions, trust and unrelated bindings, reports unsupported interfaces as coverage gaps, and never infers parentage from a shared working directory. Concurrent sessions and targets use independent IDs, and temporary observable data stays outside reserved [`.yolo/` slots](#repo-layout-reserved-namespace).
 
 Other harnesses reuse native hooks, extensions, structured execution streams or OpenTelemetry, preferring existing instrumentation over parsing undocumented transcripts; an adapter is built only after a real trial establishes its contract. The future L2 runner creates correlation before launch and observes structured termination/usage; this contract defines compatibility, not an L2 implementation.
+
+Supported executable bindings ship in the complete verified bundle and are installed with its ordinary command bindings. A versioned manifest capability identifies the observing integration; older pins retain their prior installation contract. Loading remains subject to the harness's normal project trust and reload controls. An observing release does not silently activate an older target pin. Unsupported harness/version or missing native executable is an explicit coverage gap, never a reason to ask the agent to estimate measurements or transmit events.
+
+For a correlated normal report, the binding supplies `YOLO_ACTIVITY_ID` and `YOLO_ACTIVITY_REPORT` to the activity's tool environment. The ordinary reporting procedure makes its structured result available at that path with the matching `activity_id`; normal durable Git/GitHub evidence remains primary. Missing, oversized, malformed or differently correlated artifacts produce an honest missing/invalid finish. A normal report may declare `awaiting_input: true`; a following input in that same live session then starts a new segment of that cause, rather than extending the settled segment. This is an ephemeral observation association, not authoritative work state; cross-session or unknown associations remain unsupported.
+
+Private ingest configuration and versioned native executables live outside the repository. Accepted opt-in can provision a scoped per-installation credential through the disclosed collector without an operator handing out keys; repeat setup preserves the adoption identity and existing credential. Registration sends opaque adoption/installation IDs and a token digest, never raw credentials or repository identity. Neither registration nor a credential authenticates owner authority or event truth. The native sender rechecks current consent before delivery, dry runs perform no registration/transmission, and failed setup or delivery never gates the activity.
+
+Self-service registration uses the same collector's `/enroll` route. Its private registry stores only opaque IDs, token digests, creation time and revocation. Bound enrollment to 50 new installations per UTC day, 32 per adoption, 1,000 lifetime rows including revoked entries, 4 MiB registry/index storage and the existing 400 MiB database stop threshold. Identical enrollment retries consume no quota; conflicting or revoked installations never reactivate. Only the service-role collector can call enrollment/lookup RPCs; clients have no direct table, read, update or delete authority. Existing manually enrolled pilots retain their identities and tokens through explicit migration.
+
+The Pi adapter bounds its pending event queue to 16 and retains at most 16 temporary correlated report copies in a live session. A shutdown flush is limited to ten seconds; unfinished sends remain unknown/unavailable. Queued steering within an already running agent cannot yet be attributed to its own execution segment and is reported unsupported; concurrent separate sessions remain independent. No automatic registration occurs at startup, without an explicit opted-in activity, or on a dry run.
 
 <a id="observation-delivery-and-failure"></a>
 ### Delivery and failure
