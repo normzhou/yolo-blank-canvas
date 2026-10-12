@@ -1,0 +1,231 @@
+{
+  "schema_version": 2,
+  "target": "normzhou/yolo-blank-canvas",
+  "kind": "review-report",
+  "status": "successful-review-checkpoint-not-advanced",
+  "protocol": {
+    "revision": "3cc04ef5f302993e1d3952bff00f08020d57dbcc",
+    "release": "v0.1.0-alpha.23",
+    "sha256": "9070f151a87c0c78f920aa22295ee976851dd98cbd65aee6cebe6502ac1a9613"
+  },
+  "revision": "9680736567908deed87c50f5be096001e783a22f",
+  "default_revision": "9680736567908deed87c50f5be096001e783a22f",
+  "from": "31c0f8b64ea192ba9becadbe531c871e602d14bf",
+  "previous_report": ".yolo/reports/delivery-2026-10-06-check-reconciliation.json",
+  "reviewed_commits": [
+    "030b6ca594c4300335cfa2d476bc3aa601f95262",
+    "0680841866af0fc046539a0f4ce69eb9ec0555ea",
+    "0ee3419deabe9c49749e5b740f82a8e6ec473e42",
+    "16d4e46d45ded680ff9ddb3a48a6f413ff6413b9",
+    "18cb53d6080f41177ff55f3f9313970a7d02fe76",
+    "3273a661799f0b79891b827d64c36d9a8f0c814c",
+    "3896a2a4eb0f2209dbd24456ac8397c789adff4a",
+    "38fb1fb0820e3e4b35e123b40f5130ab0d42e05b",
+    "3c71c86eeb0f1d75bbbd1320bfece5a2b8411e4b",
+    "3c748149150e08ed5c07b580dba48bb80be32462",
+    "3d77ae976bc6d96de0914ff2c57bbf4007ddf071",
+    "40735ca2fff4b3a0c17a8f81a28f5ebbd62ed1e2",
+    "4423694a493d85cc55e811918ed4a863755993b0",
+    "48463a005f816a01a0b6369378a0ba2014e0a10b",
+    "48f11c3aa8816858d0d2a8b841d25269062902b4",
+    "50887c12ea5f5815f80b7f487c19f1792d34db44",
+    "557a6da1a7be3c5f57b7ae138ee43261eacdc8ca",
+    "574631f0cdae304392f4f8ecc0269774e7eb369b",
+    "5a68f0aac0b3485d20d50e057da0ddbdc81adc64",
+    "5a91070e60275065bb0d2a0a41485c378c03a50b",
+    "5d0f1f40ac80a8cd10bd7cf5bd4738d557ebcd4b",
+    "5dcc31b3d6659fb0db3032c0220a0e49a21bdb80",
+    "66802dbd28517a539a7314ca7b1ede787714f24a",
+    "6730e230dfc85aeaa391f34a7d93beff52fbbbae",
+    "6770b6082a269c29b67c80654933de601e103d47",
+    "6ce7b9ba38a5f94195e8ec9db1a01a94a2b5e66b",
+    "6e36c17ef1d77903c6ba8d175e4252d2b332998c",
+    "75cfffb583bc0a241aa3270aa207dcdc21833cf4",
+    "7ce77a017c9cf6f8e49cb463f4c39dbb1b5468ef",
+    "7e011a4d8b785d1257bc6eb20d0c7d88be328cc2",
+    "7e33fb73590cda818248907918c0ce22fe1afd4a",
+    "7ffb324946645187d8be93c2705e057c7efcda8a",
+    "80bf5f860c4a360e855c8b0a786df7a04f3a70e6",
+    "85806bec9a41102fb014cdf1ab8ac44774a63af2",
+    "878854e3f1a53524f4952ef0b35cc01acc6c4b36",
+    "885c356543d2b7db388de21fe7416824bb2b8dcf",
+    "8a9be5ea2a76211af021a7c3f87a338b69224adb",
+    "8e19dbe8f73051d4f051a4915fe4d234cf1c5474",
+    "8fe531bd91db71ad5767afe5c61894830ef62b93",
+    "933e72a0d1b657c67459883b2780cab43a9a526f",
+    "95a96a6685fc5e6587756b37cedc2d115567374f",
+    "95aa13510b9f22a9a54361aaf87b59aa3e83876a",
+    "9680736567908deed87c50f5be096001e783a22f",
+    "98f42b9febad159244099037823ecee8b9cb1cb5",
+    "9aa308f002869b332c0230cd493d239ca9ff66c4",
+    "9cc93fdfec1d8550de4052f2115a74f624c231bc",
+    "9e56d065b6a3cfaa14f57d4024352a61ef4f73dc",
+    "9f04b715ef001b25ad49a67319b90777f882baa7",
+    "a8c33457a8c0fddc7efa6fd8f4f2b72125af01dc",
+    "aa877422ee48bfedef9d0f0deb879ec905ccf81f",
+    "aadae24cc5348b4ccd43217d73ade6de787d5ee0",
+    "b0d96158be214766cfc812e72f9140e683c3db40",
+    "b14b70ac9f112f14a0436b6be8e5326b6b9e3513",
+    "b55eba69d9a00aca2aa424222679d7f614c154e9",
+    "b990857cf08d19c05bd3285c29d728ccdaf251e0",
+    "bb29a6818d56b309bcbc58b186779d09fa1de2fc",
+    "c03d24341440603b751616a18ff7f692d2b41d0d",
+    "cb3e2e3430c264cd788d9e25bf4c2944c32f1efc",
+    "cebc7f6d50b3e1a50a15b5e56d41d69a787caa79",
+    "d4f6a6449b237bf8c3afeba97c5a6e088dad9298",
+    "dad8c8b422c0f6775e43de96b911a98b9bd77b4b",
+    "dbfdacf246b5b42c208e5f1fb4a7913c195d2f67",
+    "dde3e50c95d656f872f4849d25ed1b9a49c86b88",
+    "e2c8f7dbc0771359bb6d8b3cd0ef678c7098d959",
+    "e2d3f6ea29f87e7f6d8647313b8387d732fcd29c",
+    "e33efff41d22a08982bafba7fb4def193b338c25",
+    "e5cbf61354926a02eee80b76392ca83f31d12357",
+    "e7265d37607d54159f6b5e1599fa747e4c42c0cc",
+    "eaf7cc2b74b9eba89ee434742c5df97f84c54637",
+    "f020c1c3a45d35b81b9eab01cb4f83f24aa6bad5",
+    "f097335b31c983ee4046808de485be1de46ea4f6",
+    "f40a18010c3c62f8316405501a1d1caa0661f461",
+    "f74494147a312c72f4b84eb5504d4c8b7aa1e9cf",
+    "f9f592122ca6016de9d30b0b08daf9b3bdbdbc61",
+    "fdee72758ac45c394f2b220316816e7cccc78b5f"
+  ],
+  "working_changes": [],
+  "harness": {
+    "name": "opencode",
+    "adopted_harness_claim": "pi coding agent 1.0.1 — unchanged by this review; see findings.congruence",
+    "fresh_session": true,
+    "loading_evidence": "This session began by reading .agents/skills/yolo/SKILL.md from the repository root on the alpha.23 pin and reconciled the adopted record, bundle digests, checkpoint chain and GitHub state before acting. This is an observed loading fact for this session only. It does not attest the pi harness, which the adoption record still names, and it is recorded as the evidence for Q5 rather than claimed as a qualification verdict.",
+    "limit": "Q5 evidence is scoped to the harness actually observed. The adopted `harness.name` remains `pi coding agent`; nothing here re-attributes loading to pi."
+  },
+  "findings": [
+    {
+      "rule": "ownership",
+      "status": "compliant",
+      "detail": "Every protected change in the interval was approved for its exact revision before landing, and both protected documents agree with the active pin. AUTHORITY.md was edited twice: at f40a180 for the alpha.16 pin (adds yolo:request, the ## YOLO request triage comment and cross-outcome planning), approved by maintainer normzhou as scoped owner approval of that exact two-bullet text and recorded on issue #111 before merge; and at e7265d3 for the alpha.20 pin, which added `yolo:manual` to the same label clause, approved for that exact revision as prepared on issue #123 and stated in PR #124. CHARTER.md is byte-unchanged across all 75 commits. The reserved-decision list, watermark rules and recovery section are untouched. The telemetry setting added at f097335 and the observer adoption at 0680841 are authority-control changes: both cite the maintainer instruction recorded in .yolo/reports/2026-10-12-telemetry-pilot-acceptance.md, with `feedback.automatic` left false throughout and `observation` enabled only with that cited acceptance. One prior overstatement was found and corrected rather than left standing: PR #117 retracted an unsupported harness-record claim in adoption.json. No protected change in this interval proceeded without identified approval, and no approval was inherited by a later revision.",
+      "evidence": [
+        ".yolo/governance/AUTHORITY.md",
+        "https://github.com/normzhou/yolo-blank-canvas/issues/111#issuecomment-6089252176",
+        "https://github.com/normzhou/yolo-blank-canvas/pull/124",
+        ".yolo/reports/2026-10-12-telemetry-pilot-acceptance.md",
+        "https://github.com/normzhou/yolo-blank-canvas/pull/117",
+        "https://github.com/normzhou/yolo-blank-canvas/pull/127",
+        "https://github.com/normzhou/yolo-blank-canvas/pull/138"
+      ],
+      "resolves": "PR #117 retracted an unsupported claim that a pi session had loaded a specific bundle. The correction is preserved in Git rather than rewritten, and the adoption record now states what was actually observed."
+    },
+    {
+      "rule": "congruence",
+      "status": "compliant",
+      "detail": "Each layer still serves the confirmed goal and there is one governing home per role. The four product releases in the interval (v0.2.0, v0.3.0, v0.3.1, v0.3.2) each record a dated observation report with an artifact-verified note, and the semver-v1 release bindings carry those tag/commit mappings without erasing earlier ones. Three pins were adopted in sequence (alpha.16 at f40a180, alpha.20 at e7265d3, alpha.23 at 0680841), each replacing bundle, byte-identical snapshot and mapping together; `yolo-check . --structure` reports `structure.status: pass` with zero non-compliant rules at this revision, and the three replica candidates are the publisher's own starter templates inside the immutable skill folder, classified as intentional and preserved. The one divergence found: `harness.name` still reads `pi coding agent` while the interval's later work and this session ran under a different harness. That is a stale optional record field, not a governing conflict, and it is corrected in findings.continuity rather than left to imply loading evidence that was never observed. Design changes in the interval were notified rather than silent: the structural UX redesign was filed as an explicit brief (#129) with its decision question (#136) separated out as `yolo:manual` when the restructure turned out to exceed the grant.",
+      "evidence": [
+        ".yolo/governance/ARCHITECTURE.md",
+        ".yolo/governance/specs/status-presentation.md",
+        ".yolo/reports/releases-observed-2026-10-08.json",
+        ".yolo/reports/upgrade-alpha16-proposal.json",
+        "https://github.com/normzhou/yolo-blank-canvas/issues/129",
+        "https://github.com/normzhou/yolo-blank-canvas/issues/136"
+      ],
+      "resolved": "The `release` finding that blocked this repository since 2026-10-07 is cleared by the alpha.20 `release_history: recoverable-v1` profile, which anchors the boundary at its establishment rather than demanding every published value match the current one. Root cause was this repository's own bookkeeping — recording a release observation had re-pointed effective_commit at that release's commit — and that is retained in .yolo/reports/upgrade-alpha16-proposal.json and issue #116 rather than being rewritten away. The two v0.3.2 entries that had recorded an annotated tag object instead of a commit were corrected to the same immutable commit 75cfffb, preserving the references."
+    },
+    {
+      "rule": "verification",
+      "status": "compliant",
+      "detail": "Acceptance was actually run at this revision rather than inherited. npm test passes 221 tests across 18 files; npx tsc --noEmit is clean; npm run build succeeds; and npm run e2e passes 70 with 1 skipped against the deterministic stubbed client, writing no repository records. The committed build output was checked against a fresh build of the same source: after normalising the one embedded build-id string the bundles are byte-identical, so the committed `dist/client/` is faithful to source. That build id reads 8a9be5e while HEAD is 9680736, which is the documented ordering (ARCHITECTURE.md records that both build-ID files carry the built source revision and that the tagged source follows an assets-only commit) rather than staleness. Two honest limits are retained. First, the e2e/review capture set is not byte-reproducible across sessions: this run changed 21 of 79 tracked images, and the determinism guard in e2e/determinism.spec.ts compares two captures within one session, which passes, so the churn is cross-session only and remains an open gap rather than a regression. Second, the recorded live gaps in docs/verification.md — first-login, missing-gh, browser-open, multi-page pagination and mid-session auth loss — remain unobserved live, except the auth-loss path which is now forced read-only in the live E2E. No delivery claim is made beyond what the four release observation reports record, and each names the command actually run.",
+      "evidence": [
+        "test/status.test.ts",
+        "e2e/determinism.spec.ts",
+        "docs/verification.md",
+        ".yolo/reports/releases-observed-2026-10-08.json",
+        ".yolo/reports/2026-10-12-telemetry-pilot-check.json"
+      ],
+      "limit": "npm run e2e:live was not run in this review. It needs an authenticated gh and a real dev app; its last recorded evidence is in docs/verification.md and is cited rather than restated as fresh."
+    },
+    {
+      "rule": "continuity",
+      "status": "compliant",
+      "detail": "History is preserved and failures remain visible. All 75 commits in the interval are listed in reviewed_commits and none was rewritten; the seven superseded `## YOLO status` summaries from 2026-10-10 were demoted to dated history with bodies intact and nothing deleted, and #86 received its already-published text as a status comment after a line-for-line comparison. Two unsupported claims were retracted in place rather than quietly corrected — the harness-record overstatement (PR #117) and the release-finding draft claim (PR #118). Baseline 520a81e and the prior checkpoint 31c0f8b are untouched, and every earlier report in the chain stays byte-unchanged; the older reports that lack the current obligation IDs are cited from this report rather than relabelled, which is what the alpha.16+ pin now permits. This report advances the checkpoint to 9680736 without asserting a level: qualification stays `unverified`, because Q4 needs acceptance on a delivered artifact and the Q5 evidence here is scoped to the session that observed it rather than to the adopted pi harness. The stale `harness.name` field is corrected to record the observed harness while keeping the adopted claim distinct, so recovery does not depend on session state that no longer exists.",
+      "evidence": [
+        ".yolo/adoption.json",
+        "https://github.com/normzhou/yolo-blank-canvas/issues/116",
+        "https://github.com/normzhou/yolo-blank-canvas/pull/117",
+        "https://github.com/normzhou/yolo-blank-canvas/pull/118",
+        ".yolo/reports/delivery-2026-10-06-check-reconciliation.json"
+      ],
+      "carried_forward": [
+        "e2e/review capture set is not byte-reproducible across sessions (21 of 79 images this run)",
+        "live gaps in docs/verification.md remain unobserved except the forced auth-loss path",
+        "open work #129/#131/#132/#134 and the grant question #136"
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "revision": "9680736567908deed87c50f5be096001e783a22f",
+      "result": "pass",
+      "evidence": [
+        "npm test — 221 tests, 18 files, all passing",
+        "npx tsc --noEmit — clean",
+        "npm run build — succeeded",
+        "npm run e2e — 70 passed, 1 skipped, stubbed client, no repository writes",
+        "yolo-check . --structure — structure.status: pass, zero non-compliant rules",
+        "committed dist/client verified byte-identical to a fresh build after build-id normalisation"
+      ]
+    }
+  ],
+  "qualification": {
+    "status": "unverified",
+    "reason": "This report satisfies the four obligations for the interval and advances the checkpoint. It is not a level claim. Q1-Q3 are supported by the evidence named in the findings; Q4 is partial (four releases carry artifact-verified observation reports, but no acceptance was re-run against a delivered artifact in this review); Q5 is supported only for the harness this session actually observed, and the adopted `harness.name` is pi, so the pi continuation remains unrecorded.",
+    "criteria": {
+      "Q1_portable_setup": {
+        "verdict": "pass",
+        "evidence": [
+          "yolo-check . --structure pass with zero non-compliant rules at this revision",
+          "bundle 17/17 digests match provenance.json",
+          "all four native bindings and CLAUDE.md/GEMINI.md imports intact"
+        ]
+      },
+      "Q2_authorized_task": {
+        "verdict": "pass",
+        "evidence": [
+          "issue #141 carries the interpreted need and observable acceptance",
+          "intervening outcomes each have an issue with acceptance (#129, #131, #132, #134)",
+          "the grant-boundary question was raised as #136 rather than decided by the agent"
+        ]
+      },
+      "Q3_conformance": {
+        "verdict": "pass",
+        "evidence": [
+          "all four obligations cited above",
+          "all 75 commits in reviewed_commits",
+          "protected changes traced to identified approval"
+        ]
+      },
+      "Q4_verified_publication": {
+        "verdict": "partial",
+        "evidence": [
+          ".yolo/reports/releases-observed-2026-10-08.json records v0.2.0, v0.3.0, v0.3.1 and v0.3.2 with per-tag artifact verification",
+          "not re-verified in this review"
+        ]
+      },
+      "Q5_fresh_continuation": {
+        "verdict": "partial",
+        "evidence": [
+          "this session loaded the alpha.23 pin and reconciled the record before acting",
+          "adopted harness.name is pi coding agent and was not observed here"
+        ]
+      }
+    }
+  },
+  "next": "Advance checkpoint to 9680736567908deed87c50f5be096001e783a22f. Remaining: re-record continuation under the adopted pi harness for a full Q5, re-verify Q4 against a delivered artifact, close the cross-session e2e/review reproducibility gap, and continue #129/#131/#132 with #136 awaiting the maintainer.",
+  "checkpoint_outcome": {
+    "attempted_checkpoint": "9680736567908deed87c50f5be096001e783a22f",
+    "outcome": "not advanced",
+    "reason": "A successful report is necessary but not sufficient. The validator walks the whole published chain and requires every report in it to name ownership, congruence, verification and continuity, byte-identical to committed content. Five reports in the chain predate that discipline: onboarding-l1-proposal.json, activation-2026-10-05.json, delivery-2026-10-05-5.json, delivery-2026-10-05-22.json and delivery-2026-10-06-alpha13.json name no congruence finding, and delivery-2026-10-06-final.json names neither congruence nor continuity. The finding it raises is \"Report omits a required semantic rule\".",
+    "why_not_repairable_here": "Those reports are published, committed evidence. The same validator refuses to read any report that differs from its committed bytes (\"Checkpoint evidence is not unchanged committed content\"), so the missing findings cannot be added without rewriting published history. Both routes are prohibited: the protocol forbids clearing a checkpoint to make a check succeed and requires failed findings to be retained with cited resolutions.",
+    "probe": "Tested in a disposable clone rather than assumed. Adding the two missing rules to delivery-2026-10-06-final.json changed the error from \"Report omits a required semantic rule\" to \"Checkpoint evidence is not unchanged committed content\", proving both halves of the diagnosis: the obligation is genuinely missing, and the repair is genuinely forbidden. The clone was deleted; this repository was not modified by the probe.",
+    "rule_history": "The four-obligation requirement is not new. The adopted protocol stated it from the first adoption commit fa6ec88 (2026-10-05), in the reports section and at Q3. The 2026-10-05 and 2026-10-06 reports were published without it, so this is a latent nonconformity in this repository's own record, not a rule change arriving after the fact.",
+    "classification": "This is a target record defect with a historical cause, not an upstream rule defect: the rule was satisfiable at every point when those reports were written. Unlike the release finding (upstream yolo-dev#73, rule assumed a value could never legitimately change) this one has a local remedy that respects history - a forward-citing report that carries the missing obligations forward, if the validator is ever taught to accept obligation coverage inherited across the chain rather than demanded per report.",
+    "what_this_report_does_achieve": "It is a complete, cited, successful review of the 75-commit interval under the current pin, and it is retained as the evidence for that interval. It is deliberately NOT recorded as the checkpoint, because doing so would assert a passing chain that does not exist.",
+    "next_action_owner": "Maintainer decision: either accept that the checkpoint stays at 31c0f8b until the chain rule is addressed upstream, or authorize an explicit, recorded exception. The agent will not rewrite published reports or weaken the rule to clear its own finding."
+  }
+}

@@ -145,7 +145,15 @@
       "revision": "e64101f7e385887c42a914f81332bb0169ffdee7",
       "release": "v0.1.0-alpha.23",
       "manifest_sha256": "5c4c8175639cb82ff776bdd4581ef8b46e1887f11d2ad085b17bef58d8275c51"
-    }
+    },
+    "observed_sessions": [
+      {
+        "harness": "opencode",
+        "observed_at": "2026-10-12",
+        "evidence": ".yolo/reports/checkpoint-review-2026-10-12.json harness.loading_evidence",
+        "note": "Recorded as Q5 evidence for that session only. It does not attest the adopted `harness.name` (pi coding agent), whose continuation remains unrecorded, and it does not re-attribute the adopted claim."
+      }
+    ]
   },
   "verification": {
     "checks": [
@@ -261,21 +269,25 @@
   ],
   "checkpoint": {
     "commit": "31c0f8b64ea192ba9becadbe531c871e602d14bf",
-    "report": ".yolo/reports/delivery-2026-10-06-check-reconciliation.json"
+    "report": ".yolo/reports/delivery-2026-10-06-check-reconciliation.json",
+    "review_of_next_interval": {
+      "subject": "9680736567908deed87c50f5be096001e783a22f",
+      "report": ".yolo/reports/checkpoint-review-2026-10-12.json",
+      "outcome": "successful review of all 75 commits with cited ownership, congruence, verification and continuity findings and a passing verification entry, recorded as evidence for the interval but NOT accepted as the checkpoint",
+      "reason": "The validator requires every report in the published chain to name all four obligations. Five reports predate that discipline and name no congruence finding; delivery-2026-10-06-final.json names neither congruence nor continuity. Repairing them would rewrite published committed evidence, which the same validator refuses and the protocol forbids. Proven by probe in a disposable clone; see checkpoint_outcome in the review report."
+    }
   },
   "unresolved": [
-    "RESOLVED 2026-10-10 (was: 'One status summary per outcome is violated on seven closed outcomes (#50, #63, #67, #75, #86, #88, #90)'). Cleared by repair forward under maintainer authorization on issue #116: nine superseded `## YOLO status` summaries on #50, #63, #67, #75 (x4), #88 and #90 were demoted to dated history with their bodies preserved verbatim and nothing deleted, and #86 - whose summary had been posted into the issue description rather than a comment - received that same already-published text as a status comment, verified line-for-line identical before posting. Every one of the seven outcomes now carries exactly one summary, and a re-run of the pinned alpha.16 validator reports ZERO issue_summary findings, down from seven. The contract .yolo/governance/specs/status-presentation.md was NOT amended and the alternative options (amend the contract, delete the duplicates) were NOT taken. Authorization: recognized maintainer normzhou, in an authenticated harness session, delegated the A/B/C choice to the agent's judgement where it neither involves changing the Charter nor violates it; option A was selected under that delegation. Q3 remains unverified because the `release` finding is still open - see below - but this specific blocker is cleared and the checkpoint is now blocked by the release finding alone.",
-    "Release finding, cause identified 2026-10-10 by walking every committed value of verification.release.effective_commit: the sequence is null -> 6efd602 (set when the alpha.11 upgrade landed) -> dbfdacf2 (6e36c17e, 'Record the v0.3.0 release observations') -> 80bf5f86 (c03d2434, 'Record the v0.3.1 release observations') -> back to 6efd602 (f40a1801, the alpha.16 upgrade). The two intermediate values were this repository's OWN bookkeeping error: recording a release observation wrongly re-pointed effective_commit at that release's commit, conflating the fixed applicability boundary with a tag->commit mapping. records.md says 'Preserve an established boundary on upgrade', which is what f40a1801 correctly did. So the CURRENT value 6efd602 is right, the target defect is already repaired, and what remains unsatisfiable is the validator rule requiring the current value to match every published revision - which penalises the target for having corrected itself. That is a rule-design question about upstream yolo-dev, not a defect in this repository. Tracked on issue #116.",
-    "RESOLVED 2026-10-11 by the alpha.20 upgrade (PR #124, effective 030b6ca): the release_history recoverable-v1 profile anchors the release boundary at its establishment, so the previously unsatisfiable effective_commit finding clears, the v0.3.2 annotated-tag-object entries in legacy_tags and releases-observed-2026-10-08.json are corrected to the immutable commit 75cfffb, and the dropped 2026-10-06 observation reference is restored. Root cause and both upstream reports retained in .yolo/reports/upgrade-alpha16-proposal.json and issue #116.",
-    "Still open after the upgrade: the adoption checkpoint is not advanced (it stays at 31c0f8b) because advancing it requires a review report naming ownership, congruence, verification and continuity with evidence for the whole interval since that commit. That is separate work from the migration, and the alpha.20 pin needs a fresh-session continuation record before any dependent claim is restored. Also live: the e2e/review capture set is not byte-reproducible (13-14 of 34 files change pixels between runs of identical code)."
+    "Still open 2026-10-12 (issue #141): the checkpoint cannot advance past 31c0f8b. Five published chain reports - onboarding-l1-proposal.json, activation-2026-10-05.json, delivery-2026-10-05-5.json, delivery-2026-10-05-22.json and delivery-2026-10-06-alpha13.json - name no `congruence` finding, and delivery-2026-10-06-final.json names neither `congruence` nor `continuity`. The four-obligation requirement has applied since the first adoption commit fa6ec88, so this is a latent nonconformity in this repository's own record. The interval 31c0f8b..9680736 is fully reviewed and cited in .yolo/reports/checkpoint-review-2026-10-12.json, but a successful report cannot stand in for a passing chain. Repairing the old reports would rewrite published evidence, which the validator itself refuses and the protocol forbids; the agent will not do that. Maintainer decision required: accept the checkpoint staying put, or authorize a recorded exception. Full diagnosis in the report's checkpoint_outcome.",
+    "RESOLVED 2026-10-12 by .yolo/reports/checkpoint-review-2026-10-12.json (issue #141): the `release` finding no longer exists. Root cause was this repository's own bookkeeping - recording a release observation had re-pointed verification.release.effective_commit at that release's commit, conflating the fixed applicability boundary with a tag->commit mapping - and the alpha.20 `release_history: recoverable-v1` profile anchors the boundary at its establishment. The v0.3.2 entries that recorded an annotated tag object were corrected to the same immutable commit 75cfffb, references preserved. Origin and full chain retained in .yolo/reports/upgrade-alpha16-proposal.json and issue #116.",
+    "RESOLVED 2026-10-10 under maintainer authorization on issue #116: the seven one-summary-per-outcome violations (#50, #63, #67, #75, #86, #88, #90). Nine superseded `## YOLO status` summaries were demoted to dated history with bodies preserved verbatim and nothing deleted; #86 received its already-published text as a status comment after line-for-line comparison. Every outcome now carries exactly one summary. The contract .yolo/governance/specs/status-presentation.md was NOT amended and no comment was deleted.",
+    "Still open 2026-10-12: (a) the e2e/review capture set is not byte-reproducible ACROSS sessions - the review run changed 21 of 79 tracked images, while the in-session guard in e2e/determinism.spec.ts passes, so the churn is cross-session only; (b) live gaps in docs/verification.md remain unobserved except the auth-loss path, which is now forced read-only in the live E2E; (c) Q4 needs acceptance re-run against a delivered artifact and Q5 needs a continuation recorded under the adopted pi harness rather than the one observed in the 2026-10-12 review; (d) open work #129/#131/#132/#134 with the grant-boundary question #136 awaiting the maintainer."
   ],
   "qualification": {
     "level": 1,
     "status": "unverified",
     "evidence": [
-      "alpha.16 loading evidence is historical and is not proof that the alpha.20 rules were loaded; a fresh session must record continuation before any dependent claim is restored.",
-      ".yolo/reports/2026-10-12-alpha23-observer-upgrade.md",
-      ".yolo/reports/2026-10-12-alpha23-native-runtime.json"
+      "The 75-commit interval from 31c0f8b to 9680736 is fully reviewed with cited ownership, congruence, verification and continuity findings in .yolo/reports/checkpoint-review-2026-10-12.json (issue #141). That report assesses Q1-Q3 as pass, Q4 as partial (four releases carry artifact-verified observation reports, none re-verified in that review) and Q5 as partial (continuation observed only for the harness that observed it, not the adopted pi coding agent). No qualified L1 claim is made, and the checkpoint was deliberately not advanced because the published report chain predates the four-obligation rule."
     ]
   },
   "feedback": {
