@@ -1,0 +1,15 @@
+# Accepted development telemetry pilot
+
+Maintainer `normzhou`, recognized by this adoption, instructed in the active L1 conversation on 2026-10-12:
+
+> please enable telemetry pilot for everything. there are not many repos using yolo-dev right now, so there will not be much data.
+
+This responds to the complete proposal at publisher publication `3d20f7532dc6d306b7bf7a66ad085b762124f274` and expands its yolo-dev-only scope to all three current owned adoptions: YOLO Dev, Blank Canvas and Trader. The [upstream decision record](https://github.com/normzhou/yolo-dev/issues/87#issuecomment-6128000560) is AI bookkeeping of that instruction; same-account GitHub authorship alone authenticates no approval.
+
+For this repository the exact enabled setting uses stable opaque ID `adoption_0a4d468629262ec5cafee63f2ae63f3a`. Destination: `https://dldfemwhtydyhfivzicl.supabase.co/functions/v1/yolo-events`. Scope: the six explicit YOLO activities (`init`, `upgrade`, `check`, `request`, `work`, `feedback`) across its worktrees. Permitted fields are schema-1 opaque correlation IDs, activity/phase/time, active/proposed/observer versions, bounded harness/environment values, execution status/duration, available native counters with source/coverage, and typed report verdict/rule statuses. No code, prompts, arbitrary report text, paths, logs, app/business data or credentials. Unknown metrics remain absent/NULL. Global retention stays at most 30 days/5,000 newest events, with 10,000 accepted events per UTC day; no paid upgrade or pre-consent backfill.
+
+Each adoption receives a distinct revocable ingest-only credential; only its digest/opaque ID reaches the trusted collector’s private allowlist. Raw tokens stay outside Git and are supplied as `YOLO_OBSERVE_TOKEN` only to the matching emitter process. Analysis/admin credentials are never handed to a target. Disabling the setting or removing its credential stops future delivery; dry runs never transmit and failures leave development usable.
+
+Active pin `v0.1.0-alpha.20`, installed bundle, authority, baseline, checkpoint and qualification are preserved. This is development telemetry, not an application cloud dependency. Automatic harness binding is still absent ([upstream #38](https://github.com/normzhou/yolo-dev/issues/38)); recording consent does not make ordinary sessions emit. A separately verified alpha.21 sender will perform a fresh, bounded explicit check pilot after cloud configuration, with truthful partial/unknown native usage. This verifies capture/receipt/retrieval, not full-session support or qualification.
+
+Ownership: accepted owner instruction for this exact destination/fields and broader pilot scope. Congruence: optional sanitized development telemetry, with no app or grant rewrite. Verification: JSON preservation assertion passes; delivered consent/credential and real check receipt are verified in subsequent evidence, not presumed here. Continuity: work is issue-linked and pushed; earlier pins, failures and synthetic probes remain history.
