@@ -17,3 +17,11 @@ Declared checks: **221 npm tests pass**, TypeScript check passes. Initial isolat
 The existing scoped pilot credential is privately migrated; `observe status` reports **ready** under the exact published pin. This is local configuration readiness, not receipt or qualification. Actual main/runtime delivery is pending below.
 
 Read-only candidate factual review: **gaps** retained in `2026-10-12-alpha23-observer-check.json`. Uncommitted/default-branch candidate context is expected pending delivery; existing checkpoint/unresolved, issue-state/summary and owner-metadata findings remain visible. No qualification/checkpoint advancement.
+
+## Observed delivery
+
+The explicit upgrade landed via PR #138 at `3c71c86eeb0f1d75bbbd1320bfece5a2b8411e4b`. A fresh Pi **1.1.0** process used the standard installed `/yolo check` prompt and automatically discovered project extension on main `18cb53d6080f41177ff55f3f9313970a7d02fe76`. Independent audit observed 14 final native responses, 28 unique tools and 1 tool failures. No repository/GitHub writes occurred during the bounded review. Separate read-only TLS retrieval found exactly one start/finish pair, activity `activity_ea96a1f10d084daa8779b1cf76b9760a`, with a **present** ordinary review and exact native counter equality. Wall time 101271 ms; coverage stays partial for unknown child/nested activity. Evidence: `2026-10-12-alpha23-native-runtime.json`.
+
+This proves installed observation and receipt, not full target qualification. Historical unresolved/checkpoint/issue/semantic gaps and unobserved broader continuation remain unverified. The effective migration is appended without resetting the original baseline/checkpoint or prior history.
+
+The read-only factual check noticed newly created manual issue #136 named normzhou in prose but had no actual assignee; assignment was aligned to that existing instruction. The protected canvas decision stays pending. Other writer delivery through main `18cb53d` was retained without rewriting its application work.
