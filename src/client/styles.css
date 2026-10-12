@@ -325,10 +325,32 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
    11 rows visible instead of 8) comes from removing the card border and
    margin, and `--elevation-card` stays defined for the deferred
    `b-elevated-cards` direction. */
-.issue-row { border: none; border-bottom: 1px solid var(--border); border-radius: 0; padding: 10px 4px; margin-bottom: 0; background: none; }
+.issue-list { list-style: none; margin: 0; padding: 0; }
+.issue-row { border: none; border-bottom: 1px solid var(--border); border-radius: 0; padding: 0; margin-bottom: 0; background: none; }
 .issue-row:last-child { border-bottom: none; }
-.issue-row button.issue-title { background: none; border: none; padding: 0; text-align: left; font-weight: var(--weight-semibold); color: var(--text); }
-.issue-row .meta { color: var(--muted); font-size: var(--text-xs); display: flex; gap: 8px; align-items: center; margin-top: 6px; flex-wrap: wrap; }
+/* #133: one control per row, with the status held in its own right-hand column
+   so a reader can scan status vertically instead of re-reading it under every
+   title. `.issue-title` stays the button itself because several specs address
+   `.issue-row button.issue-title`. */
+.issue-row button.issue-title {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  column-gap: var(--space-4);
+  row-gap: 4px;
+  width: 100%;
+  padding: 10px 4px;
+  background: none; border: none;
+  text-align: left;
+  font-weight: var(--weight-semibold);
+  color: var(--text);
+  cursor: pointer;
+}
+.issue-row button.issue-title .issue-title-text { grid-column: 1 / -1; grid-row: 1; }
+.issue-row .issue-status { grid-column: 2; grid-row: 2; justify-self: end; margin-top: 0; flex-wrap: nowrap; }
+.issue-row .issue-time { grid-column: 1; grid-row: 2; margin-top: 0; }
+.issue-row button.issue-title .note { grid-column: 1 / -1; display: block; margin-top: 0; }
+.issue-row .meta { color: var(--muted); font-size: var(--text-xs); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
 .badge {
   display: inline-block; padding: 1px 8px; border-radius: var(--radius-pill);
@@ -571,4 +593,9 @@ a:visited { color: var(--accent-weak-text); }
      grey above it that #101 existed to remove. A phone is tall and mostly empty,
      so the group sits high instead of centred. */
   .canvas-prompt-block { justify-content: flex-start; padding-top: 8vh; }
+  /* #133: at 390px a right-hand status column squeezes the title, and the title
+     is the thing being read. Stack instead: title, then status, then time. */
+  .issue-row button.issue-title { grid-template-columns: 1fr; }
+  .issue-row .issue-status { grid-column: 1; grid-row: 2; justify-self: start; }
+  .issue-row .issue-time { grid-column: 1; grid-row: 3; justify-self: start; }
 }
