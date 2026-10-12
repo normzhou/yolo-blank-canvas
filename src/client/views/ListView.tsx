@@ -158,22 +158,34 @@ export function ListView({
         </div>
       ) : null}
 
-      <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+      <ul className="issue-list">
         {rows.map((row) => {
           const status = deriveIssueStatus(row.issue);
+          const unconfirmed = row.kind === 'unconfirmed';
+          const updated = formatRelativeTime(row.issue.updated_at);
           return (
             <li key={row.issue.number} className="issue-row">
-              <button type="button" className="issue-title" onClick={() => onSelect(row.issue)}>
-                #{row.issue.number} {row.issue.title}
+              {/* #133: the whole row is one control. The status badge is what a
+                  reader scans for, and it sat outside the old title-only target.
+                  No aria-label: the button's own content is the accessible name,
+                  so number, title, status and timing are announced as one item.
+                  An explicit label would override that content, and the content is
+                  already what the row means. */}
+              <button
+                type="button"
+                className="issue-title"
+                onClick={() => onSelect(row.issue)}
+              >
+                <span className="issue-title-text">
+                  #{row.issue.number} {row.issue.title}
+                </span>
+                <span className="meta issue-status">
+                  <StatusBadge status={status} />
+                  {unconfirmed ? <span className="stale">{UNCONFIRMED_LABEL}</span> : null}
+                </span>
+                <span className="meta issue-time">updated {updated}</span>
+                {unconfirmed ? <span className="note">{UNCONFIRMED_NOTE}</span> : null}
               </button>
-              <div className="meta">
-                <StatusBadge status={status} />
-                {row.kind === 'unconfirmed' ? (
-                  <span className="stale">{UNCONFIRMED_LABEL}</span>
-                ) : null}
-                <span>updated {formatRelativeTime(row.issue.updated_at)}</span>
-              </div>
-              {row.kind === 'unconfirmed' ? <p className="note">{UNCONFIRMED_NOTE}</p> : null}
             </li>
           );
         })}

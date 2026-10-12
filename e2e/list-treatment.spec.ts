@@ -82,3 +82,43 @@ test('the narrow list keeps the divider treatment', async ({ page }) => {
     stub.server.close();
   }
 });
+
+/**
+ * #133: the whole row is the target.
+ *
+ * Before, only the title text was inside the button, so the status badge — the
+ * thing a reader actually scans for — was dead to the pointer. These assertions
+ * click the badge and the timestamp specifically, because a test that only clicks
+ * the title cannot tell the difference between the old and new markup.
+ */
+test('the whole row is the target, not just the title', async ({ page }) => {
+  const stub = await startStubApp(makeStubGithub());
+  try {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto(stub.base);
+    await page.getByRole('button', { name: 'Open requests', exact: true }).click();
+    await listSettled(page);
+
+    const row = page.locator('.issue-row').first();
+    await expect(row).toHaveCount(1);
+    await expect(row.getByRole('button')).toHaveCount(1);
+
+    // One accessible name covering number, title and status.
+    const name = await row.locator('button.issue-title').evaluate((el) => el.textContent ?? '');
+    expect(name).toContain('#7');
+    expect(name).toContain('Make the canvas respond to themes');
+    expect(name).toContain('In progress');
+
+    // The badge is inside the target, and clicking it opens the request.
+    await row.locator('.badge').click();
+    await expect(page.getByRole('heading', { name: 'Reported summary', exact: true })).toBeVisible();
+
+    // So is the timestamp.
+    await page.getByRole('button', { name: '← Back' }).click();
+    await listSettled(page);
+    await page.locator('.issue-row').first().locator('.issue-time').click();
+    await expect(page.getByRole('heading', { name: 'Reported summary', exact: true })).toBeVisible();
+  } finally {
+    stub.server.close();
+  }
+});
