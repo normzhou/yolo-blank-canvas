@@ -3,7 +3,7 @@
   "protocol": {
     "format": "github-v1",
     "repository": "https://github.com/normzhou/yolo-dev",
-    "revision": "7b9d12fae425217b2651e9f4e5f1c25a0372bcf9",
+    "revision": "3cc04ef5f302993e1d3952bff00f08020d57dbcc",
     "source": "skills/yolo/references/protocol.md",
     "inputs": [
       {
@@ -88,7 +88,7 @@
       },
       {
         "path": ".yolo/governance/specs/observation.md",
-        "sha256": "3ff8d83aa15ab3bf9dae760658024052353a5be4cd7e64f94f1666100241dd1a",
+        "sha256": "5bbadb5998854c8b1d23555a53208d71f6ad4019c7c76d4593884680f4cf99f8",
         "selection": "whole document"
       },
       {
@@ -98,12 +98,12 @@
       },
       {
         "path": "VERSION",
-        "sha256": "14bb63489b84806d8448fcfedf08036e0041e37c3d2c8d6b392f63113f675010",
+        "sha256": "cee35e3849309f4eaad3afbcc5675619e9771196bd5cba6b4813a9e8b877a3fe",
         "selection": "whole document"
       }
     ],
     "path": ".yolo/protocol.md",
-    "sha256": "3274be039611f16cd8eb474c6316340bbebde4f294a19d0a06d92f78ac6f28c8"
+    "sha256": "9070f151a87c0c78f920aa22295ee976851dd98cbd65aee6cebe6502ac1a9613"
   },
   "target": {
     "repository": "normzhou/yolo-blank-canvas",
@@ -142,9 +142,9 @@
     ],
     "skill": {
       "path": ".agents/skills/yolo",
-      "revision": "ff3bc199bd2e33e660de0d65b5a0f3c62282278b",
-      "release": "v0.1.0-alpha.20",
-      "manifest_sha256": "54bff58b51536d501df2dfb480c7a76883becaf348df5ee02d71226d7416c072"
+      "revision": "e64101f7e385887c42a914f81332bb0169ffdee7",
+      "release": "v0.1.0-alpha.23",
+      "manifest_sha256": "5c4c8175639cb82ff776bdd4581ef8b46e1887f11d2ad085b17bef58d8275c51"
     }
   },
   "verification": {
@@ -191,7 +191,8 @@
       "Maintainer approval of the exact protected AUTHORITY.md revision prepared on issue #123, in an authenticated harness session, followed by the authorized migration.",
       "Publication ff3bc199bd2e33e660de0d65b5a0f3c62282278b (release v0.1.0-alpha.20), design inputs 7b9d12fae425217b2651e9f4e5f1c25a0372bcf9, landed on main as 030b6ca594c4300335cfa2d476bc3aa601f95262 via PR #124 and observed there.",
       "Bundle replaced as one publisher-owned unit through that publication's own installer: 15/15 manifest digests match, .yolo/protocol.md byte-identical to the bundle at 3274be03, all four native bindings and CLAUDE.md/GEMINI.md intact. Manifest SHA-256 54bff58b51536d501df2dfb480c7a76883becaf348df5ee02d71226d7416c072; executable verified against SHA256SUMS.",
-      "Prior alpha.16 activation evidence is retained in Git and in .yolo/reports/upgrade-alpha16-proposal.json as history."
+      "Prior alpha.16 activation evidence is retained in Git and in .yolo/reports/upgrade-alpha16-proposal.json as history.",
+      "Explicit compatible alpha.23 observer upgrade under the 2026-10-12 maintainer telemetry direction, tracked at https://github.com/normzhou/yolo-blank-canvas/issues/137; main delivery and fresh continuation are recorded in .yolo/reports/2026-10-12-alpha23-observer-upgrade.md. Existing purpose/grant acceptance remains applicable."
     ]
   },
   "adopted_at": "520a81e8ec824b9ce31a7fbc8a8c08d152eb81ae",
@@ -261,7 +262,8 @@
     "level": 1,
     "status": "unverified",
     "evidence": [
-      "alpha.16 loading evidence is historical and is not proof that the alpha.20 rules were loaded; a fresh session must record continuation before any dependent claim is restored."
+      "alpha.16 loading evidence is historical and is not proof that the alpha.20 rules were loaded; a fresh session must record continuation before any dependent claim is restored.",
+      ".yolo/reports/2026-10-12-alpha23-observer-upgrade.md"
     ]
   },
   "feedback": {

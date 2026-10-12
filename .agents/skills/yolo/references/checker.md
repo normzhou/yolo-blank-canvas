@@ -31,11 +31,15 @@ yolo-check <repo-root> --offline     local/history facts; remote state unverifie
 yolo-check <repo-root>               local and GitHub facts
 ```
 
-JSON and exits: **0** factual readiness for semantic review; **1** gaps; **2** invocation/Git error. `--version` and `--help` inspect no target. None establishes activation or qualification. Default check is read-only. Explicit installation writes only the skill and bindings; repairs/activation remain agent procedures governed by authority.
+JSON and exits: **0** factual readiness for semantic review; **1** gaps; **2** invocation/Git error. `--version` and `--help` inspect no target. None establishes activation or qualification. Default check is read-only. Explicit installation writes the skill/bindings and, for observing bundles, a matching native executable in private user configuration outside Git; repairs/activation remain agent procedures governed by authority.
 
 ## Activity observation
 
 The same executable realizes the adopted **Activity observation** contract. `yolo-check observe emit` validates one versioned event read as JSON from stdin, writes it to a local JSONL sink (`--sink`, else `YOLO_OBSERVE_SINK`) and transmits only with both `--consent` and `--endpoint`. `--dry-run` suppresses transmission. `yolo-check observe query --sink <path>` deduplicates a sink by `event_id` and returns counts, observed effort, report findings, agent verdicts and missing finishes. Unknown fields, arbitrary strings and custom labels are dropped; an unavailable sink or endpoint is reported and fails open without changing development or checker exit semantics. Observation never replaces the report, advances a checkpoint or qualifies an adoption.
+
+For a collector requiring an ingest-only credential, supply `YOLO_OBSERVE_TOKEN` privately in the process environment. It becomes a bearer header only after consent/dry-run checks. Never put credentials in arguments, endpoint URLs or reports; authenticated endpoints require HTTPS (loopback HTTP is available for isolated tests). Redirects are refused and timeouts are bounded to five seconds; `--timeout-ms` accepts 1–5000. Collector administration and read-only analysis credentials are separate and never belong in a target installation.
+
+Supported automatic bindings use `observe setup <repo>` and `observe emit --root <repo>` internally. They validate the compatible active pin and accepted observation setting, enroll a private scoped credential once, and recheck consent on every send. `observe status <repo>` reads local readiness without network or writes. Private configuration is under the OS user configuration directory's `yolo` folder; `YOLO_OBSERVE_CONFIG_DIR` selects an isolated directory outside the repo for explicit trials/previews. Never stage it in Git. See [activity result](records.md#activity-result).
 
 ## Installation and selection
 

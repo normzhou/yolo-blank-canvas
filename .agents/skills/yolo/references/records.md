@@ -98,6 +98,12 @@ For a pending proposal use `activation.state: "proposed"`, `qualification.status
 
 `adopted_at` remains the original baseline. A pending upgrade uses proposed/unverified candidate status; retain old status/evidence in Git and its report, with decisions in `authority.pending` and findings in `unresolved`. After observing the effective target commit, append `{ "from": "OLD_SOURCE_REVISION", "to": "NEW_SOURCE_REVISION", "effective_commit": "TARGET_COMMIT", "evidence": ["IDENTIFIED_ACCEPTANCE"] }` to `upgrades`; do not insert a pending/null effective commit. Keep old rules/history/reports and applicable authority. Relocation removes the superseded active marker only through authorized migration; Git preserves it. Never clear a checkpoint or unresolved finding to make init succeed.
 
+## Activity result
+
+For an observed segment, the ordinary review/outcome result is copied to the harness-supplied `YOLO_ACTIVITY_REPORT` with `activity_id` matching `YOLO_ACTIVITY_ID`. A minimal result is `{ "activity_id": "SUPPLIED_ID", "kind": "outcome", "binary_observations": { "assessment": "unverified", "findings": [] }, "agent_assessment": { "verdict": "completed" }, "evidence": [], "unresolved": [], "next_action": null }`. Use actual results and references; a successful execution does not prove conformity or qualification. An interview waiting for a reply may add `awaiting_input: true`. The durable report/issue remains primary; this temporary copy is only a correlation boundary. Missing/invalid copies produce an honest measurement gap.
+
+The published Pi 1.1.0 observer loads through `.pi/extensions/yolo-observer.ts` after normal project trust/reload. Installation caches the matching executable outside Git. With accepted observation consent and an active compatible pin, the next explicit activity automatically enrolls a private per-installation ingest credential and sends bounded allowlisted events. `yolo-check observe status <repo>` shows local readiness; `observe setup <repo>` explicitly retries enrollment. A dry run never enrolls or sends. Disable `observation.enabled` to stop capture/transmission; administrative revocation permanently disables that credential. Registration sends opaque IDs and a token digest to the disclosed collector's `/enroll` route; no database/admin credential is installed in a target.
+
 ## Review reports
 
 File reports may use `.yolo/reports/`; issue/PR records remain the primary interface. A schema 2 report retains the legacy checkpoint-chain fields below and adds target/protocol/default-branch/harness/GitHub context:
