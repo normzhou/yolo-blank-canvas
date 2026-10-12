@@ -14,17 +14,6 @@
         "needs": 4.5
       },
       {
-        "selector": "p.canvas-identity",
-        "text": "normzhou/yolo-blank-canvas · signed in as normzhou",
-        "color": "rgb(89, 99, 110)",
-        "background": "rgb(247,248,250)",
-        "ratio": 5.75,
-        "fontSizePx": 12,
-        "fontWeight": 400,
-        "lineHeight": "normal",
-        "needs": 4.5
-      },
-      {
         "selector": "p.canvas-prompt",
         "text": "What would you like to build or change?",
         "color": "rgb(89, 99, 110)",
@@ -170,7 +159,7 @@
     ],
     "spacing": {
       ".canvas": {
-        "padding": "20px 560px 20px 24px",
+        "padding": "20px 24px",
         "margin": "0px",
         "gap": "16px",
         "radius": "0px",
@@ -229,17 +218,6 @@
         "ratio": 14.87,
         "fontSizePx": 16,
         "fontWeight": 600,
-        "lineHeight": "normal",
-        "needs": 4.5
-      },
-      {
-        "selector": "p.canvas-identity",
-        "text": "normzhou/yolo-blank-canvas · signed in as normzhou",
-        "color": "rgb(89, 99, 110)",
-        "background": "rgb(247,248,250)",
-        "ratio": 5.75,
-        "fontSizePx": 12,
-        "fontWeight": 400,
         "lineHeight": "normal",
         "needs": 4.5
       },
@@ -400,7 +378,7 @@
     ],
     "spacing": {
       ".canvas": {
-        "padding": "20px 560px 20px 24px",
+        "padding": "20px 24px",
         "margin": "0px",
         "gap": "16px",
         "radius": "0px",
