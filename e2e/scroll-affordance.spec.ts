@@ -37,7 +37,7 @@ test('the panel scroller keeps a scroll-shadow affordance', async ({ page }) => 
   try {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto(stub.base);
-    await page.getByRole('button', { name: 'Requests', exact: true }).click();
+    await page.getByRole('button', { name: 'Open requests', exact: true }).click();
     await expect(page.locator('.issue-row')).toHaveCount(30);
     await listSettled(page);
 
@@ -61,7 +61,7 @@ test('keyboard movement still reaches the end of the list', async ({ page }) => 
   try {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto(stub.base);
-    await page.getByRole('button', { name: 'Requests', exact: true }).click();
+    await page.getByRole('button', { name: 'Open requests', exact: true }).click();
     await listSettled(page);
 
     // Focusing a row far down the list scrolls the container, so the whole

@@ -18,7 +18,7 @@ test('the session-ending control is a button, not a link', async ({ page }) => {
   try {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto(stub.base);
-    await page.getByRole('button', { name: 'Requests', exact: true }).click();
+    await page.getByRole('button', { name: 'Open requests', exact: true }).click();
     await listSettled(page);
 
     const disconnect = page.getByRole('button', { name: 'Disconnect' });

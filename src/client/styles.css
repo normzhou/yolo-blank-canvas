@@ -224,11 +224,31 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 .canvas.panel-open { padding-right: var(--panel-width); }
 .canvas-header { display: flex; align-items: center; justify-content: space-between; }
 .canvas-title { font-size: var(--text-lg); font-weight: var(--weight-semibold); margin: 0; }
-.canvas-prompt { margin: 12vh auto 0; text-align: center; font-size: var(--text-display); color: var(--muted); max-width: 520px; }
-/* On a phone the prompt alone left the first screen an empty grey wall with
-   nothing to do (#101). The hint names the way in; it is hidden on wider
-   screens, where the header action is enough. */
-.canvas-empty-hint { display: none; color: var(--muted); font-size: var(--text-xs); text-align: center; margin: 0 auto; max-width: 320px; }
+/* #130: the prompt is a question and the primary control is its answer, so they
+   form one centred group and answering costs no scan of the header. The group
+   centres in the space the header and identity line leave, replacing the old
+   `margin-top: 12vh` offset, which stopped meaning anything once the canvas is
+   not permanently visible. */
+.canvas-prompt-block {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-5);
+  text-align: center;
+}
+.canvas-prompt { margin: 0; text-align: center; font-size: var(--text-display); color: var(--muted); max-width: 520px; }
+.canvas-primary-action { font-size: var(--text-base); padding: 10px 20px; }
+/* Everything that is not the answer stays visibly quieter than the answer:
+   text-weight, muted colour, no fill. */
+.canvas-secondary-actions { display: flex; gap: var(--space-5); align-items: center; }
+.canvas-secondary-actions button {
+  background: none; border: none; padding: 2px 4px; cursor: pointer;
+  color: var(--muted); font-size: var(--text-xs);
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.canvas-secondary-actions button:hover { color: var(--text); }
 .canvas-identity { color: var(--muted); font-size: var(--text-xs); }
 
 .banner {
@@ -546,4 +566,9 @@ a:visited { color: var(--accent-weak-text); }
 @media (max-width: 640px) {
   .canvas-header .theme-switcher { order: 4; width: 100%; }
   .canvas-header .theme-switcher .theme-option { flex: 1; }
+  /* #101 regression, caught by the narrow-state guard: centring the prompt group
+     on a tall narrow screen pushed it past the halfway mark, restoring the wall of
+     grey above it that #101 existed to remove. A phone is tall and mostly empty,
+     so the group sits high instead of centred. */
+  .canvas-prompt-block { justify-content: flex-start; padding-top: 8vh; }
 }

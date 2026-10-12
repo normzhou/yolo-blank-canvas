@@ -34,7 +34,7 @@ function capture(name: string, github: () => Stub, body: (ctx: Ctx) => Promise<v
 }
 
 const openPanel = async (page: Page) => {
-  await page.getByRole('button', { name: 'Requests', exact: true }).click();
+  await page.getByRole('button', { name: 'Open requests', exact: true }).click();
   await expect(page.getByRole('dialog', { name: 'Requests' })).toBeVisible();
 };
 

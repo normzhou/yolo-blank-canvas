@@ -47,7 +47,7 @@ test('at 390px Refresh joins the filters and the primary action takes its own ro
   try {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(stub.base);
-    await page.getByRole('button', { name: 'Requests', exact: true }).click();
+    await page.getByRole('button', { name: 'Open requests', exact: true }).click();
     await expect(page.getByRole('dialog', { name: 'Requests' })).toBeVisible();
     await listSettled(page);
 
@@ -79,7 +79,7 @@ test('the desktop toolbar order is unchanged', async ({ page }) => {
   try {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto(stub.base);
-    await page.getByRole('button', { name: 'Requests', exact: true }).click();
+    await page.getByRole('button', { name: 'Open requests', exact: true }).click();
     await listSettled(page);
 
     const box = await toolbar(page);

@@ -71,7 +71,7 @@ test('a rendered reconciliation badge, when the data has one, is present and sty
   await page.goto(BASE);
   await session(page);
   await page.goto(BASE);
-  await page.getByRole('button', { name: 'Requests', exact: true }).click();
+  await page.getByRole('button', { name: 'Open requests', exact: true }).click();
   await expect(page.locator('.issue-row').first()).toBeVisible();
   const badge = page.locator('.badge', { hasText: 'reconciliation' });
   const count = await badge.count();
@@ -92,7 +92,7 @@ test('text fields carry a fill distinct from the panel', async ({ page }) => {
   await page.goto(BASE);
   await session(page);
   await page.goto(BASE);
-  await page.getByRole('button', { name: 'Requests', exact: true }).click();
+  await page.getByRole('button', { name: 'Open requests', exact: true }).click();
   await page.getByRole('button', { name: 'New request' }).first().click();
   const fills = await page.evaluate(() => {
     const input = document.querySelector('#new-request-title') as HTMLElement;

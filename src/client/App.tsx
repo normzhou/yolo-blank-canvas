@@ -95,14 +95,31 @@ export function App() {
     [store],
   );
 
+  // The panel cannot render without a session, so entering it while signed out
+  // used to be a dead control: the click set state that nothing read. Connecting
+  // first makes every entry point work in every state (#130).
+  // `destination` of null preserves the current view, which is what the browse
+  // entry must do: closing the panel and reopening it returns to where you were.
+  const enterRequests = useCallback(
+    async (destination: 'list' | 'new' | null) => {
+      if (!session) {
+        const info = await connect();
+        if (!info) return;
+      }
+      if (destination) setView(destination === 'new' ? { name: 'new' } : { name: 'list' });
+      setPanelOpen(true);
+    },
+    [connect, session],
+  );
+
   const openPanel = useCallback(() => {
-    setPanelOpen(true);
-  }, []);
+    void enterRequests(null);
+  }, [enterRequests]);
 
   const closePanel = useCallback(() => {
     setPanelOpen(false);
     setView((current) => (current.name === 'detail' ? { name: 'list' } : current));
-    // Focus returns to the control that opened the panel.
+    // Focus returns to the canvas's primary control, which is the way back in.
     triggerRef.current?.focus();
   }, []);
 
@@ -127,14 +144,11 @@ export function App() {
     <div className={panelOpen && session ? 'canvas panel-open' : 'canvas'}>
       <header className="canvas-header">
         <h1 className="canvas-title">Blank canvas</h1>
+        {/* Only a preference control lives in the header. The header used to hold
+           three peer actions — theme, Tetris and Requests — which put the app's one
+           real action on equal footing with a game (#130). */}
         <span className="canvas-actions">
           <ThemeSwitcher />
-          <button type="button" onClick={() => setGameOpen(true)}>
-            Play Tetris
-          </button>
-          <button type="button" ref={triggerRef} onClick={openPanel}>
-            Requests
-          </button>
         </span>
       </header>
 
@@ -163,30 +177,43 @@ export function App() {
         <ErrorNotice error={sessionError} onRetry={() => void connect()} retryLabel="Retry connection" />
       ) : null}
 
-      {session ? (
-        <p className="canvas-identity">
-          {session.repo} · signed in as {session.identity}
-        </p>
-      ) : (
-        <p className="canvas-identity">
-          {connecting ? 'Connecting to GitHub…' : 'Connect GitHub to see requests.'}{' '}
-          {!connecting ? (
-            <button type="button" onClick={() => void connect()} disabled={connecting}>
-              Connect GitHub
-            </button>
-          ) : null}
-        </p>
-      )}
+      {/* A status line only. The connect action moved to the primary control below,
+          because two controls offering the same thing made "which one is primary"
+          unanswerable (#130). */}
+      <p className="canvas-identity">
+        {session
+          ? `${session.repo} · signed in as ${session.identity}`
+          : connecting
+            ? 'Connecting to GitHub…'
+            : 'Not connected to GitHub.'}
+      </p>
 
       {gameOpen ? (
         <TetrisView onClose={() => setGameOpen(false)} />
       ) : (
-        <>
+        <div className="canvas-prompt-block">
           <p className="canvas-prompt">What would you like to build or change?</p>
-          <p className="canvas-empty-hint">
-            Open <strong>Requests</strong> to file one or follow an existing request.
-          </p>
-        </>
+          {/* The prompt is a question and this is its answer, so they are one
+              group. It opens the composer directly rather than the list, because
+              the Charter's bar is that asking costs almost nothing (#130). */}
+          <button
+            type="button"
+            className="primary canvas-primary-action"
+            ref={triggerRef}
+            onClick={() => void enterRequests('new')}
+            disabled={connecting}
+          >
+            {session ? 'Start a request' : 'Connect GitHub'}
+          </button>
+          <div className="canvas-secondary-actions">
+            <button type="button" onClick={openPanel}>
+              Open requests
+            </button>
+            <button type="button" onClick={() => setGameOpen(true)}>
+              Play Tetris
+            </button>
+          </div>
+        </div>
       )}
 
       {panelOpen && session ? (
