@@ -62,7 +62,7 @@ test('canvas renders real data with the real identity, no console errors', async
 
 test('Requests panel lists real issues and opens a real detail page', async ({ page, errors, snap }) => {
   await page.goto(base);
-  await page.getByRole('button', { name: 'Requests', exact: true }).click();
+  await page.getByRole('button', { name: 'Open requests', exact: true }).click();
   const firstRow = page.locator('.issue-row .issue-title').first();
   await expect(firstRow).toBeVisible();
   await snap('live-02-list');
@@ -82,7 +82,7 @@ test('mid-session auth loss surfaces the explicit retry state (no writes)', asyn
       json: { error: { kind: 'auth_required', message: 'GitHub CLI is not authenticated.', loginCommand: 'gh auth login --hostname github.com --web --skip-ssh-key' } },
     });
   });
-  await page.getByRole('button', { name: 'Requests', exact: true }).click();
+  await page.getByRole('button', { name: 'Open requests', exact: true }).click();
   await expect(page.getByText('GitHub CLI is not authenticated.')).toBeVisible();
   await expect(page.getByText('gh auth login --hostname github.com --web --skip-ssh-key')).toBeVisible();
   await snap('live-04-auth-loss');
@@ -94,7 +94,7 @@ test('a second run against a different --repo serves that repository, read-only'
   try {
     await page.goto(launched.base);
     await expect(page.getByText('normzhou/yolo-dev · signed in as normzhou')).toBeVisible();
-    await page.getByRole('button', { name: 'Requests', exact: true }).click();
+    await page.getByRole('button', { name: 'Open requests', exact: true }).click();
     await expect(page.locator('.issue-row').first()).toBeVisible();
     await snap('live-05-second-repo');
     expectClean(errors);

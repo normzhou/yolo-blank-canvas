@@ -46,7 +46,7 @@ test('list rows are hairline-divided and denser', async ({ page }) => {
   try {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto(stub.base);
-    await page.getByRole('button', { name: 'Requests', exact: true }).click();
+    await page.getByRole('button', { name: 'Open requests', exact: true }).click();
     await expect(page.locator('.issue-row')).toHaveCount(30);
     await listSettled(page);
 
@@ -73,7 +73,7 @@ test('the narrow list keeps the divider treatment', async ({ page }) => {
   try {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(stub.base);
-    await page.getByRole('button', { name: 'Requests', exact: true }).click();
+    await page.getByRole('button', { name: 'Open requests', exact: true }).click();
     await listSettled(page);
     const style = await rowStyle(page);
     expect(style.borderBottomWidth).toBe('1px');

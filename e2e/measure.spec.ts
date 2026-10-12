@@ -116,7 +116,7 @@ test('measure contrast, type scale and spacing on the list and detail views', as
     await page.setViewportSize({ width: 1280, height: 900 });
     await freezeClock(page);
     await page.goto(stub.base);
-    await page.getByRole('button', { name: 'Requests', exact: true }).click();
+    await page.getByRole('button', { name: 'Open requests', exact: true }).click();
     await listSettled(page);
     const list = await measure(page);
 
@@ -125,7 +125,7 @@ test('measure contrast, type scale and spacing on the list and detail views', as
     const detail = await measure(page);
 
     await page.goto(stub.base);
-    await page.getByRole('button', { name: 'Requests', exact: true }).click();
+    await page.getByRole('button', { name: 'Open requests', exact: true }).click();
     await page.getByRole('button', { name: 'New request' }).first().click();
     const form = await measure(page);
 
@@ -162,13 +162,13 @@ test('measure the density list and the no-summary detail state', async ({ page }
     await page.setViewportSize({ width: 1280, height: 900 });
     await freezeClock(page);
     await page.goto(density.base);
-    await page.getByRole('button', { name: 'Requests', exact: true }).click();
+    await page.getByRole('button', { name: 'Open requests', exact: true }).click();
     await expect(page.locator('.issue-row')).toHaveCount(30);
     await listSettled(page);
     const rows = await measure(page);
 
     await page.goto(plain.base);
-    await page.getByRole('button', { name: 'Requests', exact: true }).click();
+    await page.getByRole('button', { name: 'Open requests', exact: true }).click();
     await page.getByRole('button', { name: '#7 Make the canvas respond to themes' }).click();
     await settled(page);
     await expect(page.getByText('No progress summary yet.')).toBeVisible();

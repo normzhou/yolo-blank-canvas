@@ -176,7 +176,7 @@ const QUESTIONS: Question[] = [
 ];
 
 async function openList(page: import('@playwright/test').Page) {
-  await page.getByRole('button', { name: 'Requests', exact: true }).click();
+  await page.getByRole('button', { name: 'Open requests', exact: true }).click();
   await listSettled(page);
 }
 

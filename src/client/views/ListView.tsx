@@ -127,9 +127,14 @@ export function ListView({
           ))}
         </div>
         <div className="spacer" />
-        <button type="button" className="primary" onClick={onNew}>
-          New request
-        </button>
+        {/* #130: exactly one primary control per state. When the list is empty the
+            empty state below carries the primary, so the toolbar does not also
+            render one. */}
+        {rows.length > 0 || !loadedOnce || error ? (
+          <button type="button" className="primary" onClick={onNew}>
+            New request
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={() => {

@@ -17,7 +17,7 @@ test('canvas empty state, Requests panel with issue-state variants, and refresh'
   await expect(page.getByText('normzhou/yolo-blank-canvas · signed in as normzhou')).toBeVisible();
   await snap('01-canvas');
 
-  await page.getByRole('button', { name: 'Requests', exact: true }).click();
+  await page.getByRole('button', { name: 'Open requests', exact: true }).click();
   await expect(page.getByRole('dialog', { name: 'Requests' })).toBeVisible();
   await expect(page.getByText('In progress').first()).toBeVisible();
   await expect(page.getByText('Status needs reconciliation')).toBeVisible();
@@ -36,13 +36,14 @@ test('canvas empty state, Requests panel with issue-state variants, and refresh'
   // Panel closes with Escape and focus returns to the trigger.
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog', { name: 'Requests' })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Requests', exact: true })).toBeFocused();
+  // Focus returns to the canvas's primary control, which is the way back in (#130).
+  await expect(page.getByRole('button', { name: 'Start a request', exact: true })).toBeFocused();
   expectClean(errors);
 });
 
 test('detail view renders the ## YOLO status summary', async ({ page, errors, snap }) => {
   await page.goto(stub.base);
-  await page.getByRole('button', { name: 'Requests', exact: true }).click();
+  await page.getByRole('button', { name: 'Open requests', exact: true }).click();
   await page.getByRole('button', { name: '#7 Make the canvas respond to themes' }).click();
   await expect(page.getByRole('heading', { name: 'Reported summary', exact: true })).toBeVisible();
   await expect(page.getByText('Outcome: shipped themes.').first()).toBeVisible();
@@ -61,7 +62,7 @@ test('detail view renders the ## YOLO status summary', async ({ page, errors, sn
 
 test('new-request form creates via stubbed POST and persists a draft across panel close', async ({ page, errors, snap }) => {
   await page.goto(stub.base);
-  await page.getByRole('button', { name: 'Requests', exact: true }).click();
+  await page.getByRole('button', { name: 'Open requests', exact: true }).click();
   await page.getByRole('button', { name: 'New request' }).first().click();
   await page.getByLabel('Title').fill('A draft that survives');
   await snap('05-new-request-draft');
@@ -69,7 +70,7 @@ test('new-request form creates via stubbed POST and persists a draft across pane
   // Close and reopen the panel: the typed draft must still be there (the
   // panel reopens on the same view it closed on).
   await page.keyboard.press('Escape');
-  await page.getByRole('button', { name: 'Requests', exact: true }).click();
+  await page.getByRole('button', { name: 'Open requests', exact: true }).click();
   await expect(page.getByLabel('Title')).toHaveValue('A draft that survives');
 
   // Submit the stubbed creation; the new row shows up in the list.
@@ -118,7 +119,7 @@ test('session-required and auth-retry error surfaces are explicit', async ({ pag
 
 test('a timing quoted inside a code example is not read as a reported timing', async ({ page, errors, snap }) => {
   await page.goto(stub.base);
-  await page.getByRole('button', { name: 'Requests', exact: true }).click();
+  await page.getByRole('button', { name: 'Open requests', exact: true }).click();
   await page.getByRole('button', { name: '#5 A summary that quotes the panel as an example' }).click();
   await expect(page.getByText('Outcome: not delivered yet.').first()).toBeVisible();
   // The example is rendered, because it is the author's text, but nothing in it

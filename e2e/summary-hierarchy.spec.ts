@@ -38,7 +38,7 @@ test('the Reported summary label is elevated without reformatting the issue body
   try {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto(stub.base);
-    await page.getByRole('button', { name: 'Requests', exact: true }).click();
+    await page.getByRole('button', { name: 'Open requests', exact: true }).click();
     await listSettled(page);
 
     // A detail with a Reported summary: the app's own label.
@@ -80,7 +80,7 @@ test('a detail with no summary still shows the honest fallback', async ({ page }
   try {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto(stub.base);
-    await page.getByRole('button', { name: 'Requests', exact: true }).click();
+    await page.getByRole('button', { name: 'Open requests', exact: true }).click();
     await listSettled(page);
     await page.getByRole('button', { name: /#7 Make the canvas respond/ }).click();
     await expect(page.getByText('No progress summary yet.')).toBeVisible();

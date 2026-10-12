@@ -46,7 +46,7 @@ test('the open panel pushes the canvas instead of covering it', async ({ page })
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto(stub.base);
     await expect(page.getByText('What would you like to build or change?')).toBeVisible();
-    await page.getByRole('button', { name: 'Requests', exact: true }).click();
+    await page.getByRole('button', { name: 'Open requests', exact: true }).click();
     await expect(page.getByRole('dialog', { name: 'Requests' })).toBeVisible();
     await listSettled(page);
 
@@ -83,7 +83,7 @@ test('on a narrow viewport the full-width panel does not squeeze the canvas', as
   try {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(stub.base);
-    await page.getByRole('button', { name: 'Requests', exact: true }).click();
+    await page.getByRole('button', { name: 'Open requests', exact: true }).click();
     await expect(page.getByRole('dialog', { name: 'Requests' })).toBeVisible();
     await listSettled(page);
 
