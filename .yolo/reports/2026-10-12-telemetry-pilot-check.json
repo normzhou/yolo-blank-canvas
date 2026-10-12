@@ -1,0 +1,205 @@
+{
+  "schema_version": 1,
+  "kind": "review",
+  "target": "normzhou/yolo-blank-canvas",
+  "subject": "f097335b31c983ee4046808de485be1de46ea4f6",
+  "active_release": "v0.1.0-alpha.20",
+  "activity_id": "activity_df6d29dedfc64e58bc1e1b232580dc7d",
+  "checker_exit": 1,
+  "binary_observations": {
+    "assessment": "gaps",
+    "findings": [
+      {
+        "rule": "protocol",
+        "status": "compliant",
+        "detail": "Reference is identified; agent must read and verify applicability",
+        "evidence": [
+          ".yolo/adoption.json"
+        ]
+      },
+      {
+        "rule": "protocol_snapshot",
+        "status": "compliant",
+        "detail": "Local snapshot matches its recorded digest; provenance and meaning require review",
+        "evidence": [
+          ".yolo/protocol.md",
+          ".yolo/adoption.json"
+        ]
+      },
+      {
+        "rule": "charter",
+        "status": "compliant",
+        "detail": "Mapped document exists; meaning requires agent review",
+        "evidence": [
+          ".yolo/governance/CHARTER.md"
+        ]
+      },
+      {
+        "rule": "architecture",
+        "status": "compliant",
+        "detail": "Mapped document exists; meaning requires agent review",
+        "evidence": [
+          ".yolo/governance/ARCHITECTURE.md"
+        ]
+      },
+      {
+        "rule": "instructions",
+        "status": "compliant",
+        "detail": "Mapped document exists; meaning requires agent review",
+        "evidence": [
+          "AGENTS.md"
+        ]
+      },
+      {
+        "rule": "authority",
+        "status": "compliant",
+        "detail": "Mapped document exists; meaning requires agent review",
+        "evidence": [
+          ".yolo/governance/AUTHORITY.md"
+        ]
+      },
+      {
+        "rule": "instruction_entry",
+        "status": "compliant",
+        "detail": "Adoption and protocol links exist; read/apply instructions and actual harness loading need review",
+        "evidence": [
+          "AGENTS.md"
+        ]
+      },
+      {
+        "rule": "unresolved_findings",
+        "status": "unverified",
+        "detail": "Resolve and cite recorded findings before advancing",
+        "evidence": [
+          ".yolo/adoption.json"
+        ]
+      },
+      {
+        "rule": "checkpoint",
+        "status": "unverified",
+        "detail": "Report omits a required semantic rule",
+        "evidence": [
+          ".yolo/adoption.json"
+        ]
+      },
+      {
+        "rule": "feedback_settings",
+        "status": "compliant",
+        "detail": "Feedback encoding is valid; the active pin, consent authenticity and restrictions require agent review before submission",
+        "evidence": [
+          ".yolo/adoption.json"
+        ]
+      },
+      {
+        "rule": "layout",
+        "status": "compliant",
+        "detail": "Reserved entries and governing mappings match the adopted layout; meaning still needs review",
+        "evidence": [
+          ".yolo/adoption.json"
+        ]
+      },
+      {
+        "rule": "replica_scan",
+        "status": "compliant",
+        "detail": "Tracked/unignored filename inventory complete; each candidate requires evidenced agent classification, not automatic deletion",
+        "evidence": [
+          ".yolo/adoption.json"
+        ]
+      },
+      {
+        "rule": "bundle",
+        "status": "compliant",
+        "detail": "Complete file inventory and manifest digest match",
+        "evidence": [
+          ".agents/skills/yolo/references/provenance.json"
+        ]
+      },
+      {
+        "rule": "bindings",
+        "status": "compliant",
+        "detail": "All shipped commands and native imports are intact; loading needs session evidence",
+        "evidence": [
+          ".gemini/commands/yolo.toml",
+          ".opencode/commands/yolo.md",
+          ".pi/prompts/yolo.md",
+          "CLAUDE.md",
+          "GEMINI.md",
+          ".claude/skills/yolo"
+        ]
+      },
+      {
+        "rule": "context_refs",
+        "status": "compliant",
+        "detail": "Active context files and local links resolve; intended meaning needs review",
+        "evidence": [
+          ".yolo/governance/CHARTER.md",
+          ".yolo/governance/AUTHORITY.md",
+          ".yolo/governance/ARCHITECTURE.md",
+          "AGENTS.md",
+          ".yolo/governance/specs/status-presentation.md"
+        ]
+      },
+      {
+        "rule": "context",
+        "status": "compliant",
+        "detail": "Required context references exist; authority, loading and meaning need agent review",
+        "evidence": [
+          ".yolo/adoption.json"
+        ]
+      },
+      {
+        "rule": "github_issue_policy",
+        "status": "compliant",
+        "detail": "Label requirements follow the matching adopted publication; request and manual classification grant no execution",
+        "evidence": [
+          ".yolo/adoption.json"
+        ]
+      },
+      {
+        "rule": "issue_summary",
+        "status": "missing",
+        "detail": "Expected one recognizable status summary; agent must verify authorship/content",
+        "evidence": [
+          "https://github.com/normzhou/yolo-blank-canvas/issues/126"
+        ]
+      },
+      {
+        "rule": "github",
+        "status": "compliant",
+        "detail": "Available observations retained; effective authority, PR/check evidence and outcomes still require semantic review",
+        "evidence": [
+          "repos/normzhou/yolo-blank-canvas"
+        ]
+      },
+      {
+        "rule": "release_setup",
+        "status": "compliant",
+        "detail": "Mapped policy/source and effective revision exist; native version value and policy meaning need review",
+        "evidence": [
+          ".yolo/adoption.json"
+        ]
+      },
+      {
+        "rule": "release_observations",
+        "status": "compliant",
+        "detail": "Observed product tag mappings match retained evidence; this does not prove artifact integrity or unobserved history",
+        "evidence": [
+          "repos/normzhou/yolo-blank-canvas/tags"
+        ]
+      }
+    ]
+  },
+  "agent_assessment": {
+    "verdict": "unverified",
+    "reason": "Bounded telemetry delivery check, not a complete conformance or qualification review; earlier findings/checkpoint remain unchanged."
+  },
+  "observation": {
+    "source": "unknown",
+    "coverage": "partial",
+    "wall_ms": 7017,
+    "start_transmission": "sent",
+    "finish_transmission": "sent",
+    "projected_finding_limit": 64,
+    "full_finding_count": 21
+  }
+}
