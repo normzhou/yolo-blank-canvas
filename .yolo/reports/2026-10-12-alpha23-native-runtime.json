@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "scope": "bounded native observer acceptance; not complete Q1-Q5",
+  "effective_upgrade_commit": "3c71c86eeb0f1d75bbbd1320bfece5a2b8411e4b",
+  "repository": "normzhou/yolo-blank-canvas",
+  "adoption_id": "adoption_0a4d468629262ec5cafee63f2ae63f3a",
+  "main_observed": "18cb53d6080f41177ff55f3f9313970a7d02fe76",
+  "publication": "e64101f7e385887c42a914f81332bb0169ffdee7",
+  "harness": "Pi 1.1.0",
+  "standard_project_prompt_and_extension": true,
+  "read_only_repository": true,
+  "native_requests": 14,
+  "native_tools": 28,
+  "native_failures": 1,
+  "observed_reads": [
+    ".agents/skills/yolo/SKILL.md",
+    ".agents/skills/yolo/assets/observer-core.mjs",
+    ".agents/skills/yolo/assets/pi-observer.ts",
+    ".agents/skills/yolo/references/checker.md",
+    ".agents/skills/yolo/references/records.md",
+    ".pi/extensions/yolo-observer.ts",
+    ".yolo/adoption.json",
+    ".yolo/governance/AUTHORITY.md",
+    ".yolo/governance/CHARTER.md",
+    ".yolo/protocol.md",
+    ".yolo/reports/2026-10-12-alpha23-observer-check.json",
+    ".yolo/reports/2026-10-12-alpha23-observer-upgrade.md",
+    ".yolo/reports/2026-10-12-telemetry-pilot-check.json",
+    "AGENTS.md"
+  ],
+  "qualification": "unverified",
+  "activity_id": "activity_ea96a1f10d084daa8779b1cf76b9760a",
+  "retrieved_events": 2,
+  "report_status": "present",
+  "execution": {
+    "status": "completed",
+    "wall_ms": 101271
+  },
+  "measurements": {
+    "scope": "segment",
+    "models": [
+      {
+        "role": "observed",
+        "requests": 14,
+        "input_tokens": 39462,
+        "output_tokens": 9823,
+        "reasoning_tokens": 4105,
+        "cache_read_tokens": 345344,
+        "cache_write_tokens": 0
+      }
+    ],
+    "source": "pi-native-events",
+    "coverage": "partial",
+    "tool_calls": 28,
+    "tool_failures": 1,
+    "model_requests": 14
+  },
+  "native_accounting_equality": true
+}

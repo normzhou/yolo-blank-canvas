@@ -192,7 +192,8 @@
       "Publication ff3bc199bd2e33e660de0d65b5a0f3c62282278b (release v0.1.0-alpha.20), design inputs 7b9d12fae425217b2651e9f4e5f1c25a0372bcf9, landed on main as 030b6ca594c4300335cfa2d476bc3aa601f95262 via PR #124 and observed there.",
       "Bundle replaced as one publisher-owned unit through that publication's own installer: 15/15 manifest digests match, .yolo/protocol.md byte-identical to the bundle at 3274be03, all four native bindings and CLAUDE.md/GEMINI.md intact. Manifest SHA-256 54bff58b51536d501df2dfb480c7a76883becaf348df5ee02d71226d7416c072; executable verified against SHA256SUMS.",
       "Prior alpha.16 activation evidence is retained in Git and in .yolo/reports/upgrade-alpha16-proposal.json as history.",
-      "Explicit compatible alpha.23 observer upgrade under the 2026-10-12 maintainer telemetry direction, tracked at https://github.com/normzhou/yolo-blank-canvas/issues/137; main delivery and fresh continuation are recorded in .yolo/reports/2026-10-12-alpha23-observer-upgrade.md. Existing purpose/grant acceptance remains applicable."
+      "Explicit compatible alpha.23 observer upgrade under the 2026-10-12 maintainer telemetry direction, tracked at https://github.com/normzhou/yolo-blank-canvas/issues/137; main delivery and fresh continuation are recorded in .yolo/reports/2026-10-12-alpha23-observer-upgrade.md. Existing purpose/grant acceptance remains applicable.",
+      "Alpha.23 complete artifacts observed landed via PR #138 at 3c71c86eeb0f1d75bbbd1320bfece5a2b8411e4b; fresh Pi 1.1.0 standard binding and native receipt: .yolo/reports/2026-10-12-alpha23-native-runtime.json. Qualification remains unverified."
     ]
   },
   "adopted_at": "520a81e8ec824b9ce31a7fbc8a8c08d152eb81ae",
@@ -246,6 +247,16 @@
         "Protected edit: AUTHORITY.md Issue metadata clause approved by maintainer normzhou as scoped approval of that exact final revision, recorded on issue #123 before merge. No other protected document was touched.",
         "Net effect on findings: the release finding that was unsatisfiable under alpha.16 is cleared; issue_summary findings remained at zero from issue #116."
       ]
+    },
+    {
+      "from": "7b9d12fae425217b2651e9f4e5f1c25a0372bcf9",
+      "to": "3cc04ef5f302993e1d3952bff00f08020d57dbcc",
+      "effective_commit": "3c71c86eeb0f1d75bbbd1320bfece5a2b8411e4b",
+      "evidence": [
+        "https://github.com/normzhou/yolo-blank-canvas/pull/138",
+        ".yolo/reports/2026-10-12-alpha23-observer-upgrade.md",
+        ".yolo/reports/2026-10-12-alpha23-native-runtime.json"
+      ]
     }
   ],
   "checkpoint": {
@@ -263,7 +274,8 @@
     "status": "unverified",
     "evidence": [
       "alpha.16 loading evidence is historical and is not proof that the alpha.20 rules were loaded; a fresh session must record continuation before any dependent claim is restored.",
-      ".yolo/reports/2026-10-12-alpha23-observer-upgrade.md"
+      ".yolo/reports/2026-10-12-alpha23-observer-upgrade.md",
+      ".yolo/reports/2026-10-12-alpha23-native-runtime.json"
     ]
   },
   "feedback": {
