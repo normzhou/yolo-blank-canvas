@@ -1,10 +1,23 @@
 :root {
-  --bg: #f7f8fa;
-  --surface: #ffffff;
-  --field: #f6f8fa;
-  --border: #d8dce3;
-  --text: #1f2328;
-  --muted: #59636e;
+  /* Constraint B, terminal phosphor (Slate — light neutral). One hue family, nine steps
+     from ground to text. Every neutral surface role below is a step on
+     this ramp, so there is no second hue anywhere in the surface. */
+  --n1: #ffffff;
+  --n2: #fafbfc;
+  --n3: #f4f6f8;
+  --n4: #eef0f3;
+  --n5: #e6e9ed;
+  --n6: #d6dae0;
+  --n7: #c2c8d1;
+  --n8: #5c6672;
+  --n9: #1a1d21;
+
+  --bg: var(--n1);
+  --surface: var(--n2);
+  --field: var(--n3);
+  --border: var(--n6);
+  --text: var(--n9);
+  --muted: var(--n8);
   --accent: #1f6feb;
   --accent-weak: #ddebff;
   /* Darker text for text on the pale accent fill: --accent itself only reaches
@@ -27,10 +40,10 @@
      the theme. Three of them were not even new colours: `.comment-body pre`
      restated `--field`, the Tetris empty cell was `--neutral-weak` at 74%,
      and the panel scroll shadow was `--text` at 14%. */
-  --border-hover: #b7bfca;   /* interactive element hover border */
-  --field-border: #c8ced8;   /* text field boundary */
-  --neutral-weak: #f2f4f7;   /* badge fill, inline code fill */
-  --closed-weak: #eceef1;    /* closed badge fill */
+  --border-hover: var(--n7);   /* interactive element hover border */
+  --field-border: #c6ccd4;   /* text field boundary */
+  --neutral-weak: var(--n4);   /* badge fill, inline code fill */
+  --closed-weak: var(--n5);    /* closed badge fill */
   --warning-border: #d4a72c;
   --problem-border: #d08b3c;
   --error-code-bg: #f6e6d3;
@@ -115,14 +128,27 @@
    Everything else in this file takes its colours from tokens. */
 
 [data-theme='sand'] {
-  --bg: #faf7f2;
-  --surface: #fffdfa;
-  --field: #f5f0e8;
-  --border: #e2d9cb;
-  --border-hover: #c9bda9;
+  /* Constraint B, terminal phosphor (Sand — warm neutral). One hue family, nine steps
+     from ground to text. Every neutral surface role below is a step on
+     this ramp, so there is no second hue anywhere in the surface. */
+  --n1: #fffdfa;
+  --n2: #faf7f1;
+  --n3: #f4efe6;
+  --n4: #efe9dd;
+  --n5: #e8e1d2;
+  --n6: #dbd3c1;
+  --n7: #c4b9a3;
+  --n8: #665e50;
+  --n9: #241f19;
+
+  --bg: var(--n1);
+  --surface: var(--n2);
+  --field: var(--n3);
+  --border: var(--n6);
+  --border-hover: var(--n7);
   --field-border: #d3c6b2;
-  --text: #2b241b;
-  --muted: #6d6151;
+  --text: var(--n9);
+  --muted: var(--n8);
   --accent: #9a5518;
   --accent-weak: #f7e6d2;
   --accent-weak-text: #7a3f10;
@@ -137,8 +163,8 @@
   --problem-border: #d09a52;
   --error-code-bg: #f6e2cc;
   --closed: #6d6151;
-  --closed-weak: #efe8dc;
-  --neutral-weak: #f1ebe0;
+  --closed-weak: var(--n5);
+  --neutral-weak: var(--n4);
   --summary-bg: #fdf8f0;
   --on-accent: #fffdfa;
   --board-gap: #cfc4b1;
@@ -158,14 +184,27 @@
   --elevation-panel-centred: 0 8px 32px rgba(43, 36, 27, 0.16);
 }
 [data-theme='dusk'] {
-  --bg: #0d1117;
-  --surface: #161b22;
-  --field: #0d1117;
-  --border: #505966;
-  --border-hover: #6b7684;
+  /* Constraint B, terminal phosphor (Dusk — dark neutral). One hue family, nine steps
+     from ground to text. Every neutral surface role below is a step on
+     this ramp, so there is no second hue anywhere in the surface. */
+  --n1: #0a0d12;
+  --n2: #10141a;
+  --n3: #161b22;
+  --n4: #1c222b;
+  --n5: #232a34;
+  --n6: #4a5462;
+  --n7: #5c6878;
+  --n8: #b8c2ce;
+  --n9: #e8edf3;
+
+  --bg: var(--n1);
+  --surface: var(--n2);
+  --field: var(--n3);
+  --border: var(--n6);
+  --border-hover: var(--n7);
   --field-border: #6b7684;
-  --text: #e6edf3;
-  --muted: #b3bdc9;
+  --text: var(--n9);
+  --muted: var(--n8);
   --accent: #2f6fd0;
   --accent-weak: #132b4d;
   --accent-weak-text: #a9c8ff;
@@ -180,8 +219,8 @@
   --problem-border: #b0703a;
   --error-code-bg: #43291a;
   --closed: #b3bdc9;
-  --closed-weak: #21262d;
-  --neutral-weak: #21262d;
+  --closed-weak: var(--n5);
+  --neutral-weak: var(--n4);
   --summary-bg: #121a24;
   --on-accent: #ffffff;
   --board-gap: #505966;

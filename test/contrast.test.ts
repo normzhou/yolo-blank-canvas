@@ -16,9 +16,18 @@ const css = fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url
 
 function token(name: string): string {
   const key = name.replace(/^--/, '');
-  const match = css.match(new RegExp(`--${key}:\\s*(#[0-9a-fA-F]{3,8})`));
-  if (!match) throw new Error(`token --${key} not found in styles.css`);
-  return match[1];
+  const declaration = css.match(new RegExp(`--${key}:\\s*([^;]+);`));
+  if (!declaration) throw new Error(`token --${key} not found in styles.css`);
+  const value = declaration[1]!.trim();
+  // Since #134 the neutral roles are steps on a nine-step ramp, declared as
+  // `var(--nN)`. Follow the reference so this measures the colour the browser
+  // paints rather than failing on the indirection.
+  const ref = /^var\((--[a-z0-9-]+)\)$/.exec(value);
+  if (ref) return token(ref[1]!);
+  if (!/^#[0-9a-fA-F]{3,8}$/.test(value)) {
+    throw new Error(`token --${key} is not a colour literal: ${value}`);
+  }
+  return value;
 }
 
 function channel(hex: string, index: number): number {
@@ -54,7 +63,13 @@ describe('colour tokens meet the legibility floor', () => {
     ['--muted', '--surface', 4.5, 'notes, panel footer, comment meta'],
     ['--muted', '--bg', 4.5, 'canvas identity line'],
     ['--text', '--field', 4.5, 'text typed into a field'],
-    ['--surface', '--accent', 4.5, 'primary button (white text on the accent fill)'],
+    // `button.primary` paints `color: var(--on-accent)`. This pair used to name
+    // `--surface` on the assumption that the panel surface was the white label
+    // colour; under the #134 ramp `--surface` is the panel ground and `--on-accent`
+    // is the label. The pair was measuring a colour the button never used. The
+    // label token is checked here, and again with the APCA floor in
+    // theme-contrast.test.ts.
+    ['--on-accent', '--accent', 4.5, 'primary button label on the accent fill'],
     ['--problem', '--problem-weak', 4.5, 'Status needs reconciliation badge'],
     ['--problem', '--surface', 4.5, 'the stale marker'],
     ['--warning', '--warning-weak', 4.5, 'Waiting badge'],

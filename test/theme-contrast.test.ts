@@ -84,6 +84,14 @@ export function themeTokens(name: 'slate' | 'sand' | 'dusk'): Record<string, str
   const block = css.slice(start, css.indexOf('\n}', start));
   const tokens: Record<string, string> = {};
   for (const m of block.matchAll(/(--[a-z0-9-]+):\s*([^;]+);/g)) tokens[m[1]] = m[2].trim();
+  // Resolve one level of `var(--token)` indirection. Since #134 the neutral
+  // roles are declared as steps on a nine-step ramp, so the literal lives on
+  // `--nN` and the role points at it. Resolving here means the guard measures the
+  // colour the browser will actually paint, rather than failing on `var(...)`.
+  for (const [token, value] of Object.entries(tokens)) {
+    const ref = /^var\((--[a-z0-9-]+)\)$/.exec(value);
+    if (ref) tokens[token] = tokens[ref[1]] ?? value;
+  }
   return tokens;
 }
 
@@ -170,8 +178,10 @@ describe.each(THEMES)('theme "%s" is legible', (theme) => {
   });
 
   it.each(NON_TEXT_PAIRS)('%s stays visible as a separation', (_label, fg, bg) => {
-    const lc = Math.abs(apcaLc(at(fg), at(bg)));
-    expect(lc, `${theme}: ${_label} APCA Lc ${lc.toFixed(1)}`).toBeGreaterThanOrEqual(MIN_LC_NON_TEXT);
+    const F = at(fg);
+    const B = at(bg);
+    const lc = Math.abs(apcaLc(F, B));
+    expect(lc, `${theme}: ${_label} APCA Lc ${lc.toFixed(1)} (${F} on ${B})`).toBeGreaterThanOrEqual(MIN_LC_NON_TEXT);
   });
 
   it('covers the same colour roles as the other themes', () => {
