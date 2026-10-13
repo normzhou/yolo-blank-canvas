@@ -1,11 +1,11 @@
 {
   "generatedFor": "#75 UI review — measured legibility",
   "tokens": {
-    "--bg": "#f7f8fa",
-    "--surface": "#ffffff",
-    "--border": "#d8dce3",
-    "--text": "#1f2328",
-    "--muted": "#59636e",
+    "--bg": "#ffffff",
+    "--surface": "#fafbfc",
+    "--border": "#d6dae0",
+    "--text": "#1a1d21",
+    "--muted": "#5c6672",
     "--accent": "#1f6feb",
     "--accent-weak": "#ddebff",
     "--positive": "#1a7f37",
@@ -26,28 +26,28 @@
       "margin": "0px",
       "gap": "16px",
       "radius": "0px",
-      "border": "0px none rgb(31, 35, 40)"
+      "border": "0px none rgb(26, 29, 33)"
     },
     ".panel-body": {
       "padding": "16px",
       "margin": "0px",
       "gap": "normal",
       "radius": "0px",
-      "border": "0px none rgb(31, 35, 40)"
+      "border": "0px none rgb(26, 29, 33)"
     },
     ".toolbar": {
       "padding": "0px",
       "margin": "0px 0px 12px",
       "gap": "8px",
       "radius": "0px",
-      "border": "0px none rgb(31, 35, 40)"
+      "border": "0px none rgb(26, 29, 33)"
     },
     ".issue-row": {
       "padding": "0px",
       "margin": "0px",
       "gap": "normal",
       "radius": "0px",
-      "border": "0px none rgb(31, 35, 40)"
+      "border": "0px none rgb(26, 29, 33)"
     }
   },
   "samples": 36,
@@ -56,7 +56,7 @@
     {
       "selector": "h1.canvas-title",
       "text": "Blank canvas",
-      "ratio": 14.87,
+      "ratio": 16.91,
       "needs": 4.5,
       "fontSizePx": 16,
       "fontWeight": 600
@@ -64,7 +64,7 @@
     {
       "selector": "p.canvas-prompt",
       "text": "What would you like to build or change?",
-      "ratio": 5.75,
+      "ratio": 5.84,
       "needs": 4.5,
       "fontSizePx": 22,
       "fontWeight": 400
@@ -72,7 +72,7 @@
     {
       "selector": "div.panel-repo",
       "text": "normzhou/yolo-blank-canvas",
-      "ratio": 15.8,
+      "ratio": 16.32,
       "needs": 4.5,
       "fontSizePx": 16,
       "fontWeight": 600
@@ -80,7 +80,7 @@
     {
       "selector": "div.panel-identity",
       "text": "signed in as normzhou",
-      "ratio": 6.11,
+      "ratio": 5.63,
       "needs": 4.5,
       "fontSizePx": 12,
       "fontWeight": 400
@@ -88,7 +88,7 @@
     {
       "selector": "span",
       "text": "Last refresh: 5:00:00 AM",
-      "ratio": 6.11,
+      "ratio": 5.63,
       "needs": 4.5,
       "fontSizePx": 12,
       "fontWeight": 400
@@ -96,7 +96,7 @@
     {
       "selector": "button",
       "text": "Closed",
-      "ratio": 15.8,
+      "ratio": 16.32,
       "needs": 4.5,
       "fontSizePx": 16,
       "fontWeight": 400
@@ -112,7 +112,7 @@
     {
       "selector": "button.issue-title",
       "text": "#7 Make the canvas respond to themesIn progressupdated just ",
-      "ratio": 15.8,
+      "ratio": 16.32,
       "needs": 4.5,
       "fontSizePx": 16,
       "fontWeight": 600
@@ -120,7 +120,7 @@
     {
       "selector": "span.meta.issue-status",
       "text": "In progress",
-      "ratio": 6.11,
+      "ratio": 5.63,
       "needs": 4.5,
       "fontSizePx": 12,
       "fontWeight": 600
@@ -136,7 +136,7 @@
     {
       "selector": "span.meta.issue-time",
       "text": "updated just now",
-      "ratio": 6.11,
+      "ratio": 5.63,
       "needs": 4.5,
       "fontSizePx": 12,
       "fontWeight": 600
@@ -144,7 +144,7 @@
     {
       "selector": "span.badge.neutral",
       "text": "Request open",
-      "ratio": 5.55,
+      "ratio": 5.11,
       "needs": 4.5,
       "fontSizePx": 12,
       "fontWeight": 600
@@ -160,7 +160,7 @@
     {
       "selector": "p.note",
       "text": "End of list (5 shown).",
-      "ratio": 6.11,
+      "ratio": 5.63,
       "needs": 4.5,
       "fontSizePx": 12,
       "fontWeight": 400
@@ -168,7 +168,7 @@
     {
       "selector": "h1.canvas-title",
       "text": "Blank canvas",
-      "ratio": 14.87,
+      "ratio": 16.91,
       "needs": 4.5,
       "fontSizePx": 16,
       "fontWeight": 600
@@ -176,7 +176,7 @@
     {
       "selector": "p.canvas-prompt",
       "text": "What would you like to build or change?",
-      "ratio": 5.75,
+      "ratio": 5.84,
       "needs": 4.5,
       "fontSizePx": 22,
       "fontWeight": 400
@@ -184,7 +184,7 @@
     {
       "selector": "div.panel-repo",
       "text": "normzhou/yolo-blank-canvas",
-      "ratio": 15.8,
+      "ratio": 16.32,
       "needs": 4.5,
       "fontSizePx": 16,
       "fontWeight": 600
@@ -192,7 +192,7 @@
     {
       "selector": "div.panel-identity",
       "text": "signed in as normzhou",
-      "ratio": 6.11,
+      "ratio": 5.63,
       "needs": 4.5,
       "fontSizePx": 12,
       "fontWeight": 400
@@ -200,7 +200,7 @@
     {
       "selector": "span",
       "text": "Last refresh: 5:00:00 AM",
-      "ratio": 6.11,
+      "ratio": 5.63,
       "needs": 4.5,
       "fontSizePx": 12,
       "fontWeight": 400
@@ -208,7 +208,7 @@
     {
       "selector": "button",
       "text": "← Back",
-      "ratio": 15.8,
+      "ratio": 16.32,
       "needs": 4.5,
       "fontSizePx": 16,
       "fontWeight": 400
@@ -224,7 +224,7 @@
     {
       "selector": "span.note",
       "text": "opened just now by normzhou · updated just now",
-      "ratio": 6.11,
+      "ratio": 5.63,
       "needs": 4.5,
       "fontSizePx": 12,
       "fontWeight": 400
@@ -232,7 +232,7 @@
     {
       "selector": "p.note",
       "text": "by normzhou · updated just now · source",
-      "ratio": 5.88,
+      "ratio": 5.61,
       "needs": 4.5,
       "fontSizePx": 14,
       "fontWeight": 400
@@ -240,7 +240,7 @@
     {
       "selector": "p.note",
       "text": "End of discussion (2 shown).",
-      "ratio": 6.11,
+      "ratio": 5.63,
       "needs": 4.5,
       "fontSizePx": 12,
       "fontWeight": 400
@@ -248,7 +248,7 @@
     {
       "selector": "label",
       "text": "Reply",
-      "ratio": 15.8,
+      "ratio": 16.32,
       "needs": 4.5,
       "fontSizePx": 14,
       "fontWeight": 600
@@ -256,7 +256,7 @@
     {
       "selector": "p.hint",
       "text": "Replies are GitHub comments on this request.",
-      "ratio": 6.11,
+      "ratio": 5.63,
       "needs": 4.5,
       "fontSizePx": 12,
       "fontWeight": 400
@@ -264,7 +264,7 @@
     {
       "selector": "p",
       "text": "Please add light and dark themes.",
-      "ratio": 15.8,
+      "ratio": 16.32,
       "needs": 4.5,
       "fontSizePx": 14,
       "fontWeight": 400
@@ -272,7 +272,7 @@
     {
       "selector": "h3",
       "text": "Reported summary",
-      "ratio": 5.88,
+      "ratio": 5.61,
       "needs": 4.5,
       "fontSizePx": 12,
       "fontWeight": 700
@@ -280,7 +280,7 @@
     {
       "selector": "div.comment-header",
       "text": "normzhoujust nowsource",
-      "ratio": 6.11,
+      "ratio": 5.63,
       "needs": 4.5,
       "fontSizePx": 12,
       "fontWeight": 400
@@ -288,7 +288,7 @@
     {
       "selector": "h1.canvas-title",
       "text": "Blank canvas",
-      "ratio": 14.87,
+      "ratio": 16.91,
       "needs": 4.5,
       "fontSizePx": 16,
       "fontWeight": 600
@@ -296,7 +296,7 @@
     {
       "selector": "p.canvas-prompt",
       "text": "What would you like to build or change?",
-      "ratio": 5.75,
+      "ratio": 5.84,
       "needs": 4.5,
       "fontSizePx": 22,
       "fontWeight": 400
@@ -304,7 +304,7 @@
     {
       "selector": "div.panel-repo",
       "text": "normzhou/yolo-blank-canvas",
-      "ratio": 15.8,
+      "ratio": 16.32,
       "needs": 4.5,
       "fontSizePx": 16,
       "fontWeight": 600
@@ -312,7 +312,7 @@
     {
       "selector": "div.panel-identity",
       "text": "signed in as normzhou",
-      "ratio": 6.11,
+      "ratio": 5.63,
       "needs": 4.5,
       "fontSizePx": 12,
       "fontWeight": 400
@@ -320,7 +320,7 @@
     {
       "selector": "span",
       "text": "Last refresh: 5:00:00 AM",
-      "ratio": 6.11,
+      "ratio": 5.63,
       "needs": 4.5,
       "fontSizePx": 12,
       "fontWeight": 400
@@ -328,7 +328,7 @@
     {
       "selector": "label",
       "text": "Title",
-      "ratio": 15.8,
+      "ratio": 16.32,
       "needs": 4.5,
       "fontSizePx": 14,
       "fontWeight": 600
@@ -336,7 +336,7 @@
     {
       "selector": "p.hint",
       "text": "Describe the desired behavior, the observed bug, or any rele",
-      "ratio": 6.11,
+      "ratio": 5.63,
       "needs": 4.5,
       "fontSizePx": 12,
       "fontWeight": 400

@@ -39,10 +39,23 @@ test('the session-ending control is a button, not a link', async ({ page }) => {
     expect(style.textDecoration, 'not underlined like a link').toBe('none');
     expect(style.borderStyle, 'a visible secondary control').toBe('solid');
     expect(style.borderWidth).toBe('1px');
-    expect(style.background).toBe('rgb(255, 255, 255)'); // --surface
+    // Read the token rather than hardcoding its value. The palette is derived
+    // from a nine-step ramp (#134), so a literal here is a test that breaks on
+    // every re-skin while checking nothing about the design.
+    const surface = await page.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue('--surface').trim());
+    const rgbOf = (hex: string) => {
+      const n = Number.parseInt(hex.replace('#', ''), 16);
+      return `rgb(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255})`;
+    };
+    expect(surface, '--surface must be a literal for this comparison').toMatch(/^#[0-9a-f]{6}$/i);
+    expect(style.background).toBe(rgbOf(surface.toLowerCase()));
     expect(style.color).not.toBe(LINK_TOKEN);
     expect(style.color).not.toBe(ACCENT);
-    expect(style.color).toBe('rgb(31, 35, 40)'); // --text
+    const textToken = await page.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue('--text').trim());
+    expect(textToken, '--text must be a literal for this comparison').toMatch(/^#[0-9a-f]{6}$/i);
+    expect(style.color).toBe(rgbOf(textToken.toLowerCase()));
 
     // The anchors that navigate still take the link token (#94).
     await page.getByRole('button', { name: '#7 Make the canvas respond to themes' }).click();

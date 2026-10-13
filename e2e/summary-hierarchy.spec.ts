@@ -49,7 +49,14 @@ test('the Reported summary label is elevated without reformatting the issue body
     expect(label, 'the Reported summary heading').not.toBeNull();
     expect(label!.textTransform).toBe('uppercase');
     expect(label!.fontSize).toBe('12px');
-    expect(label!.color).toBe('rgb(89, 99, 110)'); // --muted
+    const muted = await page.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue('--muted').trim());
+    const rgbOf = (hex: string) => {
+      const n = Number.parseInt(hex.replace('#', ''), 16);
+      return `rgb(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255})`;
+    };
+    expect(muted, '--muted must be a literal for this comparison').toMatch(/^#[0-9a-f]{6}$/i);
+    expect(label!.color).toBe(rgbOf(muted.toLowerCase()));
     expect(Number.parseFloat(label!.letterSpacing)).toBeGreaterThan(0);
     const boxed = await styles(page, '.summary-box');
     expect(boxed!.borderTopWidth).toBe('2px');

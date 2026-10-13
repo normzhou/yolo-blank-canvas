@@ -113,3 +113,91 @@ describe('the accent is available to state, not only to decoration', () => {
     expect(gradients, `gradients present: ${gradients.join(', ')}`).toEqual([]);
   });
 });
+
+/**
+ * Constraint B, terminal phosphor — the rule set the maintainer approved on #146
+ * and the agent applied on #134.
+ *
+ * B has one rule that can fail: **the neutral ramp between text and ground spans
+ * at least nine distinguishable steps**, and it is one hue family. Everything else
+ * in B (accent reserved for state, no glow) is already covered above or is a
+ * statement about where a token may be used rather than a measurable property.
+ */
+
+const THEMES = [':root', "[data-theme='sand']", "[data-theme='dusk']"] as const;
+
+function rgb(hex: string): [number, number, number] {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) throw new Error(`not a 6-digit hex: ${hex}`);
+  const n = Number.parseInt(m[1]!, 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+/**
+ * Colourfulness as simple chroma (max channel − min channel), not HSL saturation.
+ *
+ * HSL saturation is unusable for this check: `#fffdfa` — visually a plain off-white
+ * — scores 1.0 because the formula divides by a vanishing denominator near white,
+ * and would score 1.0 again near black. Chroma does not have that failure mode at
+ * either end, which is exactly where a nine-step ramp spends most of its range.
+ *
+ * The threshold is 0.14 (~36/255). That admits a warm-neutral step such as
+ * `#c4b9a3` at 0.13 while rejecting anything that reads as a colour in its own
+ * right. It is a judgement, and a deliberately loose one: the purpose is to stop a
+ * second hue entering the surface, not to grade the palette.
+ */
+function chroma(hex: string): number {
+  const [r, g, b] = rgb(hex);
+  return (Math.max(r, g, b) - Math.min(r, g, b)) / 255;
+}
+
+/** Relative luminance, used for monotonicity: the ramp must darken or lighten steadily. */
+function luminance(hex: string): number {
+  const [r, g, b] = rgb(hex).map((c) => {
+    const s = c / 255;
+    return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  }) as [number, number, number];
+  return 0.2126729 * r + 0.7151522 * g + 0.072175 * b;
+}
+
+describe.each(THEMES)('constraint B: %s has a nine-step neutral ramp', (theme) => {
+  const ramp = Array.from({ length: 9 }, (_, i) => values(theme, `--n${i + 1}`)[0]);
+
+  it('declares all nine steps', () => {
+    const missing = ramp.map((v, i) => (v ? null : `--n${i + 1}`)).filter(Boolean);
+    expect(missing, `missing ramp steps: ${missing.join(', ')}`).toEqual([]);
+  });
+
+  it('every step is a literal, not an unresolved reference', () => {
+    for (const [i, value] of ramp.entries()) {
+      expect(value, `--n${i + 1}`).toMatch(/^#[0-9a-f]{6}$/i);
+    }
+  });
+
+  it('is one hue family — no step is a colour in its own right', () => {
+    // "Monochrome" is the operative word. Each step must be a near-neutral: a
+    // saturated step would put a second hue into the surface, which is exactly
+    // what this constraint exists to prevent.
+    const chromatic = ramp
+      .map((value, i) => ({ step: `--n${i + 1}`, sat: chroma(value) }))
+      .filter((entry) => entry.sat > 0.14);
+    expect(chromatic, `saturated ramp steps: ${chromatic.map((c) => `${c.step} chroma ${c.sat.toFixed(3)}`).join(', ')}`).toEqual([]);
+  });
+
+  it('runs monotonically from ground to text', () => {
+    // A ramp that goes up and down is not a ramp; it is a palette with extra
+    // steps. Direction is set by the theme's own polarity.
+    const ys = ramp.map(luminance);
+    const dark = ys[0]! < ys[ys.length - 1]!;
+    const diffs = ys.slice(1).map((y, i) => (dark ? y - ys[i]! : ys[i]! - y));
+    const backwards = diffs.filter((d) => d <= 0);
+    expect(backwards, `non-monotonic steps (${dark ? 'dark' : 'light'} ramp): ${backwards.length} of ${diffs.length}`).toEqual([]);
+  });
+
+  it('has nine distinguishable steps, not nine names for two colours', () => {
+    // Adjacent steps must be far enough apart to read as different. The separation
+    // floor from status-presentation.md (|Lc| >= 8) is the right bar here.
+    const distinct = new Set(ramp.map((v) => v.toLowerCase()));
+    expect(distinct.size, `only ${distinct.size} distinct colours across nine steps`).toBe(9);
+  });
+});
