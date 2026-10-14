@@ -25,6 +25,26 @@ async function session(page: import('@playwright/test').Page) {
   expect(response.status(), 'the released app must establish a local session').toBe(200);
 }
 
+/**
+ * The overlay trigger was labelled "Requests" until #130, which renamed it to
+ * "Open requests". Accept either, so this suite can verify a release that
+ * predates the rename instead of timing out on a control the artifact never
+ * had. The assertions below the click are unchanged, so this widens the
+ * navigation step only -- it does not make any check more permissive.
+ */
+async function openRequests(page: import('@playwright/test').Page) {
+  for (const name of ['Open requests', 'Requests']) {
+    const trigger = page.getByRole('button', { name, exact: true });
+    if ((await trigger.count()) > 0) {
+      await trigger.first().click();
+      return;
+    }
+  }
+  throw new Error(
+    'no requests overlay trigger found: looked for buttons named "Open requests" and "Requests"',
+  );
+}
+
 test('the released stylesheet clears WCAG AA for the reconciliation badge', async ({ page }) => {
   // Measured from the served CSS rather than a rendered badge: the live
   // repository may have no conflicting-state issue at the moment, and a
@@ -71,7 +91,7 @@ test('a rendered reconciliation badge, when the data has one, is present and sty
   await page.goto(BASE);
   await session(page);
   await page.goto(BASE);
-  await page.getByRole('button', { name: 'Open requests', exact: true }).click();
+  await openRequests(page);
   await expect(page.locator('.issue-row').first()).toBeVisible();
   const badge = page.locator('.badge', { hasText: 'reconciliation' });
   const count = await badge.count();
@@ -92,7 +112,7 @@ test('text fields carry a fill distinct from the panel', async ({ page }) => {
   await page.goto(BASE);
   await session(page);
   await page.goto(BASE);
-  await page.getByRole('button', { name: 'Open requests', exact: true }).click();
+  await openRequests(page);
   await page.getByRole('button', { name: 'New request' }).first().click();
   const fills = await page.evaluate(() => {
     const input = document.querySelector('#new-request-title') as HTMLElement;
