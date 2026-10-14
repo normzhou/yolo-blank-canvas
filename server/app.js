@@ -144,8 +144,8 @@ export function createApp({
       const state = typeof req.query.state === 'string' ? req.query.state : 'open';
       const page = Math.max(Number.parseInt(String(req.query.page ?? '1'), 10) || 1, 1);
       const perPage = Math.min(Math.max(Number.parseInt(String(req.query.per_page ?? '30'), 10) || 30, 1), 100);
-      const items = await github.listIssues(target, { state, page, perPage });
-      res.json({ items, page, perPage, hasMore: items.length === perPage });
+      const result = await github.listIssues(target, { state, page, perPage });
+      res.json({ items: result.items, page, perPage, hasMore: result.hasMore });
     });
   });
 
