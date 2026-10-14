@@ -24,7 +24,16 @@ export function createGithubClient({ runner = runGhApi } = {}) {
       );
       const items = await runner([path]);
       // Issue listings include pull requests; the app is an issue view only.
-      return (Array.isArray(items) ? items : []).filter((item) => !isPullRequest(item));
+      //
+      // `hasMore` must be decided from the RAW page, before filtering. GitHub
+      // pages by repository objects, so a page that is mostly pull requests
+      // filters down to fewer issues than `perPage`. Computing it from the
+      // filtered count reported "End of list" while later pages still held
+      // issues: this repository's first closed page was 30 raw = 17 PRs + 13
+      // issues, with 27 more issues on page 2 (#150).
+      const raw = Array.isArray(items) ? items : [];
+      const issues = raw.filter((item) => !isPullRequest(item));
+      return { items: issues, hasMore: raw.length === Math.min(Math.max(Number(perPage) || PER_PAGE, 1), 100) };
     },
 
     async getIssue(target, number) {

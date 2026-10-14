@@ -84,9 +84,30 @@ describe('argument isolation', () => {
       { number: 2, title: 'a pull request', pull_request: { url: 'https://api.github.com/…' } },
     ]);
     const github = createGithubClient({ runner: runner as never });
-    const items = await github.listIssues(target, {});
-    expect(items.map((item) => item.number)).toEqual([1]);
+    const result = await github.listIssues(target, { perPage: 2 });
+    expect(result.items.map((item) => item.number)).toEqual([1]);
     expect(isPullRequest({ pull_request: {} })).toBe(true);
+  });
+
+  it('reports hasMore from the raw page, not the filtered count (#150)', async () => {
+    // GitHub pages by repository objects, so a page that is mostly pull requests
+    // filters to fewer issues than perPage. Deciding hasMore from the filtered
+    // count told the app "End of list" while later pages still held issues.
+    const pr = { number: 2, pull_request: { url: 'https://api.github.com/…' } };
+    const pr2 = { number: 3, pull_request: { url: 'https://api.github.com/…' } };
+    // A full first page that filters down, and a short last page.
+    const runner = vi.fn(async (path: string[]) =>
+      path[0]?.includes('page=9') ? [{ number: 4 }] : [{ number: 1 }, pr, pr2],
+    );
+    const github = createGithubClient({ runner: runner as never });
+
+    const short = await github.listIssues(target, { perPage: 3 });
+    expect(short.items).toHaveLength(1);
+    expect(short.hasMore).toBe(true);
+
+    const complete = await github.listIssues(target, { perPage: 3, page: 9 });
+    expect(complete.items).toHaveLength(1);
+    expect(complete.hasMore).toBe(false);
   });
 
   it('requires a title and a non-empty body', async () => {

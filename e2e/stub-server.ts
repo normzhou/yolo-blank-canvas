@@ -207,7 +207,10 @@ export function makeStubGithub(overrides: { issues?: StubIssue[] } = {}) {
   return {
     listIssues: async (_target: unknown, { state, page, perPage }: { state: string; page: number; perPage: number }) => {
       const filtered = state === 'all' ? issues : issues.filter((issue) => issue.state === state);
-      return filtered.slice((page - 1) * perPage, page * perPage);
+      const items = filtered.slice((page - 1) * perPage, page * perPage);
+      // Mirrors the real client since #150: the stub has no pull requests, so
+      // hasMore is simply whether this page came back full.
+      return { items, hasMore: items.length === perPage };
     },
     getIssue: async (_target: unknown, number: string) => issues.find((issue) => issue.number === Number(number)) ?? null,
     createIssue: async (_target: unknown, { title, body }: { title: string; body: string }) => {

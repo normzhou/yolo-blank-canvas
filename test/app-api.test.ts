@@ -16,7 +16,7 @@ type GithubStub = {
 
 function makeGithubStub(overrides: Partial<GithubStub> = {}): GithubStub {
   return {
-    listIssues: vi.fn(async () => []),
+    listIssues: vi.fn(async () => ({ items: [], hasMore: false })),
     getIssue: vi.fn(async () => ({ number: 1, title: 'issue' })),
     createIssue: vi.fn(async () => ({ number: 42, title: 'created', html_url: 'https://github.com/x/y/issues/42' })),
     listComments: vi.fn(async () => []),
@@ -201,7 +201,7 @@ describe('issue operations', () => {
   it('lists issues newest-updated first and reports whether more exist', async () => {
     const perPage = 2;
     const github = makeGithubStub({
-      listIssues: vi.fn(async () => [{ number: 3 }, { number: 2 }]),
+      listIssues: vi.fn(async () => ({ items: [{ number: 3 }, { number: 2 }], hasMore: true })),
     });
     const { server, request, json } = await start(github);
     try {
