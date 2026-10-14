@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "kind": "release-observation",
+  "status": "published-release-is-behind-the-tags",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-14",
+  "protocol": {
+    "revision": "7b9d12fae425217b2651e9f4e5f1c25a0372bcf9",
+    "release": "v0.1.0-alpha.23"
+  },
+  "question": "Q4 asks for acceptance re-run against a delivered artifact. This is that re-run, performed 2026-10-14 rather than inherited from an earlier report.",
+  "published_releases": ["v0.1.0", "v0.1.1", "v0.1.2", "v0.2.0", "v0.3.1"],
+  "tags_without_a_published_release": ["v0.3.0", "v0.3.2"],
+  "measurements": [
+    {
+      "artifact": "v0.3.1",
+      "kind": "published GitHub release",
+      "commit": "80bf5f860c4a360e855c8b0a786df7a04f3a70e6",
+      "installed_from": "npx --yes github:normzhou/yolo-blank-canvas#v0.3.1 --no-open",
+      "served_build": "7ffb324946645187d8be93c2705e057c7efcda8a",
+      "commits_behind_main": 76,
+      "verification_command": "YOLO_VERIFY_URL=http://127.0.0.1:4621 npm run e2e:verify-release",
+      "result": "fail",
+      "detail": "1 of 6 passed. Failures: --problem #b35900 on #ffe8d6 clears neither WCAG AA for the reconciliation badge; the Tetris stats panel renders rgba(255, 255, 255, 0.6) rather than opaque; the backdrop crossfade is still animating under prefers-reduced-motion."
+    },
+    {
+      "artifact": "main",
+      "kind": "development checkout, for comparison",
+      "commit": "3aee04885baf85bf3ddc23453c6b45c0764d8788",
+      "verification_command": "YOLO_VERIFY_URL=http://127.0.0.1:4623 npm run e2e:verify-release",
+      "result": "pass",
+      "detail": "6 of 6 passed, against the identical spec. The five failures above are therefore not stale assertions in e2e/verify-release.spec.ts; the released artifact genuinely lacks behaviour that main has."
+    }
+  ],
+  "conclusion": [
+    "The v0.3.2 artifact is sound. The existing observation report records it as installed from its tag into an empty directory with all six checks passing, and this re-run did not contradict that.",
+    "v0.3.2 was never published as a GitHub release. `gh release view v0.3.2` returns 'release not found'. The same is true of v0.3.0.",
+    "So the newest *published* artifact is v0.3.1, which is 76 commits behind main and demonstrably fails the release verification suite, including an accessibility failure: a user with prefers-reduced-motion set still gets the backdrop crossfade animated.",
+    "ARCHITECTURE.md is explicit that unreleased setup and dry-run planned tags do not establish publication. The tag and its verification report are both correct; what is missing is the publication step."
+  ],
+  "limits": [
+    "This measures the artifact as installed from its tag. It does not re-verify v0.3.2's own six checks in this session; it relies on the existing report for that and records that reliance rather than restating it as a fresh result.",
+    "No release was cut and nothing was published. Publishing is externally visible and needs identified approval.",
+    "The failures are stated against v0.3.1 as installed on 2026-10-14; a later artifact would need its own run."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #153"
+}
