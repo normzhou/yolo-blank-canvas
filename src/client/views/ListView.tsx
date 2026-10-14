@@ -43,11 +43,19 @@ export function ListView({
   const [error, setError] = useState<ApiError | null>(null);
   const [loadedOnce, setLoadedOnce] = useState(false);
   const inFlight = useRef(false);
+  // A read requested while one is in flight is remembered and replayed when the
+  // current read finishes, rather than dropped (#150). Dropping it left the
+  // filter button showing "Closed" while the list still showed the open issues —
+  // the control and the data disagreed, and nothing told the reader.
+  const replayRef = useRef(false);
   const pageRef = useRef(1);
 
   const load = useCallback(
     async (targetPage: number, mode: 'replace' | 'append') => {
-      if (inFlight.current) return;
+      if (inFlight.current) {
+        replayRef.current = true;
+        return;
+      }
       inFlight.current = true;
       setLoading(true);
       try {
@@ -67,10 +75,19 @@ export function ListView({
       } finally {
         inFlight.current = false;
         setLoading(false);
+        if (replayRef.current) {
+          replayRef.current = false;
+          // Through the ref, not this closure: a replay must use the filter that
+          // was current when it was requested, not the one this read started with.
+          void loadRef.current?.(targetPage, mode);
+        }
       }
     },
     [filter, loadedOnce, onRefreshed, onStale],
   );
+
+  const loadRef = useRef<typeof load | null>(null);
+  loadRef.current = load;
 
   // A re-read of the same query (timer, manual refresh, reconciliation) must not
   // blank the rows already on screen: they stay until the response replaces them,

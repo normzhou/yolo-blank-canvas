@@ -122,3 +122,50 @@ test('the whole row is the target, not just the title', async ({ page }) => {
     stub.server.close();
   }
 });
+
+/**
+ * #150: a read requested while one is in flight is replayed, not dropped.
+ *
+ * The guard used to be `if (inFlight) return`, which silently discarded the
+ * request. Switching filters during a slow load left the filter button reading
+ * "Closed" while the list still showed the open issues — the control and the
+ * data disagreed and nothing told the reader. This holds the first response open
+ * so the switch provably lands mid-flight.
+ */
+test('switching filter mid-load still applies the new filter', async ({ page }) => {
+  const stub = await startStubApp(makeStubGithub());
+  try {
+    await page.setViewportSize({ width: 1280, height: 900 });
+
+    await page.goto(stub.base);
+    await page.getByRole('button', { name: 'Open requests', exact: true }).click();
+    await expect(page.locator('.issue-row').first()).toBeVisible();
+
+    // Hold a LATER open read, so the panel is already rendered and the switch
+    // provably lands while a read is in flight.
+    const gate: { release: (() => void) | null } = { release: null };
+    await page.route('**/api/issues**', async (route) => {
+      if (route.request().url().includes('state=open') && gate.release === null) {
+        await new Promise<void>((resolve) => {
+          gate.release = resolve;
+        });
+      }
+      await route.continue();
+    });
+
+    await page.getByRole('button', { name: 'Refresh' }).click();
+    await page.waitForTimeout(200);
+    await page.getByRole('button', { name: 'Closed', exact: true }).click();
+    await page.waitForTimeout(200);
+    gate.release?.();
+
+    await page.waitForTimeout(800);
+    await expect(page.getByRole('button', { name: 'Closed', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await expect(page.locator('.issue-row')).not.toHaveCount(5);
+  } finally {
+    stub.server.close();
+  }
+});
