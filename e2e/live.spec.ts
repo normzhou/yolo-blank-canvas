@@ -74,6 +74,48 @@ test('Requests panel lists real issues and opens a real detail page', async ({ p
   expectClean(errors);
 });
 
+test('the Closed filter paginates against the real issue volume', async ({ page, errors, snap }) => {
+  // Multi-page loading was a recorded live gap, misdiagnosed as "the live
+  // repository has too few issues". It has 63 closed issues; the list was
+  // silently truncating (#150). This observes the real thing: page one, then a
+  // second page that keeps the first on screen.
+  //
+  // Read-only: filtering and paging are GETs and no write path is touched.
+  await page.goto(base);
+  await page.getByRole('button', { name: 'Open requests', exact: true }).click();
+
+  // Let the first read settle. Switching while it is in flight used to be
+  // dropped, which is #150's second defect and a real bug, not a test quirk —
+  // so this waits rather than assuming the control is instant.
+  await page.locator('.issue-row').first().waitFor({ timeout: 15_000 });
+  await expect(page.getByText('End of list')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Closed', exact: true }).click();
+  // The end-of-list note is only correct when there is no next page.
+  await expect(page.getByText('End of list')).toHaveCount(0, { timeout: 15_000 });
+  await expect(page.getByRole('button', { name: 'Load more' })).toBeVisible();
+
+  const rows = page.locator('.issue-row');
+  // Volume-independent: GitHub pages by repository object and the app filters
+  // pull requests out, so page one holds fewer rows than `per_page`.
+  const firstPage = await rows.count();
+  expect(firstPage).toBeGreaterThan(0);
+  await snap('live-04-closed-page-1');
+
+  // Appending must keep earlier rows on screen rather than replacing them. Page
+  // sizes differ — pull-request density varies per page — so this asserts
+  // growth, not an exact doubling.
+  const firstBefore = await rows.first().textContent();
+  await page.getByRole('button', { name: 'Load more' }).click();
+  await expect(rows).not.toHaveCount(firstPage);
+  const afterSecondPage = await rows.count();
+  expect(afterSecondPage, 'Load more must append, never replace').toBeGreaterThan(firstPage);
+  await expect(rows.first()).toHaveText(firstBefore ?? '');
+  await snap('live-05-closed-page-2');
+
+  expectClean(errors);
+});
+
 test('mid-session auth loss surfaces the explicit retry state (no writes)', async ({ page, errors, snap }) => {
   await page.goto(base);
   await page.route('**/api/issues**', async (route) => {
