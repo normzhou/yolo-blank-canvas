@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-14",
+  "protocol": {
+    "revision": "7b9d12fae425217b2651e9f4e5f1c25a0372bcf9",
+    "release": "v0.1.0-alpha.23"
+  },
+  "question": "AUTHORITY.md requires that acceptance pass on the version users actually receive before a release is complete. This is that acceptance, run 2026-10-14 against the published release rather than the tag.",
+  "resolves": ".yolo/reports/release-gap-2026-10-14.json",
+  "action_taken": {
+    "what": "Published a GitHub release for the pre-existing tag v0.3.2 (commit 75cfffb583bc0a241aa3270aa207dcdc21833cf4).",
+    "authority": "AUTHORITY.md 'Release' is a standing delegation and is named as the identified human approval Charter constraint 5 requires for publishing. The version policy in ARCHITECTURE.md permits the agent to cut a patch release; v0.3.1 -> v0.3.2 is a patch. No tag was created, moved or deleted.",
+    "watermarked": true
+  },
+  "acceptance": [
+    {
+      "artifact": "v0.3.2 (published release, and tag)",
+      "kind": "what users receive",
+      "commit": "75cfffb583bc0a241aa3270aa207dcdc21833cf4",
+      "installed_from": "npx --yes github:normzhou/yolo-blank-canvas#v0.3.2 --no-open --port 4631",
+      "served_build": "b14b70ac9f112f14a0436b6be8e5326b6b9e3513",
+      "result": "pass",
+      "detail": "6 of 6. Installed into an empty directory; GET /api/version reported serverBuild = clientBuild = b14b70a, matching the build the 2026-10-08 report recorded."
+    },
+    {
+      "artifact": "main",
+      "kind": "development checkout, regression check",
+      "commit": "3aee04885baf85bf3ddc23453c6b45c0764d8788",
+      "result": "pass",
+      "detail": "6 of 6, so widening the navigation step did not weaken the suite on the revision that shipped the renamed control."
+    },
+    {
+      "artifact": "v0.3.1",
+      "kind": "guard check - this run must still fail",
+      "served_build": "7ffb324946645187d8be93c2705e057c7efcda8a",
+      "result": "fail",
+      "detail": "4 of 6 failed, as intended: the reconciliation badge below WCAG AA, the field with no fill of its own, the translucent Tetris stats panel, and the crossfade animating under prefers-reduced-motion. The suite was confirmed still able to catch the defects it exists to catch."
+    }
+  ],
+  "suite_defect_found_and_fixed": {
+    "what": "e2e/verify-release.spec.ts navigated by clicking a button named 'Open requests'. That label does not exist before commit bb29a68 (#130); v0.3.2 labels the same control 'Requests' (App.tsx:133).",
+    "consequence": "The suite could only verify the newest revision. Pointed at any older release it timed out on a control the artifact never had, and reported failures that were not defects. This blocked the acceptance AUTHORITY.md requires for any release but the newest.",
+    "fix": "openRequests() resolves either label and throws a named error if neither is present. It widens the navigation step only: the assertions after the click are unchanged.",
+    "proof_it_did_not_blunt_the_suite": "v0.3.1 still fails 4 of 6 with the fix applied, which is the same set of real defects it failed before."
+  },
+  "still_open": {
+    "v0.3.0": "Tagged and verified as an installable artifact, never published. Creating a release for it is within the standing delegation but is not obviously useful, because v0.3.1 already superseded it. Recorded rather than decided.",
+    "main_is_ahead": "main is 76 commits past v0.3.1 and past the published v0.3.2. It carries the structural UX redesign (#130-#133), the theme ramp (#134), and the two list fixes (#150), none of which any release contains.",
+    "next_version_is_a_maintainer_decision": "package.json on main is still 0.3.2. Releasing main would be a minor bump under semver for a delivered artifact, and ARCHITECTURE.md reserves a minor release to the maintainer. Held, not taken."
+  },
+  "limits": [
+    "Acceptance is read-only against the running artifact and exercises six checks; it is not a full regression suite. The 255 unit tests and the stubbed e2e suite run against main, not against the release.",
+    "'a rendered reconciliation badge, when the data has one' is conditional on live repository state and passed vacuously here -- the live repository had no conflicting-state issue. The served-stylesheet check covers that badge instead, and this is noted rather than counted as evidence.",
+    "The published release is 0.3.2, which is still behind main. Publishing it fixes the accessibility and contrast defects for anyone installing; it does not deliver the redesign."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #153"
+}
