@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "kind": "continuation-report",
+  "status": "fresh-continuation-observed-scope-limited",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-13",
+  "revision": "7a31b454720fd9d29705e1722df49566b9aad097",
+  "default_revision": "7a31b454720fd9d29705e1722df49566b9aad097",
+  "protocol": {
+    "revision": "7b9d12fae425217b2651e9f4e5f1c25a0372bcf9",
+    "release": "v0.1.0-alpha.23",
+    "note": "Protocol snapshot identity is unchanged by this report; the pin was migrated under issue #137 and the bundle replaced together."
+  },
+  "harness": {
+    "name": "opencode",
+    "adopted_harness_claim": "pi coding agent 1.0.1 — unchanged by this report, and not re-attributed by it.",
+    "fresh_session": true,
+    "distinguished_from": "This is a distinct session from the one that recorded the alpha.23 upgrade (#137) and from the one that recorded the 75-commit review (#141). It began after both.",
+    "loading_evidence": "This session began by reading .agents/skills/yolo/SKILL.md from the repository root on the alpha.23 pin, then loaded the active snapshot's Agent activities and Issue management sections before reconciling. The installed bundle was later verified against its manifest and the pinned executable was obtained and checksum-verified before any structural claim.",
+    "reconciled_actions": [
+      "Reconciled the open outcomes against the default branch, GitHub state and the adoption record before acting.",
+      "Reconciled native dependency metadata, removed a dependency that had been created against the wrong repository, and recorded that removal rather than hiding it (#130).",
+      "Performed issue-backed delivery across #129 to #134 and #145, reconciling a concurrent writer's outcome (#141) without closing it.",
+      "Replaced a published status summary that carried two ## YOLO status headings, preserving both bodies, restoring the one-summary-per-outcome invariant."
+    ]
+  },
+  "findings": [
+    {
+      "rule": "continuation",
+      "status": "observed",
+      "detail": "A fresh authorized session loaded the normal instructions and local rules, reconciled shared work across 52 managed outcomes, and performed the correct next actions without a settled-intent rebriefing.",
+      "evidence": [
+        ".yolo/adoption.json harness.observed_sessions",
+        "issues #129, #130, #131, #132, #133, #134, #145",
+        "pull requests #135, #139, #143, #144, #147, #148"
+      ]
+    },
+    {
+      "rule": "congruence",
+      "status": "unverified",
+      "detail": "The adopted harness.name remains `pi coding agent 1.0.1`. This session ran in opencode and did not load, exercise or observe the pi harness. Nothing here re-attributes loading to pi, and this report does not satisfy Q5 for the adopted harness.",
+      "evidence": [
+        ".yolo/adoption.json harness.name"
+      ],
+      "resolves": "Nothing is resolved by this report. The Q5 gap for the adopted harness is unchanged."
+    }
+  ],
+  "verification": [
+    {
+      "revision": "7a31b454720fd9d29705e1722df49566b9aad097",
+      "result": "pass",
+      "commands": [
+        "npm test — 20 files, 254 tests passed",
+        "npx tsc --noEmit — clean",
+        "npm run e2e — 76 passed, 1 skipped",
+        "yolo-check . --structure (alpha.23 executable, SHA256SUMS verified, publication e64101f7e385) — structure: pass"
+      ]
+    }
+  ],
+  "limits": [
+    "This is an observed loading and continuation fact for one session on one harness. It is not a qualification verdict and no level is claimed.",
+    "It cannot attest a future restart, another session, or the pi harness.",
+    "Q5 remains partial for the adopted harness; qualification remains unverified.",
+    "The checkpoint remains at 31c0f8b and the checkpoint finding remains unverified. This report does not advance it."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #129"
+}
