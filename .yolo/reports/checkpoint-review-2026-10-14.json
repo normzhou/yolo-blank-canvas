@@ -1,0 +1,269 @@
+{
+  "schema_version": 2,
+  "kind": "review-report",
+  "status": "successful-review-checkpoint-not-advanced",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-14",
+  "note_on_dates": "Reviewed and written on 2026-10-14 local (PDT); v0.4.0 was published 2026-10-15T04:19Z. Named for the local date, following releases-observed-2026-10-15.json, which carries the same note.",
+  "protocol": {
+    "revision": "3cc04ef5f302993e1d3952bff00f08020d57dbcc",
+    "release": "v0.1.0-alpha.23",
+    "sha256": "9070f151a87c0c78f920aa22295ee976851dd98cbd65aee6cebe6502ac1a9613"
+  },
+  "outcome_issue": 141,
+  "revision": "9c05e25d49c88082774b83d8e5997828afec4905",
+  "default_revision": "9c05e25d49c88082774b83d8e5997828afec4905",
+  "from": "9680736567908deed87c50f5be096001e783a22f",
+  "previous_report": ".yolo/reports/checkpoint-review-2026-10-12.json",
+  "interval_note": "The 2026-10-12 review covered 31c0f8b..9680736 and could not be accepted as the checkpoint. Twenty-five commits landed after its subject, so the interval had no review at all until now. This report chains from that report and covers the new commits; it does not re-review 31c0f8b..9680736, which stays cited where it was written.",
+  "reviewed_commits": [
+    "9d06db8aa6d94a1a973cd79141c9d45aa28b334b",
+    "53a4b178b62883753de492906a7c5dda982c5402",
+    "fe60b1235db88090ab73de0445cf6ccc7d9b717c",
+    "26292efdd6e7f383008b798966a0593796a3d9fa",
+    "6dc0c76f89be635dec97375931ef753725f6e23b",
+    "74b45af6dab949f8b0e54552a30557ede5cda330",
+    "0729711fb8c589baf45427fa1cec09a1c1b73eb8",
+    "73b1564a906906d2ba3ae745315f3e0bce821cc1",
+    "c6aa1fed4e49bb7b6c1ffd002911a0b70a6cb6c0",
+    "7a31b454720fd9d29705e1722df49566b9aad097",
+    "9fead0a8ec21baa3c601563cfa13b63a275d553e",
+    "bed968eac8c73b14be84859c5bbbe2502be504f2",
+    "2a21449beb6a9d6929620f8b27c8d94d12836fc2",
+    "3aee04885baf85bf3ddc23453c6b45c0764d8788",
+    "b77aa9f939af7bb2d85ba32eebd922ba984df321",
+    "3925a9f49f850da7d23430f61fda37210d261f0b",
+    "8e25d553092dfedbb27ce5fd8c1c6cf37e9f212f",
+    "58e4894b8835bd37f964460d0b52ae24192ce067",
+    "e4de76784653f90d4d4793c9d1af8c042fde7595",
+    "5a00accbc28e1fb15b8a8ab54632950cf0c2e896",
+    "a90f2434d6410ebd9ddd278b168394b05bc30137",
+    "c1daf3e6d558e3dd902b238d763df6889f850af8",
+    "e1105c36730e1f887fe5cac0994a32ad9598395d",
+    "beae4c1f5a42466a26d670fb734ec09c7c67b9f5",
+    "9c05e25d49c88082774b83d8e5997828afec4905"
+  ],
+  "working_changes": [],
+  "harness": {
+    "name": "opencode",
+    "adopted_harness_claim": "pi coding agent 1.0.1 — unchanged by this review; see open_questions[3]",
+    "fresh_session": true,
+    "loading_evidence": "This session began by reading .agents/skills/yolo/SKILL.md from the repository root on the alpha.23 pin, then read .yolo/protocol.md, .yolo/adoption.json, the mapped Charter/Authority/Architecture/spec, AGENTS.md, issue #141 and the GitHub state before acting. Observed loading fact for this session only; it does not attest the adopted pi harness and re-attributes nothing.",
+    "limit": "This is the third opencode session to record loading here (2026-10-12, 2026-10-13, now). It is not new Q5 evidence: a further session of the same harness adds no fact the two existing records do not already carry, so no continuation report is written. Q5 stays partial for the adopted harness."
+  },
+  "reconciliation": {
+    "default_branch_clean": "git status is clean at 9c05e25; the e2e run's capture churn was reverted rather than committed, and working_changes above is empty for that reason",
+    "open_pull_requests": 0,
+    "open_issues": [
+      "141 — yolo:work + yolo:state:active, the only open outcome; every other outcome and both manual decisions (#136, #146, #154) are closed on the default branch"
+    ],
+    "open_incoming_requests": "none: no open issue carries yolo:request without yolo:work, so there is no intake to admit or triage",
+    "other_writers": "No unmerged branch holds work. Seventy-one remote branches exist; tree-comparing each against main shows every one is a historical squash-merge source whose content is already on main. No pause is recorded and no second writer is active. Deleting branches is reserved to the maintainer, so they stand (open_questions[6]).",
+    "interrupted_effects": "None found. The one self-reported deviation in the interval is the v0.4.0 tag/publish happening before PR #158 merged; it is retained in the PR and in issue #154 rather than smoothed over, and is recorded in findings.verification"
+  },
+  "findings": [
+    {
+      "rule": "ownership",
+      "status": "compliant",
+      "detail": "No protected document changed in this interval. CHARTER.md and AUTHORITY.md are byte-identical across all 25 commits, so no reserved decision — Charter edit, authority edit, grant change, destructive or externally visible act — was taken by the agent. The one governance edit is a90f243 (PR #157) to ARCHITECTURE.md, which is co-owned design rather than a protected document, and its rule is congruence review plus notification rather than authentication: the PR carries the impact, the reasoning and the cost that motivated it, and the direction is the maintainer's instruction of 2026-10-14, quoted verbatim and dated inside the policy text. That amendment widened the agent's own release scope from patch-only to any semver level, and AUTHORITY.md reserves 'widening the agent's own scope' to the maintainer, so the honest reading is that the standing § Release delegation supplied the authority to cut releases while the referenced policy supplied the limit, and moving that limit needed the maintainer. Nothing reserved was exercised: retiring or deleting a tag or release stayed reserved and was not used (v0.3.0 remains tagged and unpublished), and changing the policy stayed reserved. Whether the recorded instruction authenticates the widening is not something this repository can establish, because every GitHub actor here is the same account; that is carried as open_questions[0] rather than presented as a pass on authentication. Watermarking held throughout: every merged PR carries the [yolo] title prefix and the footer plus HTML marker naming its outcome issue, including #157 and #158.",
+      "evidence": [
+        ".yolo/governance/AUTHORITY.md",
+        ".yolo/governance/ARCHITECTURE.md",
+        "https://github.com/normzhou/yolo-blank-canvas/pull/157",
+        "https://github.com/normzhou/yolo-blank-canvas/issues/154",
+        "git diff 9680736..HEAD -- .yolo/governance/CHARTER.md .yolo/governance/AUTHORITY.md — empty"
+      ],
+      "open_questions": [
+        "open_questions[0] — the authentication of the release-policy widening"
+      ]
+    },
+    {
+      "rule": "congruence",
+      "status": "compliant",
+      "detail": "Each layer still serves the confirmed goal and the work landed under the Charter's user-driven shape: nothing in this interval was built for symmetry or completeness, and every capability traces to an admitted outcome (#130–#134 the structural redesign, #145 capture characterisation, #150 two list defects, #153 the release gap). The pin did not move: the bundle, the byte-identical snapshot, the mapping and the harness bindings are unchanged, and `yolo-check . --structure` reports structure.status: pass with zero non-compliant rules at this revision using the pinned alpha.23 executable. The three replica candidates are the publisher's own starter templates under the immutable skill folder, not this repository's decisions, and are preserved. One genuine overstatement was found and corrected in the interval rather than left standing: #147 measured the capture churn and retracted the record's 'cross-session only' claim, which had been repeated three times from a summary instead of a measurement, and the correction stayed visible with its cause. Significance and scope changes were surfaced rather than absorbed: the canvas-restructuring question became #136 and the theme-direction question #146, both filed as yolo:manual, and both were answered by the maintainer before the dependent work proceeded. The amendment in a90f243 de-pinned a delivery paragraph that had named a specific tag, on the reasoning that a pinned example goes stale — the same class of defect this review found in docs/verification.md, fixed there in this report's companion change.",
+      "evidence": [
+        ".yolo/governance/ARCHITECTURE.md",
+        ".yolo/governance/specs/status-presentation.md",
+        "https://github.com/normzhou/yolo-blank-canvas/pull/147",
+        "https://github.com/normzhou/yolo-blank-canvas/issues/136",
+        "https://github.com/normzhou/yolo-blank-canvas/issues/146",
+        "yolo-check --structure at 9c05e25 — structure.status: pass, 14 rules compliant, 0 non-compliant"
+      ]
+    },
+    {
+      "rule": "verification",
+      "status": "compliant",
+      "detail": "Acceptance was run again at this revision rather than inherited from the previous report. npm test passes 255 tests across 20 files; npx tsc --noEmit is clean; npm run e2e passes 77 with 1 skipped against the deterministic stubbed client, writing no repository records; and yolo-check . --structure passes using the alpha.23 executable obtained from the release, whose SHA-256 (ed3e19411d7fbcd9ef8263c67dc555f05517a83af83166e4b8e65d0f5825bb5b) matches the published SHA256SUMS and whose self-reported publication e64101f7e385887c42a914f81332bb0169ffdee7 equals the pinned skill revision. Two verification findings from outside this interval are now resolved on the record rather than carried: the published release was three tags behind main, and #155 measured it (v0.3.1 scores 1 of 6 on e2e:verify-release against main's 6 of 6) instead of assuming it; #156 published v0.3.2 against the existing tag without creating, moving or deleting a tag, fixed the suite that could only verify the newest revision, and re-confirmed the guard by watching v0.3.1 fail 4 of 6 as intended; #158 cut v0.4.0 and re-ran acceptance on the installed artifact (6 of 6) before and after publication. Release identity holds at the tag: v0.4.0 points at e1105c3, whose package.json reads 0.4.0, and both build-ID files record c1daf3e, the source revision the assets were built from, which is the assets-only-commit ordering ARCHITECTURE.md documents and the client footer surfaces. Three limits are retained rather than smoothed away. First, the self-reported deviation: the v0.4.0 tag and release were created before PR #158 merged, so main carried the release commit a few minutes after the artifact was live; the artifact is correct because the tag resolves to a real commit, but the ordering was backwards and should be merge-then-tag. Second, this run rewrote 13 review captures — 12 motion frames, which are non-reproducible by construction under an unfrozen CSS animation, and one content-stress frame at glyph rasterization — which is the third measurement consistent with #145's characterisation and not a regression. Third, npm run e2e:live was not run in this review: it needs an authenticated gh and a live dev app, its last evidence is recorded on #151/#152 and in docs/verification.md, and it is cited rather than restated as fresh.",
+      "evidence": [
+        "npm test — 255 tests, 20 files, all passing at 9c05e25",
+        "npx tsc --noEmit — clean at 9c05e25",
+        "npm run e2e — 77 passed, 1 skipped, stubbed client, no repository writes",
+        "yolo-check . --structure — structure.status: pass, 14 rules compliant, 0 non-compliant (alpha.23, checksum verified against SHA256SUMS)",
+        ".yolo/reports/releases-observed-2026-10-14.json — v0.3.2 published, acceptance 6 of 6 on the installed artifact",
+        ".yolo/reports/releases-observed-2026-10-15.json — v0.4.0 published, acceptance 6 of 6 on the installed artifact, plus its recorded limits",
+        "https://github.com/normzhou/yolo-blank-canvas/pull/155",
+        "https://github.com/normzhou/yolo-blank-canvas/pull/158",
+        "git show v0.4.0:package.json — 0.4.0; git show v0.4.0:dist/client/.build-id — c1daf3e"
+      ],
+      "limits": [
+        "The v0.4.0 release commit landed before its PR merged (tag-then-merge rather than merge-then-tag). Recorded, not corrected by rewriting history.",
+        "13 review captures are rewritten by each verification run (12 motion frames plus glyph-rasterization residue on the content-stress frame). Visual acceptance rests on the content guard and human inspection, never on a pixel diff.",
+        "npm run e2e:live was not run here; its most recent evidence is the 5 passing specs recorded on PR #152 and in docs/verification.md."
+      ]
+    },
+    {
+      "rule": "continuity",
+      "status": "compliant",
+      "detail": "Nothing was rewritten and every failure stays visible. All 25 commits are listed above and none was amended or reauthored; baseline 520a81e and the prior checkpoint 31c0f8b are untouched, and every earlier report stays byte-unchanged — including the six the 2026-10-12 review found incomplete, which are cited from that report rather than relabelled. The interval's own corrections were made in place rather than by erasure: #147 corrected an overstated determinism claim, #149 removed a stale citation of now-closed work while stating why the surrounding finding was not thereby resolved, and #155 narrowed an overstated framing of the release gap from 'recorded a publication that never happened' to 'the tag and its verification are true; the release is missing'. Both manual-reserved decisions (#136, #146) and the release question (#154) carry their answers and their closure reasons on the record, and #154's closing comment states plainly that the decision was the agent's to take and that filing it was over-caution. The one place this repository's record had fallen behind reality is repaired in this change rather than left for a reader to discover: docs/verification.md still named v0.3.1 and a 12-file, 104-test suite as its tested revision, three releases stale, while README and the adoption record named v0.4.0. A record that understates what has been verified is the same defect class as the app asserting completeness it cannot establish, so the tested-revision and unit-snapshot sections are updated in this PR, with the earlier counts preserved where the file already preserves them. The checkpoint is not advanced and the reason is unchanged and carried forward: see checkpoint_outcome. Qualification is not claimed and this report asserts no level.",
+      "evidence": [
+        ".yolo/adoption.json",
+        "docs/verification.md — tested-revision and unit-snapshot sections updated in this change",
+        "https://github.com/normzhou/yolo-blank-canvas/pull/147",
+        "https://github.com/normzhou/yolo-blank-canvas/pull/149",
+        "https://github.com/normzhou/yolo-blank-canvas/pull/155",
+        ".yolo/reports/checkpoint-review-2026-10-12.json — the six incomplete chain reports are cited there and left byte-unchanged here"
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "revision": "9c05e25d49c88082774b83d8e5997828afec4905",
+      "result": "pass",
+      "evidence": [
+        "npm test — 255 tests, 20 files, all passing",
+        "npx tsc --noEmit — clean",
+        "npm run e2e — 77 passed, 1 skipped, stubbed client, no repository writes",
+        "yolo-check . --structure — structure.status: pass, 14 rules compliant, 0 non-compliant; alpha.23 executable, SHA-256 ed3e1941… verified against the release SHA256SUMS, self-reported publication e64101f7 equal to the pinned skill revision",
+        "CI on main — run 38681013127, conclusion success, head 9c05e25",
+        "release identity at v0.4.0 — tag peels to e1105c3, package.json 0.4.0, both build-ID files record source c1daf3e"
+      ]
+    }
+  ],
+  "qualification": {
+    "status": "unverified",
+    "reason": "This report is a review of an interval, not a level claim. Q1–Q4 have supporting evidence at this revision and Q5 does not, so the level is not claimed and the checkpoint is not advanced. The standing unresolved chain finding also remains open.",
+    "criteria": {
+      "Q1_portable_setup": {
+        "verdict": "pass",
+        "evidence": [
+          "yolo-check . --structure at 9c05e25 — structure.status: pass, 14 rules compliant, 0 non-compliant",
+          "bundle, snapshot and bindings unchanged in this interval; the three replica candidates are publisher templates under the immutable skill folder"
+        ]
+      },
+      "Q2_authorized_task": {
+        "verdict": "pass",
+        "evidence": [
+          "every merged PR in the interval references its outcome issue (Refs #131, #132, #145, #134, #150, #153, #154)",
+          "questions beyond the grant were filed as yolo:manual and answered by the maintainer before dependent work: #136 and #146",
+          "the ARCHITECTURE.md amendment carries the maintainer's instruction verbatim and dated, and PR #157 notified it before merge"
+        ]
+      },
+      "Q3_conformance": {
+        "verdict": "pass",
+        "evidence": [
+          "all four obligations cited above with evidence at 9c05e25",
+          "all 25 commits in the interval listed in reviewed_commits",
+          "no protected document changed in the interval; git diff over CHARTER.md and AUTHORITY.md is empty",
+          "open_questions below carry the items this review could not settle rather than a claim that it did"
+        ]
+      },
+      "Q4_verified_publication": {
+        "verdict": "pass",
+        "evidence": [
+          ".yolo/reports/releases-observed-2026-10-15.json — v0.4.0 installed from the release into an empty directory, served build c1daf3e, e2e:verify-release 6 of 6",
+          ".yolo/reports/releases-observed-2026-10-14.json — v0.3.2 published against the existing tag, acceptance 6 of 6 on the installed artifact, with the guard confirmed by v0.3.1 failing 4 of 6"
+        ],
+        "limits": [
+          "Acceptance was not re-run against a delivered artifact in this review; it is cited from the dated observation reports for those publications.",
+          "One v0.4.0 artifact check passed vacuously — the rendered reconciliation badge had no live conflict to render — and the served-stylesheet check covering it passed. Recorded in the observation report and not counted as independent evidence.",
+          "The unit and stubbed-e2e suites ran against source revisions, not against the installed artifacts."
+        ]
+      },
+      "Q5_fresh_continuation": {
+        "verdict": "partial",
+        "evidence": [
+          "this session loaded the alpha.23 pin from the repository root and reconciled the record, issue #141 and GitHub state before acting",
+          "the adopted harness.name is pi coding agent 1.0.1, which this session did not load or exercise; two prior opencode sessions are already recorded and this one adds no new fact"
+        ]
+      }
+    }
+  },
+  "open_questions": [
+    {
+      "id": 0,
+      "question": "Does the recorded maintainer instruction authenticate the widening of the agent's release scope in ARCHITECTURE.md?",
+      "status": "unverified",
+      "detail": "a90f243 moved the versioning policy from patch-only to any semver level, quoting the maintainer's 2026-10-14 instruction verbatim and dating it inside the policy. AUTHORITY.md reserves 'widening the agent's own scope' to the maintainer, so this edit is authority-relevant even though ARCHITECTURE.md is not a protected document. The instruction's only durable artifact is agent-authored text in a shared account, which by this repository's own watermark rule cannot authenticate a human. Under the grant's weaker standard — 'the agent cannot publish as the maintainer without recorded human intent' — the bar is met, and nothing reserved was exercised. The two readings differ, and this repository cannot settle which applies.",
+      "impact": "Affects the standing release delegation's evidentiary basis, not any delivered artifact: v0.4.0 is correct, tagged, published and acceptance-passed either way.",
+      "cheapest_resolution": "One comment from the maintainer, in their own words, confirming the ARCHITECTURE.md versioning clause at c1daf3e. That converts an agent-recorded instruction into an authenticated one and closes this permanently.",
+      "blocked_by": "maintainer"
+    },
+    {
+      "id": 1,
+      "question": "AUTHORITY.md's Release clause both delegates 'create and retire tags and releases' and reserves 'deleting tags or releases'. Which reading governs retirement?",
+      "status": "unverified",
+      "detail": "The same bullet delegates retirement and then reserves deletion, and the amended policy now states that retiring or deleting stays reserved. Nothing was retired or deleted in this interval — v0.3.0 remains tagged and unpublished — so the conservative reading was applied in practice. The tension is pre-existing and sits in a protected document, so the agent does not resolve it.",
+      "impact": "None observed. It is a latent ambiguity that could be read permissively by a future session.",
+      "cheapest_resolution": "A one-clause edit to AUTHORITY.md stating that retiring or deleting is reserved, which is how the policy already reads.",
+      "blocked_by": "maintainer"
+    },
+    {
+      "id": 2,
+      "question": "The checkpoint cannot advance past 31c0f8b because six published chain reports do not name all four obligations.",
+      "status": "open",
+      "detail": "Unchanged from checkpoint-review-2026-10-12.json, whose disposable-clone probe proved both halves: the obligation is genuinely missing from onboarding-l1-proposal.json, activation-2026-10-05.json, delivery-2026-10-05-5.json, delivery-2026-10-05-22.json, delivery-2026-10-06-alpha13.json and delivery-2026-10-06-final.json, and repairing them would rewrite published evidence that the validator itself refuses to read in altered form. This report adds a ninth interval to the record but cannot repair the chain. The 2026-10-13 comment on #141 proposed upstream feedback to the publisher; that draft is unsent and needs the maintainer's go-ahead before it goes anywhere.",
+      "impact": "The checkpoint stays at 31c0f8b. Reviews are published and retained, but no interval can be accepted as checkpoint evidence.",
+      "cheapest_resolution": "Maintainer accepts that the checkpoint stays put, authorises a recorded exception, or approves the upstream report so the rule can change where it lives.",
+      "blocked_by": "maintainer"
+    },
+    {
+      "id": 3,
+      "question": "Which harness is adopted?",
+      "status": "unverified",
+      "detail": "adoption.json names pi coding agent 1.0.1. Every session since 2026-10-12 has run in opencode, and three of those have now recorded their loading. The record is honest about this — each entry states that it does not attest pi — but the consequence is that Q5 cannot pass while the adopted name names a harness that has not run. Re-attributing the claim is not the agent's to do.",
+      "impact": "Q5 stays partial and no level is claimed, however much work is delivered.",
+      "cheapest_resolution": "The maintainer names the harness in use. Either a pi session records a continuation, or the adopted name changes to opencode with its version and the existing opencode observations promoted to the claim.",
+      "blocked_by": "maintainer"
+    },
+    {
+      "id": 4,
+      "question": "Live gaps in docs/verification.md remain unobserved.",
+      "status": "open",
+      "detail": "First-login (gh auth login --web), the gh-missing path and browser-open behaviour are unit tested but not observed live; observing the first two would mean revoking or removing a working credential. Mid-session auth loss is forced read-only in the live E2E. Pagination is no longer a gap — it was a misdiagnosis caused by the truncation bug, corrected on #150. These are recorded limits, not defects.",
+      "impact": "Verification coverage is honest but partial; nothing delivered depends on them.",
+      "cheapest_resolution": "Decide whether any is worth observing. The first-login path costs a credential, which is why it has been left.",
+      "blocked_by": "maintainer"
+    },
+    {
+      "id": 5,
+      "question": "ARCHITECTURE.md's delivery-route example still cites #v0.1.0.",
+      "status": "open",
+      "detail": "The same PR de-pinned the delivered-version paragraph on the reasoning that a pinned tag goes stale, but the Delivery route bullet above it still shows github:normzhou/yolo-blank-canvas#v0.1.0 as the example. README cites v0.4.0. A reader copying the governance example installs a product seven releases behind.",
+      "impact": "Low and cosmetic; it is an example of command shape, not a claim about the current release.",
+      "cheapest_resolution": "One-line edit alongside the next ARCHITECTURE.md touch. Not done here to keep a record review from also carrying a co-owned design edit.",
+      "blocked_by": null
+    },
+    {
+      "id": 6,
+      "question": "Seventy-one remote branches remain after their pull requests merged.",
+      "status": "open",
+      "detail": "Every one is a squash-merge source whose content is already on main; none holds work. No interrupted effect was found among them. Deleting branches is reserved to the maintainer, so they stand.",
+      "impact": "Repository tidiness and a wider surface for a stale branch to be mistaken for live work.",
+      "cheapest_resolution": "A maintainer sweep, or a standing instruction to delete a branch once its PR merges.",
+      "blocked_by": "maintainer"
+    }
+  ],
+  "record_repairs_in_this_change": [
+    ".yolo/adoption.json — checkpoint.review_of_next_interval advanced to this report's subject with the previous entry preserved verbatim; unresolved[] gained this review and its resolutions; qualification.evidence records the Q4 change",
+    "docs/verification.md — the tested-revision and unit-snapshot sections named v0.3.1 and 12 files / 104 tests, three releases stale, while README and the adoption record named v0.4.0; both are updated to the current revision with earlier counts preserved where the file already preserves them"
+  ],
+  "checkpoint_outcome": {
+    "attempted_checkpoint": "9c05e25d49c88082774b83d8e5997828afec4905",
+    "outcome": "not advanced",
+    "reason": "Same cause as on 2026-10-12, unchanged and re-confirmed: the validator walks the whole published chain and requires every report in it to name ownership, congruence, verification and continuity. Six committed reports predate that discipline and cannot be altered without rewriting published evidence, which the same validator refuses. The chain defect is upstream of this interval and no amount of new review can clear it.",
+    "what_this_report_does_achieve": "A complete, cited, successful review of the 25 commits that landed after the previous review's subject, with acceptance run again at this revision rather than inherited. It is retained as the evidence for that interval and is deliberately not recorded as the checkpoint.",
+    "next_action_owner": "Maintainer, via open_questions[2]: accept that the checkpoint stays at 31c0f8b, authorise a recorded exception, or approve filing the upstream report drafted on 2026-10-13."
+  },
+  "next": "Maintainer answers open_questions[0]–[3]: confirm the release-policy clause in their own words, settle the retire/delete wording, choose between accepting the checkpoint as it stands or approving the upstream report, and name the adopted harness. Then admit the live-gap observation as an outcome if it is wanted, and close the delivery-route example with the next ARCHITECTURE.md edit.",
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #141"
+}

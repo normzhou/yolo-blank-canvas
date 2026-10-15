@@ -6,28 +6,46 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Deterministic tests (`npm test`)
 
-```
- ✓ test/status.test.ts (17 tests)          status/summary derivation from fixtures
- ✓ test/github-client.test.ts (8 tests)    target validation, argument isolation, PR exclusion, pagination
- ✓ test/gh-process.test.ts (4 tests)       real process boundary against a stand-in `gh` executable
- ✓ test/app-api.test.ts (14 tests)         session, cross-site, host, identity, write-ambiguity, endpoint scope, CSP media-src
- ✓ test/launcher.test.ts (12 tests)        gh missing, first login, cancellation, noninteractive, port fallback
- ✓ test/markdown.test.tsx (5 tests)        untrusted Markdown cannot execute; links stay safe
- ✓ test/drafts.test.ts (5 tests)           draft preservation and clearing only after confirmation
- ✓ test/list-refresh.test.ts (5 tests)     background refresh keeps rows; filter changes clear
- ✓ test/list-reconciliation.test.ts (8 tests)  created-issue reconciliation against the list
- ✓ test/tetris.test.ts (19 tests)          Tetris pieces, collision, line clear, scoring, game over, tetris count
- ✓ test/tetris-music.test.ts (4 tests)     bundled track list, shuffle permutation/determinism, bundled files exist
- ✓ test/tetris-backgrounds.test.ts (3 tests)  bundled scenes, four-line cycle helper, bundled files exist
+Run 2026-10-14 at `9c05e25` (the `v0.4.0` release commit; assets built from source `c1daf3e`):
 
- Test Files  12 passed (12)
-      Tests  104 passed (104)
+```
+  ✓ test/theme-discipline.test.ts (21 tests)  nine-step neutral ramp, monotonic, chroma-bounded, every theme
+  ✓ test/status.test.ts (24 tests)            status/summary derivation from fixtures
+  ✓ test/tetris.test.ts (19 tests)            Tetris pieces, collision, line clear, scoring, game over, tetris count
+  ✓ test/theme.test.ts (10 tests)             theme selection and persistence
+  ✓ test/contrast.test.ts (14 tests)          WCAG floor across every pair
+  ✓ test/theme-tokens.test.ts (6 tests)       every theme covers every colour role
+  ✓ test/list-reconciliation.test.ts (8 tests)  created-issue reconciliation against the list
+  ✓ test/route.test.ts (12 tests)             ?panel / ?panel=new / ?panel=<n>, malformed-value fallback
+  ✓ test/csp.test.ts (4 tests)                content security policy
+  ✓ test/theme-contrast.test.ts (74 tests)    APCA floor, verified against published reference values
+  ✓ test/launcher.test.ts (12 tests)          gh missing, first login, cancellation, noninteractive, port fallback
+  ✓ test/github-client.test.ts (9 tests)      target validation, argument isolation, PR exclusion, pagination
+  ✓ test/drafts.test.ts (5 tests)             draft preservation and clearing only after confirmation
+  ✓ test/app-api.test.ts (14 tests)           session, cross-site, host, identity, write-ambiguity, endpoint scope, CSP media-src
+  ✓ test/type-scale.test.ts (2 tests)         no raw font-size, exactly four role tokens
+  ✓ test/list-refresh.test.ts (5 tests)       background refresh keeps rows; filter changes clear
+  ✓ test/tetris-music.test.ts (4 tests)       bundled track list, shuffle permutation/determinism, bundled files exist
+  ✓ test/tetris-backgrounds.test.ts (3 tests)  bundled scenes, four-line cycle helper, bundled files exist
+  ✓ test/gh-process.test.ts (4 tests)         real process boundary against a stand-in `gh` executable
+  ✓ test/markdown.test.tsx (5 tests)          untrusted Markdown cannot execute; links stay safe
+
+  Test Files  20 passed (20)
+       Tests  255 passed (255)
 ```
 
-Also run: `npx tsc --noEmit` (clean), `npm run build` (clean). Last full pass at the v0.3.1
-release (`80bf5f8`, on top of the #67 CSP fix `7ffb324`); see the per-issue sections below for
-earlier results. Earlier counts are preserved in their sections; the playlist/backdrop tests
-were rewritten for the sourced-assets change.
+Also run at the same revision: `npx tsc --noEmit` (clean), `npm run e2e` (77 passed, 1 skipped
+against the stubbed client, no repository writes), `npm run build` (clean), and
+`yolo-check . --structure` — `structure.status: pass`, 14 rules compliant, 0 non-compliant, from
+the pinned `v0.1.0-alpha.23` executable whose SHA-256 matches the release `SHA256SUMS` and whose
+self-reported publication equals the pinned skill revision.
+
+See the per-issue sections below for earlier results; earlier counts are preserved in their own
+sections and this block is the current full pass. The block it replaces dated itself to the `v0.3.1`
+release and 12 files / 104 tests — three releases stale, an understatement of what had been
+verified by exactly the class of defect #150 fixed in the app. The correction and its cause are
+recorded in
+[`.yolo/reports/checkpoint-review-2026-10-14.json`](../.yolo/reports/checkpoint-review-2026-10-14.json).
 
 Fixture coverage required by the spec, all in `test/status.test.ts`: untagged open issue → **Request open**; all four managed states; missing state, duplicate states, and state without `yolo:work` → **Status needs reconciliation** with raw labels; closure reasons `not_planned` / `duplicate` / `completed`; **Completed (reported)** vs **Closed**; unknown reason → **Closed — reason unavailable**; leftover state labels on a closed issue; reported-summary detection rules, most-recent-match selection, and `No progress summary yet.` / `Delivery timing not yet estimated.` fallbacks. No fixture asserts scheduling or availability.
 
@@ -431,14 +449,36 @@ agent, so these were taken under the standing grant rather than left waiting.
 
 ## Tested revision
 
-Release tag `v0.3.1` points at the squash merge `80bf5f8` (release bump) on top of
-`7ffb324` (the #68 CSP fix). Assets were built from source `7ffb324` (the fix commit;
-`dist/client/.build-id` and `server/build-id.generated.js` report `7ffb324…`). The native
-version at the tagged revision (`package.json`) is `0.3.1`. The published artifact was verified
-outside the checkout as described in the issue #67 section and
-[`.yolo/reports/releases-observed-2026-10-07.json`](../.yolo/reports/releases-observed-2026-10-07.json).
+Release tag `v0.4.0` points at the release commit `e1105c3`. Assets were built from source
+`c1daf3e` (`dist/client/.build-id` and `server/build-id.generated.js` both report `c1daf3e…`),
+which is the assets-only-commit-after-source ordering the app's version-skew banner surfaces.
+The native version at the tagged revision (`package.json`) is `0.4.0`. The published artifact was
+installed from the release into an empty directory and accepted 6 of 6 on
+`e2e:verify-release`, as recorded in
+[`.yolo/reports/releases-observed-2026-10-15.json`](../.yolo/reports/releases-observed-2026-10-15.json);
+its stated limits travel with it, including that one check passed vacuously and that the unit and
+stubbed-e2e suites ran against source, not against the installed artifact.
 
-History: `v0.3.0` (`dbfdacf`, assets from `350852b`) shipped the sourced CC0 music/backdrops;
+The previous revision named in this section was `v0.3.1` (`80bf5f8`, assets from `7ffb324`). That
+was accurate when written and is kept here as history rather than replaced silently: three releases
+landed after it, and the section had not been carried forward, so this file understated the current
+state while `README.md` and `.yolo/adoption.json` named `v0.4.0`. The correction is recorded in
+[`.yolo/reports/checkpoint-review-2026-10-14.json`](../.yolo/reports/checkpoint-review-2026-10-14.json).
+
+Also verified on the delivered artifact, and recorded at the time: `v0.3.2` (`75cfffb`), published
+2026-10-14 after the gap recorded in issue #153. Until then the newest *published* release had been
+`v0.3.1`, 76 commits behind `main` and passing only **1 of 6** `e2e:verify-release` checks when
+installed and measured — among them a reconciliation badge below WCAG AA and a backdrop crossfade
+still animating under `prefers-reduced-motion`. See
+[`.yolo/reports/release-gap-2026-10-14.json`](../.yolo/reports/release-gap-2026-10-14.json) for the
+measurement and
+[`.yolo/reports/releases-observed-2026-10-14.json`](../.yolo/reports/releases-observed-2026-10-14.json)
+for the publication and its acceptance.
+`v0.3.0` remains tagged and unpublished, superseded by `v0.3.1`; deleting it is reserved to the
+maintainer, so it stands.
+
+History: `v0.3.1` (`80bf5f8`, assets from `7ffb324`) fixed the CSP that blocked every audio load
+(#67); `v0.3.0` (`dbfdacf`, assets from `350852b`) shipped the sourced CC0 music/backdrops;
 `v0.2.0` (`eaf7cc2`, assets from `828b21d`) added the longer tunes, more backdrops and the
 crossfade; `v0.1.2` (source `26feaa6`, squash merge `878854e`) added Tetris and the first
 chiptune melody; `v0.1.1` (source `e39b750`, squash merge `0c8038f`) kept list rows visible
