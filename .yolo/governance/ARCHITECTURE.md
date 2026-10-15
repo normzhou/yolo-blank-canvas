@@ -89,12 +89,17 @@ contractual where it is in scope. Its observed gaps are listed under Decisions a
   cited from [docs/verification.md](../../docs/verification.md).
 - **Delivery route:** one-command `npx` install of a tagged revision
   (`github:normzhou/yolo-blank-canvas#v0.1.0`).
-- **Versioning policy:** semantic versioning on the delivered artifact. A patch release may be cut
-  by the agent after acceptance passes on the version users receive; a minor or major release, and
-  any change to this policy, is a maintainer decision.
+- **Versioning policy:** semantic versioning on the delivered artifact. **The agent cuts releases at
+  any semver level — patch, minor or major — without seeking per-release approval**, on the condition
+  that acceptance passes on the version users actually receive. Choosing the version and cutting it is
+  ordinary work, not an escalation. This standing delegation was granted by the maintainer on
+  2026-10-14 ("work and stop asking me for permission to release versions") and is the identified
+  human approval [CHARTER.md](CHARTER.md) durable constraint 5 requires for publishing. It does not
+  extend to **retiring or deleting** a tag or release, or to **changing this policy**; both remain
+  reserved to the maintainer. A release that fails acceptance is not cut.
 - **Delivered-version observation:** `GET /api/version` reports `serverBuild`/`clientBuild`; the
   client footer shows the revision it was built from and offers a user-initiated reload when the
-  server advertises a different client build. Current tag `v0.1.0` points at an assets-only commit
+  server advertises a different client build. A release tag points at an assets-only commit
   following the tagged source, and both build-ID files record the built source revision — a
   deliberate ordering that must stay legible to users.
 
