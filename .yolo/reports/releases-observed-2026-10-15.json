@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-14",
+  "published_at_utc": "2026-10-15T04:19:25Z",
+  "protocol": {
+    "revision": "7b9d12fae425217b2651e9f4e5f1c25a0372bcf9",
+    "release": "v0.1.0-alpha.23"
+  },
+  "note_on_dates": "The release was published at 2026-10-15T04:19Z, which is 2026-10-14 local. This file is separate from releases-observed-2026-10-14.json rather than an edit to it, because that report is a committed record of the v0.3.2 work and appending to it would rewrite what it claims to be.",
+  "release": {
+    "tag": "v0.4.0",
+    "release_commit": "e1105c36730e1f887fe5cac0994a32ad9598395d",
+    "source_commit": "c1daf3e6d558e3dd902b238d763df6889f850af8",
+    "semver": "minor",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) following the maintainer's instruction 'work and stop asking me for permission to release versions'. The policy grants the agent any semver level without per-release approval, conditioned on acceptance. Retiring or deleting a tag or release, and changing the policy itself, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record c1daf3e, the source revision, while the tag points at the release commit e1105c3. The documented ordering holds: a release tag points at an assets-only commit following the tagged source."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "255 passed across 20 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run e2e (stubbed, deterministic)", "result": "pass", "detail": "77 passed, 1 skipped" },
+    { "check": "yolo-check . --structure", "result": "pass", "detail": "every rule compliant" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "installed_from": "npx --yes github:normzhou/yolo-blank-canvas#v0.4.0 --no-open --port 4641",
+    "installed_into": "an empty directory, no source checkout present",
+    "served_build": "c1daf3e6d558e3dd902b238d763df6889f850af8",
+    "command": "YOLO_VERIFY_URL=http://127.0.0.1:4641 npm run e2e:verify-release",
+    "result": "pass",
+    "detail": "6 of 6: reconciliation badge clears WCAG AA in the served stylesheet; text fields carry a fill distinct from the panel; the Tetris stats panel is opaque; the crossfade is cut under prefers-reduced-motion; the bundle serves the assets the build recorded; and a rendered reconciliation badge is styled when live data has one."
+  },
+  "what_this_release_delivers": [
+    "#130 action hierarchy - one primary canvas action next to the question; the dead Requests control fixed",
+    "#131 surface model - visible scrim and centred working surface, reversing #75's Q1 direction",
+    "#132 addressable views - ?panel, ?panel=new, ?panel=<n>; popstate applies state and never pushes",
+    "#133 list as index - whole row is one control; status in a scannable column",
+    "#134 finish pass - terminal-phosphor theme behind nine-step --n1..--n9 ramps",
+    "#150 two list defects - hasMore on the raw page, and the in-flight guard no longer dropping a read",
+    "#156 release verification made version-tolerant"
+  ],
+  "carried_known_gaps": [
+    "12 of 75 visual captures differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization, 648 of 1,152,000 px. Characterised in #145, not fixed. The determinism guard checks content, not pixels, by design.",
+    "The first-login path (gh auth login --web) is unverified live, because verifying it would mean revoking the working session."
+  ],
+  "limits": [
+    "Acceptance on the delivered artifact is six read-only checks. The 255 unit tests and 77 stubbed e2e tests ran against the source revision, not against the installed artifact.",
+    "'a rendered reconciliation badge, when the data has one' is conditional on live repository state and passed vacuously: the repository had no conflicting-state issue. The served-stylesheet check covers that badge, and this is recorded rather than counted as evidence.",
+    "The minor/minor judgement is the agent's, under the amended policy. main's package.json was still 0.3.2 and it adds addressable views and a theme switcher, which read as capability rather than repair."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #154"
+}

@@ -193,11 +193,12 @@
         "v0.3.1": "80bf5f860c4a360e855c8b0a786df7a04f3a70e6"
       },
       "published": {
-        "tag": "v0.3.2",
-        "commit": "75cfffb583bc0a241aa3270aa207dcdc21833cf4",
-        "published_at": "2026-10-14T22:49:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-10-14.json",
-        "note": "Published 2026-10-14 from a tag that had existed since 2026-10-07 without a release. Acceptance re-run against the artifact installed from the release: 6 of 6."
+        "tag": "v0.4.0",
+        "commit": "e1105c36730e1f887fe5cac0994a32ad9598395d",
+        "source_commit": "c1daf3e6d558e3dd902b238d763df6889f850af8",
+        "published_at": "2026-10-15T04:19:25Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-10-15.json",
+        "note": "Minor release. Carries the structural UX/UI redesign (#130-#133), the theme ramp (#134) and the list fixes (#150). Acceptance before tagging: 255 unit, 77 stubbed e2e, tsc clean. Acceptance on the delivered artifact: 6 of 6."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -206,7 +207,8 @@
         ".yolo/reports/releases-observed-2026-10-06.json",
         ".yolo/reports/releases-observed-2026-10-07.json",
         ".yolo/reports/releases-observed-2026-10-08.json",
-        ".yolo/reports/releases-observed-2026-10-14.json"
+        ".yolo/reports/releases-observed-2026-10-14.json",
+        ".yolo/reports/releases-observed-2026-10-15.json"
       ]
     }
   },
