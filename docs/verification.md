@@ -7,8 +7,9 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 ## Contextual feedback (#169) — 2026-10-21
 
 Source revision `2302878` (the feature commit); build and review evidence
-`5fd426d`; not yet released at the time of this record. The unit, type, build,
-e2e and structure results below ran against this revision.
+`5fd426d`; release commit `e93d5a5`; published as `v0.6.0` on 2026-10-21. The
+unit and stubbed e2e results below ran against the source revision; the 8/8
+acceptance below ran against the installed tag users receive.
 
 - `npm test`: 22 files, 267 tests passed. Added `test/feedback.test.ts` (2) for
   the exact context line and body seed; `test/drafts.test.ts` now has 6 tests,
@@ -33,12 +34,34 @@ e2e and structure results below ran against this revision.
   `structure.status: pass`, 13/13 findings compliant, clean working tree at
   `5fd426d`.
 
-Open gaps: this record predates the release; installed-artifact acceptance is
-recorded below after publication. The context is text only by decision — no
-labels, attachments, element targeting or per-app content persistence. Richer
-in-app evidence remains deferred as #170. The normal e2e run does not execute
-`e2e/verify-release.spec.ts`, so the installed check is exercised only against
-the delivered artifact.
+### Installed artifact (`v0.6.0`)
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.6.0 --no-open --port 4875`
+in an empty directory, with no source checkout. `GET /api/version` reported both
+`serverBuild` and `clientBuild` as `2302878…`; the tagged package version is
+`0.6.0`. The tag points at release commit `e93d5a5`, after the assets commit
+`5fd426d`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4875 npx playwright test --config playwright.verify.config.ts`:
+**8 passed, 0 failed**. The seven earlier checks — reconciliation-badge
+contrast, text-field fill, Tetris stats opacity, reduced-motion crossfade,
+recorded asset identity, the conditional rendered-badge check and the gallery
+shell check — plus the new contextual-feedback check: from `?app=tetris`,
+Feedback opens `?app=tetris&panel=new`; the description is exactly
+`App: Tetris (?app=tetris)` plus a blank line; Title is focused; Escape closes
+without submitting and returns focus to Feedback. The feedback check skips on
+releases that predate #169. The report is
+[`.yolo/reports/releases-observed-2026-10-21-contextual-feedback.json`](../.yolo/reports/releases-observed-2026-10-21-contextual-feedback.json).
+
+Open gaps: the context is text only by decision — no labels, attachments,
+element targeting or per-app content persistence. Richer in-app evidence
+remains deferred as #170. Installed acceptance is eight targeted read-only
+checks, not the full suite, and the new installed check does not submit a live
+issue; submission is covered by the stubbed e2e. The normal e2e run does not
+execute `e2e/verify-release.spec.ts`, so the installed check is exercised only
+against the delivered artifact. The tag points at release commit `e93d5a5`
+after the assets commit `5fd426d`, not at an assets-only commit; both build-ID
+files record `2302878`.
 
 ## Canvas gallery (#165) — 2026-10-21
 
@@ -531,22 +554,26 @@ agent, so these were taken under the standing grant rather than left waiting.
 
 ## Tested revision
 
-Release tag `v0.5.0` points at release commit `f0262ae`. Assets were built from source
-`4cad4b6` (`dist/client/.build-id` and `server/build-id.generated.js` both report `4cad4b6…`)
-and committed in `c456385`; the release commit itself adds only the `0.5.0` version and install
+Release tag `v0.6.0` points at release commit `e93d5a5`. Assets were built from source
+`2302878` (`dist/client/.build-id` and `server/build-id.generated.js` both report `2302878…`)
+and committed in `5fd426d`; the release commit itself adds only the `0.6.0` version and install
 references, with no source changes. The native version at the tagged revision (`package.json`) is
-`0.5.0`. The published artifact was installed from the release into an empty directory and accepted
-7 of 7 on `e2e:verify-release` — the six existing checks plus the gallery shell check — as recorded
-in
-[`.yolo/reports/releases-observed-2026-10-21.json`](../.yolo/reports/releases-observed-2026-10-21.json).
-Its limits travel with it: seven targeted checks rather than the full suite, the gallery check covers
-shell navigation only, and the tag points at the release commit after the assets commit rather than
-at it.
+`0.6.0`. The published artifact was installed from the release into an empty directory and accepted
+8 of 8 on `e2e:verify-release` — the seven earlier checks plus contextual feedback — as recorded in
+[`.yolo/reports/releases-observed-2026-10-21-contextual-feedback.json`](../.yolo/reports/releases-observed-2026-10-21-contextual-feedback.json).
+Its limits travel with it: eight targeted checks rather than the full suite; the feedback check
+asserts the prefilled context and focus return but does not submit a live issue; and the tag points
+at the release commit after the assets commit rather than at it.
 
-The previous revision named in this section was `v0.4.0` (release `e1105c3`, assets from
+The previous revision named in this section was `v0.5.0` (release `f0262ae`, assets from
+`4cad4b6`), accepted 7 of 7 on the installed artifact on 2026-10-21 and recorded in
+[`.yolo/reports/releases-observed-2026-10-21.json`](../.yolo/reports/releases-observed-2026-10-21.json).
+It remains valid history, not the current tested revision.
+
+The revision before that was `v0.4.0` (release `e1105c3`, assets from
 `c1daf3e`), accepted 6 of 6 on the installed artifact on 2026-10-15 and recorded in
 [`.yolo/reports/releases-observed-2026-10-15.json`](../.yolo/reports/releases-observed-2026-10-15.json).
-It remains valid history, not the current tested revision.
+It remains valid history.
 
 The earlier revision named here was `v0.3.1` (`80bf5f8`, assets from `7ffb324`). That was accurate
 when written and is kept here as history rather than replaced silently: later releases landed before

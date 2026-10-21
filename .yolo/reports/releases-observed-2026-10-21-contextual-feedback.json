@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-21",
+  "published_at_utc": "2026-10-21T15:51:15Z",
+  "protocol": {
+    "revision": "e95211f32261580fb580cf0da9d7276ae477b063",
+    "release": "v0.1.0-alpha.30"
+  },
+  "release": {
+    "tag": "v0.6.0",
+    "tag_object": "6a33516ed25eb6dfb957d6434ea82ce2d09540f0",
+    "release_commit": "e93d5a597db95d88349728254da7433232bdd47f",
+    "source_commit": "2302878a1ae750129fa21c08b716b7849b40768a",
+    "assets_commit": "5fd426d24e5ffa4d8c7a077b0a00469d3d4efd84",
+    "semver": "minor",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record 2302878, the source revision. The committed assets were built at that source in 5fd426d. e93d5a5 is a release-metadata commit (version and install references, no source changes) after the assets commit; the tag points there. This follows the v0.5.0 precedent of a release commit with no source changes, though ARCHITECTURE.md's 'assets-only commit' sentence is read as 'a release commit, never a source change'. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "267 passed across 22 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID 2302878" },
+    { "check": "npm run e2e (stubbed, deterministic)", "result": "pass", "detail": "87 passed, 1 skipped (88 run)" },
+    { "check": "yolo-check . --structure (0.1.0-alpha.30)", "result": "pass", "detail": "13 of 13 findings compliant; clean working tree at 5fd426d; executable SHA-256 7c04535f... matched the published SHA256SUMS" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #171 run 39626765490 completed success (npm test and tsc); the main push run 39629092347 also succeeded" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "installed_from": "npx --yes github:normzhou/yolo-blank-canvas#v0.6.0 --no-open --port 4875",
+    "installed_into": "an empty directory, no source checkout present",
+    "served_build": "2302878a1ae750129fa21c08b716b7849b40768a",
+    "served_version": {
+      "package": "0.6.0",
+      "serverBuild": "2302878a1ae750129fa21c08b716b7849b40768a",
+      "clientBuild": "2302878a1ae750129fa21c08b716b7849b40768a"
+    },
+    "command": "YOLO_VERIFY_URL=http://127.0.0.1:4875 npx playwright test --config playwright.verify.config.ts",
+    "result": "pass",
+    "detail": "8 of 8: the reconciliation badge clears WCAG AA in the served stylesheet; a rendered reconciliation badge is styled when live data has one (conditional and passed on this repository); text fields carry a fill distinct from the panel; the Tetris stats panel is opaque; the crossfade is cut under prefers-reduced-motion; the bundle serves the assets the build recorded; the gallery check opens ?app=tetris, names Tetris current in the palette, and closes the palette with Escape without unmounting the app; and the new contextual-feedback check opens Tetris from the gallery, opens Feedback at ?app=tetris&panel=new, finds the description exactly 'App: Tetris (?app=tetris)' plus a blank line, confirms Title focus, and closes with Escape without submitting, returning focus to Feedback."
+  },
+  "what_this_release_delivers": [
+    "#169 contextual feedback - the app header gains Feedback; it opens the existing composer at ?app=<id>&panel=new with an editable body line 'App: <title> (?app=<id>)' followed by a blank line and an empty title",
+    "#169 app-scoped drafts - feedback drafts, the generic home draft and other apps' drafts are separate sessionStorage keys; a confirmed create resets the composer to a fresh context line",
+    "#169 cold links - ?app=tetris&panel=new preloads the context; ?panel=new remains empty",
+    "#169 reachability - Requests still browses the list, and the list's New request also carries the active app's context",
+    "#169 keyboard-safe modal - the panel stops keydown propagation so Tetris's window-level arrow and hard-drop Space controls cannot consume keys typed into the composer; Escape still closes the panel and returns focus to Feedback in the app",
+    "#169 visible, portable record - the context is ordinary editable issue text, not a label, attachment or hidden metadata; no new API, persistence or arbitrary GitHub operation",
+    "Inherited from v0.5.0 - first-party canvas gallery, Tetris entry, Canvas trigger and Ctrl/Cmd+K palette, addressable ?app= locations and Requests composition over an app"
+  ],
+  "carried_known_gaps": [
+    "The app context is text only by decision. There is no app label, screenshot or annotation, element targeting, iframe/manifest/widget API, third-party app, marketplace or per-app content persistence. Richer in-app evidence remains deferred as #170.",
+    "Installed acceptance did not create a real issue; submission into an ordinary issue without an app label is covered by the stubbed e2e, not the live artifact.",
+    "The palette is navigation-only and has no command surface.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization. Characterised in #145, not fixed. The determinism guard checks content, not pixels, by design.",
+    "The first-login path (gh auth login --web) remains unverified live, because verifying it would mean revoking the working session."
+  ],
+  "limits": [
+    "Acceptance on the delivered artifact is eight targeted read-only checks. The 267 unit tests and 88 stubbed e2e tests ran against the source revision, not the installed artifact.",
+    "The new installed check asserts the route, the exact context line, Title focus, Escape behavior and focus return. It does not submit an issue. The stubbed e2e covers create into an ordinary issue and the absence of an app label.",
+    "'a rendered reconciliation badge, when the data has one' is conditional on live repository state; it passed on this repository but remains conditional by design.",
+    "The gallery check skips on releases that predate #165, and the feedback check skips on releases that predate #169, so the same verification file remains usable against older tags.",
+    "The tag points at e93d5a5, a release-metadata commit after the assets commit 5fd426d, not at the assets commit itself. Both build-ID files still record the source 2302878, and the tag was not moved after publication.",
+    "The minor judgement is the agent's under the standing policy: a new user-visible feedback surface and app-scoped drafts read as capability rather than repair."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #169"
+}
