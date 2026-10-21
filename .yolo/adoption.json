@@ -169,6 +169,12 @@
         "observed_at": "2026-10-20",
         "evidence": ".yolo/reports/upgrade-alpha30-proposal.json landed.loading_evidence",
         "note": "The alpha.30 skill was loaded into this session after the migration landed (opencode v2.0.32, run ses_edd7daef5ffe1iENC1ar1oRsLD) and it applied the alpha.30 rules to the landing record. It does not attest the original adoption-record selection (`pi coding agent 1.0.1`), whose continuation remains unrecorded, and it does not re-attribute the adopted claim. Distinct from the 2026-10-12 and 2026-10-13 sessions."
+      },
+      {
+        "harness": "Cursor (Gemini 4 Argon)",
+        "observed_at": "2026-10-21",
+        "evidence": ".yolo/reports/checkpoint-review-2026-10-21.json harness.loading_evidence",
+        "note": "Fresh Cursor session loaded AGENTS.md, .agents/skills/yolo/SKILL.md, and the alpha.30 protocol/adoption/governing context, reconciled the interrupted OpenCode session on branch work/request-capture (#175), repaired the orphaned yolo:state:* labels (#141, #170, #174) and non-canonical ## YOLO status headings (#129, #153), and delivered v0.7.0 (#175) and v0.8.0 (#177)."
       }
     ],
     "original_selection": {
@@ -321,8 +327,8 @@
     }
   ],
   "checkpoint": {
-    "commit": "9c05e25d49c88082774b83d8e5997828afec4905",
-    "report": ".yolo/reports/checkpoint-review-2026-10-14.json",
+    "commit": "c62fbd30c1375e63d0554c500220f5fb1602b97d",
+    "report": ".yolo/reports/checkpoint-review-2026-10-21.json",
     "accepted_by_exception": "2026-10-20 \u00b7 issue #141 \u00b7 scoped owner override (YOLO-Override: #141): the six historical chain reports named in unresolved[] predate the four-obligation rule and stay byte-unchanged. The checkpoint advances for review coverage only; the gap remains visible, the validator's checkpoint finding remains, and qualification is not claimed.",
     "prior_interval_reviews": [
       {
@@ -330,6 +336,12 @@
         "report": ".yolo/reports/checkpoint-review-2026-10-12.json",
         "outcome": "successful review of all 75 commits with cited ownership, congruence, verification and continuity findings and a passing verification entry, recorded as evidence for the interval but NOT accepted as the checkpoint",
         "reason": "The validator requires every report in the published chain to name all four obligations. Five reports predate that discipline and name no congruence finding; delivery-2026-10-06-final.json names neither congruence nor continuity. Repairing them would rewrite published committed evidence, which the same validator refuses and the protocol forbids. Proven by probe in a disposable clone; see checkpoint_outcome in the review report."
+      },
+      {
+        "subject": "9c05e25d49c88082774b83d8e5997828afec4905",
+        "report": ".yolo/reports/checkpoint-review-2026-10-14.json",
+        "outcome": "successful review of the 25 commits 9680736..9c05e25 with all four obligations cited; served as the previous checkpoint before advancing to c62fbd3",
+        "reason": "Chained into .yolo/reports/checkpoint-review-2026-10-21.json."
       }
     ]
   },
@@ -350,7 +362,8 @@
       "2026-10-13: a second fresh opencode session observed loading and continuation and is recorded in .yolo/reports/continuation-2026-10-13.json. Q5 remains partial for the ADOPTED harness (pi coding agent 1.0.1), which this session did not load or exercise. No level is claimed.",
       "2026-10-14 (.yolo/reports/checkpoint-review-2026-10-14.json, issue #141): the 25 commits after the previous review's subject are reviewed with all four obligations cited and acceptance re-run at 9c05e25 - 255 unit tests, tsc clean, 77 stubbed e2e passed, and the pinned alpha.23 validator reporting structure.status: pass with zero non-compliant rules. Q4 moves from partial to PASS for its inspected scope: acceptance ran on the delivered artifacts of v0.3.2 and v0.4.0 (6 of 6 each). Q5 remains partial - a third opencode session adds no fact the two already-recorded ones do not carry, so no continuation report was written and nothing was re-attributed to pi. Qualification stays `unverified` and no level is claimed: Q5 is not satisfied and the checkpoint-chain finding is still open.",
       "2026-10-20 (issue #160): alpha.30 landed at 67f60594dd2267355be2b4110131cb4eef89cce3. This opencode session reloaded the alpha.30 skill from main after the merge (harness opencode v2.0.32, run ses_edd7daef5ffe1iENC1ar1oRsLD), verified the delivered identity and applied the new rules to the landing record. It does not attest the adopted harness `pi coding agent 1.0.1`, whose continuation remains unrecorded. Qualification stays `unverified`; Q5 remains partial and the checkpoint-chain finding is still open.",
-      "2026-10-20 (issue #141): the harness-record ambiguity is resolved by the maintainer's direction \u2014 multiple harnesses are supported; `harness` now names the harness in use (opencode 2.0.32) while each observing session cites its own harness/version. Q5 moves from partial to PASS for its inspected opencode scope: .yolo/reports/continuation-2026-10-13.json records a distinct fresh session loading the pin and reconciling the next action, and the 2026-10-20 session reloaded alpha.30 and continued. Qualification stays `unverified`: the checkpoint-chain gap was accepted by scoped override for checkpoint progression only and is not repaired, so the 'no unresolved required finding' condition for a level claim is not met. No level is claimed."
+      "2026-10-20 (issue #141): the harness-record ambiguity is resolved by the maintainer's direction \u2014 multiple harnesses are supported; `harness` now names the harness in use (opencode 2.0.32) while each observing session cites its own harness/version. Q5 moves from partial to PASS for its inspected opencode scope: .yolo/reports/continuation-2026-10-13.json records a distinct fresh session loading the pin and reconciling the next action, and the 2026-10-20 session reloaded alpha.30 and continued. Qualification stays `unverified`: the checkpoint-chain gap was accepted by scoped override for checkpoint progression only and is not repaired, so the 'no unresolved required finding' condition for a level claim is not met. No level is claimed.",
+      "2026-10-21 (issue #179, .yolo/reports/checkpoint-review-2026-10-21.json): the 41 commits from 9c05e25 to c62fbd3 are reviewed across ownership, congruence, verification and continuity; v0.5.0 (7/7), v0.6.0 (8/8), v0.7.0 (9/9) and v0.8.0 (10/10) are verified on their installed artifacts; a fresh Cursor session recovered the interrupted #175 session and delivered v0.7.0 and v0.8.0; and the #129/#153 issue_summary findings and #141/#170/#174 issue_state findings are cleared. Qualification stays `unverified` because the historical checkpoint-chain gap (accepted by YOLO-Override: #141 for checkpoint progression only) and the initial schema_version: 1 commit of releases-observed-2026-10-14.json remain in immutable git history."
     ]
   },
   "feedback": {
