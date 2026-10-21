@@ -22,10 +22,26 @@ export function NewRequestView({
   const [touched, setTouched] = useState(false);
   const submittingRef = useRef(false);
   const titleRef = useRef<HTMLInputElement>(null);
+  const bodyCaretPlaced = useRef(false);
 
   useEffect(() => {
     titleRef.current?.focus();
   }, []);
+
+  /**
+   * #169: the body can open with a visible app-context line (or a restored
+   * draft). Tabbing into it must not select the whole value and let the first
+   * keystroke replace it; put the caret after the existing text on first focus.
+   * A deliberate click inside the text keeps its position.
+   */
+  function focusBody(event: React.FocusEvent<HTMLTextAreaElement>) {
+    if (bodyCaretPlaced.current) return;
+    bodyCaretPlaced.current = true;
+    const body = event.currentTarget;
+    if (body.value.length > 0 && body.selectionStart === 0) {
+      body.setSelectionRange(body.value.length, body.value.length);
+    }
+  }
 
   const titleMissing = draft.title.trim().length === 0;
 
@@ -92,6 +108,7 @@ export function NewRequestView({
         <textarea
           id="new-request-body"
           value={draft.body}
+          onFocus={focusBody}
           onChange={(event) => onDraftChange({ ...draft, body: event.target.value })}
         />
         <p className="hint">Describe the desired behavior, the observed bug, or any relevant context.</p>

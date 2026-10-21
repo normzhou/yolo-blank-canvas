@@ -22,6 +22,7 @@
  * | `?panel=new` | Requests is open on the request composer. |
  * | `?panel=<n>` | Requests is open on request `n`. |
  * | `?app=<id>&panel=<n>` | Request `n` opening over that app. |
+ * | `?app=<id>&panel=new` | The composer, carrying that app's context (#169). |
  *
  * `?panel=123` is the linkable form, kept short because it is the one people
  * paste into an issue. Absence of the parameter is the resting state, which

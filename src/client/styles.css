@@ -286,6 +286,18 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
   border-color: var(--accent);
   color: var(--accent-weak-text);
 }
+/* #169: Feedback is the direct path into the requests workflow while an app is
+   open. It gets the accent edge, not a filled primary treatment: the app is
+   still the thing on screen, and feedback should be easy to find without
+   competing with the app's own controls. */
+.canvas-actions > button.canvas-feedback {
+  border-color: var(--accent);
+  color: var(--accent-weak-text);
+}
+.canvas-actions > button.canvas-feedback:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--accent-weak);
+}
 /* #130: the prompt is a question and the primary control is its answer, so they
    form one centred group and answering costs no scan of the header. The group
    centres in the space the header and identity line leave, replacing the old

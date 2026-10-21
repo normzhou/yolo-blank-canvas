@@ -63,7 +63,10 @@ shell owns navigation through the home row, the header trigger and the Ctrl/⌘K
 `?app=<id>` is the app's location, and `?app=<id>&panel=<n>` composes the Requests overlay over it.
 The registry is a compile-time list, not a plugin surface: there is no manifest, remote loading,
 install step, iframe, third-party app, marketplace or per-app persistence. The Tetris entry is the
-first app; contextual feedback capture is deliberately not part of this model yet.
+first app. Contextual feedback capture is deliberately text-only: a request composed over an app
+starts with `App: <title> (?app=<id>)` in its body, and new-request drafts are scoped by app. There
+is no app label, attachment, element targeting, per-app content persistence or new API; richer
+in-app evidence is a deferred request (#170).
 
 ## Behavior contracts
 
@@ -77,6 +80,7 @@ The durable observable contracts, verified by the test suite:
 | Launcher prerequisites, auth reuse, port fallback | `server/cli.js`, `server/launch.js` | `test/launcher.test.ts` |
 | Untrusted Markdown safety | `src/client/components/Markdown.tsx` | `test/markdown.test.tsx` |
 | Draft preservation across panel/refresh/reload | `src/client/drafts.ts` | `test/drafts.test.ts` |
+| App-context feedback line and app-scoped new-request drafts | `src/client/feedback.ts`, `src/client/drafts.ts` | `test/feedback.test.ts`, `test/drafts.test.ts`, `e2e/app-feedback.spec.ts` |
 | Canvas app registry and addressable `?app=` locations | `src/client/apps/registry.ts`, `src/client/route.ts` | `test/apps.test.ts`, `test/route.test.ts`, `e2e/canvas-gallery.spec.ts` |
 | Tetris rules and board state (local to the view, not a GitHub record) | `src/shared/tetris.ts` | `test/tetris.test.ts` |
 | Tetris track list and shuffled bundled-asset playlist | `src/shared/tetrisMusic.ts` | `test/tetris-music.test.ts` |

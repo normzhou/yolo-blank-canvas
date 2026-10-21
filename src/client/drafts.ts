@@ -17,6 +17,7 @@ export interface DraftStore {
 }
 
 export const NEW_REQUEST_KEY = 'yolo.draft.new-request';
+export const FEEDBACK_KEY_PREFIX = 'yolo.draft.feedback.';
 export const REPLY_KEY_PREFIX = 'yolo.draft.reply.';
 
 export function loadDraft(store: DraftStore | null | undefined, key: string): NewRequestDraft | null {
@@ -46,6 +47,15 @@ export function clearDraft(store: DraftStore, key: string): void {
   } catch {
     // Ignore: the in-memory draft is still cleared by the caller.
   }
+}
+
+/**
+ * A new-request draft scoped to an app (#169). The home composer keeps
+ * NEW_REQUEST_KEY, so app context and generic drafts cannot overwrite each
+ * other.
+ */
+export function feedbackKey(appId: string): string {
+  return `${FEEDBACK_KEY_PREFIX}${appId}`;
 }
 
 export function replyKey(issueNumber: number): string {

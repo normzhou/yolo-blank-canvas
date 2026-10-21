@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { NEW_REQUEST_KEY, REPLY_KEY_PREFIX, loadDraft, saveDraft, clearDraft, replyKey, type DraftStore } from '../src/client/drafts';
+import {
+  FEEDBACK_KEY_PREFIX,
+  NEW_REQUEST_KEY,
+  REPLY_KEY_PREFIX,
+  loadDraft,
+  saveDraft,
+  clearDraft,
+  feedbackKey,
+  replyKey,
+  type DraftStore,
+} from '../src/client/drafts';
 
 function memoryStore(): DraftStore {
   const map = new Map<string, string>();
@@ -25,6 +35,19 @@ describe('draft preservation', () => {
     expect(loadDraft(store, replyKey(12))?.body).toBe('reply for 12');
     expect(loadDraft(store, replyKey(11))?.body).toBe('reply for 11');
     expect(replyKey(12)).toBe(`${REPLY_KEY_PREFIX}12`);
+  });
+
+  it('keeps app feedback drafts separate from each other and the home draft', () => {
+    const store = memoryStore();
+    saveDraft(store, NEW_REQUEST_KEY, { title: 'home', body: 'home body' });
+    saveDraft(store, feedbackKey('tetris'), { title: 'tetris', body: 'tetris body' });
+    saveDraft(store, feedbackKey('other'), { title: 'other', body: 'other body' });
+
+    expect(feedbackKey('tetris')).toBe(`${FEEDBACK_KEY_PREFIX}tetris`);
+    expect(feedbackKey('tetris')).not.toBe(NEW_REQUEST_KEY);
+    expect(loadDraft(store, NEW_REQUEST_KEY)?.title).toBe('home');
+    expect(loadDraft(store, feedbackKey('tetris'))?.title).toBe('tetris');
+    expect(loadDraft(store, feedbackKey('other'))?.title).toBe('other');
   });
 
   it('only drops a draft when it is cleared after a confirmed write', () => {
