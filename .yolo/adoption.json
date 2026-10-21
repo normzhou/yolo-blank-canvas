@@ -207,15 +207,16 @@
         "v0.3.0": "dbfdacf246b5b42c208e5f1fb4a7913c195d2f67",
         "v0.3.2": "75cfffb583bc0a241aa3270aa207dcdc21833cf4",
         "v0.3.1": "80bf5f860c4a360e855c8b0a786df7a04f3a70e6",
-        "v0.4.0": "e1105c36730e1f887fe5cac0994a32ad9598395d"
+        "v0.4.0": "e1105c36730e1f887fe5cac0994a32ad9598395d",
+        "v0.5.0": "f0262ae6e76ed26ea51b22c18daa1cf2d9c046c2"
       },
       "published": {
-        "tag": "v0.5.0",
-        "commit": "f0262ae6e76ed26ea51b22c18daa1cf2d9c046c2",
-        "source_commit": "4cad4b6128e11a531873627e6ecb13eeab484362",
-        "published_at": "2026-10-21T07:42:57Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-10-21.json",
-        "note": "Minor release. Carries the canvas content gallery (#165): first-party app registry, home gallery, header Canvas trigger and Ctrl/⌘+K palette, addressable ?app= locations, and Requests composition over an app. Tetris is the first entry. Acceptance before tagging: 264 unit, 83 stubbed e2e passed + 1 skipped, tsc clean, structure pass. Acceptance on the delivered artifact: 7 of 7, including the gallery shell check. The tag points at release commit f0262ae after the assets commit c456385; both build-ID files record 4cad4b6."
+        "tag": "v0.6.0",
+        "commit": "e93d5a597db95d88349728254da7433232bdd47f",
+        "source_commit": "2302878a1ae750129fa21c08b716b7849b40768a",
+        "published_at": "2026-10-21T15:51:15Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-10-21-contextual-feedback.json",
+        "note": "Minor release. Carries contextual feedback (#169): Feedback in the app header opens the existing composer at ?app=<id>&panel=new with an editable 'App: <title> (?app=<id>)' line; drafts are app-scoped; the panel isolates keys from the app underneath; Escape returns to Feedback. Acceptance before tagging: 267 unit, 87 stubbed e2e passed + 1 skipped, tsc clean, structure pass. Acceptance on the delivered artifact: 8 of 8, including the new feedback check. The tag points at release commit e93d5a5 after the assets commit 5fd426d; both build-ID files record 2302878."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -226,7 +227,8 @@
         ".yolo/reports/releases-observed-2026-10-08.json",
         ".yolo/reports/releases-observed-2026-10-14.json",
         ".yolo/reports/releases-observed-2026-10-15.json",
-        ".yolo/reports/releases-observed-2026-10-21.json"
+        ".yolo/reports/releases-observed-2026-10-21.json",
+        ".yolo/reports/releases-observed-2026-10-21-contextual-feedback.json"
       ]
     }
   },
