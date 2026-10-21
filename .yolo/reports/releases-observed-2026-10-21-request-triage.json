@@ -1,0 +1,68 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-21",
+  "observed_at": "2026-10-21",
+  "published_at_utc": "2026-10-21T22:10:26Z",
+  "protocol": {
+    "revision": "e95211f32261580fb580cf0da9d7276ae477b063",
+    "release": "v0.1.0-alpha.30"
+  },
+  "releases": [
+    {
+      "tag": "v0.8.0",
+      "commit": "332855b56ab40dcc578b2485cd1905cbce82d302"
+    }
+  ],
+  "release": {
+    "tag": "v0.8.0",
+    "tag_object": "6e122339eea5ab05a10fd15ae91d83196caa2d3a",
+    "release_commit": "332855b56ab40dcc578b2485cd1905cbce82d302",
+    "source_commit": "320f6fa396b949b6be6d27ed95c4935f01b9aebf",
+    "assets_commit": "5bed8301c3db7c02406347a442481ebb77278d74",
+    "semver": "minor",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record 320f6fa, the source revision. The committed assets were built at that source in 5bed830. 332855b is a release-metadata commit (version and install references, no source changes) after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "280 passed across 24 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID 320f6fa" },
+    { "check": "npm run e2e (stubbed, deterministic)", "result": "pass", "detail": "88 passed, 1 skipped (89 run)" },
+    { "check": "yolo-check . --structure (0.1.0-alpha.30)", "result": "pass", "detail": "13 of 13 findings compliant; issue_summary findings on #129 and #153 cleared" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #178 run 39683983279 completed success (18s)" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "installed_from": "npx --yes github:normzhou/yolo-blank-canvas#v0.8.0 --no-open --port 4875",
+    "installed_into": "an empty directory, no source checkout present",
+    "served_build": "320f6fa396b949b6be6d27ed95c4935f01b9aebf",
+    "served_version": {
+      "package": "0.8.0",
+      "serverBuild": "320f6fa396b949b6be6d27ed95c4935f01b9aebf",
+      "clientBuild": "320f6fa396b949b6be6d27ed95c4935f01b9aebf"
+    },
+    "command": "YOLO_VERIFY_URL=http://127.0.0.1:4875 npm run e2e:verify-release",
+    "result": "pass",
+    "detail": "10 of 10: the nine earlier checks plus the new Request triage and in-panel covering-outcome navigation check — opening ?panel=172 displays Request triage in .summary-box without a delivery-timing fallback line, and clicking the #175 link inside the triage summary navigates in-panel to ?panel=175 where #175's Reported summary is displayed."
+  },
+  "what_this_release_delivers": [
+    "#177 Request triage summary display - when an issue has no ## YOLO status comment, DetailView surfaces the most recently updated ## YOLO request comment under the heading 'Request triage' without reading or displaying delivery timing and without changing the derived status ('Request open')",
+    "#177 Reported summary precedence - when an issue has both ## YOLO request and ## YOLO status comments, Reported summary (## YOLO status) takes precedence while the triage comment remains in the discussion timeline",
+    "#177 in-panel covering-outcome links - unmodified left-clicks on same-repository issue links (https://github.com/<owner>/<repo>/issues/<n>) inside rendered Markdown navigate directly to ?panel=<n> inside the panel",
+    "#177 status-presentation.md and ARCHITECTURE.md updated in step with the implementation and tests"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "Upstream YOLO Dev request-template adoption remains deferred as #174 until upstream #144 ships in a release and this repository upgrades its pin.",
+    "The four release-observation files from 2026-10-14 through 2026-10-21-contextual-feedback.json were amended to schema_version: 2 with releases: [...], but yolo-check walks git log --reverse for every file in observations[] and still flags their initial schema_version: 1 commits because historical commits are immutable.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "Acceptance on the delivered artifact is ten targeted read-only checks. The 280 unit tests and 89 stubbed e2e tests ran against the source revision, not the installed artifact.",
+    "The tag points at 332855b, a release-metadata commit after the assets commit 5bed830, not at the assets commit itself. Both build-ID files still record the source 320f6fa, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #177"
+}

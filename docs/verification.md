@@ -7,7 +7,9 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 ## Request triage summaries and in-panel outcome links (#177) — 2026-10-21
 
 Source revision `320f6fa` (the feature commit); build and review evidence
-`5bed830`.
+`5bed830`; release commit `332855b`; published as `v0.8.0` on 2026-10-21. The
+unit and stubbed e2e results below ran against the source revision; the 10/10
+acceptance below ran against the installed tag users receive.
 
 - `npm test`: 24 files, 280 tests passed. Added `test/status.test.ts` (25)
   cases for `isRequestTriageComment`, `findRequestTriageComment`, code-fence
@@ -27,10 +29,28 @@ Source revision `320f6fa` (the feature commit); build and review evidence
   gains a tenth read-only installed check for `Request triage` and in-panel
   covering-outcome navigation (`#172` → `#175`).
 - `yolo-check .` (`0.1.0-alpha.30`): `structure.status: pass`, 13/13 structure
-  findings compliant; `issue_summary` and `release` findings are now compliant
-  after repairing the `#129` and `#153` summary headings to exact
-  `## YOLO status` and adding `schema_version: 2` + `releases: [...]` to the
-  four earlier release observation reports under `recoverable-v1`.
+  findings compliant; `issue_summary` findings on `#129` and `#153` are cleared
+  after repairing their summary headings to exact `## YOLO status`. The four
+  earlier release observation reports were amended to include
+  `schema_version: 2` and `releases: [...]`, while `yolo-check`'s `release`
+  rule remains `unverified` because `yolo-check` walks `git log --reverse` and
+  inspects the initial `schema_version: 1` commit of `2026-10-14.json`.
+
+### Installed artifact (`v0.8.0`)
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.8.0 --no-open --port 4875`
+in an empty directory, with no source checkout. `GET /api/version` reported both
+`serverBuild` and `clientBuild` as `320f6fa…`; the tagged package version is
+`0.8.0`. The tag points at release commit `332855b`, after the assets commit
+`5bed830`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4875 npm run e2e:verify-release`:
+**10 passed, 0 failed**. The nine earlier checks plus the new request-triage
+and covering-outcome navigation check: opening `?panel=172` displays
+**Request triage** in `.summary-box` without a delivery-timing fallback line,
+and clicking the `#175` link inside the triage summary navigates in-panel to
+`?panel=175` where `#175`'s **Reported summary** is displayed. The report is
+[`.yolo/reports/releases-observed-2026-10-21-request-triage.json`](../.yolo/reports/releases-observed-2026-10-21-request-triage.json).
 
 ## Guided request capture and request-store seam (#175, #172, #173) — 2026-10-21
 
@@ -632,17 +652,22 @@ agent, so these were taken under the standing grant rather than left waiting.
 
 ## Tested revision
 
-Release tag `v0.7.0` points at release commit `eda85f8`. Assets were built from source
-`607c2c3` (`dist/client/.build-id` and `server/build-id.generated.js` both report `607c2c3…`)
-and committed in `0daeacf`; the release commit itself adds only the `0.7.0` version and install
+Release tag `v0.8.0` points at release commit `332855b`. Assets were built from source
+`320f6fa` (`dist/client/.build-id` and `server/build-id.generated.js` both report `320f6fa…`)
+and committed in `5bed830`; the release commit itself adds only the `0.8.0` version and install
 references, with no source changes. The native version at the tagged revision (`package.json`) is
-`0.7.0`. The published artifact was installed from the release into an empty directory and accepted
-9 of 9 on `e2e:verify-release` — the eight earlier checks plus the guided request composer — as
-recorded in
-[`.yolo/reports/releases-observed-2026-10-21-request-capture.json`](../.yolo/reports/releases-observed-2026-10-21-request-capture.json).
-Its limits travel with it: nine targeted read-only checks rather than the full suite; the composer
+`0.8.0`. The published artifact was installed from the release into an empty directory and accepted
+10 of 10 on `e2e:verify-release` — the nine earlier checks plus `Request triage` and in-panel
+covering-outcome navigation — as recorded in
+[`.yolo/reports/releases-observed-2026-10-21-request-triage.json`](../.yolo/reports/releases-observed-2026-10-21-request-triage.json).
+Its limits travel with it: ten targeted read-only checks rather than the full suite; the composer
 and feedback checks do not submit a live issue; and the tag points at the release commit after the
 assets commit rather than at it.
+
+The previous revision named in this section was `v0.7.0` (release `eda85f8`, assets from
+`607c2c3`), accepted 9 of 9 on the installed artifact on 2026-10-21 and recorded in
+[`.yolo/reports/releases-observed-2026-10-21-request-capture.json`](../.yolo/reports/releases-observed-2026-10-21-request-capture.json).
+It remains valid history, not the current tested revision.
 
 The previous revision named in this section was `v0.6.0` (release `e93d5a5`, assets from
 `2302878`), accepted 8 of 8 on the installed artifact on 2026-10-21 and recorded in
