@@ -40,13 +40,13 @@ contest them.
   without a human code-review gate** when required checks have passed on the current subject.
   Merge does not close undelivered work. There is no blanket required review and no branch
   protection requirement.
-- **Release.** Create and retire tags and releases, and cut releases from verified delivered
+- **Release.** Create tags and releases, and cut releases from verified delivered
   versions, within the versioning policy recorded in
   [ARCHITECTURE.md](ARCHITECTURE.md). This standing delegation is the identified human approval
   that [CHARTER.md](CHARTER.md) durable constraint 5 requires for publishing: creating and cutting
-  releases within that policy is approved in advance, while deleting tags or releases stays
-  reserved. A release is not complete until acceptance passes on the version users actually
-  receive.
+  releases within that policy is approved in advance, while deleting, unpublishing or otherwise
+  withdrawing a tag or release stays reserved. A release is not complete until acceptance passes on
+  the version users actually receive.
 - **Upstream feedback.** File issues and comments in `normzhou/yolo-dev` after showing the
   maintainer the text, with target identities, code, paths and credentials removed. Shared-system
   defects go upstream, linked to the evidence that exposed them; this repository's own defects
