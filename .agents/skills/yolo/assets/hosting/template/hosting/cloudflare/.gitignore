@@ -1,0 +1,9 @@
+node_modules/
+.wrangler/
+.dev.vars*
+.env*
+infra/.terraform/
+infra/*.tfstate*
+infra/*.tfplan
+infra/*.tfvars*
+infra/private/

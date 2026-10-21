@@ -3,12 +3,12 @@
   "protocol": {
     "format": "github-v1",
     "repository": "https://github.com/normzhou/yolo-dev",
-    "revision": "3cc04ef5f302993e1d3952bff00f08020d57dbcc",
+    "revision": "e95211f32261580fb580cf0da9d7276ae477b063",
     "source": "skills/yolo/references/protocol.md",
     "inputs": [
       {
         "path": ".yolo/governance/ARCHITECTURE.md",
-        "sha256": "e129daeec15e46f9f197276a557db586e22d6adf4789a3950713ad7d06ca7ce2",
+        "sha256": "179d70c0e7171246e74f9c349e7f8dc9253a4ecfe91d24a12449f273e15796ce",
         "selection": "Adoption levels through Product source and applied adoption"
       },
       {
@@ -18,22 +18,22 @@
       },
       {
         "path": "specs/activities.md",
-        "sha256": "977637f8f9576c88e627aa5944803ceddc7cf4c07755c464e542fc4be73d4f4f",
+        "sha256": "e3a59a39999dfd1a6104146cf7196c5c996189197839a122dcf048864f4173ef",
         "selection": "whole document"
       },
       {
         "path": "specs/repo-layout.md",
-        "sha256": "2e99e59d48d2182c6292f777bb8b6119e9336ca80540c67827c9415d93082f2b",
+        "sha256": "b37053a85cad8b0db0c4f7444348e1e50c1b72e49768db8bea73948200c4b41c",
         "selection": "whole document"
       },
       {
         "path": "specs/issue-management.md",
-        "sha256": "b3bbd2922ab808c28695a91e5756bf61bf78a7f4cd8ac4b8dc29fddbc76fb461",
+        "sha256": "3009b96ae832fba67f094af89c5db894b73fe3fb2a7c163ba4d9804f4778cd6a",
         "selection": "whole document"
       },
       {
         "path": "specs/repo-rules.md",
-        "sha256": "a92de1fbf66851afa167cff2430a23d54fcac39521d0cced0e80a69e6ad12336",
+        "sha256": "5dadd6e63b0b461215361ea7e2e2c7f5192cfd9a1fcb0160e8eafbd9b68bc8d8",
         "selection": "whole document"
       },
       {
@@ -48,7 +48,7 @@
       },
       {
         "path": "specs/conformance-checks.md",
-        "sha256": "ec51841444276e71f008207909ed5470f833d6bc476f52cfba878a461cb05925",
+        "sha256": "6d456c3cd34a4d43fba706f3d618e9ac47b62e0f45335ef27aec3cf60d3696a6",
         "selection": "whole document"
       },
       {
@@ -58,7 +58,7 @@
       },
       {
         "path": "specs/adoption-records.md",
-        "sha256": "0687324da42730b286fd3d751713af62a353271e2bdb8b08a104c806d619d2ec",
+        "sha256": "ffb2a6a0add5e54a9bc36f9d7300d0d30dfa2c1a9c47163f8b80de290a6561a0",
         "selection": "whole document"
       },
       {
@@ -73,12 +73,12 @@
       },
       {
         "path": ".yolo/governance/specs/onboarding.md",
-        "sha256": "279e604720a1a483ca22e5ebb3537c1ff87915e97f6cdc0635b3fc937f810d75",
+        "sha256": "46e388a63b9b4e1f62435774d196e5c5a93453d1841afcecac14d4bad37e33bc",
         "selection": "whole document"
       },
       {
         "path": ".yolo/governance/specs/assisted-development.md",
-        "sha256": "06d08df8f13ed60d5bd23bac8c5012eb0b14256956ee10ae0420acd8b94f311d",
+        "sha256": "214ae7183574f6d44c27cf64881dcc3eb1cf613516fae1b97880653c951a9aa7",
         "selection": "whole document"
       },
       {
@@ -88,7 +88,12 @@
       },
       {
         "path": ".yolo/governance/specs/observation.md",
-        "sha256": "5bbadb5998854c8b1d23555a53208d71f6ad4019c7c76d4593884680f4cf99f8",
+        "sha256": "83800056bf4787fa0cab9a977f7b7437234dc7baa41963bf99157dc95e87f53b",
+        "selection": "whole document"
+      },
+      {
+        "path": "specs/app-hosting.md",
+        "sha256": "af29bb43233ab166363da66dd2dccbea2a188fb72aa51200702fb790f1c135b1",
         "selection": "whole document"
       },
       {
@@ -98,12 +103,12 @@
       },
       {
         "path": "VERSION",
-        "sha256": "cee35e3849309f4eaad3afbcc5675619e9771196bd5cba6b4813a9e8b877a3fe",
+        "sha256": "ee98435e09c618f3578eec12c901369743133c049ae7c2e8f860d1b8643f7d6b",
         "selection": "whole document"
       }
     ],
     "path": ".yolo/protocol.md",
-    "sha256": "9070f151a87c0c78f920aa22295ee976851dd98cbd65aee6cebe6502ac1a9613"
+    "sha256": "4f5ffe0ae643a81a1e303b2d2a9f067fb7c3b568d1710efe1a6b7b6209667afa"
   },
   "target": {
     "repository": "normzhou/yolo-blank-canvas",
@@ -142,9 +147,9 @@
     ],
     "skill": {
       "path": ".agents/skills/yolo",
-      "revision": "e64101f7e385887c42a914f81332bb0169ffdee7",
-      "release": "v0.1.0-alpha.23",
-      "manifest_sha256": "5c4c8175639cb82ff776bdd4581ef8b46e1887f11d2ad085b17bef58d8275c51"
+      "revision": "df14572179e0c017e4df98c42de38246610de60b",
+      "release": "v0.1.0-alpha.30",
+      "manifest_sha256": "cb5090417023b97d5b4537703e954d3a475bceb38ba7f3234c4e7d7b7a0df79d"
     },
     "observed_sessions": [
       {
@@ -213,14 +218,10 @@
     }
   },
   "activation": {
-    "state": "active",
+    "state": "proposed",
     "evidence": [
-      "Maintainer approval of the exact protected AUTHORITY.md revision prepared on issue #123, in an authenticated harness session, followed by the authorized migration.",
-      "Publication ff3bc199bd2e33e660de0d65b5a0f3c62282278b (release v0.1.0-alpha.20), design inputs 7b9d12fae425217b2651e9f4e5f1c25a0372bcf9, landed on main as 030b6ca594c4300335cfa2d476bc3aa601f95262 via PR #124 and observed there.",
-      "Bundle replaced as one publisher-owned unit through that publication's own installer: 15/15 manifest digests match, .yolo/protocol.md byte-identical to the bundle at 3274be03, all four native bindings and CLAUDE.md/GEMINI.md intact. Manifest SHA-256 54bff58b51536d501df2dfb480c7a76883becaf348df5ee02d71226d7416c072; executable verified against SHA256SUMS.",
-      "Prior alpha.16 activation evidence is retained in Git and in .yolo/reports/upgrade-alpha16-proposal.json as history.",
-      "Explicit compatible alpha.23 observer upgrade under the 2026-10-12 maintainer telemetry direction, tracked at https://github.com/normzhou/yolo-blank-canvas/issues/137; main delivery and fresh continuation are recorded in .yolo/reports/2026-10-12-alpha23-observer-upgrade.md. Existing purpose/grant acceptance remains applicable.",
-      "Alpha.23 complete artifacts observed landed via PR #138 at 3c71c86eeb0f1d75bbbd1320bfece5a2b8411e4b; fresh Pi 1.1.0 standard binding and native receipt: .yolo/reports/2026-10-12-alpha23-native-runtime.json. Qualification remains unverified."
+      "PENDING LANDING: candidate pin v0.1.0-alpha.30 proposed on issue #160 (branch yolo/upgrade-alpha30-proposal). Not active until the migration is observed on the default branch.",
+      "Prior alpha.23 activation evidence is retained in Git and in .yolo/reports/2026-10-12-alpha23-native-runtime.json as history; that loading evidence is historical and does not attest the alpha.30 rules being loaded."
     ]
   },
   "adopted_at": "520a81e8ec824b9ce31a7fbc8a8c08d152eb81ae",
@@ -311,7 +312,7 @@
     "CHARACTERISED 2026-10-13 (#145), and not a defect. Two back-to-back capture runs of identical code differ in 15 of 75 images, so the churn is NOT cross-session only as this entry previously stated - the earlier '21 of 79 / cross-session only' wording was an overstatement drawn from a summary rather than a measurement, repeated three times by the agent before being checked. 12 of the 15 are motion frames sampled from an unfrozen CSS animation at wall-clock offsets (e2e/motion.spec.ts): non-reproducible by construction and not review evidence. For the remaining 3, measured on the content-stress detail at 1280x900 across a reload: geometry, scroll offset, scroll height, focus, document.fonts.status, theme and DPR are all IDENTICAL and only rendered pixels differ - 648 of 1,152,000 pixels (0.056%). The capture helper already fast-forwards animations and passes animations:'disabled' and caret:'hide', and the stylesheet declares no CSS transitions, so a mid-transition capture is ruled out. The residue is glyph rasterization/compositor variance, which e2e/determinism.spec.ts already decided to guard by comparing text, computed styles and geometry instead of bytes. Confirmed by measurement; that reasoning stands. Visual acceptance rests on that content guard plus human inspection, never on a pixel diff. STILL OPEN, updated 2026-10-13: (b) live gaps in docs/verification.md remain unobserved except the auth-loss path, which is now forced read-only in the live E2E; (c) Q4 needs acceptance re-run against a delivered artifact, and Q5 needs a continuation recorded under the ADOPTED pi harness - a second opencode session was recorded on 2026-10-13 (.yolo/reports/continuation-2026-10-13.json) and does not satisfy Q5 for the adopted harness. CORRECTION: the previous citation '(d) open work #129/#131/#132/#134 with #136 awaiting the maintainer' is STALE and no longer true - all four structural outcomes and #145 are closed and on the default branch, #136 was answered by the maintainer, and #141 is the only open outcome. That clause is removed because the work it cited is delivered, not because the entry is being emptied: (b) and (c) above remain genuinely open and this finding is unverified.",
     "UPDATED 2026-10-14 (.yolo/reports/checkpoint-review-2026-10-14.json, issue #141): clause (c) now splits. Q4 is assessed PASS for its inspected scope - acceptance ran on the delivered v0.4.0 artifact (6 of 6, releases-observed-2026-10-15.json) and on v0.3.2 (releases-observed-2026-10-14.json) - so Q4 is no longer partial. Q5 is still PARTIAL, and for a reason worth naming plainly: adoption.harness.name says `pi coding agent 1.0.1` while every session since 2026-10-12 has run in opencode, so the adopted name describes a harness that has not run. That is open_questions[3] in the report and a maintainer answer, not a repair the agent may make. Clause (b) is unchanged: the live gaps in docs/verification.md remain unobserved. This entry therefore stays unverified, and its cause is not erased by the Q4 update.",
     "RESOLVED 2026-10-14 (.yolo/reports/checkpoint-review-2026-10-14.json, issue #141): docs/verification.md understated what had been verified. Its tested-revision section named v0.3.1 and its unit block named 12 files / 104 tests, three releases stale, while README and this record named v0.4.0 and 255 tests in 20 files. A record that understates verification is the same defect class as the app asserting completeness no record establishes (#150), so both sections were updated in the review's own change with earlier counts preserved where the file already preserves them.",
-    "OPEN 2026-10-14 (.yolo/reports/checkpoint-review-2026-10-14.json, issue #141): the release-policy widening in ARCHITECTURE.md at a90f243 - agent may cut any semver level - is authority-relevant, because AUTHORITY.md reserves widening the agent's own scope to the maintainer and the § Release delegation defines its limit by reference to that policy. The maintainer's instruction is quoted verbatim and dated in the policy and cited in PR #157 and issue #154, but its only durable artifact is agent-authored text in a shared account, which this repository's own watermark rule says cannot authenticate a human. Nothing reserved was exercised and v0.4.0 is correct either way. Cheapest resolution, and the only one the agent cannot perform: one maintainer comment confirming that clause. See open_questions[0] and open_questions[1] (the same bullet both delegates retiring tags and reserves deleting them) in the report."
+    "OPEN 2026-10-14 (.yolo/reports/checkpoint-review-2026-10-14.json, issue #141): the release-policy widening in ARCHITECTURE.md at a90f243 - agent may cut any semver level - is authority-relevant, because AUTHORITY.md reserves widening the agent's own scope to the maintainer and the \u00a7 Release delegation defines its limit by reference to that policy. The maintainer's instruction is quoted verbatim and dated in the policy and cited in PR #157 and issue #154, but its only durable artifact is agent-authored text in a shared account, which this repository's own watermark rule says cannot authenticate a human. Nothing reserved was exercised and v0.4.0 is correct either way. Cheapest resolution, and the only one the agent cannot perform: one maintainer comment confirming that clause. See open_questions[0] and open_questions[1] (the same bullet both delegates retiring tags and reserves deleting them) in the report."
   ],
   "qualification": {
     "level": 1,
@@ -319,7 +320,8 @@
     "evidence": [
       "The 75-commit interval from 31c0f8b to 9680736 is fully reviewed with cited ownership, congruence, verification and continuity findings in .yolo/reports/checkpoint-review-2026-10-12.json (issue #141). That report assesses Q1-Q3 as pass, Q4 as partial (four releases carry artifact-verified observation reports, none re-verified in that review) and Q5 as partial (continuation observed only for the harness that observed it, not the adopted pi coding agent). No qualified L1 claim is made, and the checkpoint was deliberately not advanced because the published report chain predates the four-obligation rule.",
       "2026-10-13: a second fresh opencode session observed loading and continuation and is recorded in .yolo/reports/continuation-2026-10-13.json. Q5 remains partial for the ADOPTED harness (pi coding agent 1.0.1), which this session did not load or exercise. No level is claimed.",
-      "2026-10-14 (.yolo/reports/checkpoint-review-2026-10-14.json, issue #141): the 25 commits after the previous review's subject are reviewed with all four obligations cited and acceptance re-run at 9c05e25 - 255 unit tests, tsc clean, 77 stubbed e2e passed, and the pinned alpha.23 validator reporting structure.status: pass with zero non-compliant rules. Q4 moves from partial to PASS for its inspected scope: acceptance ran on the delivered artifacts of v0.3.2 and v0.4.0 (6 of 6 each). Q5 remains partial - a third opencode session adds no fact the two already-recorded ones do not carry, so no continuation report was written and nothing was re-attributed to pi. Qualification stays `unverified` and no level is claimed: Q5 is not satisfied and the checkpoint-chain finding is still open."
+      "2026-10-14 (.yolo/reports/checkpoint-review-2026-10-14.json, issue #141): the 25 commits after the previous review's subject are reviewed with all four obligations cited and acceptance re-run at 9c05e25 - 255 unit tests, tsc clean, 77 stubbed e2e passed, and the pinned alpha.23 validator reporting structure.status: pass with zero non-compliant rules. Q4 moves from partial to PASS for its inspected scope: acceptance ran on the delivered artifacts of v0.3.2 and v0.4.0 (6 of 6 each). Q5 remains partial - a third opencode session adds no fact the two already-recorded ones do not carry, so no continuation report was written and nothing was re-attributed to pi. Qualification stays `unverified` and no level is claimed: Q5 is not satisfied and the checkpoint-chain finding is still open.",
+      "PENDING alpha.30 candidate (issue #160): the three entries above are historical evidence for the alpha.23 pin and the sessions that recorded them; none of them attests alpha.30 loading. Qualification stays unverified and no level is claimed for the candidate the same way it is not claimed for the active pin."
     ]
   },
   "feedback": {

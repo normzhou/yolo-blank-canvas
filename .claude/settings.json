@@ -1,0 +1,59 @@
+{
+  "hooks": {
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/activity-observer.sh\" 4f5ffe0ae643a81a1e303b2d2a9f067fb7c3b568d1710efe1a6b7b6209667afa claude-code",
+            "timeout": 8,
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/activity-observer.sh\" 4f5ffe0ae643a81a1e303b2d2a9f067fb7c3b568d1710efe1a6b7b6209667afa claude-code",
+            "timeout": 8,
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/activity-observer.sh\" 4f5ffe0ae643a81a1e303b2d2a9f067fb7c3b568d1710efe1a6b7b6209667afa claude-code",
+            "timeout": 8,
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/activity-observer.sh\" 4f5ffe0ae643a81a1e303b2d2a9f067fb7c3b568d1710efe1a6b7b6209667afa claude-code",
+            "timeout": 8,
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/activity-observer.sh\" 4f5ffe0ae643a81a1e303b2d2a9f067fb7c3b568d1710efe1a6b7b6209667afa claude-code",
+            "timeout": 8,
+            "type": "command"
+          }
+        ]
+      }
+    ]
+  }
+}

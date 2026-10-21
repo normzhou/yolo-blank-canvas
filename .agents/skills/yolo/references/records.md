@@ -68,6 +68,18 @@ A proposed record may stage `true` with consent still in `authority.pending`; th
 
 Optional `observation` is distinct from `feedback` and enables [activity observation](protocol.md#observation-activity-observation). It contains only `enabled` (a JSON boolean), `adoption_id` (a stable opaque identifier, null only for an explicitly requested local pre-adoption trial) and `acceptance` (nonempty evidence references when enabled, default `[]`). Missing `observation` means capture and transmission are off. `enabled: true` requires explicit recognized-maintainer acceptance of the identified destination and permitted fields; the field records a decision and cannot authenticate or expand it. A proposed record may stage it under `authority.pending` while permitting no transmission. Preserve `adoption_id` and the choice across repeat init, upgrade and worktrees; revocation stops queued and new transmission, and dry runs never transmit. Remote observations are not authority; analysis credentials are separately read-only. See **Activity observation** in the protocol for scope and transmission-consent procedure.
 
+### Execution setting
+
+Bundles declaring `execution_profiles: "app-preflight-v1"` support optional `execution`. Absence preserves existing personal access; explicit personal uses `{"profile":"personal"}`. An operator App uses:
+
+```json
+{"profile":"self-hosted-app","app_id":123,"installation_id":456,"acceptance":["IDENTIFIED_OPERATOR_SETUP_DECISION"]}
+```
+
+Only these fields are accepted. App/installation IDs are positive exact JSON integers up to 9007199254740991; setup references are nonempty strings. App fields are forbidden for personal mode. `hosted` is reserved and unavailable; unknown profiles are conflicts. Older pins cannot acquire this setting from a newer executable. The field records the setup decision without authenticating it, granting authority or enabling a worker. Preserve deliberate choices across upgrades; do not put secrets or private config/key paths here.
+
+Use [operator preflight](checker.md#operator-app-preflight) for explicit private access verification. Default App checks leave remote work/release evidence unverified instead of invoking personal `gh`. Preflight does not establish execution, isolation or qualification.
+
 ### Release bindings
 
 Bundles declaring `release_convention: "semver-v1"` require `verification.release`:
@@ -99,6 +111,8 @@ For a pending proposal use `activation.state: "proposed"`, `qualification.status
 `adopted_at` remains the original baseline. A pending upgrade uses proposed/unverified candidate status; retain old status/evidence in Git and its report, with decisions in `authority.pending` and findings in `unresolved`. After observing the effective target commit, append `{ "from": "OLD_SOURCE_REVISION", "to": "NEW_SOURCE_REVISION", "effective_commit": "TARGET_COMMIT", "evidence": ["IDENTIFIED_ACCEPTANCE"] }` to `upgrades`; do not insert a pending/null effective commit. Keep old rules/history/reports and applicable authority. Relocation removes the superseded active marker only through authorized migration; Git preserves it. Never clear a checkpoint or unresolved finding to make init succeed.
 
 ## Activity result
+
+Codex subprocess hooks supply the same correlation through an explicit private artifact. When activity environment variables are absent, use the read-only [context launcher](checker.md#codex-observation), which selects by the native `CODEX_THREAD_ID`/`CODEX_SESSION_ID` and validates the repository. Use an `active` descriptor's `activity_id` and `report_path` for the ordinary structured result; an unavailable or ambiguous descriptor remains a gap. Never choose a different session or parse a transcript. Startup and help do not create a descriptor.
 
 For an observed segment, the ordinary review/outcome result is copied to the harness-supplied `YOLO_ACTIVITY_REPORT` with `activity_id` matching `YOLO_ACTIVITY_ID`. A minimal result is `{ "activity_id": "SUPPLIED_ID", "kind": "outcome", "binary_observations": { "assessment": "unverified", "findings": [] }, "agent_assessment": { "verdict": "completed" }, "evidence": [], "unresolved": [], "next_action": null }`. Use actual results and references; a successful execution does not prove conformity or qualification. An interview waiting for a reply may add `awaiting_input: true`. The durable report/issue remains primary; this temporary copy is only a correlation boundary. Missing/invalid copies produce an honest measurement gap.
 

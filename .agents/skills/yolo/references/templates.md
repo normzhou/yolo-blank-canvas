@@ -8,7 +8,7 @@ Read **Operating protocol** and **Repository layout** in the bundled [protocol](
 | [Authority](../assets/authority.md) | Record recognized maintainers, delegated scope, reserved decisions and authority limits; no template supplies acceptance. |
 | [Architecture](../assets/architecture.md) | Record the smallest intended design, behavior contracts, verification/delivery route, limits and known discrepancies with current behavior. |
 | [Behavior spec](../assets/behavior-spec.md) | Define a durable behavior contract and concrete acceptance when issue acceptance alone is insufficient. |
-| [Agent instructions](../assets/agent-instructions.md) | Connect normal sessions to the local protocol, adoption mapping, and target-specific guidance; adapt relative paths and harness discovery. |
+| [Agent instructions](../assets/agent-instructions.md) | Connect normal sessions to the local protocol, adoption mapping, and implementation guidance; link accepted product/authority decisions and review substantive prose under **Instruction provenance**. Adapt relative paths and harness discovery. |
 | [README](../assets/readme.md) | Explain the target app to visitors, preserving the separation from human control. |
 | [Brainstorm topic](../assets/brainstorm-topic.md) and [session log](../assets/brainstorm-session.md) | Preserve material exploration and decisions when needed; omit empty scaffolding. |
 

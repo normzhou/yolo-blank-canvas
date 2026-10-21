@@ -1,0 +1,164 @@
+{
+  "schema_version": 2,
+  "target": "normzhou/yolo-blank-canvas",
+  "kind": "upgrade-proposal",
+  "status": "proposed",
+  "protocol": {
+    "revision": "e95211f32261580fb580cf0da9d7276ae477b063",
+    "sha256": "4f5ffe0ae643a81a1e303b2d2a9f067fb7c3b568d1710efe1a6b7b6209667afa"
+  },
+  "revision": "dab8e18",
+  "default_revision": "dab8e18",
+  "from": "e95211f32261580fb580cf0da9d7276ae477b063",
+  "previous_report": ".yolo/reports/2026-10-12-alpha23-native-runtime.json",
+  "reviewed_commits": {
+    "checkpoint": "31c0f8b64ea192ba9becadbe531c871e602d14bf",
+    "head_at_proposal": "dab8e18",
+    "note": "This is a migration proposal, not a checkpoint review. The checkpoint-chain blocker recorded on issue #141 is unchanged and out of scope: the checkpoint-report rule is byte-for-byte identical between both protocol snapshots, so this migration neither repairs nor worsens it."
+  },
+  "working_changes": [
+    "M .agents/skills/yolo/SKILL.md (alpha.30 rules, verbatim from the publication)",
+    "M .agents/skills/yolo/references/checker.md",
+    "M .agents/skills/yolo/references/protocol.md",
+    "M .agents/skills/yolo/references/provenance.json",
+    "M .agents/skills/yolo/references/records.md",
+    "M .agents/skills/yolo/references/templates.md",
+    "M .agents/skills/yolo/assets/agent-instructions.md",
+    "M .agents/skills/yolo/assets/observer-core.mjs",
+    "A .agents/skills/yolo/assets/{activity-observer,codex-observer}.{sh,ps1}, opencode-observer.mjs, hosting/* (43 new bundle assets)",
+    "A .agents/skills/yolo/references/{app-hosting,operator-app}.md",
+    "M .yolo/adoption.json (candidate mapping; activation pending, prior evidence preserved)",
+    "M .yolo/protocol.md (byte-identical to the publisher's recorded output identity)",
+    "A .claude/settings.json, .gemini/settings.json, .cursor/hooks.json, .codex/hooks.json, .opencode/plugins/yolo-observer.js (installer-written hooks, credential-free as installed)"
+  ],
+  "revision_note": "Routine upgrade requested by the maintainer in this session: 'upgrade preview'. Stable-vs-preview was explicitly the preview channel; the newest published non-draft release v0.1.0-alpha.30 resolved once and stayed pinned for the entire migration.",
+  "upgrade": {
+    "channel": "preview (explicitly asked)",
+    "old_release": "v0.1.0-alpha.23",
+    "old_publication": "e64101f7e385887c42a914f81332bb0169ffdee7",
+    "old_source_inputs": "3cc04ef5f302993e1d3952bff00f08020d57dbcc",
+    "new_release": "v0.1.0-alpha.30",
+    "new_publication": "df14572179e0c017e4df98c42de38246610de60b",
+    "new_source_inputs": "e95211f32261580fb580cf0da9d7276ae477b063",
+    "releases_crossed": ["v0.1.0-alpha.24", "v0.1.0-alpha.25", "v0.1.0-alpha.26", "v0.1.0-alpha.27", "v0.1.0-alpha.28", "v0.1.0-alpha.29", "v0.1.0-alpha.30"],
+    "publisher_dates": "alpha.24 2026-10-12 ... alpha.30 2026-10-20"
+  },
+  "rule_tooling_delta": [
+    "work discipline: reconciliation becomes select-a-chunk -> interpret/admit when needed -> advance -> publish; explicit admission handoff record for interpreted inputs; bounded investigation admitted when the solution is materially unknown",
+    "iteration identity: one outcome summary records the iteration identity once (harness, run id, evidence, remaining scope, next action, still-running ops), and new YOLO-written objects carry 'Created by YOLO Dev · mode: <profile> · harness: <name/version> · run: <iteration id> · <record link>'",
+    "publication failure: retained local result plus an exact unsynchronization report, replacing the availability claim route",
+    "declaration of execution_profiles: app-preflight-v1 (opt-in; absence keeps existing personal access)",
+    "opt-in operator App preflight (references/operator-app.md) and opt-in app-hosting route (references/app-hosting.md with a self-serve template)",
+    "activity observers for Claude/Gemini/Cursor/OpenCode plugin/Codex (installer-written hooks: .claude/settings.json, .gemini/settings.json, .cursor/hooks.json, .codex/hooks.json, .opencode/plugins/yolo-observer.js) alongside the existing ..pi native observer",
+    "codex context launcher for Codex-artifact handoff only (not used by this target)",
+    "incorporated sources changed: assisted-development, onboarding, activities, adoption-records, conformance-checks, issue-management, repo-layout, repo-rules, observation spec, publisher VERSION and publisher ARCHITECTURE (11 sources changed + 1 new app-hosting spec)",
+    "checkpoint-report rule: identical between both snapshots (verified by diff) - the #141 chain blocker is unaffected",
+    "issue_management/request: request-outcome-v2 profile identical before and after",
+    "release_history: recoverable-v1 profile identical before and after; no release-record re-anchoring required"
+  ],
+  "governing_clause_index": [
+    {
+      "action": "pin selection and staging",
+      "old": "Assisted distribution -> Release selection with the pinned executable and its read-only resolver (alpha.23)",
+      "candidate": "same contract; the newest published non-draft release is requested for 'preview' and no silent fallback exists",
+      "compatibility": "compatible - same operation under a revision that adds no permission to select publishers; the selection once result was preserved through the proposal"
+    },
+    {
+      "action": "installing bundle/bindings",
+      "old": "install --bundle with verified manifest inventory; alpha.23 hook preflight expected the existing four runtime bindings",
+      "candidate": "same installer, now also writing activity-baseline hooks per harness when absent, refusing to overwrite existing owner settings",
+      "compatibility": "compatible - five hook files were written where no owner settings existed; existing owner-owned binding files (.opencode/commands/yolo.md, .gemini/commands/yolo.toml, .pi/prompts/yolo.md, .pi/extensions/yolo-observer.ts as a re-export shim) were left untouched"
+    },
+    {
+      "action": "checkpoint progression",
+      "old": "checkpoint at 31c0f8b, blocked by the old-chain four-obligation finding (issue #141, owner decision required)",
+      "candidate": "checkpoint-report contract includes the same four-obligation requirement byte-for-byte",
+      "compatibility": "compatible - the upgrade carries the blocker forward rather than erasing it; no repair is hidden behind the migration"
+    },
+    {
+      "action": "observation consent",
+      "old": "enabled: true with alpha.23-era telemetry acceptance recorded at the alpha.12-era pilot acceptance",
+      "candidate": "same pi-native-v1 profile, unchanged; alpha.24-30 add observer hooks that inherit this acceptance rather than re-consent it",
+      "compatibility": "compatible - the acceptance contract is about consent to capture and bounded transmission, not a specific harness. Existing consent applies to the hooks too; if the maintainer reads it narrower, revoking observation.enabled flips capture/transmission off with no migration",
+      "risk_to_record": "acceptance scope judgement: 'activity_observers' increased from 4 to 6 with hooks written by the alpha.30 installer; the acceptance clause .yolo/reports/2026-10-12-telemetry-pilot-acceptance.md and upstream comment supply consent for capture/transmission in general, not inventory-specific ids"
+    }
+  ],
+  "action_permission_comparison": [
+    "agent authority unchanged: no Charter or AUTHORITY.md edit is proposed or needed by the candidate; the target's grant/deliver/authority documents are untouched",
+    "release-cutting authority now lives in the target's own ARCHITECTURE.md policy (amended 2026-10-14, c1daf3e); alpha.30 is silent on it and would not have changed it either way",
+    "work-flow discipline is stricter, not wider: admission handoff, external-result inspection and iteration identity recording are obligations before publishing, not expansions"
+  ],
+  "release_applicability": {
+    "profile": "both snapshots declare semver-v1 + recoverable-v1",
+    "recorded_published_rego": "verification.release.effective_commit stays 6efd602c... (establishment); published v0.4.0 record continues to map",
+    "repair": "none needed"
+  },
+  "version_repair": {
+    "release_flow": "none - the current release record was reconciled and published v0.4.0 with 6/6 acceptance",
+    "candidate_pin": "none - the proposal maps the α.30 bundle identity e95211f, publication df14572, and manifest cb509041 explicitly, distinct from the old pin's skill revision e64101f"
+  },
+  "restoration_steps": [
+    "revert this proposal's commit(s); the target reads .yolo/protocol.md and .agents/skills/yolo/** from Git and rolls back to the alpha.23 pin exactly",
+    "hook files introduced by the candidate (.claude/settings.json, .gemini/settings.json, .cursor/hooks.json, .codex/hooks.json, .opencode/plugins/yolo-observer.js) are additive and revert cleansly",
+    "prior reports/checkpoint remain valid: no old evidence was rewritten to make the migration possible",
+    "external effects of the candidate (none yet - no GitHub/network actions were taken by the installer) cannot be undone by revert"
+  ],
+  "finding_classification": [
+    {
+      "rule": "pending_alone_for_now",
+      "status": "recorded",
+      "evidence": [
+        "https://github.com/normzhou/yolo-blank-canvas/issues/141",
+        ".yolo/reports/checkpoint-review-2026-10-14.json"
+      ],
+      "detail": "Pre-existing owner decision (checkpoint chain) is not created or repaired by this migration and remains exactly as recorded before the upgrade. Unchanged under both the active and candidate rules."
+    },
+    {
+      "rule": "no_warnings_no_conflicts",
+      "status": "compliant",
+      "evidence": ["/tmp/yolo-structure-a30b.json (structure.status: pass, findings 0 non-compliant, 0 warnings)"],
+      "detail": "Strict structural validation of the staged candidate files ran with the alpha.30 executable after staging and after the installer write; pass, exit 0."
+    },
+    {
+      "rule": "replica_scan",
+      "status": "compliant",
+      "evidence": [
+        "replica_candidates: .agents/skills/yolo/assets/architecture.md, .agents/skills/yolo/assets/authority.md, .agents/skills/yolo/assets/charter.md",
+        ".yolo/governance/{CHARTER,AUTHORITY,ARCHITECTURE}.md are target-owned and are not byte-copies"
+      ],
+      "detail": "Same three template-file candidates the alpha.23 checker already reported; still publisher-owned template assets inside the bundle folder, not disguised copies of the target's governing documents."
+    }
+  ],
+  "factual_review": {
+    "selection": "yolo-check resolve preview (alpha.23 executable) returned v0.1.0-alpha.30 at df14572; every subsequent step pinned that identity and did not re-resolve",
+    "downloads": "yolo-check_darwin_arm64 + SHA256SUMS for alpha.23 and alpha.30 both fetched with `gh release download` from normzhou/yolo-dev, both reported OK against their exact named checksum entries, and both `--version` outputs matched the recorded release/publication identity before execution",
+    "staging": "bundle files copied from the selected publication commit into .agents/skills/yolo/; 60/60 manifest-covered files verified byte-for-byte against the alpha.30 provenance manifest",
+    "snapshot": ".yolo/protocol.md verified byte-identical to the publisher-declared output identity (4f5ffe0...)",
+    "installer": "alpha.30 install --bundle run on the staged tree; identical bundle files unchanged, 5 new hook/plugin files written, no errors; hook files inspected before commit for credentials/personal paths and none are present",
+    "post_install_validation": "same strict structural validator re-run on the staged tree with hooks in place: pass"
+  },
+  "semantic_review": {
+    "diff_reading": "SKILL.md + references/*.md + protocol.md diffs read in full before staging: every added section is an institutional boundary (App/operator/hosting) or a work-discipline rule; none expands this target's authority beyond the existing L1 grant",
+    "work_rule_check": "the new 'work' milestone is a stricter procedure for future iterations, not a new permission",
+    "protocols_both_versions": "the .yolo/protocol.md WORK rule 'Maintain the existing status-summary comment' remains one-summary-per-outcome; alpha.30's iteration identity requirement is additive inside that same summary, not a second summary",
+    "authority_unchanged": "no protected document was edited; candidate's activation state records pending-only status so a merged-but-unobserved pin cannot be misread as active",
+    "preserved_history": "checkpoint/unresolved/qualification/observation/feedback/realease records carried verbatim except the three documented parts (protocol identity, skill identity, activation state) that constitute the candidate map"
+  },
+  "pending_decisions": [
+    "owner: direct merge of the proposal PR, or decline and keep the alpha.23 pin (decline needs no edit - this adoption record stays as is until activated)",
+    "owner (standing, unrelated): the #141 checkpoint decision remains open exactly as recorded"
+  ],
+  "planned_operations": [
+    "publish the proposal PR (tested at https://github.com/normzhou/yolo-blank-canvas/pull/161)",
+    "with owner direction, merge it; observe commit on the default branch",
+    "record the landed hop (.yolo/reports/upgrade-alpha30-landed.json style) after observing the alpha.30 rules loading and after a fresh continuation",
+    "before measuring dependent claims, run structural validation again on the delivered default revision"
+  ],
+  "limits": [
+    "The publisher's rule sources (11 changed + 1 new input) are mapped verbatim into the candidate adoption record; their *content* changes were audited at the section/summary level rather than line-by-line, per the protocol's instruction to read the applicable rules — a full line audit of every incorporated source is not claimed",
+    "This proposal is not qualification: qualification stays unverified, and loading evidence for alpha.23 is historical only",
+    "The migration does not touch any other part of the target beyond .agents/skills/yolo/**, .yolo/protocol.md, .yolo/adoption.json, and 5 hook files; app code, tests and verification results are unchanged (npm test 255 passed, tsc clean)",
+    "YOLO_ACTIVITY_ID/YOLO_ACTIVITY_REPORT are absent in this session; no harness artifact copy was made (per records.md this is an honest measurement gap, and the durable report is the primary interface)"
+  ],
+  "landed": null
+}

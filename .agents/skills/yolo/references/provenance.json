@@ -2,11 +2,11 @@
   "schema_version": 1,
   "protocol_format": "github-v1",
   "repository": "https://github.com/normzhou/yolo-dev",
-  "revision": "3cc04ef5f302993e1d3952bff00f08020d57dbcc",
+  "revision": "e95211f32261580fb580cf0da9d7276ae477b063",
   "inputs": [
     {
       "path": ".yolo/governance/ARCHITECTURE.md",
-      "sha256": "e129daeec15e46f9f197276a557db586e22d6adf4789a3950713ad7d06ca7ce2",
+      "sha256": "179d70c0e7171246e74f9c349e7f8dc9253a4ecfe91d24a12449f273e15796ce",
       "selection": "Adoption levels through Product source and applied adoption"
     },
     {
@@ -16,22 +16,22 @@
     },
     {
       "path": "specs/activities.md",
-      "sha256": "977637f8f9576c88e627aa5944803ceddc7cf4c07755c464e542fc4be73d4f4f",
+      "sha256": "e3a59a39999dfd1a6104146cf7196c5c996189197839a122dcf048864f4173ef",
       "selection": "whole document"
     },
     {
       "path": "specs/repo-layout.md",
-      "sha256": "2e99e59d48d2182c6292f777bb8b6119e9336ca80540c67827c9415d93082f2b",
+      "sha256": "b37053a85cad8b0db0c4f7444348e1e50c1b72e49768db8bea73948200c4b41c",
       "selection": "whole document"
     },
     {
       "path": "specs/issue-management.md",
-      "sha256": "b3bbd2922ab808c28695a91e5756bf61bf78a7f4cd8ac4b8dc29fddbc76fb461",
+      "sha256": "3009b96ae832fba67f094af89c5db894b73fe3fb2a7c163ba4d9804f4778cd6a",
       "selection": "whole document"
     },
     {
       "path": "specs/repo-rules.md",
-      "sha256": "a92de1fbf66851afa167cff2430a23d54fcac39521d0cced0e80a69e6ad12336",
+      "sha256": "5dadd6e63b0b461215361ea7e2e2c7f5192cfd9a1fcb0160e8eafbd9b68bc8d8",
       "selection": "whole document"
     },
     {
@@ -46,7 +46,7 @@
     },
     {
       "path": "specs/conformance-checks.md",
-      "sha256": "ec51841444276e71f008207909ed5470f833d6bc476f52cfba878a461cb05925",
+      "sha256": "6d456c3cd34a4d43fba706f3d618e9ac47b62e0f45335ef27aec3cf60d3696a6",
       "selection": "whole document"
     },
     {
@@ -56,7 +56,7 @@
     },
     {
       "path": "specs/adoption-records.md",
-      "sha256": "0687324da42730b286fd3d751713af62a353271e2bdb8b08a104c806d619d2ec",
+      "sha256": "ffb2a6a0add5e54a9bc36f9d7300d0d30dfa2c1a9c47163f8b80de290a6561a0",
       "selection": "whole document"
     },
     {
@@ -71,12 +71,12 @@
     },
     {
       "path": ".yolo/governance/specs/onboarding.md",
-      "sha256": "279e604720a1a483ca22e5ebb3537c1ff87915e97f6cdc0635b3fc937f810d75",
+      "sha256": "46e388a63b9b4e1f62435774d196e5c5a93453d1841afcecac14d4bad37e33bc",
       "selection": "whole document"
     },
     {
       "path": ".yolo/governance/specs/assisted-development.md",
-      "sha256": "06d08df8f13ed60d5bd23bac8c5012eb0b14256956ee10ae0420acd8b94f311d",
+      "sha256": "214ae7183574f6d44c27cf64881dcc3eb1cf613516fae1b97880653c951a9aa7",
       "selection": "whole document"
     },
     {
@@ -86,7 +86,12 @@
     },
     {
       "path": ".yolo/governance/specs/observation.md",
-      "sha256": "5bbadb5998854c8b1d23555a53208d71f6ad4019c7c76d4593884680f4cf99f8",
+      "sha256": "83800056bf4787fa0cab9a977f7b7437234dc7baa41963bf99157dc95e87f53b",
+      "selection": "whole document"
+    },
+    {
+      "path": "specs/app-hosting.md",
+      "sha256": "af29bb43233ab166363da66dd2dccbea2a188fb72aa51200702fb790f1c135b1",
       "selection": "whole document"
     },
     {
@@ -96,13 +101,13 @@
     },
     {
       "path": "VERSION",
-      "sha256": "cee35e3849309f4eaad3afbcc5675619e9771196bd5cba6b4813a9e8b877a3fe",
+      "sha256": "ee98435e09c618f3578eec12c901369743133c049ae7c2e8f860d1b8643f7d6b",
       "selection": "whole document"
     }
   ],
   "output": {
     "path": "references/protocol.md",
-    "sha256": "9070f151a87c0c78f920aa22295ee976851dd98cbd65aee6cebe6502ac1a9613"
+    "sha256": "4f5ffe0ae643a81a1e303b2d2a9f067fb7c3b568d1710efe1a6b7b6209667afa"
   },
   "layout": {
     "root": {
@@ -129,25 +134,77 @@
   "release_convention": "semver-v1",
   "release_history": "recoverable-v1",
   "issue_management": "request-outcome-v2",
+  "execution_profiles": "app-preflight-v1",
   "activity_observation": "pi-native-v1",
-  "release": "v0.1.0-alpha.23",
+  "activity_observers": [
+    "pi-native-v1",
+    "codex-hooks-v1",
+    "claude-hooks-v1",
+    "gemini-hooks-v1",
+    "cursor-hooks-v1",
+    "opencode-v2-events-v1"
+  ],
+  "release": "v0.1.0-alpha.30",
   "files": {
-    "SKILL.md": "493a2858447873d13d37015906b47b2c577af027b740d83384821f872bd71cb2",
-    "assets/agent-instructions.md": "33df5ce3e827d66cc04a3ea36f5c45afb8e208d25deb077118a1fde13c48d24f",
+    "SKILL.md": "ed53c981c2a06a1d7cd516320193b09b95b1891a0d191d5b10897c2737b2f905",
+    "assets/activity-observer.ps1": "fc3686440ee348ea75010ca7f3a6ec9d13f3613b835303801a22b31d9fae04d4",
+    "assets/activity-observer.sh": "cd57a92e9bb61dcd7cbd0140edbd2c46a05351f2dc9b0c7d988847ff4403b1e8",
+    "assets/agent-instructions.md": "600d87dfdc5db8ec92e48ff8bf6ac24f655f8ead6bb711170ea0b7b4fd2746b3",
     "assets/architecture.md": "b74c1fcff2e2a10f4d20978173d3d7bb8b94074aac24fcc414a9c1ab58620455",
     "assets/authority.md": "d53a8e5c46e576103483457fbffe0f25f11ab32cc8ae1f588b3594126efd271f",
     "assets/behavior-spec.md": "5fa25a6696a57cb6bf8c50f6f15fa053f9983822a45ec8e7059db233148e8b8f",
     "assets/brainstorm-session.md": "ba7a405e2ed13ba21a140b3c9b84f11b9fc7ce890c33ebd9e3822f7bcf731fc5",
     "assets/brainstorm-topic.md": "1028a4c4121e231663b345b9436538f43b2846d58b9b57a4b395baaab4aae6da",
     "assets/charter.md": "4b87c4fc41efce2be2b4307c59e3a90099be8c84d60cbdb8c1ee38598d05ab66",
-    "assets/observer-core.mjs": "b4ce1a1be1dcbd14398903bc5acace95340822813472721f7508ccc661d7b3b3",
+    "assets/codex-observer.ps1": "d563ac1ac37d1938693330abeb9e86a6e9be03321c4995fdc463892c9d6b6c0d",
+    "assets/codex-observer.sh": "7d45d0a76915645df3ecb66c8c684be0e80d1bc1b8d28c9342e4935f8c8a24fb",
+    "assets/hosting/instantiate.py": "311b7cd9d7732902053464d0cfbe97ac3140bd89248836bb8d5c3ffbbd29baa3",
+    "assets/hosting/template/.gitignore": "b9ef6ef4dbc57ecf05ad880eaaa6139f05ac109ecfc5bee9ce62f3a121c8ccbc",
+    "assets/hosting/template/hosting/Gemfile": "e25162273d07453bba3a51e63dee2b47aed54922c91ca085cbf9fa18d194a907",
+    "assets/hosting/template/hosting/Gemfile.lock": "d99129ae0b833471b03f16d5fea66fc0561dd8369d5590fc9f8400bb84ea304f",
+    "assets/hosting/template/hosting/HOSTNAME-REQUEST.md": "a60eaaba0a07dc18f8d3e58970ca34cbea07842668aaffefa559d04ed49bfab0",
+    "assets/hosting/template/hosting/OPERATIONS.md": "9335a382d9386428001bddc8fc5fcbafe695ddfbb3eda5500ff000d9b0bbeec9",
+    "assets/hosting/template/hosting/OWNER-SETUP.md": "8b187a5e082ac4891af84bf7925317bf6764f505b93ed91345bfe8cc2ce93d5b",
+    "assets/hosting/template/hosting/app.json": "094ccbc161947ee878a85854ce0ba02274716183ff88b835105bbf062bcceb5f",
+    "assets/hosting/template/hosting/backup.py": "98aebb0c0aa162b842eaf663941e4aba3af881ab97a9869b20bee0b149273f09",
+    "assets/hosting/template/hosting/cloudflare/.gitignore": "fd7067bbcb342777042c361aece537b6715cde54b2ac6d08ca022dd98dad1688",
+    "assets/hosting/template/hosting/cloudflare/INTEGRATION.md": "204e8b155277879799c17b5af6c7bef7f455d2f87c5066cea830fdf9dc241432",
+    "assets/hosting/template/hosting/cloudflare/PROVIDERS.json": "fd27f6b46277f49c47a611372ab28d209c7296b94cf251cbc62aaab5196c2d16",
+    "assets/hosting/template/hosting/cloudflare/ROTATION.md": "85ebf3235d08bc6ef836c01f2e73f3b863aa059a6593e1dabcf40bd3d19550d5",
+    "assets/hosting/template/hosting/cloudflare/infra/.terraform.lock.hcl": "fcee7db5128f2e9da80c137922e33a865d1306e683af04cc1ae69cba583d50eb",
+    "assets/hosting/template/hosting/cloudflare/infra/main.tf": "2be3e94c069bf21cabb4b8cbf466e6b8bdb01e95bc20de8277745015692894d1",
+    "assets/hosting/template/hosting/cloudflare/infra/versions.tf": "4687176907410b64b980ba43aee1bf16579e34fa7004851ed3aca47130805ccd",
+    "assets/hosting/template/hosting/cloudflare/package-lock.json": "fb5b3e736b3b1c4901a3ebf892eafae3392b8c4568497050d7aa0a661ad9e1b7",
+    "assets/hosting/template/hosting/cloudflare/package.json": "0181deb86dc7c20506ad869f645298c35ad67bf0ae3ab4d66ca4939699108e31",
+    "assets/hosting/template/hosting/cloudflare/preview.mjs": "1fdf7fbf6b32ec5cda367579c11c372a89d2eb1cac1c913b22b3b808999ecfcf",
+    "assets/hosting/template/hosting/cloudflare/public/index.html": "a114237d97a16524f10afabb34cdd00cd8bd2f4f766ca33d792ddcfa713ab725",
+    "assets/hosting/template/hosting/cloudflare/transport.mjs": "a41486855731aac8421e5e8337658a2e30c18297bbc51ef012e7d1d8351ee6cb",
+    "assets/hosting/template/hosting/cloudflare/worker.mjs": "d2d6ab6227896f5f94a8b6da7fd594d6ea272fb9c55507f8f5cf0da2d0429891",
+    "assets/hosting/template/hosting/cloudflare/wrangler.json": "eafa10c7ed2abcc1c0d8a49400ff265d90064d93429644347c0cd7b722eae110",
+    "assets/hosting/template/hosting/deploy.yml.erb": "db84fe1a3241ec27cf9714920e63b3846c1a90767b60647c2c0876a2106c52fd",
+    "assets/hosting/template/infra/.terraform.lock.hcl": "20145fcbd2af013cdec45c5acc14b9441d76752dd79aa879bb28e0c983ceef9f",
+    "assets/hosting/template/infra/bootstrap.sh": "618cdfd9dae74a421ec35e77224f63a956971a338a94ae31a85de293feb39f39",
+    "assets/hosting/template/infra/hostctl.py": "ef8a028d509722f069875076708345188714ebd9a4ba33fa7c191d895bfdd8f0",
+    "assets/hosting/template/infra/main.tf": "06ed1612c61b5d1d58579d985e4bed2e9dd5aaff6baa439c3927fe13464f6a6d",
+    "assets/hosting/template/infra/provider-review.example.json": "4e65dc62554c3162651f3b20018ff4aed4d49935c4412193b6f98ad8e8420c64",
+    "assets/hosting/template/infra/provider_check.py": "0ebf609677e3153a330ebbf7e951fa1a21197edfac5b3300b40a46c42b085e71",
+    "assets/hosting/template/infra/providers.json": "73807b98399b00fdcc554069ce61e5612aec6f39169a20a91d567f5db3aea77c",
+    "assets/hosting/template/infra/review_plan.py": "0e404e598722172d9e0e948be27abf48247648573dbf222bc9c08ee6ba81bef2",
+    "assets/hosting/template/infra/terraform.tfvars.example": "339afc142ea759a1cbe0ffd3d79ba0c825606cc8f9f2d3e86b11f7c5c681669b",
+    "assets/hosting/template/infra/tests/guardrails.tftest.hcl": "74129c38a0dce2b9a2028893607a8dacfea3873c788ea76c2502fdbb40ca3ffe",
+    "assets/hosting/template/infra/variables.tf": "eb33c792c9b97a9a154746d8fbc16ac5717842d9d5e8fc165bbd66e2ffb5ad06",
+    "assets/hosting/template/infra/versions.tf": "24dab3a6386551568520b9fd272c6e89574c325550c7e0118f25ee7faa568b8e",
+    "assets/observer-core.mjs": "e8e1e07a27c31f2b946b4698f7d43ffe8e9a62f340c15e67839be033e364c105",
+    "assets/opencode-observer.mjs": "c9b830eaa2f567204f98c13d960eb4271bea6982e976df68f0bd889a74bfccdf",
     "assets/pi-observer.ts": "f3c753ef2fd264b7a3a070644e2593eb8ee1071f9b7334d382f5db92e061d982",
     "assets/readme.md": "d55bd98a23633b2d8dae90667645a98057b6361d39514f179f1eabb361e8d2da",
+    "references/app-hosting.md": "54d1b0a12958c880feb773d2cfe2a5e43e075ad8ff6e1216132ab9df552245b9",
     "references/assisted-protocol.md": "1f65afd40890eb06a475918564e0bd4cde4491ae4450bc56b6a9b22b60263b45",
-    "references/checker.md": "7dbb80a24da66bae650e0e0b447b57cf53a203aded99c23910142871235ebcc5",
+    "references/checker.md": "212f7e36b6a3c5ec539453b1e8d10b110e88c19ea9dfd9789b124cb82c0c4077",
     "references/legacy-records.md": "9cddd17a5a7aec52f67cf1cb20a3be3669359527a459d46fdc8ec74b0810b59f",
-    "references/protocol.md": "9070f151a87c0c78f920aa22295ee976851dd98cbd65aee6cebe6502ac1a9613",
-    "references/records.md": "c21fe1ed4806331bb12fc1897d738634e8a67121cc3f5043a6887a923ba5cb1b",
-    "references/templates.md": "813428363250c4cb5b80e6537549983b61969557b1541a415653f605f3e5d2d1"
+    "references/operator-app.md": "ed445fa1b343e2e452ab2f424b90e0ddd294ade3bcdc74815ff8d75944af8527",
+    "references/protocol.md": "4f5ffe0ae643a81a1e303b2d2a9f067fb7c3b568d1710efe1a6b7b6209667afa",
+    "references/records.md": "03d386a69845310d7f99069112d77ff7f8db48502f68ac2f7917cd1622fc568f",
+    "references/templates.md": "b4ef44da195f45ab6d5e8df88421d5b9b27d9aaafbbfbb509db92734314f3255"
   }
 }
