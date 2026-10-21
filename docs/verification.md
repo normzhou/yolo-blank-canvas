@@ -7,7 +7,9 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 ## Guided request capture and request-store seam (#175, #172, #173) — 2026-10-21
 
 Source revision `607c2c3` (the feature commit); build and review evidence
-`0daeacf`.
+`0daeacf`; release commit `eda85f8`; published as `v0.7.0` on 2026-10-21. The
+unit and stubbed e2e results below ran against the source revision; the 9/9
+acceptance below ran against the installed tag users receive.
 
 - `npm test`: 24 files, 278 tests passed. Added `test/request-store.test.ts` (4)
   for `createGitHubRequestStore` and non-GitHub fake-store substitution in
@@ -29,7 +31,28 @@ Source revision `607c2c3` (the feature commit); build and review evidence
   installed check for the guided composer and keeps the eighth check compatible
   with `v0.6.0`.
 - `yolo-check . --structure` (`0.1.0-alpha.30`): `structure.status: pass`,
-  13/13 findings compliant, clean working tree at `0daeacf`.
+  13/13 findings compliant, clean working tree at `0daeacf` and `18ce6af`.
+
+### Installed artifact (`v0.7.0`)
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.7.0 --no-open --port 4875`
+in an empty directory, with no source checkout. `GET /api/version` reported both
+`serverBuild` and `clientBuild` as `607c2c3…`; the tagged package version is
+`0.7.0`. The tag points at release commit `eda85f8`, after the assets commit
+`0daeacf`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4875 npm run e2e:verify-release`:
+**9 passed, 0 failed**. The eight earlier checks plus the new guided-composer
+check: from **New request**, **Build or change** is preselected; typing a title
+and shared primary answer and switching to **Report a problem** preserves both
+values and previews `Template: blankcanvas.problem@1`; Escape closes without
+submitting. The report is
+[`.yolo/reports/releases-observed-2026-10-21-request-capture.json`](../.yolo/reports/releases-observed-2026-10-21-request-capture.json).
+
+Open gaps: richer in-app evidence remains deferred as #170, and upstream YOLO
+Dev template adoption remains deferred as #174 until upstream #144 is released
+and this repository upgrades its pin. Installed acceptance is nine targeted
+read-only checks rather than the full suite and does not submit a live issue.
 
 ## Contextual feedback (#169) — 2026-10-21
 
@@ -581,16 +604,22 @@ agent, so these were taken under the standing grant rather than left waiting.
 
 ## Tested revision
 
-Release tag `v0.6.0` points at release commit `e93d5a5`. Assets were built from source
-`2302878` (`dist/client/.build-id` and `server/build-id.generated.js` both report `2302878…`)
-and committed in `5fd426d`; the release commit itself adds only the `0.6.0` version and install
+Release tag `v0.7.0` points at release commit `eda85f8`. Assets were built from source
+`607c2c3` (`dist/client/.build-id` and `server/build-id.generated.js` both report `607c2c3…`)
+and committed in `0daeacf`; the release commit itself adds only the `0.7.0` version and install
 references, with no source changes. The native version at the tagged revision (`package.json`) is
-`0.6.0`. The published artifact was installed from the release into an empty directory and accepted
-8 of 8 on `e2e:verify-release` — the seven earlier checks plus contextual feedback — as recorded in
+`0.7.0`. The published artifact was installed from the release into an empty directory and accepted
+9 of 9 on `e2e:verify-release` — the eight earlier checks plus the guided request composer — as
+recorded in
+[`.yolo/reports/releases-observed-2026-10-21-request-capture.json`](../.yolo/reports/releases-observed-2026-10-21-request-capture.json).
+Its limits travel with it: nine targeted read-only checks rather than the full suite; the composer
+and feedback checks do not submit a live issue; and the tag points at the release commit after the
+assets commit rather than at it.
+
+The previous revision named in this section was `v0.6.0` (release `e93d5a5`, assets from
+`2302878`), accepted 8 of 8 on the installed artifact on 2026-10-21 and recorded in
 [`.yolo/reports/releases-observed-2026-10-21-contextual-feedback.json`](../.yolo/reports/releases-observed-2026-10-21-contextual-feedback.json).
-Its limits travel with it: eight targeted checks rather than the full suite; the feedback check
-asserts the prefilled context and focus return but does not submit a live issue; and the tag points
-at the release commit after the assets commit rather than at it.
+It remains valid history, not the current tested revision.
 
 The previous revision named in this section was `v0.5.0` (release `f0262ae`, assets from
 `4cad4b6`), accepted 7 of 7 on the installed artifact on 2026-10-21 and recorded in
