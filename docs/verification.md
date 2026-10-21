@@ -4,6 +4,34 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Request triage summaries and in-panel outcome links (#177) — 2026-10-21
+
+Source revision `320f6fa` (the feature commit); build and review evidence
+`5bed830`.
+
+- `npm test`: 24 files, 280 tests passed. Added `test/status.test.ts` (25)
+  cases for `isRequestTriageComment`, `findRequestTriageComment`, code-fence
+  exclusion, most-recent selection, and `reportedTiming` returning `null` on
+  `## YOLO request`; added `test/markdown.test.tsx` (6) cases for
+  `parseSameRepoIssueUrl`.
+- `npx tsc --noEmit`: clean.
+- `npm run build`: clean; `dist/client/.build-id` and
+  `server/build-id.generated.js` both report `320f6fa…`.
+- `npm run e2e`: 88 passed, 1 skipped against the stubbed GitHub adapter (89
+  run). `e2e/summary-hierarchy.spec.ts` (3) adds coverage for `Request triage`
+  in `.summary-box` when an issue carries `## YOLO request` and no
+  `## YOLO status`, absence of the timing fallback on a triage box, in-panel
+  navigation when clicking a same-repo covering-outcome link (`#7`), browser
+  Back returning to the source request, and `Reported summary` precedence when
+  both `## YOLO request` and `## YOLO status` exist. `e2e/verify-release.spec.ts`
+  gains a tenth read-only installed check for `Request triage` and in-panel
+  covering-outcome navigation (`#172` → `#175`).
+- `yolo-check .` (`0.1.0-alpha.30`): `structure.status: pass`, 13/13 structure
+  findings compliant; `issue_summary` and `release` findings are now compliant
+  after repairing the `#129` and `#153` summary headings to exact
+  `## YOLO status` and adding `schema_version: 2` + `releases: [...]` to the
+  four earlier release observation reports under `recoverable-v1`.
+
 ## Guided request capture and request-store seam (#175, #172, #173) — 2026-10-21
 
 Source revision `607c2c3` (the feature commit); build and review evidence

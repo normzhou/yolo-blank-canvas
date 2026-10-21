@@ -1,5 +1,5 @@
 import { test, expect, settled, listSettled } from './fixtures';
-import { startStubApp, withoutSummaryGithub } from './stub-server';
+import { makeStubGithub, startStubApp, withoutSummaryGithub, type StubComment } from './stub-server';
 
 /**
  * App chrome vs issue content (#75, Q3).
@@ -96,6 +96,79 @@ test('a detail with no summary still shows the honest fallback', async ({ page }
     expect(label!.textTransform).toBe('uppercase');
     // Reachable, not hidden by the stronger label treatment.
     await expect(page.getByRole('heading', { name: 'Reported summary', exact: true })).toBeVisible();
+  } finally {
+    stub.server.close();
+  }
+});
+
+test('a request with ## YOLO request shows Request triage without timing fallback, and covering-outcome links open in-panel', async ({
+  page,
+}) => {
+  const base = makeStubGithub();
+  const innerListComments = base.listComments;
+  const triageComments: StubComment[] = [
+    {
+      id: 301,
+      body: [
+        '## YOLO request',
+        '',
+        'Admitted as part of covering outcome [#7](https://github.com/normzhou/yolo-blank-canvas/issues/7).',
+      ].join('\n'),
+      user: { login: 'normzhou' },
+      created_at: '2026-10-07T12:00:00Z',
+      updated_at: '2026-10-07T12:00:00Z',
+      html_url: 'https://github.com/normzhou/yolo-blank-canvas/issues/2#issuecomment-301',
+    },
+  ];
+  const promotedComments: StubComment[] = [
+    ...triageComments,
+    {
+      id: 302,
+      body: '## YOLO status\n\nOutcome: promoted in place and active.',
+      user: { login: 'normzhou' },
+      created_at: '2026-10-07T13:00:00Z',
+      updated_at: '2026-10-07T13:00:00Z',
+      html_url: 'https://github.com/normzhou/yolo-blank-canvas/issues/3#issuecomment-302',
+    },
+  ];
+
+  const stub = await startStubApp({
+    ...base,
+    listComments: async (target: unknown, number: string, options: { page: number; perPage: number }) => {
+      if (Number(number) === 2) return triageComments;
+      if (Number(number) === 3) return promotedComments;
+      return innerListComments(target, number, options);
+    },
+  });
+
+  try {
+    await page.goto(`${stub.base}?panel=2`);
+    await expect(page.getByRole('heading', { name: '#2 A plain conversation' })).toBeVisible();
+    await expect(page.getByText('Request open').first()).toBeVisible();
+
+    const box = page.locator('.summary-box');
+    await expect(box.getByRole('heading', { name: 'Request triage', exact: true })).toBeVisible();
+    await expect(box.getByText(/Admitted as part of covering outcome/)).toBeVisible();
+    await expect(box.getByText('Delivery timing not yet estimated.')).toHaveCount(0);
+    await expect(box.getByText('No progress summary yet.')).toHaveCount(0);
+
+    // Clicking the same-repo covering-outcome link navigates inside the panel.
+    await box.getByRole('link', { name: '#7' }).click();
+    await expect(page).toHaveURL(/\?panel=7$/);
+    await expect(page.getByRole('heading', { name: '#7 Make the canvas respond to themes' })).toBeVisible();
+    await expect(box.getByRole('heading', { name: 'Reported summary', exact: true })).toBeVisible();
+
+    // Browser Back returns to the source request.
+    await page.goBack();
+    await expect(page).toHaveURL(/\?panel=2$/);
+    await expect(box.getByRole('heading', { name: 'Request triage', exact: true })).toBeVisible();
+
+    // On an issue that has both ## YOLO request and ## YOLO status, Reported summary wins
+    // while the triage comment remains visible in the discussion below.
+    await page.goto(`${stub.base}?panel=3`);
+    await expect(box.getByRole('heading', { name: 'Reported summary', exact: true })).toBeVisible();
+    await expect(box.getByText('Outcome: promoted in place and active.')).toBeVisible();
+    await expect(page.locator('.comment').getByText(/Admitted as part of covering outcome/)).toBeVisible();
   } finally {
     stub.server.close();
   }

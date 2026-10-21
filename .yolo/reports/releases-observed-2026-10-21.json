@@ -1,10 +1,17 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "kind": "release-observation",
   "status": "published-and-acceptance-passed",
   "target": "normzhou/yolo-blank-canvas",
   "date": "2026-10-21",
+  "observed_at": "2026-10-21",
   "published_at_utc": "2026-10-21T07:42:57Z",
+  "releases": [
+    {
+      "tag": "v0.5.0",
+      "commit": "f0262ae6e76ed26ea51b22c18daa1cf2d9c046c2"
+    }
+  ],
   "protocol": {
     "revision": "e95211f32261580fb580cf0da9d7276ae477b063",
     "release": "v0.1.0-alpha.30"

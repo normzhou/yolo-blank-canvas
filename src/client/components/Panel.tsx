@@ -16,6 +16,7 @@ export function Panel({
   onFilterChange,
   onClose,
   onSelect,
+  onSelectIssueNumber,
   onNew,
   onCancelNew,
   onBack,
@@ -39,6 +40,7 @@ export function Panel({
   onFilterChange: (next: 'open' | 'closed' | 'all') => void;
   onClose: () => void;
   onSelect: (issue: IssueSummary) => void;
+  onSelectIssueNumber?: (issueNumber: number) => void;
   onNew: () => void;
   onCancelNew: () => void;
   onBack: () => void;
@@ -145,6 +147,8 @@ export function Panel({
             <DetailView
               issueNumber={view.number}
               issueHint={view.issue}
+              repo={session.repo}
+              onSelectIssue={onSelectIssueNumber}
               draft={replyDraft}
               onDraftChange={onReplyDraftChange}
               onBack={onBack}

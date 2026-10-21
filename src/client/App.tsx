@@ -506,6 +506,7 @@ export function App() {
           onFilterChange={setFilter}
           onClose={closePanel}
           onSelect={(issue: IssueSummary) => navigate({ name: 'detail', number: issue.number }, issue)}
+          onSelectIssueNumber={(number: number) => navigate({ name: 'detail', number }, null)}
           onCreated={(issue) => {
             setCreatedIssues((previous) => [...previous.filter((item) => item.number !== issue.number), issue]);
             // The write is confirmed. The next request starts with a fresh

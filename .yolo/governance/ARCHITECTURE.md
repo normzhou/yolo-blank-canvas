@@ -85,11 +85,11 @@ The durable observable contracts, verified by the test suite:
 
 | Contract | Home | Verified by |
 | --- | --- | --- |
-| Status and reported-summary derivation from labels, state and `## YOLO status` comments | [specs/status-presentation.md](specs/status-presentation.md) | `test/status.test.ts` |
+| Status, reported-summary and request-triage derivation from labels, state, `## YOLO status` and `## YOLO request` comments | [specs/status-presentation.md](specs/status-presentation.md) | `test/status.test.ts`, `e2e/summary-hierarchy.spec.ts` |
 | Issue/comment round-trip, request-store seam, write ambiguity, endpoint scope | `server/request-store.js`, `server/github.js`, `server/app.js` | `test/request-store.test.ts`, `test/github-client.test.ts`, `test/app-api.test.ts` |
 | Process boundary and argument isolation | `server/gh.js` | `test/gh-process.test.ts` |
 | Launcher prerequisites, auth reuse, port fallback | `server/cli.js`, `server/launch.js` | `test/launcher.test.ts` |
-| Untrusted Markdown safety | `src/client/components/Markdown.tsx` | `test/markdown.test.tsx` |
+| Untrusted Markdown safety and in-panel same-repo issue links | `src/client/components/Markdown.tsx` | `test/markdown.test.tsx`, `e2e/summary-hierarchy.spec.ts` |
 | Draft preservation and v1→v2 migration across panel/refresh/reload | `src/client/drafts.ts` | `test/drafts.test.ts` |
 | Guided three-intent request templates, body rendering, app-context feedback line and app-scoped drafts | `src/client/requestTemplates.ts`, `src/client/feedback.ts`, `src/client/drafts.ts`, `src/client/views/NewRequestView.tsx` | `test/request-templates.test.ts`, `test/feedback.test.ts`, `test/drafts.test.ts`, `e2e/app-feedback.spec.ts` |
 | Canvas app registry and addressable `?app=` locations | `src/client/apps/registry.ts`, `src/client/route.ts` | `test/apps.test.ts`, `test/route.test.ts`, `e2e/canvas-gallery.spec.ts` |
@@ -147,10 +147,11 @@ Present-day choices, revisitable by request rather than protected:
 - **Pagination is implemented but unexercised live** — too few issues to exercise multi-page
   loads.
 - **A `yolo:request` label does not change the derived status.** Under the adopted
-  `request-outcome-v1` issue policy, intake classification, `## YOLO request` triage comments and
-  covering-outcome links exist in the records but are not surfaced by the panel; a request-only open
-  issue reads **Request open**, the same as an unlabelled one. Presenting recorded disposition and
-  covering outcomes is a display request, not a derivation fix.
+  `request-outcome-v2` issue policy, an open request-only issue reads **Request open**, the same as
+  an unlabelled one: intake classification is not evidence of review, admission or scheduling. When
+  an issue has a `## YOLO request` triage comment and no `## YOLO status` work summary, the detail
+  view surfaces it under **Request triage** (without reading or displaying delivery timing) and opens
+  same-repository covering-outcome links inside the panel (#177).
 - **First-login, missing-`gh`, browser-open and mid-session auth-loss paths are unit tested, not
   observed live.** Known verification limits, not defects.
 - **The app derives status from labels but does not write labels.** It creates ordinary issues and
