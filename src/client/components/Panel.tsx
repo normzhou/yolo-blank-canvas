@@ -56,15 +56,23 @@ export function Panel({
   const bodyRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
 
-  // Escape closes the panel; focus moves inside on open.
+  // Escape closes the panel; focus moves inside on open. The composer owns its
+  // first field focus (the title), so the close button only takes focus for the
+  // list and detail views. This effect is mount-only: navigating between views
+  // must not steal focus from the field the user is in.
   useEffect(() => {
-    closeRef.current?.focus();
+    if (view.name !== 'new') closeRef.current?.focus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
+      // The panel is modal. Background canvas shortcuts — notably Tetris's
+      // arrows and hard-drop Space — must not see keys meant for a field. The
+      // target still receives the event; this only stops it before it bubbles
+      // to the window-level app controls.
+      event.stopPropagation();
       if (event.key === 'Escape') {
-        event.stopPropagation();
         onClose();
         return;
       }

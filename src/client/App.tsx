@@ -6,16 +6,19 @@ import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { CanvasPalette } from './components/CanvasPalette';
 import { CANVAS_APPS, canvasAppById } from './apps/registry';
 import { useVisible } from './usePolling';
+import { feedbackBody } from './feedback';
 import {
   NEW_REQUEST_KEY,
   browserStore,
   clearDraft,
+  feedbackKey,
   loadDraft,
   replyKey,
   saveDraft,
   type DraftStore,
+  type NewRequestDraft,
 } from './drafts';
-import { readRoute, routeTarget, routeUrl, type RouteTarget } from './route';
+import { readRoute, routeUrl, type RouteTarget } from './route';
 
 const CLIENT_BUILD: string = typeof __CLIENT_BUILD__ === 'string' ? __CLIENT_BUILD__ : '';
 
@@ -25,6 +28,29 @@ const EMPTY_DRAFT = { title: '', body: '' };
 function toPanelView(target: RouteTarget, issue: IssueSummary | null = null): PanelView {
   if (target.name === 'detail') return { name: 'detail', issue, number: target.number };
   return { name: target.name };
+}
+
+type ComposerState = { key: string; draft: NewRequestDraft };
+type PanelOpener = 'start' | 'feedback' | 'requests';
+
+function draftIsEmpty(draft: NewRequestDraft): boolean {
+  return draft.title.trim() === '' && draft.body.trim() === '';
+}
+
+/**
+ * The composer draft for a location (#169). The home composer keeps the
+ * generic draft; an app gets its own key and, when that draft does not exist,
+ * a fresh visible context line. `fresh` deliberately ignores storage so a
+ * confirmed create can start the next feedback cleanly.
+ */
+function composerFor(store: DraftStore | null, appId: string | null, fresh = false): ComposerState {
+  const app = canvasAppById(appId);
+  const key = app ? feedbackKey(app.id) : NEW_REQUEST_KEY;
+  const loaded = !fresh && store ? loadDraft(store, key) : null;
+  return {
+    key,
+    draft: loaded ?? (app ? { title: '', body: feedbackBody(app) } : EMPTY_DRAFT),
+  };
 }
 
 export function App() {
@@ -42,7 +68,7 @@ export function App() {
   const [filter, setFilter] = useState<'open' | 'closed' | 'all'>('open');
   const [lastRefreshedAt, setLastRefreshedAt] = useState<number | null>(null);
   const [stale, setStale] = useState(false);
-  const [newDraft, setNewDraft] = useState(() => loadDraft(storeRef.current ?? undefined, NEW_REQUEST_KEY) ?? EMPTY_DRAFT);
+  const [composer, setComposer] = useState<ComposerState>(() => composerFor(storeRef.current, appId));
   // Requests created in this session, kept until GitHub's list confirms them.
   const [createdIssues, setCreatedIssues] = useState<IssueSummary[]>([]);
   const [replyDrafts, setReplyDrafts] = useState<Record<number, { title: string; body: string }>>({});
@@ -50,9 +76,11 @@ export function App() {
   const [reloadPromptDismissed, setReloadPromptDismissed] = useState(false);
 
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const feedbackTriggerRef = useRef<HTMLButtonElement>(null);
   const requestsTriggerRef = useRef<HTMLButtonElement>(null);
   const canvasTriggerRef = useRef<HTMLButtonElement>(null);
   const appRegionRef = useRef<HTMLElement>(null);
+  const panelOpenerRef = useRef<PanelOpener | null>(null);
 
   const activeApp = canvasAppById(appId);
 
@@ -85,9 +113,13 @@ export function App() {
   }, [connect]);
 
   // Drafts survive refreshes, panel open/close, and a user-initiated reload.
+  // The key is part of the state, so an app draft and the home draft can never
+  // be written over each other (#169).
   useEffect(() => {
-    if (store) saveDraft(store, NEW_REQUEST_KEY, newDraft);
-  }, [newDraft, store]);
+    if (!store) return;
+    if (draftIsEmpty(composer.draft)) clearDraft(store, composer.key);
+    else saveDraft(store, composer.key, composer.draft);
+  }, [composer, store]);
 
   const draftFor = useCallback(
     (issueNumber: number) => {
@@ -108,6 +140,10 @@ export function App() {
     },
     [store],
   );
+
+  const setNewDraft = useCallback((next: NewRequestDraft) => {
+    setComposer((previous) => ({ ...previous, draft: next }));
+  }, []);
 
   // #132: the location is the state. Every view change pushes an entry, so browser
   // back means back, a reload lands where you were, and `?panel=123` is a link.
@@ -151,12 +187,21 @@ export function App() {
         setView({ name: 'list' });
         return;
       }
+      if (route.target.name === 'new') {
+        // A history entry can name the composer without a click on Feedback.
+        // Load its app-scoped draft, but keep an existing non-empty draft so a
+        // forward/back replay never discards what is on screen.
+        setComposer((current) => {
+          const next = composerFor(store, route.app);
+          return current.key === next.key && !draftIsEmpty(current.draft) ? current : next;
+        });
+      }
       setPanelOpen(true);
       setView(toPanelView(route.target));
     };
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
-  }, []);
+  }, [store]);
 
   // The panel cannot render without a session, so entering it while signed out
   // used to be a dead control: the click set state that nothing read. Connecting
@@ -177,19 +222,47 @@ export function App() {
     void enterRequests({ name: 'list' });
   }, [enterRequests]);
 
-  const closePanel = useCallback(() => {
-    navigate(null);
-    // Focus returns to the canvas control that opened it: the primary action on
-    // the home canvas, or the Requests trigger in the app header.
-    window.requestAnimationFrame(() => {
-      (triggerRef.current ?? requestsTriggerRef.current)?.focus();
+  // The direct path into the workflow. The composer key follows the app, so a
+  // request composed over an app gets that app's draft and context; the home
+  // composer keeps the generic draft (#169).
+  const openNewRequest = useCallback(() => {
+    setComposer((current) => {
+      const next = composerFor(store, appId);
+      return current.key === next.key ? current : next;
     });
-  }, [navigate]);
+    void enterRequests({ name: 'new' });
+  }, [appId, enterRequests, store]);
+
+  const closePanel = useCallback(() => {
+    const opener = panelOpenerRef.current;
+    panelOpenerRef.current = null;
+    navigate(null);
+    // Focus returns to the control that opened the panel. The header buttons
+    // unmount while the modal is open, so resolve the current element through
+    // its ref rather than keeping a stale DOM node.
+    window.requestAnimationFrame(() => {
+      const byOpener =
+        opener === 'start'
+          ? triggerRef.current
+          : opener === 'feedback'
+            ? feedbackTriggerRef.current
+            : opener === 'requests'
+              ? requestsTriggerRef.current
+              : null;
+      const fallback = activeApp
+        ? feedbackTriggerRef.current ?? requestsTriggerRef.current
+        : triggerRef.current;
+      (byOpener ?? fallback)?.focus();
+    });
+  }, [activeApp, navigate]);
 
   // The palette is transient UI, not a location. Opening it over Requests closes
   // the panel first so two shell overlays never compete for focus or Escape.
   const openPalette = useCallback(() => {
     if (panelOpen) {
+      // The palette owns focus from here; a stale opener must not claim it if
+      // the panel is later reopened by a history entry.
+      panelOpenerRef.current = null;
       window.history.pushState(null, '', routeUrl(null, window.location.pathname, appId));
       setPanelOpen(false);
       setView({ name: 'list' });
@@ -256,12 +329,13 @@ export function App() {
     <div className={panelOpen && session ? 'canvas panel-open' : 'canvas'}>
       <header className="canvas-header">
         <h1 className="canvas-title">Blank canvas</h1>
-        {/* Navigation lives here; the Requests workflow joins it only while an
+        {/* Navigation lives here; the requests workflow joins it only while an
            app is open, because that is when the canvas's own controls are
-           replaced. Preferences stay separate. The header used to hold three
-           peer actions — theme, Tetris and Requests — which put the app's one
-           real action on equal footing with a game (#130). Canvas is navigation
-           chrome, and Requests is the workflow, not a game. */}
+           replaced. Feedback starts a request; Requests browses them.
+           Preferences stay separate. The header used to hold three peer actions
+           — theme, Tetris and Requests — which put the app's one real action on
+           equal footing with a game (#130). Canvas is navigation chrome, and
+           the workflow is not a game. */}
         <span className="canvas-actions">
           <button
             type="button"
@@ -276,13 +350,31 @@ export function App() {
             Canvas
           </button>
           {activeApp && !panelOpen ? (
-            <button
-              type="button"
-              ref={requestsTriggerRef}
-              onClick={() => void enterRequests({ name: 'list' })}
-            >
-              Requests
-            </button>
+            <>
+              <button
+                type="button"
+                className="canvas-feedback"
+                ref={feedbackTriggerRef}
+                aria-label={`Feedback on ${activeApp.title}`}
+                title={`Give feedback on ${activeApp.title}`}
+                onClick={() => {
+                  panelOpenerRef.current = 'feedback';
+                  openNewRequest();
+                }}
+              >
+                Feedback
+              </button>
+              <button
+                type="button"
+                ref={requestsTriggerRef}
+                onClick={() => {
+                  panelOpenerRef.current = 'requests';
+                  void enterRequests({ name: 'list' });
+                }}
+              >
+                Requests
+              </button>
+            </>
           ) : null}
         </span>
         <ThemeSwitcher />
@@ -345,13 +437,24 @@ export function App() {
             type="button"
             className="primary canvas-primary-action"
             ref={triggerRef}
-            onClick={() => void enterRequests({ name: 'new' })}
+            onClick={() => {
+              panelOpenerRef.current = 'start';
+              openNewRequest();
+            }}
             disabled={connecting}
           >
             {session ? 'Start a request' : 'Connect GitHub'}
           </button>
           <div className="canvas-secondary-actions">
-            <button type="button" onClick={openPanel}>
+            <button
+              type="button"
+              onClick={() => {
+                // Closing returns to the canvas's primary control (#130), the
+                // same as opening the list from that control.
+                panelOpenerRef.current = 'start';
+                openPanel();
+              }}
+            >
               Open requests
             </button>
           </div>
@@ -385,13 +488,16 @@ export function App() {
           onFilterChange={setFilter}
           onClose={closePanel}
           onSelect={(issue: IssueSummary) => navigate({ name: 'detail', number: issue.number }, issue)}
-          onCreated={(issue) =>
-            setCreatedIssues((previous) => [...previous.filter((item) => item.number !== issue.number), issue])
-          }
-          onNew={() => navigate({ name: 'new' })}
+          onCreated={(issue) => {
+            setCreatedIssues((previous) => [...previous.filter((item) => item.number !== issue.number), issue]);
+            // The write is confirmed. The next feedback starts with a fresh
+            // context line, not the text just submitted.
+            setComposer(composerFor(store, appId, true));
+          }}
+          onNew={openNewRequest}
           onCancelNew={() => navigate({ name: 'list' })}
           onBack={() => navigate({ name: 'list' })}
-          newDraft={newDraft}
+          newDraft={composer.draft}
           onNewDraftChange={setNewDraft}
           createdIssues={createdIssues}
           replyDraft={currentDraft}

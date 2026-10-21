@@ -213,3 +213,30 @@ test('the released canvas gallery opens an app and keeps it under the palette', 
   await expect(page.getByRole('heading', { name: 'Tetris' })).toBeVisible();
   await expect(page).toHaveURL(/\?app=tetris$/);
 });
+
+test('the released app carries the viewed app into feedback', async ({ page }) => {
+  await page.goto(BASE);
+  await session(page);
+  await page.goto(BASE);
+
+  const gallery = page.getByRole('navigation', { name: 'Canvas gallery' });
+  if ((await gallery.count()) === 0) {
+    test.skip(true, 'this release predates the canvas gallery (#165)');
+  }
+  await gallery.getByRole('button', { name: 'Tetris', exact: true }).click();
+  await expect(page).toHaveURL(/\?app=tetris$/);
+
+  const feedback = page.getByRole('button', { name: 'Feedback on Tetris' });
+  if ((await feedback.count()) === 0) {
+    test.skip(true, 'this release predates contextual feedback (#169)');
+  }
+  await feedback.click();
+  await expect(page).toHaveURL(/\?app=tetris&panel=new$/);
+  await expect(page.getByLabel('Title')).toBeFocused();
+  await expect(page.getByLabel('Description')).toHaveValue('App: Tetris (?app=tetris)\n\n');
+
+  // Read-only: close without submitting. Escape returns focus to Feedback.
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog', { name: 'Requests' })).toHaveCount(0);
+  await expect(feedback).toBeFocused();
+});

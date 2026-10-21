@@ -4,6 +4,42 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Contextual feedback (#169) — 2026-10-21
+
+Source revision `2302878` (the feature commit); build and review evidence
+`5fd426d`; not yet released at the time of this record. The unit, type, build,
+e2e and structure results below ran against this revision.
+
+- `npm test`: 22 files, 267 tests passed. Added `test/feedback.test.ts` (2) for
+  the exact context line and body seed; `test/drafts.test.ts` now has 6 tests,
+  including app/home/other-app draft isolation.
+- `npx tsc --noEmit`: clean.
+- `npm run build`: clean; `dist/client/.build-id` and
+  `server/build-id.generated.js` both report `2302878…`.
+- `npm run e2e`: 87 passed, 1 skipped against the stubbed GitHub client (88
+  run). New `e2e/app-feedback.spec.ts` (4) covers the direct Feedback action,
+  the prefilled context and appending into it, submission into an ordinary
+  issue, focus return, app/home/cold-link draft separation and the Requests
+  list path. `e2e/verify-release.spec.ts` gains an eighth, read-only installed
+  check for the context line and focus return; it is for release acceptance,
+  not the normal suite.
+- Defect found by the new test and fixed in the slice: the panel's document
+  key handler now stops keydown propagation, so Tetris's window-level arrow and
+  hard-drop Space controls cannot consume keys typed into the composer. The
+  test's sentence keeps its spaces and the panel remains the top overlay for
+  Escape.
+- `yolo-check . --structure` (`0.1.0-alpha.30`, executable SHA-256
+  `7c04535…` matching the published `SHA256SUMS`; publication `df14572…`):
+  `structure.status: pass`, 13/13 findings compliant, clean working tree at
+  `5fd426d`.
+
+Open gaps: this record predates the release; installed-artifact acceptance is
+recorded below after publication. The context is text only by decision — no
+labels, attachments, element targeting or per-app content persistence. Richer
+in-app evidence remains deferred as #170. The normal e2e run does not execute
+`e2e/verify-release.spec.ts`, so the installed check is exercised only against
+the delivered artifact.
+
 ## Canvas gallery (#165) — 2026-10-21
 
 Source revision `4cad4b6` (the feature commit); build and review evidence

@@ -1,6 +1,6 @@
 # yolo-blank-canvas
 
-A minimal local web app: a blank canvas with a **Requests** overlay for creating, discussing, and following GitHub issues in one configured repository. The app is a thin presentation of GitHub records — issues and comments live in GitHub, and nothing else is stored. A small first-party **canvas gallery** gives the canvas substance beyond the prompt; its first app is a **Tetris** game, added in response to [request #4](https://github.com/normzhou/yolo-blank-canvas/issues/4). Canvas apps are compiled into the client and addressed as places (`?app=tetris`); their local state is never written to GitHub.
+A minimal local web app: a blank canvas with a **Requests** overlay for creating, discussing, and following GitHub issues in one configured repository. The app is a thin presentation of GitHub records — issues and comments live in GitHub, and nothing else is stored. A small first-party **canvas gallery** gives the canvas substance beyond the prompt; its first app is a **Tetris** game, added in response to [request #4](https://github.com/normzhou/yolo-blank-canvas/issues/4). Canvas apps are compiled into the client and addressed as places (`?app=tetris`); their local state is never written to GitHub. Inside an app, **Feedback** opens the request composer with the app named in the issue body.
 
 Built to the [Blank Canvas UI build spec](https://github.com/normzhou/yolo-dev/blob/main/brainstorm/blank-canvas-ui-build-spec.md).
 
@@ -44,16 +44,18 @@ Default repository: this app's own repository (`normzhou/yolo-blank-canvas`).
 The canvas asks *"What would you like to build or change?"*. **Requests** opens a centred modal overlay (full width on narrow screens) with three views:
 
 - **List** — repository identity, Open/Closed/All filter, issue title/number/status/updated time, newest-updated first, Refresh and Load more.
-- **New request** — required title and description; creates one ordinary issue with no labels, priorities, or assignees.
+- **New request** — required title and description; creates one ordinary issue with no labels, priorities, or assignees. Composed over an app, the description starts with the visible line `App: <title> (?app=<id>)`; the line is editable plain issue text, not a label.
 - **Detail** — the issue, its readable status, the reported summary, the full discussion, and a reply box. Replies are GitHub comments, including on closed issues.
 
-Escape closes the panel and focus returns to the control that opened it (the canvas primary action, or the app header's **Requests** control). While the panel is open, records refresh about every 30 seconds (paused when the page is hidden); the footer shows the last successful refresh, and content is marked stale if a refresh fails. Drafts survive opening/closing, refreshing, sign-in failures, and reload.
+Escape closes the panel and focus returns to the control that opened it (the canvas primary action, the app header's **Feedback** control, or **Requests**). While the panel is open, records refresh about every 30 seconds (paused when the page is hidden); the footer shows the last successful refresh, and content is marked stale if a refresh fails. Drafts survive opening/closing, refreshing, sign-in failures, and reload.
 
 The canvas also carries a quiet **Canvas** row listing the compiled apps. The **Canvas** trigger in the header — or **Ctrl/⌘K**, with `~` as an alias when you are not typing — opens a navigation palette listing **Blank canvas** and every app; Escape closes it. Each app is a place: `?app=tetris` is linkable, and Requests composes over it (`?app=tetris&panel=7`). Opening the palette does not disturb the app underneath; leaving an app unmounts it and resets its local state.
 
+Inside an app, the header's **Feedback** action opens the composer directly with the app context at the top of the description; **Requests** still opens the list. A request composed over an app carries `App: <title> (?app=<id>)` in its body — visible, editable text, not an `app:<id>` label, screenshot, or attachment. `?app=tetris&panel=new` works as a cold link. New-request drafts are scoped by app and by the home canvas, so switching contexts never overwrites typed text, and a confirmed create starts the next feedback with a fresh context line.
+
 ### Tetris
 
-Choose **Tetris** from the canvas row, the **Canvas** palette, or `?app=tetris` to open a classic game (10×20 board, all seven tetrominoes) as canvas content. Controls are keyboard-only: **←/→** move, **↑** rotates, **↓** soft-drops, **Space** hard-drops, **Escape** closes. Score, lines, level and the next piece are shown beside the board; gravity speeds up every ten lines. **Music** toggles a shuffled playlist of five bundled free chiptune tracks — CC0 music by SketchyLogic (*Map*, *Mars*, *Mercury*, *Venus*, *Boss*) — moving to the next without repeating one back to back; audio starts on the click, per browser autoplay policy. A pixel-art backdrop (sourced CC0 art bundled locally — no network fetch) crossfades to the next of six scenes each time four lines are cleared at once; the current scene and tune are named below the board. The board and score live only in the view — they are not GitHub records, are not written back, and are lost when the view closes. The game is generated from a request and does not change the Requests workflow.
+Choose **Tetris** from the canvas row, the **Canvas** palette, or `?app=tetris` to open a classic game (10×20 board, all seven tetrominoes) as canvas content. Controls are keyboard-only: **←/→** move, **↑** rotates, **↓** soft-drops, **Space** hard-drops, **Escape** closes. Score, lines, level and the next piece are shown beside the board; gravity speeds up every ten lines. **Music** toggles a shuffled playlist of five bundled free chiptune tracks — CC0 music by SketchyLogic (*Map*, *Mars*, *Mercury*, *Venus*, *Boss*) — moving to the next without repeating one back to back; audio starts on the click, per browser autoplay policy. A pixel-art backdrop (sourced CC0 art bundled locally — no network fetch) crossfades to the next of six scenes each time four lines are cleared at once; the current scene and tune are named below the board. The board and score live only in the view — they are not GitHub records, are not written back, and are lost when the view closes. The game is generated from a request; the shell's **Feedback** action gives it a direct path back into Requests.
 
 ### Status display
 
@@ -106,6 +108,7 @@ Layout:
 | `src/client/audio/tetrisMusic.ts` | HTMLAudio playback of bundled tracks; reports the tune now playing |
 | `e2e/` | Playwright specs: stubbed-GitHub deterministic run, read-only live run, per-step screenshots |
 | `src/client/apps/registry.ts` | first-party canvas app registry (`id`, `title`, `element`) |
+| `src/client/feedback.ts` | visible app-context line for feedback composed over an app |
 | `src/client/components/CanvasPalette.tsx` | Ctrl/⌘K navigation palette |
 | `src/client/views/TetrisView.tsx` | the Tetris canvas app |
 | `src/client/` | React UI (canvas, panel, list/new/detail views, Markdown rendering) |
