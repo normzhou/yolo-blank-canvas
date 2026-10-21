@@ -13,7 +13,7 @@ import { createApp, LOGIN_COMMAND } from './app.js';
 import { buildInfo } from './build.js';
 import { parseTarget, GhError } from './gh.js';
 import { requireGh, connectWithCli, confirmRepoAccess, findPort, openBrowser } from './launch.js';
-import { createGithubClient } from './github.js';
+import { createGitHubRequestStore } from './request-store.js';
 
 const DEFAULT_REPO = 'normzhou/yolo-blank-canvas';
 const DEFAULT_PORT = 4317;
@@ -101,7 +101,7 @@ async function main() {
     return;
   }
 
-  const app = createApp({ target, github: createGithubClient() });
+  const app = createApp({ target, requestStore: createGitHubRequestStore({ target }) });
   const port = await findPort(Number.isInteger(options.port) ? options.port : DEFAULT_PORT);
   const url = `http://localhost:${port}`;
 

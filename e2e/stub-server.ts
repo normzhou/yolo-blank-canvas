@@ -1,10 +1,11 @@
 import type { Server } from 'node:http';
 import { createApp } from '../server/app.js';
+import { createGitHubRequestStore } from '../server/request-store.js';
 
 /**
- * Deterministic GitHub seam for the E2E suite: same `createApp` the product
- * runs, with the GitHub client and identity stubbed — mirrors the seam used by
- * `test/app-api.test.ts`, so no real repo is touched.
+ * Deterministic record seam for the E2E suite: same `createApp` the product
+ * runs, with the GitHub adapter's client and identity stubbed — mirrors the
+ * seam used by `test/app-api.test.ts`, so no real repo is touched.
  */
 
 export interface StubIssue {
@@ -263,11 +264,12 @@ export interface RunningStub {
 }
 
 export async function startStubApp(github = makeStubGithub()): Promise<RunningStub> {
+  const target = { owner: 'normzhou', name: 'yolo-blank-canvas', slug: 'normzhou/yolo-blank-canvas' };
   const app = createApp({
-    target: { owner: 'normzhou', name: 'yolo-blank-canvas', slug: 'normzhou/yolo-blank-canvas' },
-    github,
+    target,
+    requestStore: createGitHubRequestStore({ target, github }),
     identity: async () => ({ login: 'normzhou' }),
-    repoAccess: async () => ({ fullName: 'normzhou/yolo-blank-canvas', hasIssues: true }),
+    repoAccess: async () => ({ fullName: target.slug, hasIssues: true }),
   } as never);
   const server: Server = await new Promise((resolve) => {
     const instance = app.listen(0, '127.0.0.1', () => resolve(instance));

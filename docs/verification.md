@@ -4,6 +4,33 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Guided request capture and request-store seam (#175, #172, #173) — 2026-10-21
+
+Source revision `607c2c3` (the feature commit); build and review evidence
+`0daeacf`.
+
+- `npm test`: 24 files, 278 tests passed. Added `test/request-store.test.ts` (4)
+  for `createGitHubRequestStore` and non-GitHub fake-store substitution in
+  `createApp` preserving status/summary derivation; added
+  `test/request-templates.test.ts` (5) for the three intents, versioned markers
+  (`blankcanvas.feedback@1`, `blankcanvas.change@1`, `blankcanvas.problem@1`),
+  `#169` app context preservation, and draft content predicates; expanded
+  `test/drafts.test.ts` (8) for v2 round-trip and v1→freeform migration.
+- `npx tsc --noEmit`: clean.
+- `npm run build`: clean; `dist/client/.build-id` and
+  `server/build-id.generated.js` both report `607c2c3…`.
+- `npm run e2e`: 87 passed, 1 skipped against the stubbed GitHub adapter (88
+  run). `e2e/app-feedback.spec.ts` (4) covers prominent top-level intent
+  selection, entry defaults (**Feedback** → Share feedback; **Start a request**
+  / **New request** → Build or change), intent switching without losing the
+  shared title or primary answer, keyed optional fields, validation focus order,
+  editable app context, generated-body preview, **Write freely instead**, and v1
+  draft migration. `e2e/verify-release.spec.ts` gains a ninth read-only
+  installed check for the guided composer and keeps the eighth check compatible
+  with `v0.6.0`.
+- `yolo-check . --structure` (`0.1.0-alpha.30`): `structure.status: pass`,
+  13/13 findings compliant, clean working tree at `0daeacf`.
+
 ## Contextual feedback (#169) — 2026-10-21
 
 Source revision `2302878` (the feature commit); build and review evidence

@@ -83,7 +83,7 @@ test('typing in the composer does not push a history entry per keystroke', async
 
     const before = await page.evaluate(() => history.length);
     await page.getByLabel('Title').fill('A long enough title to type out character by character');
-    await page.getByLabel('Description').fill('And a body, so the check covers more than one field.');
+    await page.getByLabel('What would you like to build or change?').fill('And a body, so the check covers more than one field.');
     const after = await page.evaluate(() => history.length);
     expect(after, 'typing must not grow the history stack').toBe(before);
 

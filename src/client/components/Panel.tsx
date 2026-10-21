@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { SessionInfo } from '../api';
 import type { IssueSummary } from '../api';
+import type { NewRequestDraft, TextDraft } from '../drafts';
 import { ListView } from '../views/ListView';
 import { NewRequestView } from '../views/NewRequestView';
 import { DetailView } from '../views/DetailView';
@@ -20,6 +21,7 @@ export function Panel({
   onBack,
   newDraft,
   onNewDraftChange,
+  clientBuild,
   createdIssues,
   onCreated,
   replyDraft,
@@ -40,12 +42,13 @@ export function Panel({
   onNew: () => void;
   onCancelNew: () => void;
   onBack: () => void;
-  newDraft: { title: string; body: string };
-  onNewDraftChange: (next: { title: string; body: string }) => void;
+  newDraft: NewRequestDraft;
+  onNewDraftChange: (next: NewRequestDraft) => void;
+  clientBuild?: string;
   createdIssues: IssueSummary[];
   onCreated: (issue: IssueSummary) => void;
-  replyDraft: { title: string; body: string };
-  onReplyDraftChange: (next: { title: string; body: string }) => void;
+  replyDraft: TextDraft;
+  onReplyDraftChange: (next: TextDraft) => void;
   refreshToken: number;
   lastRefreshedAt: number | null;
   stale: boolean;
@@ -129,6 +132,7 @@ export function Panel({
               draft={newDraft}
               onDraftChange={onNewDraftChange}
               onCancel={onCancelNew}
+              build={clientBuild}
               onCreated={(issue) => {
                 // Record the confirmed create result before opening the detail
                 // view, so the list can reconcile if GitHub has not caught up.

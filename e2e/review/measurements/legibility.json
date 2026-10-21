@@ -50,7 +50,7 @@
       "border": "0px none rgb(26, 29, 33)"
     }
   },
-  "samples": 36,
+  "samples": 39,
   "belowFloor": [],
   "all": [
     {
@@ -326,6 +326,22 @@
       "fontWeight": 400
     },
     {
+      "selector": "label.intent-card",
+      "text": "Share feedbackWhat worked, what did not, or what surprised y",
+      "ratio": 15.61,
+      "needs": 4.5,
+      "fontSizePx": 14,
+      "fontWeight": 400
+    },
+    {
+      "selector": "label.intent-card.is-selected",
+      "text": "Build or changeA capability or behavior you want.",
+      "ratio": 8.2,
+      "needs": 4.5,
+      "fontSizePx": 14,
+      "fontWeight": 400
+    },
+    {
       "selector": "label",
       "text": "Title",
       "ratio": 16.32,
@@ -335,7 +351,15 @@
     },
     {
       "selector": "p.hint",
-      "text": "Describe the desired behavior, the observed bug, or any rele",
+      "text": "Describe the need or desired outcome.",
+      "ratio": 5.63,
+      "needs": 4.5,
+      "fontSizePx": 12,
+      "fontWeight": 400
+    },
+    {
+      "selector": "p.hint.request-public-note",
+      "text": "This creates a public GitHub issue. Don't include secrets or",
       "ratio": 5.63,
       "needs": 4.5,
       "fontSizePx": 12,

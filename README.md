@@ -44,7 +44,7 @@ Default repository: this app's own repository (`normzhou/yolo-blank-canvas`).
 The canvas asks *"What would you like to build or change?"*. **Requests** opens a centred modal overlay (full width on narrow screens) with three views:
 
 - **List** — repository identity, Open/Closed/All filter, issue title/number/status/updated time, newest-updated first, Refresh and Load more.
-- **New request** — required title and description; creates one ordinary issue with no labels, priorities, or assignees. Composed over an app, the description starts with the visible line `App: <title> (?app=<id>)`; the line is editable plain issue text, not a label.
+- **New request** — three direct intent lenses at the top (**Share feedback**, **Build or change**, **Report a problem**) with a required title and shared primary answer, optional details, a generated-body preview (`blankcanvas.feedback@1`, `blankcanvas.change@1`, `blankcanvas.problem@1`), and a **Write freely instead** escape hatch; creates one ordinary issue with no labels, priorities, or assignees. Composed over an app, the generated body starts with the visible line `App: <title> (?app=<id>)`; the line is editable plain issue text, not a label.
 - **Detail** — the issue, its readable status, the reported summary, the full discussion, and a reply box. Replies are GitHub comments, including on closed issues.
 
 Escape closes the panel and focus returns to the control that opened it (the canvas primary action, the app header's **Feedback** control, or **Requests**). While the panel is open, records refresh about every 30 seconds (paused when the page is hidden); the footer shows the last successful refresh, and content is marked stale if a refresh fails. Drafts survive opening/closing, refreshing, sign-in failures, and reload.
@@ -97,7 +97,8 @@ Layout:
 | `server/cli.js` | launcher: prerequisites, CLI auth, port, browser |
 | `server/launch.js` | `gh` presence/login/access checks, port fallback, browser open |
 | `server/gh.js` | the only `gh api` call site; validates arguments, JSON on stdin, no shell |
-| `server/github.js` | the four operations: list/get issues, list/create comments, create issue |
+| `server/github.js` | the four GitHub operations: list/get issues, list/create comments, create issue |
+| `server/request-store.js` | the `RequestStore` port and `GitHubRequestStore` adapter |
 | `server/app.js` | Express app: session, identity, issue/comment endpoints, static UI |
 | `server/security.js` | loopback Host guard, same-origin/cross-site guard, security headers |
 | `server/session.js` | in-memory opaque session; browser holds only an HttpOnly cookie |
@@ -109,6 +110,7 @@ Layout:
 | `e2e/` | Playwright specs: stubbed-GitHub deterministic run, read-only live run, per-step screenshots |
 | `src/client/apps/registry.ts` | first-party canvas app registry (`id`, `title`, `element`) |
 | `src/client/feedback.ts` | visible app-context line for feedback composed over an app |
+| `src/client/requestTemplates.ts` | three-intent request templates, v2 draft shape, and Markdown body rendering |
 | `src/client/components/CanvasPalette.tsx` | Ctrl/⌘K navigation palette |
 | `src/client/views/TetrisView.tsx` | the Tetris canvas app |
 | `src/client/` | React UI (canvas, panel, list/new/detail views, Markdown rendering) |
