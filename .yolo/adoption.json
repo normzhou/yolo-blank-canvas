@@ -208,15 +208,16 @@
         "v0.3.2": "75cfffb583bc0a241aa3270aa207dcdc21833cf4",
         "v0.3.1": "80bf5f860c4a360e855c8b0a786df7a04f3a70e6",
         "v0.4.0": "e1105c36730e1f887fe5cac0994a32ad9598395d",
-        "v0.5.0": "f0262ae6e76ed26ea51b22c18daa1cf2d9c046c2"
+        "v0.5.0": "f0262ae6e76ed26ea51b22c18daa1cf2d9c046c2",
+        "v0.6.0": "e93d5a597db95d88349728254da7433232bdd47f"
       },
       "published": {
-        "tag": "v0.6.0",
-        "commit": "e93d5a597db95d88349728254da7433232bdd47f",
-        "source_commit": "2302878a1ae750129fa21c08b716b7849b40768a",
-        "published_at": "2026-10-21T15:51:15Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-10-21-contextual-feedback.json",
-        "note": "Minor release. Carries contextual feedback (#169): Feedback in the app header opens the existing composer at ?app=<id>&panel=new with an editable 'App: <title> (?app=<id>)' line; drafts are app-scoped; the panel isolates keys from the app underneath; Escape returns to Feedback. Acceptance before tagging: 267 unit, 87 stubbed e2e passed + 1 skipped, tsc clean, structure pass. Acceptance on the delivered artifact: 8 of 8, including the new feedback check. The tag points at release commit e93d5a5 after the assets commit 5fd426d; both build-ID files record 2302878."
+        "tag": "v0.7.0",
+        "commit": "eda85f8aa196d19f2703ebaa9c1d01ca0aa169ad",
+        "source_commit": "607c2c3f98d8dea66593d49fdb64688ed0db7d7e",
+        "published_at": "2026-10-21T21:48:15Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-10-21-request-capture.json",
+        "note": "Minor release. Carries the storage-neutral RequestStore seam (#172) and guided three-intent request composer (#173, #175): prominent top-level intent selection (Share feedback, Build or change, Report a problem), entry defaults (Feedback -> Share feedback with #169 app context; Start/New request -> Build or change), target-owned markers (blankcanvas.feedback@1, blankcanvas.change@1, blankcanvas.problem@1), generated-body preview, freeform escape, and v1->v2 draft migration. Acceptance before tagging: 278 unit, 87 stubbed e2e passed + 1 skipped, tsc clean, structure pass. Acceptance on the delivered artifact: 9 of 9, including the new guided-composer check. The tag points at release commit eda85f8 after the assets commit 0daeacf; both build-ID files record 607c2c3."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -228,7 +229,8 @@
         ".yolo/reports/releases-observed-2026-10-14.json",
         ".yolo/reports/releases-observed-2026-10-15.json",
         ".yolo/reports/releases-observed-2026-10-21.json",
-        ".yolo/reports/releases-observed-2026-10-21-contextual-feedback.json"
+        ".yolo/reports/releases-observed-2026-10-21-contextual-feedback.json",
+        ".yolo/reports/releases-observed-2026-10-21-request-capture.json"
       ]
     }
   },
