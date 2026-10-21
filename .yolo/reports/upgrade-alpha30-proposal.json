@@ -149,7 +149,7 @@
     "owner (standing, unrelated): the #141 checkpoint decision remains open exactly as recorded"
   ],
   "planned_operations": [
-    "publish the proposal PR with this report committed",
+    "publish the proposal PR (tested at https://github.com/normzhou/yolo-blank-canvas/pull/161)",
     "with owner direction, merge it; observe commit on the default branch",
     "record the landed hop (.yolo/reports/upgrade-alpha30-landed.json style) after observing the alpha.30 rules loading and after a fresh continuation",
     "before measuring dependent claims, run structural validation again on the delivered default revision"
