@@ -243,8 +243,6 @@
   --elevation-panel-centred: 0 8px 32px rgba(1, 4, 9, 0.6);
 }
 
-}
-
 * { box-sizing: border-box; }
 
 body { margin: 0; background: var(--bg); }
@@ -277,8 +275,17 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
    state again rather than a permanent frame competing with the action it
    exists to prompt. */
 .canvas.panel-open { }
-.canvas-header { display: flex; align-items: center; justify-content: space-between; }
+.canvas-header { display: flex; align-items: center; justify-content: flex-start; gap: var(--space-3); }
 .canvas-title { font-size: var(--text-lg); font-weight: var(--weight-semibold); margin: 0; }
+/* Navigation chrome, not a second primary action: the header's job is to say
+   where you are and let you leave. The answer to the prompt stays on the canvas. */
+.canvas-actions { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-3); flex-wrap: wrap; margin-left: auto; }
+.canvas-actions > button { font-size: var(--text-xs); padding: 6px 10px; }
+.canvas-switcher[aria-expanded="true"] {
+  background: var(--accent-weak);
+  border-color: var(--accent);
+  color: var(--accent-weak-text);
+}
 /* #130: the prompt is a question and the primary control is its answer, so they
    form one centred group and answering costs no scan of the header. The group
    centres in the space the header and identity line leave, replacing the old
@@ -305,6 +312,30 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 }
 .canvas-secondary-actions button:hover { color: var(--text); }
 .canvas-identity { color: var(--muted); font-size: var(--text-xs); }
+/* #165: the gallery is the home's second row. It has to be findable without
+   competing with the prompt, so it is a small labelled row of quiet chips rather
+   than a dashboard of cards. */
+.canvas-gallery {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+.canvas-gallery-label { text-transform: uppercase; letter-spacing: 0.04em; }
+.canvas-gallery button {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 5px 12px;
+  font-size: var(--text-xs);
+  color: var(--text);
+}
+.canvas-gallery button:hover { border-color: var(--border-hover); }
+/* The app owns its interior; this wrapper only exists to receive focus after a
+   navigation so the keyboard does not fall back to the document body. */
+.canvas-app { outline: none; }
+.canvas-app:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: var(--radius); }
 
 .banner {
   border: 1px solid var(--border);
@@ -321,7 +352,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 /* #131: build identifiers, shown only inside the version-skew banner. */
 .build-id { display: block; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: var(--text-xs); color: var(--muted); margin-top: 4px; }
 
-.scrim { position: fixed; inset: 0; display: flex; justify-content: center; background: var(--scrim); }
+.scrim { position: fixed; inset: 0; z-index: 10; display: flex; justify-content: center; background: var(--scrim); }
 .panel {
   position: relative;
   width: var(--panel-width);
@@ -333,6 +364,56 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
   display: flex;
   flex-direction: column;
   box-shadow: var(--elevation-panel-centred);
+}
+/* #165: the navigation palette. It is a small, centred dialog rather than a
+   second full-height panel: switching canvas content is a momentary act, and the
+   app behind it should stay the thing you are looking at. */
+.palette-scrim { align-items: center; padding: 20px; }
+.palette {
+  width: min(420px, 100%);
+  max-height: min(560px, 100%);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--elevation-panel-centred);
+  overflow: hidden;
+}
+.palette-header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-3);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.palette-title { font-weight: var(--weight-semibold); }
+.palette-list { display: flex; flex-direction: column; gap: 2px; padding: 6px; overflow-y: auto; }
+.palette-item {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+.palette-item:hover { background: var(--field); border-color: var(--border); }
+.palette-item.is-current {
+  background: var(--accent-weak);
+  border-color: var(--accent);
+  color: var(--accent-weak-text);
+}
+.palette-name { font-size: var(--text-base); font-weight: var(--weight-semibold); }
+.palette-hint { font-size: var(--text-xs); color: var(--muted); }
+.palette-item.is-current .palette-hint { color: inherit; opacity: 0.82; }
+.palette-foot {
+  margin: 0;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: var(--text-xs);
 }
 .panel-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -492,7 +573,6 @@ a:visited { color: var(--accent-weak-text); }
   .toolbar button:not(.primary) { grid-column: 2; grid-row: 1; justify-self: end; }
   .toolbar button.primary { grid-column: 1 / -1; grid-row: 2; justify-self: start; }
 }
-.canvas-actions { display: flex; gap: 8px; }
 
 .tetris {
   position: relative;

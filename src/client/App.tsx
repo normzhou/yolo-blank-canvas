@@ -3,7 +3,8 @@ import { api, ApiError, type IssueSummary, type SessionInfo } from './api';
 import { Panel, type PanelView } from './components/Panel';
 import { ErrorNotice } from './components/ErrorNotice';
 import { ThemeSwitcher } from './components/ThemeSwitcher';
-import { TetrisView } from './views/TetrisView';
+import { CanvasPalette } from './components/CanvasPalette';
+import { CANVAS_APPS, canvasAppById } from './apps/registry';
 import { useVisible } from './usePolling';
 import {
   NEW_REQUEST_KEY,
@@ -35,7 +36,8 @@ export function App() {
   const [sessionError, setSessionError] = useState<ApiError | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [panelOpen, setPanelOpen] = useState(() => readRoute(window.location.search).open);
-  const [gameOpen, setGameOpen] = useState(false);
+  const [appId, setAppId] = useState<string | null>(() => readRoute(window.location.search).app);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const [view, setView] = useState<PanelView>(() => toPanelView(readRoute(window.location.search).target));
   const [filter, setFilter] = useState<'open' | 'closed' | 'all'>('open');
   const [lastRefreshedAt, setLastRefreshedAt] = useState<number | null>(null);
@@ -48,6 +50,11 @@ export function App() {
   const [reloadPromptDismissed, setReloadPromptDismissed] = useState(false);
 
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const requestsTriggerRef = useRef<HTMLButtonElement>(null);
+  const canvasTriggerRef = useRef<HTMLButtonElement>(null);
+  const appRegionRef = useRef<HTMLElement>(null);
+
+  const activeApp = canvasAppById(appId);
 
   const refreshToken = useVisible(panelOpen);
 
@@ -104,31 +111,48 @@ export function App() {
 
   // #132: the location is the state. Every view change pushes an entry, so browser
   // back means back, a reload lands where you were, and `?panel=123` is a link.
+  // #165: the app is part of the same location, so Requests composes over it.
   // A cold deep link carries no list row, so `issue` is null and the detail view
   // resolves it from the server.
-  const navigate = useCallback((target: RouteTarget | null, issue: IssueSummary | null = null) => {
-    window.history.pushState(null, '', routeUrl(target, window.location.pathname));
-    if (target === null) {
-      setPanelOpen(false);
-      setView({ name: 'list' });
-      return;
-    }
-    setPanelOpen(true);
-    setView(toPanelView(target, issue));
-  }, []);
-
-  // Back and forward replay history rather than push onto it, so this must only
-  // apply state — never call navigate, which would grow the stack as you undo it.
-  useEffect(() => {
-    const onPopState = () => {
-      const target = routeTarget(readRoute(window.location.search));
+  const navigate = useCallback(
+    (target: RouteTarget | null, issue: IssueSummary | null = null) => {
+      window.history.pushState(null, '', routeUrl(target, window.location.pathname, appId));
       if (target === null) {
         setPanelOpen(false);
         setView({ name: 'list' });
         return;
       }
       setPanelOpen(true);
-      setView(toPanelView(target));
+      setView(toPanelView(target, issue));
+    },
+    [appId],
+  );
+
+  // Opening a canvas app is a location change too. Closing the panel here keeps
+  // the shell to one surface at a time; the panel's draft state is already stored.
+  const openApp = useCallback((id: string | null) => {
+    window.history.pushState(null, '', routeUrl(null, window.location.pathname, id));
+    setPanelOpen(false);
+    setView({ name: 'list' });
+    setAppId(id);
+  }, []);
+
+  const exitApp = useCallback(() => openApp(null), [openApp]);
+
+  // Back and forward replay history rather than push onto it, so this must only
+  // apply state — never call navigate, which would grow the stack as you undo it.
+  useEffect(() => {
+    const onPopState = () => {
+      const route = readRoute(window.location.search);
+      setAppId(route.app);
+      setPaletteOpen(false);
+      if (!route.open) {
+        setPanelOpen(false);
+        setView({ name: 'list' });
+        return;
+      }
+      setPanelOpen(true);
+      setView(toPanelView(route.target));
     };
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
@@ -155,9 +179,61 @@ export function App() {
 
   const closePanel = useCallback(() => {
     navigate(null);
-    // Focus returns to the canvas's primary control, which is the way back in.
-    triggerRef.current?.focus();
+    // Focus returns to the canvas control that opened it: the primary action on
+    // the home canvas, or the Requests trigger in the app header.
+    window.requestAnimationFrame(() => {
+      (triggerRef.current ?? requestsTriggerRef.current)?.focus();
+    });
   }, [navigate]);
+
+  // The palette is transient UI, not a location. Opening it over Requests closes
+  // the panel first so two shell overlays never compete for focus or Escape.
+  const openPalette = useCallback(() => {
+    if (panelOpen) {
+      window.history.pushState(null, '', routeUrl(null, window.location.pathname, appId));
+      setPanelOpen(false);
+      setView({ name: 'list' });
+    }
+    setPaletteOpen(true);
+  }, [appId, panelOpen]);
+
+  const closePalette = useCallback(() => {
+    setPaletteOpen(false);
+    canvasTriggerRef.current?.focus();
+  }, []);
+
+  const selectApp = useCallback(
+    (id: string | null) => {
+      setPaletteOpen(false);
+      if (id !== appId) openApp(id);
+      // The dialog unmounts; move focus to the view that replaced it rather than
+      // dropping it on the body.
+      window.requestAnimationFrame(() => {
+        (id ? appRegionRef.current : triggerRef.current)?.focus();
+      });
+    },
+    [appId, openApp],
+  );
+
+  // Cmd/Ctrl+K is the portable shortcut; `~` is the game-flavoured alias. The
+  // tilde is ignored while typing, so it cannot steal a character from a draft.
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      const target = event.target as HTMLElement | null;
+      const editing = Boolean(
+        target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable),
+      );
+      const modified = event.metaKey || event.ctrlKey;
+      const paletteShortcut = modified && !event.altKey && !event.shiftKey && event.key.toLowerCase() === 'k';
+      const tildeShortcut = !modified && !event.altKey && event.key === '~' && !editing;
+      if (!paletteShortcut && !tildeShortcut) return;
+      event.preventDefault();
+      if (paletteOpen) closePalette();
+      else openPalette();
+    }
+    document.addEventListener('keydown', onKeyDown, true);
+    return () => document.removeEventListener('keydown', onKeyDown, true);
+  }, [closePalette, openPalette, paletteOpen]);
 
   async function disconnect() {
     try {
@@ -180,12 +256,36 @@ export function App() {
     <div className={panelOpen && session ? 'canvas panel-open' : 'canvas'}>
       <header className="canvas-header">
         <h1 className="canvas-title">Blank canvas</h1>
-        {/* Only a preference control lives in the header. The header used to hold
-           three peer actions — theme, Tetris and Requests — which put the app's one
-           real action on equal footing with a game (#130). */}
+        {/* Navigation lives here; the Requests workflow joins it only while an
+           app is open, because that is when the canvas's own controls are
+           replaced. Preferences stay separate. The header used to hold three
+           peer actions — theme, Tetris and Requests — which put the app's one
+           real action on equal footing with a game (#130). Canvas is navigation
+           chrome, and Requests is the workflow, not a game. */}
         <span className="canvas-actions">
-          <ThemeSwitcher />
+          <button
+            type="button"
+            className="canvas-switcher"
+            ref={canvasTriggerRef}
+            aria-haspopup="dialog"
+            aria-expanded={paletteOpen}
+            aria-keyshortcuts="Meta+K Control+K"
+            title="Switch canvas app (Ctrl/⌘K or ~)"
+            onClick={() => (paletteOpen ? closePalette() : openPalette())}
+          >
+            Canvas
+          </button>
+          {activeApp && !panelOpen ? (
+            <button
+              type="button"
+              ref={requestsTriggerRef}
+              onClick={() => void enterRequests({ name: 'list' })}
+            >
+              Requests
+            </button>
+          ) : null}
         </span>
+        <ThemeSwitcher />
       </header>
 
       {serverSuggestsReload && !reloadPromptDismissed ? (
@@ -231,8 +331,10 @@ export function App() {
         </p>
       ) : null}
 
-      {gameOpen ? (
-        <TetrisView onClose={() => setGameOpen(false)} />
+      {activeApp ? (
+        <section className="canvas-app" aria-label={activeApp.title} tabIndex={-1} ref={appRegionRef}>
+          <activeApp.element onExit={exitApp} />
+        </section>
       ) : (
         <div className="canvas-prompt-block">
           <p className="canvas-prompt">What would you like to build or change?</p>
@@ -252,12 +354,28 @@ export function App() {
             <button type="button" onClick={openPanel}>
               Open requests
             </button>
-            <button type="button" onClick={() => setGameOpen(true)}>
-              Play Tetris
-            </button>
           </div>
+          {/* The gallery is the home's quiet second row, not a dashboard. It is
+              how an app is discovered without opening the keyboard palette. */}
+          <nav className="canvas-gallery" aria-label="Canvas gallery">
+            <span className="canvas-gallery-label">Canvas</span>
+            {CANVAS_APPS.map((app) => (
+              <button key={app.id} type="button" onClick={() => openApp(app.id)} title={app.summary}>
+                {app.title}
+              </button>
+            ))}
+          </nav>
         </div>
       )}
+
+      {paletteOpen ? (
+        <CanvasPalette
+          apps={CANVAS_APPS}
+          activeAppId={activeApp?.id ?? null}
+          onSelect={selectApp}
+          onClose={closePalette}
+        />
+      ) : null}
 
       {panelOpen && session ? (
         <Panel

@@ -156,7 +156,7 @@ test.describe('review evidence is reproducible', () => {
       name: 'tetris board',
       github: makeStubGithub,
       steps: async (page) => {
-        await page.getByRole('button', { name: 'Play Tetris' }).click();
+        await page.getByRole('button', { name: 'Tetris', exact: true }).click();
         await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
         // Gravity would otherwise move the piece between visibility and capture.
         await page.getByRole('button', { name: 'Pause' }).click();

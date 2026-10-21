@@ -4,6 +4,33 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Canvas gallery (#165) — 2026-10-21
+
+Source revision `4cad4b6` (the feature commit); the build and review evidence is
+`c456385`. No release has been published from this revision yet; the results
+below are on the source and the committed build, not an installed tag.
+
+- `npm test`: 21 files, 264 tests passed. Added `test/apps.test.ts` (3) for
+  registry uniqueness and resolution; `test/route.test.ts` now has 18 tests
+  covering `?app=`, `?app=&panel=` composition and malformed app tokens.
+- `npx tsc --noEmit`: clean.
+- `npm run build`: clean; `dist/client/.build-id` and
+  `server/build-id.generated.js` both report `4cad4b6…`.
+- `npm run e2e`: 83 passed, 1 skipped against the stubbed GitHub client (84
+  run). New `e2e/canvas-gallery.spec.ts` (6) covers the home gallery, cold
+  `?app=tetris`, browser history, palette focus and Escape precedence,
+  panel/palette exclusion and the typing guard. Tetris navigation in the
+  existing suites moved from the removed "Play Tetris" control to the gallery's
+  "Tetris" entry; the release-verification suite accepts either label so it can
+  still verify older tags.
+- `yolo-check . --structure` (`0.1.0-alpha.30`): `structure.status: pass`,
+  13/13 findings compliant, clean working tree at `c456385`.
+
+Open gaps: contextual feedback capture from inside an app is the next slice;
+this change is navigation only. The palette is navigation-only and has no
+command surface. Installed-artifact acceptance is added only when the release
+is cut.
+
 ## Deterministic tests (`npm test`)
 
 Run 2026-10-14 at `9c05e25` (the `v0.4.0` release commit; assets built from source `c1daf3e`):
