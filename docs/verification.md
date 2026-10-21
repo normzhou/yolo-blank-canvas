@@ -209,45 +209,48 @@ remains conditional by design.
 
 ## Deterministic tests (`npm test`)
 
-Run 2026-10-14 at `9c05e25` (the `v0.4.0` release commit; assets built from source `c1daf3e`):
+Run 2026-10-21 at `c62fbd3` (following the `v0.8.0` release `332855b`; assets built from source `320f6fa`):
 
 ```
   ✓ test/theme-discipline.test.ts (21 tests)  nine-step neutral ramp, monotonic, chroma-bounded, every theme
-  ✓ test/status.test.ts (24 tests)            status/summary derivation from fixtures
+  ✓ test/status.test.ts (25 tests)            status, reported-summary and request-triage derivation from fixtures
   ✓ test/tetris.test.ts (19 tests)            Tetris pieces, collision, line clear, scoring, game over, tetris count
   ✓ test/theme.test.ts (10 tests)             theme selection and persistence
   ✓ test/contrast.test.ts (14 tests)          WCAG floor across every pair
   ✓ test/theme-tokens.test.ts (6 tests)       every theme covers every colour role
   ✓ test/list-reconciliation.test.ts (8 tests)  created-issue reconciliation against the list
-  ✓ test/route.test.ts (12 tests)             ?panel / ?panel=new / ?panel=<n>, malformed-value fallback
+  ✓ test/route.test.ts (18 tests)             ?app=, ?panel / ?panel=new / ?panel=<n>, composition and fallback
   ✓ test/csp.test.ts (4 tests)                content security policy
   ✓ test/theme-contrast.test.ts (74 tests)    APCA floor, verified against published reference values
   ✓ test/launcher.test.ts (12 tests)          gh missing, first login, cancellation, noninteractive, port fallback
   ✓ test/github-client.test.ts (9 tests)      target validation, argument isolation, PR exclusion, pagination
-  ✓ test/drafts.test.ts (5 tests)             draft preservation and clearing only after confirmation
+  ✓ test/drafts.test.ts (8 tests)             v2 draft round-trip, v1->freeform migration, app/home/reply isolation
   ✓ test/app-api.test.ts (14 tests)           session, cross-site, host, identity, write-ambiguity, endpoint scope, CSP media-src
   ✓ test/type-scale.test.ts (2 tests)         no raw font-size, exactly four role tokens
   ✓ test/list-refresh.test.ts (5 tests)       background refresh keeps rows; filter changes clear
   ✓ test/tetris-music.test.ts (4 tests)       bundled track list, shuffle permutation/determinism, bundled files exist
   ✓ test/tetris-backgrounds.test.ts (3 tests)  bundled scenes, four-line cycle helper, bundled files exist
   ✓ test/gh-process.test.ts (4 tests)         real process boundary against a stand-in `gh` executable
-  ✓ test/markdown.test.tsx (5 tests)          untrusted Markdown cannot execute; links stay safe
+  ✓ test/markdown.test.tsx (6 tests)          untrusted Markdown safety and same-repo issue URL recognition
+  ✓ test/apps.test.ts (3 tests)               canvas app registry uniqueness and resolution
+  ✓ test/feedback.test.ts (2 tests)           app-context line and body seed
+  ✓ test/request-store.test.ts (4 tests)      GitHubRequestStore mapping and non-GitHub fake-store substitution
+  ✓ test/request-templates.test.ts (5 tests)  three intents, versioned markers, #169 context, draft content predicates
 
-  Test Files  20 passed (20)
-       Tests  255 passed (255)
+  Test Files  24 passed (24)
+       Tests  280 passed (280)
 ```
 
-Also run at the same revision: `npx tsc --noEmit` (clean), `npm run e2e` (77 passed, 1 skipped
-against the stubbed client, no repository writes), `npm run build` (clean), and
-`yolo-check . --structure` — `structure.status: pass`, 14 rules compliant, 0 non-compliant, from
-the pinned `v0.1.0-alpha.23` executable whose SHA-256 matches the release `SHA256SUMS` and whose
-self-reported publication equals the pinned skill revision.
+Also run at the same revision: `npx tsc --noEmit` (clean), `npm run e2e` (88 passed, 1 skipped
+against the stubbed adapter, no repository writes), `npm run build` (clean), and
+`yolo-check . --structure` — `structure.status: pass`, 13 rules compliant, 0 non-compliant, from
+the pinned `v0.1.0-alpha.30` executable.
 
-See the per-issue sections below for earlier results; earlier counts are preserved in their own
-sections and this block is the current full pass. The block it replaces dated itself to the `v0.3.1`
-release and 12 files / 104 tests — three releases stale, an understatement of what had been
-verified by exactly the class of defect #150 fixed in the app. The correction and its cause are
-recorded in
+The previous snapshot in this block was run 2026-10-14 at `9c05e25` (`v0.4.0`, 20 files / 255 tests,
+77 stubbed e2e passed + 1 skipped). See the per-issue sections above and below for each release's
+counts; earlier counts are preserved in their own sections and this block is the current full pass.
+The earlier `9c05e25` update replaced a block that dated itself to `v0.3.1` and 12 files / 104 tests,
+as recorded in
 [`.yolo/reports/checkpoint-review-2026-10-14.json`](../.yolo/reports/checkpoint-review-2026-10-14.json).
 
 Fixture coverage required by the spec, all in `test/status.test.ts`: untagged open issue → **Request open**; all four managed states; missing state, duplicate states, and state without `yolo:work` → **Status needs reconciliation** with raw labels; closure reasons `not_planned` / `duplicate` / `completed`; **Completed (reported)** vs **Closed**; unknown reason → **Closed — reason unavailable**; leftover state labels on a closed issue; reported-summary detection rules, most-recent-match selection, and `No progress summary yet.` / `Delivery timing not yet estimated.` fallbacks. No fixture asserts scheduling or availability.

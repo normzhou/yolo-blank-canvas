@@ -113,7 +113,7 @@ contractual where it is in scope. Its observed gaps are listed under Decisions a
   `main` ([.github/workflows/ci.yml](../../.github/workflows/ci.yml)); harness-run evidence is
   cited from [docs/verification.md](../../docs/verification.md).
 - **Delivery route:** one-command `npx` install of a tagged revision
-  (`github:normzhou/yolo-blank-canvas#v0.1.0`).
+  (`github:normzhou/yolo-blank-canvas#<tag>`).
 - **Versioning policy:** semantic versioning on the delivered artifact. **The agent cuts releases at
   any semver level — patch, minor or major — without seeking per-release approval**, on the condition
   that acceptance passes on the version users actually receive. Choosing the version and cutting it is
