@@ -7,12 +7,17 @@
 
 ## Purpose
 
-**Start from a blank canvas and let its users decide what it grows into.**
+**Build the best UI/UX for gathering and processing feedback requests, so that a YOLO Dev-enabled web app can become a living app.**
 
-There is no predefined feature list, product category or roadmap for this project. The canvas is
-empty on purpose, and what appears in it is decided by the requests people bring — "what would you
-like to build or change?" — rather than by a prior. The project's aspiration is that its users,
-not its maintainer, define its direction.
+The canvas starts blank on purpose: there is no predefined feature list, product category or
+roadmap for this project. What appears in it is decided by the requests people bring — "what would
+you like to build or change?" — rather than by a prior. The blank canvas is the starting condition,
+not the absence of direction: its content is first-party, modular and navigable, and users' requests
+decide what it becomes. The maintainer sets the purpose; users decide the features.
+
+The target is the **L4 Living App** capability described in the adopted protocol: the app engages
+users about needs and outcomes and closes the loop from use → work → improvement → feedback. That
+is the aspiration this project is built toward, not a claim that it has been attained.
 
 What makes that possible is the method. This project develops itself through the **YOLO Dev
 methodology** adopted in this repository: people describe needs, an AI agent manages the work
