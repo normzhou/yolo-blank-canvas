@@ -2,7 +2,7 @@
 
 Protocol format: `github-v1` · Candidate L1 distribution
 
-Source: [3cc04ef5f302993e1d3952bff00f08020d57dbcc](https://github.com/normzhou/yolo-dev/tree/3cc04ef5f302993e1d3952bff00f08020d57dbcc). All required rules and procedures are below; upstream links are optional publisher context or tool documentation. The target supplies its own purpose and accepted authority, not YOLO Dev's Charter. Installing these rules does not qualify or authorize a target. L2 descriptions do not activate an unbuilt runner.
+Source: [e95211f32261580fb580cf0da9d7276ae477b063](https://github.com/normzhou/yolo-dev/tree/e95211f32261580fb580cf0da9d7276ae477b063). All required rules and procedures are below; upstream links are optional publisher context or tool documentation. The target supplies its own purpose and accepted authority, not YOLO Dev's Charter. Installing these rules does not qualify or authorize a target. L2 descriptions do not activate an unbuilt runner.
 
 Source status notes describe the publisher at that revision, not this target's setup. This generated document preserves the design text; source links are rewritten to local sections wherever the referenced contract is included. The bundle's `provenance.json` records source digests and selections. Target adoption records retain this source identity and this file's digest.
 
@@ -42,11 +42,13 @@ Source status notes describe the publisher at that revision, not this target's s
 
 - [observation](#observation-activity-observation)
 
+- [app-hosting](#app-hosting-owner-operated-app-hosting)
+
 
 <a id="architecture-adoption-levels"></a>
 ### Adoption levels
 
-![L0 Baseline, L1 Assisted, L2 Autopilot, L3 Self-directed and L4 Living App progressively close the app's improvement loop.](https://github.com/normzhou/yolo-dev/blob/3cc04ef5f302993e1d3952bff00f08020d57dbcc/assets/adoption-levels.svg)
+![L0 Baseline, L1 Assisted, L2 Autopilot, L3 Self-directed and L4 Living App progressively close the app's improvement loop.](https://github.com/normzhou/yolo-dev/blob/e95211f32261580fb580cf0da9d7276ae477b063/assets/adoption-levels.svg)
 
 | Level | Capability |
 | --- | --- |
@@ -84,6 +86,11 @@ GitHub/pushed Git hold durable state. Disposable sessions restart by reconciling
 
 One repo installation exposes a shared `yolo` skill through [native harness bindings](#assisted-development-harness-bindings), with [init, upgrade, check, request, work, feedback and help](#activities-agent-activities). Bindings pass text to the same procedures; switching harnesses retains adopted rules and shared progress. L1's maintainer starts sessions; L2 automatically starts the same work procedure. Direct conversation steers through shared records; a bypass requires an explicit owner override.
 
+<a id="architecture-execution-identity"></a>
+#### Execution identity
+
+The same work procedure uses [explicit access profiles](#adoption-records-execution-profile): existing personal credentials, an operator-owned App on operator infrastructure, or a publisher App confined to publisher infrastructure. The optional encoding and operator App preflight are available to compatible bundles; App-backed worker/publication and hosted execution remain unimplemented. Neither a profile, a bot badge nor installation supplies authority or changes the requested level. User-run workers receive no publisher credentials or generic publisher bot-operation relay.
+
 <a id="architecture-request-surface-and-user-visible-delivery"></a>
 #### Request surface and user-visible delivery
 
@@ -120,7 +127,7 @@ flowchart LR
 
 Repair the lowest sufficient layer. Target defects stay there; YOLO defects feed back here. Setup, active preparedness and qualification are distinct evidence claims.
 
-Keep product engineering separate from the reusable methodology. YOLO Dev validates its own tooling/bundle and harness behavior under [publisher acceptance](#assisted-development-acceptance); its concrete commands and CI status live in [development instructions](https://github.com/normzhou/yolo-dev/blob/3cc04ef5f302993e1d3952bff00f08020d57dbcc/docs/development.md). Each adopted repo defines its own tests and delivery route under the shared [verification contract](#verification-delivery-verification-and-delivery). [Target qualification](#qualification-compliance-and-qualification-evidence) needs that target's actual delivery/continuation evidence; publisher tests cannot supply it.
+Keep product engineering separate from the reusable methodology. YOLO Dev validates its own tooling/bundle and harness behavior under [publisher acceptance](#assisted-development-acceptance); its concrete commands and CI status live in [development instructions](https://github.com/normzhou/yolo-dev/blob/e95211f32261580fb580cf0da9d7276ae477b063/docs/development.md). Each adopted repo defines its own tests and delivery route under the shared [verification contract](#verification-delivery-verification-and-delivery). [Target qualification](#qualification-compliance-and-qualification-evidence) needs that target's actual delivery/continuation evidence; publisher tests cannot supply it.
 
 <a id="architecture-product-source-and-applied-adoption"></a>
 ### Product source and applied adoption
@@ -231,12 +238,12 @@ Apply the shared [intake model](#issue-management-intake-and-admission), also us
 <a id="activities-work-shared-development-procedure"></a>
 ### Work: shared development procedure
 
-Accept an issue, desired outcome or direction to continue the plan. Capture the outcome in a target issue before implementation.
+Accept an issue, desired outcome or direction to continue the plan. Capture the outcome in a target issue before implementation. Planning and execution are one procedure: AI selects the useful phase from current evidence, and an iteration ends at a useful point rather than at a finished outcome.
 
-1. **Reconcile:** load instructions, active rules, mapped intent/design/grant and shared work. Check replies, later reversals, PRs, checks, delivery, pause and executor/handoff; resolve interrupted effects and coordinate writers. Superseded decisions are history, not current intent.
-2. **Plan/admit:** perform the [planning pass across requests/outcomes](#issue-management-planning-across-outcomes), define acceptance and select ready work within scope. [Maintainer-reserved actions](#issue-management-maintainer-reserved-actions) stay visible as blockers but are never selectable executable outcomes. Record grouping, priority/dependencies and a discoverable Now/Next when coordination spans outcomes. Apply protected-change approval/significance notification rules.
-3. **Execute:** maintain issue state/summary, implement through [PRs](#repo-rules-repository-rules-and-authority), verify and [deliver](#verification-delivery-verification-and-delivery). Before executing a replan, record revised acceptance and the original scope's disposition; a substitute result does not fulfill abandoned scope.
-4. **Record/continue or hand off:** publish actual version, outcome, limits and next action; close fulfilled work only after verification. Preserve unfinished pushed work and truthful state. Continue within scope; a session ending does not prove its executor stopped.
+1. **Reconcile:** load instructions, active rules, mapped intent/design/grant and shared work. Check replies, later reversals, PRs, checks, delivery, pause and executor/handoff; resolve interrupted effects, inspect an external action's actual result before repeating it and coordinate writers. Superseded decisions are history, not current intent.
+2. **Select, then admit when needed:** choose one useful objective or small coherent batch with a sensible stopping point and perform the [planning pass across requests/outcomes](#issue-management-planning-across-outcomes). Interpret input from dissatisfaction to a precise proposal — investigate, assume reversibly, consolidate or split, defer or decline with a reason — then record the [admission handoff](#issue-management-intake-and-admission) before executing, or publish another disposition. Admit a bounded investigation with an evidence goal when the solution is materially unknown. Admission is an AI decision within the grant, not a requester sign-off. [Maintainer-reserved actions](#issue-management-maintainer-reserved-actions) stay visible as blockers but are never selectable executable outcomes. Record grouping, priority/dependencies and a discoverable Now/Next when coordination spans outcomes. Apply protected-change approval/significance notification rules.
+3. **Advance:** maintain issue state/summary, implement through [PRs](#repo-rules-repository-rules-and-authority), verify and [deliver](#verification-delivery-verification-and-delivery) within the admitted bounds. Material new evidence returns the same agent to interpretation/admission; record revised acceptance and the original scope's disposition before executing the revision.
+4. **Publish and continue or hand off:** synchronize the affected issue/plan records and pushed work, then record the [iteration](#issue-management-progress-planning-and-feedback) with its actual result, evidence, remaining scope, next action and any operation still running. Keep unfinished scope visible and close fulfilled work only after verification. If publication fails, retain the local result and report exactly what remains unsynchronized instead of claiming continuation is ready. A fresh harness or empty workspace continues from those records and pushed Git; a session ending does not prove its executor stopped.
 
 Ordinary development requests enter this procedure without naming the skill. Conversation is steering; bypass requires a scoped [owner override](#repo-rules-owner-overrides).
 
@@ -303,7 +310,7 @@ All three governing documents use the canonical slots above; durable governing s
 
 Questions belong in reports/issues, not extra governing files. Ownership follows meaning, including draft Charter/authority and proposed controls; location cannot grant permission.
 
-The adopted source revision identifies the layout contract. The [schema](https://github.com/normzhou/yolo-dev/blob/3cc04ef5f302993e1d3952bff00f08020d57dbcc/specs/repo-layout.schema.json) supplies its reserved entries/types/role paths in the manifest. The strict validator reports missing canonical homes, unexpected entries, wrong types and invalid mappings without changing files. Init/upgrade propose the required repair; do not mark setup prepared while required structure fails. An incompatible/missing definition is a coverage gap; structural success does not prove meaning or approval.
+The adopted source revision identifies the layout contract. The [schema](https://github.com/normzhou/yolo-dev/blob/e95211f32261580fb580cf0da9d7276ae477b063/specs/repo-layout.schema.json) supplies its reserved entries/types/role paths in the manifest. The strict validator reports missing canonical homes, unexpected entries, wrong types and invalid mappings without changing files. Init/upgrade propose the required repair; do not mark setup prepared while required structure fails. An incompatible/missing definition is a coverage gap; structural success does not prove meaning or approval.
 
 <a id="repo-layout-governing-file-review"></a>
 ### Governing-file review
@@ -320,6 +327,13 @@ Review ordinary entrypoints and README too. Calling this repo's own Charter/desi
 Keep source, tests, assets, builds and package entrypoints in useful target locations. Keep harness/GitHub entrypoints native, such as `AGENTS.md`, `.agents/skills/` and `.github/workflows/`; the [shared bundle and command bindings](#assisted-development-harness-bindings) stay outside `.yolo/`. Preserve other active instructions. README links the governing documents.
 
 Ordinary instructions require agents to read/apply the local protocol, adoption and mapped context before work, even without invoking the skill. Harness-specific bridges expose that same context, not independently authored rules.
+
+<a id="repo-layout-instruction-provenance"></a>
+#### Instruction provenance
+
+`AGENTS.md` connects ordinary sessions to adopted rules and mapped context. Its path, a generated template or agent authorship establishes neither owner acceptance nor file-wide ownership. AI maintains loading, references and implementation guidance within the grant; purpose, delegation and controls retain their ownership wherever written.
+
+Link durable purpose and authority decisions to their governing homes instead of repeating them as independent instructions. During semantic review, trace substantive instructions to accepted source revisions/evidence. When the source is clear and the wording is an unsupported derived restatement, repair the instruction to reference that source while preserving the accepted decision. Stronger or conflicting derived wording is an instruction-conformity finding with no independent governing force. If the instruction itself records an accepted purpose or authority decision, preserve its meaning and follow protected-change rules for amendment or relocation. Unknown provenance remains unresolved; investigate before the affected action without inferring acceptance or discarding a possible owner decision.
 
 <a id="repo-layout-integrity-and-continuity"></a>
 ### Integrity and continuity
@@ -344,6 +358,18 @@ Target `request` and upstream `feedback` use the same intake model in different 
 Intake is not admission. AI interprets requests and records disposition before queuing outcomes. Several requests may inform one bounded outcome; one request may require several. Promote a source issue in place when it already expresses that outcome, retaining `yolo:request`; otherwise link sources to covering work. One `yolo:work` issue represents one outcome and may have several PRs. Do not create a second ticket mechanically or group unrelated work merely by arrival time.
 
 Before admission, maintain at most one summary comment headed `## YOLO request`: interpretation, decision/reason, covered and remaining scope with outcome links, and next action or reconsideration condition. No summary means awaiting triage, not scheduled work. After promotion, use the work summary for current status and preserve earlier triage as history. AI verifies authorship/content; a heading proves neither review nor authority.
+
+Admission is executable when the outcome record carries:
+
+| Admission information | Meaning |
+| --- | --- |
+| Outcome and sources | Useful behavior/result and original request links, including coverage of grouped or split requests. |
+| Scope and decisions | Intended changes, meaningful exclusions, assumptions and settled constraints. |
+| Acceptance and delivery | Observable success, required checks and the destination/availability actually to verify. |
+| Charter fit and authority | Why the outcome advances the Charter, applicable grant/decision references and any protected prerequisite. |
+| Readiness | Dependencies, risks and open questions that prevent execution or could change the outcome. |
+
+That is enough intent to implement without repeatedly reconsidering product strategy; it does not freeze ordinary technical choices. A protected-dependent portion stays unready until its decision resolves, while independently authorized work continues.
 
 Keep distinct source requests open while their promised scope is unfinished. Close verified fulfilled scope as completed, or duplicate/declined/answered input with an explicit disposition and canonical links where applicable. Consolidation, a plan or a merged PR does not prove delivery. Read later replies, including closed issues, and reopen or link follow-up without erasing earlier results.
 
@@ -411,6 +437,20 @@ Evidence / result: checks, delivered version/destination, user action and limits
 
 Edit that same comment as work progresses; ordinary dated comments retain decisions/history without the status heading. Reconcile its executor, branch/PR, stage and next action with actual records when those change. An old issue body or superseded comment is not the current plan.
 
+`Acceptance` carries the admitted scope and authority reference, `Work` the iteration identity, executor and branch/PR/revision, and `Evidence / result` the actual result, remaining scope and next action. Link detail from the iteration record instead of growing an unbounded template.
+
+One coherent iteration records its identity once, in the outcome's current summary or a dated continuation comment — or in the plan issue for planning-only work:
+
+```text
+Iteration: <id>; profile: <personal | self-hosted-app | hosted>
+Executor: <observed operator/principal>; harness: <name/version or unknown>
+Trigger / authority: <source>; <active protocol and grant/decision references>
+Objective / outcome: <chosen chunk>; <actual result and evidence links>
+Continuation: <remaining work, next action, pushed revisions, active operations/limits>
+```
+
+Further issues link to that one continuation home instead of starting a per-harness ledger. New YOLO-written bodies, comments and release notes carry a concise marker — `Created by YOLO Dev · mode: <profile> · harness: <name/version> · run: <iteration id> · <record link>` — and an AI contribution to human-authored text uses `Updated by`, retaining its source and authorship. The marker declares provenance only: it is no evidence that YOLO ran correctly or that an operation was human-approved, labels cannot identify individual comments, and `yolo:work` continues to mean admission.
+
 Mark unknowns. A heading or user success claim is not execution evidence. Dated comments preserve material decisions, changed scope/priority, failures, handoffs and results. Reply at source requests; explain declined/deferred scope and link release updates to verified versions. Split requests summarize delivered, remaining and declined outcomes.
 
 Use native sub-issues/dependencies for actual decomposition/blocking. Update source requests for changed disposition/coverage and verified results; routine execution detail stays on linked work. Forecasts need supporting evidence and uncertainty.
@@ -446,6 +486,24 @@ Before merge, reconcile exact head/base, feedback/pause, accepted authority, cor
 Approval binds to the current proposed revision; further edits invalidate it. Accepted base policy identifies approvers: candidates cannot add an approver, expand their grant or certify their own authority gate. Historical cosmetic exceptions apply until an authorized upgrade; publisher text cannot amend a target Charter.
 
 The grant, Charter and adopted protocol must agree about each affected action. Conflicting delegation/reservation or a local exception to the active rules blocks that action until recognized clarification, amendment or a scoped override; AI judgement cannot resolve it by choosing the more permissive text.
+
+<a id="repo-rules-identity-and-provenance-records"></a>
+### Identity and provenance records
+
+Record each fact at its own source and keep it separate from the claims made about it:
+
+| Fact | Recorded source and limitation |
+| --- | --- |
+| Requester | Original author ID and source URL, or an explicitly verified external source. Bot quotation does not become a human instruction. |
+| Observed role and authority | Permission evidence at decision time plus the target's recognized-maintainer/owner policy. Role alone supplies no Charter authority, and unknown stays unknown. |
+| Initiation | Maintainer-started, automatic intake/resume or AI-originated improvement, retaining the initiating source. |
+| Execution | Declared profile, actual operator/principal and harness/version when observed. Commit author fields are separate metadata. |
+| Permission to act | Active protocol/grant revision and any applicable human decision, pause or override. |
+| Result | Actual operation receipts and version/check evidence, separated from agent-reported claims and missing observations. |
+
+Use stable IDs for authorization bindings and names or URLs for explanation. Re-evaluate authority when an operation needs it and preserve historical authorship if access later changes. Do not infer owner authority from an issue's author association, an email address, an organization name or an App installation.
+
+Authenticated personal-account authorship can represent a person or a harness using that account, and a marker cannot resolve that ambiguity. Protected approval follows the target's accepted confirmation route, binds to the identified current revision and cannot come from the automation it governs; L1 retains procedural assurance and explicit limits.
 
 <a id="repo-rules-enforcement-by-level"></a>
 ### Enforcement by level
@@ -529,7 +587,7 @@ Read-only check reviews default-branch setup, current release records and the in
 
 Preserve the first established applicability boundary; restoring it after erroneous intermediate records is a repair, not a new boundary. Compare retained mappings by immutable commit identity: an annotated tag object may be corrected to the commit it peels to, never to another commit. Keep every prior mapping/reference and the erroneous history, with the correction explained in a later report. Missing objects or an incorrect first establishment require investigation; current refs alone cannot validate a correction or authorize moving applicability.
 
-The [record encoding](https://github.com/normzhou/yolo-dev/blob/3cc04ef5f302993e1d3952bff00f08020d57dbcc/skills/yolo/references/records.md) realizes these bindings. Target product versions and adopted YOLO releases are independent; upstream publication never upgrades a target automatically.
+The [record encoding](https://github.com/normzhou/yolo-dev/blob/e95211f32261580fb580cf0da9d7276ae477b063/skills/yolo/references/records.md) realizes these bindings. Target product versions and adopted YOLO releases are independent; upstream publication never upgrades a target automatically.
 
 
 <a id="conformance-checks-conformance-checks"></a>
@@ -547,7 +605,7 @@ The read-only validator implements these tests. Deterministic violations cannot 
 | [Layout](#repo-layout-repository-layout) | One active adoption marker; exact reserved slots/types; nonempty mapped governing documents; specs in their canonical home; no unexpected reserved entries or escaping paths. |
 | [Rule identity](#assisted-development-information-delivery) | Snapshot, provenance, manifest and complete skill inventory match recorded digests/publication bindings. |
 | [Agent entrypoints](#assisted-development-harness-bindings) | Native bindings/imports are intact; instructions reference local adoption/protocol; checked governing Markdown links resolve to mapped homes. |
-| [Record encoding](#adoption-records-adoption-and-evidence-records) | Required context/migration fields and references have valid shape; feedback settings are boolean with consent references when enabled. |
+| [Record encoding](#adoption-records-adoption-and-evidence-records) | Required context/migration fields and references have valid shape; feedback settings are boolean with consent references when enabled; compatible optional execution profiles/IDs/setup references are valid, without inferring hosted enrollment or falling back to personal access for an App declaration. |
 | [History](#adoption-records-reports-and-checkpoints) | Baseline/checkpoint ancestry, report chain and interval identities agree; recorded unresolved findings prevent factual readiness; checkpoint/report history remains intact. |
 | [Issues](#issue-management-reserved-labels-and-states) | Adopted-policy labels exist; states require `yolo:work`; managed open issues have one state, closed issues none; manual tasks carry neither work nor state and open tasks name a recognized maintainer assignee; dependency counts for waiting work are observed, with missing/invalid data, no declarations or all-closed blockers reported unverified for reconciliation; each outcome has one status summary, each classified request at most one request summary. |
 | [Releases](#releases-establish-and-check) | Release bindings/effective history exist; product-tag candidates follow naming rules; published releases have tags; retain mappings/references. Under `recoverable-v1`, current applicability equals its first establishment and historical tag objects compare by peeled commit; other commit changes remain gaps. Earlier pins keep their checks. |
@@ -674,7 +732,25 @@ Status describes the record's identified pin. An upgrade proposal cannot inherit
 <a id="adoption-records-observation-setting"></a>
 ### Observation setting
 
-`observation` is a distinct optional consent from `feedback`. It records whether [activity observation](#observation-activity-observation) may capture and transmit, the stable opaque adoption identifier and the cited recognized-maintainer acceptance. It defaults off and is absent for repositories that never opted in; the field alone grants nothing. Preserve the identifier and decision across repeat init, upgrade and worktrees; revocation stops future transmission, and dry runs never transmit. The [bundle encoding](https://github.com/normzhou/yolo-dev/blob/3cc04ef5f302993e1d3952bff00f08020d57dbcc/skills/yolo/references/records.md) implements its exact shape.
+`observation` is a distinct optional consent from `feedback`. It records whether [activity observation](#observation-activity-observation) may capture and transmit, the stable opaque adoption identifier and the cited recognized-maintainer acceptance. It defaults off and is absent for repositories that never opted in; the field alone grants nothing. Preserve the identifier and decision across repeat init, upgrade and worktrees; revocation stops future transmission, and dry runs never transmit. The [bundle encoding](https://github.com/normzhou/yolo-dev/blob/e95211f32261580fb580cf0da9d7276ae477b063/skills/yolo/references/records.md) implements its exact shape.
+
+<a id="adoption-records-execution-profile"></a>
+### Execution profile
+
+Execution encoding: `app-preflight-v1`.
+
+Compatible bundles permit an optional `execution` record. Absence preserves `personal`: existing user-managed Git/`gh` credentials. Explicit `self-hosted-app` identifies an operator-owned App, installation and accepted setup decision; private configuration and keys stay outside Git and candidate access. The `hosted` name is reserved for publisher-controlled infrastructure and remains unavailable in this slice. No user-run route receives publisher credentials or a publisher bot-operation relay. Profiles describe access, not a grant, proof of protocol conformity or an adoption level.
+
+The checker validates the declared encoding against the adopted bundle. Unknown profiles/fields or malformed identifiers are conflicts; a declaration on an older incompatible pin and an unavailable hosted route stay unverified. An App declaration must not silently use personal `gh` credentials for remote observations. Private App preflight is explicit and reports only its actual identity/access observations; full App work/history observation and execution remain unavailable until implemented. Earlier pins keep their rules and do not acquire execution support from a newer executable.
+
+Init/upgrade may propose a profile, preserving existing credentials and unrelated settings; switching requires deliberate setup and reconciled writer handoff. Reference recognized acceptance of the setup, without treating the field or App installation as authenticated authority. Keep the requested level and qualification in their existing fields. Secrets, secret-storage paths and hosted routing state are never committed in adoption or sent as telemetry.
+
+<a id="adoption-records-operator-app-preflight"></a>
+#### Operator App preflight
+
+An explicit local controller preflight verifies the configured App and owner, installation and account, and one repository's stable ID/name against operator-controlled private configuration and the target's declared App/installation. It uses GitHub directly, with no publisher service, personal-token extraction or credential fallback. Bound network operations and reject redirects. Keep raw provider responses, signing keys, JWTs and installation tokens out of output and persistent reports. A temporary metadata-read-only installation token may establish repository access; keep it in memory and revoke it before reporting success. Failed or uncertain revocation is an access gap, not success.
+
+Preflight neither runs candidate code nor writes repository content, activates a target or proves worker isolation. File permissions cannot isolate a hostile process running as the same user. App-backed execution must keep the signing/controller boundary outside candidate reach; the worker/publication implementation and live proof remain #106/#107. This preflight does not supply an L2 controller.
 
 <a id="adoption-records-reports-and-checkpoints"></a>
 ### Reports and checkpoints
@@ -821,7 +897,7 @@ Init, upgrade and standalone check use this line-item consistency review on actu
 | --- | --- |
 | Canonical files | Required exact slots/types/nonempty content, role/spec mappings and reserved entries pass the structural validator. |
 | One governing home | Classify every [replica candidate](#repo-layout-governing-file-review); remove unintended active duplication through authorized migration. Distinguish reusable artifacts from this repo's governing decisions using evidence, not directory labels. |
-| References | Ordinary instructions, README, governing links and native tooling agree on current authoritative homes; historical links are explicitly historical. |
+| References | Ordinary instructions, README, governing links and native tooling agree on current authoritative homes; historical links are explicitly historical. Trace substantive entrypoint prose under [instruction provenance](#repo-layout-instruction-provenance), preserving accepted decisions while repairing unsupported derivations and retaining unknowns. |
 | Purpose and design | Charter reflects confirmed audience/aspiration/useful progress/boundaries; architecture/specs express intended behavior. Proposals distinguish inference and current-code discrepancies. |
 | Authority and controls | Reconcile each delegated/reserved action across Charter, grant and pin, including feedback consent/settings. Configuration cannot override a prohibition. |
 | Protected approval | Recognized acceptance/override covers the final protected revision; later edits cannot inherit earlier approval. Significant design changes notify co-owners. |
@@ -906,7 +982,7 @@ For dry run, observe source preservation/no GitHub writes, a complete retained d
 <a id="assisted-development-assisted-distribution"></a>
 ## Assisted distribution
 
-**Publisher artifact requirements.** Package the [protocol](#operating-protocol-operating-protocol) and [onboarding process](#onboarding-onboarding-and-check) so a target harness can operate without this checkout or prior chat. The [candidate skill](https://github.com/normzhou/yolo-dev/blob/3cc04ef5f302993e1d3952bff00f08020d57dbcc/skills/yolo/SKILL.md) implements them; observed qualification remains separate.
+**Publisher artifact requirements.** Package the [protocol](#operating-protocol-operating-protocol) and [onboarding process](#onboarding-onboarding-and-check) so a target harness can operate without this checkout or prior chat. The [candidate skill](https://github.com/normzhou/yolo-dev/blob/e95211f32261580fb580cf0da9d7276ae477b063/skills/yolo/SKILL.md) implements them; observed qualification remains separate.
 
 <a id="assisted-development-standalone-bundle"></a>
 ### Standalone bundle
@@ -952,7 +1028,9 @@ Preserve other skills, commands and active instructions. Repeated installation i
 
 Use `AGENTS.md` as the ordinary entrypoint. Install thin [Claude](https://code.claude.com/docs/en/memory) and [Gemini](https://geminicli.com/docs/cli/gemini-md/) imports in `CLAUDE.md` and `GEMINI.md`; preserve existing instructions with the same import, otherwise stop for reconciliation. Init supplies the shared local protocol/context through `AGENTS.md`. Native trust, permissions and reload requirements remain in force. Skill discovery, explicit invocation and ordinary instruction loading require separate observations.
 
-Ordinary requests use [work](#activities-work-shared-development-procedure) without per-session manual invocation. YOLO self-use follows the same identified publication/adoption route; a mutable authoring link cannot upgrade or qualify it. Older [protocol](https://github.com/normzhou/yolo-dev/blob/3cc04ef5f302993e1d3952bff00f08020d57dbcc/skills/yolo/references/assisted-protocol.md)/encoding remain compatibility material.
+Apply [instruction provenance](#repo-layout-instruction-provenance) to entrypoint prose: link accepted purpose/authority, reconcile unsupported derived wording, and retain protected or unresolved decisions according to their evidence. Native discovery and `documents.instructions` identify a loading route, without authenticating the text's ownership or acceptance.
+
+Ordinary requests use [work](#activities-work-shared-development-procedure) without per-session manual invocation. YOLO self-use follows the same identified publication/adoption route; a mutable authoring link cannot upgrade or qualify it. Older [protocol](https://github.com/normzhou/yolo-dev/blob/e95211f32261580fb580cf0da9d7276ae477b063/skills/yolo/references/assisted-protocol.md)/encoding remain compatibility material.
 
 <a id="assisted-development-release-selection"></a>
 ### Release selection
@@ -1067,6 +1145,10 @@ Controls, packaging, runtime inputs and replacement activation must be resolved/
 
 Observer capability: `pi-native-v1`. The first executable adapter supports verified Pi 1.1.0; other harnesses/versions remain unverified.
 
+Additional observer capabilities: `codex-hooks-v1, claude-hooks-v1, gemini-hooks-v1, cursor-hooks-v1, opencode-v2-events-v1`. The manifest identifies each shipped adapter separately while retaining the Pi capability for older installations. Codex CLI hooks use a private session-correlated artifact descriptor, measure completed native tool calls and compactions, and leave model requests/tokens unknown. Native version/interface qualification is recorded in publisher trial evidence; IDE/app and other versions remain unverified.
+
+**Activity baseline.** Under the October 13 maintainer scope correction in #99, an adapter may initially record only the six explicit activity types, harness identity, and straightforward native start/finish and duration. Rich measurements, report handoff and difficult lifecycle cases are incremental capabilities, not prerequisites for this baseline. Missing reports remain `missing`, unavailable counters remain absent, and an unobserved finish is never invented. Recognize the publisher's exact expanded command template where the native command layer expands before the hook. Session-only hooks support sequential turns; queued/nested attribution and richer coverage remain explicit follow-up work. Preserve consent, dry-run suppression, data filtering, normal trust and fail-open behavior for every baseline adapter. Publisher evidence names actually tested interfaces; an installed binding alone does not establish native runtime support.
+
 **Measure execution and outcomes through the harness, not the agent's cooperation.** Observation makes YOLO's effectiveness analyzable from activity execution, native harness measurements and the ordinary result report. It is a separate, opted-in reporting operation; it never replaces GitHub/Git work state, advances a checkpoint or qualifies an adoption.
 
 The reusable methodology here is shared. The concrete observer, sender, tests and harness adapters are publisher artifacts; each integration and its coverage limits are identified, and adopters do not inherit YOLO Dev's own test/CI configuration.
@@ -1142,6 +1224,10 @@ Keep observer and harness versions and the measurement source so adapters can ev
 
 Include native per-response provider/model and input/output/cache/reasoning breakdowns only when supplied. Label selected-model information separately from a model observed serving a request. Unsupported measurements are absent or null, never zero.
 
+`measurements.compactions` is an optional non-negative count of observed native pre-compaction events. Missing compaction instrumentation remains unknown. The collector permits this typed counter; raw compaction prompts/transcripts remain excluded.
+
+An adapter whose native surface supplies no usage source reports `coverage: partial` with model requests and tokens absent while still reporting the measurements it did observe. A session-scoped counter is not an activity's usage, so it is reported as unknown rather than attributed to the segment that happened to be running.
+
 <a id="observation-report-integration"></a>
 ### Report integration
 
@@ -1162,6 +1248,8 @@ Supported executable bindings ship in the complete verified bundle and are insta
 
 For a correlated normal report, the binding supplies `YOLO_ACTIVITY_ID` and `YOLO_ACTIVITY_REPORT` to the activity's tool environment. The ordinary reporting procedure makes its structured result available at that path with the matching `activity_id`; normal durable Git/GitHub evidence remains primary. Missing, oversized, malformed or differently correlated artifacts produce an honest missing/invalid finish. A normal report may declare `awaiting_input: true`; a following input in that same live session then starts a new segment of that cause, rather than extending the settled segment. This is an ephemeral observation association, not authoritative work state; cross-session or unknown associations remain unsupported.
 
+A harness whose native lifecycle runs out of process, such as a subprocess hook, cannot bind the tool environment for the turn it precedes, because that environment is fixed when the session starts and several activities may share it. Such a binding may instead use an explicit correlated artifact path that it writes and the ordinary reporting procedure reads, carrying the same activity ID and the same missing/invalid/oversized rules. Both routes are equally binding and neither is a fallback that weakens correlation; the binding declares which one it proved.
+
 Private ingest configuration and versioned native executables live outside the repository. Accepted opt-in can provision a scoped per-installation credential through the disclosed collector without an operator handing out keys; repeat setup preserves the adoption identity and existing credential. Registration sends opaque adoption/installation IDs and a token digest, never raw credentials or repository identity. Neither registration nor a credential authenticates owner authority or event truth. The native sender rechecks current consent before delivery, dry runs perform no registration/transmission, and failed setup or delivery never gates the activity.
 
 Self-service registration uses the same collector's `/enroll` route. Its private registry stores only opaque IDs, token digests, creation time and revocation. Bound enrollment to 50 new installations per UTC day, 32 per adoption, 1,000 lifetime rows including revoked entries, 4 MiB registry/index storage and the existing 400 MiB database stop threshold. Identical enrollment retries consume no quota; conflicting or revoked installations never reactivate. Only the service-role collector can call enrollment/lookup RPCs; clients have no direct table, read, update or delete authority. Existing manually enrolled pilots retain their identities and tokens through explicit migration.
@@ -1177,3 +1265,67 @@ The observer uses the existing executable/release-asset distribution route; inst
 ### Acceptance
 
 Demonstrate: an explicit activity produces correlated `started`/`finished` records with truthful native measurements; a normal report is attached by the allowlisted projection and a missing/invalid one degrades honestly; nested/repeated checks deduplicate; absent or revoked consent and dry runs never transmit; and an unavailable sink does not block development. Fixtures exercise ingestion, deduplication and the append-only write/read-only analysis contract. Publisher fixtures cannot establish target opt-in, real hosted configuration or general harness support.
+
+
+<a id="app-hosting-owner-operated-app-hosting"></a>
+## Owner-operated app hosting
+
+This optional delivery profile supplies reusable hosting guidance/templates through the versioned `yolo` skill. The adopter owns its host/runtime and releases; Yolo Dev owns its domain and provider-guidance maintenance. It does not change general adoption requirements, active target pins or authority. [#135](https://github.com/normzhou/yolo-dev/issues/135) revises the original operator-hosted pilot in [#123](https://github.com/normzhou/yolo-dev/issues/123); [#136](https://github.com/normzhou/yolo-dev/issues/136) delivers the portable foundation. #125 remains historical groundwork.
+
+<a id="app-hosting-provider-documentation-and-freshness"></a>
+### Provider documentation and freshness
+
+The bundle links directly to official signup/onboarding, eligibility/pricing/limits and credential documentation. Provider UI steps and dated allowance examples are context; authoritative documentation and actual account facts must be checked at use, including when the installed bundle is old. Before actionable provider setup guidance and each planning/provisioning session, follow the relevant references, reconcile account mode/home region/aggregate consumption and record dated findings. Unknown/unavailable/ambiguous policies stop the affected infrastructure action. Do not silently rely on copied limits, increase authority from a provider page or substitute a paid resource.
+
+Yolo Dev owns broken-reference repair, guidance updates and template compatibility. A current policy incompatible with the installed template requires a reviewed update/explicit compatible upgrade; do not weaken its guards. Private structural review receipts bind evidence to exact account-input bytes and expire within 24 hours; they are procedural records, not proof that a webpage was understood or an authority/security gate. No background provider monitor or automatic skill upgrade is implied. Ordinary non-hosting skill use remains offline-capable.
+
+<a id="app-hosting-operator-and-adopter-boundary"></a>
+### Operator and adopter boundary
+
+Two deployment profiles share one application contract: `cloudflare` for client-owned Worker/Static Assets and `cloudflare-oracle` for that same app plus the client-owned Oracle backend. Static/browser-only content and bounded request/scheduled handlers belong to the first; continuous feeds, long jobs and native/container dependencies belong to the second when compatible with verified capacity. D1, a durable queue or another provider is not supplied merely by selecting a profile. Add those only for a concrete verified need. The immediate priority is the Trader build/test handoff.
+
+Clients own their Cloudflare app account, Worker, assets, data/secrets and release configuration in both profiles, and their OCI account in the second. Yolo Dev owns the domain/namespace and operator ingress resources. Each side retains its provider credentials and private state. OpenTofu manages infrastructure identity/lifecycle, Wrangler manages app versions/configuration/assets/deployments, and Kamal manages backend containers. One tool owns each resource/field; normal app releases do not apply infrastructure. Reconcile/import existing resources before changing ownership.
+
+The proposed common route is browser → Yolo Dev Access/gateway → authenticated HTTPS to the client's Worker origin → optional protected OCI API. Verify actual cross-account integration rather than assuming a CNAME or shared-account service binding. The gateway still consumes operator quota. Its app-scoped origin credential is not a provider-management token. Live routing remains unverified until #127's allowed/denied/direct-origin/streaming checks pass.
+
+The skill carries the complete profile, file templates and hostname-request instructions; no public website page/dashboard is required. Instantiation is explicit and conflict-preserving inside an independently authorized target. Infrastructure source and runtime config belong to that target. State, credentials, allowlist values and owner identifiers remain in private owner-controlled storage outside source.
+
+Yolo Dev retains `yolo-dev.ai` DNS, namespace admission, Access, gateway and Tunnel configuration/state in its account. Follow current official account/hostname/Tunnel requirements at setup; no client receives a domain-management token. App publication uses the client's Cloudflare account and declared Worker identity. A client receives only its app's connector/runtime credentials through private owner setup. Per-app releases do not require central runtime-config PRs.
+
+The client skill prepares a nonsecret request with app slug, repository/recognized owner, requested hostname, profile/release identity and readiness evidence. Use existing GitHub issue intake with maintainer submission/authorized feedback; no automatic client mutation. The operator verifies requester/ownership, checks reserved/colliding names, records a domain binding, creates denial policies before routing, privately hands off connector setup, verifies allowed/denied/direct/alternate origins and only then activates the name. Retirement fences the old service, revokes sessions/connector credentials, removes routes while denial remains and records release/retention disposition. Domain setup/live acceptance remains #127/#129, not a capability inferred from a request or registry row.
+
+<a id="app-hosting-boundary-and-release-contract"></a>
+### Boundary and release contract
+
+The operator reserves names in [`hosting/domains.json`](https://github.com/normzhou/yolo-dev/blob/e95211f32261580fb580cf0da9d7276ae477b063/hosting/domains.json); the initial pilot remains `trader` from `normzhou/yolo-trader`. This record owns namespace/domain bindings, not client CPU/mount/deployment state. No arbitrary customer hosting, client access to our infrastructure, self-service registration or cross-repository automation is supplied. The maintainer initiates client work and returns artifacts manually.
+
+An app release supplies immutable frontend/backend identities, compiled static assets, and for the backend profile a `linux/arm64` image built from an identified clean revision, HTTP routes under `/api`, fast `/health` and `/ready` endpoints, declared secrets/resources/persistent paths and application-aware backup/migration instructions. Readiness must fail until required durable state is usable; market-feed freshness is separate application status, not a reason to erase paper state or continually restart a healthy process. Background ingestion/execution runs independently of browser sessions. Trader owns data rights, vendor costs, engine semantics, paper execution, persistence and UI accuracy. Real-money trading is outside this milestone.
+
+The browser uses HTTPS and same-origin `/api` (including streaming/WebSockets). The client Worker guards all asset/API paths with an app-scoped gateway credential; guards execute before asset serving. Yolo Dev's gateway authenticates the user before signing an origin request and never forwards a browser-supplied machine credential or unverified identity. The client Worker serves compiled assets and proxies `/api` unchanged to the separately protected backend origin. Only server-side runtime stores hold machine credentials. The OCI origin requires separate Access Service Auth and connector-side JWT audience validation. The private Trader pilot requires Google sign-in and a private exact-email allowlist at the public gateway; alternate/preview/direct paths must not bypass the guard. Unknown hosts fail closed. No wildcard routing, public backend/database ports or token-in-browser fallback. [#127](https://github.com/normzhou/yolo-dev/issues/127) owns actual operator authentication and live bypass tests; a local signing fixture is not Google authentication or live cross-account qualification.
+
+The client can build/test against this contract before accounts or DNS are ready. The versioned skill must supply a runnable guarded frontend/API bridge, a loopback-only development entrypoint, and explicit production setup/release gaps. Local synthetic events establish transport, not a live market feed or paper engine. Application cookies are host-only, infrastructure authentication is stripped across boundaries, redirects are not followed with machine credentials, and response streaming is not buffered. Existing application auth remains client-owned; no user identity is inferred from a caller-supplied header. Release/backend migrations and data recovery remain separate.
+
+<a id="app-hosting-transport-key-lifecycle-and-connections"></a>
+### Transport key lifecycle and connections
+
+The versioned client profile and operator gateway use one private app-scoped key-set binding: one current HMAC key and optionally one previous key with an explicit interval no longer than 15 minutes. Signing always uses current; malformed configuration fails closed without legacy fallback. Legacy single-key configurations remain compatible only while the key-set binding is absent. Routine rotation stages acceptance at the client before switching the gateway, verifies the new path and retires/proves denial of the old key. Compromise/suspension fences traffic and permits no overlap; rollback must retain current authorized keys rather than revive retired capabilities. Actual provider version/secret propagation, old-instance termination and independent-owner delivery require separate evidence. This does not rotate Service Auth, Tunnel, provider credentials or user sessions.
+
+Both runtimes bound request headers/streams/WebSockets, with the client ceiling of 60 seconds from the signed timestamp/admission and an earlier previous-key expiry; the gateway also bounds by user JWT expiry and its configured window. Applications implement reconnect with backoff/jitter, authorization-denial handling and application-defined snapshot/event reconciliation. UI connection health and feed freshness remain distinct; state-changing requests require their own idempotency/recovery contract. The bundle carries these instructions; local runtime checks do not qualify provider revocation or a live app. The 15-minute/60-second limits are our transport policy, not provider allowances.
+
+<a id="app-hosting-host-and-cost-boundary"></a>
+### Host and cost boundary
+
+The initial conservative template uses one Ubuntu 24.04 ARM64 Oracle A1 host in the tenancy's **actual home region**, at most 2 OCPUs / 12 GB RAM / 100 GB balanced boot volume (10 VPUs/GB). Verify the account-wide allowance and current usage before provisioning. Only unupgraded Free Tier/trial accounts are admitted initially; trial credit does not justify paid resources. Budget alerts are delayed notifications, not spending caps. No R2, load balancer, NAT, paid fallback, extra VM or paid account upgrade. Lack of free capacity is a reason to wait or replan. Oracle can reclaim an idle free VM; this route provides no uptime guarantee.
+
+Administration uses an owner-held SSH key and one allowlisted IPv4 `/32`. Docker access is root-equivalent and reserved to this operator. The origin proxy binds loopback. Containers run nonroot, without capabilities/privilege/host network/socket mounts, with bounded CPU/RAM/PIDs/logs and declared data mounts only. Host firewall rules reject container access to metadata, private/link-local destinations and host services. The initial route admits one trusted owner-operated app, not hostile tenant isolation.
+
+Reserve at least 3 GB RAM and 0.5 CPU for the host/proxy/maintenance during a two-container cutover. Admission counts old + new containers and background workers together; the initial backend budget is 0.75 CPU / 3 GB each. Do not deploy overlapping standalone feed workers unless the app has a tested single-writer/leader protocol. Disk admission requires at least 20 GB free and usage below 75%; trim only identified obsolete images/logs after preserving rollback artifacts. Persistent app data is limited to its declared budget; stop ingestion before disk exhaustion. Accessories require explicit combined old/new-app + all-accessory peak budgets, private container networking (a separate container is not the app’s localhost), declared nonroot/security/storage requirements and independent patch/backup/restart/rollback acceptance. The default two app containers consume the whole initial 1.5-CPU / 6-GB cutover budget; no accessory is admitted without reducing allocations and verifying the new total. Broker selection and real protocol support remain client-owned. Client-specific admission and publication enforcement belong to [#128](https://github.com/normzhou/yolo-dev/issues/128).
+
+<a id="app-hosting-state-operations-and-recovery"></a>
+### State, operations and recovery
+
+One owner-controlled workstation is the only infrastructure writer. Local state and saved plans are encrypted; state, plans, owner identifiers and keys never enter this public repository. Use a private local directory, local lock, verified current lineage/serial and an independently backed-up encrypted copy after every apply. Back up the passphrase separately; test opening the recovered copy with the saved key. Never use a stale copy, disable locking or run parallel writers.
+
+VM and networking destruction/replacement are refused by lifecycle rules and the saved-plan reviewer. Bootstrap changes are maintenance candidates, not instructions to rebuild a live VM. Use explicit patch procedures; pin image and downloaded runtime identities, bound readiness waits, and keep secrets out of user-data. Pin updates are AI-owned source changes; owner account actions remain [#126](https://github.com/normzhou/yolo-dev/issues/126).
+
+Persist `/srv/yolo/<app>` across container restarts; keep backups outside the VM on the existing owner workstation with a separate encrypted copy. Quiesce the engine before filesystem backup; databases require their own consistent dump/snapshot. Restore into a separate directory and verify data/schema/integrity before selecting it. Infrastructure recovery, container rollback and database migration recovery are distinct. A failed migration cannot be repaired by assuming an old image understands new data. The [portable hosting guide](https://github.com/normzhou/yolo-dev/blob/e95211f32261580fb580cf0da9d7276ae477b063/skills/yolo/references/app-hosting.md) and its linked operations define the procedures; local [publisher fixtures](https://github.com/normzhou/yolo-dev/blob/e95211f32261580fb580cf0da9d7276ae477b063/hosting/OPERATIONS.md) record verification scope; live reboot, recovery, streaming and access acceptance remain pending owner setup and #127–#129.

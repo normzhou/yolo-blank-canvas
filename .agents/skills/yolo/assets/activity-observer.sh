@@ -1,0 +1,19 @@
+#!/bin/sh
+# Observe native lifecycle input only; never return a decision or model context.
+key=$1
+harness=$2
+case "$key" in ''|*[!0-9a-f]*) exit 0 ;; esac
+[ "${#key}" -eq 64 ] || exit 0
+root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+case "$(uname -s)" in
+  Darwin) os=darwin; base=${YOLO_OBSERVE_CONFIG_DIR:-"$HOME/Library/Application Support/yolo"} ;;
+  Linux) os=linux; base=${YOLO_OBSERVE_CONFIG_DIR:-"${XDG_CONFIG_HOME:-$HOME/.config}/yolo"} ;;
+  *) exit 0 ;;
+esac
+case "$(uname -m)" in arm64|aarch64) arch=arm64 ;; x86_64|amd64) arch=amd64 ;; *) exit 0 ;; esac
+binary="$base/checkers/bundles/$key/${os}_${arch}/yolo-check"
+[ -x "$binary" ] || exit 0
+# Versions are optional metadata. Avoid launching another harness inside a hook.
+case "$harness" in claude-code|gemini|cursor|opencode) ;; *) exit 0 ;; esac
+"$binary" observe hook "$harness" "$root" unknown >/dev/null 2>&1 || :
+exit 0

@@ -11,6 +11,8 @@ For help, use **Help** below; unrelated protocol/history checks are unnecessary.
 
 ## Load the applicable rules
 
+For Codex's artifact handoff, if `YOLO_ACTIVITY_ID`/`YOLO_ACTIVITY_REPORT` are absent, obtain the current native-session descriptor through the read-only [observer context launcher](references/checker.md#codex-observation). Use its matching activity ID/report path for the same ordinary result below. An unavailable descriptor stays a report gap; never select another session from its working directory.
+
 When the harness supplies `YOLO_ACTIVITY_ID` and `YOLO_ACTIVITY_REPORT`, make the ordinary structured result available at that path with the matching `activity_id`. Keep durable evidence in its normal Git/GitHub location. Use `kind: "review"` for init/upgrade/check and `kind: "outcome"` for request/work/feedback; keep factual observations and agent assessment separate ([records](references/records.md#activity-result)). If waiting for the next user reply, include `awaiting_input: true`. This is normal result recording; native hooks collect measurements and handle transmission automatically.
 
 - Existing target: read its `.yolo/adoption.json` (or legacy `.yolo-dev/adoption.json`), pinned snapshot, mapped governing/instruction context and durable work. Two markers are a conflict; never select one implicitly. A newer skill cannot upgrade a pin.
@@ -18,6 +20,8 @@ When the harness supplies `YOLO_ACTIVITY_ID` and `YOLO_ACTIVITY_REPORT`, make th
 - Legacy check/repair: use [legacy encoding](references/legacy-records.md) and the target's earlier rules. The [earlier protocol](references/assisted-protocol.md) is compatibility material, not an upgrade.
 
 Preserve accepted intent, baseline, checkpoints, failed findings and historical applicability. Migration needs explicit direction and identified old/new rules. Unknown provenance or missing context stays a gap.
+
+For an explicitly configured App profile on a compatible pin, use the [operator guide](references/operator-app.md) only within accepted setup authority. Private verification runs on the controller side; never copy keys or tokens into candidate context. This publication supplies access preflight, not App-backed work/publication or hosted execution: report that gap and preserve the profile instead of falling back to personal credentials.
 
 ## Init
 
@@ -84,17 +88,19 @@ Briefly assess YOLO guidance/tooling effectiveness after check and final init/up
 
 ## Request and work
 
+For a maintainer-requested app-hosting route, read [optional hosting](references/app-hosting.md) and its client webapp integration guide before instantiating files. The client can build/test the guarded frontend and same-origin API through a loopback preview before cloud/DNS setup. Before actionable provider instructions, follow its live official references even from an older bundle; cached limits are not current eligibility. Hosting remains opt-in under the target's existing authority, with client-owned app accounts and separate Yolo Dev domain management. No new activity, account grant or automatic target upgrade is supplied.
+
 Use **Agent activities** in the active snapshot (the [bundle](references/protocol.md#activities-agent-activities) for new init). Report missing activity support rather than silently upgrading.
 
 `request` discusses/files/follows **target-app** needs. It shares **Issue management → Intake and admission** with upstream feedback. Search existing issues, preserve consequential direction and apply an existing `yolo:request` label when filing is authorized and permissions allow; otherwise leave classification to the receiving AI. Return a real link or unsent draft. Intake is not admission or execution permission; follow the active pin, never silently upgrade it.
 
-`work` requires active adoption: **reconcile → plan/admit → execute → record/continue or hand off**. Under **Issue management → Planning across outcomes**, review incoming issues/replies alongside existing work; consolidate or split into useful outcomes instead of one ticket per input. Reuse covering work, or promote a suitable source in place before creating another ticket. Preserve source coverage/dispositions and use a linked Now/Next plan when coordinating outcomes. AI manages priority, acceptance, state, PRs and authorized delivery; distinguish verified fulfillment from decline/duplicate disposition. Significant design changes notify; protected changes need identified approval. Reconcile interrupted effects and other writers before acting. Preserve result/version, failures and next action.
+`work` requires active adoption: **reconcile → select a useful chunk → interpret/admit when needed → advance → publish and continue or hand off**. Under **Issue management → Planning across outcomes**, review incoming issues/replies alongside existing work; consolidate or split into useful outcomes instead of one ticket per input. Reuse covering work, or promote a suitable source in place before creating another ticket. Preserve source coverage/dispositions and use a linked Now/Next plan when coordinating outcomes. AI manages priority, acceptance, state, PRs and authorized delivery; distinguish verified fulfillment from decline/duplicate disposition. Significant design changes notify; protected changes need identified approval. Reconcile interrupted effects and other writers before acting, and inspect an external action's actual result before repeating it. Preserve result/version, failures and next action.
 
 Ordinary development requests follow this procedure without manual skill invocation. Direct conversation is steering; a bypass needs a scoped owner override. L1's maintainer starts sessions; AI may admit/plan within them. L2 automatic initiation remains unbuilt.
 
-Reconcile applicable current intent, including later reversals; superseded decisions remain history. Before executing a replan, record revised acceptance and the original scope's disposition in the outcome and affected sources. A substitute result cannot fulfill abandoned scope or waive its prerequisites; unresolved consequential contradictions block affected work.
+Reconcile applicable current intent, including later reversals; superseded decisions remain history. Interpret input from dissatisfaction to a precise proposal before executing it: record the admission handoff — outcome/sources, scope/decisions, acceptance/delivery, Charter fit/authority, readiness — or publish another disposition, and admit a bounded investigation when the solution is materially unknown. Before executing a replan, record revised acceptance and the original scope's disposition in the outcome and affected sources. A substitute result cannot fulfill abandoned scope or waive its prerequisites; unresolved consequential contradictions block affected work.
 
-Maintain the existing status-summary comment as work changes. Follow the target's declared delivery route through usable publication; a development checkout does not establish a package/release's availability. Reconcile governing conflicts and primary evidence before claiming conformity or completion.
+Maintain the existing status-summary comment as work changes, and record the iteration identity once per iteration in that outcome's or the plan's summary, with the result, evidence, remaining scope, next action and any operation still running. Mark new YOLO-written objects with `Created by YOLO Dev · mode: <profile> · harness: <name/version> · run: <iteration id> · <record link>`. Follow the target's declared delivery route through usable publication; a development checkout does not establish a package/release's availability. If publication fails, retain the local result and report exactly what remains unsynchronized. Reconcile governing conflicts and primary evidence before claiming conformity or completion.
 
 ## Feedback
 

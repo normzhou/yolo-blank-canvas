@@ -1,0 +1,18 @@
+# Copy outside Git, fill privately, then use -var-file=<absolute-private-path>.
+# No secrets/identifiers from this file belong in issues or public diffs.
+tenancy_ocid       = "<tenancy OCID>"
+compartment_ocid   = "<dedicated yolo-__APP_SLUG__-host compartment OCID>"
+region             = "<actual tenancy home region>"
+availability_domain = "<available AD name in that home region>"
+image_ocid         = "<pinned Canonical Ubuntu 24.04 aarch64 platform image OCID>"
+alert_email        = "<private owner email>"
+ssh_public_key     = "ssh-ed25519 <public key>"
+admin_ipv4_cidr    = "<current owner public IPv4>/32"
+oci_profile        = "YOLO_APP_HOST"
+account_mode       = "FREE_TIER" # Or FREE_TRIAL_NOT_UPGRADED. Never PAYG.
+free_tier_verified = false       # Set true only after hosting/OWNER-SETUP.md.
+other_month_ocpu_hours      = 0  # Replace with measured + forecast totals.
+other_month_memory_gb_hours = 0
+other_volume_gb             = 0
+other_allocated_a1_ocpus     = 0
+other_allocated_a1_memory_gb = 0

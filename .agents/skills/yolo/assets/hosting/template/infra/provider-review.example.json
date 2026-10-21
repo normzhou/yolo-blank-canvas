@@ -1,0 +1,49 @@
+{
+  "profile": "oci-arm64-cloudflare-v1",
+  "status": "unverified",
+  "verified_at": "<current UTC ISO-8601 after following sources>",
+  "variables_sha256": "<SHA-256 of exact private terraform.tfvars>",
+  "account_mode": "FREE_TIER",
+  "region": "<actual home region>",
+  "home_region": "<actual home region>",
+  "account_eligibility_verified": false,
+  "aggregate_usage_verified": false,
+  "template_compatible": false,
+  "current_allowance": {
+    "a1_ocpus": 0,
+    "a1_memory_gb": 0,
+    "a1_ocpu_hours": 0,
+    "a1_memory_gb_hours": 0,
+    "volume_gb": 0
+  },
+  "sources": {
+    "signup": {
+      "url": "https://docs.oracle.com/en-us/iaas/Content/GSG/Tasks/signingup.htm",
+      "resolved_url": "https://docs.oracle.com/en-us/iaas/Content/GSG/Tasks/signingup.htm",
+      "status": "unverified",
+      "observed_at": "<current UTC after reading>",
+      "finding": "<actual current requirement and compatibility finding, not copied historical policy>"
+    },
+    "always_free": {
+      "url": "https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm",
+      "resolved_url": "https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm",
+      "status": "unverified",
+      "observed_at": "<current UTC after reading>",
+      "finding": "<actual current requirement and compatibility finding, not copied historical policy>"
+    },
+    "pricing": {
+      "url": "https://www.oracle.com/cloud/price-list/",
+      "resolved_url": "https://www.oracle.com/cloud/price-list/",
+      "status": "unverified",
+      "observed_at": "<current UTC after reading>",
+      "finding": "<actual current requirement and compatibility finding, not copied historical policy>"
+    },
+    "api_keys": {
+      "url": "https://docs.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm",
+      "resolved_url": "https://docs.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm",
+      "status": "unverified",
+      "observed_at": "<current UTC after reading>",
+      "finding": "<actual current requirement and compatibility finding, not copied historical policy>"
+    }
+  }
+}

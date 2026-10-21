@@ -1,0 +1,14 @@
+{
+  "app": "__APP_SLUG__",
+  "repository": "__REPOSITORY__",
+  "hostname": "__APP_SLUG__.yolo-dev.ai",
+  "origin": "api-origin-__APP_SLUG__.yolo-dev.ai",
+  "worker": "yolo-__APP_SLUG__-app",
+  "data_budget_gb": 20,
+  "per_container_cpus": 0.75,
+  "per_container_memory_gb": 3,
+  "max_during_cutover": 2,
+  "accessories": [],
+  "profile": "cloudflare-oracle",
+  "cloudflare_ownership": "client application account; operator owns separate domain gateway"
+}

@@ -2,6 +2,26 @@
 
 Use the executable from the selected YOLO publication, outside the immutable skill folder. Installation, release selection and checking need no Python or Go runtime. Git remains required; remote observation/selection uses existing authorized `gh`. A newer tool cannot change an active pin. Earlier pins retain their own tooling.
 
+## Operator App preflight
+
+Compatible publications offer explicit `app verify --config <private-json> <repo>` for the operator-owned App [setup and access check](operator-app.md). It issues/revokes a temporary metadata-only credential, keeps private inputs outside the target, and provides no worker/publication route or token export. Default checks remain read-only and never switch App declarations to personal `gh` access. A preflight success is not execution readiness or qualification.
+
+## Codex observation
+
+The bundle also installs activity-baseline hooks in `.claude/settings.json`, `.gemini/settings.json`, `.cursor/hooks.json`, and an OpenCode V2 plugin in `.opencode/plugins/yolo-observer.js`. These record the six activity types, harness name and available native start/finish/duration. They omit usage counters and report capture. Existing owner settings/hooks are preserved; changed publisher hooks require explicit reconciliation. Load/trust the project through each harness's normal controls. Session-only hooks cover sequential turns; queued/nested attribution is deferred. Missing finish events stay unknown. A ready ingest credential is separate from verified hook loading and receipt.
+
+An identified `codex-hooks-v1` bundle installs project hooks alongside existing user hooks. Review/reload them through Codex's normal trust controls; installation cannot grant trust. CLI 0.162.1 is the initial trial version; IDE/app, other versions and native Windows/Linux execution require separate evidence.
+
+When the activity environment variables are absent, obtain the correlated ordinary-report descriptor from the repository root:
+
+```sh
+sh .agents/skills/yolo/assets/codex-observer.sh PROTOCOL_SHA256 context
+```
+
+Replace `PROTOCOL_SHA256` with `output.sha256` from the installed `references/provenance.json`. On Windows use `powershell -NoProfile -File .agents/skills/yolo/assets/codex-observer.ps1 PROTOCOL_SHA256 context`. The launcher locates the matching private cached executable without a new runtime. `observe context <repo>` is read-only and selects only the current native session; use an `active` response's `activity_id`/`report_path`, otherwise retain the report gap. It neither enrolls nor sends.
+
+`observe status` describes the credential separately from native capture. A ready credential cannot prove hook trust/loading. Codex emits native activity/tool measurements with partial coverage and unavailable model/token fields omitted. Hooks return no context, continuation or permission decisions. Startup, help and absent/revoked consent send nothing; dry runs never enroll/transmit. Private state/report copies are bounded to 64 sessions, 16 reports per session and 24 hours; expiry never invents a finish. A killed hook may leave its session state busy/unavailable until expiry, without blocking development.
+
 | Platform | Release asset |
 | --- | --- |
 | macOS Intel | `yolo-check_darwin_amd64` |

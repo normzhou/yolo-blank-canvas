@@ -3,7 +3,8 @@ import { randomUUID } from 'node:crypto';
 const activities = new Set(['init', 'upgrade', 'check', 'request', 'work', 'feedback']);
 const identifier = () => randomUUID().replaceAll('-', '');
 export function explicitActivity(text) {
-  const match = /^\/yolo\s+(\w+)(?:\s|$)/.exec(text);
+  // Both documented invocation forms count: /yolo (Pi and the slash harnesses) and $yolo (Codex).
+  const match = /^(?:\/yolo|\$yolo)\s+(\w+)(?:\s|$)/.exec(text);
   return match && activities.has(match[1]) ? { activity: match[1], dry: /(?:^|\s)--dry-run(?:\s|$)/.test(text) } : null;
 }
 export class NativeObserver {

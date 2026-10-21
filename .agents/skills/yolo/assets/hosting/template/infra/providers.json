@@ -1,0 +1,24 @@
+{
+  "profile": "oci-arm64-cloudflare-v1",
+  "notice": "Links are authoritative starting points, not cached policy. Follow them at use, including from older bundles. Do not infer current free eligibility from this file.",
+  "oci": {
+    "signup": "https://docs.oracle.com/en-us/iaas/Content/GSG/Tasks/signingup.htm",
+    "always_free": "https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm",
+    "pricing": "https://www.oracle.com/cloud/price-list/",
+    "api_keys": "https://docs.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm"
+  },
+  "domain_operator": {
+    "tunnel_dns": "https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/routing-to-tunnel/dns/",
+    "connector_tokens": "https://developers.cloudflare.com/tunnel/reference/tunnel-tokens/",
+    "google_identity": "https://developers.cloudflare.com/cloudflare-one/integrations/identity-providers/google/",
+    "worker_permissions": "https://developers.cloudflare.com/workers/authorization/workers/",
+    "worker_limits": "https://developers.cloudflare.com/workers/platform/limits/",
+    "worker_pricing": "https://developers.cloudflare.com/workers/platform/pricing/"
+  },
+  "runtime": {
+    "registry": "https://kamal-deploy.org/docs/configuration/docker-registry/",
+    "accessories": "https://kamal-deploy.org/docs/configuration/accessories/",
+    "state_encryption": "https://opentofu.org/docs/language/state/encryption/",
+    "age": "https://github.com/FiloSottile/age"
+  }
+}
