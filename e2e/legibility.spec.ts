@@ -58,7 +58,7 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
         await freezeClock(page);
         await page.setViewportSize({ width: 1280, height: 900 });
         await page.goto(stub.base);
-        await page.getByRole('button', { name: 'Play Tetris' }).click();
+        await page.getByRole('button', { name: 'Tetris', exact: true }).click();
         await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
 
         const measured: Array<{ scene: string; label: number; line: number }> = [];
@@ -92,7 +92,7 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
         await freezeClock(page);
         await page.setViewportSize({ width: 1280, height: 900 });
         await page.goto(stub.base);
-        await page.getByRole('button', { name: 'Play Tetris' }).click();
+        await page.getByRole('button', { name: 'Tetris', exact: true }).click();
         await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
 
         const layerState = () =>

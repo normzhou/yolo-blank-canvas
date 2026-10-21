@@ -117,7 +117,7 @@ function NextPreview({ type }: { type: Tetromino }) {
   );
 }
 
-export function TetrisView({ onClose }: { onClose: () => void }) {
+export function TetrisView({ onExit }: { onExit: () => void }) {
   const [game, setGame] = useState<TetrisState>(() => createGame());
   const [paused, setPaused] = useState(false);
   const [musicOn, setMusicOn] = useState(false);
@@ -172,7 +172,7 @@ export function TetrisView({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
-        onClose();
+        onExit();
         return;
       }
       if (paused || gameRef.current.status !== 'playing') return;
@@ -204,7 +204,7 @@ export function TetrisView({ onClose }: { onClose: () => void }) {
     }
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [onClose, paused]);
+  }, [onExit, paused]);
 
   const board = displayBoard(game);
 
@@ -231,7 +231,7 @@ export function TetrisView({ onClose }: { onClose: () => void }) {
           <button type="button" className="primary" onClick={() => { setGame(createGame()); setPaused(false); }}>
             New game
           </button>
-          <button type="button" onClick={onClose} aria-label="Close Tetris">
+          <button type="button" onClick={onExit} aria-label="Close Tetris">
             Close
           </button>
         </div>

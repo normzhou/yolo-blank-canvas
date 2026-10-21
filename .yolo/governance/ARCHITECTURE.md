@@ -54,7 +54,16 @@ truth. GitHub remains the source of truth for the request and its work. Any in-a
 not a GitHub record — such as a game's score — is explicitly local to the view, is never written
 back or presented as a repository record, and is lost when the view closes. Adding persistent
 content is an architecture and data-model change recorded here, not a quiet addition to a
-component; the first such content is the Tetris view (#4).
+component; the first such content is the Tetris view (#4), now reached through the canvas gallery.
+
+The canvas is still the resting state, not a dashboard: the gallery is a secondary row and the
+prompt keeps the only primary action. Canvas content is a first-party registry
+(`src/client/apps/registry.ts`): each entry has an id, a title, a summary and one element, and the
+shell owns navigation through the home row, the header trigger and the Ctrl/⌘K palette.
+`?app=<id>` is the app's location, and `?app=<id>&panel=<n>` composes the Requests overlay over it.
+The registry is a compile-time list, not a plugin surface: there is no manifest, remote loading,
+install step, iframe, third-party app, marketplace or per-app persistence. The Tetris entry is the
+first app; contextual feedback capture is deliberately not part of this model yet.
 
 ## Behavior contracts
 
@@ -68,6 +77,7 @@ The durable observable contracts, verified by the test suite:
 | Launcher prerequisites, auth reuse, port fallback | `server/cli.js`, `server/launch.js` | `test/launcher.test.ts` |
 | Untrusted Markdown safety | `src/client/components/Markdown.tsx` | `test/markdown.test.tsx` |
 | Draft preservation across panel/refresh/reload | `src/client/drafts.ts` | `test/drafts.test.ts` |
+| Canvas app registry and addressable `?app=` locations | `src/client/apps/registry.ts`, `src/client/route.ts` | `test/apps.test.ts`, `test/route.test.ts`, `e2e/canvas-gallery.spec.ts` |
 | Tetris rules and board state (local to the view, not a GitHub record) | `src/shared/tetris.ts` | `test/tetris.test.ts` |
 | Tetris track list and shuffled bundled-asset playlist | `src/shared/tetrisMusic.ts` | `test/tetris-music.test.ts` |
 | Tetris backdrop scenes (bundled sourced art) and the four-line cycle | `src/shared/tetrisBackgrounds.ts` | `test/tetris-backgrounds.test.ts` |

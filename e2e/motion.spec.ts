@@ -36,7 +36,7 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
       try {
         await page.setViewportSize({ width: 1280, height: 900 });
         await page.goto(stub.base);
-        await page.getByRole('button', { name: 'Play Tetris' }).click();
+        await page.getByRole('button', { name: 'Tetris', exact: true }).click();
         await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
         await expect(page.locator('.tetris-scene')).toContainText('Scene 1/');
 

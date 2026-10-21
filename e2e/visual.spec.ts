@@ -129,7 +129,7 @@ capture('connection error surface', makeStubGithub, async ({ page, snap }) => {
 });
 
 capture('tetris stats legible on every backdrop', makeStubGithub, async ({ page, snap }) => {
-  await page.getByRole('button', { name: 'Play Tetris' }).click();
+  await page.getByRole('button', { name: 'Tetris', exact: true }).click();
   await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
   await page.getByRole('button', { name: 'Pause' }).click();
   await expect(page.getByRole('button', { name: 'Resume' })).toBeVisible();
@@ -151,7 +151,7 @@ capture('tetris stats legible on every backdrop', makeStubGithub, async ({ page,
 });
 
 capture('tetris board and stats', makeStubGithub, async ({ page, snap }) => {
-  await page.getByRole('button', { name: 'Play Tetris' }).click();
+  await page.getByRole('button', { name: 'Tetris', exact: true }).click();
   await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
   // Pause before capturing: gravity would otherwise move the piece between the
   // board becoming visible and the shutter.

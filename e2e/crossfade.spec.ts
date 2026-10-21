@@ -93,7 +93,7 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
       try {
         await page.setViewportSize({ width: 1280, height: 900 });
         await page.goto(stub.base);
-        await page.getByRole('button', { name: 'Play Tetris' }).click();
+        await page.getByRole('button', { name: 'Tetris', exact: true }).click();
         await expect(page.locator('.tetris-scene')).toContainText('Scene 1/');
 
         const samples = await sampleCrossfade(page);
@@ -139,7 +139,7 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
       try {
         await page.setViewportSize({ width: 1280, height: 900 });
         await page.goto(stub.base);
-        await page.getByRole('button', { name: 'Play Tetris' }).click();
+        await page.getByRole('button', { name: 'Tetris', exact: true }).click();
         await expect(page.locator('.tetris-scene')).toContainText('Scene 1/');
 
         // The failure mode the duplicated literal allowed: one file edited, the
@@ -167,7 +167,7 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
       try {
         await page.setViewportSize({ width: 1280, height: 900 });
         await page.goto(stub.base);
-        await page.getByRole('button', { name: 'Play Tetris' }).click();
+        await page.getByRole('button', { name: 'Tetris', exact: true }).click();
         await expect(page.locator('.tetris-scene')).toContainText('Scene 1/');
 
         for (let change = 0; change < 3; change += 1) {

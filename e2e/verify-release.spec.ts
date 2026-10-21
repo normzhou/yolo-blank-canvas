@@ -45,6 +45,21 @@ async function openRequests(page: import('@playwright/test').Page) {
   );
 }
 
+/**
+ * Tetris became a gallery entry in #165; before that it was a "Play Tetris"
+ * control. Accept either so the suite can also verify an older installed tag.
+ */
+async function openTetris(page: import('@playwright/test').Page) {
+  for (const name of ['Tetris', 'Play Tetris']) {
+    const trigger = page.getByRole('button', { name, exact: true });
+    if ((await trigger.count()) > 0) {
+      await trigger.first().click();
+      return;
+    }
+  }
+  throw new Error('no Tetris trigger found: looked for buttons named "Tetris" and "Play Tetris"');
+}
+
 test('the released stylesheet clears WCAG AA for the reconciliation badge', async ({ page }) => {
   // Measured from the served CSS rather than a rendered badge: the live
   // repository may have no conflicting-state issue at the moment, and a
@@ -124,7 +139,7 @@ test('text fields carry a fill distinct from the panel', async ({ page }) => {
 
 test('the Tetris stats panel is opaque', async ({ page }) => {
   await page.goto(BASE);
-  await page.getByRole('button', { name: 'Play Tetris' }).click();
+  await openTetris(page);
   const panel = await page.evaluate(() => {
     const el = document.querySelector('.tetris-side') as HTMLElement;
     const bg = getComputedStyle(el).backgroundColor;
@@ -142,7 +157,7 @@ test('the crossfade is cut under prefers-reduced-motion', async ({ browser }) =>
     await page.goto(BASE);
     await session(page);
     await page.goto(BASE);
-    await page.getByRole('button', { name: 'Play Tetris' }).click();
+    await openTetris(page);
     await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
     const layers = await page.evaluate(() =>
       Array.from(document.querySelectorAll('.tetris-art-layer')).map((el) => ({
