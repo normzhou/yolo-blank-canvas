@@ -206,15 +206,16 @@
         "v0.2.0": "eaf7cc2b74b9eba89ee434742c5df97f84c54637",
         "v0.3.0": "dbfdacf246b5b42c208e5f1fb4a7913c195d2f67",
         "v0.3.2": "75cfffb583bc0a241aa3270aa207dcdc21833cf4",
-        "v0.3.1": "80bf5f860c4a360e855c8b0a786df7a04f3a70e6"
+        "v0.3.1": "80bf5f860c4a360e855c8b0a786df7a04f3a70e6",
+        "v0.4.0": "e1105c36730e1f887fe5cac0994a32ad9598395d"
       },
       "published": {
-        "tag": "v0.4.0",
-        "commit": "e1105c36730e1f887fe5cac0994a32ad9598395d",
-        "source_commit": "c1daf3e6d558e3dd902b238d763df6889f850af8",
-        "published_at": "2026-10-15T04:19:25Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-10-15.json",
-        "note": "Minor release. Carries the structural UX/UI redesign (#130-#133), the theme ramp (#134) and the list fixes (#150). Acceptance before tagging: 255 unit, 77 stubbed e2e, tsc clean. Acceptance on the delivered artifact: 6 of 6."
+        "tag": "v0.5.0",
+        "commit": "f0262ae6e76ed26ea51b22c18daa1cf2d9c046c2",
+        "source_commit": "4cad4b6128e11a531873627e6ecb13eeab484362",
+        "published_at": "2026-10-21T07:42:57Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-10-21.json",
+        "note": "Minor release. Carries the canvas content gallery (#165): first-party app registry, home gallery, header Canvas trigger and Ctrl/⌘+K palette, addressable ?app= locations, and Requests composition over an app. Tetris is the first entry. Acceptance before tagging: 264 unit, 83 stubbed e2e passed + 1 skipped, tsc clean, structure pass. Acceptance on the delivered artifact: 7 of 7, including the gallery shell check. The tag points at release commit f0262ae after the assets commit c456385; both build-ID files record 4cad4b6."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -224,7 +225,8 @@
         ".yolo/reports/releases-observed-2026-10-07.json",
         ".yolo/reports/releases-observed-2026-10-08.json",
         ".yolo/reports/releases-observed-2026-10-14.json",
-        ".yolo/reports/releases-observed-2026-10-15.json"
+        ".yolo/reports/releases-observed-2026-10-15.json",
+        ".yolo/reports/releases-observed-2026-10-21.json"
       ]
     }
   },
