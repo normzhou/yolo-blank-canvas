@@ -6,23 +6,31 @@ import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { CanvasPalette } from './components/CanvasPalette';
 import { CANVAS_APPS, canvasAppById } from './apps/registry';
 import { useVisible } from './usePolling';
-import { feedbackBody } from './feedback';
+import { appContextLine } from './feedback';
 import {
   NEW_REQUEST_KEY,
   browserStore,
   clearDraft,
   feedbackKey,
   loadDraft,
+  loadNewRequestDraft,
   replyKey,
   saveDraft,
   type DraftStore,
   type NewRequestDraft,
+  type TextDraft,
 } from './drafts';
+import {
+  createNewRequestDraft,
+  draftHasUserContent,
+  draftIsEmpty,
+  type RequestIntent,
+} from './requestTemplates';
 import { readRoute, routeUrl, type RouteTarget } from './route';
 
 const CLIENT_BUILD: string = typeof __CLIENT_BUILD__ === 'string' ? __CLIENT_BUILD__ : '';
 
-const EMPTY_DRAFT = { title: '', body: '' };
+const EMPTY_DRAFT: TextDraft = { title: '', body: '' };
 
 /** A cold deep link names a location but has no list row behind it. */
 function toPanelView(target: RouteTarget, issue: IssueSummary | null = null): PanelView {
@@ -33,24 +41,25 @@ function toPanelView(target: RouteTarget, issue: IssueSummary | null = null): Pa
 type ComposerState = { key: string; draft: NewRequestDraft };
 type PanelOpener = 'start' | 'feedback' | 'requests';
 
-function draftIsEmpty(draft: NewRequestDraft): boolean {
-  return draft.title.trim() === '' && draft.body.trim() === '';
-}
-
 /**
  * The composer draft for a location (#169). The home composer keeps the
  * generic draft; an app gets its own key and, when that draft does not exist,
  * a fresh visible context line. `fresh` deliberately ignores storage so a
- * confirmed create can start the next feedback cleanly.
+ * confirmed create can start the next request cleanly.
  */
-function composerFor(store: DraftStore | null, appId: string | null, fresh = false): ComposerState {
+function composerFor(
+  store: DraftStore | null,
+  appId: string | null,
+  { fresh = false, intent }: { fresh?: boolean; intent?: RequestIntent } = {},
+): ComposerState {
   const app = canvasAppById(appId);
   const key = app ? feedbackKey(app.id) : NEW_REQUEST_KEY;
-  const loaded = !fresh && store ? loadDraft(store, key) : null;
-  return {
-    key,
-    draft: loaded ?? (app ? { title: '', body: feedbackBody(app) } : EMPTY_DRAFT),
-  };
+  const fallback = createNewRequestDraft({
+    intent: intent ?? (app ? 'feedback' : 'change'),
+    context: app ? appContextLine(app) : '',
+  });
+  const loaded = !fresh && store ? loadNewRequestDraft(store, key, fallback) : null;
+  return { key, draft: loaded ?? fallback };
 }
 
 export function App() {
@@ -71,7 +80,7 @@ export function App() {
   const [composer, setComposer] = useState<ComposerState>(() => composerFor(storeRef.current, appId));
   // Requests created in this session, kept until GitHub's list confirms them.
   const [createdIssues, setCreatedIssues] = useState<IssueSummary[]>([]);
-  const [replyDrafts, setReplyDrafts] = useState<Record<number, { title: string; body: string }>>({});
+  const [replyDrafts, setReplyDrafts] = useState<Record<number, TextDraft>>({});
   const [serverClientBuild, setServerClientBuild] = useState<string | null>(null);
   const [reloadPromptDismissed, setReloadPromptDismissed] = useState(false);
 
@@ -224,14 +233,23 @@ export function App() {
 
   // The direct path into the workflow. The composer key follows the app, so a
   // request composed over an app gets that app's draft and context; the home
-  // composer keeps the generic draft (#169).
-  const openNewRequest = useCallback(() => {
-    setComposer((current) => {
-      const next = composerFor(store, appId);
-      return current.key === next.key ? current : next;
-    });
-    void enterRequests({ name: 'new' });
-  }, [appId, enterRequests, store]);
+  // composer keeps the generic draft (#169). Entry points suggest an initial
+  // intent (Feedback -> feedback, Start/New request -> change) without
+  // overwriting a draft the user has already started typing (#173, #175).
+  const openNewRequest = useCallback(
+    (intent?: RequestIntent) => {
+      setComposer((current) => {
+        const next = composerFor(store, appId, { intent });
+        if (current.key !== next.key) return next;
+        if (intent && !draftHasUserContent(current.draft) && current.draft.intent !== intent) {
+          return { key: current.key, draft: { ...current.draft, intent } };
+        }
+        return current;
+      });
+      void enterRequests({ name: 'new' });
+    },
+    [appId, enterRequests, store],
+  );
 
   const closePanel = useCallback(() => {
     const opener = panelOpenerRef.current;
@@ -359,7 +377,7 @@ export function App() {
                 title={`Give feedback on ${activeApp.title}`}
                 onClick={() => {
                   panelOpenerRef.current = 'feedback';
-                  openNewRequest();
+                  openNewRequest('feedback');
                 }}
               >
                 Feedback
@@ -439,7 +457,7 @@ export function App() {
             ref={triggerRef}
             onClick={() => {
               panelOpenerRef.current = 'start';
-              openNewRequest();
+              openNewRequest('change');
             }}
             disabled={connecting}
           >
@@ -490,15 +508,16 @@ export function App() {
           onSelect={(issue: IssueSummary) => navigate({ name: 'detail', number: issue.number }, issue)}
           onCreated={(issue) => {
             setCreatedIssues((previous) => [...previous.filter((item) => item.number !== issue.number), issue]);
-            // The write is confirmed. The next feedback starts with a fresh
-            // context line, not the text just submitted.
-            setComposer(composerFor(store, appId, true));
+            // The write is confirmed. The next request starts with a fresh
+            // draft and context line, not the text just submitted.
+            setComposer(composerFor(store, appId, { fresh: true }));
           }}
-          onNew={openNewRequest}
+          onNew={() => openNewRequest('change')}
           onCancelNew={() => navigate({ name: 'list' })}
           onBack={() => navigate({ name: 'list' })}
           newDraft={composer.draft}
           onNewDraftChange={setNewDraft}
+          clientBuild={CLIENT_BUILD}
           createdIssues={createdIssues}
           replyDraft={currentDraft}
           onReplyDraftChange={(next) => {

@@ -2,14 +2,17 @@ import { test, expect } from './fixtures';
 import { startStubApp, type RunningStub } from './stub-server';
 
 /**
- * Contextual feedback (#169).
+ * Contextual feedback (#169) and guided three-intent request capture (#173, #175).
  *
- * Feedback is the direct path into the existing composer; Requests still
- * browses. The app context is a visible body line, drafts are scoped by app,
- * and the result is one ordinary GitHub issue.
+ * Feedback in an app opens the composer with "Share feedback" preselected and
+ * the visible `App: <title> (?app=<id>)` context; "Start a request" and "New
+ * request" open with "Build or change" preselected. Users see all three intents
+ * at the top of the composer and can switch at any time without losing their
+ * title or primary answer.
  */
 
-const APP_CONTEXT = 'App: Tetris (?app=tetris)\n\n';
+const APP_LINE = 'App: Tetris (?app=tetris)';
+const APP_CONTEXT = `${APP_LINE}\n\n`;
 
 /** Idle keep-alive sockets can keep `server.close()` waiting past the test timeout. */
 async function closeStub(stub: RunningStub) {
@@ -17,7 +20,9 @@ async function closeStub(stub: RunningStub) {
   await new Promise<void>((resolve) => stub.server.close(() => resolve()));
 }
 
-test('Feedback opens the composer with app context, appends, and returns focus', async ({ page }) => {
+test('Feedback opens the guided composer with Share feedback, app context, and returns focus on Escape', async ({
+  page,
+}) => {
   const stub = await startStubApp();
   try {
     await page.goto(`${stub.base}?app=tetris`);
@@ -26,14 +31,14 @@ test('Feedback opens the composer with app context, appends, and returns focus',
 
     await expect(page).toHaveURL(/\?app=tetris&panel=new$/);
     await expect(page.getByLabel('Title')).toBeFocused();
-    const body = page.getByLabel('Description');
-    await expect(body).toHaveValue(APP_CONTEXT);
+    await expect(page.getByRole('radio', { name: /Share feedback/ })).toBeChecked();
+    await expect(page.locator('.request-context-summary')).toContainText(APP_LINE);
 
     await page.getByLabel('Title').fill('Move the board left');
-    await page.getByLabel('Title').press('Tab');
-    await expect(body).toBeFocused();
-    await page.keyboard.type('A ten-wide board feels cramped.');
-    await expect(body).toHaveValue(`${APP_CONTEXT}A ten-wide board feels cramped.`);
+    await page.getByLabel('What would you like us to know?').fill('A ten-wide board feels cramped.');
+    await expect(page.getByLabel('Generated issue body')).toContainText(
+      `${APP_CONTEXT}Template: blankcanvas.feedback@1\n\n## What would you like us to know?\nA ten-wide board feels cramped.`,
+    );
 
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog', { name: 'Requests' })).toHaveCount(0);
@@ -44,70 +49,133 @@ test('Feedback opens the composer with app context, appends, and returns focus',
   }
 });
 
-test('a submitted feedback request carries the context and resets to a fresh line', async ({ page }) => {
+test('a submitted feedback request carries the context and marker, has no labels, and resets cleanly', async ({
+  page,
+}) => {
   const stub = await startStubApp();
   try {
     await page.goto(`${stub.base}?app=tetris`);
     await page.getByRole('button', { name: 'Feedback on Tetris' }).click();
     await page.getByLabel('Title').fill('A wider board');
-    const body = page.getByLabel('Description');
-    await body.focus();
-    await page.keyboard.type('Ten columns is tight.');
-    await expect(body).toHaveValue(`${APP_CONTEXT}Ten columns is tight.`);
-    await page.getByRole('button', { name: 'Submit' }).click();
+    await page.getByLabel('What would you like us to know?').fill('Ten columns is tight.');
+
+    const preview = await page.getByLabel('Generated issue body').textContent();
+    expect(preview?.startsWith(`${APP_CONTEXT}Template: blankcanvas.feedback@1`)).toBe(true);
+
+    await page.getByRole('button', { name: 'Submit request' }).click();
 
     await expect(page.getByRole('heading', { name: /#100 A wider board/ })).toBeVisible();
-    await expect(page.getByText('App: Tetris (?app=tetris)')).toBeVisible();
+    await expect(page.getByText(APP_LINE)).toBeVisible();
+    await expect(page.getByText('Template: blankcanvas.feedback@1')).toBeVisible();
     await expect(page.getByText('Ten columns is tight.')).toBeVisible();
+    await expect(page.getByText('Request open')).toBeVisible();
 
     await page.keyboard.press('Escape');
     await page.getByRole('button', { name: 'Feedback on Tetris' }).click();
     await expect(page.getByLabel('Title')).toHaveValue('');
-    await expect(page.getByLabel('Description')).toHaveValue(APP_CONTEXT);
+    await expect(page.getByLabel('What would you like us to know?')).toHaveValue('');
+    await expect(page.locator('.request-context-summary')).toContainText(APP_LINE);
   } finally {
     await closeStub(stub);
   }
 });
 
-test('app and home drafts stay separate, including cold links', async ({ page }) => {
+test('entry defaults, intent switching, validation focus, editable context, and freeform escape', async ({
+  page,
+}) => {
   const stub = await startStubApp();
   try {
-    await page.goto(`${stub.base}?app=tetris`);
-    await page.getByRole('button', { name: 'Feedback on Tetris' }).click();
-    await page.getByLabel('Title').fill('App-only draft');
-    await expect(page.getByLabel('Description')).toHaveValue(APP_CONTEXT);
-    await page.keyboard.press('Escape');
-
-    await page.getByRole('button', { name: 'Close Tetris' }).click();
+    await page.goto(stub.base);
     await page.getByRole('button', { name: 'Start a request', exact: true }).click();
-    await expect(page.getByLabel('Title')).toHaveValue('');
-    await expect(page.getByLabel('Description')).toHaveValue('');
-    await page.keyboard.press('Escape');
+    await expect(page.getByRole('radio', { name: /Build or change/ })).toBeChecked();
 
-    await page.goto(`${stub.base}?app=tetris&panel=new`);
-    await expect(page.getByLabel('Title')).toHaveValue('App-only draft');
-    await expect(page.getByLabel('Description')).toHaveValue(APP_CONTEXT);
+    // Validation focuses the first invalid field: Title first, then primary answer.
+    await page.getByRole('button', { name: 'Submit request' }).click();
+    await expect(page.getByText('A title is required.')).toBeVisible();
+    await expect(page.getByLabel('Title')).toBeFocused();
 
-    await page.goto(`${stub.base}?panel=new`);
-    await expect(page.getByLabel('Title')).toHaveValue('');
-    await expect(page.getByLabel('Description')).toHaveValue('');
+    await page.getByLabel('Title').fill('Keyboard hold repeat feels inconsistent');
+    await page.getByRole('button', { name: 'Submit request' }).click();
+    await expect(page.getByText('An answer is required.')).toBeVisible();
+    await expect(page.getByLabel('What would you like to build or change?')).toBeFocused();
+
+    // Type primary and optional change details, then switch intents.
+    await page.getByLabel('What would you like to build or change?').fill('Holding right sometimes pauses.');
+    await page.getByLabel('Who would benefit, and how?').fill('Fast drop players.');
+
+    await page.getByRole('radio', { name: /Report a problem/ }).check();
+    await expect(page.getByRole('radio', { name: /Report a problem/ })).toBeChecked();
+    await expect(page.getByLabel('Title')).toHaveValue('Keyboard hold repeat feels inconsistent');
+    await expect(page.getByLabel('What happened?')).toHaveValue('Holding right sometimes pauses.');
+    await page.getByLabel('How can we reproduce it?').fill('Hold ArrowRight for 2 seconds.');
+
+    // Switching back to Build or change restores its keyed optional field.
+    await page.getByRole('radio', { name: /Build or change/ }).check();
+    await expect(page.getByLabel('Who would benefit, and how?')).toHaveValue('Fast drop players.');
+
+    // Switch back to Report a problem and check More details + preview.
+    await page.getByRole('radio', { name: /Report a problem/ }).check();
+    await page.getByRole('button', { name: 'More details' }).click();
+    await page.getByLabel('What did you expect?').fill('Smooth horizontal movement.');
+    await expect(page.getByLabel('Generated issue body')).toContainText('Template: blankcanvas.problem@1');
+    await expect(page.getByLabel('Generated issue body')).toContainText('## How can we reproduce it?\nHold ArrowRight for 2 seconds.');
+    await expect(page.getByLabel('Generated issue body')).toContainText('## What did you expect?\nSmooth horizontal movement.');
+
+    // "Write freely instead" opens the freeform editor with the generated body preserved.
+    await page.getByRole('button', { name: 'Write freely instead' }).click();
+    const freeformBody = page.getByLabel('Description');
+    await expect(freeformBody).toBeFocused();
+    await expect(freeformBody).toHaveValue(/Template: blankcanvas\.problem@1/);
+    await expect(freeformBody).toHaveValue(/Smooth horizontal movement\./);
   } finally {
     await closeStub(stub);
   }
 });
 
-test('Requests still browses, and its New request carries the app context too', async ({ page }) => {
+test('app and home drafts stay separate, v1 drafts migrate, and Requests -> New request defaults to Build or change with app context', async ({
+  page,
+}) => {
   const stub = await startStubApp();
   try {
+    // Seed a legacy v1 {title, body} draft on the home key and verify migration to freeform.
+    await page.goto(stub.base);
+    await page.evaluate(() => {
+      window.sessionStorage.setItem(
+        'yolo.draft.new-request',
+        JSON.stringify({ title: 'Migrated v1 draft', body: 'Legacy freeform body text.' }),
+      );
+    });
+    await page.goto(`${stub.base}?panel=new`);
+    await expect(page.getByLabel('Title')).toHaveValue('Migrated v1 draft');
+    await expect(page.getByLabel('Description')).toHaveValue('Legacy freeform body text.');
+
+    // App draft is separate from the home draft.
     await page.goto(`${stub.base}?app=tetris`);
     await page.getByRole('button', { name: 'Requests', exact: true }).click();
     await expect(page).toHaveURL(/\?app=tetris&panel$/);
-    const panel = page.getByRole('dialog', { name: 'Requests' });
-    await expect(panel).toBeVisible();
-
     await page.getByRole('button', { name: 'New request' }).first().click();
     await expect(page).toHaveURL(/\?app=tetris&panel=new$/);
-    await expect(page.getByLabel('Description')).toHaveValue(APP_CONTEXT);
+    await expect(page.getByRole('radio', { name: /Build or change/ })).toBeChecked();
+    await expect(page.locator('.request-context-summary')).toContainText(APP_LINE);
+
+    // Editable context line updates the generated body.
+    await page.getByRole('button', { name: 'Edit context' }).click();
+    await page.getByLabel('Context line').fill('App: Tetris (?app=tetris) — level 5');
+    await page.getByLabel('Title').fill('App-only draft');
+    await page.getByLabel('What would you like to build or change?').fill('Add hold piece.');
+    await expect(page.getByLabel('Generated issue body')).toContainText(
+      'App: Tetris (?app=tetris) — level 5\n\nTemplate: blankcanvas.change@1',
+    );
+    await page.keyboard.press('Escape');
+
+    // Cold link back to app composer preserves the app draft; home composer keeps the migrated v1 draft.
+    await page.goto(`${stub.base}?app=tetris&panel=new`);
+    await expect(page.getByLabel('Title')).toHaveValue('App-only draft');
+    await expect(page.getByLabel('What would you like to build or change?')).toHaveValue('Add hold piece.');
+
+    await page.goto(`${stub.base}?panel=new`);
+    await expect(page.getByLabel('Title')).toHaveValue('Migrated v1 draft');
+    await expect(page.getByLabel('Description')).toHaveValue('Legacy freeform body text.');
   } finally {
     await closeStub(stub);
   }

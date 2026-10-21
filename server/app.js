@@ -2,12 +2,12 @@
  * The local same-origin API.
  *
  * Only the operations this app needs exist here: session/identity, list/get
- * issues, list/create comments, create issue. There is no generic GitHub proxy —
- * the browser cannot choose an endpoint, a command, or a repository.
+ * issues, list/create comments, create issue. Records go through the fixed
+ * request-store port; there is no generic GitHub proxy — the browser cannot
+ * choose an endpoint, a command, a repository, or a storage backend.
  */
 import express from 'express';
 import { createSessionStore, sessionIdFrom, setSessionCookie, clearSessionCookie } from './session.js';
-import { createGithubClient } from './github.js';
 import { buildInfo, CLIENT_DIR } from './build.js';
 import { hostGuard, sameOriginGuard, securityHeaders } from './security.js';
 import { GhError, ValidationError, effectiveIdentity, checkRepoAccess } from './gh.js';
@@ -17,12 +17,14 @@ const IDENTITY_TTL_MS = 20_000;
 
 export function createApp({
   target,
-  github = createGithubClient(),
+  requestStore,
   identity = effectiveIdentity,
   repoAccess = checkRepoAccess,
   store = createSessionStore(),
   now = () => Date.now(),
 } = {}) {
+  if (!requestStore) throw new TypeError('A requestStore is required.');
+
   const app = express();
   app.disable('x-powered-by');
   app.set('trust proxy', false);
@@ -86,13 +88,13 @@ export function createApp({
   }
 
   /** A write whose outcome is unknown is never retried and never reported as success. */
-  function ambiguousWrite(res, target_, number) {
+  function ambiguousWrite(res, number) {
+    const provider = requestStore.identity().displayName;
     res.status(502).json({
       error: {
         kind: 'write_unconfirmed',
-        message:
-          'GitHub did not confirm this write. It may or may not have been created — check GitHub before submitting again.',
-        githubUrl: number ? `https://github.com/${target_.slug}/issues/${number}` : `https://github.com/${target_.slug}/issues`,
+        message: `${provider} did not confirm this write. It may or may not have been created — check ${provider} before submitting again.`,
+        githubUrl: number ? requestStore.requestUrl(number) : requestStore.requestsUrl(),
       },
     });
   }
@@ -144,7 +146,7 @@ export function createApp({
       const state = typeof req.query.state === 'string' ? req.query.state : 'open';
       const page = Math.max(Number.parseInt(String(req.query.page ?? '1'), 10) || 1, 1);
       const perPage = Math.min(Math.max(Number.parseInt(String(req.query.per_page ?? '30'), 10) || 30, 1), 100);
-      const result = await github.listIssues(target, { state, page, perPage });
+      const result = await requestStore.listRequests({ state, page, perPage });
       res.json({ items: result.items, page, perPage, hasMore: result.hasMore });
     });
   });
@@ -154,10 +156,10 @@ export function createApp({
       await currentIdentity();
       const body = req.body && typeof req.body === 'object' ? req.body : {};
       try {
-        const issue = await github.createIssue(target, { title: body.title, body: body.body });
+        const issue = await requestStore.createRequest({ title: body.title, body: body.body });
         res.status(201).json({ issue });
       } catch (error) {
-        if (isAmbiguous(error)) ambiguousWrite(res, target, null);
+        if (isAmbiguous(error)) ambiguousWrite(res, null);
         else throw error;
       }
     });
@@ -166,7 +168,7 @@ export function createApp({
   app.get('/api/issues/:number', attachSession, (req, res) => {
     handle(res, async () => {
       await currentIdentity();
-      const issue = await github.getIssue(target, req.params.number);
+      const issue = await requestStore.getRequest(req.params.number);
       res.json({ issue });
     });
   });
@@ -176,7 +178,7 @@ export function createApp({
       await currentIdentity();
       const page = Math.max(Number.parseInt(String(req.query.page ?? '1'), 10) || 1, 1);
       const perPage = Math.min(Math.max(Number.parseInt(String(req.query.per_page ?? '30'), 10) || 30, 1), 100);
-      const items = await github.listComments(target, req.params.number, { page, perPage });
+      const items = await requestStore.listComments(req.params.number, { page, perPage });
       res.json({ items, page, perPage, hasMore: items.length === perPage });
     });
   });
@@ -187,10 +189,10 @@ export function createApp({
       const body = req.body && typeof req.body === 'object' ? req.body : {};
       const number = Number.parseInt(req.params.number, 10);
       try {
-        const comment = await github.createComment(target, req.params.number, { body: body.body });
+        const comment = await requestStore.createComment(req.params.number, { body: body.body });
         res.status(201).json({ comment });
       } catch (error) {
-        if (isAmbiguous(error)) ambiguousWrite(res, target, number);
+        if (isAmbiguous(error)) ambiguousWrite(res, number);
         else throw error;
       }
     });
@@ -218,6 +220,7 @@ export function createApp({
   });
 
   app.locals.store = store;
+  app.locals.requestStore = requestStore;
   return app;
 }
 

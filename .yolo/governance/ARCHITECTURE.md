@@ -16,6 +16,8 @@ browser (React, dist/client)
 Express app (server/app.js) ── session.js   in-memory opaque session, no persistence
   │                    ── security.js       Host guard, origin/Sec-Fetch-Site guard, headers
   ▼
+server/request-store.js RequestStore port (list/get/create requests, list/create comments, identity/links); GitHubRequestStore adapter selected at launch
+  ▼
 server/github.js        four operations only: list/get issues, list/create comments, create issue
   ▼
 server/gh.js            the single `gh api` call site; validated arguments, JSON on stdin, no shell
@@ -27,8 +29,10 @@ Boundary rules that are load-bearing rather than incidental:
 
 - **`gh.js` is the only process-spawning path to GitHub.** User text is never a command, flag or
   shell string. This is what lets the backend accept arbitrary issue text safely.
-- **`app.js` exposes a fixed operation set.** The browser cannot choose an endpoint, command or
-  repository. `--repo` is chosen at launch.
+- **`app.js` exposes a fixed operation set through the `RequestStore` port.** Routes depend on the
+  port (`server/request-store.js`), and `cli.js` injects `createGitHubRequestStore` at launch.
+  GitHub remains the sole record backend today; the browser cannot choose an endpoint, command,
+  repository or storage backend. `--repo` is chosen at launch.
 - **No persistence.** Session state lives in memory; restarting requires reconnecting.
 - **Committed build output.** `dist/client/` and `server/build-id.generated.js` are committed so
   the `npx` one-command launch serves reviewed assets with no build step and no git metadata at
@@ -64,9 +68,16 @@ shell owns navigation through the home row, the header trigger and the Ctrl/⌘K
 The registry is a compile-time list, not a plugin surface: there is no manifest, remote loading,
 install step, iframe, third-party app, marketplace or per-app persistence. The Tetris entry is the
 first app. Contextual feedback capture is deliberately text-only: a request composed over an app
-starts with `App: <title> (?app=<id>)` in its body, and new-request drafts are scoped by app. There
-is no app label, attachment, element targeting, per-app content persistence or new API; richer
-in-app evidence is a deferred request (#170).
+starts with `App: <title> (?app=<id>)` in its body, and new-request drafts are scoped by app. The
+composer offers three direct intent lenses at the top of the form (**Share feedback**, **Build or
+change**, **Report a problem**) with a shared primary answer, target-owned versioned markers
+(`blankcanvas.feedback@1`, `blankcanvas.change@1`, `blankcanvas.problem@1`), a generated-body
+preview and a freeform escape hatch (`src/client/requestTemplates.ts`,
+`src/client/views/NewRequestView.tsx`). Entry points suggest an initial intent (**Feedback** in an
+app → Share feedback; **Start a request** / **New request** → Build or change) while keeping all
+three intents directly selectable without losing typed input (#172, #173, #175). There is no app
+label, attachment, element targeting, per-app content persistence or new API; richer in-app
+evidence (#170) and upstream YOLO Dev template adoption (#174) are deferred requests.
 
 ## Behavior contracts
 
@@ -75,12 +86,12 @@ The durable observable contracts, verified by the test suite:
 | Contract | Home | Verified by |
 | --- | --- | --- |
 | Status and reported-summary derivation from labels, state and `## YOLO status` comments | [specs/status-presentation.md](specs/status-presentation.md) | `test/status.test.ts` |
-| Issue/comment round-trip, write ambiguity, endpoint scope | `server/github.js`, `server/app.js` | `test/github-client.test.ts`, `test/app-api.test.ts` |
+| Issue/comment round-trip, request-store seam, write ambiguity, endpoint scope | `server/request-store.js`, `server/github.js`, `server/app.js` | `test/request-store.test.ts`, `test/github-client.test.ts`, `test/app-api.test.ts` |
 | Process boundary and argument isolation | `server/gh.js` | `test/gh-process.test.ts` |
 | Launcher prerequisites, auth reuse, port fallback | `server/cli.js`, `server/launch.js` | `test/launcher.test.ts` |
 | Untrusted Markdown safety | `src/client/components/Markdown.tsx` | `test/markdown.test.tsx` |
-| Draft preservation across panel/refresh/reload | `src/client/drafts.ts` | `test/drafts.test.ts` |
-| App-context feedback line and app-scoped new-request drafts | `src/client/feedback.ts`, `src/client/drafts.ts` | `test/feedback.test.ts`, `test/drafts.test.ts`, `e2e/app-feedback.spec.ts` |
+| Draft preservation and v1→v2 migration across panel/refresh/reload | `src/client/drafts.ts` | `test/drafts.test.ts` |
+| Guided three-intent request templates, body rendering, app-context feedback line and app-scoped drafts | `src/client/requestTemplates.ts`, `src/client/feedback.ts`, `src/client/drafts.ts`, `src/client/views/NewRequestView.tsx` | `test/request-templates.test.ts`, `test/feedback.test.ts`, `test/drafts.test.ts`, `e2e/app-feedback.spec.ts` |
 | Canvas app registry and addressable `?app=` locations | `src/client/apps/registry.ts`, `src/client/route.ts` | `test/apps.test.ts`, `test/route.test.ts`, `e2e/canvas-gallery.spec.ts` |
 | Tetris rules and board state (local to the view, not a GitHub record) | `src/shared/tetris.ts` | `test/tetris.test.ts` |
 | Tetris track list and shuffled bundled-asset playlist | `src/shared/tetrisMusic.ts` | `test/tetris-music.test.ts` |

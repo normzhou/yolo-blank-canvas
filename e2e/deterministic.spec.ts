@@ -80,7 +80,7 @@ test('new-request form creates via stubbed POST and persists a draft across pane
   await expect(page.getByLabel('Title')).toHaveValue('A draft that survives');
 
   // Submit the stubbed creation; the new row shows up in the list.
-  await page.getByLabel('Description').fill('Created by the E2E stub.');
+  await page.getByLabel('What would you like to build or change?').fill('Created by the E2E stub.');
   await page.getByRole('button', { name: 'Submit' }).click();
   // Create confirms into the detail view; Back returns to the reconciled list.
   await page.getByRole('button', { name: '← Back' }).click();

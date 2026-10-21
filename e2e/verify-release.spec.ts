@@ -233,10 +233,47 @@ test('the released app carries the viewed app into feedback', async ({ page }) =
   await feedback.click();
   await expect(page).toHaveURL(/\?app=tetris&panel=new$/);
   await expect(page.getByLabel('Title')).toBeFocused();
-  await expect(page.getByLabel('Description')).toHaveValue('App: Tetris (?app=tetris)\n\n');
+  const guidedRadio = page.getByRole('radio', { name: /Share feedback/ });
+  if ((await guidedRadio.count()) > 0) {
+    await expect(guidedRadio).toBeChecked();
+    await expect(page.locator('.request-context-summary')).toContainText('App: Tetris (?app=tetris)');
+    await expect(page.getByLabel('Generated issue body')).toContainText(
+      'App: Tetris (?app=tetris)\n\nTemplate: blankcanvas.feedback@1',
+    );
+  } else {
+    await expect(page.getByLabel('Description')).toHaveValue('App: Tetris (?app=tetris)\n\n');
+  }
 
   // Read-only: close without submitting. Escape returns focus to Feedback.
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog', { name: 'Requests' })).toHaveCount(0);
   await expect(feedback).toBeFocused();
+});
+
+test('the released guided composer switches intents without losing input and previews the marker', async ({
+  page,
+}) => {
+  await page.goto(BASE);
+  await session(page);
+  await page.goto(BASE);
+
+  await openRequests(page);
+  await page.getByRole('button', { name: 'New request' }).first().click();
+
+  const changeRadio = page.getByRole('radio', { name: /Build or change/ });
+  if ((await changeRadio.count()) === 0) {
+    test.skip(true, 'this release predates the guided request composer (#175)');
+  }
+
+  await expect(changeRadio).toBeChecked();
+  await page.getByLabel('Title').fill('Read-only verify check');
+  await page.getByLabel('What would you like to build or change?').fill('Shared answer survives switching.');
+
+  await page.getByRole('radio', { name: /Report a problem/ }).check();
+  await expect(page.getByLabel('Title')).toHaveValue('Read-only verify check');
+  await expect(page.getByLabel('What happened?')).toHaveValue('Shared answer survives switching.');
+  await expect(page.getByLabel('Generated issue body')).toContainText('Template: blankcanvas.problem@1');
+
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog', { name: 'Requests' })).toHaveCount(0);
 });

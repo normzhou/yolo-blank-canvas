@@ -6,19 +6,27 @@ import { GhError } from '../server/gh.js';
 
 const target = { owner: 'normzhou', name: 'yolo-blank-canvas', slug: 'normzhou/yolo-blank-canvas' };
 
-type GithubStub = {
-  listIssues: ReturnType<typeof vi.fn>;
-  getIssue: ReturnType<typeof vi.fn>;
-  createIssue: ReturnType<typeof vi.fn>;
+type RequestStoreStub = {
+  identity: ReturnType<typeof vi.fn>;
+  capabilities: ReturnType<typeof vi.fn>;
+  requestUrl: ReturnType<typeof vi.fn>;
+  requestsUrl: ReturnType<typeof vi.fn>;
+  listRequests: ReturnType<typeof vi.fn>;
+  getRequest: ReturnType<typeof vi.fn>;
+  createRequest: ReturnType<typeof vi.fn>;
   listComments: ReturnType<typeof vi.fn>;
   createComment: ReturnType<typeof vi.fn>;
 };
 
-function makeGithubStub(overrides: Partial<GithubStub> = {}): GithubStub {
+function makeStoreStub(overrides: Partial<RequestStoreStub> = {}): RequestStoreStub {
   return {
-    listIssues: vi.fn(async () => ({ items: [], hasMore: false })),
-    getIssue: vi.fn(async () => ({ number: 1, title: 'issue' })),
-    createIssue: vi.fn(async () => ({ number: 42, title: 'created', html_url: 'https://github.com/x/y/issues/42' })),
+    identity: vi.fn(() => ({ provider: 'github', displayName: 'GitHub', repository: target.slug, visibility: 'repository' })),
+    capabilities: vi.fn(() => ({ comments: true, labels: true, externalLinks: true })),
+    requestUrl: vi.fn((number) => `https://github.com/${target.slug}/issues/${number}`),
+    requestsUrl: vi.fn(() => `https://github.com/${target.slug}/issues`),
+    listRequests: vi.fn(async () => ({ items: [], hasMore: false })),
+    getRequest: vi.fn(async () => ({ number: 1, title: 'issue' })),
+    createRequest: vi.fn(async () => ({ number: 42, title: 'created', html_url: 'https://github.com/x/y/issues/42' })),
     listComments: vi.fn(async () => []),
     createComment: vi.fn(async () => ({ id: 9, body: 'ok' })),
     ...overrides,
@@ -26,13 +34,13 @@ function makeGithubStub(overrides: Partial<GithubStub> = {}): GithubStub {
 }
 
 async function start(
-  github = makeGithubStub(),
+  requestStore = makeStoreStub(),
   identity = async () => ({ login: 'normzhou' }),
   repoAccess = async () => ({ fullName: target.slug, hasIssues: true }),
 ) {
   const app = createApp({
     target,
-    github,
+    requestStore,
     identity,
     repoAccess,
   } as never);
@@ -89,8 +97,8 @@ describe('local session protection', () => {
   });
 
   it('rejects unauthenticated mutations and cross-site requests', async () => {
-    const github = makeGithubStub();
-    const { server, request, json } = await start(github);
+    const requests = makeStoreStub();
+    const { server, request, json } = await start(requests);
     try {
       await request('/api/session', json({}));
 
@@ -100,14 +108,14 @@ describe('local session protection', () => {
       });
       expect(crossSite.status).toBe(403);
       expect(crossSite.body.error.kind).toBe('cross_site');
-      expect(github.createIssue).not.toHaveBeenCalled();
+      expect(requests.createRequest).not.toHaveBeenCalled();
 
       const foreignFetchSite = await request('/api/issues', {
         ...json({ title: 'same-site subdomain' }),
         headers: { 'content-type': 'application/json', origin: baseOrigin(server), 'sec-fetch-site': 'same-site' },
       });
       expect(foreignFetchSite.status).toBe(403);
-      expect(github.createIssue).not.toHaveBeenCalled();
+      expect(requests.createRequest).not.toHaveBeenCalled();
     } finally {
       server.close();
     }
@@ -149,13 +157,13 @@ describe('local session protection', () => {
   });
 
   it('does not keep sessions across a restart', async () => {
-    const github = makeGithubStub();
-    const first = await start(github);
+    const requests = makeStoreStub();
+    const first = await start(requests);
     await first.request('/api/session', first.json({}));
     const cookie = first.cookieHeader();
     first.server.close();
 
-    const second = await start(github);
+    const second = await start(requests);
     try {
       const result = await second.request('/api/session', { headers: { cookie } });
       expect(result.status).toBe(401);
@@ -179,12 +187,12 @@ describe('identity handling', () => {
   });
 
   it('surfaces lost authentication as an explicit state with the login command', async () => {
-    const github = makeGithubStub({
-      listIssues: vi.fn(async () => {
+    const requests = makeStoreStub({
+      listRequests: vi.fn(async () => {
         throw new GhError('GitHub CLI is not authenticated.', 'auth_required', 401);
       }),
     });
-    const { server, request, json } = await start(github);
+    const { server, request, json } = await start(requests);
     try {
       await request('/api/session', json({}));
       const result = await request('/api/issues');
@@ -200,62 +208,63 @@ describe('identity handling', () => {
 describe('issue operations', () => {
   it('lists issues newest-updated first and reports whether more exist', async () => {
     const perPage = 2;
-    const github = makeGithubStub({
-      listIssues: vi.fn(async () => ({ items: [{ number: 3 }, { number: 2 }], hasMore: true })),
+    const requests = makeStoreStub({
+      listRequests: vi.fn(async () => ({ items: [{ number: 3 }, { number: 2 }], hasMore: true })),
     });
-    const { server, request, json } = await start(github);
+    const { server, request, json } = await start(requests);
     try {
       await request('/api/session', json({}));
       const result = await request(`/api/issues?state=all&per_page=${perPage}`);
       expect(result.status).toBe(200);
       expect(result.body.items).toHaveLength(2);
       expect(result.body.hasMore).toBe(true);
+      expect(requests.listRequests).toHaveBeenCalledWith({ state: 'all', page: 1, perPage });
     } finally {
       server.close();
     }
   });
 
   it('creates one issue with only the entered title and body', async () => {
-    const github = makeGithubStub();
-    const { server, request, json } = await start(github);
+    const requests = makeStoreStub();
+    const { server, request, json } = await start(requests);
     try {
       await request('/api/session', json({}));
       const result = await request('/api/issues', json({ title: 'Add dark mode', body: 'Please add a toggle.' }));
       expect(result.status).toBe(201);
       expect(result.body.issue.number).toBe(42);
-      expect(github.createIssue).toHaveBeenCalledTimes(1);
-      expect(github.createIssue).toHaveBeenCalledWith(target, { title: 'Add dark mode', body: 'Please add a toggle.' });
+      expect(requests.createRequest).toHaveBeenCalledTimes(1);
+      expect(requests.createRequest).toHaveBeenCalledWith({ title: 'Add dark mode', body: 'Please add a toggle.' });
     } finally {
       server.close();
     }
   });
 
   it('does not retry or confirm an ambiguous write', async () => {
-    const github = makeGithubStub({
-      createIssue: vi.fn(async () => {
+    const requests = makeStoreStub({
+      createRequest: vi.fn(async () => {
         throw new GhError('GitHub is unreachable from this machine.', 'github_unavailable', 503);
       }),
     });
-    const { server, request, json } = await start(github);
+    const { server, request, json } = await start(requests);
     try {
       await request('/api/session', json({}));
       const result = await request('/api/issues', json({ title: 'uncertain', body: '' }));
       expect(result.status).toBe(502);
       expect(result.body.error.kind).toBe('write_unconfirmed');
       expect(result.body.error.githubUrl).toBe('https://github.com/normzhou/yolo-blank-canvas/issues');
-      expect(github.createIssue).toHaveBeenCalledTimes(1);
+      expect(requests.createRequest).toHaveBeenCalledTimes(1);
     } finally {
       server.close();
     }
   });
 
   it('rejects a validation failure without an ambiguous-write warning', async () => {
-    const github = makeGithubStub({
+    const requests = makeStoreStub({
       createComment: vi.fn(async () => {
         throw new GhError('Repository or resource not found.', 'not_found', 404);
       }),
     });
-    const { server, request, json } = await start(github);
+    const { server, request, json } = await start(requests);
     try {
       await request('/api/session', json({}));
       const result = await request('/api/issues/1/comments', json({ body: 'hello' }));

@@ -4,12 +4,14 @@ import {
   NEW_REQUEST_KEY,
   REPLY_KEY_PREFIX,
   loadDraft,
+  loadNewRequestDraft,
   saveDraft,
   clearDraft,
   feedbackKey,
   replyKey,
   type DraftStore,
 } from '../src/client/drafts';
+import { createNewRequestDraft } from '../src/client/requestTemplates';
 
 function memoryStore(): DraftStore {
   const map = new Map<string, string>();
@@ -22,10 +24,55 @@ function memoryStore(): DraftStore {
 
 /** Drafts must survive panel open/close, refreshes, sign-in failures, and reloads. */
 describe('draft preservation', () => {
-  it('round-trips a new-request draft', () => {
+  it('round-trips a two-field text draft', () => {
     const store = memoryStore();
     saveDraft(store, NEW_REQUEST_KEY, { title: 'Add dark mode', body: 'both canvas and panel' });
     expect(loadDraft(store, NEW_REQUEST_KEY)).toEqual({ title: 'Add dark mode', body: 'both canvas and panel' });
+  });
+
+  it('round-trips a v2 guided new-request draft with all fields intact', () => {
+    const store = memoryStore();
+    const fallback = createNewRequestDraft({ intent: 'change' });
+    const draft = {
+      ...createNewRequestDraft({ intent: 'problem', context: 'App: Tetris (?app=tetris)' }),
+      title: 'Piece clips wall',
+      details: 'Left arrow near the wall overlaps the border.',
+      fields: {
+        impact: '',
+        approach: '',
+        reproduction: 'Hold left while rotating I-piece',
+        expected: 'Wall kick keeps the piece in bounds',
+        notes: 'Observed in Dusk theme',
+      },
+    };
+    saveDraft(store, feedbackKey('tetris'), draft);
+    expect(loadNewRequestDraft(store, feedbackKey('tetris'), fallback)).toEqual(draft);
+  });
+
+  it('migrates a v1 {title, body} draft into freeform mode without data loss', () => {
+    const store = memoryStore();
+    store.setItem(
+      feedbackKey('tetris'),
+      JSON.stringify({
+        title: 'Legacy feedback draft',
+        body: 'App: Tetris (?app=tetris)\n\nWritten before v2 existed.',
+      }),
+    );
+    const fallback = createNewRequestDraft({
+      intent: 'feedback',
+      context: 'App: Tetris (?app=tetris)',
+    });
+    const migrated = loadNewRequestDraft(store, feedbackKey('tetris'), fallback);
+    expect(migrated).toEqual({
+      version: 2,
+      mode: 'freeform',
+      intent: 'feedback',
+      title: 'Legacy feedback draft',
+      details: '',
+      fields: { impact: '', approach: '', reproduction: '', expected: '', notes: '' },
+      context: 'App: Tetris (?app=tetris)',
+      body: 'App: Tetris (?app=tetris)\n\nWritten before v2 existed.',
+    });
   });
 
   it('keeps per-issue reply drafts separate', () => {
@@ -39,15 +86,19 @@ describe('draft preservation', () => {
 
   it('keeps app feedback drafts separate from each other and the home draft', () => {
     const store = memoryStore();
-    saveDraft(store, NEW_REQUEST_KEY, { title: 'home', body: 'home body' });
-    saveDraft(store, feedbackKey('tetris'), { title: 'tetris', body: 'tetris body' });
-    saveDraft(store, feedbackKey('other'), { title: 'other', body: 'other body' });
+    const homeFallback = createNewRequestDraft({ intent: 'change' });
+    const tetrisFallback = createNewRequestDraft({ intent: 'feedback', context: 'App: Tetris (?app=tetris)' });
+    const otherFallback = createNewRequestDraft({ intent: 'feedback', context: 'App: Other (?app=other)' });
+
+    saveDraft(store, NEW_REQUEST_KEY, { ...homeFallback, title: 'home', details: 'home details' });
+    saveDraft(store, feedbackKey('tetris'), { ...tetrisFallback, title: 'tetris', details: 'tetris details' });
+    saveDraft(store, feedbackKey('other'), { ...otherFallback, title: 'other', details: 'other details' });
 
     expect(feedbackKey('tetris')).toBe(`${FEEDBACK_KEY_PREFIX}tetris`);
     expect(feedbackKey('tetris')).not.toBe(NEW_REQUEST_KEY);
-    expect(loadDraft(store, NEW_REQUEST_KEY)?.title).toBe('home');
-    expect(loadDraft(store, feedbackKey('tetris'))?.title).toBe('tetris');
-    expect(loadDraft(store, feedbackKey('other'))?.title).toBe('other');
+    expect(loadNewRequestDraft(store, NEW_REQUEST_KEY, homeFallback)?.title).toBe('home');
+    expect(loadNewRequestDraft(store, feedbackKey('tetris'), tetrisFallback)?.title).toBe('tetris');
+    expect(loadNewRequestDraft(store, feedbackKey('other'), otherFallback)?.title).toBe('other');
   });
 
   it('only drops a draft when it is cleared after a confirmed write', () => {
@@ -60,11 +111,20 @@ describe('draft preservation', () => {
 
   it('ignores corrupt or foreign values instead of crashing', () => {
     const store = memoryStore();
+    const fallback = createNewRequestDraft({ intent: 'change' });
     store.setItem(NEW_REQUEST_KEY, 'not json');
     expect(loadDraft(store, NEW_REQUEST_KEY)).toBeNull();
+    expect(loadNewRequestDraft(store, NEW_REQUEST_KEY, fallback)).toBeNull();
+
     store.setItem(NEW_REQUEST_KEY, '{"title":1}');
     expect(loadDraft(store, NEW_REQUEST_KEY)).toBeNull();
+    expect(loadNewRequestDraft(store, NEW_REQUEST_KEY, fallback)).toBeNull();
+
+    store.setItem(NEW_REQUEST_KEY, '{"version":2,"intent":"invalid","title":"ok","details":"ok"}');
+    expect(loadNewRequestDraft(store, NEW_REQUEST_KEY, fallback)).toBeNull();
+
     expect(loadDraft(null, NEW_REQUEST_KEY)).toBeNull();
+    expect(loadNewRequestDraft(null, NEW_REQUEST_KEY, fallback)).toBeNull();
   });
 
   it('tolerates storage that refuses to write', () => {
