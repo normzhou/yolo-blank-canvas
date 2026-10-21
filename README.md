@@ -70,7 +70,7 @@ Status is text first; colour is decoration. The app only renders what GitHub rec
 
 A managed issue (`yolo:work`) with a missing, duplicated, or orphaned state shows **Status needs reconciliation** with its raw labels. An open issue without managed labels is **Request open**. Closed issues show **Not planned**, **Duplicate**, **Completed (reported)** for completed managed work, **Closed** for a completed untagged conversation, or **Closed — reason unavailable**. Leftover state labels on a closed issue are shown as unreconciled.
 
-A comment whose first heading is `## YOLO status` is shown as the **Reported summary** (most recently updated match; earlier ones stay in the discussion). Without one, the panel says *"No progress summary yet."* Timing is shown only when the summary states it; otherwise *"Delivery timing not yet estimated."* Unrelated labels are shown unchanged.
+A comment whose first heading is `## YOLO status` is shown as the **Reported summary** (most recently updated match; earlier ones stay in the discussion). When an issue has no `## YOLO status` comment, a comment whose first heading is `## YOLO request` is shown as **Request triage** (interpretation, disposition, and covering outcomes, with same-repository issue links opening inside the panel and no delivery-timing claims). Without either comment, the panel says *"No progress summary yet."* Timing is shown only when a `## YOLO status` summary states it; otherwise *"Delivery timing not yet estimated."* Unrelated labels are shown unchanged.
 
 ### Build identity
 

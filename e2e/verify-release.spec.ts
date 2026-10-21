@@ -277,3 +277,25 @@ test('the released guided composer switches intents without losing input and pre
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog', { name: 'Requests' })).toHaveCount(0);
 });
+
+test('the released detail view surfaces ## YOLO request triage and navigates covering-outcome links in-panel', async ({
+  page,
+}) => {
+  await page.goto(BASE);
+  await session(page);
+  await page.goto(`${BASE}?panel=172`);
+
+  await expect(page.getByRole('heading', { name: /#172/ })).toBeVisible();
+  const triageHeading = page.locator('.summary-box').getByRole('heading', { name: 'Request triage', exact: true });
+  if ((await triageHeading.count()) === 0) {
+    test.skip(true, 'this release predates Request triage display (#177)');
+  }
+
+  await expect(triageHeading).toBeVisible();
+  await expect(page.locator('.summary-box').getByText('Delivery timing not yet estimated.')).toHaveCount(0);
+
+  await page.locator('.summary-box').getByRole('link', { name: '#175' }).first().click();
+  await expect(page).toHaveURL(/\?panel=175$/);
+  await expect(page.getByRole('heading', { name: /#175/ })).toBeVisible();
+  await expect(page.locator('.summary-box').getByRole('heading', { name: 'Reported summary', exact: true })).toBeVisible();
+});

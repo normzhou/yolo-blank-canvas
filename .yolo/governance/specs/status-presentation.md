@@ -45,10 +45,17 @@ recently updated matching comment wins; earlier ones remain visible in the discu
 matching comment the panel says **No progress summary yet.**
 
 A comment whose **first heading** is `## YOLO request` is the *Request triage summary*. It records
-interpretation, disposition and covering outcomes for intake that has not been admitted. It is not a
-*Reported summary*: the panel does not read timing, state or delivery from it, and its presence does
-not change an issue's derived status. Where a request has been promoted, the work issue's
-*Reported summary* carries current status and the triage comment stays as history.
+interpretation, disposition and covering outcomes for intake that has not been admitted. When an
+issue has no `## YOLO status` comment, the panel displays the most recently updated matching
+`## YOLO request` comment in the summary box under the heading **Request triage** (earlier triage
+comments remain visible in the discussion). It is not a *Reported summary*: the panel does not read
+timing, state or delivery from it, does not show the **not estimated** timing fallback on a
+**Request triage** box, and its presence does not change an issue's derived status. Where a request
+has been promoted and carries a `## YOLO status` comment, the work issue's *Reported summary*
+(`## YOLO status`) takes precedence and the triage comment stays in the discussion as history.
+Same-repository issue links (`https://github.com/<owner>/<repo>/issues/<number>`) inside rendered
+Markdown open that issue in the panel (`?panel=<number>`) on an unmodified click so users can
+follow covering outcomes without leaving the app.
 
 ## One summary per outcome
 

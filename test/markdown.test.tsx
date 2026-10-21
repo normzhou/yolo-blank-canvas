@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { Markdown } from '../src/client/components/Markdown';
+import { Markdown, parseSameRepoIssueUrl } from '../src/client/components/Markdown';
 
 /**
  * Untrusted GitHub Markdown must render as text: no raw HTML execution, no
@@ -45,5 +45,19 @@ describe('Markdown safety', () => {
       <Markdown>{'| Stage | Result |\n| --- | --- |\n| Plan | done |'}</Markdown>,
     );
     expect(html).toContain('<table>');
+  });
+
+  it('recognises only same-repository issue URLs without fragments for in-panel navigation', () => {
+    const repo = 'normzhou/yolo-blank-canvas';
+    expect(parseSameRepoIssueUrl('https://github.com/normzhou/yolo-blank-canvas/issues/175', repo)).toBe(175);
+    expect(parseSameRepoIssueUrl('https://github.com/NORMZHOU/YOLO-BLANK-CANVAS/issues/4/', repo)).toBe(4);
+    expect(
+      parseSameRepoIssueUrl('https://github.com/normzhou/yolo-blank-canvas/issues/175#issuecomment-1', repo),
+    ).toBeNull();
+    expect(parseSameRepoIssueUrl('https://github.com/normzhou/yolo-blank-canvas/pull/176', repo)).toBeNull();
+    expect(parseSameRepoIssueUrl('https://github.com/normzhou/yolo-dev/issues/144', repo)).toBeNull();
+    expect(parseSameRepoIssueUrl('https://github.com/normzhou/yolo-blank-canvas/issues/0', repo)).toBeNull();
+    expect(parseSameRepoIssueUrl(undefined, repo)).toBeNull();
+    expect(parseSameRepoIssueUrl('https://github.com/normzhou/yolo-blank-canvas/issues/175', null)).toBeNull();
   });
 });

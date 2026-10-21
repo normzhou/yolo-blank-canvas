@@ -2,7 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, ApiError, type Comment, type IssueSummary } from '../api';
 import {
   deriveIssueStatus,
+  findRequestTriageComment,
   findSummaryComment,
+  requestTriageComments,
   summaryComments,
   reportedTiming,
   NO_SUMMARY_TEXT,
@@ -18,6 +20,8 @@ const PER_PAGE = 30;
 export function DetailView({
   issueNumber,
   issueHint,
+  repo,
+  onSelectIssue,
   draft,
   onDraftChange,
   onBack,
@@ -27,6 +31,8 @@ export function DetailView({
 }: {
   issueNumber: number;
   issueHint: IssueSummary | null;
+  repo?: string | null;
+  onSelectIssue?: (issueNumber: number) => void;
   draft: { title: string; body: string };
   onDraftChange: (next: { title: string; body: string }) => void;
   onBack: () => void;
@@ -109,6 +115,10 @@ export function DetailView({
   const status = issue ? deriveIssueStatus(issue) : null;
   const summary = findSummaryComment(comments);
   const otherSummaries = summaryComments(comments).filter((comment) => !summary || comment.id !== summary.id);
+  const triage = summary ? null : findRequestTriageComment(comments);
+  const otherTriages = triage
+    ? requestTriageComments(comments).filter((comment) => comment.id !== triage.id)
+    : [];
   const timing = reportedTiming(summary);
 
   return (
@@ -144,7 +154,9 @@ export function DetailView({
           </div>
           {issue.body ? (
             <div style={{ margin: '12px 0 16px' }}>
-              <Markdown>{issue.body}</Markdown>
+              <Markdown repo={repo} onSelectIssue={onSelectIssue}>
+                {issue.body}
+              </Markdown>
             </div>
           ) : null}
         </>
@@ -153,7 +165,7 @@ export function DetailView({
       )}
 
       <div className="summary-box">
-        <h3>Reported summary</h3>
+        <h3>{triage ? 'Request triage' : 'Reported summary'}</h3>
         {summary ? (
           <>
             <p className="note">
@@ -167,7 +179,9 @@ export function DetailView({
                 </>
               ) : null}
             </p>
-            <Markdown>{summary.body}</Markdown>
+            <Markdown repo={repo} onSelectIssue={onSelectIssue}>
+              {summary.body}
+            </Markdown>
             {/*
               The summary's own words are the display for timing. `reportedTiming`
               only ever resolves when the body literally states a timing, and that
@@ -180,6 +194,29 @@ export function DetailView({
             {otherSummaries.length > 0 ? (
               <p className="note">
                 {otherSummaries.length} earlier summary comment{otherSummaries.length === 1 ? '' : 's'} also appear in the
+                discussion below.
+              </p>
+            ) : null}
+          </>
+        ) : triage ? (
+          <>
+            <p className="note">
+              by {triage.user?.login ?? 'unknown'} · updated {formatRelativeTime(triage.updated_at)}{' '}
+              {triage.html_url ? (
+                <>
+                  ·{' '}
+                  <a href={triage.html_url} target="_blank" rel="noreferrer noopener">
+                    source
+                  </a>
+                </>
+              ) : null}
+            </p>
+            <Markdown repo={repo} onSelectIssue={onSelectIssue}>
+              {triage.body}
+            </Markdown>
+            {otherTriages.length > 0 ? (
+              <p className="note">
+                {otherTriages.length} earlier triage comment{otherTriages.length === 1 ? '' : 's'} also appear in the
                 discussion below.
               </p>
             ) : null}
@@ -205,7 +242,9 @@ export function DetailView({
               </a>
             ) : null}
           </div>
-          <Markdown>{comment.body}</Markdown>
+          <Markdown repo={repo} onSelectIssue={onSelectIssue}>
+            {comment.body}
+          </Markdown>
         </article>
       ))}
       {hasMoreComments ? (

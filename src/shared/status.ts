@@ -159,6 +159,7 @@ function normalizeReason(reason: string | null | undefined): string | null {
 export const NO_SUMMARY_TEXT = 'No progress summary yet.';
 export const NO_TIMING_TEXT = 'Delivery timing not yet estimated.';
 export const SUMMARY_HEADING = '## YOLO status';
+export const REQUEST_TRIAGE_HEADING = '## YOLO request';
 
 export interface CommentLike {
   id: number;
@@ -218,6 +219,12 @@ export function isSummaryComment(comment: CommentLike): boolean {
   return heading.text.toLowerCase() === 'yolo status';
 }
 
+export function isRequestTriageComment(comment: CommentLike): boolean {
+  const heading = firstHeading(comment.body);
+  if (!heading || heading.level !== 2) return false;
+  return heading.text.toLowerCase() === 'yolo request';
+}
+
 export function timestampOf(comment: CommentLike): number {
   const value = Date.parse(comment.updated_at || comment.created_at || '');
   return Number.isNaN(value) ? 0 : value;
@@ -234,14 +241,31 @@ export function summaryComments(comments: CommentLike[] | undefined | null): Com
   return (comments ?? []).filter(isSummaryComment);
 }
 
+/**
+ * The most recently updated `## YOLO request` triage comment (#177).
+ * A triage comment records interpretation, disposition and covering outcomes
+ * for a request; it is not a Reported summary (`## YOLO status`) and never
+ * supplies delivery timing or changes derived status.
+ */
+export function findRequestTriageComment(comments: CommentLike[] | undefined | null): CommentLike | null {
+  const matches = (comments ?? []).filter(isRequestTriageComment);
+  if (matches.length === 0) return null;
+  return matches.reduce((latest, comment) => (timestampOf(comment) >= timestampOf(latest) ? comment : latest));
+}
+
+export function requestTriageComments(comments: CommentLike[] | undefined | null): CommentLike[] {
+  return (comments ?? []).filter(isRequestTriageComment);
+}
+
 const TIMING_HEADING = /^(timing|when|delivery timing|estimated delivery|schedule)\b/i;
 
 /**
  * Timing text is only shown when the summary actually states it. Nothing is
- * estimated from prose.
+ * estimated from prose, and a `## YOLO request` triage comment is never read
+ * for delivery timing.
  */
 export function reportedTiming(summary: CommentLike | null): string | null {
-  if (!summary) return null;
+  if (!summary || !isSummaryComment(summary)) return null;
   const lines = proseLines(summary.body);
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index].trim();

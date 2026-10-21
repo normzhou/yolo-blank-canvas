@@ -1,12 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import {
   deriveIssueStatus,
+  findRequestTriageComment,
   findSummaryComment,
+  requestTriageComments,
   summaryComments,
+  isRequestTriageComment,
   isSummaryComment,
   firstHeading,
   reportedTiming,
   NO_SUMMARY_TEXT,
+  REQUEST_TRIAGE_HEADING,
   labelNames,
   type CommentLike,
   type IssueLike,
@@ -131,8 +135,28 @@ describe('reported summary detection', () => {
   it('does not treat a request triage summary as a reported summary', () => {
     // `## YOLO request` records intake disposition, not outcome status: the panel
     // must not read state, timing or delivery from it.
-    expect(isSummaryComment(comment({ body: '## YOLO request\n\nInterpretation: …' }))).toBe(false);
+    const triage = comment({ body: '## YOLO request\n\nInterpretation: …\nTiming: next week' });
+    expect(isSummaryComment(triage)).toBe(false);
     expect(summaryComments([comment({ id: 4, body: '## YOLO request\n\nDeferred to #12.' })])).toEqual([]);
+    expect(reportedTiming(triage)).toBeNull();
+  });
+
+  it('detects ## YOLO request triage summaries outside code fences and picks the newest', () => {
+    expect(REQUEST_TRIAGE_HEADING).toBe('## YOLO request');
+    expect(isRequestTriageComment(comment({ body: '## YOLO request\n\nAdmitted into #175.' }))).toBe(true);
+    expect(isRequestTriageComment(comment({ body: '## Yolo Request\n\nDeferred.' }))).toBe(true);
+    expect(isRequestTriageComment(comment({ body: 'Preamble\n\n## YOLO request\n' }))).toBe(false);
+    expect(isRequestTriageComment(comment({ body: '```md\n## YOLO request\n```' }))).toBe(false);
+    expect(isRequestTriageComment(comment({ body: '## YOLO status\n\nOutcome: shipped.' }))).toBe(false);
+
+    const comments = [
+      comment({ id: 1, body: '## YOLO request\n\nFirst triage', updated_at: '2026-01-01T00:00:00Z' }),
+      comment({ id: 2, body: 'ordinary comment', updated_at: '2026-02-01T00:00:00Z' }),
+      comment({ id: 3, body: '## YOLO request\n\nUpdated triage', updated_at: '2026-03-01T00:00:00Z' }),
+    ];
+    expect(findRequestTriageComment(comments)?.id).toBe(3);
+    expect(requestTriageComments(comments).map((item) => item.id)).toEqual([1, 3]);
+    expect(findRequestTriageComment([comment({ id: 2, body: 'ordinary' })])).toBeNull();
   });
 
   it('identifies the most recently updated match and keeps the others accessible', () => {
