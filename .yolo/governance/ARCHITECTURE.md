@@ -93,10 +93,11 @@ contractual where it is in scope. Its observed gaps are listed under Decisions a
   any semver level — patch, minor or major — without seeking per-release approval**, on the condition
   that acceptance passes on the version users actually receive. Choosing the version and cutting it is
   ordinary work, not an escalation. This standing delegation was granted by the maintainer on
-  2026-10-14 ("work and stop asking me for permission to release versions") and is the identified
+  2026-10-14 ("work and stop asking me for permission to release versions") and confirmed directly by
+  the maintainer in an authenticated session on 2026-10-20 (issue #141); it is the identified
   human approval [CHARTER.md](CHARTER.md) durable constraint 5 requires for publishing. It does not
-  extend to **retiring or deleting** a tag or release, or to **changing this policy**; both remain
-  reserved to the maintainer. A release that fails acceptance is not cut.
+  extend to **deleting, unpublishing or otherwise withdrawing** a tag or release, or to **changing
+  this policy**; those remain reserved to the maintainer. A release that fails acceptance is not cut.
 - **Delivered-version observation:** `GET /api/version` reports `serverBuild`/`clientBuild`; the
   client footer shows the revision it was built from and offers a user-initiated reload when the
   server advertises a different client build. A release tag points at an assets-only commit
