@@ -163,6 +163,12 @@
         "observed_at": "2026-10-13",
         "evidence": ".yolo/reports/continuation-2026-10-13.json",
         "note": "Recorded as Q5 evidence for this session only. It does not attest the adopted `harness.name` (pi coding agent 1.0.1), whose continuation remains unrecorded, and it does not re-attribute the adopted claim. Distinct from the 2026-10-12 session that recorded the alpha.23 upgrade and the 75-commit review."
+      },
+      {
+        "harness": "opencode",
+        "observed_at": "2026-10-20",
+        "evidence": ".yolo/reports/upgrade-alpha30-proposal.json landed.loading_evidence",
+        "note": "The alpha.30 skill was loaded into this session after the migration landed (opencode v2.0.32, run ses_edd7daef5ffe1iENC1ar1oRsLD) and it applied the alpha.30 rules to the landing record. It does not attest the adopted `harness.name` (pi coding agent 1.0.1), whose continuation remains unrecorded, and it does not re-attribute the adopted claim. Distinct from the 2026-10-12 and 2026-10-13 sessions."
       }
     ]
   },
@@ -218,10 +224,12 @@
     }
   },
   "activation": {
-    "state": "proposed",
+    "state": "active",
     "evidence": [
-      "PENDING LANDING: candidate pin v0.1.0-alpha.30 proposed on issue #160 (branch yolo/upgrade-alpha30-proposal). Not active until the migration is observed on the default branch.",
-      "Prior alpha.23 activation evidence is retained in Git and in .yolo/reports/2026-10-12-alpha23-native-runtime.json as history; that loading evidence is historical and does not attest the alpha.30 rules being loaded."
+      "Maintainer approval in this authenticated harness session (2026-10-20): 'approved please continue' directed the prepared v0.1.0-alpha.30 migration to land. No protected edit or authority-control change was involved.",
+      "v0.1.0-alpha.30 (publication df14572179e0c017e4df98c42de38246610de60b, bundle e95211f32261580fb580cf0da9d7276ae477b063) landed on main as 67f60594dd2267355be2b4110131cb4eef89cce3 via PR #161 and was observed on the default branch.",
+      "Delivered setup re-validated in this session with the alpha.30 executable: structure.status pass (exit 0, zero non-compliant findings, zero warnings); .yolo/protocol.md sha256 4f5ffe0ae643a81a1e303b2d2a9f067fb7c3b568d1710efe1a6b7b6209667afa; 60/60 manifest files match manifest cb5090417023b97d5b4537703e954d3a475bceb38ba7f3234c4e7d7b7a0df79d; all five installed hook files present.",
+      "Prior alpha.23 activation evidence is retained in Git and in .yolo/reports/2026-10-12-alpha23-native-runtime.json as history; alpha.23 loading evidence does not attest the alpha.30 rules, and qualification remains unverified."
     ]
   },
   "adopted_at": "520a81e8ec824b9ce31a7fbc8a8c08d152eb81ae",
@@ -285,6 +293,18 @@
         ".yolo/reports/2026-10-12-alpha23-observer-upgrade.md",
         ".yolo/reports/2026-10-12-alpha23-native-runtime.json"
       ]
+    },
+    {
+      "from": "3cc04ef5f302993e1d3952bff00f08020d57dbcc",
+      "to": "e95211f32261580fb580cf0da9d7276ae477b063",
+      "effective_commit": "67f60594dd2267355be2b4110131cb4eef89cce3",
+      "evidence": [
+        "https://github.com/normzhou/yolo-blank-canvas/pull/161",
+        "https://github.com/normzhou/yolo-blank-canvas/issues/160",
+        ".yolo/reports/upgrade-alpha30-proposal.json",
+        "Maintainer approval in this authenticated harness session (2026-10-20): 'approved please continue'.",
+        "Delivered setup validated with the alpha.30 executable: structure.status pass; protocol 4f5ffe0ae643a81a1e303b2d2a9f067fb7c3b568d1710efe1a6b7b6209667afa; manifest cb5090417023b97d5b4537703e954d3a475bceb38ba7f3234c4e7d7b7a0df79d; 60/60 files."
+      ]
     }
   ],
   "checkpoint": {
@@ -321,7 +341,7 @@
       "The 75-commit interval from 31c0f8b to 9680736 is fully reviewed with cited ownership, congruence, verification and continuity findings in .yolo/reports/checkpoint-review-2026-10-12.json (issue #141). That report assesses Q1-Q3 as pass, Q4 as partial (four releases carry artifact-verified observation reports, none re-verified in that review) and Q5 as partial (continuation observed only for the harness that observed it, not the adopted pi coding agent). No qualified L1 claim is made, and the checkpoint was deliberately not advanced because the published report chain predates the four-obligation rule.",
       "2026-10-13: a second fresh opencode session observed loading and continuation and is recorded in .yolo/reports/continuation-2026-10-13.json. Q5 remains partial for the ADOPTED harness (pi coding agent 1.0.1), which this session did not load or exercise. No level is claimed.",
       "2026-10-14 (.yolo/reports/checkpoint-review-2026-10-14.json, issue #141): the 25 commits after the previous review's subject are reviewed with all four obligations cited and acceptance re-run at 9c05e25 - 255 unit tests, tsc clean, 77 stubbed e2e passed, and the pinned alpha.23 validator reporting structure.status: pass with zero non-compliant rules. Q4 moves from partial to PASS for its inspected scope: acceptance ran on the delivered artifacts of v0.3.2 and v0.4.0 (6 of 6 each). Q5 remains partial - a third opencode session adds no fact the two already-recorded ones do not carry, so no continuation report was written and nothing was re-attributed to pi. Qualification stays `unverified` and no level is claimed: Q5 is not satisfied and the checkpoint-chain finding is still open.",
-      "PENDING alpha.30 candidate (issue #160): the three entries above are historical evidence for the alpha.23 pin and the sessions that recorded them; none of them attests alpha.30 loading. Qualification stays unverified and no level is claimed for the candidate the same way it is not claimed for the active pin."
+      "2026-10-20 (issue #160): alpha.30 landed at 67f60594dd2267355be2b4110131cb4eef89cce3. This opencode session reloaded the alpha.30 skill from main after the merge (harness opencode v2.0.32, run ses_edd7daef5ffe1iENC1ar1oRsLD), verified the delivered identity and applied the new rules to the landing record. It does not attest the adopted harness `pi coding agent 1.0.1`, whose continuation remains unrecorded. Qualification stays `unverified`; Q5 remains partial and the checkpoint-chain finding is still open."
     ]
   },
   "feedback": {

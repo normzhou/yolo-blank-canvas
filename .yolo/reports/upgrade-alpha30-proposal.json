@@ -2,14 +2,14 @@
   "schema_version": 2,
   "target": "normzhou/yolo-blank-canvas",
   "kind": "upgrade-proposal",
-  "status": "proposed",
+  "status": "landed",
   "protocol": {
     "revision": "e95211f32261580fb580cf0da9d7276ae477b063",
     "sha256": "4f5ffe0ae643a81a1e303b2d2a9f067fb7c3b568d1710efe1a6b7b6209667afa"
   },
-  "revision": "dab8e18",
-  "default_revision": "dab8e18",
-  "from": "e95211f32261580fb580cf0da9d7276ae477b063",
+  "revision": "dab8e18beee784adf9d0215405ab0efc3689d123",
+  "default_revision": "dab8e18beee784adf9d0215405ab0efc3689d123",
+  "from": "dab8e18beee784adf9d0215405ab0efc3689d123",
   "previous_report": ".yolo/reports/2026-10-12-alpha23-native-runtime.json",
   "reviewed_commits": {
     "checkpoint": "31c0f8b64ea192ba9becadbe531c871e602d14bf",
@@ -40,12 +40,20 @@
     "new_release": "v0.1.0-alpha.30",
     "new_publication": "df14572179e0c017e4df98c42de38246610de60b",
     "new_source_inputs": "e95211f32261580fb580cf0da9d7276ae477b063",
-    "releases_crossed": ["v0.1.0-alpha.24", "v0.1.0-alpha.25", "v0.1.0-alpha.26", "v0.1.0-alpha.27", "v0.1.0-alpha.28", "v0.1.0-alpha.29", "v0.1.0-alpha.30"],
+    "releases_crossed": [
+      "v0.1.0-alpha.24",
+      "v0.1.0-alpha.25",
+      "v0.1.0-alpha.26",
+      "v0.1.0-alpha.27",
+      "v0.1.0-alpha.28",
+      "v0.1.0-alpha.29",
+      "v0.1.0-alpha.30"
+    ],
     "publisher_dates": "alpha.24 2026-10-12 ... alpha.30 2026-10-20"
   },
   "rule_tooling_delta": [
     "work discipline: reconciliation becomes select-a-chunk -> interpret/admit when needed -> advance -> publish; explicit admission handoff record for interpreted inputs; bounded investigation admitted when the solution is materially unknown",
-    "iteration identity: one outcome summary records the iteration identity once (harness, run id, evidence, remaining scope, next action, still-running ops), and new YOLO-written objects carry 'Created by YOLO Dev · mode: <profile> · harness: <name/version> · run: <iteration id> · <record link>'",
+    "iteration identity: one outcome summary records the iteration identity once (harness, run id, evidence, remaining scope, next action, still-running ops), and new YOLO-written objects carry 'Created by YOLO Dev \u00b7 mode: <profile> \u00b7 harness: <name/version> \u00b7 run: <iteration id> \u00b7 <record link>'",
     "publication failure: retained local result plus an exact unsynchronization report, replacing the availability claim route",
     "declaration of execution_profiles: app-preflight-v1 (opt-in; absence keeps existing personal access)",
     "opt-in operator App preflight (references/operator-app.md) and opt-in app-hosting route (references/app-hosting.md with a self-serve template)",
@@ -95,7 +103,7 @@
   },
   "version_repair": {
     "release_flow": "none - the current release record was reconciled and published v0.4.0 with 6/6 acceptance",
-    "candidate_pin": "none - the proposal maps the α.30 bundle identity e95211f, publication df14572, and manifest cb509041 explicitly, distinct from the old pin's skill revision e64101f"
+    "candidate_pin": "none - the proposal maps the \u03b1.30 bundle identity e95211f, publication df14572, and manifest cb509041 explicitly, distinct from the old pin's skill revision e64101f"
   },
   "restoration_steps": [
     "revert this proposal's commit(s); the target reads .yolo/protocol.md and .agents/skills/yolo/** from Git and rolls back to the alpha.23 pin exactly",
@@ -116,7 +124,9 @@
     {
       "rule": "no_warnings_no_conflicts",
       "status": "compliant",
-      "evidence": ["/tmp/yolo-structure-a30b.json (structure.status: pass, findings 0 non-compliant, 0 warnings)"],
+      "evidence": [
+        "/tmp/yolo-structure-a30b.json (structure.status: pass, findings 0 non-compliant, 0 warnings)"
+      ],
       "detail": "Strict structural validation of the staged candidate files ran with the alpha.30 executable after staging and after the installer write; pass, exit 0."
     },
     {
@@ -155,10 +165,24 @@
     "before measuring dependent claims, run structural validation again on the delivered default revision"
   ],
   "limits": [
-    "The publisher's rule sources (11 changed + 1 new input) are mapped verbatim into the candidate adoption record; their *content* changes were audited at the section/summary level rather than line-by-line, per the protocol's instruction to read the applicable rules — a full line audit of every incorporated source is not claimed",
+    "The publisher's rule sources (11 changed + 1 new input) are mapped verbatim into the candidate adoption record; their *content* changes were audited at the section/summary level rather than line-by-line, per the protocol's instruction to read the applicable rules \u2014 a full line audit of every incorporated source is not claimed",
     "This proposal is not qualification: qualification stays unverified, and loading evidence for alpha.23 is historical only",
     "The migration does not touch any other part of the target beyond .agents/skills/yolo/**, .yolo/protocol.md, .yolo/adoption.json, and 5 hook files; app code, tests and verification results are unchanged (npm test 255 passed, tsc clean)",
     "YOLO_ACTIVITY_ID/YOLO_ACTIVITY_REPORT are absent in this session; no harness artifact copy was made (per records.md this is an honest measurement gap, and the durable report is the primary interface)"
   ],
-  "landed": null
+  "landed": {
+    "effective_commit": "67f60594dd2267355be2b4110131cb4eef89cce3",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/161",
+    "proposal_commit": "4a3e9a2",
+    "direction": "Maintainer normzhou approved in this authenticated harness session on 2026-10-20 ('approved please continue'); the proposal had passed CI and structural validation before merge.",
+    "delivered_validation": "alpha.30 executable --structure on main@67f6059: structure.status pass, exit 0, zero non-compliant findings, zero warnings.",
+    "delivered_identity": "protocol sha256 4f5ffe0ae643a81a1e303b2d2a9f067fb7c3b568d1710efe1a6b7b6209667afa; bundle revision e95211f32261580fb580cf0da9d7276ae477b063; manifest sha256 cb5090417023b97d5b4537703e954d3a475bceb38ba7f3234c4e7d7b7a0df79d; 60/60 manifest files verified; five installer hook files present.",
+    "loading_evidence": "The harness reloaded the alpha.30 skill into this session after the merge (opencode v2.0.32, run ses_edd7daef5ffe1iENC1ar1oRsLD), and this landing record was written under the alpha.30 rules. It does not attest the adopted harness `pi coding agent 1.0.1`; qualification stays unverified.",
+    "post_landing_operations_completed": [
+      "activation.state moved from proposed to active with the landed revision observed on the default branch.",
+      "upgrades[] appended: from 3cc04ef5f302993e1d3952bff00f08020d57dbcc to e95211f32261580fb580cf0da9d7276ae477b063, effective 67f60594dd2267355be2b4110131cb4eef89cce3.",
+      "harness.observed_sessions extended with this session's loading observation, carrying the pi caveat.",
+      "qualification pending note replaced with the landed assessment; no level claimed and Q5 still partial."
+    ]
+  }
 }
