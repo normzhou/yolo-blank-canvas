@@ -6,9 +6,10 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Canvas gallery (#165) — 2026-10-21
 
-Source revision `4cad4b6` (the feature commit); the build and review evidence is
-`c456385`. No release has been published from this revision yet; the results
-below are on the source and the committed build, not an installed tag.
+Source revision `4cad4b6` (the feature commit); build and review evidence
+`c456385`; release commit `f0262ae`; published as `v0.5.0` on 2026-10-21. The
+unit and stubbed e2e results below ran against the source revision; the 7/7
+acceptance below ran against the installed tag users receive.
 
 - `npm test`: 21 files, 264 tests passed. Added `test/apps.test.ts` (3) for
   registry uniqueness and resolution; `test/route.test.ts` now has 18 tests
@@ -26,10 +27,28 @@ below are on the source and the committed build, not an installed tag.
 - `yolo-check . --structure` (`0.1.0-alpha.30`): `structure.status: pass`,
   13/13 findings compliant, clean working tree at `c456385`.
 
+### Installed artifact (`v0.5.0`)
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.5.0 --no-open --port 4875`
+in an empty directory, with no source checkout. `GET /api/version` reported both
+`serverBuild` and `clientBuild` as `4cad4b6…`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4875 npm run e2e:verify-release`: **7 passed,
+0 failed**. The six existing checks — reconciliation-badge contrast, text-field
+fill, Tetris stats opacity, reduced-motion crossfade, recorded asset identity,
+and the conditional rendered-badge check — plus the new gallery check: the home
+gallery opens `?app=tetris`, the palette names Tetris current, and Escape closes
+the palette without unmounting the app. The gallery check skips on releases that
+predate #165. The report is
+`.yolo/reports/releases-observed-2026-10-21.json`.
+
 Open gaps: contextual feedback capture from inside an app is the next slice;
 this change is navigation only. The palette is navigation-only and has no
-command surface. Installed-artifact acceptance is added only when the release
-is cut.
+command surface. The tag points at release commit `f0262ae` after the assets
+commit `c456385`, not at an assets-only commit; both build-ID files record
+`4cad4b6`. Installed acceptance is seven targeted read-only checks, not the full
+e2e suite. The conditional rendered-badge check passed on this repository but
+remains conditional by design.
 
 ## Deterministic tests (`npm test`)
 
@@ -476,20 +495,27 @@ agent, so these were taken under the standing grant rather than left waiting.
 
 ## Tested revision
 
-Release tag `v0.4.0` points at the release commit `e1105c3`. Assets were built from source
-`c1daf3e` (`dist/client/.build-id` and `server/build-id.generated.js` both report `c1daf3e…`),
-which is the assets-only-commit-after-source ordering the app's version-skew banner surfaces.
-The native version at the tagged revision (`package.json`) is `0.4.0`. The published artifact was
-installed from the release into an empty directory and accepted 6 of 6 on
-`e2e:verify-release`, as recorded in
-[`.yolo/reports/releases-observed-2026-10-15.json`](../.yolo/reports/releases-observed-2026-10-15.json);
-its stated limits travel with it, including that one check passed vacuously and that the unit and
-stubbed-e2e suites ran against source, not against the installed artifact.
+Release tag `v0.5.0` points at release commit `f0262ae`. Assets were built from source
+`4cad4b6` (`dist/client/.build-id` and `server/build-id.generated.js` both report `4cad4b6…`)
+and committed in `c456385`; the release commit itself adds only the `0.5.0` version and install
+references, with no source changes. The native version at the tagged revision (`package.json`) is
+`0.5.0`. The published artifact was installed from the release into an empty directory and accepted
+7 of 7 on `e2e:verify-release` — the six existing checks plus the gallery shell check — as recorded
+in
+[`.yolo/reports/releases-observed-2026-10-21.json`](../.yolo/reports/releases-observed-2026-10-21.json).
+Its limits travel with it: seven targeted checks rather than the full suite, the gallery check covers
+shell navigation only, and the tag points at the release commit after the assets commit rather than
+at it.
 
-The previous revision named in this section was `v0.3.1` (`80bf5f8`, assets from `7ffb324`). That
-was accurate when written and is kept here as history rather than replaced silently: three releases
-landed after it, and the section had not been carried forward, so this file understated the current
-state while `README.md` and `.yolo/adoption.json` named `v0.4.0`. The correction is recorded in
+The previous revision named in this section was `v0.4.0` (release `e1105c3`, assets from
+`c1daf3e`), accepted 6 of 6 on the installed artifact on 2026-10-15 and recorded in
+[`.yolo/reports/releases-observed-2026-10-15.json`](../.yolo/reports/releases-observed-2026-10-15.json).
+It remains valid history, not the current tested revision.
+
+The earlier revision named here was `v0.3.1` (`80bf5f8`, assets from `7ffb324`). That was accurate
+when written and is kept here as history rather than replaced silently: later releases landed before
+the section was carried forward, so this file once understated the current state while `README.md`
+and `.yolo/adoption.json` named `v0.4.0`. The correction is recorded in
 [`.yolo/reports/checkpoint-review-2026-10-14.json`](../.yolo/reports/checkpoint-review-2026-10-14.json).
 
 Also verified on the delivered artifact, and recorded at the time: `v0.3.2` (`75cfffb`), published

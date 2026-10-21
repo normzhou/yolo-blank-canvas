@@ -184,3 +184,32 @@ test('the released bundle serves the assets the build recorded', async ({ page }
   expect(response.status(), `asset ${src} must be served from the release`).toBe(200);
   expect(FREE_PORT).toBeGreaterThan(0);
 });
+
+test('the released canvas gallery opens an app and keeps it under the palette', async ({ page }) => {
+  await page.goto(BASE);
+  await session(page);
+  await page.goto(BASE);
+
+  const gallery = page.getByRole('navigation', { name: 'Canvas gallery' });
+  if ((await gallery.count()) === 0) {
+    test.skip(true, 'this release predates the canvas gallery (#165)');
+  }
+
+  await gallery.getByRole('button', { name: 'Tetris', exact: true }).click();
+  await expect(page).toHaveURL(/\?app=tetris$/);
+  await expect(page.getByRole('heading', { name: 'Tetris' })).toBeVisible();
+
+  await page.keyboard.press('Control+k');
+  const palette = page.getByRole('dialog', { name: 'Canvas apps' });
+  await expect(palette).toBeVisible();
+  await expect(palette.getByRole('button', { name: 'Tetris', exact: true })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+
+  // Escape belongs to the palette; the app stays mounted underneath it.
+  await page.keyboard.press('Escape');
+  await expect(palette).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Tetris' })).toBeVisible();
+  await expect(page).toHaveURL(/\?app=tetris$/);
+});
