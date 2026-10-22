@@ -2,12 +2,13 @@ import { test, expect, listSettled } from './fixtures';
 import { startStubApp } from './stub-server';
 
 /**
- * The theme control (#110).
+ * The theme control (#110, #196).
  *
- * Three things are asserted, and the last is the one that matters most:
+ * Lives in the Requests panel footer so the main application navbar is free of
+ * raw theme-name buttons (#196):
  *
  * 1. Switching repaints the document from tokens — checked against the computed
- *    background of the canvas, not against "does it look different".
+ *    background of the document, not against "does it look different".
  * 2. The choice survives a reload, which is the whole point of storing it.
  * 3. Every theme actually paints. A theme block that fails to parse, or that
  *    omits a role, leaves one surface stranded in the default palette; the
@@ -19,8 +20,8 @@ const THEMES = ['Slate', 'Sand', 'Dusk'] as const;
 test('the theme control switches the document and remembers the choice', async ({ page }) => {
   const stub = await startStubApp();
   try {
-    await page.goto(stub.base);
-    // `body` carries `--bg`; `.canvas` is transparent above it.
+    await page.goto(`${stub.base}?panel`);
+    await listSettled(page);
     const bodySurface = page.locator('body');
 
     const surfaces: Record<string, string> = {};
@@ -33,8 +34,7 @@ test('the theme control switches the document and remembers the choice', async (
     // Distinct palettes, not three names for one palette.
     expect(new Set(Object.values(surfaces)).size, JSON.stringify(surfaces)).toBe(THEMES.length);
 
-    // Dusk must genuinely be dark and Slate genuinely light. A theme block that
-    // failed to apply would leave both light and still pass the test above.
+    // Dusk must genuinely be dark and Slate genuinely light.
     const lum = (rgb: string) => {
       const [r, g, b] = rgb.match(/[\d.]+/g)!.slice(0, 3).map(Number);
       return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
@@ -66,10 +66,18 @@ test('the theme control switches the document and remembers the choice', async (
   }
 });
 
-test('the theme control is reachable and arrow-key navigable', async ({ page }) => {
+test('the theme control is reachable inside the Requests footer and arrow-key navigable', async ({ page }) => {
   const stub = await startStubApp();
   try {
     await page.goto(stub.base);
+    // Main navbar has no raw theme buttons (#196).
+    await expect(page.locator('.canvas-header').getByRole('radiogroup', { name: 'Theme' })).toHaveCount(0);
+
+    await page.getByRole('button', { name: 'Open requests' }).click();
+    await listSettled(page);
+    await expect(page.locator('.panel')).toBeVisible();
+    await expect(page.locator('.issue-row').first()).toBeVisible();
+
     const group = page.getByRole('radiogroup', { name: 'Theme' });
     await expect(group).toBeVisible();
 
@@ -78,34 +86,32 @@ test('the theme control is reachable and arrow-key navigable', async ({ page }) 
     await expect(page.getByRole('radio', { name: 'Sand' })).toHaveAttribute('aria-checked', 'true');
     await page.keyboard.press('ArrowRight');
     await expect(page.getByRole('radio', { name: 'Dusk' })).toHaveAttribute('aria-checked', 'true');
-    // Wraps rather than dead-ending, as a radiogroup must.
     await page.keyboard.press('ArrowRight');
     await expect(page.getByRole('radio', { name: 'Slate' })).toHaveAttribute('aria-checked', 'true');
     await expect(page.getByRole('radio', { name: 'Slate' })).toBeFocused();
-
-    // The panel is unaffected by the theme: its status text is derived from
-    // issue records, not from any token.
-    await page.getByRole('button', { name: 'Requests' }).click();
-    await listSettled(page);
-    await expect(page.locator('.panel')).toBeVisible();
-    await expect(page.locator('.issue-row').first()).toBeVisible();
   } finally {
     stub.server.close();
   }
 });
 
-test('the header control does not crowd the narrow canvas', async ({ page }) => {
+test('the header and panel footer do not crowd a narrow viewport', async ({ page }) => {
   const stub = await startStubApp();
   try {
     await page.setViewportSize({ width: 390, height: 780 });
     await page.goto(stub.base);
-    const group = page.getByRole('radiogroup', { name: 'Theme' });
-    await expect(group).toBeVisible();
-    // No horizontal overflow at the width where the canvas prompt is tightest.
-    const overflow = await page.evaluate(
+    const overflowHome = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );
-    expect(overflow, 'the theme control pushed the page wider than the viewport').toBeLessThanOrEqual(0);
+    expect(overflowHome, 'the header pushed the page wider than the viewport').toBeLessThanOrEqual(0);
+
+    await page.getByRole('button', { name: 'Open requests' }).click();
+    await listSettled(page);
+    const group = page.getByRole('radiogroup', { name: 'Theme' });
+    await expect(group).toBeVisible();
+    const overflowPanel = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflowPanel, 'the panel footer pushed the page wider than the viewport').toBeLessThanOrEqual(0);
   } finally {
     stub.server.close();
   }

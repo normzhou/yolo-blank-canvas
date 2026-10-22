@@ -473,14 +473,9 @@ function PlayerArena({
             <span className="badge problem pb-hurry-badge" role="status">
               HURRY UP! {hurrySeconds}
             </span>
-          ) : null}
-          {player.incomingGarbage > 0 ? (
+          ) : player.incomingGarbage > 0 ? (
             <span className="badge waiting" role="status">
               Incoming +{player.incomingGarbage}
-              <GarbageOrbsRow
-                count={player.incomingGarbage}
-                label={`${player.incomingGarbage} incoming garbage bubbles`}
-              />
             </span>
           ) : (
             <span className={player.ceilingWarning ? 'badge waiting' : 'badge'}>
@@ -489,7 +484,7 @@ function PlayerArena({
                 : player.status === 'ko'
                   ? 'LOST'
                   : player.ceilingWarning
-                    ? 'Ceiling drop next!'
+                    ? 'Drop next!'
                     : `${settledCount} bubbles`}
             </span>
           )}
@@ -818,12 +813,10 @@ function PlayerArena({
               />
             </svg>
           </div>
-          {summary ? (
-            <div className="pb-combo" role="status">
-              {summary}
-            </div>
-          ) : null}
         </aside>
+      </div>
+      <div className={summary ? 'pb-combo-bar is-active' : 'pb-combo-bar'} role={summary ? 'status' : undefined}>
+        {summary ?? 'Ready'}
       </div>
     </div>
   );
@@ -1173,9 +1166,9 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
       ) : (
         <p className="tetris-help">
           {match.mode === '2p'
-            ? 'Player 1: A/D aim (tap 0.5°, hold for smooth sweep), S or F fire. Player 2: ←/→ aim, ↑ or ↓ fire. Pop 4+ to stack attack orbs; drop hanging clusters to unleash them and score up to 1,310,720!'
-            : 'Tap for 0.5° micro-aim or hold to sweep. Dropped clusters double in value (20 → 40 → 80 … up to 1,310,720 for 17+).'}{' '}
-          {paused ? 'Paused.' : ''}
+            ? '1P: A/D aim, S/F fire · 2P: ←/→ aim, ↑/↓ fire · Pop 4+ & drop clusters to send attacks'
+            : 'A/D or ←/→ aim (0.5° tap, hold sweep) · S/F or Space fire · Drop clusters for avalanche bonus'}
+          {paused ? ' · Paused' : ''}
         </p>
       )}
     </section>

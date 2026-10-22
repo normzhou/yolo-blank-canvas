@@ -17,6 +17,7 @@
   },
   "fontSizes": [
     12,
+    14,
     16
   ],
   "spacing": {
@@ -57,7 +58,7 @@
       "text": "Blank canvas",
       "ratio": 16.32,
       "needs": 4.5,
-      "fontSizePx": 16,
+      "fontSizePx": 14,
       "fontWeight": 600
     },
     {
@@ -85,7 +86,7 @@
       "fontWeight": 400
     },
     {
-      "selector": "span",
+      "selector": "span.panel-refresh-status",
       "text": "Last refresh: 5:00:00 AM",
       "ratio": 5.63,
       "needs": 4.5,
@@ -169,7 +170,7 @@
       "text": "Blank canvas",
       "ratio": 16.32,
       "needs": 4.5,
-      "fontSizePx": 16,
+      "fontSizePx": 14,
       "fontWeight": 600
     },
     {
@@ -197,7 +198,7 @@
       "fontWeight": 400
     },
     {
-      "selector": "span",
+      "selector": "span.panel-refresh-status",
       "text": "Last refresh: 5:00:00 AM",
       "ratio": 5.63,
       "needs": 4.5,
@@ -289,7 +290,7 @@
       "text": "Blank canvas",
       "ratio": 16.32,
       "needs": 4.5,
-      "fontSizePx": 16,
+      "fontSizePx": 14,
       "fontWeight": 600
     },
     {
@@ -317,7 +318,7 @@
       "fontWeight": 400
     },
     {
-      "selector": "span",
+      "selector": "span.panel-refresh-status",
       "text": "Last refresh: 5:00:00 AM",
       "ratio": 5.63,
       "needs": 4.5,

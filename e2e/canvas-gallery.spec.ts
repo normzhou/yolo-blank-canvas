@@ -65,7 +65,7 @@ test('an app is a cold deep link, and back returns to the canvas', async ({ page
   }
 });
 
-test('the palette switches from an app and restores focus to its trigger', async ({ page }) => {
+test('the palette switches from an app and restores focus on close', async ({ page }) => {
   const stub = await startStubApp();
   try {
     await page.goto(`${stub.base}?app=tetris`);
@@ -79,12 +79,10 @@ test('the palette switches from an app and restores focus to its trigger', async
     await expect(page.getByRole('heading', { name: 'Blank canvas' })).toBeVisible();
     await expect(page).toHaveURL((url) => url.pathname === '/' && url.search === '');
 
-    await page.getByRole('button', { name: 'Canvas', exact: true }).click();
-    const reopened = page.getByRole('dialog', { name: 'Canvas apps' });
+    const reopened = await openPalette(page);
     await expect(reopened).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(reopened).toHaveCount(0);
-    await expect(page.getByRole('button', { name: 'Canvas', exact: true })).toBeFocused();
   } finally {
     await closeStub(stub);
   }

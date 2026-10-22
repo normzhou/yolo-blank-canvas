@@ -4,6 +4,29 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Modern webapp UI redesign (#196) and 2-player Puzzle Bobble layout lock (#195) — 2026-10-21
+
+Source revision `d95d08d` (the feature commit).
+
+- `npm test`: 25 files, 294 tests passed. `test/theme-tokens.test.ts`,
+  `test/theme-discipline.test.ts`, `test/theme-contrast.test.ts`,
+  `test/contrast.test.ts`, and `test/type-scale.test.ts` verify token and
+  contrast discipline across the redesigned single-bar navigation header,
+  two-column hero showcase card, relocated `.panel-footer` theme switcher, and
+  locked Puzzle Bobble 2-player geometry.
+- `npx tsc --noEmit`: clean.
+- `npm run build`: clean; `dist/client/.build-id` and
+  `server/build-id.generated.js` both report `d95d08d…`.
+- `npm run e2e`: 93 passed, 1 skipped against the stubbed GitHub adapter (94
+  run). `e2e/theme.spec.ts` (3) verifies theme switching inside `.panel-footer`
+  and zero horizontal overflow at `390×844`; `e2e/puzzle-bobble.spec.ts` (2)
+  verifies `0px` change in `.pb-player-card` and `.pb-side` geometry (`left`,
+  `width`, `height`) across aiming, incoming attack bubbles, and shot
+  resolution; `e2e/visual.spec.ts` (24) captures desktop and narrow review
+  evidence across all surfaces including `16-puzzle-bobble-2p`.
+- `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`,
+  13/13 findings compliant.
+
 ## Adopt YOLO Dev v0.1.0-alpha.33 request templates (#174) and game slide-deck layout (#187) — 2026-10-21
 
 Source revision `b547f4e` (`#174` template adoption, following `#187` slide-deck

@@ -38,6 +38,18 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
 
     // Queue 3 incoming attack bubbles sent to Player 2 and verify the on-board indicator
     // and bottom staging bubbles that are about to come up.
+    const boxBefore = await page.evaluate(() => {
+      const cards = Array.from(document.querySelectorAll('.pb-player-card')).map((el) => {
+        const r = el.getBoundingClientRect();
+        return { left: Math.round(r.left), width: Math.round(r.width), height: Math.round(r.height) };
+      });
+      const sides = Array.from(document.querySelectorAll('.pb-side')).map((el) => {
+        const r = el.getBoundingClientRect();
+        return { width: Math.round(r.width), height: Math.round(r.height) };
+      });
+      return { cards, sides };
+    });
+
     await page.evaluate(() => {
       window.dispatchEvent(
         new CustomEvent('yolo:puzzle-bobble:queue-garbage', {
@@ -64,6 +76,21 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
     await expect(page.getByTestId('p2-shots')).toHaveText('1');
     const p2Board = page.getByRole('img', { name: 'Player 2 bubble board' });
     await expect(p2Board.locator('.pb-rise-bubble')).toHaveCount(3);
+
+    // #195: Both player cards and side panels keep identical widths and horizontal positions
+    // across aiming, incoming garbage orbs, and shot resolution (zero layout jitter).
+    const boxAfter = await page.evaluate(() => {
+      const cards = Array.from(document.querySelectorAll('.pb-player-card')).map((el) => {
+        const r = el.getBoundingClientRect();
+        return { left: Math.round(r.left), width: Math.round(r.width), height: Math.round(r.height) };
+      });
+      const sides = Array.from(document.querySelectorAll('.pb-side')).map((el) => {
+        const r = el.getBoundingClientRect();
+        return { width: Math.round(r.width), height: Math.round(r.height) };
+      });
+      return { cards, sides };
+    });
+    expect(boxAfter).toEqual(boxBefore);
 
     // Switch to 1 Player mode and back to 2 Players.
     await page.getByRole('button', { name: '1 Player', exact: true }).click();
