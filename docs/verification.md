@@ -4,6 +4,43 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Selectable cute characters and win/lose animations in Puzzle Bobble (#204) — 2026-10-22
+
+Source revision `b679005` (the feature commit); build and review evidence
+`5ccfe0b`; release commit `6570366`; published as `v0.14.0` on 2026-10-22. The
+unit and stubbed e2e results below ran against the source revision; the 11/11
+acceptance below ran against the installed tag users receive.
+
+- `npm test`: 23 files, 156 tests passed in 723ms (`test/puzzle-bobble.test.ts`
+  verifies `CHARACTER_OPTIONS`, `characterDisplayName`, `deriveMascotMood` across
+  `normal`, `cheer`, `hurry`, `celebrate`, and `cry`, and `resolveMatchOutcome`;
+  `test/theme-tokens.test.ts`, `test/theme-discipline.test.ts`, and
+  `test/theme-contrast.test.ts` verify token and reduced-motion discipline across
+  `.pb-char-bar` and `.pb-mascot-*`).
+- `npx tsc --noEmit`: clean.
+- `npm run build`: clean; `dist/client/.build-id` and
+  `server/build-id.generated.js` both report `b679005…`.
+- `npm run e2e`: 42 passed in 33.0s against the stubbed GitHub adapter.
+  `e2e/puzzle-bobble.spec.ts` verifies independent per-player character
+  selection (`Dragon`, `Cat`, `Dog`, `Bunny`), round-win celebration
+  (`data-mood="celebrate"` + `.pb-mascot-sparkle`) and round-loss crying
+  (`data-mood="cry"` + `.pb-mascot-tear`), and `0px` layout shift across
+  `.pb-player-card` and `.pb-side`.
+- `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`,
+  13/13 findings compliant.
+
+### Installed artifact (`v0.14.0`)
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.14.0 --no-open --port 4875`
+in an empty directory, with no source checkout. `GET /api/version` reported both
+`serverBuild` and `clientBuild` as `b679005…`; the tagged package version is
+`0.14.0`. The tag points at release commit `6570366`, after the assets commit
+`5ccfe0b`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4875 npm run e2e:verify-release`:
+**11 passed, 0 failed**. The report is
+[`.yolo/reports/releases-observed-2026-10-22-v0140.json`](../.yolo/reports/releases-observed-2026-10-22-v0140.json).
+
 ## Prune redundant tests and separate visual review captures from default E2E (#201) — 2026-10-22
 
 Source revision `8117958` (the feature commit); build and review evidence
@@ -953,16 +990,26 @@ agent, so these were taken under the standing grant rather than left waiting.
 
 ## Tested revision
 
-Release tag `v0.11.0` points at release commit `d678e48`. Assets were built from source
-`b547f4e` (`dist/client/.build-id` and `server/build-id.generated.js` both report `b547f4e…`)
-and committed in `52f001d`; the release commit itself adds only the `0.11.0` version and install
+Release tag `v0.14.0` points at release commit `6570366`. Assets were built from source
+`b679005` (`dist/client/.build-id` and `server/build-id.generated.js` both report `b679005…`)
+and committed in `5ccfe0b`; the release commit itself adds only the `0.14.0` version and install
 references, with no source changes. The native version at the tagged revision (`package.json`) is
-`0.11.0`. The published artifact was installed from the release into an empty directory and accepted
+`0.14.0`. The published artifact was installed from the release into an empty directory and accepted
 11 of 11 on `e2e:verify-release`, as recorded in
-[`.yolo/reports/releases-observed-2026-10-21-v0110.json`](../.yolo/reports/releases-observed-2026-10-21-v0110.json).
+[`.yolo/reports/releases-observed-2026-10-22-v0140.json`](../.yolo/reports/releases-observed-2026-10-22-v0140.json).
 Its limits travel with it: eleven targeted read-only checks rather than the full suite; the composer
 and feedback checks do not submit a live issue; and the tag points at the release commit after the
 assets commit rather than at it.
+
+The previous revisions named or recorded above were `v0.13.1` (`8b3f76e`, assets from `8117958`,
+[`.yolo/reports/releases-observed-2026-10-22-v0131.json`](../.yolo/reports/releases-observed-2026-10-22-v0131.json)),
+`v0.13.0` (`a70c68f`, assets from `a5a6942`,
+[`.yolo/reports/releases-observed-2026-10-21-v0130.json`](../.yolo/reports/releases-observed-2026-10-21-v0130.json)),
+`v0.12.0` (`5bc37e3`, assets from `d95d08d`,
+[`.yolo/reports/releases-observed-2026-10-21-v0120.json`](../.yolo/reports/releases-observed-2026-10-21-v0120.json)),
+and `v0.11.0` (`d678e48`, assets from `b547f4e`,
+[`.yolo/reports/releases-observed-2026-10-21-v0110.json`](../.yolo/reports/releases-observed-2026-10-21-v0110.json)),
+each accepted 11 of 11 on its installed artifact. They remain valid history, not the current tested revision.
 
 The previous revision named in this section was `v0.10.1` (release `c26708d`, assets from
 `3bfb9f6`), accepted 11 of 11 on the installed artifact on 2026-10-21 and recorded in

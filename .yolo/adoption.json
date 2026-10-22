@@ -234,15 +234,16 @@
         "v0.10.1": "c26708dcc851f307e9c702cc0cc2c520eb7e47e3",
         "v0.11.0": "d678e4876f64deb4b7fbecad6342cd09e82ee0f5",
         "v0.12.0": "5bc37e3c0273176d348bcde1ae8770f977384024",
-        "v0.13.0": "a70c68f5317168ad202db8c607740b25dd1b8197"
+        "v0.13.0": "a70c68f5317168ad202db8c607740b25dd1b8197",
+        "v0.13.1": "8b3f76ebe0228b3c10c10388f1611e716f552725"
       },
       "published": {
-        "tag": "v0.13.1",
-        "commit": "8b3f76ebe0228b3c10c10388f1611e716f552725",
-        "source_commit": "811795877191e11aedd7981429bceb214681b0bf",
-        "published_at": "2026-10-22T07:24:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-10-22-v0131.json",
-        "note": "Patch release. Consolidates redundant unit and E2E tests (#201: removes duplicate test/contrast.test.ts and test/type-scale.test.ts, collapses table-expanded it.each micro-blocks from 294 to 155 focused unit tests across 23 files, separates visual/motion/measure/determinism review captures from default npm run e2e, and consolidates 7 single-issue E2E specs from 96 tests / ~90s to 42 tests / 28.9s). Acceptance before tagging: 155 unit, 42 stubbed e2e passed, tsc clean, structure pass. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit 8b3f76e after the assets commit 4fbe2d1; both build-ID files record 8117958."
+        "tag": "v0.14.0",
+        "commit": "6570366b7e3af9d40a5ff5aa3949c753e73bc737",
+        "source_commit": "b679005fc66915b882f7f565434e224761e5439d",
+        "published_at": "2026-10-22T23:54:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-10-22-v0140.json",
+        "note": "Minor release. Adds selectable cute characters (Dragon, Cat, Dog, Bunny) and win-celebration / loss-crying character animations to Puzzle Bobble (#204). Acceptance before tagging: 156 unit, 42 stubbed e2e passed, tsc clean, structure pass. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit 6570366 after the assets commit 5ccfe0b; both build-ID files record b679005."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -263,7 +264,8 @@
         ".yolo/reports/releases-observed-2026-10-21-v0110.json",
         ".yolo/reports/releases-observed-2026-10-21-v0120.json",
         ".yolo/reports/releases-observed-2026-10-21-v0130.json",
-        ".yolo/reports/releases-observed-2026-10-22-v0131.json"
+        ".yolo/reports/releases-observed-2026-10-22-v0131.json",
+        ".yolo/reports/releases-observed-2026-10-22-v0140.json"
       ]
     }
   },
