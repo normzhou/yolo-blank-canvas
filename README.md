@@ -57,6 +57,10 @@ Inside an app, the header's **Feedback** action opens the composer directly with
 
 Choose **Tetris** from the canvas row, the **Canvas** palette, or `?app=tetris` to open a classic game (10×20 board, all seven tetrominoes) as canvas content. Controls are keyboard-only: **←/→** move, **↑** rotates, **↓** soft-drops, **Space** hard-drops, **Escape** closes. Score, lines, level and the next piece are shown beside the board; gravity speeds up every ten lines. **Music** toggles a shuffled playlist of five bundled free chiptune tracks — CC0 music by SketchyLogic (*Map*, *Mars*, *Mercury*, *Venus*, *Boss*) — moving to the next without repeating one back to back; audio starts on the click, per browser autoplay policy. A pixel-art backdrop (sourced CC0 art bundled locally — no network fetch) crossfades to the next of six scenes each time four lines are cleared at once; the current scene and tune are named below the board. The board and score live only in the view — they are not GitHub records, are not written back, and are lost when the view closes. The game is generated from a request; the shell's **Feedback** action gives it a direct path back into Requests.
 
+### Puzzle Bobble (Bust-A-Move)
+
+Choose **Puzzle Bobble** from the canvas row, the **Canvas** palette, or `?app=puzzle-bobble` ([request #181](https://github.com/normzhou/yolo-blank-canvas/issues/181)) to open a 2-player (or 1-player) arcade bubble-shooter battle. **Player 1** uses **ASDF** (**A/D** to aim left/right, **S** or **F** to shoot); **Player 2** uses **Arrow keys** (**←/→** to aim left/right, **↑** or **↓** to shoot). Match 3 or more bubbles of the same colour on the hexagonal grid to pop them; any unanchored bubbles hanging below fall for an avalanche bonus and send attack bubbles to your opponent's incoming tray in 2-player mode. Both players start each round with the identical opening wave and bubble queue for fairness. Like Tetris, all game state is local to the view and is lost when the view closes.
+
 ### Status display
 
 Status is text first; colour is decoration. The app only renders what GitHub records and never implies that something was scheduled or is available in this browser.
@@ -104,6 +108,7 @@ Layout:
 | `server/session.js` | in-memory opaque session; browser holds only an HttpOnly cookie |
 | `src/shared/status.ts` | status and reported-summary derivation (shared, pure) |
 | `src/shared/tetris.ts` | Tetris rules and board state (shared, pure; local to the view) |
+| `src/shared/puzzleBobble.ts` | Puzzle Bobble (Bust-A-Move) hex-grid and 2P versus rules (shared, pure; local to the view) |
 | `src/shared/tetrisMusic.ts` | Tetris track list and shuffled playlist (shared, pure) |
 | `src/shared/tetrisBackgrounds.ts` | Tetris backdrop scenes and the four-line cycle (shared, pure) |
 | `src/client/audio/tetrisMusic.ts` | HTMLAudio playback of bundled tracks; reports the tune now playing |
@@ -113,6 +118,7 @@ Layout:
 | `src/client/requestTemplates.ts` | three-intent request templates, v2 draft shape, and Markdown body rendering |
 | `src/client/components/CanvasPalette.tsx` | Ctrl/⌘K navigation palette |
 | `src/client/views/TetrisView.tsx` | the Tetris canvas app |
+| `src/client/views/PuzzleBobbleView.tsx` | the 2-player Puzzle Bobble (Bust-A-Move) canvas app |
 | `src/client/` | React UI (canvas, panel, list/new/detail views, Markdown rendering) |
 | `dist/client/` | committed build output, so the one-command launch needs no build |
 | `public/tetris/` | bundled CC0 music and backdrop art (copied into the build) |

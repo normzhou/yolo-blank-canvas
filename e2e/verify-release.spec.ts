@@ -299,3 +299,34 @@ test('the released detail view surfaces ## YOLO request triage and navigates cov
   await expect(page.getByRole('heading', { name: /#175/ })).toBeVisible();
   await expect(page.locator('.summary-box').getByRole('heading', { name: 'Reported summary', exact: true })).toBeVisible();
 });
+
+test('the released canvas gallery includes 2-player Puzzle Bobble with ASDF and Arrow controls', async ({
+  page,
+}) => {
+  await page.goto(BASE);
+  await session(page);
+  await page.goto(BASE);
+
+  const gallery = page.getByRole('navigation', { name: 'Canvas gallery' });
+  if ((await gallery.count()) === 0) {
+    test.skip(true, 'this release predates the canvas gallery (#165)');
+  }
+  const pbButton = gallery.getByRole('button', { name: 'Puzzle Bobble', exact: true });
+  if ((await pbButton.count()) === 0) {
+    test.skip(true, 'this release predates Puzzle Bobble (#181)');
+  }
+
+  await pbButton.click();
+  await expect(page).toHaveURL(/\?app=puzzle-bobble$/);
+  await expect(page.getByRole('heading', { name: 'Puzzle Bobble' })).toBeVisible();
+  await expect(page.getByRole('img', { name: 'Player 1 bubble board' })).toBeVisible();
+  await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toBeVisible();
+
+  await page.keyboard.press('d');
+  await expect(page.getByTestId('p1-aim')).toHaveText('+3°');
+  await page.keyboard.press('ArrowLeft');
+  await expect(page.getByTestId('p2-aim')).toHaveText('-3°');
+
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('heading', { name: 'Blank canvas' })).toBeVisible();
+});

@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
 import { TetrisView } from '../views/TetrisView';
+import { PuzzleBobbleView } from '../views/PuzzleBobbleView';
 
 /**
  * The first-party canvas content registry.
@@ -33,6 +34,12 @@ export const CANVAS_APPS: readonly CanvasApp[] = [
     title: 'Tetris',
     summary: 'Clear lines. The board is local to this view.',
     element: TetrisView,
+  },
+  {
+    id: 'puzzle-bobble',
+    title: 'Puzzle Bobble',
+    summary: '2-player Bust-A-Move bubble battle (ASDF vs Arrows). Local to this view.',
+    element: PuzzleBobbleView,
   },
 ];
 

@@ -66,8 +66,8 @@ prompt keeps the only primary action. Canvas content is a first-party registry
 shell owns navigation through the home row, the header trigger and the Ctrl/⌘K palette.
 `?app=<id>` is the app's location, and `?app=<id>&panel=<n>` composes the Requests overlay over it.
 The registry is a compile-time list, not a plugin surface: there is no manifest, remote loading,
-install step, iframe, third-party app, marketplace or per-app persistence. The Tetris entry is the
-first app. Contextual feedback capture is deliberately text-only: a request composed over an app
+install step, iframe, third-party app, marketplace or per-app persistence. The Tetris entry (#4)
+and the 2-player Puzzle Bobble / Bust-A-Move entry (#181) are compiled into the registry. Contextual feedback capture is deliberately text-only: a request composed over an app
 starts with `App: <title> (?app=<id>)` in its body, and new-request drafts are scoped by app. The
 composer offers three direct intent lenses at the top of the form (**Share feedback**, **Build or
 change**, **Report a problem**) with a shared primary answer, target-owned versioned markers
@@ -94,6 +94,7 @@ The durable observable contracts, verified by the test suite:
 | Guided three-intent request templates, body rendering, app-context feedback line and app-scoped drafts | `src/client/requestTemplates.ts`, `src/client/feedback.ts`, `src/client/drafts.ts`, `src/client/views/NewRequestView.tsx` | `test/request-templates.test.ts`, `test/feedback.test.ts`, `test/drafts.test.ts`, `e2e/app-feedback.spec.ts` |
 | Canvas app registry and addressable `?app=` locations | `src/client/apps/registry.ts`, `src/client/route.ts` | `test/apps.test.ts`, `test/route.test.ts`, `e2e/canvas-gallery.spec.ts` |
 | Tetris rules and board state (local to the view, not a GitHub record) | `src/shared/tetris.ts` | `test/tetris.test.ts` |
+| Puzzle Bobble (Bust-A-Move) hex-grid and 2P versus rules (local to the view, not a GitHub record) | `src/shared/puzzleBobble.ts`, `src/client/views/PuzzleBobbleView.tsx` | `test/puzzle-bobble.test.ts`, `e2e/puzzle-bobble.spec.ts` |
 | Tetris track list and shuffled bundled-asset playlist | `src/shared/tetrisMusic.ts` | `test/tetris-music.test.ts` |
 | Tetris backdrop scenes (bundled sourced art) and the four-line cycle | `src/shared/tetrisBackgrounds.ts` | `test/tetris-backgrounds.test.ts` |
 
