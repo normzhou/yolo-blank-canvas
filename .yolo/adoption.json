@@ -180,6 +180,12 @@
         "observed_at": "2026-10-21",
         "evidence": ".yolo/reports/checkpoint-review-2026-10-21.json harness.loading_evidence",
         "note": "Fresh Cursor session loaded AGENTS.md, .agents/skills/yolo/SKILL.md, and the alpha.30 protocol/adoption/governing context, reconciled the interrupted OpenCode session on branch work/request-capture (#175), repaired the orphaned yolo:state:* labels (#141, #170, #174) and non-canonical ## YOLO status headings (#129, #153), and delivered v0.7.0 (#175) and v0.8.0 (#177)."
+      },
+      {
+        "harness": "Cursor (Gemini 4 Argon)",
+        "observed_at": "2026-10-21",
+        "evidence": ".yolo/reports/upgrade-alpha33-proposal.json landed.loading_evidence",
+        "note": "Reloaded the v0.1.0-alpha.33 skill from main after PR #190 landed (commit 46ddf753f0d7b4096053597d316cd9361e0041a6), verified the delivered setup with the alpha.33 executable, and applied the alpha.33 rules to the landing record."
       }
     ],
     "original_selection": {
@@ -254,10 +260,12 @@
     }
   },
   "activation": {
-    "state": "proposed",
+    "state": "active",
     "evidence": [
-      "PENDING LANDING: candidate pin v0.1.0-alpha.33 proposed on issue #189 (branch yolo/upgrade-alpha33-proposal). Not active until the migration is observed on the default branch.",
-      "Prior alpha.30 activation evidence is retained in Git and in .yolo/reports/upgrade-alpha30-proposal.json as history; that loading evidence is historical and does not attest the alpha.33 rules being loaded."
+      "Maintainer approval in this authenticated harness session (2026-10-21): 'approved' directed the prepared v0.1.0-alpha.33 migration (PR #190) to land. No protected edit or authority-control change was involved.",
+      "v0.1.0-alpha.33 (publication bbb3af70580d012cb9b5032ef7a03fdb74ee256f, bundle inputs da644964ca92eef8448cd782cf6805c724ca2e74) landed on main as 46ddf753f0d7b4096053597d316cd9361e0041a6 via PR #190 and was observed on the default branch.",
+      "Delivered setup re-validated in this session with the alpha.33 executable: structure.status pass (exit 0, zero non-compliant findings, zero warnings); .yolo/protocol.md sha256 2f3663b8819c61c28a3216ce622903b6b36b825ea7f9e3e76504c126135cd305; 92/92 manifest files match manifest eee9026d636001068836af9241a69ca2f24e6569c3185479b0accaf2ca005365; all five installed hook/plugin files present.",
+      "Prior alpha.30 activation evidence is retained in Git and in .yolo/reports/upgrade-alpha30-proposal.json as history; qualification remains unverified."
     ]
   },
   "adopted_at": "520a81e8ec824b9ce31a7fbc8a8c08d152eb81ae",
@@ -333,6 +341,18 @@
         "Maintainer approval in this authenticated harness session (2026-10-20): 'approved please continue'.",
         "Delivered setup validated with the alpha.30 executable: structure.status pass; protocol 4f5ffe0ae643a81a1e303b2d2a9f067fb7c3b568d1710efe1a6b7b6209667afa; manifest cb5090417023b97d5b4537703e954d3a475bceb38ba7f3234c4e7d7b7a0df79d; 60/60 files."
       ]
+    },
+    {
+      "from": "e95211f32261580fb580cf0da9d7276ae477b063",
+      "to": "da644964ca92eef8448cd782cf6805c724ca2e74",
+      "effective_commit": "46ddf753f0d7b4096053597d316cd9361e0041a6",
+      "evidence": [
+        "https://github.com/normzhou/yolo-blank-canvas/pull/190",
+        "https://github.com/normzhou/yolo-blank-canvas/issues/189",
+        ".yolo/reports/upgrade-alpha33-proposal.json",
+        "Maintainer approval in this authenticated harness session (2026-10-21): 'approved'.",
+        "Delivered setup validated with the alpha.33 executable: structure.status pass; protocol 2f3663b8819c61c28a3216ce622903b6b36b825ea7f9e3e76504c126135cd305; manifest eee9026d636001068836af9241a69ca2f24e6569c3185479b0accaf2ca005365; 92/92 files."
+      ]
     }
   ],
   "checkpoint": {
@@ -373,7 +393,7 @@
       "2026-10-20 (issue #160): alpha.30 landed at 67f60594dd2267355be2b4110131cb4eef89cce3. This opencode session reloaded the alpha.30 skill from main after the merge (harness opencode v2.0.32, run ses_edd7daef5ffe1iENC1ar1oRsLD), verified the delivered identity and applied the new rules to the landing record. It does not attest the adopted harness `pi coding agent 1.0.1`, whose continuation remains unrecorded. Qualification stays `unverified`; Q5 remains partial and the checkpoint-chain finding is still open.",
       "2026-10-20 (issue #141): the harness-record ambiguity is resolved by the maintainer's direction \u2014 multiple harnesses are supported; `harness` now names the harness in use (opencode 2.0.32) while each observing session cites its own harness/version. Q5 moves from partial to PASS for its inspected opencode scope: .yolo/reports/continuation-2026-10-13.json records a distinct fresh session loading the pin and reconciling the next action, and the 2026-10-20 session reloaded alpha.30 and continued. Qualification stays `unverified`: the checkpoint-chain gap was accepted by scoped override for checkpoint progression only and is not repaired, so the 'no unresolved required finding' condition for a level claim is not met. No level is claimed.",
       "2026-10-21 (issue #179, .yolo/reports/checkpoint-review-2026-10-21.json): the 41 commits from 9c05e25 to c62fbd3 are reviewed across ownership, congruence, verification and continuity; v0.5.0 (7/7), v0.6.0 (8/8), v0.7.0 (9/9) and v0.8.0 (10/10) are verified on their installed artifacts; a fresh Cursor session recovered the interrupted #175 session and delivered v0.7.0 and v0.8.0; and the #129/#153 issue_summary findings and #141/#170/#174 issue_state findings are cleared. Qualification stays `unverified` because the historical checkpoint-chain gap (accepted by YOLO-Override: #141 for checkpoint progression only) and the initial schema_version: 1 commit of releases-observed-2026-10-14.json remain in immutable git history.",
-      "PENDING alpha.33 candidate (issue #189): the entries above are historical evidence for the alpha.23 and alpha.30 pins; none of them attests alpha.33 loading. Qualification stays unverified and no level is claimed for the candidate."
+      "2026-10-21 (issue #189): v0.1.0-alpha.33 landed at 46ddf753f0d7b4096053597d316cd9361e0041a6. This Cursor session reloaded the alpha.33 skill from main after the merge, verified the delivered identity (92/92 manifest files, protocol sha256 2f3663b8...) and applied the alpha.33 rules to the landing record. Qualification stays `unverified`."
     ]
   },
   "feedback": {
