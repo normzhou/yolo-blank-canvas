@@ -1,0 +1,66 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-21",
+  "observed_at": "2026-10-21",
+  "published_at_utc": "2026-10-22T02:15:10Z",
+  "protocol": {
+    "revision": "e95211f32261580fb580cf0da9d7276ae477b063",
+    "release": "v0.1.0-alpha.30"
+  },
+  "releases": [
+    {
+      "tag": "v0.10.1",
+      "commit": "c26708dcc851f307e9c702cc0cc2c520eb7e47e3"
+    }
+  ],
+  "release": {
+    "tag": "v0.10.1",
+    "tag_object": "a5db52677fb3e5dbb8739e73cf39ccc3056ea4aa",
+    "release_commit": "c26708dcc851f307e9c702cc0cc2c520eb7e47e3",
+    "source_commit": "3bfb9f655326d1dcc8bdf3135c59b48ca175ac2f",
+    "assets_commit": "88a42bc352203e232816044ab8869235814f6e63",
+    "semver": "patch",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record 3bfb9f6, the source revision. The committed assets were built at that source in 88a42bc. c26708d is a release-metadata commit (version and install references, no source changes) after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "291 passed across 25 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID 3bfb9f6" },
+    { "check": "npm run e2e (stubbed, deterministic)", "result": "pass", "detail": "90 passed, 1 skipped (91 run)" },
+    { "check": "yolo-check . --structure (0.1.0-alpha.30)", "result": "pass", "detail": "13 of 13 findings compliant" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #188 run 39710037912 completed success (20s)" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "installed_from": "npx --yes github:normzhou/yolo-blank-canvas#v0.10.1 --no-open --port 4875",
+    "installed_into": "an empty directory, no source checkout present",
+    "served_build": "3bfb9f655326d1dcc8bdf3135c59b48ca175ac2f",
+    "served_version": {
+      "package": "0.10.1",
+      "serverBuild": "3bfb9f655326d1dcc8bdf3135c59b48ca175ac2f",
+      "clientBuild": "3bfb9f655326d1dcc8bdf3135c59b48ca175ac2f"
+    },
+    "command": "YOLO_VERIFY_URL=http://127.0.0.1:4875 npm run e2e:verify-release",
+    "result": "pass",
+    "detail": "11 of 11 passed."
+  },
+  "what_this_release_delivers": [
+    "#186 Puzzle Bobble ceiling-warning tremor tuned to half the magnitude (±0.5px) and double the frequency (90ms)",
+    "#186 Puzzle Bobble on-board incoming attack indicator (side-rail Neo-Geo warning orb gauge + bottom staging row of incoming bubbles about to come up) and bottom-up rising bubble animation (.pb-rise-bubble + .pb-rise-trail)",
+    "#185 Tetris arcade 3D beveled tetromino cells with inner shine and dashed ghost landing piece preview (ghostPiece)"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "Upstream YOLO Dev request-template adoption remains deferred as #174 until upstream #144 ships in a release and this repository upgrades its pin.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "Acceptance on the delivered artifact is eleven targeted read-only checks. The 291 unit tests and 91 stubbed e2e tests ran against the source revision, not the installed artifact.",
+    "The tag points at c26708d, a release-metadata commit after the assets commit 88a42bc, not at the assets commit itself. Both build-ID files still record the source 3bfb9f6, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #186, #185"
+}
