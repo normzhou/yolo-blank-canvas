@@ -1,0 +1,64 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-22",
+  "observed_at": "2026-10-22",
+  "published_at_utc": "2026-10-22T07:24:00Z",
+  "protocol": {
+    "revision": "da644964ca92eef8448cd782cf6805c724ca2e74",
+    "release": "v0.1.0-alpha.33"
+  },
+  "releases": [
+    {
+      "tag": "v0.13.1",
+      "commit": "8b3f76ebe0228b3c10c10388f1611e716f552725"
+    }
+  ],
+  "release": {
+    "tag": "v0.13.1",
+    "tag_object": "15f09f495ddbf5be9f6545f4dff9ffece5242dac",
+    "release_commit": "8b3f76ebe0228b3c10c10388f1611e716f552725",
+    "source_commit": "811795877191e11aedd7981429bceb214681b0bf",
+    "assets_commit": "4fbe2d1141350398c5f4abe083f90573708c4261",
+    "semver": "patch",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record 8117958, the source revision. The committed assets were built at that source in 4fbe2d1. 8b3f76e is a release-metadata commit (version and install references, no source changes) after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "155 passed across 23 files (consolidated from 294 across 25 files)" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID 8117958" },
+    { "check": "npm run e2e (stubbed, deterministic)", "result": "pass", "detail": "42 passed (28.9s, zero dirty review files)" },
+    { "check": "yolo-check . --structure (0.1.0-alpha.33)", "result": "pass", "detail": "13 of 13 findings compliant" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #202 completed success" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "installed_from": "npx --yes github:normzhou/yolo-blank-canvas#v0.13.1 --no-open --port 4875",
+    "installed_into": "an empty directory, no source checkout present",
+    "served_build": "811795877191e11aedd7981429bceb214681b0bf",
+    "served_version": {
+      "package": "0.13.1",
+      "serverBuild": "811795877191e11aedd7981429bceb214681b0bf",
+      "clientBuild": "811795877191e11aedd7981429bceb214681b0bf"
+    },
+    "command": "YOLO_VERIFY_URL=http://127.0.0.1:4875 npm run e2e:verify-release",
+    "result": "pass",
+    "detail": "11 of 11 passed."
+  },
+  "what_this_release_delivers": [
+    "#201 test-suite consolidation: removes duplicate test/contrast.test.ts and test/type-scale.test.ts after folding their unique assertions into test/theme-contrast.test.ts, test/theme-tokens.test.ts, and test/theme-discipline.test.ts, collapses table-expanded it.each micro-blocks (reducing Vitest from 294 to 155 focused tests across 23 files), separates visual/motion/measure/determinism review captures from default npm run e2e (preventing 49 dirty files in e2e/review/**), and consolidates 7 redundant single-issue E2E specs (reducing npm run e2e from 96 tests / ~90s to 42 tests / 28.9s)"
+  ],
+  "carried_known_gaps": [
+    "Live deployment of demo.yolo-dev.ai (#199) awaits maintainer submission of hosting/HOSTNAME-REQUEST.md to normzhou/yolo-dev and owner Cloudflare Worker/gateway secret provisioning.",
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "Acceptance on the delivered artifact is eleven targeted read-only checks. The 155 unit tests and 42 stubbed e2e tests ran against the source revision, not the installed artifact.",
+    "The tag points at 8b3f76e, a release-metadata commit after the assets commit 4fbe2d1, not at the assets commit itself. Both build-ID files still record the source 8117958, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #201"
+}

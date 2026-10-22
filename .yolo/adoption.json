@@ -233,15 +233,16 @@
         "v0.10.0": "0da7fcbb97d206d47b98e97988f3bca66d455c20",
         "v0.10.1": "c26708dcc851f307e9c702cc0cc2c520eb7e47e3",
         "v0.11.0": "d678e4876f64deb4b7fbecad6342cd09e82ee0f5",
-        "v0.12.0": "5bc37e3c0273176d348bcde1ae8770f977384024"
+        "v0.12.0": "5bc37e3c0273176d348bcde1ae8770f977384024",
+        "v0.13.0": "a70c68f5317168ad202db8c607740b25dd1b8197"
       },
       "published": {
-        "tag": "v0.13.0",
-        "commit": "a70c68f5317168ad202db8c607740b25dd1b8197",
-        "source_commit": "a5a69429be5605840fc1ca7b984cccfdaf529796",
-        "published_at": "2026-10-22T07:03:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-10-21-v0130.json",
-        "note": "Minor release. Delivers the home slide-deck UX enhancements (#198: stacked next/previous preview cards, ArrowLeft/ArrowRight + Enter/Space keyboard navigation, directional slide transition animations, and subtle dynamic ambient background visual effects) and the static-app preview mode & demo.yolo-dev.ai Cloudflare Worker scaffold (#199: hosting/cloudflare/ serving ../../dist/client, static_demo mode on 503 Backend configuration unavailable, and prepared hosting/HOSTNAME-REQUEST.md). Acceptance before tagging: 294 unit, 95 stubbed e2e passed + 1 skipped, tsc clean, wrangler dry-run pass, structure pass. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit a70c68f after the assets commit 629e005; both build-ID files record a5a6942."
+        "tag": "v0.13.1",
+        "commit": "8b3f76ebe0228b3c10c10388f1611e716f552725",
+        "source_commit": "811795877191e11aedd7981429bceb214681b0bf",
+        "published_at": "2026-10-22T07:24:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-10-22-v0131.json",
+        "note": "Patch release. Consolidates redundant unit and E2E tests (#201: removes duplicate test/contrast.test.ts and test/type-scale.test.ts, collapses table-expanded it.each micro-blocks from 294 to 155 focused unit tests across 23 files, separates visual/motion/measure/determinism review captures from default npm run e2e, and consolidates 7 single-issue E2E specs from 96 tests / ~90s to 42 tests / 28.9s). Acceptance before tagging: 155 unit, 42 stubbed e2e passed, tsc clean, structure pass. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit 8b3f76e after the assets commit 4fbe2d1; both build-ID files record 8117958."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -261,7 +262,8 @@
         ".yolo/reports/releases-observed-2026-10-21-v0101.json",
         ".yolo/reports/releases-observed-2026-10-21-v0110.json",
         ".yolo/reports/releases-observed-2026-10-21-v0120.json",
-        ".yolo/reports/releases-observed-2026-10-21-v0130.json"
+        ".yolo/reports/releases-observed-2026-10-21-v0130.json",
+        ".yolo/reports/releases-observed-2026-10-22-v0131.json"
       ]
     }
   },

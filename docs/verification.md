@@ -6,7 +6,10 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Prune redundant tests and separate visual review captures from default E2E (#201) — 2026-10-22
 
-Source revision `8117958` (the feature commit).
+Source revision `8117958` (the feature commit); build and review evidence
+`4fbe2d1`; release commit `8b3f76e`; published as `v0.13.1` on 2026-10-22. The
+unit and stubbed e2e results below ran against the source revision; the 11/11
+acceptance below ran against the installed tag users receive.
 
 - `npm test`: 23 files, 155 tests passed in 636ms (consolidated from 25 files /
   294 tests by removing duplicate `test/contrast.test.ts` and
@@ -26,6 +29,18 @@ Source revision `8117958` (the feature commit).
   so `npm run e2e` never dirties `e2e/review/**`).
 - `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`,
   13/13 findings compliant.
+
+### Installed artifact (`v0.13.1`)
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.13.1 --no-open --port 4875`
+in an empty directory, with no source checkout. `GET /api/version` reported both
+`serverBuild` and `clientBuild` as `8117958…`; the tagged package version is
+`0.13.1`. The tag points at release commit `8b3f76e`, after the assets commit
+`4fbe2d1`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4875 npm run e2e:verify-release`:
+**11 passed, 0 failed**. The report is
+[`.yolo/reports/releases-observed-2026-10-22-v0131.json`](../.yolo/reports/releases-observed-2026-10-22-v0131.json).
 
 ## Stacked slide-deck preview cards, keyboard navigation, ambient effects (#198) and static `demo.yolo-dev.ai` Cloudflare Worker scaffold (#199) — 2026-10-21
 
