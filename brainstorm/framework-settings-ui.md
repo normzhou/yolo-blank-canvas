@@ -99,80 +99,61 @@ There is an important nuance in how GitHub enforces issue-level permissions depe
 
 ---
 
-## 4. Walking Through the 7 Enumerated Surface-Area Examples
+## 4. End-to-End Mapping of the Enumerated Surface Area to the Decided Model
 
-Here is how each of the 7 items from our enumeration works end-to-end across **Storage Mechanism**, **Role Segregation**, **UI Read/Write**, and **Runner Read/Write**:
+Below is the complete mapping of our **7 Framework Surface-Area Domains** (plus **Domain 0: Regular User Requests**) onto:
+- **GitHub Primitive & Field** (Issue Lock, Tags/Labels, Issue Body, Issue Comments, PR Review, `.yolo/adoption.json`)
+- **Regular User (`user_a`, `user_b` via External ID + Bot Token)**
+- **Maintainer (`normzhou` via GitHub Account Token)**
+- **Runner / Coding Harness**
 
-### Example 1: Consent Switches (`feedback.automatic`, `observation.enabled`)
-- **What it is:** Boolean authority controls in `.yolo/adoption.json` requiring maintainer `acceptance` evidence.
-- **Role visibility:**
-  - *Regular user:* Hidden (or read-only privacy/telemetry disclosure in footer).
-  - *Maintainer:* Interactive toggle switches in the **Framework / Settings** tab.
-- **How UI writes & reads:**
-  - *Write:* Maintainer flips `feedback.automatic` → UI posts a structured comment on `yolo:control` (or updates `yolo:control` body) under maintainer's `gh` identity.
-  - *Read:* UI reads baseline `.yolo/adoption.json` + latest maintainer event on `yolo:control`. Shows `On (synced)` or `On (pending Git sync · #205)`.
-- **How Runner writes & reads:**
-  - *Read:* Before `/yolo feedback` or observer transmission, Runner checks `.yolo/adoption.json` + `yolo:control` events authored by `authority.maintainers`.
-  - *Write:* On next `/yolo work` run, Runner commits the updated boolean + comment URL into `.yolo/adoption.json` `feedback.acceptance[]`.
+---
 
-### Example 2: Maintainer Manual Tasks (`yolo:manual`, e.g., `#203` for `demo.yolo-dev.ai`)
-- **What it is:** Tasks reserved to the human maintainer (creating a per-subdomain Cloudflare API token, setting a secret, making an authority decision) that block an admitted `yolo:work` outcome (`#199`) via native GitHub `blockedBy`.
-- **Role visibility:**
-  - *Regular user:* Filtered **out** of the default Requests list (or shown muted under the blocked outcome's detail view) so regular users aren't confused by internal ops tasks.
-  - *Maintainer:* Highlighted in an **"Action Required (1)"** banner at the top of the drawer.
-- **How UI writes & reads:**
-  - *Read:* Queries open issues with label `yolo:manual` and their GraphQL `blocking` edges. Renders the step-by-step instructions (`#203`).
-  - *Write:* Maintainer clicks **"I completed this — resume work"** (optionally with a note) → UI posts a maintainer confirmation comment on `#203`.
-- **How Runner writes & reads:**
-  - *Write:* When Runner hits a human-only boundary during `/yolo work`, it creates a `yolo:manual` issue, links `addBlockedBy`, and sets the work issue to `yolo:state:waiting`.
-  - *Read:* On next `/yolo work`, Runner sees the maintainer's confirmation comment on `#203`, verifies the completion condition (e.g., checks `~/.local/share/yolo-demo-app/env.sh`), closes `#203`, and transitions `#199` from `waiting` to `active`.
+### Master Mapping Matrix
 
-### Example 3: Execution Steering (`Run / Pause` & `Now / Next` Priority Ordering)
-- **What it is:** Global execution clutch (`Run` vs. `Pause` binding limit in `AUTHORITY.md`) and priority ordering of queued outcomes (`Now / Next`).
-- **Role visibility:**
-  - *Regular user:* Sees read-only status badges (`Planned`, `In progress`, `Waiting`) on their requests.
-  - *Maintainer:* Sees **Run / Pause** toggle and can reorder or pin `Now / Next` outcomes.
-- **How UI writes & reads:**
-  - *Write:* Maintainer clicks **Pause** or promotes an issue to **Now** → UI updates the `yolo:control` issue (or active plan issue).
-  - *Read:* Reads `yolo:control` issue state.
-- **How Runner writes & reads:**
-  - *Read:* Runner checks `yolo:control` at startup and before every merge/release; if `Paused` by maintainer, Runner stops immediately (`AUTHORITY.md`: *"A stated human pause holds until explicit human resume"*).
-  - *Write:* Runner updates the `Now / Next` table as outcomes complete or new requests are triaged.
+| Domain & Setting / Feature | GitHub Backing Artifact | GitHub Fine-Grained Permission Gate | Regular User (`user_a` via Google ID + Bot Token) | Maintainer (`normzhou` via GitHub Account) | Runner / Coding Harness |
+| --- | --- | --- | --- | --- | --- |
+| **0. Regular User Requests & Replies** (`yolo.feedback`, `yolo.feature`, `yolo.bug`) | Ordinary unlocked **GitHub Issue** + **Comments** | **Open & Unlocked Issue:** Bot token can `POST /issues` (no labels) and `POST /issues/:n/comments`. Cannot edit others' bodies/comments. | **UI:** Files request & replies. Stamped with `<!-- yolo:requester id="user_a" -->`. Can filter "My requests".<br>**GitHub:** Posted by Bot token. | **UI:** Sees all requests + requester IDs; can reply or triage.<br>**GitHub:** Posts as `normzhou`. | **Reads** new issues; adds `yolo:request` / `yolo:work` + `yolo:state:*` labels and `## YOLO status` / `## YOLO request` summary comments. |
+| **A1. Automatic Upstream Feedback** (`feedback.automatic`: `bool`) | **Locked `yolo:control` Issue** (Comment + Body table) ➔ synced to `.yolo/adoption.json` | **Locked Issue + Tag `yolo:control`:** Bot token gets `403` on comment/edit/label. Maintainer GH token bypasses lock (`200`). | **UI:** Hidden.<br>**GitHub:** Blocked (`403` on locked `yolo:control` issue; Runner also rejects non-maintainer `user.login`). | **UI:** Flips toggle ➔ posts `<!-- yolo:control-event {"feedback.automatic":true} -->` comment + updates `yolo:control` body.<br>**Latency:** ~200ms. | **Reads** `.yolo/adoption.json` + latest `normzhou` comment on `yolo:control`.<br>**Writes:** Syncs value + comment URL into `adoption.json` `feedback.acceptance[]` on next commit. |
+| **A2. Activity Observation / Telemetry** (`observation.enabled`: `bool`) | **Locked `yolo:control` Issue** (Comment + Body table) ➔ synced to `.yolo/adoption.json` | **Locked Issue + Tag `yolo:control`:** Bot token blocked (`403`). Maintainer GH token allowed (`200`). | **UI:** Read-only privacy note in footer.<br>**GitHub:** Blocked (`403`). | **UI:** Flips toggle ➔ posts control-event comment on locked `yolo:control` issue.<br>**Latency:** ~200ms. | **Reads** `adoption.json` + `yolo:control` before observer hook transmits.<br>**Writes:** Syncs value + comment URL into `observation.acceptance[]`. |
+| **B1. Skill Pin & Channel Upgrade** (`v0.1.0-alpha.33`, `stable` vs `preview`) | **Locked `yolo:control` Issue** (trigger) + **GitHub PR** (`.agents/skills/yolo`, `.yolo/protocol.md`, `adoption.json`) | **PR Review / Merge Gate:** Bot token cannot open branches/PRs or review. Maintainer GH token posts `APPROVED` review. | **UI:** Read-only version in footer.<br>**GitHub:** Blocked. | **UI:** Sees current pin vs. latest upstream release; clicks **"Upgrade to preview"** (posts command on `yolo:control`) and **"Approve Upgrade PR"**. | **Reads** upgrade trigger on `yolo:control`; runs `yolo-check resolve`, opens PR, runs `yolo-check --structure`, and merges after Maintainer approval. |
+| **B2. Target Level & Qualification** (`L1` / `L2`, `Q1–Q5`, `yolo-check`) | `.yolo/adoption.json` + `.yolo/reports/*.json` | **Git Branch / Repo Contents:** Read-only in Git; only Runner/Maintainer can commit. | **UI:** Hidden.<br>**GitHub:** Read-only. | **UI:** Inspects `L1 Assisted · Active`, Q1–Q5 status, and `13/13 structure pass`; clicks **"Request `/yolo check`"**. | **Writes** `.yolo/reports/checkpoint-review-*.json` and updates `qualification.evidence[]`. |
+| **C. Execution & Credential Profile** (`personal` vs `self-hosted-app`) | `.yolo/adoption.json` (`execution`) + private controller config outside repo | **Locked `yolo:control` + PR:** Requires Maintainer GH token + local controller preflight (`yolo-check app verify`). | **UI:** Hidden.<br>**GitHub:** Blocked. | **UI:** Views active profile (`personal` vs `self-hosted-app` `app_id`/`installation_id`) and preflight receipt. | **Reads** `adoption.json` `execution.profile`; refuses fallback if `self-hosted-app` is configured without preflight. |
+| **D. Governance & Protected Docs** (`CHARTER.md`, `AUTHORITY.md`, `authority.pending[]`) | `.yolo/governance/*` + **GitHub PR Review** (`commit_id`) | **Protected Edit Rule + PR Review:** Runner requires `review.user.login ∈ authority.maintainers` bound to exact PR `head.sha`. | **UI:** Can view Charter purpose ("About this app").<br>**GitHub:** Cannot approve or merge. | **UI:** Views Charter/Authority; sees any pending governance PR and clicks **"Approve revision `<sha>`"** (posts GitHub PR Review). | **Verifies** authenticated `normzhou` approval on exact commit SHA before merging any diff touching `CHARTER.md` or `AUTHORITY.md`. |
+| **E. Verification, Checkpoints & Releases** (`v0.13.1`, `checkpoint.commit`, `unresolved[]`) | `.yolo/adoption.json` + `.yolo/reports/releases-observed-*.json` + **GitHub Releases** | **Git Tag / Release:** Delegated to Runner under `ARCHITECTURE.md` versioning policy; withdrawing/deleting reserved to Maintainer. | **UI:** Sees `v0.13.1` and "App version changed — reload" banner. | **UI:** Sees release history, `11/11` verify-release status, commits since last checkpoint, and `unresolved[]` list. | **Writes** release tags, `.yolo/reports/releases-observed-*.json`, and updates `verification.release.published`. |
+| **F. App Hosting & Shared Identity** (`hosting/cloudflare/`, `demo.yolo-dev.ai`) | `hosting/*` in Git + Upstream Issue (`normzhou/yolo-dev#208`) + Manual Blocker (`#203`) | **Repo + Cross-Repo Issue (`yolo-dev#208`):** Filed under Maintainer/authorized `feedback.automatic` path. | **UI:** Uses `demo.yolo-dev.ai` in `static_demo` mode. | **UI:** Sees pipeline (`Scaffold ✓` ➔ `Upstream #208` ➔ `Blocker #203` ➔ `Live`) and `CLIENT_IDENTITY_ENABLED` status. | **Instantiates** `hosting/`, verifies `wrangler deploy --dry-run`, files/updates `yolo-dev#208`, and deploys Worker once `#203` completes. |
+| **G1. Maintainer Manual Tasks** (`yolo:manual`, e.g., `#203` blocking `#199`) | **Locked `yolo:manual` Issue** + GraphQL `blockedBy` edge to `yolo:work` issue | **Tag `yolo:manual` + Locked Issue:** Bot token cannot label (`403`) or comment if locked (`403`). Only Maintainer GH token can confirm/close. | **UI:** Filtered **out** of the regular Requests list so ops tasks don't clutter user requests.<br>**GitHub:** Blocked (`403`). | **UI:** Top **"Action Required (1)"** banner showing `#203` steps + **"I completed this — resume work"** button (posts `normzhou` comment). | **Creates** `yolo:manual` issue + `addBlockedBy` when blocked; **reads** `normzhou` confirmation, verifies completion condition, closes `#203`, and resumes `#199`. |
+| **G2. Execution Steering** (`Run / Pause` & `Now / Next` queue) | **Locked `yolo:control` Issue** (Body table + Comments) | **Locked Issue + Tag `yolo:control`:** Bot token blocked (`403`). Maintainer GH token edits body / comments (`200`). | **UI:** Sees read-only `Planned` / `In progress` / `Waiting` badges on requests.<br>**GitHub:** Blocked (`403`). | **UI:** Clicks **Pause / Resume** or reorders `Now / Next` queue ➔ updates locked `yolo:control` issue (~200ms). | **Checks** `yolo:control` before every step/merge/release; halts immediately if `Paused`. Updates `Now / Next` as work advances. |
 
-### Example 4: Skill Pin & Upgrade Lifecycle (`v0.1.0-alpha.33`, `/yolo upgrade [preview]`)
-- **What it is:** The pinned YOLO Dev bundle in `.agents/skills/yolo/**`, `.yolo/protocol.md`, and `.yolo/adoption.json`.
-- **Role visibility:**
-  - *Regular user:* Footer shows `YOLO Dev v0.1.0-alpha.33` (read-only).
-  - *Maintainer:* Sees current pin (`v0.1.0-alpha.33`), whether a newer `stable` or `preview` release exists upstream (`normzhou/yolo-dev` releases API), and an **"Upgrade Pin"** / **"Approve Upgrade PR"** button.
-- **How UI writes & reads:**
-  - *Read:* Reads `.yolo/adoption.json` (`harness.skill.release`) and compares with `GET /repos/normzhou/yolo-dev/releases`.
-  - *Write:* Clicking **"Request upgrade to v0.1.0-alpha.34"** posts a control request; once the Runner opens the upgrade PR, if protected edits are involved, the UI shows **"Approve Upgrade PR"** which posts the maintainer's approval on the PR/issue.
-- **How Runner writes & reads:**
-  - *Write:* Runner runs `yolo-check resolve`, stages the 92-file bundle in a PR, runs `yolo-check --structure`, and merges once approved.
+---
 
-### Example 5: Protected Governance (`CHARTER.md`, `AUTHORITY.md`, `authority.pending[]`)
-- **What it is:** Human-owned purpose, durable constraints, recognized maintainers, and standing grant.
-- **Role visibility:**
-  - *Regular user:* Can read the project's Charter purpose ("What this app is for").
-  - *Maintainer:* Sees active Charter/Authority summary + any pending protected proposal in `authority.pending[]` or open PRs touching `.yolo/governance/*`.
-- **How UI writes & reads:**
-  - *Write:* Maintainer can propose a Charter edit or click **"Approve revision `<sha>`"** on a pending governance PR (posting an authenticated PR review/comment bound to that exact SHA).
-- **How Runner writes & reads:**
-  - *Read:* Runner checks that the approval comment/review by `authority.maintainers` names the exact commit SHA before merging any PR that touches `CHARTER.md` or `AUTHORITY.md`.
+### Concrete Walkthrough of How the Three Core Flows Work
 
-### Example 6: Verification, Checkpoints & Releases (`v0.13.1`, `yolo-check`, `checkpoint`)
-- **What it is:** Read-only health dashboard of the repository's conformity (`13/13 structure pass`, `checkpoint` commit `c62fbd3`, `unresolved[]`, and latest release `v0.13.1` `11/11` verification).
-- **Role visibility:**
-  - *Regular user:* Sees current build/release version (`v0.13.1`) and reload prompt when a new version ships.
-  - *Maintainer:* Sees full conformity breakdown (`structure`, `checkpoint` lag, `unresolved[]`) and can request a checkpoint review.
-- **How UI & Runner interact:**
-  - *Runner writes* `.yolo/reports/*.json` and updates `.yolo/adoption.json` on each release/checkpoint; *UI reads* and renders them.
+#### Flow 1: Regular User (`user_a`) Files a Request vs. Tries to Touch Settings
+1. `user_a` opens the web app and signs in with **Google** (`login.yolo-dev.ai`). They have **no GitHub account**.
+2. The web app session has `{ role: "requester", userId: "user_8f92a1" }`. The UI renders **only** the game stage and the `Requests` drawer (filtered to exclude `yolo:manual` and `yolo:control` issues).
+3. `user_a` submits a feature request. The web app backend calls GitHub `POST /repos/:o/:r/issues` using the **Bot Token**, passing **only** `title` and `body` (appending `<!-- yolo:requester id="user_8f92a1" -->`).
+4. Even if `user_a` tries to craft a malicious HTTP request to change framework settings:
+   - The web app backend rejects `/api/control` because `session.role !== "maintainer"`.
+   - Even if the Bot Token itself tried to comment on or edit the `yolo:control` issue on GitHub, **`yolo:control` is locked (`locked: true`) and tagged `yolo:control`**, so GitHub returns `403 Forbidden` to a non-collaborator bot token, and the Runner ignores any `yolo:control` event not authored by `normzhou`.
 
-### Example 7: App Hosting & Shared Identity (`hosting/cloudflare/`, `demo.yolo-dev.ai`)
-- **What it is:** Static/Worker deployment config (`wrangler.json`), upstream hostname request (`normzhou/yolo-dev#208`), and manual setup blocker (`#203`).
-- **Role visibility:**
-  - *Regular user:* Uses the hosted app at `demo.yolo-dev.ai`; sees truthful `static preview` indicator.
-  - *Maintainer:* Sees hosting pipeline status (`Scaffold ready` → `Upstream request #208 open` → `Waiting on Worker API token #203` → `Live`), with direct links to `#203` and `normzhou/yolo-dev#208`.
+#### Flow 2: Maintainer (`normzhou`) Flips a Live Setting (`feedback.automatic` or `Pause`)
+1. `normzhou` signs into the web app using **GitHub** (`gh` locally, or GitHub OAuth on hosted).
+2. The web app backend verifies `login === "normzhou"` (`∈ adoption.authority.maintainers`) and repo `admin` permission, setting `{ role: "maintainer", login: "normzhou" }`.
+3. `normzhou` opens the **Framework / Control** tab and flips `feedback.automatic` (or clicks **Pause**).
+4. The backend uses `normzhou`'s GitHub token to post a structured comment on the locked `yolo:control` issue and update its body table (~200ms):
+   ```markdown
+   ## YOLO control event
+   - Setting: `feedback.automatic` -> `true`
+   <!-- yolo:control-event {"setting":"feedback.automatic","value":true} -->
+   ```
+5. Both the UI and the Runner immediately read this event from `yolo:control` (verifying `comment.user.login === "normzhou"`). On the Runner's next commit, it syncs the setting and the comment's immutable GitHub URL into `.yolo/adoption.json` `feedback.acceptance[]`.
+
+#### Flow 3: Maintainer Completes a `yolo:manual` Blocker (`#203`)
+1. During `/yolo work` on `#199` (`demo.yolo-dev.ai`), the Runner hits a human-only step (creating the per-subdomain Cloudflare Worker API token). It creates `#203` with label `yolo:manual`, locks it (so only maintainers can comment), links `#199` `blockedBy` `#203`, and sets `#199` to `yolo:state:waiting`.
+2. When `normzhou` opens the web app, the UI sees an open `yolo:manual` issue and displays an **"Action Required: #203"** card at the top of the drawer with the step-by-step instructions.
+3. After `normzhou` creates `~/.local/share/yolo-demo-app/env.sh`, they click **"Mark completed & resume #199"** in the UI.
+4. The UI posts a comment on `#203` under `normzhou`'s GitHub token. On the next `/yolo work` run, the Runner verifies `normzhou`'s comment + checks `~/.local/share/yolo-demo-app/env.sh`, closes `#203`, and resumes `#199`.
 
 ---
 
