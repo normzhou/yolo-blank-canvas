@@ -2,7 +2,7 @@
   "schema_version": 2,
   "target": "normzhou/yolo-blank-canvas",
   "kind": "upgrade-proposal",
-  "status": "proposed",
+  "status": "landed",
   "protocol": {
     "revision": "da644964ca92eef8448cd782cf6805c724ca2e74",
     "sha256": "2f3663b8819c61c28a3216ce622903b6b36b825ea7f9e3e76504c126135cd305"
@@ -125,5 +125,20 @@
   ],
   "planned_operations": [
     "open proposal PR for #189, run CI and structural validation, merge to main under standing L1 delivery authority, observe landed commit on main, and activate the v0.1.0-alpha.33 pin"
-  ]
+  ],
+  "landed": {
+    "effective_commit": "46ddf753f0d7b4096053597d316cd9361e0041a6",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/190",
+    "proposal_commit": "d311856",
+    "direction": "Maintainer normzhou approved in this authenticated harness session on 2026-10-21 ('approved'); PR #190 had passed CI and structural validation before merge.",
+    "delivered_validation": "alpha.33 executable --structure on main@46ddf75: structure.status pass, exit 0, zero non-compliant findings, zero warnings.",
+    "delivered_identity": "protocol sha256 2f3663b8819c61c28a3216ce622903b6b36b825ea7f9e3e76504c126135cd305; bundle revision da644964ca92eef8448cd782cf6805c724ca2e74; manifest sha256 eee9026d636001068836af9241a69ca2f24e6569c3185479b0accaf2ca005365; 92/92 manifest files verified; five installer hook/plugin files present.",
+    "loading_evidence": "This Cursor session reloaded the alpha.33 skill from main after PR #190 merged at 46ddf75 and wrote this landing record under the alpha.33 rules.",
+    "post_landing_operations_completed": [
+      "activation.state moved from proposed to active with the landed revision observed on the default branch.",
+      "upgrades[] appended: from e95211f32261580fb580cf0da9d7276ae477b063 to da644964ca92eef8448cd782cf6805c724ca2e74, effective 46ddf753f0d7b4096053597d316cd9361e0041a6.",
+      "harness.observed_sessions extended with this session's alpha.33 reload observation.",
+      "qualification pending note replaced with the landed assessment."
+    ]
+  }
 }
