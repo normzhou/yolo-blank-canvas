@@ -59,7 +59,11 @@ Choose **Tetris** from the canvas row, the **Canvas** palette, or `?app=tetris` 
 
 ### Puzzle Bobble (Bust-A-Move)
 
-Choose **Puzzle Bobble** from the canvas row, the **Canvas** palette, or `?app=puzzle-bobble` ([request #181](https://github.com/normzhou/yolo-blank-canvas/issues/181)) to open a 2-player (or 1-player) arcade bubble-shooter battle. **Player 1** uses **ASDF** (**A/D** to aim left/right, **S** or **F** to shoot); **Player 2** uses **Arrow keys** (**←/→** to aim left/right, **↑** or **↓** to shoot). Match 3 or more bubbles of the same colour on the hexagonal grid to pop them; any unanchored bubbles hanging below fall for an avalanche bonus and send attack bubbles to your opponent's incoming tray in 2-player mode. Both players start each round with the identical opening wave and bubble queue for fairness. Like Tetris, all game state is local to the view and is lost when the view closes.
+Choose **Puzzle Bobble** from the canvas row, the **Canvas** palette, or `?app=puzzle-bobble` ([request #181](https://github.com/normzhou/yolo-blank-canvas/issues/181), [#183](https://github.com/normzhou/yolo-blank-canvas/issues/183)) to open a 2-player (or 1-player) arcade bubble-shooter battle modelled on the 1994 Taito / Neo-Geo cabinet:
+
+- **Controls:** **Player 1 (Bub)** uses **ASDF** (**A/D** to aim left/right, **S** or **F** to shoot); **Player 2 (Bob)** uses **Arrow keys** (**←/→** to aim left/right, **↑** or **↓** to shoot). Tapping an aim key steps by a fine **`0.5°`** for threading bank shots; holding glides smoothly at 60fps (`38°/s` ramping to `115°/s`).
+- **Arcade rules & scoring:** Popped groups of 3+ same-colour bubbles score `10 × count`; unanchored bubbles hanging below fall for an exponential avalanche bonus (**`20 × 2^(n - 1)`**: `1 = 20`, `2 = 40`, `3 = 80`, …, up to **`1,310,720`** for 17+ dropped at once), plus a fast-clear stage bonus (`50,000` pts at `≤ 5s`).
+- **2-Player Versus stack & HURRY UP! timer:** Popping 4+ bubbles charges your attack stack (`popped - 3`, shown with Neo-Geo **yellow = 1** and **red = 5** warning orbs), and dropping hanging bubbles unleashes all dropped + stacked bubbles onto your opponent's playfield. The compressor ceiling drops faster as fewer colours remain on screen, and waiting more than 5 seconds triggers a **`HURRY UP!`** countdown before auto-firing at 10 seconds. Like Tetris, all game state is local to the view and is lost when the view closes.
 
 ### Status display
 

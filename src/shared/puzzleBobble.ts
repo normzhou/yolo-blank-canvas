@@ -1,9 +1,17 @@
 /**
- * Puzzle Bobble (Bust-A-Move) arcade rules as pure functions (#181).
+ * Puzzle Bobble (Bust-A-Move) arcade rules as pure functions (#181, #183).
  *
- * Supports both 2-Player Versus (Player 1 on ASDF vs Player 2 on Arrow keys)
- * and 1-Player Solo. Like Tetris, all game state is local to the canvas view
- * and is never written to GitHub.
+ * Implements the 1994 Taito / Neo-Geo arcade mechanics:
+ * - Fine sub-degree tap aiming (`0.5°`) + smooth 60fps continuous sweep
+ * - Exponential dropped-bubble scoring (`20 * 2^(n-1)`, capped at `1,310,720` for 17+)
+ * - 2-Player Versus attack stack (`popped - 3` on quads/quints) + avalanche drop transfer,
+ *   read with yellow (1-unit) and red (5-unit) warning orbs
+ * - Dynamic ceiling drop interval scaled by the number of remaining bubble colours,
+ *   with a 1-shot pre-drop compressor tremor warning
+ * - 10-second shot timer with 5-second `HURRY UP!` countdown and auto-fire
+ * - Classic arcade stage formations and fast-clear stage bonus
+ *
+ * All game state is local to the canvas view and is never written to GitHub.
  */
 
 export type BubbleColor = 'ruby' | 'amber' | 'emerald' | 'azure' | 'amethyst' | 'coral';
@@ -36,9 +44,14 @@ export const ARENA_HEIGHT = 296;
 
 export const MIN_AIM_ANGLE = -75;
 export const MAX_AIM_ANGLE = 75;
-export const AIM_STEP_DEG = 3;
+/** Fine single-tap micro-adjustment in degrees (`0.5°` per tap). */
+export const AIM_STEP_DEG = 0.5;
 export const BUBBLE_SPEED = 14;
 export const CEILING_DROP_SHOTS = 8;
+
+export const SHOT_TIME_LIMIT_MS = 10_000;
+export const HURRY_WARNING_MS = 5_000;
+export const MAX_DROP_SCORE = 1_310_720;
 
 export interface FlyingBubble {
   x: number;
@@ -53,9 +66,20 @@ export interface GridCoord {
   col: number;
 }
 
+export interface ColoredCell extends GridCoord {
+  color: BubbleColor;
+  x: number;
+  y: number;
+}
+
 export interface ShotEvent {
-  popped: GridCoord[];
-  dropped: GridCoord[];
+  id: number;
+  popped: ColoredCell[];
+  dropped: ColoredCell[];
+  popScore: number;
+  dropScore: number;
+  clearBonus: number;
+  stackedGarbage: number;
   sentGarbage: number;
 }
 
@@ -67,8 +91,17 @@ export interface PlayerBoardState {
   flying: FlyingBubble | null;
   score: number;
   shotsFired: number;
+  shotsSinceDrop: number;
   ceilingDrop: number;
+  ceilingWarning: boolean;
+  /** Bubbles stored in this player's attack stack from 4+ pops, unleashed on the next drop. */
+  attackStack: number;
+  /** Attack bubbles queued to drop onto this player's playfield. */
   incomingGarbage: number;
+  /** Remaining milliseconds before the launcher auto-fires (`10_000` down to `0`). */
+  shotTimerMs: number;
+  /** Elapsed milliseconds in the current stage, used for the arcade speed bonus. */
+  stageElapsedMs: number;
   stage: number;
   status: 'playing' | 'won' | 'ko';
   lastEvent: ShotEvent | null;
@@ -140,9 +173,132 @@ export function pickBubbleColor(grid: BubbleGrid, rng: () => number = Math.rando
 }
 
 /**
+ * Authentic Neo-Geo scoring:
+ * - Each popped bubble scores 10 points (`30` for a triple, `40` for a quad, etc.).
+ * - Dropped bubbles score exponentially: `1 -> 20`, `2 -> 40`, `3 -> 80`, ...,
+ *   `20 * 2^(n - 1)`, capped at `1,310,720` for `17` or more bubbles dropped at once.
+ */
+export function scoreForPop(poppedCount: number): number {
+  return poppedCount >= 3 ? poppedCount * 10 : 0;
+}
+
+export function scoreForDroppedBubbles(droppedCount: number): number {
+  if (droppedCount <= 0) return 0;
+  if (droppedCount >= 17) return MAX_DROP_SCORE;
+  return 20 * 2 ** (droppedCount - 1);
+}
+
+/**
+ * Arcade stage clear speed bonus:
+ * - `0..5` seconds: `50,000` points
+ * - `6..64` seconds: steps down from `49,160` (`6s`) to `440` (`64s`)
+ * - `65+` seconds: `0` points
+ */
+export function scoreForStageClearBonus(elapsedMs: number): number {
+  const sec = Math.max(0, Math.floor(elapsedMs / 1000));
+  if (sec <= 5) return 50_000;
+  if (sec >= 65) return 0;
+  return Math.max(440, 50_000 - (sec - 5) * 840);
+}
+
+/**
+ * Dynamic ceiling drop interval based on how many distinct bubble colours
+ * remain on the playfield (fewer colours remaining = faster ceiling drops,
+ * matching the Neo-Geo arcade rule).
+ */
+export function shotsPerCeilingDrop(grid: BubbleGrid): number {
+  const colorCount = activeColorsOnGrid(grid).length;
+  return Math.max(4, Math.min(CEILING_DROP_SHOTS, 3 + colorCount));
+}
+
+/**
+ * Decomposes an attack/garbage bubble count into Neo-Geo indicator orbs:
+ * red orbs represent 5 bubbles, yellow orbs represent 1 bubble.
+ */
+export function decomposeGarbageOrbs(count: number): Array<'red' | 'yellow'> {
+  const safe = Math.max(0, Math.min(20, Math.floor(count)));
+  const reds = Math.floor(safe / 5);
+  const yellows = safe % 5;
+  return [...Array<'red'>(reds).fill('red'), ...Array<'yellow'>(yellows).fill('yellow')];
+}
+
+/**
+ * Classic Taito arcade stage formations (inspired by Neo-Geo Stages 1–6)
+ * so solo progression and versus rematches have recognizable hanging anchors.
+ */
+const STAGE_TEMPLATES: readonly string[][][] = [
+  // Stage 1: Classic paired color blocks (easy 1xM overhang targets)
+  [
+    ['R', 'R', 'Y', 'Y', 'G', 'G', 'B', 'B'],
+    ['R', 'R', 'Y', 'Y', 'G', 'G', 'B'],
+    ['B', 'B', 'G', 'G', 'Y', 'Y', 'R', 'R'],
+    ['B', 'G', 'G', 'Y', 'Y', 'R', 'R'],
+  ],
+  // Stage 2: Central pendulum stem (pop the top pair to avalanche the stem)
+  [
+    ['.', '.', '.', 'R', 'R', '.', '.', '.'],
+    ['.', '.', '.', 'Y', '.', '.', '.'],
+    ['.', '.', 'G', 'G', 'B', '.', '.', '.'],
+    ['.', '.', 'Y', 'P', 'B', '.', '.'],
+    ['.', '.', '.', 'C', 'C', '.', '.', '.'],
+  ],
+  // Stage 3: Twin hanging bridges
+  [
+    ['R', 'R', '.', '.', '.', '.', 'B', 'B'],
+    ['Y', 'G', 'G', 'P', 'P', 'Y', 'B'],
+    ['R', '.', '.', 'C', 'C', '.', '.', 'B'],
+    ['Y', 'G', '.', 'P', '.', 'Y', 'B'],
+  ],
+  // Stage 4: Twin towers
+  [
+    ['.', 'G', 'G', '.', '.', 'P', 'P', '.'],
+    ['.', 'R', 'Y', '.', 'B', 'C', '.'],
+    ['.', 'R', 'Y', '.', '.', 'B', 'C', '.'],
+    ['.', 'G', 'G', '.', 'P', 'P', '.'],
+    ['.', 'Y', 'R', '.', '.', 'C', 'B', '.'],
+  ],
+  // Stage 5: Diamond lattice
+  [
+    ['R', 'Y', 'G', 'B', 'B', 'G', 'Y', 'R'],
+    ['R', '.', 'G', 'P', 'G', '.', 'R'],
+    ['.', 'Y', 'C', 'P', 'P', 'C', 'Y', '.'],
+    ['.', 'Y', '.', 'C', '.', 'Y', '.'],
+  ],
+];
+
+const TEMPLATE_COLOR_MAP: Record<string, number> = {
+  R: 0,
+  Y: 1,
+  G: 2,
+  B: 3,
+  P: 4,
+  C: 5,
+};
+
+export function createStageGrid(stage = 1, rng: () => number = Math.random): BubbleGrid {
+  if (stage <= 0) return createInitialGrid(rng);
+  const templateIndex = (stage - 1) % STAGE_TEMPLATES.length;
+  const template = STAGE_TEMPLATES[templateIndex];
+  const grid = createEmptyGrid();
+  // Rotate the colour palette slightly using `rng` so repeated matches stay fresh
+  const offset = Math.floor(rng() * BUBBLE_COLORS.length);
+  for (let row = 0; row < template.length && row < MAX_ROWS; row += 1) {
+    const line = template[row];
+    for (let col = 0; col < line.length && col < colsForRow(row); col += 1) {
+      const token = line[col];
+      if (token in TEMPLATE_COLOR_MAP) {
+        const colorIdx = (TEMPLATE_COLOR_MAP[token] + offset) % BUBBLE_COLORS.length;
+        grid[row][col] = BUBBLE_COLORS[colorIdx];
+      }
+    }
+  }
+  return grid;
+}
+
+/**
  * Generates an initial arcade puzzle wave in the top `INITIAL_ROWS` rows.
- * Pairs are occasionally grouped along a row while avoiding giant monochrome
- * blobs so the opening board is varied and requires real shots to clear.
+ * Pairs are grouped along rows while avoiding giant monochrome blobs so the
+ * opening board is varied and rewards both bank shots and avalanche drops.
  */
 export function createInitialGrid(rng: () => number = Math.random): BubbleGrid {
   const grid = createEmptyGrid();
@@ -185,6 +341,7 @@ export function createInitialGrid(rng: () => number = Math.random): BubbleGrid {
 export function createPlayerBoard(
   rng: () => number = Math.random,
   initialGrid?: BubbleGrid,
+  stage = 1,
 ): PlayerBoardState {
   const grid = initialGrid ? cloneGrid(initialGrid) : createInitialGrid(rng);
   const currentBubble = pickBubbleColor(grid, rng);
@@ -197,9 +354,14 @@ export function createPlayerBoard(
     flying: null,
     score: 0,
     shotsFired: 0,
+    shotsSinceDrop: 0,
     ceilingDrop: 0,
+    ceilingWarning: false,
+    attackStack: 0,
     incomingGarbage: 0,
-    stage: 1,
+    shotTimerMs: SHOT_TIME_LIMIT_MS,
+    stageElapsedMs: 0,
+    stage,
     status: 'playing',
     lastEvent: null,
   };
@@ -215,7 +377,7 @@ export function createMatch(
   wins: [number, number] = [0, 0],
 ): PuzzleBobbleMatch {
   const sharedGrid = createInitialGrid(rng);
-  const first = createPlayerBoard(rng, sharedGrid);
+  const first = createPlayerBoard(rng, sharedGrid, 1);
   if (mode === '1p') {
     return {
       mode: '1p',
@@ -240,7 +402,26 @@ export function createMatch(
 }
 
 export function clampAimAngle(angle: number): number {
-  return Math.max(MIN_AIM_ANGLE, Math.min(MAX_AIM_ANGLE, Math.round(angle * 100) / 100));
+  const clamped = Math.max(MIN_AIM_ANGLE, Math.min(MAX_AIM_ANGLE, angle));
+  return Math.round(clamped * 10) / 10;
+}
+
+export function formatAimAngle(angle: number): string {
+  const rounded = Math.round(angle * 10) / 10;
+  const text = Number.isInteger(rounded) ? `${rounded}` : rounded.toFixed(1);
+  return rounded > 0 ? `+${text}°` : `${text}°`;
+}
+
+/**
+ * Smooth angular velocity (degrees per second) while holding an aim key:
+ * starts gentle (`38°/s`) for fine adjustments during the first `180ms`, then
+ * smoothly accelerates up to `115°/s` for sweeping across the arena.
+ */
+export function aimVelocityDegPerSec(holdDurationMs: number): number {
+  const clampedHold = Math.max(0, holdDurationMs);
+  if (clampedHold <= 180) return 38;
+  const ramp = Math.min(1, (clampedHold - 180) / 340);
+  return Math.round((38 + ramp * 77) * 10) / 10;
 }
 
 export function aimPlayer(
@@ -257,39 +438,47 @@ export function aimPlayer(
 }
 
 /**
- * Computes a 2-segment aiming sight line from the launcher, including up to one
- * wall bounce, so players can line up bank shots accurately.
+ * Computes a multi-segment aiming sight line from the launcher, including up to
+ * two wall bounces, so players can line up narrow bank shots accurately.
  */
 export function aimGuidePoints(
   aimAngle: number,
   ceilingDrop = 0,
 ): Array<{ x: number; y: number }> {
   const rad = (clampAimAngle(aimAngle) * Math.PI) / 180;
-  const dx = Math.sin(rad);
+  let dx = Math.sin(rad);
   const dy = -Math.cos(rad);
   const topY = BUBBLE_RADIUS + ceilingDrop * ROW_STEP;
-  const start = { x: LAUNCHER_X, y: LAUNCHER_Y };
+  const points: Array<{ x: number; y: number }> = [{ x: LAUNCHER_X, y: LAUNCHER_Y }];
 
   if (Math.abs(dx) < 1e-4) {
-    return [start, { x: LAUNCHER_X, y: topY }];
+    points.push({ x: LAUNCHER_X, y: topY });
+    return points;
   }
 
-  const wallX = dx > 0 ? ARENA_WIDTH - BUBBLE_RADIUS : BUBBLE_RADIUS;
-  const tWall = (wallX - start.x) / dx;
-  const tTop = (topY - start.y) / dy;
+  let curX = LAUNCHER_X;
+  let curY = LAUNCHER_Y;
+  let remainingLength = 340;
 
-  if (tTop <= tWall) {
-    return [start, { x: start.x + dx * tTop, y: topY }];
+  for (let bounce = 0; bounce < 2 && remainingLength > 0 && curY > topY; bounce += 1) {
+    const wallX = dx > 0 ? ARENA_WIDTH - BUBBLE_RADIUS : BUBBLE_RADIUS;
+    const tWall = (wallX - curX) / dx;
+    const tTop = (topY - curY) / dy;
+    const tStep = Math.min(tWall, tTop, remainingLength);
+
+    curX = Math.max(BUBBLE_RADIUS, Math.min(ARENA_WIDTH - BUBBLE_RADIUS, curX + dx * tStep));
+    curY = Math.max(topY, curY + dy * tStep);
+    points.push({ x: Math.round(curX * 10) / 10, y: Math.round(curY * 10) / 10 });
+
+    remainingLength -= tStep;
+    if (Math.abs(tStep - tWall) < 1e-3 && curY > topY) {
+      dx = -dx;
+    } else {
+      break;
+    }
   }
 
-  const bouncePoint = { x: wallX, y: start.y + dy * tWall };
-  const remainingY = Math.max(topY, bouncePoint.y - 90);
-  const tAfter = (remainingY - bouncePoint.y) / dy;
-  const endX = Math.max(
-    BUBBLE_RADIUS,
-    Math.min(ARENA_WIDTH - BUBBLE_RADIUS, bouncePoint.x - dx * tAfter),
-  );
-  return [start, bouncePoint, { x: endX, y: remainingY }];
+  return points;
 }
 
 /** Fires the active bubble from the player's launcher if no bubble is already in flight. */
@@ -309,7 +498,63 @@ export function firePlayerBubble(
     vy: -Math.cos(rad) * BUBBLE_SPEED,
     color: player.currentBubble,
   };
-  return replacePlayer(match, playerIndex, { ...player, flying });
+  return replacePlayer(match, playerIndex, {
+    ...player,
+    flying,
+    shotTimerMs: SHOT_TIME_LIMIT_MS,
+  });
+}
+
+/**
+ * Advances each player's 10-second shot countdown timer and stage clock.
+ * In the Neo-Geo arcade game, if a player waits more than 10 seconds without
+ * shooting (after a 5-second `HURRY UP!` countdown), the bubble is auto-fired.
+ */
+export function tickShotTimers(
+  match: PuzzleBobbleMatch,
+  deltaMs: number,
+  rng: () => number = Math.random,
+): PuzzleBobbleMatch {
+  if (match.status !== 'playing' || deltaMs <= 0) return match;
+  let current = match;
+
+  for (let index = 0; index < current.players.length; index += 1) {
+    const playerIndex = index as 0 | 1;
+    const player = current.players[playerIndex];
+    if (!player || player.status !== 'playing') continue;
+
+    const stageElapsedMs = player.stageElapsedMs + deltaMs;
+    if (player.flying !== null) {
+      current = replacePlayer(current, playerIndex, { ...player, stageElapsedMs });
+      continue;
+    }
+
+    const remaining = player.shotTimerMs - deltaMs;
+    if (remaining <= 0) {
+      const withClock = replacePlayer(current, playerIndex, {
+        ...player,
+        stageElapsedMs,
+        shotTimerMs: SHOT_TIME_LIMIT_MS,
+      });
+      current = firePlayerBubble(withClock, playerIndex);
+    } else {
+      current = replacePlayer(current, playerIndex, {
+        ...player,
+        stageElapsedMs,
+        shotTimerMs: remaining,
+      });
+    }
+  }
+
+  void rng;
+  return current;
+}
+
+/** Returns the 5..1 integer countdown when `HURRY UP!` is active, or `null` otherwise. */
+export function hurryCountdownSeconds(player: PlayerBoardState): number | null {
+  if (player.status !== 'playing' || player.flying !== null) return null;
+  if (player.shotTimerMs > HURRY_WARNING_MS) return null;
+  return Math.max(1, Math.ceil(player.shotTimerMs / 1000));
 }
 
 /**
@@ -439,6 +684,8 @@ export function hasCrossedDangerLine(grid: BubbleGrid, ceilingDrop: number): boo
 
 /**
  * Drops `count` incoming attack bubbles onto open frontier cells of `grid`.
+ * Per the Neo-Geo FAQ, transferred garbage bubbles use the full 6-colour
+ * palette (not just the colors currently on the receiving player's board).
  */
 export function applyIncomingGarbage(
   grid: BubbleGrid,
@@ -447,7 +694,7 @@ export function applyIncomingGarbage(
 ): BubbleGrid {
   if (count <= 0) return grid;
   const next = cloneGrid(grid);
-  const toPlace = Math.min(count, 6);
+  const toPlace = Math.min(count, 12);
 
   for (let i = 0; i < toPlace; i += 1) {
     const candidates: GridCoord[] = [];
@@ -471,7 +718,8 @@ export function applyIncomingGarbage(
 
 /**
  * Places a bubble at `(row, col)` and resolves matches, floating drops,
- * incoming garbage, ceiling drops, and win/KO state.
+ * exponential scoring, 2P attack stack + garbage transfer, dynamic ceiling
+ * drops, and win/KO state.
  */
 export function settleBubbleAt(
   match: PuzzleBobbleMatch,
@@ -488,26 +736,46 @@ export function settleBubbleAt(
   grid[row][col] = color;
 
   const matched = findConnectedColorCluster(grid, row, col);
-  let popped: GridCoord[] = [];
-  let dropped: GridCoord[] = [];
+  const popped: ColoredCell[] = [];
+  const dropped: ColoredCell[] = [];
 
   if (matched.length >= 3) {
-    popped = matched;
-    for (const cell of popped) {
+    for (const cell of matched) {
+      const cellColor = grid[cell.row][cell.col] ?? color;
+      const center = bubbleCenter(cell.row, cell.col, player.ceilingDrop);
+      popped.push({ ...cell, color: cellColor, x: center.x, y: center.y });
       grid[cell.row][cell.col] = null;
     }
-    dropped = findFloatingBubbles(grid);
-    for (const cell of dropped) {
+    const floating = findFloatingBubbles(grid);
+    for (const cell of floating) {
+      const cellColor = grid[cell.row][cell.col] ?? color;
+      const center = bubbleCenter(cell.row, cell.col, player.ceilingDrop);
+      dropped.push({ ...cell, color: cellColor, x: center.x, y: center.y });
       grid[cell.row][cell.col] = null;
     }
   }
 
-  const popScore = popped.length * 10;
-  const dropScore = dropped.length > 0 ? dropped.length * 30 + Math.min(dropped.length, 8) * 20 : 0;
-  const sentGarbage =
-    match.mode === '2p' && (popped.length >= 4 || dropped.length > 0)
-      ? Math.min(6, Math.max(0, popped.length - 3) + dropped.length)
-      : 0;
+  const popScore = scoreForPop(popped.length);
+  const dropScore = scoreForDroppedBubbles(dropped.length);
+
+  // Neo-Geo 2P versus rule:
+  // - Popping 4+ bubbles generates `popped.length - 3` bonus attack bubbles.
+  // - If bubbles are dropped on this shot, all dropped bubbles + any stacked
+  //   bubbles + any 4+ bonus bubbles transfer immediately to the opponent!
+  // - If 4+ bubbles are popped without a drop, they accumulate on `attackStack`
+  //   to be unleashed on the next drop (or transfer if the stack reaches 3+).
+  const extraFromQuad = Math.max(0, popped.length - 3);
+  let attackStack = player.attackStack;
+  let sentGarbage = 0;
+
+  if (match.mode === '2p') {
+    if (dropped.length > 0) {
+      sentGarbage = Math.min(12, attackStack + extraFromQuad + dropped.length);
+      attackStack = 0;
+    } else if (extraFromQuad > 0) {
+      attackStack = Math.min(12, attackStack + extraFromQuad);
+    }
+  }
 
   let incomingGarbage = player.incomingGarbage;
   if (popped.length === 0 && incomingGarbage > 0 && !isBoardEmpty(grid)) {
@@ -516,21 +784,35 @@ export function settleBubbleAt(
   }
 
   const shotsFired = player.shotsFired + 1;
-  let ceilingDrop =
-    shotsFired % CEILING_DROP_SHOTS === 0 ? player.ceilingDrop + 1 : player.ceilingDrop;
+  const dropInterval = shotsPerCeilingDrop(grid);
+  const nextShotsSinceDrop = player.shotsSinceDrop + 1;
+  let ceilingDrop = player.ceilingDrop;
+  let shotsSinceDrop = nextShotsSinceDrop;
+
+  if (nextShotsSinceDrop >= dropInterval || shotsFired % CEILING_DROP_SHOTS === 0) {
+    ceilingDrop += 1;
+    shotsSinceDrop = 0;
+  }
+  const ceilingWarning = shotsSinceDrop === dropInterval - 1;
+
+  let clearBonus = 0;
   let score = player.score + popScore + dropScore;
   let stage = player.stage;
+  let stageElapsedMs = player.stageElapsedMs;
   let playerStatus: PlayerBoardState['status'] = 'playing';
 
   if (isBoardEmpty(grid)) {
-    score += 500;
+    clearBonus = scoreForStageClearBonus(player.stageElapsedMs);
+    score += clearBonus;
     if (match.mode === '2p') {
       playerStatus = 'won';
     } else {
-      // 1-Player solo mode advances to a fresh stage on clear.
+      // 1-Player solo mode advances through the classic arcade stage formations!
       stage += 1;
       ceilingDrop = 0;
-      grid = createInitialGrid(rng);
+      shotsSinceDrop = 0;
+      stageElapsedMs = 0;
+      grid = createStageGrid(stage, rng);
     }
   } else if (hasCrossedDangerLine(grid, ceilingDrop)) {
     playerStatus = 'ko';
@@ -547,11 +829,25 @@ export function settleBubbleAt(
     flying: null,
     score,
     shotsFired,
+    shotsSinceDrop,
     ceilingDrop,
+    ceilingWarning,
+    attackStack,
     incomingGarbage,
+    shotTimerMs: SHOT_TIME_LIMIT_MS,
+    stageElapsedMs,
     stage,
     status: playerStatus,
-    lastEvent: { popped, dropped, sentGarbage },
+    lastEvent: {
+      id: shotsFired,
+      popped,
+      dropped,
+      popScore,
+      dropScore,
+      clearBonus,
+      stackedGarbage: extraFromQuad,
+      sentGarbage,
+    },
   };
 
   let nextMatch = replacePlayer(match, playerIndex, updatedPlayer);
@@ -623,7 +919,7 @@ function collidesWithCeilingOrBubble(
   const topY = BUBBLE_RADIUS + ceilingDrop * ROW_STEP;
   if (y <= topY) return true;
 
-  const hitThresholdSq = (BUBBLE_DIAMETER * 0.9) ** 2;
+  const hitThresholdSq = (BUBBLE_DIAMETER * 0.88) ** 2;
   for (let row = 0; row < grid.length; row += 1) {
     for (let col = 0; col < colsForRow(row); col += 1) {
       if (grid[row][col] === null) continue;

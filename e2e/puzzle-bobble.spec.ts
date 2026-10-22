@@ -2,10 +2,10 @@ import { test, expect } from './fixtures';
 import { startStubApp, type RunningStub } from './stub-server';
 
 /**
- * 2-Player Puzzle Bobble / Bust-A-Move (#181).
+ * 2-Player Puzzle Bobble / Bust-A-Move (#181, #183).
  *
- * Player 1 uses ASDF (A/D aim, S or F fire); Player 2 uses Arrow keys
- * (ArrowLeft/ArrowRight aim, ArrowUp/ArrowDown fire).
+ * Player 1 uses ASDF (A/D fine 0.5° tap or smooth 60fps hold aim, S or F fire);
+ * Player 2 uses Arrow keys (ArrowLeft/ArrowRight fine aim, ArrowUp/ArrowDown fire).
  */
 
 async function closeStub(stub: RunningStub) {
@@ -13,7 +13,7 @@ async function closeStub(stub: RunningStub) {
   await new Promise<void>((resolve) => stub.server.close(() => resolve()));
 }
 
-test('home gallery opens 2-player Puzzle Bobble and both players aim and fire with ASDF and Arrow keys', async ({
+test('home gallery opens 2-player Puzzle Bobble and both players aim with 0.5° fine taps and fire with ASDF and Arrow keys', async ({
   page,
 }) => {
   const stub = await startStubApp();
@@ -27,17 +27,19 @@ test('home gallery opens 2-player Puzzle Bobble and both players aim and fire wi
     await expect(page.getByRole('img', { name: 'Player 1 bubble board' })).toBeVisible();
     await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toBeVisible();
 
-    // Player 1 aims right with D and shoots with S (or F).
+    // Player 1 aims right with fine 0.5° taps on D and shoots with F.
     await expect(page.getByTestId('p1-aim')).toHaveText('0°');
     await page.keyboard.press('d');
-    await expect(page.getByTestId('p1-aim')).toHaveText('+3°');
+    await expect(page.getByTestId('p1-aim')).toHaveText('+0.5°');
+    await page.keyboard.press('d');
+    await expect(page.getByTestId('p1-aim')).toHaveText('+1°');
     await page.keyboard.press('f');
     await expect(page.getByTestId('p1-shots')).toHaveText('1', { timeout: 5000 });
 
-    // Player 2 aims left with ArrowLeft and shoots with ArrowUp.
+    // Player 2 aims left with a fine 0.5° tap on ArrowLeft and shoots with ArrowUp.
     await expect(page.getByTestId('p2-aim')).toHaveText('0°');
     await page.keyboard.press('ArrowLeft');
-    await expect(page.getByTestId('p2-aim')).toHaveText('-3°');
+    await expect(page.getByTestId('p2-aim')).toHaveText('-0.5°');
     await page.keyboard.press('ArrowUp');
     await expect(page.getByTestId('p2-shots')).toHaveText('1', { timeout: 5000 });
 
