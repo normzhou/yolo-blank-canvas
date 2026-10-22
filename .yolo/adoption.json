@@ -218,15 +218,16 @@
         "v0.6.0": "e93d5a597db95d88349728254da7433232bdd47f",
         "v0.7.0": "eda85f8aa196d19f2703ebaa9c1d01ca0aa169ad",
         "v0.8.0": "332855b56ab40dcc578b2485cd1905cbce82d302",
-        "v0.9.0": "ae503ca9c223406a894a0c1165ce13d73053efe4"
+        "v0.9.0": "ae503ca9c223406a894a0c1165ce13d73053efe4",
+        "v0.10.0": "0da7fcbb97d206d47b98e97988f3bca66d455c20"
       },
       "published": {
-        "tag": "v0.10.0",
-        "commit": "0da7fcbb97d206d47b98e97988f3bca66d455c20",
-        "source_commit": "d0074554c1f25b97a2162f0bc7f78d4951733960",
-        "published_at": "2026-10-22T01:12:48Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-10-21-puzzle-bobble-arcade.json",
-        "note": "Minor release. Carries authentic 1994 Taito / Neo-Geo Puzzle Bobble arcade mechanics, smooth 60fps aiming + 0.5° tap precision, exponential drop scoring (20 * 2^(n-1) up to 1,310,720), 2P yellow/red attack stack + drop transfer, color-scaled ceiling drops, 10s HURRY UP! shot timer, classic stage formations, and arcade visuals (rotating gear catapult, Bub/Bob mascots, compressor pistons, 3D glossy bubbles) (#183). Acceptance before tagging: 290 unit, 90 stubbed e2e passed + 1 skipped, tsc clean, structure pass. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit 0da7fcb after the assets commit 5076e5e; both build-ID files record d007455."
+        "tag": "v0.10.1",
+        "commit": "c26708dcc851f307e9c702cc0cc2c520eb7e47e3",
+        "source_commit": "3bfb9f655326d1dcc8bdf3135c59b48ca175ac2f",
+        "published_at": "2026-10-22T02:15:10Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-10-21-v0101.json",
+        "note": "Patch release. Refines Puzzle Bobble pre-drop ceiling tremor to ±0.5px / 90ms, adds on-board incoming attack indicators (side-rail Neo-Geo warning orbs + bottom staging bubbles about to come up) and bottom-up rising bubble animation (#186), and adds 3D beveled tetromino cells and ghost landing piece preview to Tetris (#185). Acceptance before tagging: 291 unit, 90 stubbed e2e passed + 1 skipped, tsc clean, structure pass. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit c26708d after the assets commit 88a42bc; both build-ID files record 3bfb9f6."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -242,7 +243,8 @@
         ".yolo/reports/releases-observed-2026-10-21-request-capture.json",
         ".yolo/reports/releases-observed-2026-10-21-request-triage.json",
         ".yolo/reports/releases-observed-2026-10-21-puzzle-bobble.json",
-        ".yolo/reports/releases-observed-2026-10-21-puzzle-bobble-arcade.json"
+        ".yolo/reports/releases-observed-2026-10-21-puzzle-bobble-arcade.json",
+        ".yolo/reports/releases-observed-2026-10-21-v0101.json"
       ]
     }
   },
