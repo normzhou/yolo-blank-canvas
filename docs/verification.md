@@ -4,6 +4,27 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Puzzle Bobble tremor & rising incoming bubbles (#186) and Tetris arcade blocks (#185) — 2026-10-21
+
+Source revision `3bfb9f6` (the feature commit); build and review evidence
+`88a42bc`.
+
+- `npm test`: 25 files, 291 tests passed. `test/puzzle-bobble.test.ts` (10)
+  verifies immediate 2P `incomingQueue` transfer on 4+ pops and hanging drops
+  and bottom-up placement (`lastEvent.risenGarbage`); `test/tetris.test.ts`
+  (20) adds `ghostPiece` landing-row verification; `test/theme-discipline.test.ts`
+  and `test/theme-tokens.test.ts` pass.
+- `npx tsc --noEmit`: clean.
+- `npm run build`: clean; `dist/client/.build-id` and
+  `server/build-id.generated.js` both report `3bfb9f6…`.
+- `npm run e2e`: 90 passed, 1 skipped against the stubbed GitHub adapter (91
+  run). `e2e/puzzle-bobble.spec.ts` (2) verifies the on-board incoming attack
+  indicator (`p2-incoming-indicator`, `.pb-incoming-preview-bubble`) and the
+  bottom-up rising bubble animation (`.pb-rise-bubble`) when a player resolves
+  a non-clearing shot.
+- `yolo-check . --structure` (`0.1.0-alpha.30`): `structure.status: pass`,
+  13/13 findings compliant.
+
 ## Arcade Puzzle Bobble mechanics, smooth 60fps aiming, and Neo-Geo visuals (#183) — 2026-10-21
 
 Source revision `d007455` (the feature commit); build and review evidence
@@ -300,7 +321,7 @@ Run 2026-10-21 at `c62fbd3` (following the `v0.8.0` release `332855b`; assets bu
 ```
   ✓ test/theme-discipline.test.ts (21 tests)  nine-step neutral ramp, monotonic, chroma-bounded, every theme
   ✓ test/status.test.ts (25 tests)            status, reported-summary and request-triage derivation from fixtures
-  ✓ test/tetris.test.ts (19 tests)            Tetris pieces, collision, line clear, scoring, game over, tetris count
+  ✓ test/tetris.test.ts (20 tests)            Tetris pieces, collision, line clear, scoring, game over, tetris count, ghost piece
   ✓ test/theme.test.ts (10 tests)             theme selection and persistence
   ✓ test/contrast.test.ts (14 tests)          WCAG floor across every pair
   ✓ test/theme-tokens.test.ts (6 tests)       every theme covers every colour role
@@ -325,7 +346,7 @@ Run 2026-10-21 at `c62fbd3` (following the `v0.8.0` release `332855b`; assets bu
   ✓ test/puzzle-bobble.test.ts (10 tests)     0.5° aim, exponential drop scoring, 2P attack stack/orbs, hurry timer, stages
 
   Test Files  25 passed (25)
-       Tests  290 passed (290)
+       Tests  291 passed (291)
 ```
 
 Also run at the same revision: `npx tsc --noEmit` (clean), `npm run e2e` (90 passed, 1 skipped

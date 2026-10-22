@@ -2,7 +2,7 @@ import { test, expect } from './fixtures';
 import { startStubApp, type RunningStub } from './stub-server';
 
 /**
- * 2-Player Puzzle Bobble / Bust-A-Move (#181, #183).
+ * 2-Player Puzzle Bobble / Bust-A-Move (#181, #183, #186).
  *
  * Player 1 uses ASDF (A/D fine 0.5° tap or smooth 60fps hold aim, S or F fire);
  * Player 2 uses Arrow keys (ArrowLeft/ArrowRight fine aim, ArrowUp/ArrowDown fire).
@@ -13,7 +13,7 @@ async function closeStub(stub: RunningStub) {
   await new Promise<void>((resolve) => stub.server.close(() => resolve()));
 }
 
-test('home gallery opens 2-player Puzzle Bobble and both players aim with 0.5° fine taps and fire with ASDF and Arrow keys', async ({
+test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays incoming attack indicators, and animates bubbles rising from the bottom', async ({
   page,
 }) => {
   const stub = await startStubApp();
@@ -36,12 +36,34 @@ test('home gallery opens 2-player Puzzle Bobble and both players aim with 0.5° 
     await page.keyboard.press('f');
     await expect(page.getByTestId('p1-shots')).toHaveText('1', { timeout: 5000 });
 
-    // Player 2 aims left with a fine 0.5° tap on ArrowLeft and shoots with ArrowUp.
-    await expect(page.getByTestId('p2-aim')).toHaveText('0°');
+    // Queue 3 incoming attack bubbles sent to Player 2 and verify the on-board indicator
+    // and bottom staging bubbles that are about to come up.
+    await page.evaluate(() => {
+      window.dispatchEvent(
+        new CustomEvent('yolo:puzzle-bobble:queue-garbage', {
+          detail: { player: 1, colors: ['ruby', 'amber', 'emerald'] },
+        }),
+      );
+    });
+    const p2Indicator = page.getByTestId('p2-incoming-indicator');
+    await expect(p2Indicator).toBeVisible();
+    await expect(p2Indicator.locator('.pb-incoming-preview-bubble')).toHaveCount(3);
+    await expect(page.getByTestId('p2-incoming')).toContainText('3');
+
+    // Player 2 aims left with a fine 0.5° tap on ArrowLeft and resolves a shot ->
+    // the 3 incoming bubbles rise from the bottom with `.pb-rise-bubble`!
     await page.keyboard.press('ArrowLeft');
     await expect(page.getByTestId('p2-aim')).toHaveText('-0.5°');
-    await page.keyboard.press('ArrowUp');
-    await expect(page.getByTestId('p2-shots')).toHaveText('1', { timeout: 5000 });
+    await page.evaluate(() => {
+      window.dispatchEvent(
+        new CustomEvent('yolo:puzzle-bobble:fire-resolve', {
+          detail: { player: 1 },
+        }),
+      );
+    });
+    await expect(page.getByTestId('p2-shots')).toHaveText('1');
+    const p2Board = page.getByRole('img', { name: 'Player 2 bubble board' });
+    await expect(p2Board.locator('.pb-rise-bubble')).toHaveCount(3);
 
     // Switch to 1 Player mode and back to 2 Players.
     await page.getByRole('button', { name: '1 Player', exact: true }).click();

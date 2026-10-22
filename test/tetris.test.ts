@@ -8,6 +8,7 @@ import {
   createGame,
   displayBoard,
   dropInterval,
+  ghostPiece,
   hardDrop,
   levelForLines,
   mergePiece,
@@ -217,5 +218,16 @@ describe('tetris game flow', () => {
     const occupied = display.flat().filter((cell) => cell === 'T');
     expect(occupied).toHaveLength(4);
     expect(mergePiece(createEmptyBoard(), piece.piece!).flat().filter((cell) => cell === 'T')).toHaveLength(4);
+  });
+
+  it('computes the ghost landing piece at the floor and returns null when already resting', () => {
+    const game = createGame(() => 0.5);
+    const airborne = withPiece(game, 'O', 4, 2);
+    const ghost = ghostPiece(airborne);
+    expect(ghost).not.toBeNull();
+    expect(ghost?.y).toBe(BOARD_HEIGHT - 2);
+
+    const resting = withPiece(game, 'O', 4, BOARD_HEIGHT - 2);
+    expect(ghostPiece(resting)).toBeNull();
   });
 });

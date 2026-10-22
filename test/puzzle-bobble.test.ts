@@ -147,39 +147,53 @@ describe('Puzzle Bobble (Bust-A-Move) arcade rules', () => {
     expect(match.players[0].grid[0].some((cell) => cell !== null)).toBe(true);
   });
 
-  it('stacks bonus orbs on 4+ pops and unleashes stacked + dropped bubbles onto the opponent on a drop', () => {
+  it('immediately transfers 4+ pop bonuses and dropped hanging clusters into the opponent incomingQueue and launches them upward on the next non-clearing shot', () => {
     let match = createMatch('2p', () => 0.3);
 
-    // Step 1: Pop a row of 5 ruby bubbles with no hanging bubbles -> stacks 2 on P1's attackStack.
+    // Step 1: Pop a row of 5 ruby bubbles -> immediately sends 2 attack bubbles to Player 2's incomingQueue!
     const quadGrid = createEmptyGrid();
     quadGrid[0][0] = 'ruby';
     quadGrid[0][1] = 'ruby';
     quadGrid[0][2] = 'ruby';
     quadGrid[0][3] = 'ruby';
-    quadGrid[0][6] = 'azure'; // keep board non-empty
+    quadGrid[0][6] = 'azure';
     match.players[0].grid = quadGrid;
 
     match = settleBubbleAt(match, 0, 0, 4, 'ruby', () => 0.3);
     expect(match.players[0].lastEvent?.popped).toHaveLength(5);
-    expect(match.players[0].attackStack).toBe(2);
-    expect(match.players[1]?.incomingGarbage).toBe(0);
+    expect(match.players[0].lastEvent?.sentGarbage).toBe(2);
+    expect(match.players[1]?.incomingGarbage).toBe(2);
+    expect(match.players[1]?.incomingQueue).toHaveLength(2);
 
-    // Step 2: Now pop 3 azure bubbles that hold up 2 hanging bubbles -> unleashes 2 dropped + 2 stacked = 4!
+    // Step 2: Pop 3 azure bubbles holding up 2 hanging bubbles -> sends 2 more to Player 2 (total 4 queued)!
     const dropGrid = createEmptyGrid();
     dropGrid[0][2] = 'azure';
     dropGrid[0][3] = 'azure';
     dropGrid[1][2] = 'emerald';
     dropGrid[2][2] = 'amber';
-    dropGrid[0][7] = 'coral'; // keep board non-empty
+    dropGrid[0][7] = 'coral';
     match.players[0].grid = dropGrid;
 
     match = settleBubbleAt(match, 0, 1, 1, 'azure', () => 0.3);
     expect(match.players[0].lastEvent?.popped).toHaveLength(3);
     expect(match.players[0].lastEvent?.dropped).toHaveLength(2);
     expect(match.players[0].lastEvent?.dropScore).toBe(40);
-    expect(match.players[0].attackStack).toBe(0);
-    expect(match.players[0].lastEvent?.sentGarbage).toBe(4);
+    expect(match.players[0].lastEvent?.sentGarbage).toBe(2);
     expect(match.players[1]?.incomingGarbage).toBe(4);
+    expect(match.players[1]?.incomingQueue).toHaveLength(4);
+
+    // Step 3: Player 2 takes a non-popping shot -> all 4 queued bubbles rise from the bottom
+    // and are recorded in `lastEvent.risenGarbage`!
+    const p2Grid = createEmptyGrid();
+    p2Grid[0][0] = 'ruby';
+    match.players[1]!.grid = p2Grid;
+    const queuedColors = [...match.players[1]!.incomingQueue];
+
+    match = settleBubbleAt(match, 1, 0, 4, 'emerald', () => 0.3);
+    expect(match.players[1]?.incomingGarbage).toBe(0);
+    expect(match.players[1]?.incomingQueue).toEqual([]);
+    expect(match.players[1]?.lastEvent?.risenGarbage).toHaveLength(4);
+    expect(match.players[1]?.lastEvent?.risenGarbage.map((c) => c.color)).toEqual(queuedColors);
 
     // Verify red (5) and yellow (1) garbage orb decomposition.
     expect(decomposeGarbageOrbs(7)).toEqual(['red', 'yellow', 'yellow']);

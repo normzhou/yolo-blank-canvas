@@ -1,11 +1,12 @@
 /**
- * Puzzle Bobble (Bust-A-Move) arcade rules as pure functions (#181, #183).
+ * Puzzle Bobble (Bust-A-Move) arcade rules as pure functions (#181, #183, #186).
  *
  * Implements the 1994 Taito / Neo-Geo arcade mechanics:
  * - Fine sub-degree tap aiming (`0.5°`) + smooth 60fps continuous sweep
  * - Exponential dropped-bubble scoring (`20 * 2^(n-1)`, capped at `1,310,720` for 17+)
- * - 2-Player Versus attack stack (`popped - 3` on quads/quints) + avalanche drop transfer,
- *   read with yellow (1-unit) and red (5-unit) warning orbs
+ * - 2-Player Versus attack transfer (`popped - 3` on 4+ pops plus all dropped
+ *   hanging bubbles) into the opponent's `incomingQueue` with on-board preview
+ *   and bottom-up rising placement (`risenGarbage`)
  * - Dynamic ceiling drop interval scaled by the number of remaining bubble colours,
  *   with a 1-shot pre-drop compressor tremor warning
  * - 10-second shot timer with 5-second `HURRY UP!` countdown and auto-fire
@@ -76,6 +77,8 @@ export interface ShotEvent {
   id: number;
   popped: ColoredCell[];
   dropped: ColoredCell[];
+  /** Attack bubbles that just rose from the bottom onto this player's grid. */
+  risenGarbage: ColoredCell[];
   popScore: number;
   dropScore: number;
   clearBonus: number;
@@ -94,10 +97,12 @@ export interface PlayerBoardState {
   shotsSinceDrop: number;
   ceilingDrop: number;
   ceilingWarning: boolean;
-  /** Bubbles stored in this player's attack stack from 4+ pops, unleashed on the next drop. */
+  /** Bubbles stored in this player's attack stack. */
   attackStack: number;
-  /** Attack bubbles queued to drop onto this player's playfield. */
+  /** Count of attack bubbles queued to rise onto this player's playfield. */
   incomingGarbage: number;
+  /** Exact colors of the queued attack bubbles staged at the bottom of this player's board. */
+  incomingQueue: BubbleColor[];
   /** Remaining milliseconds before the launcher auto-fires (`10_000` down to `0`). */
   shotTimerMs: number;
   /** Elapsed milliseconds in the current stage, used for the arcade speed bonus. */
@@ -223,7 +228,7 @@ export function decomposeGarbageOrbs(count: number): Array<'red' | 'yellow'> {
 }
 
 /**
- * Classic Taito arcade stage formations (inspired by Neo-Geo Stages 1–6)
+ * Classic Taito arcade stage formations (inspired by Neo-Geo Stages 1–5)
  * so solo progression and versus rematches have recognizable hanging anchors.
  */
 const STAGE_TEMPLATES: readonly string[][][] = [
@@ -280,7 +285,6 @@ export function createStageGrid(stage = 1, rng: () => number = Math.random): Bub
   const templateIndex = (stage - 1) % STAGE_TEMPLATES.length;
   const template = STAGE_TEMPLATES[templateIndex];
   const grid = createEmptyGrid();
-  // Rotate the colour palette slightly using `rng` so repeated matches stay fresh
   const offset = Math.floor(rng() * BUBBLE_COLORS.length);
   for (let row = 0; row < template.length && row < MAX_ROWS; row += 1) {
     const line = template[row];
@@ -359,6 +363,7 @@ export function createPlayerBoard(
     ceilingWarning: false,
     attackStack: 0,
     incomingGarbage: 0,
+    incomingQueue: [],
     shotTimerMs: SHOT_TIME_LIMIT_MS,
     stageElapsedMs: 0,
     stage,
@@ -390,6 +395,7 @@ export function createMatch(
   const second: PlayerBoardState = {
     ...first,
     grid: cloneGrid(sharedGrid),
+    incomingQueue: [],
     lastEvent: null,
   };
   return {
@@ -683,20 +689,58 @@ export function hasCrossedDangerLine(grid: BubbleGrid, ceilingDrop: number): boo
 }
 
 /**
- * Drops `count` incoming attack bubbles onto open frontier cells of `grid`.
- * Per the Neo-Geo FAQ, transferred garbage bubbles use the full 6-colour
- * palette (not just the colors currently on the receiving player's board).
+ * Generates `count` incoming attack bubble colors from the full 6-colour palette.
  */
-export function applyIncomingGarbage(
-  grid: BubbleGrid,
+export function generateGarbageColors(
   count: number,
   rng: () => number = Math.random,
-): BubbleGrid {
-  if (count <= 0) return grid;
-  const next = cloneGrid(grid);
-  const toPlace = Math.min(count, 12);
+): BubbleColor[] {
+  const safe = Math.max(0, Math.min(12, Math.floor(count)));
+  return Array.from({ length: safe }, () => {
+    const idx = Math.min(BUBBLE_COLORS.length - 1, Math.max(0, Math.floor(rng() * BUBBLE_COLORS.length)));
+    return BUBBLE_COLORS[idx];
+  });
+}
 
-  for (let i = 0; i < toPlace; i += 1) {
+/**
+ * Sends `count` (or explicit `colors`) attack bubbles into a player's incoming
+ * queue so they are staged at the bottom of that player's board, ready to rise
+ * up on their next non-clearing shot.
+ */
+export function queueIncomingGarbage(
+  player: PlayerBoardState,
+  colors: BubbleColor[],
+): PlayerBoardState {
+  if (colors.length === 0) return player;
+  const nextQueue = [...player.incomingQueue, ...colors].slice(0, 12);
+  return {
+    ...player,
+    incomingQueue: nextQueue,
+    incomingGarbage: nextQueue.length,
+  };
+}
+
+/**
+ * Launches up to 6 queued attack bubbles from the bottom of the playfield onto
+ * open frontier cells of `grid`, returning the updated grid, the exact
+ * `ColoredCell[]` that rose into place (for the bottom-up rising animation),
+ * and any remaining queued colors.
+ */
+export function launchIncomingGarbage(
+  grid: BubbleGrid,
+  queue: BubbleColor[],
+  ceilingDrop = 0,
+  rng: () => number = Math.random,
+): { grid: BubbleGrid; placed: ColoredCell[]; remainingQueue: BubbleColor[] } {
+  if (queue.length === 0) {
+    return { grid, placed: [], remainingQueue: [] };
+  }
+  const next = cloneGrid(grid);
+  const toLaunch = queue.slice(0, 6);
+  const remainingQueue = queue.slice(toLaunch.length);
+  const placed: ColoredCell[] = [];
+
+  for (const color of toLaunch) {
     const candidates: GridCoord[] = [];
     for (let row = 0; row < DANGER_ROW; row += 1) {
       for (let col = 0; col < colsForRow(row); col += 1) {
@@ -709,16 +753,35 @@ export function applyIncomingGarbage(
     }
     if (candidates.length === 0) break;
     const chosen = candidates[Math.min(candidates.length - 1, Math.floor(rng() * candidates.length))];
-    const color = BUBBLE_COLORS[Math.min(BUBBLE_COLORS.length - 1, Math.floor(rng() * BUBBLE_COLORS.length))];
     next[chosen.row][chosen.col] = color;
+    const center = bubbleCenter(chosen.row, chosen.col, ceilingDrop);
+    placed.push({
+      row: chosen.row,
+      col: chosen.col,
+      color,
+      x: center.x,
+      y: center.y,
+    });
   }
 
-  return next;
+  return { grid: next, placed, remainingQueue };
+}
+
+/**
+ * Compatibility helper for tests that apply a numeric count of incoming garbage.
+ */
+export function applyIncomingGarbage(
+  grid: BubbleGrid,
+  count: number,
+  rng: () => number = Math.random,
+): BubbleGrid {
+  const colors = generateGarbageColors(count, rng);
+  return launchIncomingGarbage(grid, colors, 0, rng).grid;
 }
 
 /**
  * Places a bubble at `(row, col)` and resolves matches, floating drops,
- * exponential scoring, 2P attack stack + garbage transfer, dynamic ceiling
+ * exponential scoring, 2P attack transfer + rising garbage, dynamic ceiling
  * drops, and win/KO state.
  */
 export function settleBubbleAt(
@@ -758,30 +821,28 @@ export function settleBubbleAt(
   const popScore = scoreForPop(popped.length);
   const dropScore = scoreForDroppedBubbles(dropped.length);
 
-  // Neo-Geo 2P versus rule:
+  // 2P versus attack transfer:
   // - Popping 4+ bubbles generates `popped.length - 3` bonus attack bubbles.
-  // - If bubbles are dropped on this shot, all dropped bubbles + any stacked
-  //   bubbles + any 4+ bonus bubbles transfer immediately to the opponent!
-  // - If 4+ bubbles are popped without a drop, they accumulate on `attackStack`
-  //   to be unleashed on the next drop (or transfer if the stack reaches 3+).
+  // - Dropping hanging bubbles generates `dropped.length` attack bubbles.
+  // - Any generated attack bubbles (plus any legacy `attackStack`) are immediately
+  //   sent to the opponent's `incomingQueue` so the opponent sees them staged at
+  //   the bottom of their playfield, ready to rise up!
   const extraFromQuad = Math.max(0, popped.length - 3);
-  let attackStack = player.attackStack;
-  let sentGarbage = 0;
+  const totalAttack = player.attackStack + extraFromQuad + dropped.length;
+  const sentGarbage = match.mode === '2p' && totalAttack > 0 ? Math.min(12, totalAttack) : 0;
+  const attackStack = 0;
 
-  if (match.mode === '2p') {
-    if (dropped.length > 0) {
-      sentGarbage = Math.min(12, attackStack + extraFromQuad + dropped.length);
-      attackStack = 0;
-    } else if (extraFromQuad > 0) {
-      attackStack = Math.min(12, attackStack + extraFromQuad);
-    }
-  }
-
-  let incomingGarbage = player.incomingGarbage;
-  if (popped.length === 0 && incomingGarbage > 0 && !isBoardEmpty(grid)) {
-    grid = applyIncomingGarbage(grid, incomingGarbage, rng);
-    incomingGarbage = 0;
-  }
+  // If this player did NOT pop a cluster on this shot and has incoming attack
+  // bubbles waiting at the bottom of their playfield, those bubbles now shoot
+  // upward from the bottom onto open frontier cells!
+  let risenGarbage: ColoredCell[] = [];
+  const activeQueue =
+    player.incomingQueue.length > 0
+      ? player.incomingQueue
+      : player.incomingGarbage > 0
+        ? generateGarbageColors(player.incomingGarbage, rng)
+        : [];
+  let nextIncomingQueue = activeQueue;
 
   const shotsFired = player.shotsFired + 1;
   const dropInterval = shotsPerCeilingDrop(grid);
@@ -795,6 +856,13 @@ export function settleBubbleAt(
   }
   const ceilingWarning = shotsSinceDrop === dropInterval - 1;
 
+  if (popped.length === 0 && activeQueue.length > 0 && !isBoardEmpty(grid)) {
+    const launched = launchIncomingGarbage(grid, activeQueue, ceilingDrop, rng);
+    grid = launched.grid;
+    risenGarbage = launched.placed;
+    nextIncomingQueue = launched.remainingQueue;
+  }
+
   let clearBonus = 0;
   let score = player.score + popScore + dropScore;
   let stage = player.stage;
@@ -807,7 +875,6 @@ export function settleBubbleAt(
     if (match.mode === '2p') {
       playerStatus = 'won';
     } else {
-      // 1-Player solo mode advances through the classic arcade stage formations!
       stage += 1;
       ceilingDrop = 0;
       shotsSinceDrop = 0;
@@ -833,7 +900,8 @@ export function settleBubbleAt(
     ceilingDrop,
     ceilingWarning,
     attackStack,
-    incomingGarbage,
+    incomingGarbage: nextIncomingQueue.length,
+    incomingQueue: nextIncomingQueue,
     shotTimerMs: SHOT_TIME_LIMIT_MS,
     stageElapsedMs,
     stage,
@@ -842,6 +910,7 @@ export function settleBubbleAt(
       id: shotsFired,
       popped,
       dropped,
+      risenGarbage,
       popScore,
       dropScore,
       clearBonus,
@@ -852,15 +921,13 @@ export function settleBubbleAt(
 
   let nextMatch = replacePlayer(match, playerIndex, updatedPlayer);
 
-  // Deliver attack garbage to the opponent in 2P mode.
+  // Deliver newly generated attack bubbles to the opponent's bottom incoming tray in 2P mode.
   if (match.mode === '2p' && sentGarbage > 0) {
     const opponentIndex: 0 | 1 = playerIndex === 0 ? 1 : 0;
     const opponent = nextMatch.players[opponentIndex];
     if (opponent && opponent.status === 'playing') {
-      nextMatch = replacePlayer(nextMatch, opponentIndex, {
-        ...opponent,
-        incomingGarbage: Math.min(12, opponent.incomingGarbage + sentGarbage),
-      });
+      const newColors = generateGarbageColors(sentGarbage, rng);
+      nextMatch = replacePlayer(nextMatch, opponentIndex, queueIncomingGarbage(opponent, newColors));
     }
   }
 
