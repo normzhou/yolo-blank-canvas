@@ -7,7 +7,9 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 ## Arcade Puzzle Bobble mechanics, smooth 60fps aiming, and Neo-Geo visuals (#183) — 2026-10-21
 
 Source revision `d007455` (the feature commit); build and review evidence
-`5076e5e`.
+`5076e5e`; release commit `0da7fcb`; published as `v0.10.0` on 2026-10-21. The
+unit and stubbed e2e results below ran against the source revision; the 11/11
+acceptance below ran against the installed tag users receive.
 
 - `npm test`: 25 files, 290 tests passed. `test/puzzle-bobble.test.ts` (10)
   covers `0.5°` micro-tap aiming (`AIM_STEP_DEG = 0.5`), smooth hold velocity
@@ -28,6 +30,20 @@ Source revision `d007455` (the feature commit); build and review evidence
   contextual `Feedback`, and `Escape`.
 - `yolo-check . --structure` (`0.1.0-alpha.30`): `structure.status: pass`,
   13/13 findings compliant.
+
+### Installed artifact (`v0.10.0`)
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.10.0 --no-open --port 4875`
+in an empty directory, with no source checkout. `GET /api/version` reported both
+`serverBuild` and `clientBuild` as `d007455…`; the tagged package version is
+`0.10.0`. The tag points at release commit `0da7fcb`, after the assets commit
+`5076e5e`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4875 npm run e2e:verify-release`:
+**11 passed, 0 failed**. The ten earlier checks plus the 2-player Puzzle Bobble
+check (`D` → `+0.5°`, `ArrowLeft` → `-0.5°`, `Escape` return to the canvas). The
+report is
+[`.yolo/reports/releases-observed-2026-10-21-puzzle-bobble-arcade.json`](../.yolo/reports/releases-observed-2026-10-21-puzzle-bobble-arcade.json).
 
 ## 2-player Puzzle Bobble / Bust-A-Move (#181) — 2026-10-21
 
@@ -726,17 +742,22 @@ agent, so these were taken under the standing grant rather than left waiting.
 
 ## Tested revision
 
-Release tag `v0.9.0` points at release commit `ae503ca`. Assets were built from source
-`a398c93` (`dist/client/.build-id` and `server/build-id.generated.js` both report `a398c93…`)
-and committed in `6d1fb79`; the release commit itself adds only the `0.9.0` version and install
+Release tag `v0.10.0` points at release commit `0da7fcb`. Assets were built from source
+`d007455` (`dist/client/.build-id` and `server/build-id.generated.js` both report `d007455…`)
+and committed in `5076e5e`; the release commit itself adds only the `0.10.0` version and install
 references, with no source changes. The native version at the tagged revision (`package.json`) is
-`0.9.0`. The published artifact was installed from the release into an empty directory and accepted
-11 of 11 on `e2e:verify-release` — the ten earlier checks plus 2-player Puzzle Bobble — as recorded
-in
-[`.yolo/reports/releases-observed-2026-10-21-puzzle-bobble.json`](../.yolo/reports/releases-observed-2026-10-21-puzzle-bobble.json).
+`0.10.0`. The published artifact was installed from the release into an empty directory and accepted
+11 of 11 on `e2e:verify-release` — the ten earlier checks plus 2-player arcade Puzzle Bobble — as
+recorded in
+[`.yolo/reports/releases-observed-2026-10-21-puzzle-bobble-arcade.json`](../.yolo/reports/releases-observed-2026-10-21-puzzle-bobble-arcade.json).
 Its limits travel with it: eleven targeted read-only checks rather than the full suite; the composer
 and feedback checks do not submit a live issue; and the tag points at the release commit after the
 assets commit rather than at it.
+
+The previous revision named in this section was `v0.9.0` (release `ae503ca`, assets from
+`a398c93`), accepted 11 of 11 on the installed artifact on 2026-10-21 and recorded in
+[`.yolo/reports/releases-observed-2026-10-21-puzzle-bobble.json`](../.yolo/reports/releases-observed-2026-10-21-puzzle-bobble.json).
+It remains valid history, not the current tested revision.
 
 The previous revision named in this section was `v0.8.0` (release `332855b`, assets from
 `320f6fa`), accepted 10 of 10 on the installed artifact on 2026-10-21 and recorded in

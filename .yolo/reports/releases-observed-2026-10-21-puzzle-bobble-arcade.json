@@ -1,0 +1,66 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-21",
+  "observed_at": "2026-10-21",
+  "published_at_utc": "2026-10-22T01:12:48Z",
+  "protocol": {
+    "revision": "e95211f32261580fb580cf0da9d7276ae477b063",
+    "release": "v0.1.0-alpha.30"
+  },
+  "releases": [
+    {
+      "tag": "v0.10.0",
+      "commit": "0da7fcbb97d206d47b98e97988f3bca66d455c20"
+    }
+  ],
+  "release": {
+    "tag": "v0.10.0",
+    "tag_object": "9f36bbd49432be0862e5a5de8083e2c6aae77b00",
+    "release_commit": "0da7fcbb97d206d47b98e97988f3bca66d455c20",
+    "source_commit": "d0074554c1f25b97a2162f0bc7f78d4951733960",
+    "assets_commit": "5076e5e51a93505becbc36fb40e14c937abb927b",
+    "semver": "minor",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record d007455, the source revision. The committed assets were built at that source in 5076e5e. 0da7fcb is a release-metadata commit (version and install references, no source changes) after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "290 passed across 25 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID d007455" },
+    { "check": "npm run e2e (stubbed, deterministic)", "result": "pass", "detail": "90 passed, 1 skipped (91 run)" },
+    { "check": "yolo-check . --structure (0.1.0-alpha.30)", "result": "pass", "detail": "13 of 13 findings compliant" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #184 run 39704015770 completed success (23s)" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "installed_from": "npx --yes github:normzhou/yolo-blank-canvas#v0.10.0 --no-open --port 4875",
+    "installed_into": "an empty directory, no source checkout present",
+    "served_build": "d0074554c1f25b97a2162f0bc7f78d4951733960",
+    "served_version": {
+      "package": "0.10.0",
+      "serverBuild": "d0074554c1f25b97a2162f0bc7f78d4951733960",
+      "clientBuild": "d0074554c1f25b97a2162f0bc7f78d4951733960"
+    },
+    "command": "YOLO_VERIFY_URL=http://127.0.0.1:4875 npm run e2e:verify-release",
+    "result": "pass",
+    "detail": "11 of 11: the ten earlier checks plus the 2-player Puzzle Bobble check — clicking Puzzle Bobble in the home canvas gallery opens ?app=puzzle-bobble, renders both Player 1 and Player 2 bubble boards with the arcade gear catapult and Bub/Bob mascots, verifies Player 1 aims with D (+0.5°) and Player 2 aims with ArrowLeft (-0.5°), and closes with Escape returning to the blank canvas."
+  },
+  "what_this_release_delivers": [
+    "#183 smooth 60fps aiming + 0.5° micro-tap precision (AIM_STEP_DEG = 0.5, aimVelocityDegPerSec ramping from 38°/s to 115°/s)",
+    "#183 authentic 1994 Taito / Neo-Geo arcade mechanics: exponential dropped-bubble scoring (20 * 2^(n-1) capped at 1,310,720 for 17+), stage clear speed bonus (50,000 at <=5s), 2P attack stack (popped - 3) unleashed with dropped bubbles onto the opponent (yellow=1 / red=5 warning orbs), color-scaled ceiling drops with pre-drop tremor warning, 10s shot timer with 5s HURRY UP! countdown and auto-fire, and classic stage formations",
+    "#183 Neo-Geo arcade visual aesthetics: rotating toothed gear catapult and pointer arrow, Bub (P1) and Bob (P2) dragon mascots, compressor ceiling pistons, 3D radial-shaded glossy bubbles with inner spirit emblems, angle-reference diamond backdrop grid, and pop/drop animations"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "Upstream YOLO Dev request-template adoption remains deferred as #174 until upstream #144 ships in a release and this repository upgrades its pin.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "Acceptance on the delivered artifact is eleven targeted read-only checks. The 290 unit tests and 91 stubbed e2e tests ran against the source revision, not the installed artifact.",
+    "The tag points at 0da7fcb, a release-metadata commit after the assets commit 5076e5e, not at the assets commit itself. Both build-ID files still record the source d007455, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #183"
+}
