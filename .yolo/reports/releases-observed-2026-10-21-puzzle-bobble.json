@@ -1,0 +1,66 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-21",
+  "observed_at": "2026-10-21",
+  "published_at_utc": "2026-10-22T00:49:00Z",
+  "protocol": {
+    "revision": "e95211f32261580fb580cf0da9d7276ae477b063",
+    "release": "v0.1.0-alpha.30"
+  },
+  "releases": [
+    {
+      "tag": "v0.9.0",
+      "commit": "ae503ca9c223406a894a0c1165ce13d73053efe4"
+    }
+  ],
+  "release": {
+    "tag": "v0.9.0",
+    "tag_object": "069341077d68498aa4ba44eeccc97f73cac139a0",
+    "release_commit": "ae503ca9c223406a894a0c1165ce13d73053efe4",
+    "source_commit": "a398c93d1ae3f39c2387a78d61e7dfce91b0e131",
+    "assets_commit": "6d1fb799b9f62aad66e52328f605520b8461eb2c",
+    "semver": "minor",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record a398c93, the source revision. The committed assets were built at that source in 6d1fb79. ae503ca is a release-metadata commit (version and install references, no source changes) after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "288 passed across 25 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID a398c93" },
+    { "check": "npm run e2e (stubbed, deterministic)", "result": "pass", "detail": "90 passed, 1 skipped (91 run)" },
+    { "check": "yolo-check . --structure (0.1.0-alpha.30)", "result": "pass", "detail": "13 of 13 findings compliant" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #182 run 39701617815 completed success (24s)" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "installed_from": "npx --yes github:normzhou/yolo-blank-canvas#v0.9.0 --no-open --port 4875",
+    "installed_into": "an empty directory, no source checkout present",
+    "served_build": "a398c93d1ae3f39c2387a78d61e7dfce91b0e131",
+    "served_version": {
+      "package": "0.9.0",
+      "serverBuild": "a398c93d1ae3f39c2387a78d61e7dfce91b0e131",
+      "clientBuild": "a398c93d1ae3f39c2387a78d61e7dfce91b0e131"
+    },
+    "command": "YOLO_VERIFY_URL=http://127.0.0.1:4875 npm run e2e:verify-release",
+    "result": "pass",
+    "detail": "11 of 11: the ten earlier checks plus the new 2-player Puzzle Bobble check — clicking Puzzle Bobble in the home canvas gallery opens ?app=puzzle-bobble, renders both Player 1 and Player 2 bubble boards, verifies Player 1 aims with D (+3°) and Player 2 aims with ArrowLeft (-3°), and closes with Escape returning to the blank canvas."
+  },
+  "what_this_release_delivers": [
+    "#181 2-player Puzzle Bobble / Bust-A-Move in the canvas gallery (?app=puzzle-bobble) alongside Tetris",
+    "#181 Player 1 (ASDF: A/D aim, S or F shoot) and Player 2 (Arrow keys: Left/Right aim, Up or Down shoot) with independent key-hold tracking",
+    "#181 8/7 staggered hexagonal bubble grid, 2-segment trajectory sight line with wall-bounce reflection, side-wall bounces, match-3+ pops, unanchored avalanche drops, 2-player attack garbage transfer, ceiling drops every 8 shots, round win tally, and 1-player mode toggle"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "Upstream YOLO Dev request-template adoption remains deferred as #174 until upstream #144 ships in a release and this repository upgrades its pin.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "Acceptance on the delivered artifact is eleven targeted read-only checks. The 288 unit tests and 91 stubbed e2e tests ran against the source revision, not the installed artifact.",
+    "The tag points at ae503ca, a release-metadata commit after the assets commit 6d1fb79, not at the assets commit itself. Both build-ID files still record the source a398c93, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #181"
+}

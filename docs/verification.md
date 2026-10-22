@@ -7,7 +7,9 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 ## 2-player Puzzle Bobble / Bust-A-Move (#181) — 2026-10-21
 
 Source revision `a398c93` (the feature commit); build and review evidence
-`6d1fb79`.
+`6d1fb79`; release commit `ae503ca`; published as `v0.9.0` on 2026-10-21. The
+unit and stubbed e2e results below ran against the source revision; the 11/11
+acceptance below ran against the installed tag users receive.
 
 - `npm test`: 25 files, 288 tests passed. Added `test/puzzle-bobble.test.ts` (8)
   for 8/7 staggered hexagonal grid geometry and neighbors, fair 2-player board
@@ -30,6 +32,22 @@ Source revision `a398c93` (the feature commit); build and review evidence
   check for 2-player Puzzle Bobble.
 - `yolo-check . --structure` (`0.1.0-alpha.30`): `structure.status: pass`,
   13/13 findings compliant.
+
+### Installed artifact (`v0.9.0`)
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.9.0 --no-open --port 4875`
+in an empty directory, with no source checkout. `GET /api/version` reported both
+`serverBuild` and `clientBuild` as `a398c93…`; the tagged package version is
+`0.9.0`. The tag points at release commit `ae503ca`, after the assets commit
+`6d1fb79`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4875 npm run e2e:verify-release`:
+**11 passed, 0 failed**. The ten earlier checks plus the new 2-player Puzzle
+Bobble check: clicking **Puzzle Bobble** in the home canvas gallery opens
+`?app=puzzle-bobble`, renders both Player 1 and Player 2 bubble boards,
+verifies Player 1 aims with `D` (`+3°`) and Player 2 aims with `ArrowLeft`
+(`-3°`), and closes with `Escape` returning to the blank canvas. The report is
+[`.yolo/reports/releases-observed-2026-10-21-puzzle-bobble.json`](../.yolo/reports/releases-observed-2026-10-21-puzzle-bobble.json).
 
 ## Request triage summaries and in-panel outcome links (#177) — 2026-10-21
 
@@ -683,17 +701,22 @@ agent, so these were taken under the standing grant rather than left waiting.
 
 ## Tested revision
 
-Release tag `v0.8.0` points at release commit `332855b`. Assets were built from source
-`320f6fa` (`dist/client/.build-id` and `server/build-id.generated.js` both report `320f6fa…`)
-and committed in `5bed830`; the release commit itself adds only the `0.8.0` version and install
+Release tag `v0.9.0` points at release commit `ae503ca`. Assets were built from source
+`a398c93` (`dist/client/.build-id` and `server/build-id.generated.js` both report `a398c93…`)
+and committed in `6d1fb79`; the release commit itself adds only the `0.9.0` version and install
 references, with no source changes. The native version at the tagged revision (`package.json`) is
-`0.8.0`. The published artifact was installed from the release into an empty directory and accepted
-10 of 10 on `e2e:verify-release` — the nine earlier checks plus `Request triage` and in-panel
-covering-outcome navigation — as recorded in
-[`.yolo/reports/releases-observed-2026-10-21-request-triage.json`](../.yolo/reports/releases-observed-2026-10-21-request-triage.json).
-Its limits travel with it: ten targeted read-only checks rather than the full suite; the composer
+`0.9.0`. The published artifact was installed from the release into an empty directory and accepted
+11 of 11 on `e2e:verify-release` — the ten earlier checks plus 2-player Puzzle Bobble — as recorded
+in
+[`.yolo/reports/releases-observed-2026-10-21-puzzle-bobble.json`](../.yolo/reports/releases-observed-2026-10-21-puzzle-bobble.json).
+Its limits travel with it: eleven targeted read-only checks rather than the full suite; the composer
 and feedback checks do not submit a live issue; and the tag points at the release commit after the
 assets commit rather than at it.
+
+The previous revision named in this section was `v0.8.0` (release `332855b`, assets from
+`320f6fa`), accepted 10 of 10 on the installed artifact on 2026-10-21 and recorded in
+[`.yolo/reports/releases-observed-2026-10-21-request-triage.json`](../.yolo/reports/releases-observed-2026-10-21-request-triage.json).
+It remains valid history, not the current tested revision.
 
 The previous revision named in this section was `v0.7.0` (release `eda85f8`, assets from
 `607c2c3`), accepted 9 of 9 on the installed artifact on 2026-10-21 and recorded in
