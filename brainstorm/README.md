@@ -20,4 +20,5 @@ brainstorm/
 
 ## Session history
 
+- [2026-10-22 · Dual-writer state (UI vs. Runner), GitHub mechanisms, and Maintainer vs. User segregation](log/2026-10-22-02-dual-writer-github-mechanisms-and-roles.md): evaluated 6 native GitHub mechanisms for shared UI/Runner read-write state, defined the two-plane architecture (`yolo:control` issue for live controls + PRs for versioned files) and 3-tier role model (`visitor` / `requester` / `maintainer`), and walked all 7 surface-area examples through it.
 - [2026-10-22 · Enumerating the YOLO Dev framework & settings UI surface area](log/2026-10-22-01-framework-settings-ui-surface.md): triggered by friction when enabling `feedback.automatic: true` and tracking `yolo:manual` task `#203` for `demo.yolo-dev.ai`.
