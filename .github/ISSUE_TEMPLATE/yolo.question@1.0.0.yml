@@ -1,0 +1,35 @@
+body:
+    - attributes:
+        value: Include only nonsecret information appropriate to this repository. Submission does not grant admission or execution. Report sensitive security issues only through an established private channel.
+      type: markdown
+    - attributes:
+        description: Keep this editable identifier for decoding; it is not approval.
+        label: Request template
+        value: yolo.question@1.0.0
+      id: yolo_template
+      type: input
+      validations:
+        required: true
+    - attributes:
+        description: Questions may be answered without development work.
+        label: What do you need help with?
+      id: question
+      type: textarea
+      validations:
+        required: true
+    - attributes:
+        description: Optional; exclude private commands or credentials.
+        label: What have you tried?
+      id: attempts
+      type: textarea
+      validations:
+        required: false
+    - attributes:
+        description: Optional observed version/environment and sanitized evidence; no private logs or credentials.
+        label: Context
+      id: context
+      type: textarea
+      validations:
+        required: false
+description: yolo.question@1.0.0
+name: Ask for help

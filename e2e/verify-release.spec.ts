@@ -238,7 +238,7 @@ test('the released app carries the viewed app into feedback', async ({ page }) =
     await expect(guidedRadio).toBeChecked();
     await expect(page.locator('.request-context-summary')).toContainText('App: Tetris (?app=tetris)');
     await expect(page.getByLabel('Generated issue body')).toContainText(
-      'App: Tetris (?app=tetris)\n\nTemplate: blankcanvas.feedback@1',
+      /App: Tetris \(\?app=tetris\)\n\nTemplate: (?:yolo\.feedback@1\.0\.0|blankcanvas\.feedback@1)/,
     );
   } else {
     await expect(page.getByLabel('Description')).toHaveValue('App: Tetris (?app=tetris)\n\n');
@@ -272,7 +272,9 @@ test('the released guided composer switches intents without losing input and pre
   await page.getByRole('radio', { name: /Report a problem/ }).check();
   await expect(page.getByLabel('Title')).toHaveValue('Read-only verify check');
   await expect(page.getByLabel('What happened?')).toHaveValue('Shared answer survives switching.');
-  await expect(page.getByLabel('Generated issue body')).toContainText('Template: blankcanvas.problem@1');
+  await expect(page.getByLabel('Generated issue body')).toContainText(
+    /Template: (?:yolo\.bug@1\.0\.0|blankcanvas\.problem@1)/,
+  );
 
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog', { name: 'Requests' })).toHaveCount(0);
