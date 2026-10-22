@@ -4,6 +4,7 @@ import {
   ARENA_WIDTH,
   BUBBLE_RADIUS,
   CEILING_DROP_SHOTS,
+  CHARACTER_OPTIONS,
   DANGER_ROW,
   EVEN_COLS,
   MAX_AIM_ANGLE,
@@ -15,11 +16,13 @@ import {
   aimPlayer,
   aimVelocityDegPerSec,
   bubbleCenter,
+  characterDisplayName,
   colsForRow,
   createEmptyGrid,
   createMatch,
   createStageGrid,
   decomposeGarbageOrbs,
+  deriveMascotMood,
   findConnectedColorCluster,
   findFloatingBubbles,
   fireAndResolvePlayer,
@@ -27,6 +30,7 @@ import {
   formatAimAngle,
   hexNeighbors,
   hurryCountdownSeconds,
+  resolveMatchOutcome,
   scoreForDroppedBubbles,
   scoreForPop,
   scoreForStageClearBonus,
@@ -268,5 +272,42 @@ describe('Puzzle Bobble (Bust-A-Move) arcade rules', () => {
     match = fireAndResolvePlayer(match, 1, () => 0.25);
     expect(match.players[0].shotsFired).toBe(1);
     expect(match.players[1]?.shotsFired).toBe(1);
+  });
+
+  it('provides cute character options (dragon, cat, dog, bunny) and derives normal, cheer, hurry, celebrate, and cry mascot moods', () => {
+    expect(CHARACTER_OPTIONS.map((c) => c.id)).toEqual(['dragon', 'cat', 'dog', 'bunny']);
+    expect(characterDisplayName('dragon', 1)).toBe('Bub');
+    expect(characterDisplayName('dragon', 2)).toBe('Bob');
+    expect(characterDisplayName('cat', 1)).toBe('Mochi');
+    expect(characterDisplayName('dog', 2)).toBe('Koro');
+    expect(characterDisplayName('bunny', 1)).toBe('Usagi');
+
+    let match = createMatch('2p', () => 0.2);
+    expect(deriveMascotMood(match.players[0])).toBe('normal');
+
+    // Hurry countdown -> 'hurry'
+    const hurryMatch = tickShotTimers(match, 6_000, () => 0.2);
+    expect(deriveMascotMood(hurryMatch.players[0])).toBe('hurry');
+
+    // Popping 3+ bubbles -> 'cheer'
+    const popGrid = createEmptyGrid();
+    popGrid[0][0] = 'ruby';
+    popGrid[0][1] = 'ruby';
+    popGrid[0][6] = 'azure';
+    match.players[0].grid = popGrid;
+    match = settleBubbleAt(match, 0, 0, 2, 'ruby', () => 0.2);
+    expect(deriveMascotMood(match.players[0])).toBe('cheer');
+
+    // Round outcome -> winner celebrates ('celebrate') and loser cries ('cry'), overriding prior cheer
+    const p1Win = resolveMatchOutcome(match, 0);
+    expect(p1Win.status).toBe('round_over');
+    expect(p1Win.winner).toBe(0);
+    expect(deriveMascotMood(p1Win.players[0])).toBe('celebrate');
+    expect(deriveMascotMood(p1Win.players[1]!)).toBe('cry');
+
+    const p2Win = resolveMatchOutcome(match, 1);
+    expect(p2Win.winner).toBe(1);
+    expect(deriveMascotMood(p2Win.players[0])).toBe('cry');
+    expect(deriveMascotMood(p2Win.players[1]!)).toBe('celebrate');
   });
 });

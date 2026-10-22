@@ -77,8 +77,37 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
     const p2Board = page.getByRole('img', { name: 'Player 2 bubble board' });
     await expect(p2Board.locator('.pb-rise-bubble')).toHaveCount(3);
 
+    // #204: Players can select cute characters (Dragon, Cat, Dog, Bunny) independently.
+    const p1Mascot = page.getByTestId('p1-mascot');
+    const p2Mascot = page.getByTestId('p2-mascot');
+    await expect(p1Mascot).toHaveAttribute('data-character', 'dragon');
+    await expect(p2Mascot).toHaveAttribute('data-character', 'dragon');
+    await expect(p1Mascot).toHaveAttribute('data-mood', 'normal');
+    await expect(p2Mascot).toHaveAttribute('data-mood', 'normal');
+
+    await page.getByTestId('p1-character-picker').getByRole('button', { name: 'Cat', exact: true }).click();
+    await page.getByTestId('p2-character-picker').getByRole('button', { name: 'Dog', exact: true }).click();
+    await expect(p1Mascot).toHaveAttribute('data-character', 'cat');
+    await expect(p2Mascot).toHaveAttribute('data-character', 'dog');
+    await expect(page.getByTestId('p1-title')).toHaveText('1P · Mochi');
+    await expect(page.getByTestId('p2-title')).toHaveText('2P · Koro');
+
+    // #204: When one side wins, the winning character celebrates (.pb-mascot-celebrate + sparkles)
+    // and the losing character cries (.pb-mascot-cry + falling teardrops).
+    await page.evaluate(() => {
+      window.dispatchEvent(
+        new CustomEvent('yolo:puzzle-bobble:round-outcome', {
+          detail: { winner: 0 },
+        }),
+      );
+    });
+    await expect(p1Mascot).toHaveAttribute('data-mood', 'celebrate');
+    await expect(p2Mascot).toHaveAttribute('data-mood', 'cry');
+    await expect(p1Mascot.locator('.pb-mascot-sparkle').first()).toBeVisible();
+    await expect(p2Mascot.locator('.pb-mascot-tear').first()).toBeVisible();
+
     // #195: Both player cards and side panels keep identical widths and horizontal positions
-    // across aiming, incoming garbage orbs, and shot resolution (zero layout jitter).
+    // across aiming, character selection, incoming garbage orbs, shot resolution, and win/lose animations.
     const boxAfter = await page.evaluate(() => {
       const cards = Array.from(document.querySelectorAll('.pb-player-card')).map((el) => {
         const r = el.getBoundingClientRect();

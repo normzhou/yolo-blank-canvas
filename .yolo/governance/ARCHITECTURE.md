@@ -110,7 +110,7 @@ The durable observable contracts, verified by the test suite:
 | Guided three-intent request templates, body rendering, app-context feedback line and app-scoped drafts | `src/client/requestTemplates.ts`, `src/client/feedback.ts`, `src/client/drafts.ts`, `src/client/views/NewRequestView.tsx` | `test/request-templates.test.ts`, `test/feedback.test.ts`, `test/drafts.test.ts`, `e2e/app-feedback.spec.ts` |
 | Canvas app registry and addressable `?app=` locations | `src/client/apps/registry.ts`, `src/client/route.ts` | `test/apps.test.ts`, `test/route.test.ts`, `e2e/canvas-gallery.spec.ts` |
 | Tetris rules and board state (local to the view, not a GitHub record) | `src/shared/tetris.ts` | `test/tetris.test.ts` |
-| Puzzle Bobble (Bust-A-Move) hex-grid and 2P versus rules (local to the view, not a GitHub record) | `src/shared/puzzleBobble.ts`, `src/client/views/PuzzleBobbleView.tsx` | `test/puzzle-bobble.test.ts`, `e2e/puzzle-bobble.spec.ts` |
+| Puzzle Bobble (Bust-A-Move) hex-grid, 2P versus rules, selectable cute characters and win/lose animations (local to the view, not a GitHub record) | `src/shared/puzzleBobble.ts`, `src/client/views/PuzzleBobbleView.tsx` | `test/puzzle-bobble.test.ts`, `e2e/puzzle-bobble.spec.ts` |
 | Tetris track list and shuffled bundled-asset playlist | `src/shared/tetrisMusic.ts` | `test/tetris-music.test.ts` |
 | Tetris backdrop scenes (bundled sourced art) and the four-line cycle | `src/shared/tetrisBackgrounds.ts` | `test/tetris-backgrounds.test.ts` |
 

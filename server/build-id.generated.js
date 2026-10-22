@@ -1,2 +1,2 @@
 // Generated at build time by vite.config.ts. Do not edit.
-export const BUILD_ID = "811795877191e11aedd7981429bceb214681b0bf";
+export const BUILD_ID = "b679005fc66915b882f7f565434e224761e5439d";
