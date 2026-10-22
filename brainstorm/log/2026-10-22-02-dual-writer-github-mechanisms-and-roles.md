@@ -27,5 +27,9 @@
      2. Editing the `yolo:control` issue body (`PATCH /repos/:o/:r/issues/:n`) requires repo `write`/`maintain`/`admin` permission.
      3. **Locking the `yolo:control` issue (`PUT /repos/:o/:r/issues/:n/lock`)** blocks all non-collaborators (`READ`/`NONE`) from posting comments (`403 Forbidden`), while collaborators/maintainers (`write`/`maintain`/`admin`) can still post control-event comments and edit the issue body normally.
    - **Layer 2 (Read-side attribution check):** Both UI and Runner verify `comment.user.login ∈ adoption.authority.maintainers` on every control event.
-   - **Layer 3 (App session role resolution):** Intersects GitHub identity + repo permission (`ADMIN`/`MAINTAIN` via `gh api repos/:o/:r` in local `npx` mode, or GitHub App OAuth / `yolo-client-identity-v1` in hosted mode) with `.yolo/adoption.json` `authority.maintainers`, without ever laundering a maintainer token to regular users.
+   - **Layer 3 (Decoupling regular users from GitHub accounts via Google OIDC + `[bot]`):**
+     - Standard GitHub.com does not mint GitHub user IDs from external Google OIDC tokens (EMU is enterprise-only).
+     - However, regular users **do not need a GitHub account**: they sign in via Google (`login.yolo-dev.ai` / `yolo-client-identity-v1`), receiving a stable opaque `subject` (`user_a`, `user_b`), and the app's backend posts their requests/comments to GitHub using a **GitHub App installation token (`[bot]`)** stamped with `<!-- yolo:requester id="user_8f92a1" -->` (keeping their email private while letting them track "My requests").
+     - The backend's requester route is hard-coded never to write to the locked `yolo:control` issue or apply `yolo:*` labels.
+     - Maintainers (who already own the GitHub repo) either authenticate via GitHub OAuth / local `gh` (Option 3A: posting directly as `normzhou` on GitHub so `yolo:control` events carry native human GitHub authorship) or via their allowlisted Google `subject` in D1 (Option 3B).
 4. **Walked through all 7 enumerated examples** in [`brainstorm/framework-settings-ui.md`](../framework-settings-ui.md#4-walking-through-the-7-enumerated-surface-area-examples) against this model.

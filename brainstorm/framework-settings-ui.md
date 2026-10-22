@@ -70,20 +70,32 @@ Even on top of GitHub's write lock, both the UI and the Runner verify attributio
 - **Issue check:** Must carry the `yolo:control` label and `issue.user.login ∈ adoption.authority.maintainers`.
 - **Event comment check:** Every setting change comment (`<!-- yolo:control-event ... -->`) is verified against `comment.user.login ∈ adoption.authority.maintainers` (and `comment.author_association ∈ {"OWNER", "MEMBER", "COLLABORATOR"}`). Any comment from any other user is ignored.
 
-### Layer 3: App-Level Authentication & Session Segregation (Local `npx` vs. Hosted Web App)
-How does the Web UI itself authenticate the user and know whether to render the Maintainer Control Plane or the Regular User UI?
+### Layer 3: Can Regular Users Skip Having a GitHub Account? (Google Auth + `user_a` / `user_b` Mapping)
 
-| Deployment Mode | How the User Authenticates | How the App Resolves Role (`visitor` \| `requester` \| `maintainer`) | Whose Credentials Write to GitHub? |
-| --- | --- | --- | --- |
-| **Mode A: Local Loopback (`npx`)** | Local `gh` CLI (`server/gh.js`) | `POST /api/session` calls `gh api user` (`login`) + `gh api repos/:o/:r` (`permissions.admin \|\| permissions.maintain`) and intersects with `adoption.authority.maintainers` (`["normzhou"]`). | The local user's own `gh` session. If `alice` runs `npx`, her `gh` token is `alice` (`role: "requester"`), so she sees only the Request UI and GitHub refuses any write to `yolo:control`. |
-| **Mode B: Hosted Web App (`demo.yolo-dev.ai`)** | **1. GitHub App OAuth (`ghu_...` user token)** *(or)*<br>**2. YOLO Shared Login (`login.yolo-dev.ai` Google OIDC)** | **With GitHub OAuth:** same check (`login ∈ authority.maintainers` + repo `admin`/`maintain`).<br>**With Shared Login:** Worker verifies `(issuer, subject, emailVerified)` against the app's private maintainer allowlist in D1/env. | **Never launder a shared maintainer token to regular users** (`CHARTER.md` constraint 4). Either each user signs in with GitHub OAuth (acting under their own `ghu_...` token), or the Worker restricts any maintainer-scoped credential strictly to verified maintainer sessions. |
+**Question:** Does GitHub natively validate external IDs (like Google OIDC) to create a GitHub user ID? And can we let regular users sign in with Google (no GitHub account required) while still mapping them (`user_a`, `user_b`) and segregating them from maintainers?
 
-```text
-Role =
-  if (!authenticated)                                     -> "visitor"    (static preview / read-only)
-  else if (login in authority.maintainers && isRepoAdmin) -> "maintainer" (full Request + Framework Control Plane)
-  else                                                    -> "requester"  (Request-to-Result UI only)
-```
+1. **What GitHub supports natively:**
+   - Standard GitHub.com does **not** let you exchange a Google OIDC token for a GitHub user ID (Enterprise Managed Users / EMU only exists for corporate GitHub Enterprise Cloud orgs and still creates managed GitHub accounts).
+   - Every GitHub API write must be authenticated by either a **GitHub User token (`ghu_...`)** or a **GitHub App Installation token (`[bot]`, `ghs_...`)**.
+2. **How we decouple Regular Users from GitHub accounts (`login.yolo-dev.ai` + GitHub App `[bot]`):**
+   - Under `yolo-client-identity-v1` (`login.yolo-dev.ai`), a regular user signs in with **Google** (zero GitHub account needed).
+   - The app receives a verified principal `{ issuer: "https://login.yolo-dev.ai", subject: "usr_8f92a1", emailVerified: true }`, where `subject` (or a per-app hash `user_a`, `user_b`) is a stable, privacy-preserving user ID.
+   - When `user_a` files a request or comment in the UI, the app's backend posts to GitHub using the app's **GitHub App installation token (`[bot]`)**, embedding an opaque attribution marker (never exposing their raw email on a public repo):
+     ```markdown
+     <!-- yolo:requester id="user_8f92a1" issuer="login.yolo-dev.ai" -->
+     ```
+   - When `user_a` returns later and signs in with Google, the UI matches `user_8f92a1` so they can filter **"My requests"** and reply to their threads without ever creating a GitHub account!
+3. **How Maintainer vs. Regular User Segregation Works in This Model:**
+   - **Regular users (`user_a`, `user_b`)** authenticate via Google (`login.yolo-dev.ai`) → routed through the backend's **Requester API**, which uses the `[bot]` token but is **hard-coded in the backend never to touch `yolo:control`, never to apply `yolo:*` labels, and only to create untagged issues / comments on non-locked issues**. Even on GitHub, the `[bot]`'s requester path cannot mutate locked control state.
+   - **Maintainers (`normzhou`)** already have a GitHub account (since they own the repo). For maintainer actions, we have two choices:
+     - **Option 3A (Hybrid Auth — Google for Users, GitHub OAuth / `gh` for Maintainer):** Regular users sign in with Google (`[bot]` posts as `user_a`). When the maintainer signs in (via GitHub OAuth on hosted, or `gh` locally), their actions post under their **real GitHub user account (`normzhou`)**. That way GitHub itself cryptographically distinguishes `normzhou` (human maintainer) from `yolo-demo-app[bot]` (proxied regular users `user_a`, `user_b`).
+     - **Option 3B (Single Google Login + Linked Maintainer Subject):** Everyone signs in with Google (`login.yolo-dev.ai`). The app's private D1/env maps the maintainer's verified Google `subject` (`sub_normzhou`) to `role: "maintainer"`. Only when `principal.subject === sub_normzhou` does the backend unlock the `yolo:control` write endpoint (or use a separate Maintainer App credential / signed control attestation).
+
+| Actor | Needs GitHub Account? | Login Method | GitHub API Writer Identity | Attribution in Issue / Comment | Can Write to `yolo:control`? |
+| --- | --- | --- | --- | --- | --- |
+| **Anonymous Visitor** | No | None | None (read-only) | N/A | No |
+| **Regular User (`user_a`, `user_b`)** | **No** | Google (`login.yolo-dev.ai`) | App Installation `[bot]` (restricted requester route) | `<!-- yolo:requester id="user_8f92a1" -->` (opaque ID; email stays private) | **No** (blocked by backend route guard + locked `yolo:control` issue) |
+| **Maintainer (`normzhou`)** | Yes (owns repo) | Local `gh`, GitHub OAuth, or Google (`sub_normzhou` in D1 allowlist) | `normzhou` (Option 3A) or Maintainer-gated control writer (Option 3B) | Native GitHub `author: normzhou` (or verified maintainer attestation) | **Yes** |
 
 ---
 
