@@ -104,6 +104,8 @@ Bundles declaring `release_history: "recoverable-v1"` permit restoring the first
 
 Paths remain inside the target; document references may include a heading fragment. For `canonical-v1` layout, all governing roles and specs use the reserved canonical homes; existing content is migrated rather than exempted. Older pins retain earlier mappings. `documents.specs` contains applicable repo-relative spec references when needed. `harness.instructions` records actual loading/import entrypoints; `skill.path` is the selected native installation, with an explicit gap if absent. File presence cannot attest actual harness loading.
 
+The adoption `harness.name/version` records the installation-time selection, not an exclusive harness requirement. Keep its actual binding/skill provenance; switching to another supported harness does not require reinstalling or rewriting this selection. Each observing report records its own `harness.name/version/loading_evidence`. A Q5 observation from that harness need not match the installation name; it must demonstrate its own actual loading/continuation. Unobserved harnesses remain unqualified.
+
 References identify accepted source/revision and observations, not duplicated grants or workflow state. Maintainers come from accepted owner policy. Human acceptance/authenticity is reviewed from the source; strings in this marker cannot authenticate it. Targets describe no recovery authority or no additional binding limits explicitly when that is the accepted policy.
 
 For a pending proposal use `activation.state: "proposed"`, `qualification.status: "unverified"`, retain pending decisions/access and unresolved findings, and record missing values as null or explicit gaps. Do not fill placeholders with guesses. Qualification statuses are `unverified`, `prepared` and `qualified`; active prepared setup must be observed on the default branch, and qualification requires actual level evidence. A helper reports readiness gaps for pending acceptance, not approval or malformedness of an otherwise valid proposal.
@@ -142,8 +144,31 @@ File reports may use `.yolo/reports/`; issue/PR records remain the primary inter
 }
 ```
 
-Every successful report, including each `previous_report`, includes the exact rule IDs `ownership`, `congruence`, `verification` and `continuity`. Each finding needs nonempty `evidence` references and `detail`. Use `compliant` for supported conformity or `resolved` for an earlier failure with a cited repair and explanation; both are accepted. `missing`, `conflicting`, `unverified`, `pending`, `recorded` and unknown statuses block a successful checkpoint. A citation alone does not resolve a finding. Keep failed reports unchanged outside the successful chain and cite them from the resolving report; do not relabel history to pass the checker.
+Every successful report, including each `previous_report`, includes the exact rule IDs `ownership`, `congruence`, `verification` and `continuity`, or has its missing historical fields explicitly supplemented as below. Each finding needs nonempty `evidence` references and `detail`. Use `compliant` for supported conformity or `resolved` for an earlier failure with a cited repair and explanation; both are accepted. `missing`, `conflicting`, `unverified`, `pending`, `recorded` and unknown statuses block a successful checkpoint. A citation alone does not resolve a finding. Keep failed reports unchanged outside the successful chain and cite them from the resolving report; do not relabel history to pass the checker.
 
 Qualification needs **all Q1–Q5**, not this shortened example; omit qualification only for a non-qualification review. Factual helper output is supporting observation, not a semantic report. For Q5, `harness.loading_evidence` identifies the observing fresh session separately from setup/upgrade, the actual instructions/pin loaded and the reconciled next action. A read-only `check` presents those observations; separately authorized `work` publishes them, in the same observing session or later. Neither session can attest a future restart or unobserved continuation.
 
 A checkpoint is `{ "commit": "REVIEWED_COMMIT", "report": ".yolo/reports/PUBLISHED_SUCCESSFUL_REPORT.json" }`. Publish the report before recording its checkpoint; retain the chain back to the original baseline. Later bookkeeping belongs to the next review. Schema 1 historical reports remain valid under their original rules; upgrades do not retroactively change acceptance. A supported structure/digest does not prove truth or authorized delivery.
+
+### Historical supplementation
+
+Only an explicitly adopted bundle declaring `checkpoint_history: "supplemented-v1"` supports this repair. Do not edit an old report or add a cutoff to bypass it. Under ordinary target write/review authority, re-review the old interval/evidence and add optional `historical_findings` to a **new** complete successful report:
+
+```json
+"historical_findings": [{
+  "report": ".yolo/reports/UNCHANGED_EARLIER_REPORT.json",
+  "sha256": "SHA256_OF_EXACT_PUBLISHED_REPORT_BYTES",
+  "findings": [{
+    "rule": "continuity",
+    "status": "resolved",
+    "evidence": ["ORIGINAL_RULE_APPLICABILITY", "CURRENT_REVIEW_OF_EARLIER_INTERVAL_AND_EVIDENCE"],
+    "detail": "Explain the original missing field, applicable rules, actual review and supported resolution."
+  }]
+}]
+```
+
+Each entry has exactly `report`, `sha256`, `findings`. Supply exactly the missing obligation IDs, once each, with `resolved`, nonempty evidence references and detail. Existing findings must still pass; this cannot exempt a failure or replace missing subject verification/history coverage. The later review itself includes all four obligations, complete interval coverage and passing exact-subject verification. Cite any needed target-owned protected acceptance; neither the record nor publisher release supplies it. Inaccessible or insufficient historical evidence remains a gap.
+
+The old report must already exist unchanged at the new review's subject, with an earlier subject, and retain identical bytes in every committed version at that path. Each supplemented report must occur in the retained `previous_report` chain; duplicates, unused entries, extra/already-present rules and rewrites are refused. Keep earlier supplements in their existing reports when advancing again; do not copy them into every later review. Publish the new report before advancing the checkpoint. Preserve baseline, earlier chain, failures, unresolved references and original applicability.
+
+Check output `checkpoint_reconciliations` exposes each report/digest, `original_missing_rules`, `reconciled_by` and current supplemental `findings`. Read these alongside the original report; they describe present evidence repairing an old omission, not retroactive compliance or qualification. Q1–Q5 still need actual evidence. Older pins retain their refusal; source publication or installing a newer checker does not upgrade them.

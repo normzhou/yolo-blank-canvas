@@ -2,7 +2,7 @@
   "schema_version": 1,
   "protocol_format": "github-v1",
   "repository": "https://github.com/normzhou/yolo-dev",
-  "revision": "e95211f32261580fb580cf0da9d7276ae477b063",
+  "revision": "da644964ca92eef8448cd782cf6805c724ca2e74",
   "inputs": [
     {
       "path": ".yolo/governance/ARCHITECTURE.md",
@@ -46,17 +46,17 @@
     },
     {
       "path": "specs/conformance-checks.md",
-      "sha256": "6d456c3cd34a4d43fba706f3d618e9ac47b62e0f45335ef27aec3cf60d3696a6",
+      "sha256": "0d4570ee443cf0b8de3db4c01c19089511e5f8cfaa25aa4ef00360a9b4c0b829",
       "selection": "whole document"
     },
     {
       "path": "specs/qualification.md",
-      "sha256": "f8d159c64f13b0e9b23f06fdf167b2fcc47be5e9e01c5941c00e5c4c70bdc688",
+      "sha256": "e668805aff127bc9f97fa1afc19b9b1f9b4ba001ad543603add21522c2bc4c30",
       "selection": "whole document"
     },
     {
       "path": "specs/adoption-records.md",
-      "sha256": "ffb2a6a0add5e54a9bc36f9d7300d0d30dfa2c1a9c47163f8b80de290a6561a0",
+      "sha256": "3a909f16f0a164a6974f5107568b624e852cc0a0e37c0a1f159f4ecdcbba69fd",
       "selection": "whole document"
     },
     {
@@ -67,6 +67,11 @@
     {
       "path": "specs/request-interface.md",
       "sha256": "3268901ad2feef31905b0a76e01cc3f4525d25769be70a28cffe57917bda5ad7",
+      "selection": "whole document"
+    },
+    {
+      "path": "specs/request-templates.md",
+      "sha256": "fd970b36af8dbea42d882bb136b05aca2f2500bafcf71bcce33c59d1b0185d10",
       "selection": "whole document"
     },
     {
@@ -91,7 +96,7 @@
     },
     {
       "path": "specs/app-hosting.md",
-      "sha256": "af29bb43233ab166363da66dd2dccbea2a188fb72aa51200702fb790f1c135b1",
+      "sha256": "c0ce5fd60e8bc994802f8b92d25e8964e9163ed74535f58bd8c8deaf9c4fe651",
       "selection": "whole document"
     },
     {
@@ -101,13 +106,13 @@
     },
     {
       "path": "VERSION",
-      "sha256": "ee98435e09c618f3578eec12c901369743133c049ae7c2e8f860d1b8643f7d6b",
+      "sha256": "d54ee665631bf286de0a34d3bd528db01f976c148b6c3a4be5b52ee465cbc7ec",
       "selection": "whole document"
     }
   ],
   "output": {
     "path": "references/protocol.md",
-    "sha256": "4f5ffe0ae643a81a1e303b2d2a9f067fb7c3b568d1710efe1a6b7b6209667afa"
+    "sha256": "2f3663b8819c61c28a3216ce622903b6b36b825ea7f9e3e76504c126135cd305"
   },
   "layout": {
     "root": {
@@ -134,6 +139,7 @@
   "release_convention": "semver-v1",
   "release_history": "recoverable-v1",
   "issue_management": "request-outcome-v2",
+  "checkpoint_history": "supplemented-v1",
   "execution_profiles": "app-preflight-v1",
   "activity_observation": "pi-native-v1",
   "activity_observers": [
@@ -144,9 +150,9 @@
     "cursor-hooks-v1",
     "opencode-v2-events-v1"
   ],
-  "release": "v0.1.0-alpha.30",
+  "release": "v0.1.0-alpha.33",
   "files": {
-    "SKILL.md": "ed53c981c2a06a1d7cd516320193b09b95b1891a0d191d5b10897c2737b2f905",
+    "SKILL.md": "d4dec20d2332b55f07f0badaf911506bbd7061adf0738d8be7565cf4dde6a587",
     "assets/activity-observer.ps1": "fc3686440ee348ea75010ca7f3a6ec9d13f3613b835303801a22b31d9fae04d4",
     "assets/activity-observer.sh": "cd57a92e9bb61dcd7cbd0140edbd2c46a05351f2dc9b0c7d988847ff4403b1e8",
     "assets/agent-instructions.md": "600d87dfdc5db8ec92e48ff8bf6ac24f655f8ead6bb711170ea0b7b4fd2746b3",
@@ -156,6 +162,20 @@
     "assets/brainstorm-session.md": "ba7a405e2ed13ba21a140b3c9b84f11b9fc7ce890c33ebd9e3822f7bcf731fc5",
     "assets/brainstorm-topic.md": "1028a4c4121e231663b345b9436538f43b2846d58b9b57a4b395baaab4aae6da",
     "assets/charter.md": "4b87c4fc41efce2be2b4307c59e3a90099be8c84d60cbdb8c1ee38598d05ab66",
+    "assets/client-identity/.gitignore": "462313e9cdf5217c7e729cfd60632a763ad1b8452774d4b736b90ab2e03a2c28",
+    "assets/client-identity/backend.mjs": "49e88f9a68f72e9b135c69201d8099b1d4d5189b6e0681d3a5ef0fd4f8e071b3",
+    "assets/client-identity/backend_identity.py": "61439451df165a998d72e434ec19ac71fecb602b9bacbda28b2b1222660abd52",
+    "assets/client-identity/check.mjs": "bb4490148b476c4917fd01d155b8ab8ad9139660e899f986ff6484c31b8e78c8",
+    "assets/client-identity/client.mjs": "de4451227f03d5f760dfc5d6fb7ef59b288d4c573af26f90c08e21c05335c824",
+    "assets/client-identity/example.mjs": "d7676ea5d94b65bc3abd5132396e4ad2d019b3bb7d1467b3b7040aa9164a41bf",
+    "assets/client-identity/fixture.mjs": "81fe632ca89225e55335053b3e6eb9ffc3dc827cfa7b9431e977bb155a1450f7",
+    "assets/client-identity/package-lock.json": "1d2ba0d9595258bb0c4f7c7ca7fb7bcf7baacb6b693292fa5bbed0c459830165",
+    "assets/client-identity/package.json": "7913381f195860f39db65ee5ee938b0b574dde3c33292784ad148c43d550a090",
+    "assets/client-identity/schema.sql": "ec8a88897e41960ce5b4b36f0b6b82e04fecea64520af881294c350edeedf5fd",
+    "assets/client-identity/test.mjs": "6c00bb82004ac01cf1e2ec0fa8d39924eca8203d279998d33c238477631f32c6",
+    "assets/client-identity/transport.mjs": "a41486855731aac8421e5e8337658a2e30c18297bbc51ef012e7d1d8351ee6cb",
+    "assets/client-identity/worker.mjs": "c116d831cd9be15dbd4993c8c051d5adf2cee1efe3beba2103f9350e9c66a6e0",
+    "assets/client-identity/wrangler.json": "a817a967c2f47ded1950df6afa9c8bc8d30c9ebd8f97f7af66b30c9434aeda1b",
     "assets/codex-observer.ps1": "d563ac1ac37d1938693330abeb9e86a6e9be03321c4995fdc463892c9d6b6c0d",
     "assets/codex-observer.sh": "7d45d0a76915645df3ecb66c8c684be0e80d1bc1b8d28c9342e4935f8c8a24fb",
     "assets/hosting/instantiate.py": "311b7cd9d7732902053464d0cfbe97ac3140bd89248836bb8d5c3ffbbd29baa3",
@@ -198,13 +218,31 @@
     "assets/opencode-observer.mjs": "c9b830eaa2f567204f98c13d960eb4271bea6982e976df68f0bd889a74bfccdf",
     "assets/pi-observer.ts": "f3c753ef2fd264b7a3a070644e2593eb8ee1071f9b7334d382f5db92e061d982",
     "assets/readme.md": "d55bd98a23633b2d8dae90667645a98057b6361d39514f179f1eabb361e8d2da",
-    "references/app-hosting.md": "54d1b0a12958c880feb773d2cfe2a5e43e075ad8ff6e1216132ab9df552245b9",
+    "assets/request-schemas/catalog.schema.json": "658bab5e3405adaeb0977644ddcf90d14b52720d1952519300aeb7cdd46cbeb4",
+    "assets/request-schemas/process.schema.json": "abe4c32eca36ac5eb03f4889c9fe228b1e90bdfd733c0cbd18c5dfd530d17c0c",
+    "assets/request-schemas/protocol.schema.json": "a1ab363a896e890c1952e4ecc7c32062d484bc94b528b5219cc7bbd2804929ea",
+    "assets/request-schemas/response.schema.json": "a2ddbf16f0f134c79233cae9c7826c706b92e0bf2bb7b4a0d9b3950fdfaa8564",
+    "assets/request-schemas/template.schema.json": "a45c03b00550d127792df897896f23c777500ccff94d229ade48817d437c0b03",
+    "assets/requests/catalog.json": "e6351254b086be430ebf95cca37c23ebdd24bf8a6bea374e601a711fc8caeb25",
+    "assets/requests/index.json": "0f103dd23d8ad979434112db3ec58b5995f03b9ff22af24d8dce93b52a7ae55a",
+    "assets/requests/protocols/yolo.bug.resolution@1.0.0.json": "177bed5fe9dff77c7597a348121bd6e375d64ab421f314aaaf691e2e38b0bf01",
+    "assets/requests/protocols/yolo.feature.resolution@1.0.0.json": "4ed41165c3fd19d8591606de6794d6c7fffb4efd781471ca3143964b1c534419",
+    "assets/requests/protocols/yolo.feedback.resolution@1.0.0.json": "b80f7f1387629325341535dfe05694d40a3864cf9f72f04dd7dd2a8c40e63e5d",
+    "assets/requests/protocols/yolo.question.resolution@1.0.0.json": "a57b123294fdc1dd70edf00a81a643dee716da551b19942fab6888396faf5261",
+    "assets/requests/templates/yolo.bug@1.0.0.json": "6ba778f91351b464aae7ecd7139c4942d12a970532af6982c581cf3378723ef6",
+    "assets/requests/templates/yolo.feature@1.0.0.json": "d89b321a2ad3e6e721e965251bc382e74f7d2d85294d87e2de52257ea2833a63",
+    "assets/requests/templates/yolo.feedback@1.0.0.json": "9aaa2eb82136b2a5cd0f473ad21c11e5acbb2cf407484b2171644cb9032ecd13",
+    "assets/requests/templates/yolo.question@1.0.0.json": "8baf1a15449b1db981f679fcd12599966808819e171ea39f7e49716841b63008",
+    "references/app-hosting.md": "c92c178140cf8d449b2b3a916ccefba9e9decb9e4aab27d137c5024e7a33225d",
     "references/assisted-protocol.md": "1f65afd40890eb06a475918564e0bd4cde4491ae4450bc56b6a9b22b60263b45",
-    "references/checker.md": "212f7e36b6a3c5ec539453b1e8d10b110e88c19ea9dfd9789b124cb82c0c4077",
+    "references/checker.md": "c3b90420d5c843bda8eb75b0d8b849c707cce4c149621ede4cfa5073367af191",
+    "references/client-identity.md": "cb7c04a5df817b966841c998f3b4a7c05cd50eea6ffe0f1e6249be819562df23",
     "references/legacy-records.md": "9cddd17a5a7aec52f67cf1cb20a3be3669359527a459d46fdc8ec74b0810b59f",
     "references/operator-app.md": "ed445fa1b343e2e452ab2f424b90e0ddd294ade3bcdc74815ff8d75944af8527",
-    "references/protocol.md": "4f5ffe0ae643a81a1e303b2d2a9f067fb7c3b568d1710efe1a6b7b6209667afa",
-    "references/records.md": "03d386a69845310d7f99069112d77ff7f8db48502f68ac2f7917cd1622fc568f",
-    "references/templates.md": "b4ef44da195f45ab6d5e8df88421d5b9b27d9aaafbbfbb509db92734314f3255"
+    "references/protocol.md": "2f3663b8819c61c28a3216ce622903b6b36b825ea7f9e3e76504c126135cd305",
+    "references/records.md": "235586034c688a5fcf5d0f1e602549ab2fdd555e69fac9b60b2a14962d38c7dd",
+    "references/request-forms.md": "746e60ec2ccdf943814cafff1d92dce48a8359ffe52e20cb1142c0e986a15d91",
+    "references/templates.md": "b4ef44da195f45ab6d5e8df88421d5b9b27d9aaafbbfbb509db92734314f3255",
+    "references/tool-licenses.md": "b366f815caf466e199499e606cb07220f4f8ebabfec7646666d4aa64b93862c9"
   }
 }

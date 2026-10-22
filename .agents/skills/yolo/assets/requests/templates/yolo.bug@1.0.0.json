@@ -1,0 +1,75 @@
+{
+  "format_version": 1,
+  "id": "yolo.bug",
+  "version": "1.0.0",
+  "title": "Report a problem",
+  "description": "Public, nonsecret request data only. Submission does not grant execution or admission.",
+  "mode": "bug",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "observed": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "expected": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "reproduction": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "context": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      }
+    },
+    "required": [
+      "observed"
+    ],
+    "additionalProperties": false
+  },
+  "form": {
+    "fields": [
+      {
+        "field": "observed",
+        "widget": "textarea",
+        "label": "What happened?",
+        "help": "Describe observed behavior."
+      },
+      {
+        "field": "expected",
+        "widget": "textarea",
+        "label": "What did you expect?",
+        "help": "Optional expected outcome."
+      },
+      {
+        "field": "reproduction",
+        "widget": "textarea",
+        "label": "How can we reproduce it?",
+        "help": "If known; a missing reproduction does not prevent reporting."
+      },
+      {
+        "field": "context",
+        "widget": "textarea",
+        "label": "Context",
+        "help": "Optional observed version/environment and sanitized evidence; no private logs or credentials."
+      }
+    ]
+  },
+  "result_schema": {
+    "type": "object",
+    "properties": {},
+    "required": [],
+    "additionalProperties": false
+  },
+  "protocol": {
+    "id": "yolo.bug.resolution",
+    "version": "1.0.0"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "format_version": 1,
+  "id": "yolo.feedback",
+  "version": "1.0.0",
+  "title": "Share feedback",
+  "description": "Public, nonsecret request data only. Submission does not grant execution or admission.",
+  "mode": "feedback",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "message": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "context": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      }
+    },
+    "required": [
+      "message"
+    ],
+    "additionalProperties": false
+  },
+  "form": {
+    "fields": [
+      {
+        "field": "message",
+        "widget": "textarea",
+        "label": "What would you like us to know?",
+        "help": "Tell us what happened, what worked, or what felt wrong. No proposed solution is required."
+      },
+      {
+        "field": "context",
+        "widget": "textarea",
+        "label": "Context",
+        "help": "Optional observed version/environment and sanitized evidence; no private logs or credentials."
+      }
+    ]
+  },
+  "result_schema": {
+    "type": "object",
+    "properties": {},
+    "required": [],
+    "additionalProperties": false
+  },
+  "protocol": {
+    "id": "yolo.feedback.resolution",
+    "version": "1.0.0"
+  }
+}

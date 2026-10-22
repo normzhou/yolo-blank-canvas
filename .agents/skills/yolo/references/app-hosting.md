@@ -6,7 +6,7 @@ Use this reference only when the target's maintainer asks for hosting. It does n
 
 The adopter owns its Cloudflare application account/Worker/assets/data/secrets and, when needed, its OCI host, runtime configuration and releases. Yolo Dev owns its domain/namespace, DNS, Access, gateway and Tunnel. Each side keeps separate provider credentials/state; no domain-management token goes to a client. Per-app releases require no central runtime-config PR.
 
-Two profiles share the same interface: `cloudflare` for client Worker/Static Assets and `cloudflare-oracle` for that app plus a supervised client backend. D1, queues and other providers are deferred until a concrete verified need. The immediate priority is the Trader frontend/backend build handoff.
+Two profiles share the same interface: `cloudflare` for client Worker/Static Assets and `cloudflare-oracle` for that app plus a supervised client backend. Requested [shared-login integration](client-identity.md) uses a client-owned D1 for isolated browser login state/app sessions in either profile. The complete adapter/example can be implemented locally; production issuer activation/migration remains unavailable and existing protection stays intact. Other queues/providers remain deferred until needed.
 
 The proposed route is browser → operator Access/gateway → authenticated HTTPS to the client-owned guarded Worker → optional protected OCI API. Check actual provider cross-account requirements rather than assuming a CNAME/shared-account binding. The operator's gateway still consumes its quota. Actual operator routing/Google authentication and trusted automatic publication remain separate #127/#128 acceptance; a scaffold is neither a live hostname nor deployment authority.
 

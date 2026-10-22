@@ -1,0 +1,129 @@
+{
+  "schema_version": 2,
+  "target": "normzhou/yolo-blank-canvas",
+  "kind": "upgrade-proposal",
+  "status": "proposed",
+  "protocol": {
+    "revision": "da644964ca92eef8448cd782cf6805c724ca2e74",
+    "sha256": "2f3663b8819c61c28a3216ce622903b6b36b825ea7f9e3e76504c126135cd305"
+  },
+  "revision": "e5502d11b319c14155e7260b67d907072009741f",
+  "default_revision": "e5502d11b319c14155e7260b67d907072009741f",
+  "from": "e5502d11b319c14155e7260b67d907072009741f",
+  "previous_report": ".yolo/reports/checkpoint-review-2026-10-21.json",
+  "reviewed_commits": {
+    "checkpoint": "c62fbd30c1375e63d0554c500220f5fb1602b97d",
+    "head_at_proposal": "e5502d11b319c14155e7260b67d907072009741f",
+    "note": "This is a migration proposal from v0.1.0-alpha.30 to v0.1.0-alpha.33, not a checkpoint review. Existing checkpoint c62fbd3 and all historical reports are preserved byte-unchanged."
+  },
+  "working_changes": [
+    "M .agents/skills/yolo/** (92-file v0.1.0-alpha.33 bundle, verbatim from publication bbb3af70580d012cb9b5032ef7a03fdb74ee256f)",
+    "A .agents/skills/yolo/references/{client-identity,request-forms}.md",
+    "A .agents/skills/yolo/assets/client-identity/* (13 files)",
+    "A .agents/skills/yolo/assets/request-schemas/* (5 files)",
+    "A .agents/skills/yolo/assets/requests/* (10 files: catalog, index, 4 starter protocols, 4 starter templates)",
+    "M .yolo/protocol.md (byte-identical to the publisher's declared output identity 2f3663b8819c61c28a3216ce622903b6b36b825ea7f9e3e76504c126135cd305)",
+    "M .yolo/adoption.json (candidate mapping; activation.state proposed, prior evidence preserved)",
+    "M .claude/settings.json, .gemini/settings.json, .cursor/hooks.json, .codex/hooks.json (updated by installer with new protocol SHA-256 2f3663b8...)"
+  ],
+  "revision_note": "Requested by the maintainer in this authenticated harness session: '/yolo upgrade preview'. Resolved once with the pinned alpha.30 executable to v0.1.0-alpha.33 at publication bbb3af70580d012cb9b5032ef7a03fdb74ee256f.",
+  "upgrade": {
+    "channel": "preview (explicitly requested)",
+    "old_release": "v0.1.0-alpha.30",
+    "old_publication": "df14572179e0c017e4df98c42de38246610de60b",
+    "old_source_inputs": "e95211f32261580fb580cf0da9d7276ae477b063",
+    "new_release": "v0.1.0-alpha.33",
+    "new_publication": "bbb3af70580d012cb9b5032ef7a03fdb74ee256f",
+    "new_source_inputs": "da644964ca92eef8448cd782cf6805c724ca2e74",
+    "releases_crossed": [
+      "v0.1.0-alpha.31",
+      "v0.1.0-alpha.32",
+      "v0.1.0-alpha.33"
+    ],
+    "publisher_dates": "alpha.31 2026-10-21 ... alpha.33 2026-10-22"
+  },
+  "rule_tooling_delta": [
+    "checkpoint_history: supplemented-v1 (alpha.31, upstream #165): a later complete review report can supply missing obligation findings for unchanged historical reports in the checkpoint chain through historical_findings without rewriting them or skipping their intervals",
+    "observing-session harness identity (alpha.31, upstream #164): adoption.harness.name/version is recorded as the installation-time selection and is not exclusive; each observing report records its own harness.name/version/loading_evidence",
+    "optional shared-identity local client preview (alpha.32, upstream #181/#163): ships references/client-identity.md and assets/client-identity/* (13 files) for local development preview of shared login; opt-in only, no effect on this repository",
+    "optional request framework and portable form adapter (alpha.33, upstream #144): ships specs/request-templates.md, references/request-forms.md, assets/request-schemas/* (5 files), assets/requests/* (10 files: catalog, index, 4 starter protocols, 4 starter templates), and yolo-check requests inspect|render|normalize|pack|install; opt-in only, does not automatically install .github/ISSUE_TEMPLATE/*.yml or alter existing plain-text/app intake, and satisfies the upstream dependency on deferred request #174 once this pin upgrade lands"
+  ],
+  "governing_clause_index": [
+    {
+      "action": "pin selection and staging",
+      "old": "Assisted distribution -> Release selection with the pinned alpha.30 executable and its read-only resolver",
+      "candidate": "same contract in alpha.33; newest published non-draft release selected once for 'preview'",
+      "compatibility": "compatible - same operation; resolved once to v0.1.0-alpha.33 @ bbb3af70580d012cb9b5032ef7a03fdb74ee256f"
+    },
+    {
+      "action": "installing bundle and native bindings",
+      "old": "install --bundle with 60-file manifest inventory and 5 hook/plugin bindings",
+      "candidate": "install --bundle with 92-file manifest inventory and the same 5 hook/plugin bindings updated to protocol SHA-256 2f3663b8...",
+      "compatibility": "compatible - existing publisher-owned hook files were backed up to /tmp/yolo-a30-backup and refreshed by the alpha.33 installer; no local customizations or owner settings were overwritten"
+    },
+    {
+      "action": "checkpoint history and supplementation",
+      "old": "checkpoint at c62fbd3 under scoped owner override YOLO-Override: #141 because six historical reports predate the four-obligation rule",
+      "candidate": "adds checkpoint_history: supplemented-v1 allowing a future review report to supply missing historical obligation findings via historical_findings while keeping the six original reports byte-unchanged",
+      "compatibility": "compatible - preserves the existing c62fbd3 checkpoint and #141 record unchanged during migration, and makes a clean non-override supplementation path available for the next checkpoint review"
+    },
+    {
+      "action": "request intake and templates",
+      "old": "request-outcome-v2 intake with target-owned blankcanvas.*@1 markers in the app composer (#175) and deferred upstream template adoption (#174)",
+      "candidate": "adds optional request-templates spec and starter pack (yolo.feedback, yolo.feature, yolo.bug, yolo.question) while explicitly preserving plain-text and client-owned intake until explicitly adopted",
+      "compatibility": "compatible - upgrading the pin does not alter the app composer or install GitHub Issue Forms automatically; once this upgrade lands, deferred request #174's reconsideration condition is met"
+    }
+  ],
+  "action_permission_comparison": [
+    "agent authority unchanged: no Charter, AUTHORITY.md, ARCHITECTURE.md, or AGENTS.md edit is proposed or required",
+    "feedback.automatic remains false and observation.enabled remains true with its existing consent record",
+    "no new execution permission or automatic form/hosting activation is introduced by the candidate bundle"
+  ],
+  "release_applicability": {
+    "profile": "both snapshots declare semver-v1 + recoverable-v1",
+    "recorded_published_release": "verification.release.effective_commit stays 6efd602c...; published v0.10.1 record and legacy_tags stay intact",
+    "repair": "none needed"
+  },
+  "restoration_steps": [
+    "revert this proposal's commit(s); the target reads .yolo/protocol.md, .yolo/adoption.json, .agents/skills/yolo/**, and hook files from Git and rolls back to the alpha.30 pin cleanly",
+    "backup of the exact pre-upgrade alpha.30 skill and hook files is also retained at /tmp/yolo-a30-backup during this session",
+    "prior reports and checkpoint c62fbd3 remain byte-unchanged"
+  ],
+  "finding_classification": [
+    {
+      "rule": "structure_validation",
+      "status": "compliant",
+      "evidence": [
+        "yolo-check . --structure (0.1.0-alpha.33 executable, SHA-256 verified against SHA256SUMS): structure.status pass, 13/13 findings compliant, 0 warnings"
+      ],
+      "detail": "Strict structural validation of the staged candidate files passed with the verified alpha.33 executable."
+    },
+    {
+      "rule": "replica_scan",
+      "status": "compliant",
+      "evidence": [
+        "replica_candidates: .agents/skills/yolo/assets/architecture.md, .agents/skills/yolo/assets/authority.md, .agents/skills/yolo/assets/charter.md",
+        ".yolo/governance/{CHARTER,AUTHORITY,ARCHITECTURE}.md are target-owned and not byte-copies"
+      ],
+      "detail": "Same three publisher starter template files inside .agents/skills/yolo/assets/ as in alpha.30; preserved as intentional non-governing template artifacts."
+    }
+  ],
+  "factual_review": {
+    "selection": "yolo-check resolve preview (alpha.30 executable) returned v0.1.0-alpha.33 at bbb3af70580d012cb9b5032ef7a03fdb74ee256f; pinned for the entire migration",
+    "downloads": "yolo-check_darwin_arm64 + SHA256SUMS for v0.1.0-alpha.33 downloaded from normzhou/yolo-dev, verified OK against SHA256SUMS, and --version confirmed publication bbb3af70580d012cb9b5032ef7a03fdb74ee256f and version 0.1.0-alpha.33",
+    "staging": "92/92 manifest-covered files installed via alpha.33 install --bundle and verified against manifest eee9026d636001068836af9241a69ca2f24e6569c3185479b0accaf2ca005365",
+    "snapshot": ".yolo/protocol.md verified byte-identical to publisher output 2f3663b8819c61c28a3216ce622903b6b36b825ea7f9e3e76504c126135cd305",
+    "post_install_validation": "alpha.33 yolo-check . --structure: structure.status pass, 13/13 findings compliant"
+  },
+  "semantic_review": {
+    "diff_reading": "All diffs across SKILL.md, protocol.md, records.md, checker.md, client-identity.md, and request-forms.md reviewed. The two governance repairs in alpha.31 directly address upstream feedback filed from this repository (#164 harness model, #165 checkpoint supplementation); alpha.32 (client-identity) and alpha.33 (request-forms) are opt-in capabilities.",
+    "authority_unchanged": "No protected document edited; candidate uses activation.state: proposed until landed and observed on main.",
+    "preserved_history": "Baseline, upgrades[], checkpoint c62fbd3, unresolved[], qualification, feedback, observation, and release history preserved verbatim."
+  },
+  "pending_decisions": [
+    "none in authority.pending — no protected edit or authority-control change is involved"
+  ],
+  "planned_operations": [
+    "open proposal PR for #189, run CI and structural validation, merge to main under standing L1 delivery authority, observe landed commit on main, and activate the v0.1.0-alpha.33 pin"
+  ]
+}

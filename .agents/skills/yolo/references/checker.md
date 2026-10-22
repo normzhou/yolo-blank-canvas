@@ -71,3 +71,5 @@ yolo-check resolve [stable|preview|ref]
 Install verifies the complete manifest inventory, then preflights all bindings. `changed` reports whether files were written. Identical installs are unchanged; conflicting files, legacy skills or escaping aliases stop without overwrites. Preserve native instructions by reconciling their shared import first. Use a retained checkout for dry runs. Installer errors are exit 1 with JSON `error`; no force mode, adoption activation or GitHub writes.
 
 Resolve defaults to latest stable; preview chooses newest published non-draft release. No silent fallback. JSON returns selection, release tag (null for an untagged candidate), full publication and versioned guide. Preserve this result through the proposal. Resolution errors are exit 1; target state is untouched. When upgrading an older pin, bootstrap from the current agent guide before using the selected version's tools.
+
+The request adapter also uses the pinned libraries listed in [tool notices](tool-licenses.md). Its [local form guide](request-forms.md) covers optional authoring, validation and installation; ordinary checks remain read-only.
