@@ -50,15 +50,33 @@ Combining **Mechanism 1 (`yolo:control` issue)** with **`.yolo/adoption.json` in
 
 ---
 
-## 3. User Segregation: Maintainer vs. Regular User
+## 3. User Segregation & Access Control on the `yolo:control` Issue
 
-How does the app know whether the person looking at the UI is a **Maintainer** or a **Regular User**?
+If we use a GitHub Issue (`yolo:control`) as the low-latency (~200ms) backing store for live framework settings (#1), **how do we enforce access control between a regular user and a maintainer** — both inside our UI and if someone calls the GitHub API directly?
 
-### Two-Layer Identity & Permission Check
-Per [`.yolo/governance/AUTHORITY.md`](../.yolo/governance/AUTHORITY.md), GitHub permissions support authority but do not widen the recognized maintainer list. So the backend (`GET /api/session`) resolves:
-1. **GitHub Identity:** `login` (e.g., `normzhou`) via `gh api user` (in local `npx` mode) or GitHub OAuth / `yolo-client-identity-v1` (in hosted mode).
-2. **GitHub Repo Permission:** `viewerPermission` (`ADMIN`, `MAINTAIN`, `WRITE`, `TRIAGE`, `READ`, `NONE`) via `gh api repos/:owner/:repo`.
-3. **YOLO Authority Match:** Checks `login ∈ adoption.authority.maintainers` (`["normzhou"]`) **AND** `permission ∈ {ADMIN, MAINTAIN}`.
+### Layer 1: GitHub-Native Write Enforcement on the `yolo:control` Issue
+On a public GitHub repository, any logged-in GitHub user can normally file issues and comment on open issues. However, GitHub provides **three hard server-side permission boundaries** on an issue that regular users (`READ` / `NONE` permission) **cannot** cross:
+
+1. **Labeling (`yolo:control`) is Collaborator-Only (`triage`/`write`/`admin`):**
+   - A regular user cannot add or remove labels on any issue. Therefore, a regular user can **never** create a fake issue and label it `yolo:control`.
+2. **Editing the Issue Body (`PATCH /repos/:o/:r/issues/:n`) is Author/Collaborator-Only:**
+   - Only the issue author (`normzhou`) or a repo collaborator with `write`/`maintain`/`admin` permission can edit the `yolo:control` issue body. GitHub returns `403 Forbidden` to everyone else.
+3. **Locking the `yolo:control` Issue (`PUT /repos/:o/:r/issues/:n/lock`) Blocks Non-Collaborator Comments:**
+   - When a GitHub issue is **locked**, GitHub's API **blocks all non-collaborators (`READ`/`NONE`) from posting comments (`403 Forbidden`)**, while **maintainers/collaborators (`write`/`maintain`/`admin`) can still post comments and edit the body normally!**
+   - Locking *only* the single `yolo:control` issue turns it into a **maintainer-write-only, public-read** ledger at the GitHub API level, while leaving all other issues in the repo open for regular users to file and comment on.
+
+### Layer 2: Read-Side Attribution Verification (UI & Runner)
+Even on top of GitHub's write lock, both the UI and the Runner verify attribution when reading the `yolo:control` issue:
+- **Issue check:** Must carry the `yolo:control` label and `issue.user.login ∈ adoption.authority.maintainers`.
+- **Event comment check:** Every setting change comment (`<!-- yolo:control-event ... -->`) is verified against `comment.user.login ∈ adoption.authority.maintainers` (and `comment.author_association ∈ {"OWNER", "MEMBER", "COLLABORATOR"}`). Any comment from any other user is ignored.
+
+### Layer 3: App-Level Authentication & Session Segregation (Local `npx` vs. Hosted Web App)
+How does the Web UI itself authenticate the user and know whether to render the Maintainer Control Plane or the Regular User UI?
+
+| Deployment Mode | How the User Authenticates | How the App Resolves Role (`visitor` \| `requester` \| `maintainer`) | Whose Credentials Write to GitHub? |
+| --- | --- | --- | --- |
+| **Mode A: Local Loopback (`npx`)** | Local `gh` CLI (`server/gh.js`) | `POST /api/session` calls `gh api user` (`login`) + `gh api repos/:o/:r` (`permissions.admin \|\| permissions.maintain`) and intersects with `adoption.authority.maintainers` (`["normzhou"]`). | The local user's own `gh` session. If `alice` runs `npx`, her `gh` token is `alice` (`role: "requester"`), so she sees only the Request UI and GitHub refuses any write to `yolo:control`. |
+| **Mode B: Hosted Web App (`demo.yolo-dev.ai`)** | **1. GitHub App OAuth (`ghu_...` user token)** *(or)*<br>**2. YOLO Shared Login (`login.yolo-dev.ai` Google OIDC)** | **With GitHub OAuth:** same check (`login ∈ authority.maintainers` + repo `admin`/`maintain`).<br>**With Shared Login:** Worker verifies `(issuer, subject, emailVerified)` against the app's private maintainer allowlist in D1/env. | **Never launder a shared maintainer token to regular users** (`CHARTER.md` constraint 4). Either each user signs in with GitHub OAuth (acting under their own `ghu_...` token), or the Worker restricts any maintainer-scoped credential strictly to verified maintainer sessions. |
 
 ```text
 Role =
@@ -66,10 +84,6 @@ Role =
   else if (login in authority.maintainers && isRepoAdmin) -> "maintainer" (full Request + Framework Control Plane)
   else                                                    -> "requester"  (Request-to-Result UI only)
 ```
-
-- **Why this is secure even if someone bypasses the UI:**
-  - Regular users (`requester`) only have `READ`/`NONE` repo permission on GitHub: GitHub itself refuses any attempt by them to edit issue bodies, change labels (`yolo:manual`, `yolo:state:*`), merge PRs, or edit files.
-  - Even if a regular user posts a comment on the `yolo:control` issue, the Runner and UI both ignore control comments whose `author.login` is not in `adoption.authority.maintainers`.
 
 ---
 

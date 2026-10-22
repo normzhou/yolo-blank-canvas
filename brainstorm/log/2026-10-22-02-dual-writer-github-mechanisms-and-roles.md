@@ -21,7 +21,11 @@
    - **Winner for Live Control State:** A single **`yolo:control` issue** (already reserved in `.yolo/protocol.md` for L2) with structured maintainer comments. Posting a comment takes ~200ms, creates an immutable GitHub URL + timestamp + `author.login` that satisfies `.yolo/protocol.md`'s `acceptance: [...]` requirement, is readable by both UI and Runner in one API call, and is synced back into `.yolo/adoption.json` by the Runner on its next normal commit.
    - **Winner for Versioned Governance / Pin State:** Git branches + PRs + GitHub PR Review / Issue Comment approval bound to exact commit SHAs.
    - **Winner for Manual Blocker Tasks:** Dedicated `yolo:manual` issues + GraphQL `blockedBy` edges (filtered out of the regular user list and highlighted in a Maintainer "Action Required" banner).
-3. **Maintainer vs. Regular User Segregation (`visitor` | `requester` | `maintainer`):**
-   - Resolved by intersecting GitHub identity + repo permission (`ADMIN`/`MAINTAIN` via `gh api repos/:o/:r`) with `.yolo/adoption.json` `authority.maintainers`.
-   - Regular users (`requester`) see only the Request-to-Result workflow; recognized maintainers (`maintainer`) unlock the Framework/Settings control plane and `yolo:manual` action queue.
+3. **Maintainer vs. Regular User Segregation & `yolo:control` Access Control (`visitor` | `requester` | `maintainer`):**
+   - **Layer 1 (GitHub-native enforcement on `yolo:control`):**
+     1. Applying the `yolo:control` label requires repo `triage`/`write`/`admin` permission (regular users cannot forge a control issue).
+     2. Editing the `yolo:control` issue body (`PATCH /repos/:o/:r/issues/:n`) requires repo `write`/`maintain`/`admin` permission.
+     3. **Locking the `yolo:control` issue (`PUT /repos/:o/:r/issues/:n/lock`)** blocks all non-collaborators (`READ`/`NONE`) from posting comments (`403 Forbidden`), while collaborators/maintainers (`write`/`maintain`/`admin`) can still post control-event comments and edit the issue body normally.
+   - **Layer 2 (Read-side attribution check):** Both UI and Runner verify `comment.user.login ∈ adoption.authority.maintainers` on every control event.
+   - **Layer 3 (App session role resolution):** Intersects GitHub identity + repo permission (`ADMIN`/`MAINTAIN` via `gh api repos/:o/:r` in local `npx` mode, or GitHub App OAuth / `yolo-client-identity-v1` in hosted mode) with `.yolo/adoption.json` `authority.maintainers`, without ever laundering a maintainer token to regular users.
 4. **Walked through all 7 enumerated examples** in [`brainstorm/framework-settings-ui.md`](../framework-settings-ui.md#4-walking-through-the-7-enumerated-surface-area-examples) against this model.
