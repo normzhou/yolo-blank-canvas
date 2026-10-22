@@ -892,7 +892,7 @@ export function App() {
               className="deck-stack-card is-prev"
               data-testid="deck-preview-card-prev"
               data-preview-id={prevSlide.id}
-              aria-label={`Stacked back preview: ${prevSlide.title}`}
+              aria-label={`Stacked prior card: ${prevSlide.title}`}
               onClick={() => stepSlide(-1)}
             >
               <span className="deck-stack-peek">
@@ -900,7 +900,7 @@ export function App() {
                   <span className="deck-stack-pill">← Prev</span>
                   <span className="deck-stack-name">{prevSlide.title}</span>
                 </span>
-                <span className="deck-stack-cta">← Flip back</span>
+                <span className="deck-stack-cta">← Flip</span>
               </span>
             </button>
           </div>

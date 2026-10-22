@@ -25,8 +25,8 @@
     "test:watch": "vitest",
     "e2e": "playwright test --config playwright.config.ts",
     "e2e:live": "playwright test --config playwright.live.config.ts",
-    "e2e:visual": "playwright test --config playwright.config.ts visual motion",
-    "e2e:measure": "playwright test --config playwright.config.ts measure",
+    "e2e:visual": "YOLO_INCLUDE_REVIEW_CAPTURES=1 playwright test --config playwright.config.ts visual motion",
+    "e2e:measure": "YOLO_INCLUDE_REVIEW_CAPTURES=1 playwright test --config playwright.config.ts measure",
     "e2e:variants": "playwright test --config playwright.variants.config.ts",
     "e2e:verify-release": "playwright test --config playwright.verify.config.ts"
   },

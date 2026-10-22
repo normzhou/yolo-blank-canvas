@@ -4,6 +4,29 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Prune redundant tests and separate visual review captures from default E2E (#201) — 2026-10-22
+
+Source revision `8117958` (the feature commit).
+
+- `npm test`: 23 files, 155 tests passed in 636ms (consolidated from 25 files /
+  294 tests by removing duplicate `test/contrast.test.ts` and
+  `test/type-scale.test.ts` after folding their unique assertions into
+  `test/theme-tokens.test.ts` and `test/theme-discipline.test.ts`, and
+  collapsing table-expanded `it.each` micro-blocks in `test/theme-contrast.test.ts`,
+  `test/theme-discipline.test.ts`, `test/route.test.ts`, and `test/status.test.ts`
+  without dropping any checked case).
+- `npx tsc --noEmit`: clean.
+- `npm run build`: clean; `dist/client/.build-id` and
+  `server/build-id.generated.js` both report `8117958…`.
+- `npm run e2e`: 42 passed in 28.9s against the stubbed GitHub adapter (down from
+  96 tests / ~90s by removing 7 redundant single-issue E2E files whose CSS/layout
+  assertions now live in `test/theme-tokens.test.ts`, `e2e/crossfade.spec.ts`, and
+  `e2e/list-treatment.spec.ts`, and keeping `visual`, `motion`, `measure`, and
+  `determinism` on explicit `npm run e2e:visual` and `npm run e2e:measure` scripts
+  so `npm run e2e` never dirties `e2e/review/**`).
+- `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`,
+  13/13 findings compliant.
+
 ## Stacked slide-deck preview cards, keyboard navigation, ambient effects (#198) and static `demo.yolo-dev.ai` Cloudflare Worker scaffold (#199) — 2026-10-21
 
 Source revision `a5a6942` (the feature commit); build and review evidence
