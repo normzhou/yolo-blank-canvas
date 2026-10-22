@@ -8,7 +8,7 @@
         "color": "rgb(26, 29, 33)",
         "background": "rgb(250,251,252)",
         "ratio": 16.32,
-        "fontSizePx": 16,
+        "fontSizePx": 14,
         "fontWeight": 600,
         "lineHeight": "normal",
         "needs": 4.5
@@ -47,7 +47,7 @@
         "needs": 4.5
       },
       {
-        "selector": "span",
+        "selector": "span.panel-refresh-status",
         "text": "Last refresh: 5:00:00 AM",
         "color": "rgb(92, 102, 114)",
         "background": "rgb(250,251,252)",
@@ -204,6 +204,7 @@
     },
     "fontSizes": [
       12,
+      14,
       16
     ]
   },
@@ -215,7 +216,7 @@
         "color": "rgb(26, 29, 33)",
         "background": "rgb(250,251,252)",
         "ratio": 16.32,
-        "fontSizePx": 16,
+        "fontSizePx": 14,
         "fontWeight": 600,
         "lineHeight": "normal",
         "needs": 4.5
@@ -254,7 +255,7 @@
         "needs": 4.5
       },
       {
-        "selector": "span",
+        "selector": "span.panel-refresh-status",
         "text": "Last refresh: 5:00:00 AM",
         "color": "rgb(92, 102, 114)",
         "background": "rgb(250,251,252)",
