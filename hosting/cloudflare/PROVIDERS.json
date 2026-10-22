@@ -1,0 +1,18 @@
+{
+  "notice": "Follow relevant official references at use, including from older bundles. These are starting links, not cached onboarding steps or policy evidence. Stop affected setup if current requirements are unavailable or incompatible.",
+  "client_account_and_credentials": "https://developers.cloudflare.com/fundamentals/setup/account/create-account/",
+  "api_credentials": "https://developers.cloudflare.com/fundamentals/api/get-started/create-token/",
+  "worker_infrastructure_ownership": "https://developers.cloudflare.com/workers/platform/infrastructure-as-code/",
+  "provider_release": "https://github.com/cloudflare/terraform-provider-cloudflare/releases",
+  "assets_and_guards": "https://developers.cloudflare.com/workers/static-assets/binding/",
+  "worker_fetch": "https://developers.cloudflare.com/workers/runtime-apis/fetch/",
+  "websockets": "https://developers.cloudflare.com/workers/runtime-apis/websockets/",
+  "pricing": "https://developers.cloudflare.com/workers/platform/pricing/",
+  "limits": "https://developers.cloudflare.com/workers/platform/limits/",
+  "custom_hostname": "https://developers.cloudflare.com/workers/configuration/routing/custom-domains/",
+  "direct_and_preview_origins": "https://developers.cloudflare.com/workers/configuration/routing/workers-dev/",
+  "runtime_secrets": "https://developers.cloudflare.com/workers/configuration/secrets/",
+  "deployment": "https://developers.cloudflare.com/workers/versions-and-deployments/",
+  "rollback": "https://developers.cloudflare.com/workers/versions-and-deployments/rollbacks/",
+  "state_encryption": "https://opentofu.org/docs/language/state/encryption/"
+}

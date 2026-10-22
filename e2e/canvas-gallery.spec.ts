@@ -173,3 +173,86 @@ test('the game slide deck flips between slides and switches active games in plac
     await closeStub(stub);
   }
 });
+
+test('stacked preview cards, directional slide animations, ambient visual effects, and keyboard navigation work on the home deck (#198)', async ({
+  page,
+}) => {
+  const stub = await startStubApp();
+  try {
+    await page.goto(stub.base);
+    await expect(page.getByTestId('canvas-ambient')).toBeVisible();
+
+    const card = page.getByTestId('deck-slide-card');
+    const nextPreview = page.getByTestId('deck-preview-card-next');
+    const prevPreview = page.getByTestId('deck-preview-card-prev');
+
+    await expect(card).toHaveAttribute('data-slide-id', 'tetris');
+    await expect(nextPreview).toHaveAttribute('data-preview-id', 'puzzle-bobble');
+    await expect(prevPreview).toHaveAttribute('data-preview-id', 'puzzle-bobble');
+
+    // Clicking the stacked next-preview card flips to Puzzle Bobble with 'next' direction.
+    await nextPreview.click();
+    await expect(card).toHaveAttribute('data-slide-id', 'puzzle-bobble');
+    await expect(card).toHaveAttribute('data-slide-dir', 'next');
+    await expect(card).toHaveClass(/is-sliding-next/);
+    await expect(nextPreview).toHaveAttribute('data-preview-id', 'tetris');
+
+    // ArrowLeft flips back to Tetris with 'prev' direction.
+    await page.keyboard.press('ArrowLeft');
+    await expect(card).toHaveAttribute('data-slide-id', 'tetris');
+    await expect(card).toHaveAttribute('data-slide-dir', 'prev');
+    await expect(card).toHaveClass(/is-sliding-prev/);
+
+    // ArrowRight flips to Puzzle Bobble, and Enter launches it when focus is on the body.
+    await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+    await page.keyboard.press('ArrowRight');
+    await expect(card).toHaveAttribute('data-slide-id', 'puzzle-bobble');
+    await page.keyboard.press('Enter');
+    await expect(page).toHaveURL(/\?app=puzzle-bobble$/);
+    await expect(page.getByRole('heading', { name: 'Puzzle Bobble' })).toBeVisible();
+  } finally {
+    await closeStub(stub);
+  }
+});
+
+test('static preview mode runs games cleanly without a startup error banner and shows a truthful notice when Requests is opened (#199)', async ({
+  page,
+}) => {
+  const stub = await startStubApp();
+  try {
+    await page.route('**/api/session', (route) =>
+      route.fulfill({
+        status: 503,
+        contentType: 'text/plain; charset=utf-8',
+        body: 'Backend configuration unavailable',
+      }),
+    );
+    await page.goto(stub.base);
+
+    // Header badge identifies static preview, and no error alert blocks the home deck.
+    await expect(page.getByTestId('canvas-identity')).toHaveText(
+      'normzhou/yolo-blank-canvas · static preview',
+    );
+    await expect(page.getByRole('alert')).toHaveCount(0);
+
+    // Games launch and play normally in static preview mode.
+    await page.getByRole('button', { name: 'Play Tetris', exact: true }).click();
+    await expect(page).toHaveURL(/\?app=tetris$/);
+    await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
+    await expect(page.getByRole('alert')).toHaveCount(0);
+
+    // Clicking Feedback or Requests reveals the truthful static preview notice with GitHub Issues link and npx command.
+    await page.getByRole('button', { name: 'Feedback on Tetris' }).click();
+    const alert = page.getByRole('alert');
+    await expect(alert).toBeVisible();
+    await expect(alert).toContainText('Static preview mode');
+    await expect(alert).toContainText('npx --yes github:normzhou/yolo-blank-canvas');
+    await expect(alert.getByRole('link', { name: 'GitHub Issues' })).toHaveAttribute(
+      'href',
+      'https://github.com/normzhou/yolo-blank-canvas/issues',
+    );
+  } finally {
+    await closeStub(stub);
+  }
+});
+

@@ -46,6 +46,19 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const text = await response.text();
   const payload: unknown = text ? safeJson(text) : null;
   if (!response.ok) {
+    const trimmed = text.trim();
+    if (
+      (response.status === 503 && trimmed === 'Backend configuration unavailable') ||
+      (response.status === 502 && trimmed === 'Backend unavailable')
+    ) {
+      throw new ApiError(response.status, {
+        kind: 'static_demo',
+        message:
+          'Static preview mode — live GitHub requests require a connected backend or local GitHub CLI session.',
+        loginCommand: 'npx --yes github:normzhou/yolo-blank-canvas',
+        githubUrl: 'https://github.com/normzhou/yolo-blank-canvas/issues',
+      });
+    }
     const body =
       (payload && typeof payload === 'object' && 'error' in payload
         ? (payload as { error?: ApiErrorBody }).error

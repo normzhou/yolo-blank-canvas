@@ -62,14 +62,25 @@ component; the first such content is the Tetris view (#4), now reached through t
 
 The main canvas centers on the **game slide deck** (`src/client/App.tsx`, `src/client/apps/registry.ts`),
 while the feedback prompt (**Start a request** / **Open requests**) and navigation controls
-(**Canvas**, **Feedback**, **Requests**, theme switcher) stay tucked into a compact, unobtrusive
-top HUD bar (#187) so the overlay stays out of the way until opened. Each registry entry has an
-id, a title, a summary and one element, and the shell owns navigation through the slide deck
-(`‹ Prev` / `Next ›` and slide pills), the header trigger and the Ctrl/⌘K (`~`) palette.
+(**Feedback**, **Requests**) stay tucked into a compact, unobtrusive top HUD bar (#187, #196)
+and the theme switcher lives in the **Requests** panel footer so the overlay stays out of the
+way until opened. Each registry entry has an id, a title, a summary and one element, and the
+shell owns navigation through the slide deck (`‹` / `›` and slide pills in the header, stacked
+next/previous preview cards beneath the hero card, `ArrowLeft` / `ArrowRight` to flip and `Enter` /
+`Space` to launch on the home deck, directional slide animations, and subtle ambient background
+effects, #198) as well as the Ctrl/⌘K (`~`) palette.
 `?app=<id>` is the app's location, and `?app=<id>&panel=<n>` composes the Requests overlay over it.
 The registry is a compile-time list, not a plugin surface: there is no manifest, remote loading,
 install step, iframe, third-party app, marketplace or per-app persistence. The Tetris entry (#4)
-and the 2-player Puzzle Bobble / Bust-A-Move entry (#181) are compiled into the registry. Contextual feedback capture is deliberately text-only: a request composed over an app
+and the 2-player Puzzle Bobble / Bust-A-Move entry (#181) are compiled into the registry.
+
+For optional static hosting at `demo.yolo-dev.ai` (#199), `hosting/cloudflare/` is instantiated
+under the adopted `cloudflare` profile (`yolo-demo-app`), serving `../../dist/client` behind the
+guarded Worker (`run_worker_first: true`). When `/api/session` returns the static Worker's `503
+Backend configuration unavailable` response, the client enters `static_demo` mode: the home slide
+deck, Tetris, and Puzzle Bobble run with no startup error banner (`normzhou/yolo-blank-canvas ·
+static preview`), and opening **Requests** or **Feedback** displays a truthful static-preview
+notice with a direct link to GitHub Issues and the local `npx` launch command. Contextual feedback capture is deliberately text-only: a request composed over an app
 starts with `App: <title> (?app=<id>)` in its body, and new-request drafts are scoped by app. The
 composer offers three direct intent lenses at the top of the form (**Share feedback**, **Build or
 change**, **Report a problem**) with a shared primary answer, the adopted `v0.1.0-alpha.33` YOLO

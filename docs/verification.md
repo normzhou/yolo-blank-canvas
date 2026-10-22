@@ -4,6 +4,38 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Stacked slide-deck preview cards, keyboard navigation, ambient effects (#198) and static `demo.yolo-dev.ai` Cloudflare Worker scaffold (#199) — 2026-10-21
+
+Source revision `a5a6942` (the feature commit).
+
+- `npm test`: 25 files, 294 tests passed. `test/theme-tokens.test.ts`,
+  `test/theme-discipline.test.ts`, `test/theme-contrast.test.ts`,
+  `test/contrast.test.ts`, and `test/type-scale.test.ts` pass across `.deck-stack`,
+  `.deck-stack-card`, `.deck-slide-card.is-sliding-next/.is-sliding-prev`, and
+  `.canvas-ambient`.
+- `npx tsc --noEmit`: clean.
+- `npm run build`: clean; `dist/client/.build-id` and
+  `server/build-id.generated.js` both report `a5a6942…`.
+- `cd hosting/cloudflare && npm run check`: `node --check worker.mjs && node --check transport.mjs && node --check preview.mjs && wrangler deploy --dry-run --outdir .wrangler/dry-run`
+  passes (`Read 17 files from the assets directory .../dist/client`, `Total Upload: 9.80 KiB / gzip: 3.19 KiB`);
+  `hosting/cloudflare/preview.mjs` (`startPreview`) serves `GET /` (`200`),
+  `GET /__yolo/version` (`200`), and `POST /api/session` (`503 Backend configuration unavailable`).
+- Live official Cloudflare documentation checked (`2026-10-22T06:55:00Z` via
+  `hosting/cloudflare/PROVIDERS.json`):
+  - `https://developers.cloudflare.com/workers/static-assets/binding/` (updated Oct 12, 2026): verified `assets.directory`, `binding: "ASSETS"`, `run_worker_first: true`, and `not_found_handling: "single-page-application"`.
+  - `https://developers.cloudflare.com/workers/platform/pricing/` & `https://developers.cloudflare.com/workers/platform/limits/` (updated Oct 12, 2026): Workers Free allows 100,000 requests/day, 10 ms CPU/request, 64 MiB uncompressed Worker size, and 20,000 Static Asset files per Worker version up to 25 MiB each (`dist/client` has 17 files, 9.80 KiB Worker upload).
+  - `https://developers.cloudflare.com/workers/configuration/secrets/` (updated Oct 15, 2026): verified per-Worker encrypted secret bindings (`wrangler secret put` / `wrangler versions secret put`) and `.dev.vars` / `.env` gitignore discipline.
+- `npm run e2e`: 95 passed, 1 skipped against the stubbed GitHub adapter (96
+  run). `e2e/canvas-gallery.spec.ts` (9) verifies stacked preview cards
+  (`deck-preview-card-next`, `deck-preview-card-prev`), directional slide
+  animations (`is-sliding-next`, `is-sliding-prev`), keyboard navigation
+  (`ArrowRight`, `ArrowLeft`, `Enter`), ambient visual effects (`canvas-ambient`),
+  and `static_demo` mode (`503 Backend configuration unavailable` → clean game
+  stage with `normzhou/yolo-blank-canvas · static preview` and truthful GitHub
+  Issues / `npx` notice on opening Requests/Feedback).
+- `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`,
+  13/13 findings compliant.
+
 ## Modern webapp UI redesign (#196) and 2-player Puzzle Bobble layout lock (#195) — 2026-10-21
 
 Source revision `d95d08d` (the feature commit); build and review evidence
