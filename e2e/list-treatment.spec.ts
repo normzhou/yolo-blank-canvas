@@ -2,16 +2,7 @@ import { test, expect, listSettled } from './fixtures';
 import { startStubApp, makeStubGithub, densityIssues } from './stub-server';
 
 /**
- * List treatment and density (#75, Q4).
- *
- * The finding: rows were white cards with a faint border, neither clearly
- * cards nor clean dividers. The chosen direction (`a-hairline-rows`) drops the
- * card chrome for hairline dividers, which measurably fits more rows before
- * the fold — the point of Goal B proxy 4 ("30+ issues can be scanned").
- *
- * The assertions are the two claims the choice rests on: the row chrome is a
- * divider rather than a card, and the density actually improved (measured as
- * rows visible in the panel, not asserted from the stylesheet).
+ * List treatment, density, scroll affordance, and responsive toolbar (#75, #104, #133, #150, consolidated in #201).
  */
 
 async function rowStyle(page: import('@playwright/test').Page) {
@@ -20,10 +11,10 @@ async function rowStyle(page: import('@playwright/test').Page) {
     const cs = getComputedStyle(rows[0]);
     const last = getComputedStyle(rows[rows.length - 1]);
     const body = document.querySelector('.panel-body') as HTMLElement;
+    const bodyCs = getComputedStyle(body);
     const bodyRect = body.getBoundingClientRect();
     const visible = rows.filter((row) => {
       const r = row.getBoundingClientRect();
-      // At least 60% of the row inside the scroller counts as scannable.
       const visibleTop = Math.max(r.top, bodyRect.top);
       const visibleBottom = Math.min(r.bottom, bodyRect.bottom);
       return visibleBottom - visibleTop >= r.height * 0.6;
@@ -37,11 +28,15 @@ async function rowStyle(page: import('@playwright/test').Page) {
       lastBorderBottomWidth: last.borderBottomWidth,
       visible,
       total: rows.length,
+      backgroundImage: bodyCs.backgroundImage,
+      backgroundAttachment: bodyCs.backgroundAttachment,
+      scrollHeight: body.scrollHeight,
+      clientHeight: body.clientHeight,
     };
   });
 }
 
-test('list rows are hairline-divided and denser', async ({ page }) => {
+test('list rows are hairline-divided, dense, and scrollable with scroll-shadow affordance', async ({ page }) => {
   const stub = await startStubApp(makeStubGithub({ issues: densityIssues() }));
   try {
     await page.setViewportSize({ width: 1280, height: 900 });
@@ -56,19 +51,25 @@ test('list rows are hairline-divided and denser', async ({ page }) => {
     expect(style.borderRadius, 'square corners').toBe('0px');
     expect(style.background).toBe('rgba(0, 0, 0, 0)');
     expect(style.lastBorderBottomWidth, 'the last row has no trailing divider').toBe('0px');
+    expect(style.visible, `${style.visible} of ${style.total} rows scannable`).toBeGreaterThanOrEqual(11);
 
-    // The density claim the choice was made on: ~11 rows scannable in a 900px
-    // viewport, up from 8 with the card treatment.
-    expect(
-      style.visible,
-      `${style.visible} of ${style.total} rows scannable in the panel`,
-    ).toBeGreaterThanOrEqual(11);
+    // Scroll-shadow affordance (#104).
+    expect(style.backgroundImage).toContain('radial-gradient');
+    expect(style.backgroundAttachment).toBe('local, local, scroll, scroll');
+    expect(style.scrollHeight).toBeGreaterThan(style.clientHeight);
+
+    // Focusing a lower row scrolls the container (#104).
+    await page.locator('.issue-row button.issue-title').nth(24).focus();
+    const scrollTop = await page.locator('.panel-body').evaluate((el) => el.scrollTop);
+    expect(scrollTop).toBeGreaterThan(0);
   } finally {
     stub.server.close();
   }
 });
 
-test('the narrow list keeps the divider treatment', async ({ page }) => {
+test('the narrow list keeps the divider treatment and places Refresh beside filters above New request', async ({
+  page,
+}) => {
   const stub = await startStubApp(makeStubGithub());
   try {
     await page.setViewportSize({ width: 390, height: 844 });
@@ -78,19 +79,29 @@ test('the narrow list keeps the divider treatment', async ({ page }) => {
     const style = await rowStyle(page);
     expect(style.borderBottomWidth).toBe('1px');
     expect(style.borderRadius).toBe('0px');
+
+    const box = await page.evaluate(() => {
+      const rect = (el: Element | null | undefined) => {
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        return { left: r.left, right: r.right, top: r.top, bottom: r.bottom };
+      };
+      const toolbar = document.querySelector('.toolbar') as HTMLElement;
+      const buttons = Array.from(toolbar.querySelectorAll('button'));
+      return {
+        filters: rect(document.querySelector('.toolbar .filter-group')),
+        primary: rect(document.querySelector('.toolbar button.primary')),
+        refresh: rect(buttons.find((b) => b.textContent?.trim() === 'Refresh')),
+      };
+    });
+    expect(box.refresh!.top).toBeLessThan(box.filters!.bottom);
+    expect(box.refresh!.left).toBeGreaterThan(box.filters!.right);
+    expect(box.primary!.top).toBeGreaterThanOrEqual(box.refresh!.bottom);
   } finally {
     stub.server.close();
   }
 });
 
-/**
- * #133: the whole row is the target.
- *
- * Before, only the title text was inside the button, so the status badge — the
- * thing a reader actually scans for — was dead to the pointer. These assertions
- * click the badge and the timestamp specifically, because a test that only clicks
- * the title cannot tell the difference between the old and new markup.
- */
 test('the whole row is the target, not just the title', async ({ page }) => {
   const stub = await startStubApp(makeStubGithub());
   try {
@@ -103,17 +114,14 @@ test('the whole row is the target, not just the title', async ({ page }) => {
     await expect(row).toHaveCount(1);
     await expect(row.getByRole('button')).toHaveCount(1);
 
-    // One accessible name covering number, title and status.
     const name = await row.locator('button.issue-title').evaluate((el) => el.textContent ?? '');
     expect(name).toContain('#7');
     expect(name).toContain('Make the canvas respond to themes');
     expect(name).toContain('In progress');
 
-    // The badge is inside the target, and clicking it opens the request.
     await row.locator('.badge').click();
     await expect(page.getByRole('heading', { name: 'Reported summary', exact: true })).toBeVisible();
 
-    // So is the timestamp.
     await page.getByRole('button', { name: '← Back' }).click();
     await listSettled(page);
     await page.locator('.issue-row').first().locator('.issue-time').click();
@@ -123,26 +131,14 @@ test('the whole row is the target, not just the title', async ({ page }) => {
   }
 });
 
-/**
- * #150: a read requested while one is in flight is replayed, not dropped.
- *
- * The guard used to be `if (inFlight) return`, which silently discarded the
- * request. Switching filters during a slow load left the filter button reading
- * "Closed" while the list still showed the open issues — the control and the
- * data disagreed and nothing told the reader. This holds the first response open
- * so the switch provably lands mid-flight.
- */
 test('switching filter mid-load still applies the new filter', async ({ page }) => {
   const stub = await startStubApp(makeStubGithub());
   try {
     await page.setViewportSize({ width: 1280, height: 900 });
-
     await page.goto(stub.base);
     await page.getByRole('button', { name: 'Open requests', exact: true }).click();
     await expect(page.locator('.issue-row').first()).toBeVisible();
 
-    // Hold a LATER open read, so the panel is already rendered and the switch
-    // provably lands while a read is in flight.
     const gate: { release: (() => void) | null } = { release: null };
     await page.route('**/api/issues**', async (route) => {
       if (route.request().url().includes('state=open') && gate.release === null) {

@@ -4,18 +4,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /**
- * Contrast for every theme, on two axes (#110).
+ * Contrast for every theme, on two axes (#110, consolidated in #201).
  *
- * WCAG 2.1 is the floor this project already enforced, and it stays. APCA is
- * added because the dark theme needs it: WCAG 2.x overstates contrast for dark
- * colours badly enough that a pair can clear 4.5:1 and still be hard to read.
- * A dark theme validated by ratio alone is not validated, which is why Dusk's
- * muted text and badge text were lifted until they cleared |Lc| 60 — the same
- * perceptual floor the light themes meet.
- *
- * APCA implementation follows apca-w3 0.1.9 and is checked below against that
- * package's published reference values, so a future edit that breaks the maths
- * fails here rather than quietly passing every pair.
+ * Enforces both WCAG 2.1 (>= 4.5:1) and APCA (|Lc| >= 60 for text, |Lc| >= 8
+ * for separations) across all three themes (slate, sand, dusk), replacing the
+ * duplicate single-theme `test/contrast.test.ts` file and table-expanded
+ * `it.each` micro-tests.
  */
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -84,10 +78,6 @@ export function themeTokens(name: 'slate' | 'sand' | 'dusk'): Record<string, str
   const block = css.slice(start, css.indexOf('\n}', start));
   const tokens: Record<string, string> = {};
   for (const m of block.matchAll(/(--[a-z0-9-]+):\s*([^;]+);/g)) tokens[m[1]] = m[2].trim();
-  // Resolve one level of `var(--token)` indirection. Since #134 the neutral
-  // roles are declared as steps on a nine-step ramp, so the literal lives on
-  // `--nN` and the role points at it. Resolving here means the guard measures the
-  // colour the browser will actually paint, rather than failing on `var(...)`.
   for (const [token, value] of Object.entries(tokens)) {
     const ref = /^var\((--[a-z0-9-]+)\)$/.exec(value);
     if (ref) tokens[token] = tokens[ref[1]] ?? value;
@@ -95,10 +85,10 @@ export function themeTokens(name: 'slate' | 'sand' | 'dusk'): Record<string, str
   return tokens;
 }
 
-/** [label, foreground token, background token] */
 const TEXT_PAIRS: Array<[string, string, string]> = [
   ['body text on surface', '--text', '--surface'],
   ['body text on bg', '--text', '--bg'],
+  ['body text in field', '--text', '--field'],
   ['muted meta on surface', '--muted', '--surface'],
   ['muted meta on bg', '--muted', '--bg'],
   ['link on surface', '--accent-weak-text', '--surface'],
@@ -108,13 +98,13 @@ const TEXT_PAIRS: Array<[string, string, string]> = [
   ['badge: in progress', '--accent-weak-text', '--accent-weak'],
   ['badge: waiting', '--warning', '--warning-weak'],
   ['badge: problem', '--problem', '--problem-weak'],
+  ['stale marker on surface', '--problem', '--surface'],
   ['badge: closed', '--closed', '--closed-weak'],
   ['neutral badge', '--muted', '--neutral-weak'],
   ['error text', '--error-text', '--error-bg'],
   ['positive on surface', '--positive', '--surface'],
 ];
 
-/** [label, foreground token, background token] — separations, not prose. */
 const NON_TEXT_PAIRS: Array<[string, string, string]> = [
   ['border on surface', '--border', '--surface'],
   ['border on bg', '--border', '--bg'],
@@ -125,11 +115,6 @@ const NON_TEXT_PAIRS: Array<[string, string, string]> = [
   ['board grid', '--board-gap', '--surface'],
 ];
 
-/**
- * The colour roles a theme is expected to paint, named exactly. A prefix
- * pattern is not enough here: `--text-xs` is the type scale while `--text` is
- * a colour, and `--text-*` cannot tell them apart.
- */
 const COLOUR_ROLES = new Set([
   '--bg', '--surface', '--field', '--border', '--border-hover', '--field-border',
   '--text', '--muted', '--accent', '--accent-weak', '--accent-weak-text', '--on-accent',
@@ -142,72 +127,49 @@ const COLOUR_ROLES = new Set([
   ...'ijlostz'.split('').map((t) => `--tetromino-${t}`),
 ]);
 
-const isColourRole = (token: string) => COLOUR_ROLES.has(token);
-
 const THEMES = ['slate', 'sand', 'dusk'] as const;
 
-describe('APCA implementation matches its published reference values', () => {
-  // Without this the checks below could pass on broken maths.
-  const cases: Array<[string, string, number]> = [
-    ['#888888', '#ffffff', 63.1],
-    ['#000000', '#ffffff', 106.0],
-    ['#ffffff', '#000000', -107.9],
-  ];
-  for (const [text, bg, expected] of cases) {
-    it(`${text} on ${bg} is about ${expected} Lc`, () => {
-      expect(apcaLc(text, bg)).toBeCloseTo(expected, 0);
+describe('theme contrast & legibility', () => {
+  it('matches published APCA reference values', () => {
+    expect(apcaLc('#888888', '#ffffff')).toBeCloseTo(63.1, 0);
+    expect(apcaLc('#000000', '#ffffff')).toBeCloseTo(106.0, 0);
+    expect(apcaLc('#ffffff', '#000000')).toBeCloseTo(-107.9, 0);
+  });
+
+  for (const theme of THEMES) {
+    it(`theme "${theme}" clears WCAG and APCA floors across all text and separation pairs`, () => {
+      const tokens = themeTokens(theme);
+      for (const [label, fg, bg] of TEXT_PAIRS) {
+        const F = tokens[fg];
+        const B = tokens[bg];
+        expect(F, `${theme}: ${fg} missing`).toBeDefined();
+        expect(B, `${theme}: ${bg} missing`).toBeDefined();
+        expect(contrast(F!, B!), `${theme}: ${label} WCAG (${F} on ${B})`).toBeGreaterThanOrEqual(MIN_WCAG);
+        expect(Math.abs(apcaLc(F!, B!)), `${theme}: ${label} APCA (${F} on ${B})`).toBeGreaterThanOrEqual(MIN_LC_TEXT);
+      }
+      for (const [label, fg, bg] of NON_TEXT_PAIRS) {
+        const F = tokens[fg];
+        const B = tokens[bg];
+        expect(Math.abs(apcaLc(F!, B!)), `${theme}: ${label} APCA (${F} on ${B})`).toBeGreaterThanOrEqual(
+          MIN_LC_NON_TEXT,
+        );
+      }
+      expect(tokens['--warning']).not.toBe(tokens['--problem']);
+      expect(tokens['--field']).not.toBe(tokens['--surface']);
     });
   }
-});
 
-describe.each(THEMES)('theme "%s" is legible', (theme) => {
-  const tokens = themeTokens(theme);
-  const at = (token: string) => {
-    const v = tokens[token];
-    expect(v, `${theme}: ${token} is not declared`).toBeDefined();
-    return v;
-  };
-
-  it.each(TEXT_PAIRS)('%s clears the WCAG floor and the APCA floor', (_label, fg, bg) => {
-    const F = at(fg);
-    const B = at(bg);
-    const ratio = contrast(F, B);
-    const lc = Math.abs(apcaLc(F, B));
-    expect(ratio, `${theme}: ${_label} wcag ${ratio} (${F} on ${B})`).toBeGreaterThanOrEqual(MIN_WCAG);
-    expect(lc, `${theme}: ${_label} APCA Lc ${lc.toFixed(1)} (${F} on ${B})`).toBeGreaterThanOrEqual(MIN_LC_TEXT);
-  });
-
-  it.each(NON_TEXT_PAIRS)('%s stays visible as a separation', (_label, fg, bg) => {
-    const F = at(fg);
-    const B = at(bg);
-    const lc = Math.abs(apcaLc(F, B));
-    expect(lc, `${theme}: ${_label} APCA Lc ${lc.toFixed(1)} (${F} on ${B})`).toBeGreaterThanOrEqual(MIN_LC_NON_TEXT);
-  });
-
-  it('covers the same colour roles as the other themes', () => {
-    // `:root` additionally holds the theme-independent tokens — type scale,
-    // spacing, radii, font — so its set is deliberately larger. What has to
-    // match is the set of colour roles the themes override; a role present in
-    // one theme and absent from another is a theme that cannot paint.
-    const mine = Object.keys(tokens).filter(isColourRole).sort();
-    for (const other of THEMES) {
-      const theirs = Object.keys(themeTokens(other)).filter(isColourRole).sort();
-      expect(mine, `${theme} covers different colour roles than ${other}`).toEqual(theirs);
-    }
-  });
-});
-
-describe('themes are reachable from the document', () => {
-  it('declares a block per theme', () => {
-    for (const theme of THEMES) {
-      if (theme === 'slate') continue;
+  it('declares matching colour roles across all themes with genuine light/dark polarity', () => {
+    const baseline = Object.keys(themeTokens('slate'))
+      .filter((k) => COLOUR_ROLES.has(k))
+      .sort();
+    for (const theme of ['sand', 'dusk'] as const) {
       expect(css, `[data-theme='${theme}'] block missing`).toContain(`[data-theme='${theme}'] {`);
+      const roles = Object.keys(themeTokens(theme))
+        .filter((k) => COLOUR_ROLES.has(k))
+        .sort();
+      expect(roles, `${theme} colour roles mismatch`).toEqual(baseline);
     }
-  });
-
-  it('gives Dusk a genuinely dark surface and the others genuinely light ones', () => {
-    // A dark surface under a light colour-scheme renders form controls and
-    // scrollbars dark-on-dark — the kind of thing a ratio test misses.
     const luminanceOf = (theme: 'slate' | 'sand' | 'dusk') =>
       relativeLuminance(hexToRgb(themeTokens(theme)['--surface']));
     expect(luminanceOf('dusk')).toBeLessThan(0.02);
