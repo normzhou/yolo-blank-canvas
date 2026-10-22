@@ -4,6 +4,23 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Game slide deck and unobtrusive feedback dock (#187) — 2026-10-21
+
+Source revision `886a97c` (the feature commit); build and review evidence
+`23784af`.
+
+- `npm test`: 25 files, 291 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run build`: clean; `dist/client/.build-id` and
+  `server/build-id.generated.js` both report `886a97c…`.
+- `npm run e2e`: 91 passed, 1 skipped against the stubbed GitHub adapter (92
+  run). `e2e/canvas-gallery.spec.ts` (7) adds coverage for flipping between
+  slides (`‹ Prev` / `Next ›`) on the home deck, launching `Play Puzzle Bobble`
+  directly from the slide card, and flipping directly between active games in
+  place.
+- `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`,
+  13/13 findings compliant.
+
 ## Puzzle Bobble tremor & rising incoming bubbles (#186) and Tetris arcade blocks (#185) — 2026-10-21
 
 Source revision `3bfb9f6` (the feature commit); build and review evidence

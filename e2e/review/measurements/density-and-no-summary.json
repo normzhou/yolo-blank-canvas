@@ -6,8 +6,8 @@
         "selector": "h1.canvas-title",
         "text": "Blank canvas",
         "color": "rgb(26, 29, 33)",
-        "background": "rgb(255,255,255)",
-        "ratio": 16.91,
+        "background": "rgb(250,251,252)",
+        "ratio": 16.32,
         "fontSizePx": 16,
         "fontWeight": 600,
         "lineHeight": "normal",
@@ -17,9 +17,9 @@
         "selector": "p.canvas-prompt",
         "text": "What would you like to build or change?",
         "color": "rgb(92, 102, 114)",
-        "background": "rgb(255,255,255)",
-        "ratio": 5.84,
-        "fontSizePx": 22,
+        "background": "rgb(244,246,248)",
+        "ratio": 5.39,
+        "fontSizePx": 12,
         "fontWeight": 400,
         "lineHeight": "normal",
         "needs": 4.5
@@ -204,8 +204,7 @@
     },
     "fontSizes": [
       12,
-      16,
-      22
+      16
     ]
   },
   "noSummary": {
@@ -214,8 +213,8 @@
         "selector": "h1.canvas-title",
         "text": "Blank canvas",
         "color": "rgb(26, 29, 33)",
-        "background": "rgb(255,255,255)",
-        "ratio": 16.91,
+        "background": "rgb(250,251,252)",
+        "ratio": 16.32,
         "fontSizePx": 16,
         "fontWeight": 600,
         "lineHeight": "normal",
@@ -225,9 +224,9 @@
         "selector": "p.canvas-prompt",
         "text": "What would you like to build or change?",
         "color": "rgb(92, 102, 114)",
-        "background": "rgb(255,255,255)",
-        "ratio": 5.84,
-        "fontSizePx": 22,
+        "background": "rgb(244,246,248)",
+        "ratio": 5.39,
+        "fontSizePx": 12,
         "fontWeight": 400,
         "lineHeight": "normal",
         "needs": 4.5
@@ -438,8 +437,7 @@
     "fontSizes": [
       12,
       14,
-      16,
-      22
+      16
     ]
   }
 }

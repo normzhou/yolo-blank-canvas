@@ -17,8 +17,7 @@
   },
   "fontSizes": [
     12,
-    16,
-    22
+    16
   ],
   "spacing": {
     ".canvas": {
@@ -56,7 +55,7 @@
     {
       "selector": "h1.canvas-title",
       "text": "Blank canvas",
-      "ratio": 16.91,
+      "ratio": 16.32,
       "needs": 4.5,
       "fontSizePx": 16,
       "fontWeight": 600
@@ -64,9 +63,9 @@
     {
       "selector": "p.canvas-prompt",
       "text": "What would you like to build or change?",
-      "ratio": 5.84,
+      "ratio": 5.39,
       "needs": 4.5,
-      "fontSizePx": 22,
+      "fontSizePx": 12,
       "fontWeight": 400
     },
     {
@@ -168,7 +167,7 @@
     {
       "selector": "h1.canvas-title",
       "text": "Blank canvas",
-      "ratio": 16.91,
+      "ratio": 16.32,
       "needs": 4.5,
       "fontSizePx": 16,
       "fontWeight": 600
@@ -176,9 +175,9 @@
     {
       "selector": "p.canvas-prompt",
       "text": "What would you like to build or change?",
-      "ratio": 5.84,
+      "ratio": 5.39,
       "needs": 4.5,
-      "fontSizePx": 22,
+      "fontSizePx": 12,
       "fontWeight": 400
     },
     {
@@ -288,7 +287,7 @@
     {
       "selector": "h1.canvas-title",
       "text": "Blank canvas",
-      "ratio": 16.91,
+      "ratio": 16.32,
       "needs": 4.5,
       "fontSizePx": 16,
       "fontWeight": 600
@@ -296,9 +295,9 @@
     {
       "selector": "p.canvas-prompt",
       "text": "What would you like to build or change?",
-      "ratio": 5.84,
+      "ratio": 5.39,
       "needs": 4.5,
-      "fontSizePx": 22,
+      "fontSizePx": 12,
       "fontWeight": 400
     },
     {

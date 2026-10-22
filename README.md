@@ -41,7 +41,7 @@ Default repository: this app's own repository (`normzhou/yolo-blank-canvas`).
 
 ## Using it
 
-The canvas asks *"What would you like to build or change?"*. **Requests** opens a centred modal overlay (full width on narrow screens) with three views:
+The main stage centers on the **game slide deck** (`‹ Prev` / `Next ›` and slide pills for **Tetris** and **Puzzle Bobble**), while the feedback prompt (*"What would you like to build or change?"*, **Start a request**, **Open requests**) and navigation chrome stay tucked into a compact top HUD bar (#187) so the overlay stays out of the way until opened. Opening **Requests** or **Start a request** displays a centred modal overlay (full width on narrow screens) with three views:
 
 - **List** — repository identity, Open/Closed/All filter, issue title/number/status/updated time, newest-updated first, Refresh and Load more.
 - **New request** — three direct intent lenses at the top (**Share feedback**, **Build or change**, **Report a problem**) with a required title and shared primary answer, optional details, a generated-body preview (`blankcanvas.feedback@1`, `blankcanvas.change@1`, `blankcanvas.problem@1`), and a **Write freely instead** escape hatch; creates one ordinary issue with no labels, priorities, or assignees. Composed over an app, the generated body starts with the visible line `App: <title> (?app=<id>)`; the line is editable plain issue text, not a label.
