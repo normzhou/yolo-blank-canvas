@@ -4,6 +4,27 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Adopt YOLO Dev v0.1.0-alpha.33 request templates (#174) and game slide-deck layout (#187) — 2026-10-21
+
+Source revision `b547f4e` (`#174` template adoption, following `#187` slide-deck
+source `886a97c`); build and review evidence `52f001d`.
+
+- `npm test`: 25 files, 294 tests passed. `test/request-templates.test.ts` (8)
+  verifies mapping `feedback` → `yolo.feedback@1.0.0`, `change` →
+  `yolo.feature@1.0.0`, and `problem` → `yolo.bug@1.0.0`, schema-valid JSON
+  payload generation (`toYoloRequestPayload`), marker parsing across
+  `yolo.*@1.0.0`, legacy `blankcanvas.*@1`, native GitHub Issue Form headings,
+  and JSON payloads (`parseRequestTemplate`), plain-text issue preservation,
+  and the four installed `.github/ISSUE_TEMPLATE/yolo.*.yml` files.
+- `npx tsc --noEmit`: clean.
+- `npm run build`: clean; `dist/client/.build-id` and
+  `server/build-id.generated.js` both report `b547f4e…`.
+- `npm run e2e`: 91 passed, 1 skipped against the stubbed GitHub adapter (92
+  run). `e2e/app-feedback.spec.ts` (4) verifies the `yolo.*@1.0.0` markers,
+  and `e2e/canvas-gallery.spec.ts` (7) verifies the game slide deck (`#187`).
+- `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`,
+  13/13 findings compliant.
+
 ## Game slide deck and unobtrusive feedback dock (#187) — 2026-10-21
 
 Source revision `886a97c` (the feature commit); build and review evidence
@@ -373,11 +394,11 @@ Run 2026-10-21 at `c62fbd3` (following the `v0.8.0` release `332855b`; assets bu
   ✓ test/apps.test.ts (3 tests)               canvas app registry uniqueness and resolution
   ✓ test/feedback.test.ts (2 tests)           app-context line and body seed
   ✓ test/request-store.test.ts (4 tests)      GitHubRequestStore mapping and non-GitHub fake-store substitution
-  ✓ test/request-templates.test.ts (5 tests)  three intents, versioned markers, #169 context, draft content predicates
+  ✓ test/request-templates.test.ts (8 tests)  yolo.*@1.0.0 templates, JSON payloads, legacy markers, Issue Form files
   ✓ test/puzzle-bobble.test.ts (10 tests)     0.5° aim, exponential drop scoring, 2P attack stack/orbs, hurry timer, stages
 
   Test Files  25 passed (25)
-       Tests  291 passed (291)
+       Tests  294 passed (294)
 ```
 
 Also run at the same revision: `npx tsc --noEmit` (clean), `npm run e2e` (90 passed, 1 skipped
