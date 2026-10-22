@@ -146,3 +146,32 @@ test('the tilde is not stolen from a text field', async ({ page }) => {
     await closeStub(stub);
   }
 });
+
+test('the game slide deck flips between slides and switches active games in place (#187)', async ({
+  page,
+}) => {
+  const stub = await startStubApp();
+  try {
+    await page.goto(stub.base);
+    const card = page.getByTestId('deck-slide-card');
+    await expect(card).toHaveAttribute('data-slide-id', 'tetris');
+    await expect(page.getByRole('button', { name: 'Play Tetris', exact: true })).toBeVisible();
+
+    // Flip to the next slide on the home deck.
+    await page.getByRole('button', { name: 'Next slide' }).click();
+    await expect(card).toHaveAttribute('data-slide-id', 'puzzle-bobble');
+    await expect(page.getByRole('button', { name: 'Play Puzzle Bobble', exact: true })).toBeVisible();
+
+    // Launch Puzzle Bobble directly from the slide deck card.
+    await page.getByRole('button', { name: 'Play Puzzle Bobble', exact: true }).click();
+    await expect(page).toHaveURL(/\?app=puzzle-bobble$/);
+    await expect(page.getByRole('heading', { name: 'Puzzle Bobble' })).toBeVisible();
+
+    // Prev slide while a game is active flips directly to Tetris on stage.
+    await page.getByRole('button', { name: 'Previous slide' }).click();
+    await expect(page).toHaveURL(/\?app=tetris$/);
+    await expect(page.getByRole('heading', { name: 'Tetris' })).toBeVisible();
+  } finally {
+    await closeStub(stub);
+  }
+});

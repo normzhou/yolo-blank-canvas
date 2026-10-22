@@ -92,6 +92,37 @@ export function App() {
   const panelOpenerRef = useRef<PanelOpener | null>(null);
 
   const activeApp = canvasAppById(appId);
+  const [slideIndex, setSlideIndex] = useState<number>(() => {
+    const idx = CANVAS_APPS.findIndex((a) => a.id === appId);
+    return idx >= 0 ? idx : 0;
+  });
+
+  useEffect(() => {
+    if (!appId) return;
+    const idx = CANVAS_APPS.findIndex((a) => a.id === appId);
+    if (idx >= 0) setSlideIndex(idx);
+  }, [appId]);
+
+  const currentSlide = CANVAS_APPS[slideIndex] ?? CANVAS_APPS[0];
+
+  const stepSlide = useCallback(
+    (delta: number) => {
+      const len = CANVAS_APPS.length;
+      if (len === 0) return;
+      const nextIdx = (((slideIndex + delta) % len) + len) % len;
+      setSlideIndex(nextIdx);
+      if (appId !== null) {
+        const nextApp = CANVAS_APPS[nextIdx];
+        if (nextApp) {
+          window.history.pushState(null, '', routeUrl(null, window.location.pathname, nextApp.id));
+          setPanelOpen(false);
+          setView({ name: 'list' });
+          setAppId(nextApp.id);
+        }
+      }
+    },
+    [appId, slideIndex],
+  );
 
   const refreshToken = useVisible(panelOpen);
 
@@ -346,15 +377,54 @@ export function App() {
   return (
     <div className={panelOpen && session ? 'canvas panel-open' : 'canvas'}>
       <header className="canvas-header">
-        <h1 className="canvas-title">Blank canvas</h1>
-        {/* Navigation lives here; the requests workflow joins it only while an
-           app is open, because that is when the canvas's own controls are
-           replaced. Feedback starts a request; Requests browses them.
-           Preferences stay separate. The header used to hold three peer actions
-           — theme, Tetris and Requests — which put the app's one real action on
-           equal footing with a game (#130). Canvas is navigation chrome, and
-           the workflow is not a game. */}
+        <div className="canvas-brand">
+          <h1 className="canvas-title">Blank canvas</h1>
+          {/* A status line only, and only when the canvas is visible. Tucked
+              into the compact top HUD bar (#187) so the main viewport stays
+              focused on the game slide deck. */}
+          {!panelOpen ? (
+            <p className="canvas-identity">
+              {session
+                ? `${session.repo} · signed in as ${session.identity}`
+                : connecting
+                  ? 'Connecting to GitHub…'
+                  : 'Not connected to GitHub.'}
+            </p>
+          ) : null}
+        </div>
+
+        {/* #187: Feedback and Requests stay tucked into a compact, unobtrusive
+            top-corner overlay dock so the main stage stays focused on the
+            slide deck of games. */}
         <span className="canvas-actions">
+          {!activeApp ? (
+            <div className="canvas-prompt-block">
+              <p className="canvas-prompt">What would you like to build or change?</p>
+              <button
+                type="button"
+                className="primary canvas-primary-action"
+                ref={triggerRef}
+                onClick={() => {
+                  panelOpenerRef.current = 'start';
+                  openNewRequest('change');
+                }}
+                disabled={connecting}
+              >
+                {session ? 'Start a request' : 'Connect GitHub'}
+              </button>
+              <div className="canvas-secondary-actions">
+                <button
+                  type="button"
+                  onClick={() => {
+                    panelOpenerRef.current = 'start';
+                    openPanel();
+                  }}
+                >
+                  Open requests
+                </button>
+              </div>
+            </div>
+          ) : null}
           <button
             type="button"
             className="canvas-switcher"
@@ -427,67 +497,84 @@ export function App() {
         <ErrorNotice error={sessionError} onRetry={() => void connect()} retryLabel="Retry connection" />
       ) : null}
 
-      {/* A status line only, and only when the canvas is visible. The panel header
-          shows the same identity when it is open; rendering both left the facts
-          duplicated on screen at the same time (#131). The connect action moved
-          to the primary control in #130. */}
-      {!panelOpen ? (
-        <p className="canvas-identity">
-          {session
-            ? `${session.repo} · signed in as ${session.identity}`
-            : connecting
-              ? 'Connecting to GitHub…'
-              : 'Not connected to GitHub.'}
-        </p>
-      ) : null}
-
-      {activeApp ? (
-        <section className="canvas-app" aria-label={activeApp.title} tabIndex={-1} ref={appRegionRef}>
-          <activeApp.element onExit={exitApp} />
-        </section>
-      ) : (
-        <div className="canvas-prompt-block">
-          <p className="canvas-prompt">What would you like to build or change?</p>
-          {/* The prompt is a question and this is its answer, so they are one
-              group. It opens the composer directly rather than the list, because
-              the Charter's bar is that asking costs almost nothing (#130). */}
+      {/* #187: The main app stage is dedicated to the slide deck of games.
+          Users can flip slides with Prev/Next, jump directly via the gallery
+          pills, or play in place while the feedback overlay stays tucked in
+          the top dock until opened. */}
+      <main className="canvas-deck" aria-label="Game slide deck">
+        <nav className="canvas-gallery deck-nav" aria-label="Canvas gallery">
           <button
             type="button"
-            className="primary canvas-primary-action"
-            ref={triggerRef}
-            onClick={() => {
-              panelOpenerRef.current = 'start';
-              openNewRequest('change');
-            }}
-            disabled={connecting}
+            className="deck-step-btn"
+            aria-label="Previous slide"
+            onClick={() => stepSlide(-1)}
           >
-            {session ? 'Start a request' : 'Connect GitHub'}
+            ‹ Prev
           </button>
-          <div className="canvas-secondary-actions">
+          <span className="canvas-gallery-label">
+            Slide {slideIndex + 1} / {CANVAS_APPS.length}
+          </span>
+          {CANVAS_APPS.map((app, index) => (
             <button
+              key={app.id}
               type="button"
+              className={
+                (activeApp ? activeApp.id === app.id : slideIndex === index)
+                  ? 'deck-pill is-active'
+                  : 'deck-pill'
+              }
               onClick={() => {
-                // Closing returns to the canvas's primary control (#130), the
-                // same as opening the list from that control.
-                panelOpenerRef.current = 'start';
-                openPanel();
+                setSlideIndex(index);
+                openApp(app.id);
               }}
+              title={app.summary}
             >
-              Open requests
+              {app.title}
             </button>
-          </div>
-          {/* The gallery is the home's quiet second row, not a dashboard. It is
-              how an app is discovered without opening the keyboard palette. */}
-          <nav className="canvas-gallery" aria-label="Canvas gallery">
-            <span className="canvas-gallery-label">Canvas</span>
-            {CANVAS_APPS.map((app) => (
-              <button key={app.id} type="button" onClick={() => openApp(app.id)} title={app.summary}>
-                {app.title}
+          ))}
+          <button
+            type="button"
+            className="deck-step-btn"
+            aria-label="Next slide"
+            onClick={() => stepSlide(1)}
+          >
+            Next ›
+          </button>
+        </nav>
+
+        {activeApp ? (
+          <section className="canvas-app" aria-label={activeApp.title} tabIndex={-1} ref={appRegionRef}>
+            <activeApp.element onExit={exitApp} />
+          </section>
+        ) : (
+          <section
+            className="deck-slide-card"
+            data-testid="deck-slide-card"
+            data-slide-id={currentSlide.id}
+            aria-label={`${currentSlide.title} slide`}
+          >
+            <div className="deck-slide-badge">
+              Slide {slideIndex + 1} of {CANVAS_APPS.length} · Arcade Deck
+            </div>
+            <div className="deck-slide-title">{currentSlide.title}</div>
+            <p className="deck-slide-summary">{currentSlide.summary}</p>
+            <p className="deck-slide-controls">
+              {currentSlide.id === 'tetris'
+                ? '1 Player · ←/→ Move · ↑ Rotate · ↓ Soft drop · Space Hard drop · 4-line clear cycles scenes'
+                : '2 Players & Solo · 1P (Bub): A/D fine aim, S/F shoot · 2P (Bob): ←/→ fine aim, ↑/↓ shoot'}
+            </p>
+            <div className="deck-slide-actions">
+              <button
+                type="button"
+                className="deck-play-button"
+                onClick={() => openApp(currentSlide.id)}
+              >
+                Play {currentSlide.title}
               </button>
-            ))}
-          </nav>
-        </div>
-      )}
+            </div>
+          </section>
+        )}
+      </main>
 
       {paletteOpen ? (
         <CanvasPalette

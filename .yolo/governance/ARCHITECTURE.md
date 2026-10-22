@@ -60,10 +60,12 @@ back or presented as a repository record, and is lost when the view closes. Addi
 content is an architecture and data-model change recorded here, not a quiet addition to a
 component; the first such content is the Tetris view (#4), now reached through the canvas gallery.
 
-The canvas is still the resting state, not a dashboard: the gallery is a secondary row and the
-prompt keeps the only primary action. Canvas content is a first-party registry
-(`src/client/apps/registry.ts`): each entry has an id, a title, a summary and one element, and the
-shell owns navigation through the home row, the header trigger and the Ctrl/⌘K palette.
+The main canvas centers on the **game slide deck** (`src/client/App.tsx`, `src/client/apps/registry.ts`),
+while the feedback prompt (**Start a request** / **Open requests**) and navigation controls
+(**Canvas**, **Feedback**, **Requests**, theme switcher) stay tucked into a compact, unobtrusive
+top HUD bar (#187) so the overlay stays out of the way until opened. Each registry entry has an
+id, a title, a summary and one element, and the shell owns navigation through the slide deck
+(`‹ Prev` / `Next ›` and slide pills), the header trigger and the Ctrl/⌘K (`~`) palette.
 `?app=<id>` is the app's location, and `?app=<id>&panel=<n>` composes the Requests overlay over it.
 The registry is a compile-time list, not a plugin surface: there is no manifest, remote loading,
 install step, iframe, third-party app, marketplace or per-app persistence. The Tetris entry (#4)
