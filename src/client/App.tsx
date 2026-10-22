@@ -189,6 +189,80 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
   );
 }
 
+/**
+ * Subtle dynamic background visual effects (#198): ambient architectural grid
+ * lines, soft drifting aura rings, and floating arcade geometry using only
+ * theme tokens so Slate, Sand, and Dusk all paint it naturally.
+ */
+function CanvasAmbientEffects() {
+  return (
+    <svg
+      className="canvas-ambient"
+      data-testid="canvas-ambient"
+      viewBox="0 0 1200 720"
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden="true"
+    >
+      {/* Subtle architectural grid lines & crosshairs */}
+      <g stroke="var(--border)" strokeWidth="1" opacity="0.32">
+        <line x1="0" y1="140" x2="1200" y2="140" strokeDasharray="4 8" />
+        <line x1="0" y1="360" x2="1200" y2="360" strokeDasharray="4 8" />
+        <line x1="0" y1="580" x2="1200" y2="580" strokeDasharray="4 8" />
+        <line x1="220" y1="0" x2="220" y2="720" strokeDasharray="4 8" />
+        <line x1="600" y1="0" x2="600" y2="720" strokeDasharray="4 8" />
+        <line x1="980" y1="0" x2="980" y2="720" strokeDasharray="4 8" />
+      </g>
+
+      {/* Soft drifting ambient aura orbs & rings */}
+      <g className="ambient-orb ambient-orb-1">
+        <circle cx="210" cy="190" r="145" fill="var(--accent-weak)" opacity="0.38" />
+        <circle
+          cx="210"
+          cy="190"
+          r="185"
+          fill="none"
+          stroke="var(--border)"
+          strokeWidth="1"
+          strokeDasharray="6 6"
+          opacity="0.55"
+        />
+        {/* Subtle floating tetromino motif */}
+        <g fill="var(--tetromino-t)" opacity="0.22" transform="translate(150, 130)">
+          <rect x="0" y="16" width="14" height="14" rx="3" />
+          <rect x="16" y="16" width="14" height="14" rx="3" />
+          <rect x="32" y="16" width="14" height="14" rx="3" />
+          <rect x="16" y="0" width="14" height="14" rx="3" />
+        </g>
+      </g>
+
+      <g className="ambient-orb ambient-orb-2">
+        <circle cx="990" cy="520" r="165" fill="var(--accent-weak)" opacity="0.34" />
+        <circle
+          cx="990"
+          cy="520"
+          r="210"
+          fill="none"
+          stroke="var(--border)"
+          strokeWidth="1"
+          strokeDasharray="8 6"
+          opacity="0.5"
+        />
+        {/* Subtle floating bubble-cluster motif */}
+        <g fill="var(--tetromino-i)" opacity="0.22" transform="translate(1015, 455)">
+          <circle cx="0" cy="0" r="9" />
+          <circle cx="19" cy="0" r="9" />
+          <circle cx="9.5" cy="16.5" r="9" />
+        </g>
+      </g>
+
+      <g className="ambient-orb ambient-orb-3">
+        <circle cx="940" cy="155" r="90" fill="var(--neutral-weak)" opacity="0.55" />
+        <circle cx="250" cy="555" r="105" fill="var(--neutral-weak)" opacity="0.55" />
+      </g>
+    </svg>
+  );
+}
+
 export function App() {
   const storeRef = useRef<DraftStore | null>(null);
   if (storeRef.current === null) storeRef.current = browserStore();
@@ -210,6 +284,9 @@ export function App() {
   const [replyDrafts, setReplyDrafts] = useState<Record<number, TextDraft>>({});
   const [serverClientBuild, setServerClientBuild] = useState<string | null>(null);
   const [reloadPromptDismissed, setReloadPromptDismissed] = useState(false);
+  const [staticDemoNoticeOpen, setStaticDemoNoticeOpen] = useState(
+    () => readRoute(window.location.search).open,
+  );
 
   const triggerRef = useRef<HTMLButtonElement>(null);
   const feedbackTriggerRef = useRef<HTMLButtonElement>(null);
@@ -223,6 +300,8 @@ export function App() {
     const idx = CANVAS_APPS.findIndex((a) => a.id === appId);
     return idx >= 0 ? idx : 0;
   });
+  const [slideDirection, setSlideDirection] = useState<'next' | 'prev' | null>(null);
+  const [slideTick, setSlideTick] = useState(0);
 
   useEffect(() => {
     if (!appId) return;
@@ -230,13 +309,20 @@ export function App() {
     if (idx >= 0) setSlideIndex(idx);
   }, [appId]);
 
+  const deckLen = CANVAS_APPS.length;
   const currentSlide = CANVAS_APPS[slideIndex] ?? CANVAS_APPS[0];
+  const nextSlideIndex = deckLen > 0 ? (slideIndex + 1) % deckLen : 0;
+  const prevSlideIndex = deckLen > 0 ? (((slideIndex - 1) % deckLen) + deckLen) % deckLen : 0;
+  const nextSlide = CANVAS_APPS[nextSlideIndex] ?? currentSlide;
+  const prevSlide = CANVAS_APPS[prevSlideIndex] ?? currentSlide;
 
   const stepSlide = useCallback(
     (delta: number) => {
       const len = CANVAS_APPS.length;
       if (len === 0) return;
       const nextIdx = (((slideIndex + delta) % len) + len) % len;
+      setSlideDirection(delta >= 0 ? 'next' : 'prev');
+      setSlideTick((t) => t + 1);
       setSlideIndex(nextIdx);
       if (appId !== null) {
         const nextApp = CANVAS_APPS[nextIdx];
@@ -355,6 +441,7 @@ export function App() {
 
   const enterRequests = useCallback(
     async (destination: RouteTarget, issue: IssueSummary | null = null) => {
+      setStaticDemoNoticeOpen(true);
       if (!session) {
         const info = await connect();
         if (!info) return;
@@ -448,6 +535,47 @@ export function App() {
     return () => document.removeEventListener('keydown', onKeyDown, true);
   }, [closePalette, openPalette, paletteOpen]);
 
+  // #198: Keyboard-driven slide deck navigation on the home canvas:
+  // ArrowLeft / ArrowRight flip between slides, and Enter / Space launch the
+  // active slide's game when focus is not inside a text field, overlay, or
+  // another action button.
+  useEffect(() => {
+    if (activeApp !== null || panelOpen || paletteOpen) return;
+    function onDeckKeyDown(event: KeyboardEvent) {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      const editing = Boolean(
+        target &&
+          (target.tagName === 'INPUT' ||
+            target.tagName === 'TEXTAREA' ||
+            target.tagName === 'SELECT' ||
+            target.isContentEditable),
+      );
+      if (editing) return;
+
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        stepSlide(1);
+        return;
+      }
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        stepSlide(-1);
+        return;
+      }
+      if (event.key === 'Enter' || event.key === ' ') {
+        const interactive = target?.closest('button, a, [role="button"]');
+        if (interactive && !interactive.classList.contains('deck-play-button')) {
+          return;
+        }
+        event.preventDefault();
+        openApp(currentSlide.id);
+      }
+    }
+    window.addEventListener('keydown', onDeckKeyDown);
+    return () => window.removeEventListener('keydown', onDeckKeyDown);
+  }, [activeApp, currentSlide.id, openApp, paletteOpen, panelOpen, stepSlide]);
+
   async function disconnect() {
     try {
       await api.disconnect();
@@ -465,6 +593,9 @@ export function App() {
     serverClientBuild !== 'unknown' &&
     serverClientBuild !== CLIENT_BUILD;
 
+  const isStaticDemo = sessionError?.kind === 'static_demo';
+  const showSessionError = Boolean(sessionError && (!isStaticDemo || staticDemoNoticeOpen));
+
   return (
     <div className={panelOpen && session ? 'canvas panel-open' : 'canvas'}>
       <header className="canvas-header">
@@ -481,12 +612,14 @@ export function App() {
             <h1 className="canvas-title">Blank canvas</h1>
           </button>
           {!panelOpen ? (
-            <p className="canvas-identity">
+            <p className="canvas-identity" data-testid="canvas-identity">
               {session
                 ? `${session.repo} · signed in as ${session.identity}`
-                : connecting
-                  ? 'Connecting to GitHub…'
-                  : 'Not connected to GitHub.'}
+                : isStaticDemo
+                  ? 'normzhou/yolo-blank-canvas · static preview'
+                  : connecting
+                    ? 'Connecting to GitHub…'
+                    : 'Not connected to GitHub.'}
             </p>
           ) : null}
         </div>
@@ -514,6 +647,10 @@ export function App() {
                   : 'deck-pill'
               }
               onClick={() => {
+                if (index !== slideIndex) {
+                  setSlideDirection(index > slideIndex ? 'next' : 'prev');
+                  setSlideTick((t) => t + 1);
+                }
                 setSlideIndex(index);
                 openApp(app.id);
               }}
@@ -549,7 +686,7 @@ export function App() {
                 }}
                 disabled={connecting}
               >
-                {session ? 'Start a request' : 'Connect GitHub'}
+                {session || isStaticDemo ? 'Start a request' : 'Connect GitHub'}
               </button>
               <div className="canvas-secondary-actions">
                 <button
@@ -620,101 +757,153 @@ export function App() {
         </div>
       ) : null}
 
-      {sessionError ? (
+      {showSessionError ? (
         <ErrorNotice error={sessionError} onRetry={() => void connect()} retryLabel="Retry connection" />
       ) : null}
 
       <main className="canvas-deck" aria-label="Game slide deck">
+        <CanvasAmbientEffects />
         {activeApp ? (
           <section className="canvas-app" aria-label={activeApp.title} tabIndex={-1} ref={appRegionRef}>
             <activeApp.element onExit={exitApp} />
           </section>
         ) : (
-          <section
-            className="deck-slide-card"
-            data-testid="deck-slide-card"
-            data-slide-id={currentSlide.id}
-            aria-label={`${currentSlide.title} slide`}
-          >
-            <DeckPreviewGraphic appId={currentSlide.id} />
+          <div className="deck-stack" data-testid="deck-stack">
+            <section
+              key={`${currentSlide.id}-${slideTick}`}
+              className={
+                slideDirection === 'next'
+                  ? 'deck-slide-card is-sliding-next'
+                  : slideDirection === 'prev'
+                    ? 'deck-slide-card is-sliding-prev'
+                    : 'deck-slide-card'
+              }
+              data-testid="deck-slide-card"
+              data-slide-id={currentSlide.id}
+              data-slide-dir={slideDirection ?? 'none'}
+              aria-label={`${currentSlide.title} slide`}
+            >
+              <DeckPreviewGraphic appId={currentSlide.id} />
 
-            <div className="deck-slide-info">
-              <div className="deck-slide-meta">
-                <span className="deck-slide-badge">
-                  0{slideIndex + 1} / 0{CANVAS_APPS.length} ·{' '}
-                  {currentSlide.id === 'tetris' ? 'Solo Marathon' : '2P Versus & Solo'}
-                </span>
-                <span className="deck-slide-tag">Local View State</span>
-              </div>
-
-              <div className="deck-slide-title">{currentSlide.title}</div>
-              <p className="deck-slide-summary">{currentSlide.summary}</p>
-
-              {currentSlide.id === 'tetris' ? (
-                <div className="deck-controls-grid" aria-label="Tetris controls">
-                  <div className="deck-control-item">
-                    <span className="deck-key-group">
-                      <kbd>←</kbd>
-                      <kbd>→</kbd>
-                    </span>
-                    <span className="deck-control-label">Move</span>
-                  </div>
-                  <div className="deck-control-item">
-                    <span className="deck-key-group">
-                      <kbd>↑</kbd>
-                    </span>
-                    <span className="deck-control-label">Rotate</span>
-                  </div>
-                  <div className="deck-control-item">
-                    <span className="deck-key-group">
-                      <kbd>↓</kbd>
-                    </span>
-                    <span className="deck-control-label">Soft drop</span>
-                  </div>
-                  <div className="deck-control-item">
-                    <span className="deck-key-group">
-                      <kbd>Space</kbd>
-                    </span>
-                    <span className="deck-control-label">Hard drop</span>
-                  </div>
+              <div className="deck-slide-info">
+                <div className="deck-slide-meta">
+                  <span className="deck-slide-badge">
+                    0{slideIndex + 1} / 0{CANVAS_APPS.length} ·{' '}
+                    {currentSlide.id === 'tetris' ? 'Solo Marathon' : '2P Versus & Solo'}
+                  </span>
+                  <span className="deck-slide-tag">Local View State</span>
                 </div>
-              ) : (
-                <div className="deck-controls-grid" aria-label="Puzzle Bobble controls">
-                  <div className="deck-control-item">
-                    <span className="deck-key-group">
-                      <kbd>A</kbd>
-                      <kbd>D</kbd>
-                      <kbd>S</kbd>
-                      <kbd>F</kbd>
-                    </span>
-                    <span className="deck-control-label">1P Bub · Aim & Shoot</span>
-                  </div>
-                  <div className="deck-control-item">
-                    <span className="deck-key-group">
-                      <kbd>←</kbd>
-                      <kbd>→</kbd>
-                      <kbd>↑</kbd>
-                      <kbd>↓</kbd>
-                    </span>
-                    <span className="deck-control-label">2P Bob · Aim & Shoot</span>
-                  </div>
-                </div>
-              )}
 
-              <div className="deck-slide-actions">
-                <button
-                  type="button"
-                  className="deck-play-button"
-                  onClick={() => openApp(currentSlide.id)}
-                >
-                  Play {currentSlide.title}
-                </button>
-                <span className="deck-slide-counter">
-                  Slide {slideIndex + 1} of {CANVAS_APPS.length}
-                </span>
+                <div className="deck-slide-title">{currentSlide.title}</div>
+                <p className="deck-slide-summary">{currentSlide.summary}</p>
+
+                {currentSlide.id === 'tetris' ? (
+                  <div className="deck-controls-grid" aria-label="Tetris controls">
+                    <div className="deck-control-item">
+                      <span className="deck-key-group">
+                        <kbd>←</kbd>
+                        <kbd>→</kbd>
+                      </span>
+                      <span className="deck-control-label">Move</span>
+                    </div>
+                    <div className="deck-control-item">
+                      <span className="deck-key-group">
+                        <kbd>↑</kbd>
+                      </span>
+                      <span className="deck-control-label">Rotate</span>
+                    </div>
+                    <div className="deck-control-item">
+                      <span className="deck-key-group">
+                        <kbd>↓</kbd>
+                      </span>
+                      <span className="deck-control-label">Soft drop</span>
+                    </div>
+                    <div className="deck-control-item">
+                      <span className="deck-key-group">
+                        <kbd>Space</kbd>
+                      </span>
+                      <span className="deck-control-label">Hard drop</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="deck-controls-grid" aria-label="Puzzle Bobble controls">
+                    <div className="deck-control-item">
+                      <span className="deck-key-group">
+                        <kbd>A</kbd>
+                        <kbd>D</kbd>
+                        <kbd>S</kbd>
+                        <kbd>F</kbd>
+                      </span>
+                      <span className="deck-control-label">1P Bub · Aim & Shoot</span>
+                    </div>
+                    <div className="deck-control-item">
+                      <span className="deck-key-group">
+                        <kbd>←</kbd>
+                        <kbd>→</kbd>
+                        <kbd>↑</kbd>
+                        <kbd>↓</kbd>
+                      </span>
+                      <span className="deck-control-label">2P Bob · Aim & Shoot</span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="deck-slide-actions">
+                  <button
+                    type="button"
+                    className="deck-play-button"
+                    onClick={() => openApp(currentSlide.id)}
+                  >
+                    Play {currentSlide.title}
+                  </button>
+                  <span className="deck-slide-counter">
+                    <span className="deck-keyboard-hint">
+                      <kbd>←</kbd> <kbd>→</kbd> Flip · <kbd>Enter</kbd> Play ·{' '}
+                    </span>
+                    Slide {slideIndex + 1} of {CANVAS_APPS.length}
+                  </span>
+                </div>
               </div>
-            </div>
-          </section>
+            </section>
+
+            {/* #198: Stacked depth & preview cards peeking underneath the active slide card */}
+            <button
+              type="button"
+              className="deck-stack-card is-next"
+              data-testid="deck-preview-card-next"
+              data-preview-id={nextSlide.id}
+              aria-label={`Stacked preview: ${nextSlide.title}`}
+              onClick={() => stepSlide(1)}
+            >
+              <span className="deck-stack-peek">
+                <span className="deck-stack-peek-left">
+                  <span className="deck-stack-pill">
+                    Up next · 0{nextSlideIndex + 1} / 0{deckLen}
+                  </span>
+                  <span className="deck-stack-name">{nextSlide.title}</span>
+                  <span className="deck-stack-summary">{nextSlide.summary}</span>
+                </span>
+                <span className="deck-stack-cta">Flip →</span>
+              </span>
+            </button>
+
+            <button
+              type="button"
+              className="deck-stack-card is-prev"
+              data-testid="deck-preview-card-prev"
+              data-preview-id={prevSlide.id}
+              aria-label={`Stacked back preview: ${prevSlide.title}`}
+              onClick={() => stepSlide(-1)}
+            >
+              <span className="deck-stack-peek">
+                <span className="deck-stack-peek-left">
+                  <span className="deck-stack-pill">← Prev</span>
+                  <span className="deck-stack-name">{prevSlide.title}</span>
+                </span>
+                <span className="deck-stack-cta">← Flip back</span>
+              </span>
+            </button>
+          </div>
         )}
       </main>
 

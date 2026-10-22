@@ -16,12 +16,22 @@ export function ErrorNotice({
   if (!error) return null;
   const needsLogin = error.kind === 'auth_required' || error.kind === 'session_required';
   const unconfirmed = error.kind === 'write_unconfirmed';
+  const staticDemo = error.kind === 'static_demo';
   return (
     <div className="error" role="alert">
       <div>{error.message}</div>
-      {needsLogin && error.loginCommand ? (
+      {(needsLogin || staticDemo) && error.loginCommand ? (
         <div className="hint">
           Run in your terminal: <code>{error.loginCommand}</code>
+        </div>
+      ) : null}
+      {staticDemo && error.githubUrl ? (
+        <div className="hint">
+          Or view and file requests directly on{' '}
+          <a href={error.githubUrl} target="_blank" rel="noreferrer noopener">
+            GitHub Issues
+          </a>
+          .
         </div>
       ) : null}
       {unconfirmed && error.githubUrl ? (

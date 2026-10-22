@@ -4,3 +4,13 @@ node_modules
 e2e/artifacts/
 test-results/
 playwright-report/
+infra/.terraform/
+infra/*.tfvars
+infra/*.tfvars.json
+infra/*.tfstate*
+infra/*.tfplan
+infra/crash.log
+hosting/.bundle/
+hosting/vendor/
+hosting/.kamal/
+__pycache__/
