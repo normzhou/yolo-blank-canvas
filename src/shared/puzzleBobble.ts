@@ -19,6 +19,28 @@ export type BubbleColor = 'ruby' | 'amber' | 'emerald' | 'azure' | 'amethyst' | 
 export type BubbleCell = BubbleColor | null;
 export type BubbleGrid = BubbleCell[][];
 
+export type CharacterId = 'dragon' | 'cat' | 'dog' | 'bunny';
+export type MascotMood = 'normal' | 'cheer' | 'hurry' | 'celebrate' | 'cry';
+
+export interface CharacterOption {
+  id: CharacterId;
+  label: string;
+  p1Name: string;
+  p2Name: string;
+}
+
+export const CHARACTER_OPTIONS: readonly CharacterOption[] = [
+  { id: 'dragon', label: 'Dragon', p1Name: 'Bub', p2Name: 'Bob' },
+  { id: 'cat', label: 'Cat', p1Name: 'Mochi', p2Name: 'Yuzu' },
+  { id: 'dog', label: 'Dog', p1Name: 'Pochi', p2Name: 'Koro' },
+  { id: 'bunny', label: 'Bunny', p1Name: 'Usagi', p2Name: 'Momo' },
+];
+
+export function characterDisplayName(character: CharacterId, playerNumber: 1 | 2): string {
+  const found = CHARACTER_OPTIONS.find((opt) => opt.id === character) ?? CHARACTER_OPTIONS[0];
+  return playerNumber === 1 ? found.p1Name : found.p2Name;
+}
+
 export const BUBBLE_COLORS: readonly BubbleColor[] = [
   'ruby',
   'amber',
@@ -561,6 +583,72 @@ export function hurryCountdownSeconds(player: PlayerBoardState): number | null {
   if (player.status !== 'playing' || player.flying !== null) return null;
   if (player.shotTimerMs > HURRY_WARNING_MS) return null;
   return Math.max(1, Math.ceil(player.shotTimerMs / 1000));
+}
+
+/**
+ * Derives the character mascot's animation mood from the player's board state (#204):
+ * - `'celebrate'` when the player wins the round (`status === 'won'`)
+ * - `'cry'` when the player loses the round (`status === 'ko'`)
+ * - `'hurry'` during the 5-second `HURRY UP!` shot countdown
+ * - `'cheer'` after popping 3+ bubbles or dropping an avalanche cluster
+ * - `'normal'` during ordinary aiming and firing
+ */
+export function deriveMascotMood(player: PlayerBoardState): MascotMood {
+  if (player.status === 'won') return 'celebrate';
+  if (player.status === 'ko') return 'cry';
+  if (hurryCountdownSeconds(player) !== null) return 'hurry';
+  if (
+    player.lastEvent !== null &&
+    (player.lastEvent.popped.length >= 3 || player.lastEvent.dropped.length > 0)
+  ) {
+    return 'cheer';
+  }
+  return 'normal';
+}
+
+/**
+ * Resolves a round outcome (`winner = 0 | 1` or `null` for a 1P KO), setting the
+ * winning player's status to `'won'` and the losing player's status to `'ko'`.
+ */
+export function resolveMatchOutcome(
+  match: PuzzleBobbleMatch,
+  winner: 0 | 1 | null,
+): PuzzleBobbleMatch {
+  const wins: [number, number] = [match.wins[0], match.wins[1]];
+  if (winner === 0 || winner === 1) {
+    wins[winner] += 1;
+  }
+  if (match.players.length === 1) {
+    const p0: PlayerBoardState = {
+      ...match.players[0],
+      flying: null,
+      status: winner === 0 ? 'won' : 'ko',
+    };
+    return {
+      ...match,
+      players: [p0],
+      status: 'round_over',
+      winner: winner === 0 ? 0 : null,
+      wins,
+    };
+  }
+  const p0: PlayerBoardState = {
+    ...match.players[0],
+    flying: null,
+    status: winner === 0 ? 'won' : 'ko',
+  };
+  const p1: PlayerBoardState = {
+    ...match.players[1],
+    flying: null,
+    status: winner === 1 ? 'won' : 'ko',
+  };
+  return {
+    ...match,
+    players: [p0, p1],
+    status: 'round_over',
+    winner,
+    wins,
+  };
 }
 
 /**
