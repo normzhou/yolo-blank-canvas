@@ -12,12 +12,20 @@ import {
   ROW_STEP,
   aimGuidePoints,
   aimPlayer,
+  aimVelocityDegPerSec,
   bubbleCenter,
   colsForRow,
   createMatch,
+  createPlayerBoard,
+  createStageGrid,
+  decomposeGarbageOrbs,
   fireAndResolvePlayer,
   firePlayerBubble,
+  formatAimAngle,
+  hurryCountdownSeconds,
+  shotsPerCeilingDrop,
   stepMatch,
+  tickShotTimers,
   type BubbleColor,
   type PlayerBoardState,
   type PuzzleBobbleMatch,
@@ -35,41 +43,372 @@ const BUBBLE_TOKEN: Record<BubbleColor, string> = {
 function eventSummary(player: PlayerBoardState): string | null {
   const ev = player.lastEvent;
   if (!ev || ev.popped.length === 0) return null;
-  const parts = [`Popped ${ev.popped.length}`];
-  if (ev.dropped.length > 0) parts.push(`+${ev.dropped.length} dropped`);
-  if (ev.sentGarbage > 0) parts.push(`sent ${ev.sentGarbage} attack`);
+  const parts = [`Popped ${ev.popped.length} (+${ev.popScore})`];
+  if (ev.dropped.length > 0) {
+    parts.push(`Avalanche ${ev.dropped.length} (+${ev.dropScore.toLocaleString()})`);
+  }
+  if (ev.sentGarbage > 0) {
+    parts.push(`Sent ${ev.sentGarbage} attack!`);
+  } else if (ev.stackedGarbage > 0) {
+    parts.push(`Stacked +${ev.stackedGarbage}`);
+  }
   return parts.join(' · ');
+}
+
+/**
+ * Subtle inner emblem inside each bubble, inspired by the trapped bubble
+ * spirits in Taito's arcade Puzzle Bobble (also aids colour-blind play).
+ */
+function BubbleEmblem({ cx, cy, color, r }: { cx: number; cy: number; color: BubbleColor; r: number }) {
+  const s = r * 0.36;
+  switch (color) {
+    case 'ruby':
+      // 4-point star
+      return (
+        <polygon
+          points={`${cx},${cy - s} ${cx + s * 0.38},${cy - s * 0.38} ${cx + s},${cy} ${cx + s * 0.38},${cy + s * 0.38} ${cx},${cy + s} ${cx - s * 0.38},${cy + s * 0.38} ${cx - s},${cy} ${cx - s * 0.38},${cy - s * 0.38}`}
+          fill="var(--on-accent)"
+          opacity="0.45"
+        />
+      );
+    case 'amber':
+      // Triangle crest
+      return (
+        <polygon
+          points={`${cx},${cy - s * 0.9} ${cx + s * 0.85},${cy + s * 0.7} ${cx - s * 0.85},${cy + s * 0.7}`}
+          fill="var(--on-accent)"
+          opacity="0.45"
+        />
+      );
+    case 'emerald':
+      // Clover / plus
+      return (
+        <g fill="var(--on-accent)" opacity="0.45">
+          <rect x={cx - s * 0.28} y={cy - s * 0.85} width={s * 0.56} height={s * 1.7} rx={1.5} />
+          <rect x={cx - s * 0.85} y={cy - s * 0.28} width={s * 1.7} height={s * 0.56} rx={1.5} />
+        </g>
+      );
+    case 'azure':
+      // Ring / moon orb
+      return (
+        <circle
+          cx={cx}
+          cy={cy}
+          r={s * 0.65}
+          fill="none"
+          stroke="var(--on-accent)"
+          strokeWidth={1.6}
+          opacity="0.5"
+        />
+      );
+    case 'amethyst':
+      // Diamond gem
+      return (
+        <polygon
+          points={`${cx},${cy - s} ${cx + s * 0.8},${cy} ${cx},${cy + s} ${cx - s * 0.8},${cy}`}
+          fill="var(--on-accent)"
+          opacity="0.45"
+        />
+      );
+    case 'coral':
+      // Twin dots
+      return (
+        <g fill="var(--on-accent)" opacity="0.5">
+          <circle cx={cx - s * 0.42} cy={cy} r={s * 0.32} />
+          <circle cx={cx + s * 0.42} cy={cy} r={s * 0.32} />
+        </g>
+      );
+  }
 }
 
 function BubbleSvg({
   cx,
   cy,
   color,
-  radius = BUBBLE_RADIUS - 1,
+  radius = BUBBLE_RADIUS - 0.8,
+  className,
 }: {
   cx: number;
   cy: number;
   color: BubbleColor;
   radius?: number;
+  className?: string;
 }) {
   return (
-    <g>
+    <g className={className}>
+      {/* Base colour sphere */}
       <circle
         cx={cx}
         cy={cy}
         r={radius}
         fill={BUBBLE_TOKEN[color]}
-        stroke="var(--border)"
-        strokeWidth="1.25"
+        stroke="var(--text)"
+        strokeWidth="1.2"
+      />
+      {/* 3D radial depth shading */}
+      <circle cx={cx} cy={cy} r={radius} fill="url(#pb-sphere-shade)" />
+      {/* Inner rim light */}
+      <circle
+        cx={cx}
+        cy={cy}
+        r={radius - 1.8}
+        fill="none"
+        stroke="var(--on-accent)"
+        strokeWidth="0.9"
+        opacity="0.35"
+      />
+      {/* Trapped spirit emblem */}
+      <BubbleEmblem cx={cx} cy={cy + 0.5} color={color} r={radius} />
+      {/* 3D radial specular highlight + crisp arcade shine */}
+      <circle cx={cx} cy={cy} r={radius} fill="url(#pb-sphere-shine)" />
+      <ellipse
+        cx={cx - radius * 0.32}
+        cy={cy - radius * 0.34}
+        rx={radius * 0.28}
+        ry={radius * 0.17}
+        transform={`rotate(-28 ${cx - radius * 0.32} ${cy - radius * 0.34})`}
+        fill="var(--on-accent)"
+        opacity="0.88"
       />
       <circle
-        cx={cx - radius * 0.3}
-        cy={cy - radius * 0.3}
-        r={radius * 0.26}
-        fill="var(--surface)"
-        opacity="0.65"
+        cx={cx - radius * 0.1}
+        cy={cy - radius * 0.52}
+        r={radius * 0.09}
+        fill="var(--on-accent)"
+        opacity="0.75"
       />
     </g>
+  );
+}
+
+/**
+ * Cute Bub (green, P1) or Bob (blue, P2) dragon mascot beside the catapult
+ * wheel, turning the crank and reacting to combos or HURRY UP! pressure.
+ */
+function DragonMascotSvg({
+  x,
+  y,
+  playerNumber,
+  mood,
+}: {
+  x: number;
+  y: number;
+  playerNumber: 1 | 2;
+  mood: 'normal' | 'cheer' | 'hurry';
+}) {
+  const bodyFill = playerNumber === 1 ? 'var(--tetromino-s)' : 'var(--tetromino-j)';
+  const crestFill = playerNumber === 1 ? 'var(--tetromino-l)' : 'var(--tetromino-o)';
+  const armOffsetY = mood === 'cheer' ? -5 : 0;
+
+  return (
+    <g transform={`translate(${x}, ${y})`} aria-hidden="true">
+      {/* Dorsal spikes */}
+      <polygon points="10,-10 15,-14 14,-7" fill={crestFill} stroke="var(--text)" strokeWidth="0.8" />
+      <polygon points="12,-4 17,-7 15,0" fill={crestFill} stroke="var(--text)" strokeWidth="0.8" />
+      {/* Body & tummy */}
+      <ellipse cx="4" cy="0" rx="10" ry="11" fill={bodyFill} stroke="var(--text)" strokeWidth="1.2" />
+      <ellipse cx="1" cy="2" rx="5.5" ry="7" fill="var(--on-accent)" opacity="0.85" />
+      {/* Head & snout */}
+      <circle cx="2" cy="-11" r="8.5" fill={bodyFill} stroke="var(--text)" strokeWidth="1.2" />
+      {/* Big arcade eyes */}
+      <ellipse cx="-1.5" cy="-12.5" rx="2.6" ry="3.2" fill="var(--on-accent)" stroke="var(--text)" strokeWidth="0.8" />
+      <circle cx="-2" cy="-12.5" r="1.3" fill="var(--text)" />
+      {/* Little arm cranking or cheering */}
+      <circle
+        cx="-6"
+        cy={-2 + armOffsetY}
+        r="3.2"
+        fill={bodyFill}
+        stroke="var(--text)"
+        strokeWidth="1"
+      />
+      {/* Feet */}
+      <ellipse cx="-2" cy="11" rx="4.5" ry="2.2" fill={crestFill} stroke="var(--text)" strokeWidth="1" />
+      <ellipse cx="6" cy="11" rx="4.5" ry="2.2" fill={crestFill} stroke="var(--text)" strokeWidth="1" />
+      {/* Hurry sweat drops */}
+      {mood === 'hurry' ? (
+        <g fill="var(--tetromino-i)">
+          <circle cx="13" cy="-16" r="1.8" />
+          <circle cx="16" cy="-11" r="1.4" />
+        </g>
+      ) : null}
+    </g>
+  );
+}
+
+/**
+ * Neo-Geo style mechanical catapult / pointer launcher with rotating toothed
+ * gears, aiming arrow shaft, next-bubble cradle, and Bub/Bob mascot.
+ */
+function LauncherMechanismSvg({
+  player,
+  playerNumber,
+  hurrySeconds,
+}: {
+  player: PlayerBoardState;
+  playerNumber: 1 | 2;
+  hurrySeconds: number | null;
+}) {
+  const gearRotation = player.aimAngle * 2.2;
+  const crankRotation = -player.aimAngle * 3.6;
+  const mood: 'normal' | 'cheer' | 'hurry' =
+    hurrySeconds !== null
+      ? 'hurry'
+      : player.lastEvent && player.lastEvent.popped.length >= 3
+        ? 'cheer'
+        : 'normal';
+
+  return (
+    <g>
+      {/* Pedestal base */}
+      <rect
+        x={LAUNCHER_X - 44}
+        y={LAUNCHER_Y + 13}
+        width={88}
+        height={10}
+        rx={4}
+        fill="var(--neutral-weak)"
+        stroke="var(--border)"
+        strokeWidth="1.2"
+      />
+
+      {/* Main toothed gear wheel (rotates with aimAngle) */}
+      <g transform={`translate(${LAUNCHER_X}, ${LAUNCHER_Y}) rotate(${gearRotation})`}>
+        {Array.from({ length: 12 }, (_, i) => (
+          <rect
+            key={i}
+            x={-2.5}
+            y={-24}
+            width={5}
+            height={6}
+            rx={1}
+            fill="var(--border-hover)"
+            stroke="var(--text)"
+            strokeWidth="0.8"
+            transform={`rotate(${i * 30})`}
+          />
+        ))}
+        <circle
+          cx={0}
+          cy={0}
+          r={20}
+          fill="var(--surface)"
+          stroke="var(--text)"
+          strokeWidth="1.4"
+        />
+        <circle
+          cx={0}
+          cy={0}
+          r={14}
+          fill="none"
+          stroke="var(--border)"
+          strokeWidth="1.2"
+          strokeDasharray="4 3"
+        />
+      </g>
+
+      {/* Secondary hand-crank gear on the right */}
+      <g transform={`translate(${LAUNCHER_X + 27}, ${LAUNCHER_Y + 6}) rotate(${crankRotation})`}>
+        {Array.from({ length: 8 }, (_, i) => (
+          <rect
+            key={i}
+            x={-1.8}
+            y={-12}
+            width={3.6}
+            height={4}
+            fill="var(--warning-weak)"
+            stroke="var(--text)"
+            strokeWidth="0.7"
+            transform={`rotate(${i * 45})`}
+          />
+        ))}
+        <circle cx={0} cy={0} r={9.5} fill="var(--warning-weak)" stroke="var(--text)" strokeWidth="1.2" />
+        <line x1={0} y1={0} x2={0} y2={-7} stroke="var(--text)" strokeWidth="1.4" />
+      </g>
+
+      {/* Rotating ornate pointer arrow */}
+      <g transform={`translate(${LAUNCHER_X}, ${LAUNCHER_Y}) rotate(${player.aimAngle})`}>
+        {/* Pointer side wings */}
+        <polygon
+          points="-11,-8 -4,-28 4,-28 11,-8"
+          fill="var(--accent-weak)"
+          stroke="var(--text)"
+          strokeWidth="1.1"
+        />
+        {/* Pointer main shaft */}
+        <rect
+          x={-3}
+          y={-42}
+          width={6}
+          height={28}
+          rx={2}
+          fill="var(--accent)"
+          stroke="var(--text)"
+          strokeWidth="1.1"
+        />
+        {/* Ornate arrowhead tip */}
+        <polygon
+          points="0,-54 -9,-38 -3,-40 0,-43 3,-40 9,-38"
+          fill="var(--warning-weak)"
+          stroke="var(--text)"
+          strokeWidth="1.2"
+        />
+      </g>
+
+      {/* Active bubble loaded in the launcher chamber */}
+      {player.flying === null ? (
+        <BubbleSvg cx={LAUNCHER_X} cy={LAUNCHER_Y} color={player.currentBubble} />
+      ) : (
+        <circle
+          cx={LAUNCHER_X}
+          cy={LAUNCHER_Y}
+          r={BUBBLE_RADIUS - 3}
+          fill="var(--field)"
+          stroke="var(--border)"
+          strokeDasharray="3 2"
+        />
+      )}
+
+      {/* On-deck NEXT bubble tray on the left of the catapult */}
+      <g transform={`translate(${LAUNCHER_X - 56}, ${LAUNCHER_Y + 6})`}>
+        <ellipse
+          cx={0}
+          cy={10}
+          rx={14}
+          ry={4}
+          fill="var(--neutral-weak)"
+          stroke="var(--border)"
+          strokeWidth="1"
+        />
+        <BubbleSvg cx={0} cy={-1} color={player.nextBubble} radius={BUBBLE_RADIUS - 3} />
+      </g>
+
+      {/* Bub (P1) or Bob (P2) mascot turning the crank on the right */}
+      <DragonMascotSvg
+        x={LAUNCHER_X + 52}
+        y={LAUNCHER_Y + 4}
+        playerNumber={playerNumber}
+        mood={mood}
+      />
+    </g>
+  );
+}
+
+/**
+ * Renders the Neo-Geo yellow (1-bubble) and red (5-bubble) garbage warning orbs.
+ */
+function GarbageOrbsRow({ count, label }: { count: number; label: string }) {
+  if (count <= 0) return null;
+  const orbs = decomposeGarbageOrbs(count);
+  return (
+    <span className="pb-orbs" aria-label={label} title={label}>
+      {orbs.map((kind, idx) => (
+        <span
+          key={idx}
+          className={kind === 'red' ? 'pb-orb pb-orb-red' : 'pb-orb pb-orb-yellow'}
+        />
+      ))}
+    </span>
   );
 }
 
@@ -87,10 +426,10 @@ function PlayerArena({
   const ceilingY = player.ceilingDrop * ROW_STEP;
   const guide = aimGuidePoints(player.aimAngle, player.ceilingDrop);
   const polylinePoints = guide.map((pt) => `${pt.x},${pt.y}`).join(' ');
-  const rad = (player.aimAngle * Math.PI) / 180;
-  const barrelTipX = LAUNCHER_X + Math.sin(rad) * 26;
-  const barrelTipY = LAUNCHER_Y - Math.cos(rad) * 26;
   const summary = eventSummary(player);
+  const hurrySeconds = hurryCountdownSeconds(player);
+  const dropInterval = shotsPerCeilingDrop(player.grid);
+  const shotsLeftUntilDrop = Math.max(1, dropInterval - player.shotsSinceDrop);
 
   let settledCount = 0;
   for (const row of player.grid) {
@@ -99,28 +438,47 @@ function PlayerArena({
     }
   }
 
+  const lastEv = player.lastEvent;
+
   return (
     <div className="pb-player-card" data-player={playerNumber}>
       <div className="pb-player-header">
         <div>
           <span className="pb-player-title">
-            {isTwoPlayer ? `Player ${playerNumber}` : 'Solo'}
+            {isTwoPlayer
+              ? playerNumber === 1
+                ? '1P · Bub'
+                : '2P · Bob'
+              : `1P · Stage ${player.stage}`}
           </span>
           <span className="pb-player-controls">{controlsLabel}</span>
         </div>
-        {player.incomingGarbage > 0 ? (
-          <span className="badge waiting" role="status">
-            Incoming +{player.incomingGarbage}
-          </span>
-        ) : (
-          <span className="badge">
-            {player.status === 'won'
-              ? 'Winner!'
-              : player.status === 'ko'
-                ? 'KO'
-                : `${settledCount} bubbles`}
-          </span>
-        )}
+        <div className="pb-status-pills">
+          {hurrySeconds !== null ? (
+            <span className="badge problem pb-hurry-badge" role="status">
+              HURRY UP! {hurrySeconds}
+            </span>
+          ) : null}
+          {player.incomingGarbage > 0 ? (
+            <span className="badge waiting" role="status">
+              Incoming +{player.incomingGarbage}
+              <GarbageOrbsRow
+                count={player.incomingGarbage}
+                label={`${player.incomingGarbage} incoming garbage bubbles`}
+              />
+            </span>
+          ) : (
+            <span className={player.ceilingWarning ? 'badge waiting' : 'badge'}>
+              {player.status === 'won'
+                ? 'YOU WIN!'
+                : player.status === 'ko'
+                  ? 'LOST'
+                  : player.ceilingWarning
+                    ? 'Ceiling drop next!'
+                    : `${settledCount} bubbles`}
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="pb-arena-row">
@@ -132,58 +490,172 @@ function PlayerArena({
           role="img"
           aria-label={`Player ${playerNumber} bubble board`}
         >
-          {/* Dropped ceiling */}
+          <defs>
+            <radialGradient id="pb-sphere-shine" cx="32%" cy="28%" r="55%">
+              <stop offset="0%" stopColor="var(--on-accent)" stopOpacity="0.55" />
+              <stop offset="55%" stopColor="var(--on-accent)" stopOpacity="0" />
+            </radialGradient>
+            <radialGradient id="pb-sphere-shade" cx="45%" cy="42%" r="60%">
+              <stop offset="60%" stopColor="var(--text)" stopOpacity="0" />
+              <stop offset="100%" stopColor="var(--text)" stopOpacity="0.28" />
+            </radialGradient>
+            <pattern
+              id={`pb-diamond-grid-${playerNumber}`}
+              width={BUBBLE_RADIUS * 2}
+              height={ROW_STEP}
+              patternUnits="userSpaceOnUse"
+            >
+              <path
+                d={`M ${BUBBLE_RADIUS} 0 L ${BUBBLE_RADIUS * 2} ${ROW_STEP / 2} L ${BUBBLE_RADIUS} ${ROW_STEP} L 0 ${ROW_STEP / 2} Z`}
+                fill="none"
+                stroke="var(--border)"
+                strokeWidth="0.6"
+                opacity="0.45"
+              />
+            </pattern>
+          </defs>
+
+          {/* Subtle arcade diamond backdrop grid aligned to bubble diameter & row step */}
+          <rect
+            x={0}
+            y={ceilingY}
+            width={ARENA_WIDTH}
+            height={DANGER_LINE_Y - ceilingY}
+            fill={`url(#pb-diamond-grid-${playerNumber})`}
+          />
+
+          {/* Side bounce rails */}
+          <rect x={0} y={0} width={3} height={ARENA_HEIGHT} fill="var(--border-hover)" opacity="0.55" />
+          <rect
+            x={ARENA_WIDTH - 3}
+            y={0}
+            width={3}
+            height={ARENA_HEIGHT}
+            fill="var(--border-hover)"
+            opacity="0.55"
+          />
+
+          {/* Industrial arcade compressor pistons & beam when ceiling drops */}
           {ceilingY > 0 ? (
-            <rect
-              x={0}
-              y={0}
-              width={ARENA_WIDTH}
-              height={ceilingY}
-              fill="var(--neutral-weak)"
-              stroke="var(--border)"
-            />
+            <g aria-hidden="true">
+              <rect
+                x={0}
+                y={0}
+                width={ARENA_WIDTH}
+                height={ceilingY}
+                fill="var(--neutral-weak)"
+              />
+              {/* Left and right mechanical piston shafts */}
+              <rect
+                x={36}
+                y={0}
+                width={18}
+                height={ceilingY}
+                fill="var(--closed-weak)"
+                stroke="var(--text)"
+                strokeWidth="1.2"
+              />
+              <rect
+                x={ARENA_WIDTH - 54}
+                y={0}
+                width={18}
+                height={ceilingY}
+                fill="var(--closed-weak)"
+                stroke="var(--text)"
+                strokeWidth="1.2"
+              />
+              {/* Compressor girder beam */}
+              <rect
+                x={0}
+                y={Math.max(0, ceilingY - 8)}
+                width={ARENA_WIDTH}
+                height={8}
+                fill="var(--closed-weak)"
+                stroke="var(--text)"
+                strokeWidth="1.2"
+              />
+              {Array.from({ length: 7 }, (_, i) => (
+                <circle
+                  key={i}
+                  cx={16 + i * 32}
+                  cy={Math.max(4, ceilingY - 4)}
+                  r={1.8}
+                  fill="var(--text)"
+                />
+              ))}
+            </g>
           ) : null}
+
           <line
             x1={0}
             y1={ceilingY}
             x2={ARENA_WIDTH}
             y2={ceilingY}
-            stroke="var(--border)"
+            stroke="var(--text)"
             strokeWidth={2}
           />
 
-          {/* Danger threshold line */}
+          {/* Arcade deadline / danger line above the launcher */}
           <line
             x1={0}
             y1={DANGER_LINE_Y}
             x2={ARENA_WIDTH}
             y2={DANGER_LINE_Y}
             stroke="var(--problem-border)"
-            strokeWidth={1.5}
-            strokeDasharray="4 4"
+            strokeWidth={2}
+            strokeDasharray="6 4"
           />
 
-          {/* Aiming sight line with wall-bounce reflection */}
+          {/* Multi-bounce aiming sight line */}
           {player.status === 'playing' ? (
             <polyline
               points={polylinePoints}
               fill="none"
               stroke="var(--accent)"
-              strokeWidth={1.75}
+              strokeWidth={2}
               strokeDasharray="4 4"
-              opacity={0.75}
+              opacity={0.82}
             />
           ) : null}
 
-          {/* Settled hexagonal grid bubbles */}
-          {player.grid.map((row, r) =>
-            Array.from({ length: colsForRow(r) }, (_, c) => {
-              const color = row[c];
-              if (!color) return null;
-              const center = bubbleCenter(r, c, player.ceilingDrop);
-              return <BubbleSvg key={`${r},${c}`} cx={center.x} cy={center.y} color={color} />;
-            }),
-          )}
+          {/* Settled hexagonal grid bubbles (trembles slightly when ceilingWarning is active) */}
+          <g className={player.ceilingWarning ? 'pb-cluster-warning' : undefined}>
+            {player.grid.map((row, r) =>
+              Array.from({ length: colsForRow(r) }, (_, c) => {
+                const color = row[c];
+                if (!color) return null;
+                const center = bubbleCenter(r, c, player.ceilingDrop);
+                return <BubbleSvg key={`${r},${c}`} cx={center.x} cy={center.y} color={color} />;
+              }),
+            )}
+          </g>
+
+          {/* Pop burst rings & tumbling avalanche bubbles from the latest shot */}
+          {lastEv && lastEv.popped.length > 0 ? (
+            <g key={`fx-${lastEv.id}`} aria-hidden="true">
+              {lastEv.popped.map((cell, idx) => (
+                <circle
+                  key={`pop-${idx}`}
+                  className="pb-pop-ring"
+                  cx={cell.x}
+                  cy={cell.y}
+                  r={BUBBLE_RADIUS}
+                  fill="none"
+                  stroke={BUBBLE_TOKEN[cell.color]}
+                  strokeWidth="2.5"
+                />
+              ))}
+              {lastEv.dropped.map((cell, idx) => (
+                <BubbleSvg
+                  key={`drop-${idx}`}
+                  className="pb-drop-bubble"
+                  cx={cell.x}
+                  cy={cell.y}
+                  color={cell.color}
+                />
+              ))}
+            </g>
+          ) : null}
 
           {/* In-flight bubble */}
           {player.flying ? (
@@ -194,30 +666,25 @@ function PlayerArena({
             />
           ) : null}
 
-          {/* Launcher cannon */}
-          <line
-            x1={LAUNCHER_X}
-            y1={LAUNCHER_Y}
-            x2={barrelTipX}
-            y2={barrelTipY}
-            stroke="var(--text)"
-            strokeWidth={5}
-            strokeLinecap="round"
+          {/* Mechanical gear catapult, pointer arrow, on-deck bubble & Bub/Bob mascot */}
+          <LauncherMechanismSvg
+            player={player}
+            playerNumber={playerNumber}
+            hurrySeconds={hurrySeconds}
           />
-          <BubbleSvg cx={LAUNCHER_X} cy={LAUNCHER_Y} color={player.currentBubble} />
         </svg>
 
         <aside className="tetris-side pb-side">
           <div className="tetris-stat">
             <span className="tetris-label">Score</span>
             <span className="tetris-value" aria-live="polite" data-testid={`p${playerNumber}-score`}>
-              {player.score}
+              {player.score.toLocaleString()}
             </span>
           </div>
           <div className="tetris-stat">
             <span className="tetris-label">Aim</span>
             <span className="pb-stat-small" data-testid={`p${playerNumber}-aim`}>
-              {player.aimAngle > 0 ? `+${player.aimAngle}°` : `${player.aimAngle}°`}
+              {formatAimAngle(player.aimAngle)}
             </span>
           </div>
           <div className="tetris-stat">
@@ -226,6 +693,24 @@ function PlayerArena({
               {player.shotsFired}
             </span>
           </div>
+          <div className="tetris-stat">
+            <span className="tetris-label">Ceiling</span>
+            <span className="pb-stat-small" title="Shots until the compressor drops one row">
+              {shotsLeftUntilDrop} {shotsLeftUntilDrop === 1 ? 'shot' : 'shots'}
+            </span>
+          </div>
+          {isTwoPlayer ? (
+            <div className="tetris-stat">
+              <span className="tetris-label">Stack</span>
+              <span className="pb-stat-small" data-testid={`p${playerNumber}-stack`}>
+                {player.attackStack}
+                <GarbageOrbsRow
+                  count={player.attackStack}
+                  label={`${player.attackStack} stacked attack bubbles`}
+                />
+              </span>
+            </div>
+          ) : null}
           <div className="tetris-stat">
             <span className="tetris-label">Next</span>
             <svg
@@ -254,6 +739,7 @@ function PlayerArena({
 
 export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
   const [match, setMatch] = useState<PuzzleBobbleMatch>(() => createMatch('2p'));
+  const [stagePreset, setStagePreset] = useState<number>(0); // 0 = random wave, 1..5 = classic Taito stages
   const [paused, setPaused] = useState(false);
   const [musicOn, setMusicOn] = useState(false);
   const [backgroundIndex, setBackgroundIndex] = useState(1);
@@ -266,7 +752,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
 
   const matchRef = useRef(match);
   matchRef.current = match;
-  const heldAimKeysRef = useRef< Map<string, number> >(new Map());
+  const heldAimKeysRef = useRef<Map<string, number>>(new Map());
 
   // Audio playback follows active match state.
   useEffect(() => {
@@ -275,15 +761,21 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
 
   useEffect(() => () => musicRef.current?.dispose(), []);
 
-  // Advance flying bubbles smoothly at ~60fps while any projectile is in flight.
-  const anyFlying = match.players.some((p) => p.flying !== null);
+  // Advance flying bubbles and the 10s HURRY UP! shot clock at ~60fps.
   useEffect(() => {
-    if (paused || match.status !== 'playing' || !anyFlying) return;
+    if (paused || match.status !== 'playing') return;
+    let lastTime = performance.now();
     const id = window.setInterval(() => {
-      setMatch((current) => stepMatch(current));
+      const now = performance.now();
+      const dtMs = Math.min(64, Math.max(0, now - lastTime));
+      lastTime = now;
+      setMatch((current) => {
+        const stepped = stepMatch(current);
+        return tickShotTimers(stepped, dtMs);
+      });
     }, 16);
     return () => window.clearInterval(id);
-  }, [anyFlying, match.status, paused]);
+  }, [match.status, paused]);
 
   // Deterministic E2E / test hook to resolve a player's shot in one step when needed.
   useEffect(() => {
@@ -296,20 +788,33 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     return () => window.removeEventListener('yolo:puzzle-bobble:fire-resolve', onInstantResolve);
   }, []);
 
-  const startNewRound = useCallback((mode: '2p' | '1p', keepWins = true) => {
-    setMatch((current) =>
-      createMatch(mode, Math.random, keepWins ? current.wins : [0, 0]),
-    );
-    setPaused(false);
-    setBackgroundIndex((index) => nextBackgroundIndex(index));
-  }, []);
+  const startNewRound = useCallback(
+    (mode: '2p' | '1p', keepWins = true, preset = stagePreset) => {
+      setMatch((current) => {
+        const wins: [number, number] = keepWins ? current.wins : [0, 0];
+        if (preset > 0) {
+          const grid = createStageGrid(preset);
+          const first = createPlayerBoard(Math.random, grid, preset);
+          if (mode === '1p') {
+            return { mode: '1p', players: [first], status: 'playing', winner: null, wins };
+          }
+          const second: PlayerBoardState = { ...first, grid: grid.map((r) => r.slice()), lastEvent: null };
+          return { mode: '2p', players: [first, second], status: 'playing', winner: null, wins };
+        }
+        return createMatch(mode, Math.random, wins);
+      });
+      setPaused(false);
+      setBackgroundIndex((index) => nextBackgroundIndex(index));
+    },
+    [stagePreset],
+  );
 
-  // Keyboard controls:
-  // - Player 1 (left board, or solo): A / D to aim left/right; S / F / W to shoot.
-  // - Player 2 (right board in 2P, or solo fallback): ArrowLeft / ArrowRight to aim; ArrowUp / ArrowDown / Space / Enter to shoot.
-  // - Tracks held aim keys independently per player so two players sharing one
-  //   keyboard never cancel each other's OS key repeat.
-  // - Escape closes the view.
+  // Smooth 60fps aiming + keyboard controls:
+  // - Single tap steps by `AIM_STEP_DEG = 0.5°` for high-precision bank shots.
+  // - Holding an aim key glides smoothly every frame (`requestAnimationFrame`),
+  //   starting at `38°/s` for micro-lining-up and ramping to `115°/s` for sweeps.
+  // - Player 1 (left board, or solo): A / D aim; S / F / W shoot.
+  // - Player 2 (right board in 2P, or solo fallback): ArrowLeft / ArrowRight aim; ArrowUp / ArrowDown / Space / Enter shoot.
   useEffect(() => {
     const held = heldAimKeysRef.current;
 
@@ -389,35 +894,57 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
       held.clear();
     }
 
-    const holdInterval = window.setInterval(() => {
-      if (paused || matchRef.current.status !== 'playing' || held.size === 0) return;
-      const now = performance.now();
-      const holdDelayMs = 130;
-      const is2P = matchRef.current.mode === '2p';
-      const p2Index: 0 | 1 = is2P ? 1 : 0;
+    let rafId = 0;
+    let lastFrame = performance.now();
+    const tapGraceMs = 75;
 
-      let p1Delta = 0;
-      let p2Delta = 0;
-      if ((held.get('a') ?? Infinity) <= now - holdDelayMs) p1Delta -= AIM_STEP_DEG;
-      if ((held.get('d') ?? Infinity) <= now - holdDelayMs) p1Delta += AIM_STEP_DEG;
-      if ((held.get('ArrowLeft') ?? Infinity) <= now - holdDelayMs) p2Delta -= AIM_STEP_DEG;
-      if ((held.get('ArrowRight') ?? Infinity) <= now - holdDelayMs) p2Delta += AIM_STEP_DEG;
+    function tickAim(now: number) {
+      const dtSec = Math.min(0.05, Math.max(0, (now - lastFrame) / 1000));
+      lastFrame = now;
 
-      if (p1Delta !== 0 || p2Delta !== 0) {
-        setMatch((current) => {
-          let next = current;
-          if (p1Delta !== 0) next = aimPlayer(next, 0, p1Delta);
-          if (p2Delta !== 0) next = aimPlayer(next, p2Index, p2Delta);
-          return next;
-        });
+      if (!paused && matchRef.current.status === 'playing' && held.size > 0 && dtSec > 0) {
+        const is2P = matchRef.current.mode === '2p';
+        const p2Index: 0 | 1 = is2P ? 1 : 0;
+
+        let p1Delta = 0;
+        let p2Delta = 0;
+
+        const aStart = held.get('a');
+        if (aStart !== undefined && now - aStart >= tapGraceMs) {
+          p1Delta -= aimVelocityDegPerSec(now - aStart) * dtSec;
+        }
+        const dStart = held.get('d');
+        if (dStart !== undefined && now - dStart >= tapGraceMs) {
+          p1Delta += aimVelocityDegPerSec(now - dStart) * dtSec;
+        }
+        const leftStart = held.get('ArrowLeft');
+        if (leftStart !== undefined && now - leftStart >= tapGraceMs) {
+          p2Delta -= aimVelocityDegPerSec(now - leftStart) * dtSec;
+        }
+        const rightStart = held.get('ArrowRight');
+        if (rightStart !== undefined && now - rightStart >= tapGraceMs) {
+          p2Delta += aimVelocityDegPerSec(now - rightStart) * dtSec;
+        }
+
+        if (p1Delta !== 0 || p2Delta !== 0) {
+          setMatch((current) => {
+            let next = current;
+            if (p1Delta !== 0) next = aimPlayer(next, 0, p1Delta);
+            if (p2Delta !== 0) next = aimPlayer(next, p2Index, p2Delta);
+            return next;
+          });
+        }
       }
-    }, 32);
 
+      rafId = window.requestAnimationFrame(tickAim);
+    }
+
+    rafId = window.requestAnimationFrame(tickAim);
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
     window.addEventListener('blur', onBlur);
     return () => {
-      window.clearInterval(holdInterval);
+      window.cancelAnimationFrame(rafId);
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
       window.removeEventListener('blur', onBlur);
@@ -437,7 +964,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
           <h2 className="tetris-title">Puzzle Bobble</h2>
           {match.mode === '2p' ? (
             <span className="pb-tally" aria-label="Round wins">
-              P1 {match.wins[0]} – {match.wins[1]} P2
+              1P {match.wins[0]} – {match.wins[1]} 2P
             </span>
           ) : null}
         </div>
@@ -458,6 +985,17 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
               1 Player
             </button>
           </div>
+          <button
+            type="button"
+            onClick={() => {
+              const nextPreset = (stagePreset + 1) % 6;
+              setStagePreset(nextPreset);
+              startNewRound(match.mode, true, nextPreset);
+            }}
+            title="Cycle between random waves and classic Taito arcade stage formations"
+          >
+            {stagePreset === 0 ? 'Wave: Random' : `Stage ${stagePreset}`}
+          </button>
           <button
             type="button"
             aria-pressed={musicOn}
@@ -495,7 +1033,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
           playerNumber={1}
           controlsLabel={
             match.mode === '2p'
-              ? 'ASDF — A/D aim · S/F shoot'
+              ? 'ASDF — A/D fine aim · S/F shoot'
               : 'ASDF or Arrows — A/D or ←/→ aim · S/F or ↑ shoot'
           }
           isTwoPlayer={match.mode === '2p'}
@@ -504,7 +1042,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
           <PlayerArena
             player={match.players[1]}
             playerNumber={2}
-            controlsLabel="Arrows — ←/→ aim · ↑/↓ shoot"
+            controlsLabel="Arrows — ←/→ fine aim · ↑/↓ shoot"
             isTwoPlayer
           />
         ) : null}
@@ -519,13 +1057,13 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         <p className="tetris-over pb-banner" role="status">
           {match.winner !== null
             ? `Player ${match.winner + 1} wins the round! (${match.wins[0]}–${match.wins[1]}). Press Next round to battle again.`
-            : `Game over — score ${match.players[0].score}. Press Next round to play again.`}
+            : `Game over — score ${match.players[0].score.toLocaleString()}. Press Next round to play again.`}
         </p>
       ) : (
         <p className="tetris-help">
           {match.mode === '2p'
-            ? 'Player 1: A/D aim, S or F fire. Player 2: ←/→ aim, ↑ or ↓ fire. Match 3+ bubbles to pop; drop hanging clusters to send attack bubbles!'
-            : 'Match 3+ bubbles of the same colour to pop them; unanchored clusters fall for bonus points.'}{' '}
+            ? 'Player 1: A/D aim (tap 0.5°, hold for smooth sweep), S or F fire. Player 2: ←/→ aim, ↑ or ↓ fire. Pop 4+ to stack attack orbs; drop hanging clusters to unleash them and score up to 1,310,720!'
+            : 'Tap for 0.5° micro-aim or hold to sweep. Dropped clusters double in value (20 → 40 → 80 … up to 1,310,720 for 17+).'}{' '}
           {paused ? 'Paused.' : ''}
         </p>
       )}

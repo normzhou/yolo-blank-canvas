@@ -899,15 +899,44 @@ a:visited { color: var(--accent-weak-text); }
   flex-direction: column;
   gap: 8px;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
   padding: 10px;
+  box-shadow: var(--elevation-card);
 }
 .pb-player-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+}
+.pb-status-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.pb-orbs {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 5px;
+  vertical-align: middle;
+}
+.pb-orb {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--text);
+}
+.pb-orb-yellow {
+  background: var(--tetromino-o);
+}
+.pb-orb-red {
+  width: 10px;
+  height: 10px;
+  background: var(--tetromino-z);
 }
 .pb-player-title {
   display: block;
@@ -928,11 +957,11 @@ a:visited { color: var(--accent-weak-text); }
 .pb-board {
   display: block;
   background: var(--field);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xs);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
 }
 .pb-side {
-  min-width: 82px;
+  min-width: 88px;
   border: 1px solid var(--border);
 }
 .pb-stat-small {
@@ -948,12 +977,58 @@ a:visited { color: var(--accent-weak-text); }
   border: 1px solid var(--accent);
   border-radius: var(--radius-xs);
   padding: 4px 6px;
-  max-width: 96px;
+  max-width: 104px;
 }
 .pb-banner {
   background: var(--surface);
   padding: 6px 8px;
   border-radius: var(--radius-sm);
+}
+.pb-pop-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pb-pop-expand 380ms ease-out forwards;
+}
+.pb-drop-bubble {
+  animation: pb-bubble-fall 460ms ease-in forwards;
+}
+.pb-cluster-warning {
+  animation: pb-cluster-tremor 180ms ease-in-out infinite alternate;
+}
+@keyframes pb-pop-expand {
+  from {
+    transform: scale(0.75);
+    opacity: 0.95;
+  }
+  to {
+    transform: scale(1.65);
+    opacity: 0;
+  }
+}
+@keyframes pb-bubble-fall {
+  from {
+    transform: translateY(0);
+    opacity: 0.95;
+  }
+  to {
+    transform: translateY(84px);
+    opacity: 0;
+  }
+}
+@keyframes pb-cluster-tremor {
+  from { transform: translateX(-1px); }
+  to { transform: translateX(1px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pb-pop-ring,
+  .pb-drop-bubble,
+  .pb-cluster-warning {
+    animation: none;
+  }
+  .pb-pop-ring,
+  .pb-drop-bubble {
+    display: none;
+  }
 }
 
 /* The theme control. A segmented group, so every option is visible rather than

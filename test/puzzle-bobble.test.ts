@@ -1,37 +1,48 @@
 import { describe, expect, it } from 'vitest';
 import {
+  AIM_STEP_DEG,
   ARENA_WIDTH,
-  BUBBLE_DIAMETER,
   BUBBLE_RADIUS,
   CEILING_DROP_SHOTS,
   DANGER_ROW,
   EVEN_COLS,
   MAX_AIM_ANGLE,
+  MAX_DROP_SCORE,
   MIN_AIM_ANGLE,
   ODD_COLS,
+  SHOT_TIME_LIMIT_MS,
   aimGuidePoints,
   aimPlayer,
+  aimVelocityDegPerSec,
   bubbleCenter,
   colsForRow,
   createEmptyGrid,
   createMatch,
+  createStageGrid,
+  decomposeGarbageOrbs,
   findConnectedColorCluster,
   findFloatingBubbles,
   fireAndResolvePlayer,
   firePlayerBubble,
+  formatAimAngle,
   hexNeighbors,
+  hurryCountdownSeconds,
+  scoreForDroppedBubbles,
+  scoreForPop,
+  scoreForStageClearBonus,
   settleBubbleAt,
+  shotsPerCeilingDrop,
   stepMatch,
+  tickShotTimers,
 } from '../src/shared/puzzleBobble';
 
-describe('Puzzle Bobble (Bust-A-Move) rules', () => {
+describe('Puzzle Bobble (Bust-A-Move) arcade rules', () => {
   it('lays out an 8/7 staggered hexagonal grid with exact 6-way neighbors', () => {
     expect(colsForRow(0)).toBe(EVEN_COLS);
     expect(colsForRow(1)).toBe(ODD_COLS);
     expect(bubbleCenter(0, 0)).toEqual({ x: BUBBLE_RADIUS, y: BUBBLE_RADIUS });
     expect(bubbleCenter(1, 0).x).toBe(BUBBLE_RADIUS + BUBBLE_RADIUS);
 
-    // Even row (0, 1) touches (0,0), (0,2), and (1,0), (1,1).
     expect(hexNeighbors(0, 1)).toEqual([
       { row: 0, col: 0 },
       { row: 0, col: 2 },
@@ -39,7 +50,6 @@ describe('Puzzle Bobble (Bust-A-Move) rules', () => {
       { row: 1, col: 1 },
     ]);
 
-    // Odd row (1, 1) touches (1,0), (1,2), (0,1), (0,2), (2,1), (2,2).
     expect(hexNeighbors(1, 1)).toEqual([
       { row: 1, col: 0 },
       { row: 1, col: 2 },
@@ -63,8 +73,18 @@ describe('Puzzle Bobble (Bust-A-Move) rules', () => {
     expect(match.players[0].nextBubble).toBe(match.players[1]?.nextBubble);
   });
 
-  it('clamps aiming between -75 and +75 degrees and computes wall-bounce guide rays', () => {
+  it('supports fine 0.5-degree micro-tap aiming, smooth hold velocity, and multi-bounce guide rays', () => {
+    expect(AIM_STEP_DEG).toBe(0.5);
     let match = createMatch('2p', () => 0.2);
+
+    match = aimPlayer(match, 0, AIM_STEP_DEG);
+    expect(match.players[0].aimAngle).toBe(0.5);
+    expect(formatAimAngle(match.players[0].aimAngle)).toBe('+0.5°');
+
+    match = aimPlayer(match, 0, AIM_STEP_DEG);
+    expect(match.players[0].aimAngle).toBe(1);
+    expect(formatAimAngle(match.players[0].aimAngle)).toBe('+1°');
+
     match = aimPlayer(match, 0, -200);
     expect(match.players[0].aimAngle).toBe(MIN_AIM_ANGLE);
     expect(match.players[1]?.aimAngle).toBe(0);
@@ -72,13 +92,39 @@ describe('Puzzle Bobble (Bust-A-Move) rules', () => {
     match = aimPlayer(match, 1, 200);
     expect(match.players[1]?.aimAngle).toBe(MAX_AIM_ANGLE);
 
+    // Smooth hold acceleration starts gentle (38 deg/s) and ramps up to 115 deg/s.
+    expect(aimVelocityDegPerSec(50)).toBe(38);
+    expect(aimVelocityDegPerSec(350)).toBeGreaterThan(38);
+    expect(aimVelocityDegPerSec(600)).toBe(115);
+
     const straight = aimGuidePoints(0);
     expect(straight).toHaveLength(2);
-    expect(straight[0].x).toBe( straight[1].x );
+    expect(straight[0].x).toBe(straight[1].x);
 
     const banked = aimGuidePoints(60);
-    expect(banked).toHaveLength(3);
+    expect(banked.length).toBeGreaterThanOrEqual(3);
     expect(banked[1].x).toBe(ARENA_WIDTH - BUBBLE_RADIUS);
+  });
+
+  it('implements the Neo-Geo exponential drop scoring (20 * 2^(n-1) capped at 1,310,720) and speed bonus', () => {
+    expect(scoreForPop(2)).toBe(0);
+    expect(scoreForPop(3)).toBe(30);
+    expect(scoreForPop(5)).toBe(50);
+
+    expect(scoreForDroppedBubbles(0)).toBe(0);
+    expect(scoreForDroppedBubbles(1)).toBe(20);
+    expect(scoreForDroppedBubbles(2)).toBe(40);
+    expect(scoreForDroppedBubbles(3)).toBe(80);
+    expect(scoreForDroppedBubbles(4)).toBe(160);
+    expect(scoreForDroppedBubbles(10)).toBe(10_240);
+    expect(scoreForDroppedBubbles(16)).toBe(655_360);
+    expect(scoreForDroppedBubbles(17)).toBe(MAX_DROP_SCORE);
+    expect(scoreForDroppedBubbles(22)).toBe(1_310_720);
+
+    expect(scoreForStageClearBonus(3_000)).toBe(50_000);
+    expect(scoreForStageClearBonus(6_000)).toBe(49_160);
+    expect(scoreForStageClearBonus(64_000)).toBe(440);
+    expect(scoreForStageClearBonus(65_000)).toBe(0);
   });
 
   it('bounces flying bubbles off the side walls and snaps them onto the hex grid', () => {
@@ -98,68 +144,96 @@ describe('Puzzle Bobble (Bust-A-Move) rules', () => {
     }
     expect(bouncedRightWall).toBe(true);
     expect(match.players[0].flying).toBeNull();
-    // Should have snapped into row 0 on the empty board.
     expect(match.players[0].grid[0].some((cell) => cell !== null)).toBe(true);
   });
 
-  it('pops connected groups of 3+ matching bubbles and drops unanchored hanging clusters', () => {
-    const grid = createEmptyGrid();
-    // Anchor two ruby bubbles in row 0: (0, 2) and (0, 3)
-    grid[0][2] = 'ruby';
-    grid[0][3] = 'ruby';
-    // Hang an emerald and an amber bubble below (0, 2) so they depend on the ruby bridge:
-    grid[1][2] = 'emerald';
-    grid[2][2] = 'amber';
-
-    expect(findConnectedColorCluster(grid, 0, 2)).toHaveLength(2);
-    expect(findFloatingBubbles(grid)).toHaveLength(0);
-
+  it('stacks bonus orbs on 4+ pops and unleashes stacked + dropped bubbles onto the opponent on a drop', () => {
     let match = createMatch('2p', () => 0.3);
-    match.players[0].grid = grid;
-    // Place a third ruby bubble at (1, 1), which touches (0, 2)
-    match = settleBubbleAt(match, 0, 1, 1, 'ruby', () => 0.3);
 
-    const p1 = match.players[0];
-    expect(p1.lastEvent?.popped).toHaveLength(3);
-    expect(p1.lastEvent?.dropped).toHaveLength(2);
-    expect(p1.score).toBeGreaterThan(30);
-    // In 2P mode, dropping 2 hanging bubbles sends 2 attack garbage bubbles to Player 2!
-    expect(p1.lastEvent?.sentGarbage).toBe(2);
-    expect(match.players[1]?.incomingGarbage).toBe(2);
+    // Step 1: Pop a row of 5 ruby bubbles with no hanging bubbles -> stacks 2 on P1's attackStack.
+    const quadGrid = createEmptyGrid();
+    quadGrid[0][0] = 'ruby';
+    quadGrid[0][1] = 'ruby';
+    quadGrid[0][2] = 'ruby';
+    quadGrid[0][3] = 'ruby';
+    quadGrid[0][6] = 'azure'; // keep board non-empty
+    match.players[0].grid = quadGrid;
+
+    match = settleBubbleAt(match, 0, 0, 4, 'ruby', () => 0.3);
+    expect(match.players[0].lastEvent?.popped).toHaveLength(5);
+    expect(match.players[0].attackStack).toBe(2);
+    expect(match.players[1]?.incomingGarbage).toBe(0);
+
+    // Step 2: Now pop 3 azure bubbles that hold up 2 hanging bubbles -> unleashes 2 dropped + 2 stacked = 4!
+    const dropGrid = createEmptyGrid();
+    dropGrid[0][2] = 'azure';
+    dropGrid[0][3] = 'azure';
+    dropGrid[1][2] = 'emerald';
+    dropGrid[2][2] = 'amber';
+    dropGrid[0][7] = 'coral'; // keep board non-empty
+    match.players[0].grid = dropGrid;
+
+    match = settleBubbleAt(match, 0, 1, 1, 'azure', () => 0.3);
+    expect(match.players[0].lastEvent?.popped).toHaveLength(3);
+    expect(match.players[0].lastEvent?.dropped).toHaveLength(2);
+    expect(match.players[0].lastEvent?.dropScore).toBe(40);
+    expect(match.players[0].attackStack).toBe(0);
+    expect(match.players[0].lastEvent?.sentGarbage).toBe(4);
+    expect(match.players[1]?.incomingGarbage).toBe(4);
+
+    // Verify red (5) and yellow (1) garbage orb decomposition.
+    expect(decomposeGarbageOrbs(7)).toEqual(['red', 'yellow', 'yellow']);
   });
 
-  it('applies incoming garbage on a non-popping shot and drops the ceiling every 8 shots', () => {
+  it('scales ceiling drop frequency by remaining colors and warns 1 shot before dropping', () => {
+    const oneColorGrid = createEmptyGrid();
+    oneColorGrid[0][0] = 'ruby';
+    // 1 active color -> interval is max(4, 3 + 1) = 4 shots.
+    expect(shotsPerCeilingDrop(oneColorGrid)).toBe(4);
+
     let match = createMatch('2p', () => 0.4);
-    const grid = createEmptyGrid();
-    grid[0][0] = 'ruby';
-    match.players[0].grid = grid;
+    match.players[0].grid = oneColorGrid;
     match.players[0].incomingGarbage = 3;
     match.players[0].shotsFired = CEILING_DROP_SHOTS - 1;
+    match.players[0].shotsSinceDrop = 2;
 
-    // Settle a non-matching azure bubble at (0, 4): no pop occurs, so incoming garbage drops
-    // and the 8th shot increments ceilingDrop.
     match = settleBubbleAt(match, 0, 0, 4, 'azure', () => 0.4);
     expect(match.players[0].incomingGarbage).toBe(0);
     expect(match.players[0].ceilingDrop).toBe(1);
-
     const occupiedCount = match.players[0].grid.flat().filter((cell) => cell !== null).length;
     expect(occupiedCount).toBe(2 + 3);
   });
 
-  it('awards the round to the opponent when a player crosses the danger line, and to the clearer on board clear', () => {
+  it('counts down the 10-second shot timer, surfaces HURRY UP! at <= 5s, and auto-fires at 0s', () => {
+    let match = createMatch('2p', () => 0.25);
+    expect(match.players[0].shotTimerMs).toBe(SHOT_TIME_LIMIT_MS);
+    expect(hurryCountdownSeconds(match.players[0])).toBeNull();
+
+    // Advance 6 seconds -> 4,000ms left -> HURRY UP! 4
+    match = tickShotTimers(match, 6_000, () => 0.25);
+    expect(hurryCountdownSeconds(match.players[0])).toBe(4);
+
+    // Advance remaining 4.1 seconds -> auto-fires!
+    match = tickShotTimers(match, 4_100, () => 0.25);
+    expect(match.players[0].flying).not.toBeNull();
+    expect(match.players[1]?.flying).not.toBeNull();
+  });
+
+  it('awards the round to the opponent on danger-line KO, to the clearer on board clear, and supports classic stages', () => {
+    expect(createStageGrid(2, () => 0).flat().some((c) => c !== null)).toBe(true);
+
     let match = createMatch('2p', () => 0.2);
     const koGrid = createEmptyGrid();
     koGrid[0][0] = 'ruby';
     koGrid[DANGER_ROW - 1][0] = 'amber';
     match.players[0].grid = koGrid;
-    match.players[0].ceilingDrop = 1; // row (DANGER_ROW - 1) + 1 >= DANGER_ROW
+    match.players[0].ceilingDrop = 1;
 
     match = settleBubbleAt(match, 0, 0, 2, 'emerald', () => 0.2);
     expect(match.status).toBe('round_over');
     expect(match.winner).toBe(1);
     expect(match.wins).toEqual([0, 1]);
 
-    // Clearing the last bubble in 2P mode immediately wins the round for that player.
     let clearMatch = createMatch('2p', () => 0.2, match.wins);
     const nearlyClear = createEmptyGrid();
     nearlyClear[0][1] = 'coral';

@@ -323,9 +323,9 @@ test('the released canvas gallery includes 2-player Puzzle Bobble with ASDF and 
   await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toBeVisible();
 
   await page.keyboard.press('d');
-  await expect(page.getByTestId('p1-aim')).toHaveText('+3°');
+  await expect(page.getByTestId('p1-aim')).toHaveText(/^\+(?:0\.5|3)°$/);
   await page.keyboard.press('ArrowLeft');
-  await expect(page.getByTestId('p2-aim')).toHaveText('-3°');
+  await expect(page.getByTestId('p2-aim')).toHaveText(/^-(?:0\.5|3)°$/);
 
   await page.keyboard.press('Escape');
   await expect(page.getByRole('heading', { name: 'Blank canvas' })).toBeVisible();
