@@ -217,15 +217,16 @@
         "v0.5.0": "f0262ae6e76ed26ea51b22c18daa1cf2d9c046c2",
         "v0.6.0": "e93d5a597db95d88349728254da7433232bdd47f",
         "v0.7.0": "eda85f8aa196d19f2703ebaa9c1d01ca0aa169ad",
-        "v0.8.0": "332855b56ab40dcc578b2485cd1905cbce82d302"
+        "v0.8.0": "332855b56ab40dcc578b2485cd1905cbce82d302",
+        "v0.9.0": "ae503ca9c223406a894a0c1165ce13d73053efe4"
       },
       "published": {
-        "tag": "v0.9.0",
-        "commit": "ae503ca9c223406a894a0c1165ce13d73053efe4",
-        "source_commit": "a398c93d1ae3f39c2387a78d61e7dfce91b0e131",
-        "published_at": "2026-10-22T00:49:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-10-21-puzzle-bobble.json",
-        "note": "Minor release. Carries 2-player Puzzle Bobble / Bust-A-Move (#181) in the canvas gallery (?app=puzzle-bobble) alongside Tetris: Player 1 on ASDF (A/D aim, S or F shoot), Player 2 on Arrow keys (Left/Right aim, Up or Down shoot), 8/7 staggered hexagonal bubble grid, wall-bounce sight line, match-3+ pops, unanchored avalanche drops, 2-player attack garbage transfer, ceiling drops every 8 shots, and 1-player mode toggle. Acceptance before tagging: 288 unit, 90 stubbed e2e passed + 1 skipped, tsc clean, structure pass. Acceptance on the delivered artifact: 11 of 11, including the new 2-player Puzzle Bobble check. The tag points at release commit ae503ca after the assets commit 6d1fb79; both build-ID files record a398c93."
+        "tag": "v0.10.0",
+        "commit": "0da7fcbb97d206d47b98e97988f3bca66d455c20",
+        "source_commit": "d0074554c1f25b97a2162f0bc7f78d4951733960",
+        "published_at": "2026-10-22T01:12:48Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-10-21-puzzle-bobble-arcade.json",
+        "note": "Minor release. Carries authentic 1994 Taito / Neo-Geo Puzzle Bobble arcade mechanics, smooth 60fps aiming + 0.5° tap precision, exponential drop scoring (20 * 2^(n-1) up to 1,310,720), 2P yellow/red attack stack + drop transfer, color-scaled ceiling drops, 10s HURRY UP! shot timer, classic stage formations, and arcade visuals (rotating gear catapult, Bub/Bob mascots, compressor pistons, 3D glossy bubbles) (#183). Acceptance before tagging: 290 unit, 90 stubbed e2e passed + 1 skipped, tsc clean, structure pass. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit 0da7fcb after the assets commit 5076e5e; both build-ID files record d007455."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -240,7 +241,8 @@
         ".yolo/reports/releases-observed-2026-10-21-contextual-feedback.json",
         ".yolo/reports/releases-observed-2026-10-21-request-capture.json",
         ".yolo/reports/releases-observed-2026-10-21-request-triage.json",
-        ".yolo/reports/releases-observed-2026-10-21-puzzle-bobble.json"
+        ".yolo/reports/releases-observed-2026-10-21-puzzle-bobble.json",
+        ".yolo/reports/releases-observed-2026-10-21-puzzle-bobble-arcade.json"
       ]
     }
   },
