@@ -295,6 +295,18 @@ export function hardDrop(state: TetrisState, rng: () => number = Math.random): T
   return lockAndSpawn({ ...state, piece, score: state.score + dropped * 2 }, rng);
 }
 
+/** The landing position of the active piece if hard-dropped right now (#185). */
+export function ghostPiece(state: TetrisState): Piece | null {
+  if (!requirePlaying(state)) return null;
+  let piece = state.piece;
+  for (;;) {
+    const moved = tryMove(state.board, piece, 0, 1);
+    if (!moved) break;
+    piece = moved;
+  }
+  return piece.y === state.piece.y ? null : piece;
+}
+
 /** The board plus the active piece, for rendering. */
 export function displayBoard(state: TetrisState): Board {
   const display = state.board.map((row) => row.slice());

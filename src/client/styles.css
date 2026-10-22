@@ -813,11 +813,12 @@ a:visited { color: var(--accent-weak-text); }
   grid-auto-rows: 22px;
   gap: 1px;
   background: var(--board-gap);
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
   border-radius: var(--radius-xs);
-  padding: 1px;
+  padding: 2px;
+  box-shadow: var(--elevation-card);
 }
-.tetris-cell { background: var(--cell-empty); border-radius: 2px; }
+.tetris-cell { background: var(--cell-empty); border-radius: 2px; position: relative; }
 .tetris-cell.tetromino-i { background: var(--tetromino-i); }
 .tetris-cell.tetromino-j { background: var(--tetromino-j); }
 .tetris-cell.tetromino-l { background: var(--tetromino-l); }
@@ -825,6 +826,39 @@ a:visited { color: var(--accent-weak-text); }
 .tetris-cell.tetromino-s { background: var(--tetromino-s); }
 .tetris-cell.tetromino-t { background: var(--tetromino-t); }
 .tetris-cell.tetromino-z { background: var(--tetromino-z); }
+/* #185: Arcade 3D beveled mino facets and ghost landing outline. */
+.tetris-cell.tetromino-i:not(.is-ghost),
+.tetris-cell.tetromino-j:not(.is-ghost),
+.tetris-cell.tetromino-l:not(.is-ghost),
+.tetris-cell.tetromino-o:not(.is-ghost),
+.tetris-cell.tetromino-s:not(.is-ghost),
+.tetris-cell.tetromino-t:not(.is-ghost),
+.tetris-cell.tetromino-z:not(.is-ghost) {
+  border-top: 2px solid var(--on-accent);
+  border-left: 1px solid var(--on-accent);
+  border-right: 1px solid var(--border);
+  border-bottom: 2px solid var(--border);
+}
+.tetris-cell.tetromino-i:not(.is-ghost)::after,
+.tetris-cell.tetromino-j:not(.is-ghost)::after,
+.tetris-cell.tetromino-l:not(.is-ghost)::after,
+.tetris-cell.tetromino-o:not(.is-ghost)::after,
+.tetris-cell.tetromino-s:not(.is-ghost)::after,
+.tetris-cell.tetromino-t:not(.is-ghost)::after,
+.tetris-cell.tetromino-z:not(.is-ghost)::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 1px;
+  border: 1px solid var(--on-accent);
+  opacity: 0.45;
+  pointer-events: none;
+}
+.tetris-cell.is-ghost {
+  background: var(--cell-empty);
+  border: 1.5px dashed var(--text);
+  opacity: 0.55;
+}
 .tetris-side {
   display: flex;
   flex-direction: column;
@@ -993,7 +1027,20 @@ a:visited { color: var(--accent-weak-text); }
   animation: pb-bubble-fall 460ms ease-in forwards;
 }
 .pb-cluster-warning {
-  animation: pb-cluster-tremor 180ms ease-in-out infinite alternate;
+  /* #186: half the magnitude (±0.5px) and double the frequency (90ms) for a
+     tight, high-frequency arcade tremor one shot before the ceiling descends. */
+  animation: pb-cluster-tremor 90ms linear infinite alternate;
+}
+.pb-incoming-preview-bubble {
+  animation: pb-incoming-bob 360ms ease-in-out infinite alternate;
+}
+.pb-rise-bubble {
+  --pb-rise-from: 180px;
+  animation: pb-bubble-rise 420ms cubic-bezier(0.2, 0.9, 0.25, 1) both;
+}
+.pb-rise-trail {
+  opacity: 0;
+  animation: pb-trail-flash 380ms ease-out forwards;
 }
 @keyframes pb-pop-expand {
   from {
@@ -1016,17 +1063,41 @@ a:visited { color: var(--accent-weak-text); }
   }
 }
 @keyframes pb-cluster-tremor {
-  from { transform: translateX(-1px); }
-  to { transform: translateX(1px); }
+  from { transform: translateX(-0.5px); }
+  to { transform: translateX(0.5px); }
+}
+@keyframes pb-incoming-bob {
+  from { transform: translateY(1.5px); }
+  to { transform: translateY(-1.5px); }
+}
+@keyframes pb-bubble-rise {
+  from {
+    transform: translateY(var(--pb-rise-from, 180px));
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes pb-trail-flash {
+  0% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .pb-pop-ring,
   .pb-drop-bubble,
-  .pb-cluster-warning {
+  .pb-cluster-warning,
+  .pb-incoming-preview-bubble,
+  .pb-rise-bubble,
+  .pb-rise-trail {
     animation: none;
   }
   .pb-pop-ring,
-  .pb-drop-bubble {
+  .pb-drop-bubble,
+  .pb-rise-trail {
     display: none;
   }
 }

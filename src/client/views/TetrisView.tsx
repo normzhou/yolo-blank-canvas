@@ -11,6 +11,7 @@ import {
   createGame,
   displayBoard,
   dropInterval,
+  ghostPiece,
   hardDrop,
   moveLeft,
   moveRight,
@@ -207,6 +208,17 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
   }, [onExit, paused]);
 
   const board = displayBoard(game);
+  const ghost = ghostPiece(game);
+  const ghostCoords = new Set<string>();
+  if (ghost) {
+    for (const [dx, dy] of rotationCells(ghost.type, ghost.rotation)) {
+      const gx = ghost.x + dx;
+      const gy = ghost.y + dy;
+      if (gy >= 0 && gy < BOARD_HEIGHT && gx >= 0 && gx < BOARD_WIDTH && board[gy][gx] === null) {
+        ghostCoords.add(`${gx},${gy}`);
+      }
+    }
+  }
 
   return (
     <section className="tetris" aria-label="Tetris game">
@@ -239,7 +251,16 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
 
       <div className="tetris-body">
         <div className="tetris-board" role="img" aria-label={`Tetris board, ${BOARD_WIDTH} by ${BOARD_HEIGHT}`}>
-          {board.map((row, y) => row.map((cell, x) => <div key={`${x},${y}`} className={cellClass(cell)} />))}
+          {board.map((row, y) =>
+            row.map((cell, x) => {
+              const key = `${x},${y}`;
+              const isGhost = cell === null && ghost !== null && ghostCoords.has(key);
+              const cls = isGhost
+                ? `tetris-cell is-ghost ${CELL_CLASS[ghost.type]}`
+                : cellClass(cell);
+              return <div key={key} className={cls} />;
+            }),
+          )}
         </div>
         <aside className="tetris-side">
           <div className="tetris-stat">

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { TetrisMusic } from '../audio/tetrisMusic';
 import { BACKGROUNDS, nextBackgroundIndex } from '../../shared/tetrisBackgrounds';
 import {
@@ -22,7 +22,9 @@ import {
   fireAndResolvePlayer,
   firePlayerBubble,
   formatAimAngle,
+  generateGarbageColors,
   hurryCountdownSeconds,
+  queueIncomingGarbage,
   shotsPerCeilingDrop,
   stepMatch,
   tickShotTimers,
@@ -42,17 +44,21 @@ const BUBBLE_TOKEN: Record<BubbleColor, string> = {
 
 function eventSummary(player: PlayerBoardState): string | null {
   const ev = player.lastEvent;
-  if (!ev || ev.popped.length === 0) return null;
-  const parts = [`Popped ${ev.popped.length} (+${ev.popScore})`];
+  if (!ev) return null;
+  const parts: string[] = [];
+  if (ev.popped.length > 0) {
+    parts.push(`Popped ${ev.popped.length} (+${ev.popScore})`);
+  }
   if (ev.dropped.length > 0) {
     parts.push(`Avalanche ${ev.dropped.length} (+${ev.dropScore.toLocaleString()})`);
   }
   if (ev.sentGarbage > 0) {
-    parts.push(`Sent ${ev.sentGarbage} attack!`);
-  } else if (ev.stackedGarbage > 0) {
-    parts.push(`Stacked +${ev.stackedGarbage}`);
+    parts.push(`Sent +${ev.sentGarbage} attack!`);
   }
-  return parts.join(' · ');
+  if (ev.risenGarbage.length > 0) {
+    parts.push(`+${ev.risenGarbage.length} rose up`);
+  }
+  return parts.length > 0 ? parts.join(' · ') : null;
 }
 
 /**
@@ -127,15 +133,17 @@ function BubbleSvg({
   color,
   radius = BUBBLE_RADIUS - 0.8,
   className,
+  style,
 }: {
   cx: number;
   cy: number;
   color: BubbleColor;
   radius?: number;
   className?: string;
+  style?: CSSProperties;
 }) {
   return (
-    <g className={className}>
+    <g className={className} style={style}>
       {/* Base colour sphere */}
       <circle
         cx={cx}
@@ -439,6 +447,13 @@ function PlayerArena({
   }
 
   const lastEv = player.lastEvent;
+  const risenKeySet = new Set<string>(
+    (lastEv?.risenGarbage ?? []).map((cell) => `${cell.row},${cell.col}`),
+  );
+  const incomingPreview = player.incomingQueue.slice(0, 6);
+  const orbList = decomposeGarbageOrbs(player.incomingGarbage);
+  const gaugeX = playerNumber === 1 ? ARENA_WIDTH - 11 : 11;
+  const stagingY = DANGER_LINE_Y + 12;
 
   return (
     <div className="pb-player-card" data-player={playerNumber}>
@@ -618,17 +633,94 @@ function PlayerArena({
             />
           ) : null}
 
-          {/* Settled hexagonal grid bubbles (trembles slightly when ceilingWarning is active) */}
+          {/* Rising bubble motion trails when incoming attack bubbles shoot up from the bottom */}
+          {lastEv && lastEv.risenGarbage.length > 0 ? (
+            <g key={`rise-trails-${lastEv.id}`} aria-hidden="true">
+              {lastEv.risenGarbage.map((cell, idx) => (
+                <line
+                  key={`trail-${idx}`}
+                  className="pb-rise-trail"
+                  x1={cell.x}
+                  y1={stagingY}
+                  x2={cell.x}
+                  y2={cell.y}
+                  stroke={BUBBLE_TOKEN[cell.color]}
+                  strokeWidth={6}
+                  strokeLinecap="round"
+                />
+              ))}
+            </g>
+          ) : null}
+
+          {/* Settled hexagonal grid bubbles (trembles rapidly with 0.5px amplitude when ceilingWarning is active) */}
           <g className={player.ceilingWarning ? 'pb-cluster-warning' : undefined}>
             {player.grid.map((row, r) =>
               Array.from({ length: colsForRow(r) }, (_, c) => {
                 const color = row[c];
                 if (!color) return null;
                 const center = bubbleCenter(r, c, player.ceilingDrop);
-                return <BubbleSvg key={`${r},${c}`} cx={center.x} cy={center.y} color={color} />;
+                const coordKey = `${r},${c}`;
+                const justRose = risenKeySet.has(coordKey) && lastEv !== null;
+                return (
+                  <BubbleSvg
+                    key={justRose ? `${coordKey}-rise-${lastEv.id}` : coordKey}
+                    cx={center.x}
+                    cy={center.y}
+                    color={color}
+                    className={justRose ? 'pb-rise-bubble' : undefined}
+                    style={
+                      justRose
+                        ? ({ '--pb-rise-from': `${stagingY - center.y}px` } as CSSProperties)
+                        : undefined
+                    }
+                  />
+                );
               }),
             )}
           </g>
+
+          {/* On-board indicator of attack bubbles sent from the other side and about to come up (#186) */}
+          {player.incomingGarbage > 0 ? (
+            <g
+              className="pb-incoming-tray"
+              data-testid={`p${playerNumber}-incoming-indicator`}
+              aria-label={`${player.incomingGarbage} incoming attack bubbles about to rise`}
+            >
+              {/* Side-rail Neo-Geo warning orb gauge (red = 5, yellow = 1) */}
+              {orbList.map((orbKind, idx) => {
+                const orbY = DANGER_LINE_Y - 12 - idx * 14;
+                const isRed = orbKind === 'red';
+                return (
+                  <circle
+                    key={`orb-${idx}`}
+                    cx={gaugeX}
+                    cy={orbY}
+                    r={isRed ? 5.5 : 4.2}
+                    fill={isRed ? 'var(--tetromino-z)' : 'var(--tetromino-o)'}
+                    stroke="var(--text)"
+                    strokeWidth="1.2"
+                  />
+                );
+              })}
+
+              {/* Bottom staging preview of the exact bubbles about to shoot up from the bottom */}
+              {incomingPreview.map((color, idx) => {
+                const count = incomingPreview.length;
+                const span = Math.min(168, Math.max(36, (count - 1) * 28));
+                const startX = LAUNCHER_X - span / 2;
+                const bx = count === 1 ? LAUNCHER_X - 34 : startX + (idx * span) / (count - 1);
+                return (
+                  <g key={`stage-${idx}`} className="pb-incoming-preview-bubble">
+                    <polygon
+                      points={`${bx},${stagingY - 15} ${bx - 4},${stagingY - 9} ${bx + 4},${stagingY - 9}`}
+                      fill="var(--problem)"
+                    />
+                    <BubbleSvg cx={bx} cy={stagingY} color={color} radius={8.5} />
+                  </g>
+                );
+              })}
+            </g>
+          ) : null}
 
           {/* Pop burst rings & tumbling avalanche bubbles from the latest shot */}
           {lastEv && lastEv.popped.length > 0 ? (
@@ -701,12 +793,12 @@ function PlayerArena({
           </div>
           {isTwoPlayer ? (
             <div className="tetris-stat">
-              <span className="tetris-label">Stack</span>
-              <span className="pb-stat-small" data-testid={`p${playerNumber}-stack`}>
-                {player.attackStack}
+              <span className="tetris-label">Incoming</span>
+              <span className="pb-stat-small" data-testid={`p${playerNumber}-incoming`}>
+                {player.incomingGarbage}
                 <GarbageOrbsRow
-                  count={player.attackStack}
-                  label={`${player.attackStack} stacked attack bubbles`}
+                  count={player.incomingGarbage}
+                  label={`${player.incomingGarbage} incoming attack bubbles`}
                 />
               </span>
             </div>
@@ -777,15 +869,34 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     return () => window.clearInterval(id);
   }, [match.status, paused]);
 
-  // Deterministic E2E / test hook to resolve a player's shot in one step when needed.
+  // Deterministic E2E / test hooks to resolve a player's shot or queue incoming attack bubbles.
   useEffect(() => {
     function onInstantResolve(event: Event) {
       const detail = (event as CustomEvent<{ player?: 0 | 1 }>).detail;
       const idx: 0 | 1 = detail?.player === 1 ? 1 : 0;
       setMatch((current) => fireAndResolvePlayer(current, idx));
     }
+    function onQueueGarbage(event: Event) {
+      const detail = (event as CustomEvent<{ player?: 0 | 1; count?: number; colors?: BubbleColor[] }>).detail;
+      const idx: 0 | 1 = detail?.player === 1 ? 1 : 0;
+      const colors = detail?.colors ?? generateGarbageColors(detail?.count ?? 3, () => 0.2);
+      setMatch((current) => {
+        const target = current.players[idx];
+        if (!target) return current;
+        const updated = queueIncomingGarbage(target, colors);
+        if (current.players.length === 1) return { ...current, players: [updated] };
+        return {
+          ...current,
+          players: idx === 0 ? [updated, current.players[1]] : [current.players[0], updated],
+        };
+      });
+    }
     window.addEventListener('yolo:puzzle-bobble:fire-resolve', onInstantResolve);
-    return () => window.removeEventListener('yolo:puzzle-bobble:fire-resolve', onInstantResolve);
+    window.addEventListener('yolo:puzzle-bobble:queue-garbage', onQueueGarbage);
+    return () => {
+      window.removeEventListener('yolo:puzzle-bobble:fire-resolve', onInstantResolve);
+      window.removeEventListener('yolo:puzzle-bobble:queue-garbage', onQueueGarbage);
+    };
   }, []);
 
   const startNewRound = useCallback(
