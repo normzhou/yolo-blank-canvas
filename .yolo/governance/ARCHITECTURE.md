@@ -72,14 +72,17 @@ install step, iframe, third-party app, marketplace or per-app persistence. The T
 and the 2-player Puzzle Bobble / Bust-A-Move entry (#181) are compiled into the registry. Contextual feedback capture is deliberately text-only: a request composed over an app
 starts with `App: <title> (?app=<id>)` in its body, and new-request drafts are scoped by app. The
 composer offers three direct intent lenses at the top of the form (**Share feedback**, **Build or
-change**, **Report a problem**) with a shared primary answer, target-owned versioned markers
-(`blankcanvas.feedback@1`, `blankcanvas.change@1`, `blankcanvas.problem@1`), a generated-body
-preview and a freeform escape hatch (`src/client/requestTemplates.ts`,
+change**, **Report a problem**) with a shared primary answer, the adopted `v0.1.0-alpha.33` YOLO
+Dev starter template markers (`yolo.feedback@1.0.0`, `yolo.feature@1.0.0`, `yolo.bug@1.0.0`, while
+retaining backward compatibility with earlier `blankcanvas.*@1` markers and plain-text issues), a
+generated-body preview and a freeform escape hatch (`src/client/requestTemplates.ts`,
 `src/client/views/NewRequestView.tsx`). Entry points suggest an initial intent (**Feedback** in an
 app → Share feedback; **Start a request** / **New request** → Build or change) while keeping all
-three intents directly selectable without losing typed input (#172, #173, #175). There is no app
-label, attachment, element targeting, per-app content persistence or new API; richer in-app
-evidence (#170) and upstream YOLO Dev template adoption (#174) are deferred requests.
+three intents directly selectable without losing typed input (#172, #173, #174, #175). Native
+GitHub Issue Forms (`.github/ISSUE_TEMPLATE/yolo.{feedback,feature,bug,question}@1.0.0.yml`) are
+installed from the verified `v0.1.0-alpha.33` starter pack (#174). There is no app label,
+attachment, element targeting, per-app content persistence or new API; richer in-app evidence (#170)
+is a deferred request.
 
 ## Behavior contracts
 

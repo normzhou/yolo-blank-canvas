@@ -1,0 +1,28 @@
+body:
+    - attributes:
+        value: Include only nonsecret information appropriate to this repository. Submission does not grant admission or execution. Report sensitive security issues only through an established private channel.
+      type: markdown
+    - attributes:
+        description: Keep this editable identifier for decoding; it is not approval.
+        label: Request template
+        value: yolo.feedback@1.0.0
+      id: yolo_template
+      type: input
+      validations:
+        required: true
+    - attributes:
+        description: Tell us what happened, what worked, or what felt wrong. No proposed solution is required.
+        label: What would you like us to know?
+      id: message
+      type: textarea
+      validations:
+        required: true
+    - attributes:
+        description: Optional observed version/environment and sanitized evidence; no private logs or credentials.
+        label: Context
+      id: context
+      type: textarea
+      validations:
+        required: false
+description: yolo.feedback@1.0.0
+name: Share feedback

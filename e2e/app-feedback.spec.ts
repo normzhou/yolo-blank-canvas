@@ -37,7 +37,7 @@ test('Feedback opens the guided composer with Share feedback, app context, and r
     await page.getByLabel('Title').fill('Move the board left');
     await page.getByLabel('What would you like us to know?').fill('A ten-wide board feels cramped.');
     await expect(page.getByLabel('Generated issue body')).toContainText(
-      `${APP_CONTEXT}Template: blankcanvas.feedback@1\n\n## What would you like us to know?\nA ten-wide board feels cramped.`,
+      `${APP_CONTEXT}Template: yolo.feedback@1.0.0\n\n## What would you like us to know?\nA ten-wide board feels cramped.`,
     );
 
     await page.keyboard.press('Escape');
@@ -60,13 +60,13 @@ test('a submitted feedback request carries the context and marker, has no labels
     await page.getByLabel('What would you like us to know?').fill('Ten columns is tight.');
 
     const preview = await page.getByLabel('Generated issue body').textContent();
-    expect(preview?.startsWith(`${APP_CONTEXT}Template: blankcanvas.feedback@1`)).toBe(true);
+    expect(preview?.startsWith(`${APP_CONTEXT}Template: yolo.feedback@1.0.0`)).toBe(true);
 
     await page.getByRole('button', { name: 'Submit request' }).click();
 
     await expect(page.getByRole('heading', { name: /#100 A wider board/ })).toBeVisible();
     await expect(page.getByText(APP_LINE)).toBeVisible();
-    await expect(page.getByText('Template: blankcanvas.feedback@1')).toBeVisible();
+    await expect(page.getByText('Template: yolo.feedback@1.0.0')).toBeVisible();
     await expect(page.getByText('Ten columns is tight.')).toBeVisible();
     await expect(page.getByText('Request open')).toBeVisible();
 
@@ -117,7 +117,7 @@ test('entry defaults, intent switching, validation focus, editable context, and 
     await page.getByRole('radio', { name: /Report a problem/ }).check();
     await page.getByRole('button', { name: 'More details' }).click();
     await page.getByLabel('What did you expect?').fill('Smooth horizontal movement.');
-    await expect(page.getByLabel('Generated issue body')).toContainText('Template: blankcanvas.problem@1');
+    await expect(page.getByLabel('Generated issue body')).toContainText('Template: yolo.bug@1.0.0');
     await expect(page.getByLabel('Generated issue body')).toContainText('## How can we reproduce it?\nHold ArrowRight for 2 seconds.');
     await expect(page.getByLabel('Generated issue body')).toContainText('## What did you expect?\nSmooth horizontal movement.');
 
@@ -125,7 +125,7 @@ test('entry defaults, intent switching, validation focus, editable context, and 
     await page.getByRole('button', { name: 'Write freely instead' }).click();
     const freeformBody = page.getByLabel('Description');
     await expect(freeformBody).toBeFocused();
-    await expect(freeformBody).toHaveValue(/Template: blankcanvas\.problem@1/);
+    await expect(freeformBody).toHaveValue(/Template: yolo\.bug@1\.0\.0/);
     await expect(freeformBody).toHaveValue(/Smooth horizontal movement\./);
   } finally {
     await closeStub(stub);
@@ -164,7 +164,7 @@ test('app and home drafts stay separate, v1 drafts migrate, and Requests -> New 
     await page.getByLabel('Title').fill('App-only draft');
     await page.getByLabel('What would you like to build or change?').fill('Add hold piece.');
     await expect(page.getByLabel('Generated issue body')).toContainText(
-      'App: Tetris (?app=tetris) — level 5\n\nTemplate: blankcanvas.change@1',
+      'App: Tetris (?app=tetris) — level 5\n\nTemplate: yolo.feature@1.0.0',
     );
     await page.keyboard.press('Escape');
 
