@@ -4,6 +4,31 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Arcade Puzzle Bobble mechanics, smooth 60fps aiming, and Neo-Geo visuals (#183) — 2026-10-21
+
+Source revision `d007455` (the feature commit); build and review evidence
+`5076e5e`.
+
+- `npm test`: 25 files, 290 tests passed. `test/puzzle-bobble.test.ts` (10)
+  covers `0.5°` micro-tap aiming (`AIM_STEP_DEG = 0.5`), smooth hold velocity
+  ramp (`aimVelocityDegPerSec`: `38°/s` → `115°/s`), Neo-Geo exponential
+  dropped-bubble scoring (`20 * 2^(n - 1)` capped at `1,310,720` for 17+),
+  stage clear speed bonus (`50,000` at `≤ 5s`), 2-player attack stack
+  (`popped - 3` on 4+ pops) unleashed with dropped bubbles onto the opponent,
+  red (5) / yellow (1) warning orb decomposition, color-scaled ceiling drop
+  intervals (`shotsPerCeilingDrop`), 10-second shot timer with 5-second
+  `HURRY UP!` countdown and auto-fire (`tickShotTimers`), and classic Taito
+  stage formations (`createStageGrid`).
+- `npx tsc --noEmit`: clean.
+- `npm run build`: clean; `dist/client/.build-id` and
+  `server/build-id.generated.js` both report `d007455…`.
+- `npm run e2e`: 90 passed, 1 skipped against the stubbed GitHub adapter (91
+  run). `e2e/puzzle-bobble.spec.ts` (2) verifies `0.5°` fine tap increments
+  (`+0.5°`, `+1°`, `-0.5°`), firing, `1 Player` / `2 Players` switching,
+  contextual `Feedback`, and `Escape`.
+- `yolo-check . --structure` (`0.1.0-alpha.30`): `structure.status: pass`,
+  13/13 findings compliant.
+
 ## 2-player Puzzle Bobble / Bust-A-Move (#181) — 2026-10-21
 
 Source revision `a398c93` (the feature commit); build and review evidence
@@ -281,10 +306,10 @@ Run 2026-10-21 at `c62fbd3` (following the `v0.8.0` release `332855b`; assets bu
   ✓ test/feedback.test.ts (2 tests)           app-context line and body seed
   ✓ test/request-store.test.ts (4 tests)      GitHubRequestStore mapping and non-GitHub fake-store substitution
   ✓ test/request-templates.test.ts (5 tests)  three intents, versioned markers, #169 context, draft content predicates
-  ✓ test/puzzle-bobble.test.ts (8 tests)      hexagonal grid, aiming/bounce, 3+ pop, avalanche drop, 2P attack garbage, win/KO
+  ✓ test/puzzle-bobble.test.ts (10 tests)     0.5° aim, exponential drop scoring, 2P attack stack/orbs, hurry timer, stages
 
   Test Files  25 passed (25)
-       Tests  288 passed (288)
+       Tests  290 passed (290)
 ```
 
 Also run at the same revision: `npx tsc --noEmit` (clean), `npm run e2e` (90 passed, 1 skipped
