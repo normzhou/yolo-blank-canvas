@@ -7,7 +7,10 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 ## Adopt YOLO Dev v0.1.0-alpha.33 request templates (#174) and game slide-deck layout (#187) — 2026-10-21
 
 Source revision `b547f4e` (`#174` template adoption, following `#187` slide-deck
-source `886a97c`); build and review evidence `52f001d`.
+source `886a97c`); build and review evidence `52f001d`; release commit
+`d678e48`; published as `v0.11.0` on 2026-10-21. The unit and stubbed e2e
+results below ran against the source revision; the 11/11 acceptance below ran
+against the installed tag users receive.
 
 - `npm test`: 25 files, 294 tests passed. `test/request-templates.test.ts` (8)
   verifies mapping `feedback` → `yolo.feedback@1.0.0`, `change` →
@@ -24,6 +27,18 @@ source `886a97c`); build and review evidence `52f001d`.
   and `e2e/canvas-gallery.spec.ts` (7) verifies the game slide deck (`#187`).
 - `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`,
   13/13 findings compliant.
+
+### Installed artifact (`v0.11.0`)
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.11.0 --no-open --port 4875`
+in an empty directory, with no source checkout. `GET /api/version` reported both
+`serverBuild` and `clientBuild` as `b547f4e…`; the tagged package version is
+`0.11.0`. The tag points at release commit `d678e48`, after the assets commit
+`52f001d`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4875 npm run e2e:verify-release`:
+**11 passed, 0 failed**. The report is
+[`.yolo/reports/releases-observed-2026-10-21-v0110.json`](../.yolo/reports/releases-observed-2026-10-21-v0110.json).
 
 ## Game slide deck and unobtrusive feedback dock (#187) — 2026-10-21
 
@@ -815,16 +830,21 @@ agent, so these were taken under the standing grant rather than left waiting.
 
 ## Tested revision
 
-Release tag `v0.10.1` points at release commit `c26708d`. Assets were built from source
-`3bfb9f6` (`dist/client/.build-id` and `server/build-id.generated.js` both report `3bfb9f6…`)
-and committed in `88a42bc`; the release commit itself adds only the `0.10.1` version and install
+Release tag `v0.11.0` points at release commit `d678e48`. Assets were built from source
+`b547f4e` (`dist/client/.build-id` and `server/build-id.generated.js` both report `b547f4e…`)
+and committed in `52f001d`; the release commit itself adds only the `0.11.0` version and install
 references, with no source changes. The native version at the tagged revision (`package.json`) is
-`0.10.1`. The published artifact was installed from the release into an empty directory and accepted
+`0.11.0`. The published artifact was installed from the release into an empty directory and accepted
 11 of 11 on `e2e:verify-release`, as recorded in
-[`.yolo/reports/releases-observed-2026-10-21-v0101.json`](../.yolo/reports/releases-observed-2026-10-21-v0101.json).
+[`.yolo/reports/releases-observed-2026-10-21-v0110.json`](../.yolo/reports/releases-observed-2026-10-21-v0110.json).
 Its limits travel with it: eleven targeted read-only checks rather than the full suite; the composer
 and feedback checks do not submit a live issue; and the tag points at the release commit after the
 assets commit rather than at it.
+
+The previous revision named in this section was `v0.10.1` (release `c26708d`, assets from
+`3bfb9f6`), accepted 11 of 11 on the installed artifact on 2026-10-21 and recorded in
+[`.yolo/reports/releases-observed-2026-10-21-v0101.json`](../.yolo/reports/releases-observed-2026-10-21-v0101.json).
+It remains valid history, not the current tested revision.
 
 The previous revision named in this section was `v0.10.0` (release `0da7fcb`, assets from
 `d007455`), accepted 11 of 11 on the installed artifact on 2026-10-21 and recorded in

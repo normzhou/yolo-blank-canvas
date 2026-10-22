@@ -1,0 +1,64 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-21",
+  "observed_at": "2026-10-21",
+  "published_at_utc": "2026-10-22T03:47:33Z",
+  "protocol": {
+    "revision": "da644964ca92eef8448cd782cf6805c724ca2e74",
+    "release": "v0.1.0-alpha.33"
+  },
+  "releases": [
+    {
+      "tag": "v0.11.0",
+      "commit": "d678e4876f64deb4b7fbecad6342cd09e82ee0f5"
+    }
+  ],
+  "release": {
+    "tag": "v0.11.0",
+    "tag_object": "441d195f9f5d8062f24c2206db5662471298827f",
+    "release_commit": "d678e4876f64deb4b7fbecad6342cd09e82ee0f5",
+    "source_commit": "b547f4e732254b75e649a1aae883cdc5fd617431",
+    "assets_commit": "52f001dc1347ad58d8ddc499a8d9434f045e96cf",
+    "semver": "minor",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record b547f4e, the source revision. The committed assets were built at that source in 52f001d. d678e48 is a release-metadata commit (version and install references, no source changes) after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "294 passed across 25 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID b547f4e" },
+    { "check": "npm run e2e (stubbed, deterministic)", "result": "pass", "detail": "91 passed, 1 skipped (92 run)" },
+    { "check": "yolo-check . --structure (0.1.0-alpha.33)", "result": "pass", "detail": "13 of 13 findings compliant" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #193 (23s) and PR #194 (20s) completed success" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "installed_from": "npx --yes github:normzhou/yolo-blank-canvas#v0.11.0 --no-open --port 4875",
+    "installed_into": "an empty directory, no source checkout present",
+    "served_build": "b547f4e732254b75e649a1aae883cdc5fd617431",
+    "served_version": {
+      "package": "0.11.0",
+      "serverBuild": "b547f4e732254b75e649a1aae883cdc5fd617431",
+      "clientBuild": "b547f4e732254b75e649a1aae883cdc5fd617431"
+    },
+    "command": "YOLO_VERIFY_URL=http://127.0.0.1:4875 npm run e2e:verify-release",
+    "result": "pass",
+    "detail": "11 of 11 passed."
+  },
+  "what_this_release_delivers": [
+    "#187 full-stage game slide deck and unobtrusive top HUD feedback dock: centers the main canvas stage on the game slide deck (Prev/Next slide navigation, Slide 1/2 counter, slide pills for Tetris and Puzzle Bobble, and Arcade Deck showcase cards with Play <Game> action and in-place game switching), while tucking the feedback prompt and navigation controls into a compact top HUD bar",
+    "#174 adoption of v0.1.0-alpha.33 YOLO Dev request templates: maps the guided composer's three intents onto yolo.feedback@1.0.0, yolo.feature@1.0.0, and yolo.bug@1.0.0, adds toYoloRequestPayload and parseRequestTemplate (retaining backward compatibility with blankcanvas.*@1 and plain-text issues), and installs .github/ISSUE_TEMPLATE/yolo.{feedback,feature,bug,question}@1.0.0.yml"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "Acceptance on the delivered artifact is eleven targeted read-only checks. The 294 unit tests and 92 stubbed e2e tests ran against the source revision, not the installed artifact.",
+    "The tag points at d678e48, a release-metadata commit after the assets commit 52f001d, not at the assets commit itself. Both build-ID files still record the source b547f4e, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #187, #174"
+}
