@@ -231,15 +231,16 @@
         "v0.8.0": "332855b56ab40dcc578b2485cd1905cbce82d302",
         "v0.9.0": "ae503ca9c223406a894a0c1165ce13d73053efe4",
         "v0.10.0": "0da7fcbb97d206d47b98e97988f3bca66d455c20",
-        "v0.10.1": "c26708dcc851f307e9c702cc0cc2c520eb7e47e3"
+        "v0.10.1": "c26708dcc851f307e9c702cc0cc2c520eb7e47e3",
+        "v0.11.0": "d678e4876f64deb4b7fbecad6342cd09e82ee0f5"
       },
       "published": {
-        "tag": "v0.11.0",
-        "commit": "d678e4876f64deb4b7fbecad6342cd09e82ee0f5",
-        "source_commit": "b547f4e732254b75e649a1aae883cdc5fd617431",
-        "published_at": "2026-10-22T03:47:33Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-10-21-v0110.json",
-        "note": "Minor release. Carries the full-stage game slide-deck layout and unobtrusive top HUD feedback dock (#187) and adopts the v0.1.0-alpha.33 YOLO Dev request templates (yolo.feedback@1.0.0, yolo.feature@1.0.0, yolo.bug@1.0.0) and starter .github/ISSUE_TEMPLATE/*.yml forms (#174). Acceptance before tagging: 294 unit, 91 stubbed e2e passed + 1 skipped, tsc clean, structure pass. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit d678e48 after the assets commit 52f001d; both build-ID files record b547f4e."
+        "tag": "v0.12.0",
+        "commit": "5bc37e3c0273176d348bcde1ae8770f977384024",
+        "source_commit": "d95d08de03b012902c5c2c4d0b4ffa4f373924d3",
+        "published_at": "2026-10-22T04:32:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-10-21-v0120.json",
+        "note": "Minor release. Delivers the modern webapp UI redesign (#196: single-bar navigation header, removed redundant Canvas button, relocated ThemeSwitcher into the Requests panel footer, and two-column hero showcase card with live SVG board previews) and locks the 2-player Puzzle Bobble layout geometry (#195: fixed 360px player cards, 104px side columns, 36px single-pill header, and 26px bottom combo bar so boards never change width or shift during play). Acceptance before tagging: 294 unit, 93 stubbed e2e passed + 1 skipped, tsc clean, structure pass. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit 5bc37e3 after the assets commit ea34475; both build-ID files record d95d08d."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -257,7 +258,8 @@
         ".yolo/reports/releases-observed-2026-10-21-puzzle-bobble.json",
         ".yolo/reports/releases-observed-2026-10-21-puzzle-bobble-arcade.json",
         ".yolo/reports/releases-observed-2026-10-21-v0101.json",
-        ".yolo/reports/releases-observed-2026-10-21-v0110.json"
+        ".yolo/reports/releases-observed-2026-10-21-v0110.json",
+        ".yolo/reports/releases-observed-2026-10-21-v0120.json"
       ]
     }
   },
