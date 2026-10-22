@@ -163,3 +163,13 @@ capture('tetris board and stats', makeStubGithub, async ({ page, snap }) => {
   await expect(page.locator('.tetris-scene')).toContainText('Music:');
   await snap('14-tetris-music');
 });
+
+capture('puzzle bobble 2-player arena', makeStubGithub, async ({ page, snap }) => {
+  await page.getByRole('button', { name: 'Puzzle Bobble', exact: true }).click();
+  await expect(page.getByRole('img', { name: 'Player 1 bubble board' })).toBeVisible();
+  await page.getByRole('button', { name: 'Pause' }).click();
+  await expect(page.getByRole('button', { name: 'Resume' })).toBeVisible();
+  await imagesLoaded(page);
+  await snap('16-puzzle-bobble-2p');
+});
+

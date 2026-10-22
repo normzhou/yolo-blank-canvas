@@ -2,9 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, ApiError, type IssueSummary, type SessionInfo } from './api';
 import { Panel, type PanelView } from './components/Panel';
 import { ErrorNotice } from './components/ErrorNotice';
-import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { CanvasPalette } from './components/CanvasPalette';
 import { CANVAS_APPS, canvasAppById } from './apps/registry';
+import { BACKGROUNDS } from '../shared/tetrisBackgrounds';
 import { useVisible } from './usePolling';
 import { appContextLine } from './feedback';
 import {
@@ -62,6 +62,133 @@ function composerFor(
   return { key, draft: loaded ?? fallback };
 }
 
+/**
+ * Rich miniature vector preview for each game on the home slide deck (#196).
+ */
+function DeckPreviewGraphic({ appId }: { appId: string }) {
+  if (appId === 'tetris') {
+    return (
+      <div className="deck-preview-stage">
+        <img className="deck-preview-bg" src={BACKGROUNDS[0].src} alt="" aria-hidden="true" />
+        <svg
+          className="deck-preview-svg"
+          viewBox="0 0 220 180"
+          aria-hidden="true"
+        >
+          {/* Miniature 10-column matrix frame */}
+          <rect
+            x="46"
+            y="12"
+            width="128"
+            height="156"
+            rx="6"
+            fill="var(--surface)"
+            stroke="var(--border)"
+            strokeWidth="1.5"
+          />
+          {/* Active falling T-piece */}
+          <g fill="var(--tetromino-t)" stroke="var(--text)" strokeWidth="1">
+            <rect x="98" y="28" width="12" height="12" rx="2" />
+            <rect x="86" y="40" width="12" height="12" rx="2" />
+            <rect x="98" y="40" width="12" height="12" rx="2" />
+            <rect x="110" y="40" width="12" height="12" rx="2" />
+          </g>
+          {/* Dashed ghost landing piece */}
+          <g fill="none" stroke="var(--muted)" strokeWidth="1.2" strokeDasharray="3 2">
+            <rect x="98" y="108" width="12" height="12" rx="2" />
+            <rect x="86" y="120" width="12" height="12" rx="2" />
+            <rect x="98" y="120" width="12" height="12" rx="2" />
+            <rect x="110" y="120" width="12" height="12" rx="2" />
+          </g>
+          {/* Settled bottom stack (I, L, S, O, J blocks) */}
+          <g stroke="var(--text)" strokeWidth="1">
+            <rect x="50" y="152" width="12" height="12" rx="2" fill="var(--tetromino-i)" />
+            <rect x="62" y="152" width="12" height="12" rx="2" fill="var(--tetromino-i)" />
+            <rect x="74" y="152" width="12" height="12" rx="2" fill="var(--tetromino-i)" />
+            <rect x="86" y="152" width="12" height="12" rx="2" fill="var(--tetromino-i)" />
+            <rect x="110" y="152" width="12" height="12" rx="2" fill="var(--tetromino-o)" />
+            <rect x="122" y="152" width="12" height="12" rx="2" fill="var(--tetromino-o)" />
+            <rect x="110" y="140" width="12" height="12" rx="2" fill="var(--tetromino-o)" />
+            <rect x="122" y="140" width="12" height="12" rx="2" fill="var(--tetromino-o)" />
+            <rect x="134" y="152" width="12" height="12" rx="2" fill="var(--tetromino-l)" />
+            <rect x="146" y="152" width="12" height="12" rx="2" fill="var(--tetromino-l)" />
+            <rect x="158" y="152" width="12" height="12" rx="2" fill="var(--tetromino-l)" />
+            <rect x="158" y="140" width="12" height="12" rx="2" fill="var(--tetromino-l)" />
+            <rect x="50" y="140" width="12" height="12" rx="2" fill="var(--tetromino-s)" />
+            <rect x="62" y="140" width="12" height="12" rx="2" fill="var(--tetromino-s)" />
+            <rect x="62" y="128" width="12" height="12" rx="2" fill="var(--tetromino-s)" />
+            <rect x="74" y="128" width="12" height="12" rx="2" fill="var(--tetromino-s)" />
+          </g>
+        </svg>
+        <div className="deck-preview-hud">
+          <span>10×20 Matrix</span>
+          <span>6 Scenes · 5 Chiptunes</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="deck-preview-stage">
+      <img className="deck-preview-bg" src={BACKGROUNDS[1].src} alt="" aria-hidden="true" />
+      <svg
+        className="deck-preview-svg"
+        viewBox="0 0 220 180"
+        aria-hidden="true"
+      >
+        <rect
+          x="26"
+          y="12"
+          width="168"
+          height="156"
+          rx="6"
+          fill="var(--surface)"
+          stroke="var(--border)"
+          strokeWidth="1.5"
+        />
+        {/* Hexagonal bubble wave */}
+        <g stroke="var(--text)" strokeWidth="1.1">
+          <circle cx="52" cy="30" r="10" fill="var(--tetromino-z)" />
+          <circle cx="72" cy="30" r="10" fill="var(--tetromino-z)" />
+          <circle cx="92" cy="30" r="10" fill="var(--tetromino-l)" />
+          <circle cx="112" cy="30" r="10" fill="var(--tetromino-l)" />
+          <circle cx="132" cy="30" r="10" fill="var(--tetromino-s)" />
+          <circle cx="152" cy="30" r="10" fill="var(--tetromino-j)" />
+          <circle cx="172" cy="30" r="10" fill="var(--tetromino-j)" />
+
+          <circle cx="62" cy="48" r="10" fill="var(--tetromino-z)" />
+          <circle cx="82" cy="48" r="10" fill="var(--tetromino-t)" />
+          <circle cx="102" cy="48" r="10" fill="var(--tetromino-l)" />
+          <circle cx="122" cy="48" r="10" fill="var(--tetromino-s)" />
+          <circle cx="142" cy="48" r="10" fill="var(--tetromino-s)" />
+          <circle cx="162" cy="48" r="10" fill="var(--tetromino-i)" />
+
+          <circle cx="92" cy="66" r="10" fill="var(--tetromino-t)" />
+          <circle cx="132" cy="66" r="10" fill="var(--tetromino-i)" />
+        </g>
+        {/* Wall-bounce sight line */}
+        <polyline
+          points="110,146 182,92 132,66"
+          fill="none"
+          stroke="var(--accent)"
+          strokeWidth="1.8"
+          strokeDasharray="4 3"
+        />
+        {/* Launcher gear & pointer */}
+        <circle cx="110" cy="146" r="14" fill="var(--field)" stroke="var(--text)" strokeWidth="1.2" />
+        <circle cx="110" cy="146" r="9" fill="var(--tetromino-i)" stroke="var(--text)" strokeWidth="1.1" />
+        {/* Bub & Bob indicator */}
+        <circle cx="78" cy="150" r="7" fill="var(--tetromino-s)" stroke="var(--text)" strokeWidth="1" />
+        <circle cx="142" cy="150" r="7" fill="var(--tetromino-j)" stroke="var(--text)" strokeWidth="1" />
+      </svg>
+      <div className="deck-preview-hud">
+        <span>1P Bub (ASDF) vs 2P Bob (Arrows)</span>
+        <span>0.5° Aim · 60fps</span>
+      </div>
+    </div>
+  );
+}
+
 export function App() {
   const storeRef = useRef<DraftStore | null>(null);
   if (storeRef.current === null) storeRef.current = browserStore();
@@ -87,7 +214,7 @@ export function App() {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const feedbackTriggerRef = useRef<HTMLButtonElement>(null);
   const requestsTriggerRef = useRef<HTMLButtonElement>(null);
-  const canvasTriggerRef = useRef<HTMLButtonElement>(null);
+  const deckNavRef = useRef<HTMLElement>(null);
   const appRegionRef = useRef<HTMLElement>(null);
   const panelOpenerRef = useRef<PanelOpener | null>(null);
 
@@ -130,8 +257,6 @@ export function App() {
     setConnecting(true);
     setSessionError(null);
     try {
-      // The launcher already verified GitHub CLI access, so an existing login
-      // needs no extra step here. This also works as a retry after auth loss.
       const info = await api.connect();
       setSession(info);
       return info;
@@ -152,9 +277,6 @@ export function App() {
       .catch(() => setServerClientBuild(null));
   }, [connect]);
 
-  // Drafts survive refreshes, panel open/close, and a user-initiated reload.
-  // The key is part of the state, so an app draft and the home draft can never
-  // be written over each other (#169).
   useEffect(() => {
     if (!store) return;
     if (draftIsEmpty(composer.draft)) clearDraft(store, composer.key);
@@ -185,11 +307,6 @@ export function App() {
     setComposer((previous) => ({ ...previous, draft: next }));
   }, []);
 
-  // #132: the location is the state. Every view change pushes an entry, so browser
-  // back means back, a reload lands where you were, and `?panel=123` is a link.
-  // #165: the app is part of the same location, so Requests composes over it.
-  // A cold deep link carries no list row, so `issue` is null and the detail view
-  // resolves it from the server.
   const navigate = useCallback(
     (target: RouteTarget | null, issue: IssueSummary | null = null) => {
       window.history.pushState(null, '', routeUrl(target, window.location.pathname, appId));
@@ -204,8 +321,6 @@ export function App() {
     [appId],
   );
 
-  // Opening a canvas app is a location change too. Closing the panel here keeps
-  // the shell to one surface at a time; the panel's draft state is already stored.
   const openApp = useCallback((id: string | null) => {
     window.history.pushState(null, '', routeUrl(null, window.location.pathname, id));
     setPanelOpen(false);
@@ -215,8 +330,6 @@ export function App() {
 
   const exitApp = useCallback(() => openApp(null), [openApp]);
 
-  // Back and forward replay history rather than push onto it, so this must only
-  // apply state — never call navigate, which would grow the stack as you undo it.
   useEffect(() => {
     const onPopState = () => {
       const route = readRoute(window.location.search);
@@ -228,9 +341,6 @@ export function App() {
         return;
       }
       if (route.target.name === 'new') {
-        // A history entry can name the composer without a click on Feedback.
-        // Load its app-scoped draft, but keep an existing non-empty draft so a
-        // forward/back replay never discards what is on screen.
         setComposer((current) => {
           const next = composerFor(store, route.app);
           return current.key === next.key && !draftIsEmpty(current.draft) ? current : next;
@@ -243,10 +353,6 @@ export function App() {
     return () => window.removeEventListener('popstate', onPopState);
   }, [store]);
 
-  // The panel cannot render without a session, so entering it while signed out
-  // used to be a dead control: the click set state that nothing read. Connecting
-  // first makes every entry point work in every state (#130). On a deep link the
-  // connection is already in flight from mount, so this is a no-op re-check.
   const enterRequests = useCallback(
     async (destination: RouteTarget, issue: IssueSummary | null = null) => {
       if (!session) {
@@ -262,11 +368,6 @@ export function App() {
     void enterRequests({ name: 'list' });
   }, [enterRequests]);
 
-  // The direct path into the workflow. The composer key follows the app, so a
-  // request composed over an app gets that app's draft and context; the home
-  // composer keeps the generic draft (#169). Entry points suggest an initial
-  // intent (Feedback -> feedback, Start/New request -> change) without
-  // overwriting a draft the user has already started typing (#173, #175).
   const openNewRequest = useCallback(
     (intent?: RequestIntent) => {
       setComposer((current) => {
@@ -286,9 +387,6 @@ export function App() {
     const opener = panelOpenerRef.current;
     panelOpenerRef.current = null;
     navigate(null);
-    // Focus returns to the control that opened the panel. The header buttons
-    // unmount while the modal is open, so resolve the current element through
-    // its ref rather than keeping a stale DOM node.
     window.requestAnimationFrame(() => {
       const byOpener =
         opener === 'start'
@@ -305,12 +403,8 @@ export function App() {
     });
   }, [activeApp, navigate]);
 
-  // The palette is transient UI, not a location. Opening it over Requests closes
-  // the panel first so two shell overlays never compete for focus or Escape.
   const openPalette = useCallback(() => {
     if (panelOpen) {
-      // The palette owns focus from here; a stale opener must not claim it if
-      // the panel is later reopened by a history entry.
       panelOpenerRef.current = null;
       window.history.pushState(null, '', routeUrl(null, window.location.pathname, appId));
       setPanelOpen(false);
@@ -321,15 +415,14 @@ export function App() {
 
   const closePalette = useCallback(() => {
     setPaletteOpen(false);
-    canvasTriggerRef.current?.focus();
+    const activePill = deckNavRef.current?.querySelector<HTMLButtonElement>('button.deck-pill.is-active');
+    (activePill ?? triggerRef.current ?? feedbackTriggerRef.current)?.focus();
   }, []);
 
   const selectApp = useCallback(
     (id: string | null) => {
       setPaletteOpen(false);
       if (id !== appId) openApp(id);
-      // The dialog unmounts; move focus to the view that replaced it rather than
-      // dropping it on the body.
       window.requestAnimationFrame(() => {
         (id ? appRegionRef.current : triggerRef.current)?.focus();
       });
@@ -337,8 +430,6 @@ export function App() {
     [appId, openApp],
   );
 
-  // Cmd/Ctrl+K is the portable shortcut; `~` is the game-flavoured alias. The
-  // tilde is ignored while typing, so it cannot steal a character from a draft.
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       const target = event.target as HTMLElement | null;
@@ -378,10 +469,17 @@ export function App() {
     <div className={panelOpen && session ? 'canvas panel-open' : 'canvas'}>
       <header className="canvas-header">
         <div className="canvas-brand">
-          <h1 className="canvas-title">Blank canvas</h1>
-          {/* A status line only, and only when the canvas is visible. Tucked
-              into the compact top HUD bar (#187) so the main viewport stays
-              focused on the game slide deck. */}
+          <button
+            type="button"
+            className="canvas-brand-button"
+            onClick={() => openApp(null)}
+            title="Return to game deck"
+          >
+            <span className="canvas-brand-mark" aria-hidden="true">
+              ◆
+            </span>
+            <h1 className="canvas-title">Blank canvas</h1>
+          </button>
           {!panelOpen ? (
             <p className="canvas-identity">
               {session
@@ -393,9 +491,50 @@ export function App() {
           ) : null}
         </div>
 
-        {/* #187: Feedback and Requests stay tucked into a compact, unobtrusive
-            top-corner overlay dock so the main stage stays focused on the
-            slide deck of games. */}
+        {/* Integrated centered game deck switcher (#187, #196): one sleek
+            segmented bar instead of a second floating row or a redundant
+            "Canvas" modal button. */}
+        <nav className="canvas-gallery deck-nav" aria-label="Canvas gallery" ref={deckNavRef}>
+          <button
+            type="button"
+            className="deck-step-btn"
+            aria-label="Previous slide"
+            title="Previous game slide"
+            onClick={() => stepSlide(-1)}
+          >
+            ‹
+          </button>
+          {CANVAS_APPS.map((app, index) => (
+            <button
+              key={app.id}
+              type="button"
+              className={
+                (activeApp ? activeApp.id === app.id : slideIndex === index)
+                  ? 'deck-pill is-active'
+                  : 'deck-pill'
+              }
+              onClick={() => {
+                setSlideIndex(index);
+                openApp(app.id);
+              }}
+              title={app.summary}
+            >
+              {app.title}
+            </button>
+          ))}
+          <button
+            type="button"
+            className="deck-step-btn"
+            aria-label="Next slide"
+            title="Next game slide"
+            onClick={() => stepSlide(1)}
+          >
+            ›
+          </button>
+        </nav>
+
+        {/* Unobtrusive feedback & requests dock on the right (#187, #196).
+            No raw theme buttons or redundant Canvas button in the top bar. */}
         <span className="canvas-actions">
           {!activeApp ? (
             <div className="canvas-prompt-block">
@@ -424,20 +563,7 @@ export function App() {
                 </button>
               </div>
             </div>
-          ) : null}
-          <button
-            type="button"
-            className="canvas-switcher"
-            ref={canvasTriggerRef}
-            aria-haspopup="dialog"
-            aria-expanded={paletteOpen}
-            aria-keyshortcuts="Meta+K Control+K"
-            title="Switch canvas app (Ctrl/⌘K or ~)"
-            onClick={() => (paletteOpen ? closePalette() : openPalette())}
-          >
-            Canvas
-          </button>
-          {activeApp && !panelOpen ? (
+          ) : !panelOpen ? (
             <>
               <button
                 type="button"
@@ -465,22 +591,23 @@ export function App() {
             </>
           ) : null}
         </span>
-        <ThemeSwitcher />
       </header>
 
       {serverSuggestsReload && !reloadPromptDismissed ? (
         <div className="banner warning" role="status">
-          <span>App version changed — reload to use the version this server is running.
-              {/* The build identifiers belong where a mismatch is actually being
-                  diagnosed, not permanently in the product footer (#131). */}
-              {serverClientBuild ? <span className="build-id">server {serverClientBuild.slice(0, 7)} · page {CLIENT_BUILD.slice(0, 7)}</span> : null}
-            </span>
+          <span>
+            App version changed — reload to use the version this server is running.
+            {serverClientBuild ? (
+              <span className="build-id">
+                server {serverClientBuild.slice(0, 7)} · page {CLIENT_BUILD.slice(0, 7)}
+              </span>
+            ) : null}
+          </span>
           <span className="row">
             <button
               type="button"
               className="primary"
               onClick={() => {
-                // Drafts are already stored, so reloading does not lose typed input.
                 window.location.reload();
               }}
             >
@@ -497,51 +624,7 @@ export function App() {
         <ErrorNotice error={sessionError} onRetry={() => void connect()} retryLabel="Retry connection" />
       ) : null}
 
-      {/* #187: The main app stage is dedicated to the slide deck of games.
-          Users can flip slides with Prev/Next, jump directly via the gallery
-          pills, or play in place while the feedback overlay stays tucked in
-          the top dock until opened. */}
       <main className="canvas-deck" aria-label="Game slide deck">
-        <nav className="canvas-gallery deck-nav" aria-label="Canvas gallery">
-          <button
-            type="button"
-            className="deck-step-btn"
-            aria-label="Previous slide"
-            onClick={() => stepSlide(-1)}
-          >
-            ‹ Prev
-          </button>
-          <span className="canvas-gallery-label">
-            Slide {slideIndex + 1} / {CANVAS_APPS.length}
-          </span>
-          {CANVAS_APPS.map((app, index) => (
-            <button
-              key={app.id}
-              type="button"
-              className={
-                (activeApp ? activeApp.id === app.id : slideIndex === index)
-                  ? 'deck-pill is-active'
-                  : 'deck-pill'
-              }
-              onClick={() => {
-                setSlideIndex(index);
-                openApp(app.id);
-              }}
-              title={app.summary}
-            >
-              {app.title}
-            </button>
-          ))}
-          <button
-            type="button"
-            className="deck-step-btn"
-            aria-label="Next slide"
-            onClick={() => stepSlide(1)}
-          >
-            Next ›
-          </button>
-        </nav>
-
         {activeApp ? (
           <section className="canvas-app" aria-label={activeApp.title} tabIndex={-1} ref={appRegionRef}>
             <activeApp.element onExit={exitApp} />
@@ -553,24 +636,83 @@ export function App() {
             data-slide-id={currentSlide.id}
             aria-label={`${currentSlide.title} slide`}
           >
-            <div className="deck-slide-badge">
-              Slide {slideIndex + 1} of {CANVAS_APPS.length} · Arcade Deck
-            </div>
-            <div className="deck-slide-title">{currentSlide.title}</div>
-            <p className="deck-slide-summary">{currentSlide.summary}</p>
-            <p className="deck-slide-controls">
-              {currentSlide.id === 'tetris'
-                ? '1 Player · ←/→ Move · ↑ Rotate · ↓ Soft drop · Space Hard drop · 4-line clear cycles scenes'
-                : '2 Players & Solo · 1P (Bub): A/D fine aim, S/F shoot · 2P (Bob): ←/→ fine aim, ↑/↓ shoot'}
-            </p>
-            <div className="deck-slide-actions">
-              <button
-                type="button"
-                className="deck-play-button"
-                onClick={() => openApp(currentSlide.id)}
-              >
-                Play {currentSlide.title}
-              </button>
+            <DeckPreviewGraphic appId={currentSlide.id} />
+
+            <div className="deck-slide-info">
+              <div className="deck-slide-meta">
+                <span className="deck-slide-badge">
+                  0{slideIndex + 1} / 0{CANVAS_APPS.length} ·{' '}
+                  {currentSlide.id === 'tetris' ? 'Solo Marathon' : '2P Versus & Solo'}
+                </span>
+                <span className="deck-slide-tag">Local View State</span>
+              </div>
+
+              <div className="deck-slide-title">{currentSlide.title}</div>
+              <p className="deck-slide-summary">{currentSlide.summary}</p>
+
+              {currentSlide.id === 'tetris' ? (
+                <div className="deck-controls-grid" aria-label="Tetris controls">
+                  <div className="deck-control-item">
+                    <span className="deck-key-group">
+                      <kbd>←</kbd>
+                      <kbd>→</kbd>
+                    </span>
+                    <span className="deck-control-label">Move</span>
+                  </div>
+                  <div className="deck-control-item">
+                    <span className="deck-key-group">
+                      <kbd>↑</kbd>
+                    </span>
+                    <span className="deck-control-label">Rotate</span>
+                  </div>
+                  <div className="deck-control-item">
+                    <span className="deck-key-group">
+                      <kbd>↓</kbd>
+                    </span>
+                    <span className="deck-control-label">Soft drop</span>
+                  </div>
+                  <div className="deck-control-item">
+                    <span className="deck-key-group">
+                      <kbd>Space</kbd>
+                    </span>
+                    <span className="deck-control-label">Hard drop</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="deck-controls-grid" aria-label="Puzzle Bobble controls">
+                  <div className="deck-control-item">
+                    <span className="deck-key-group">
+                      <kbd>A</kbd>
+                      <kbd>D</kbd>
+                      <kbd>S</kbd>
+                      <kbd>F</kbd>
+                    </span>
+                    <span className="deck-control-label">1P Bub · Aim & Shoot</span>
+                  </div>
+                  <div className="deck-control-item">
+                    <span className="deck-key-group">
+                      <kbd>←</kbd>
+                      <kbd>→</kbd>
+                      <kbd>↑</kbd>
+                      <kbd>↓</kbd>
+                    </span>
+                    <span className="deck-control-label">2P Bob · Aim & Shoot</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="deck-slide-actions">
+                <button
+                  type="button"
+                  className="deck-play-button"
+                  onClick={() => openApp(currentSlide.id)}
+                >
+                  Play {currentSlide.title}
+                </button>
+                <span className="deck-slide-counter">
+                  Slide {slideIndex + 1} of {CANVAS_APPS.length}
+                </span>
+              </div>
             </div>
           </section>
         )}
@@ -596,8 +738,6 @@ export function App() {
           onSelectIssueNumber={(number: number) => navigate({ name: 'detail', number }, null)}
           onCreated={(issue) => {
             setCreatedIssues((previous) => [...previous.filter((item) => item.number !== issue.number), issue]);
-            // The write is confirmed. The next request starts with a fresh
-            // draft and context line, not the text just submitted.
             setComposer(composerFor(store, appId, { fresh: true }));
           }}
           onNew={() => openNewRequest('change')}

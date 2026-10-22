@@ -81,7 +81,8 @@ estimated.** Two consequences are part of the contract:
 ## Themes
 
 The app offers three themes — **Slate** (default light), **Sand** (warm light) and **Dusk** (dark) —
-selected by a control in the canvas header. The choice persists in `localStorage`; with nothing stored
+selected by a control in the Requests panel footer (#196) so theme options stay out of the main
+application navbar. The choice persists in `localStorage`; with nothing stored
 the app follows `prefers-color-scheme`, so a user who has already told their OS they want dark gets dark
 without touching the control.
 
