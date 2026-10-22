@@ -1,0 +1,64 @@
+{
+  "format_version": 1,
+  "id": "yolo.question",
+  "version": "1.0.0",
+  "title": "Ask for help",
+  "description": "Public, nonsecret request data only. Submission does not grant execution or admission.",
+  "mode": "question",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "question": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "attempts": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "context": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      }
+    },
+    "required": [
+      "question"
+    ],
+    "additionalProperties": false
+  },
+  "form": {
+    "fields": [
+      {
+        "field": "question",
+        "widget": "textarea",
+        "label": "What do you need help with?",
+        "help": "Questions may be answered without development work."
+      },
+      {
+        "field": "attempts",
+        "widget": "textarea",
+        "label": "What have you tried?",
+        "help": "Optional; exclude private commands or credentials."
+      },
+      {
+        "field": "context",
+        "widget": "textarea",
+        "label": "Context",
+        "help": "Optional observed version/environment and sanitized evidence; no private logs or credentials."
+      }
+    ]
+  },
+  "result_schema": {
+    "type": "object",
+    "properties": {},
+    "required": [],
+    "additionalProperties": false
+  },
+  "protocol": {
+    "id": "yolo.question.resolution",
+    "version": "1.0.0"
+  }
+}

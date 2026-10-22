@@ -1,0 +1,43 @@
+{
+  "format_version": 1,
+  "id": "yolo.requests.starter",
+  "version": "1.0.0",
+  "kind": "starter",
+  "templates": [
+    {
+      "id": "yolo.feedback",
+      "version": "1.0.0"
+    },
+    {
+      "id": "yolo.feature",
+      "version": "1.0.0"
+    },
+    {
+      "id": "yolo.bug",
+      "version": "1.0.0"
+    },
+    {
+      "id": "yolo.question",
+      "version": "1.0.0"
+    }
+  ],
+  "protocols": [
+    {
+      "id": "yolo.feedback.resolution",
+      "version": "1.0.0"
+    },
+    {
+      "id": "yolo.feature.resolution",
+      "version": "1.0.0"
+    },
+    {
+      "id": "yolo.bug.resolution",
+      "version": "1.0.0"
+    },
+    {
+      "id": "yolo.question.resolution",
+      "version": "1.0.0"
+    }
+  ],
+  "processes": []
+}

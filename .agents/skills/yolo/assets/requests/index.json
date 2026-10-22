@@ -1,0 +1,14 @@
+{
+  "files": {
+    "catalog.json": "e6351254b086be430ebf95cca37c23ebdd24bf8a6bea374e601a711fc8caeb25",
+    "protocols/yolo.bug.resolution@1.0.0.json": "177bed5fe9dff77c7597a348121bd6e375d64ab421f314aaaf691e2e38b0bf01",
+    "protocols/yolo.feature.resolution@1.0.0.json": "4ed41165c3fd19d8591606de6794d6c7fffb4efd781471ca3143964b1c534419",
+    "protocols/yolo.feedback.resolution@1.0.0.json": "b80f7f1387629325341535dfe05694d40a3864cf9f72f04dd7dd2a8c40e63e5d",
+    "protocols/yolo.question.resolution@1.0.0.json": "a57b123294fdc1dd70edf00a81a643dee716da551b19942fab6888396faf5261",
+    "templates/yolo.bug@1.0.0.json": "6ba778f91351b464aae7ecd7139c4942d12a970532af6982c581cf3378723ef6",
+    "templates/yolo.feature@1.0.0.json": "d89b321a2ad3e6e721e965251bc382e74f7d2d85294d87e2de52257ea2833a63",
+    "templates/yolo.feedback@1.0.0.json": "9aaa2eb82136b2a5cd0f473ad21c11e5acbb2cf407484b2171644cb9032ecd13",
+    "templates/yolo.question@1.0.0.json": "8baf1a15449b1db981f679fcd12599966808819e171ea39f7e49716841b63008"
+  },
+  "format_version": 1
+}

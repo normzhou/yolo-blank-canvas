@@ -3,7 +3,7 @@
   "protocol": {
     "format": "github-v1",
     "repository": "https://github.com/normzhou/yolo-dev",
-    "revision": "e95211f32261580fb580cf0da9d7276ae477b063",
+    "revision": "da644964ca92eef8448cd782cf6805c724ca2e74",
     "source": "skills/yolo/references/protocol.md",
     "inputs": [
       {
@@ -48,17 +48,17 @@
       },
       {
         "path": "specs/conformance-checks.md",
-        "sha256": "6d456c3cd34a4d43fba706f3d618e9ac47b62e0f45335ef27aec3cf60d3696a6",
+        "sha256": "0d4570ee443cf0b8de3db4c01c19089511e5f8cfaa25aa4ef00360a9b4c0b829",
         "selection": "whole document"
       },
       {
         "path": "specs/qualification.md",
-        "sha256": "f8d159c64f13b0e9b23f06fdf167b2fcc47be5e9e01c5941c00e5c4c70bdc688",
+        "sha256": "e668805aff127bc9f97fa1afc19b9b1f9b4ba001ad543603add21522c2bc4c30",
         "selection": "whole document"
       },
       {
         "path": "specs/adoption-records.md",
-        "sha256": "ffb2a6a0add5e54a9bc36f9d7300d0d30dfa2c1a9c47163f8b80de290a6561a0",
+        "sha256": "3a909f16f0a164a6974f5107568b624e852cc0a0e37c0a1f159f4ecdcbba69fd",
         "selection": "whole document"
       },
       {
@@ -69,6 +69,11 @@
       {
         "path": "specs/request-interface.md",
         "sha256": "3268901ad2feef31905b0a76e01cc3f4525d25769be70a28cffe57917bda5ad7",
+        "selection": "whole document"
+      },
+      {
+        "path": "specs/request-templates.md",
+        "sha256": "fd970b36af8dbea42d882bb136b05aca2f2500bafcf71bcce33c59d1b0185d10",
         "selection": "whole document"
       },
       {
@@ -93,7 +98,7 @@
       },
       {
         "path": "specs/app-hosting.md",
-        "sha256": "af29bb43233ab166363da66dd2dccbea2a188fb72aa51200702fb790f1c135b1",
+        "sha256": "c0ce5fd60e8bc994802f8b92d25e8964e9163ed74535f58bd8c8deaf9c4fe651",
         "selection": "whole document"
       },
       {
@@ -103,12 +108,12 @@
       },
       {
         "path": "VERSION",
-        "sha256": "ee98435e09c618f3578eec12c901369743133c049ae7c2e8f860d1b8643f7d6b",
+        "sha256": "d54ee665631bf286de0a34d3bd528db01f976c148b6c3a4be5b52ee465cbc7ec",
         "selection": "whole document"
       }
     ],
     "path": ".yolo/protocol.md",
-    "sha256": "4f5ffe0ae643a81a1e303b2d2a9f067fb7c3b568d1710efe1a6b7b6209667afa"
+    "sha256": "2f3663b8819c61c28a3216ce622903b6b36b825ea7f9e3e76504c126135cd305"
   },
   "target": {
     "repository": "normzhou/yolo-blank-canvas",
@@ -147,9 +152,9 @@
     ],
     "skill": {
       "path": ".agents/skills/yolo",
-      "revision": "df14572179e0c017e4df98c42de38246610de60b",
-      "release": "v0.1.0-alpha.30",
-      "manifest_sha256": "cb5090417023b97d5b4537703e954d3a475bceb38ba7f3234c4e7d7b7a0df79d"
+      "revision": "bbb3af70580d012cb9b5032ef7a03fdb74ee256f",
+      "release": "v0.1.0-alpha.33",
+      "manifest_sha256": "eee9026d636001068836af9241a69ca2f24e6569c3185479b0accaf2ca005365"
     },
     "observed_sessions": [
       {
@@ -249,12 +254,10 @@
     }
   },
   "activation": {
-    "state": "active",
+    "state": "proposed",
     "evidence": [
-      "Maintainer approval in this authenticated harness session (2026-10-20): 'approved please continue' directed the prepared v0.1.0-alpha.30 migration to land. No protected edit or authority-control change was involved.",
-      "v0.1.0-alpha.30 (publication df14572179e0c017e4df98c42de38246610de60b, bundle e95211f32261580fb580cf0da9d7276ae477b063) landed on main as 67f60594dd2267355be2b4110131cb4eef89cce3 via PR #161 and was observed on the default branch.",
-      "Delivered setup re-validated in this session with the alpha.30 executable: structure.status pass (exit 0, zero non-compliant findings, zero warnings); .yolo/protocol.md sha256 4f5ffe0ae643a81a1e303b2d2a9f067fb7c3b568d1710efe1a6b7b6209667afa; 60/60 manifest files match manifest cb5090417023b97d5b4537703e954d3a475bceb38ba7f3234c4e7d7b7a0df79d; all five installed hook files present.",
-      "Prior alpha.23 activation evidence is retained in Git and in .yolo/reports/2026-10-12-alpha23-native-runtime.json as history; alpha.23 loading evidence does not attest the alpha.30 rules, and qualification remains unverified."
+      "PENDING LANDING: candidate pin v0.1.0-alpha.33 proposed on issue #189 (branch yolo/upgrade-alpha33-proposal). Not active until the migration is observed on the default branch.",
+      "Prior alpha.30 activation evidence is retained in Git and in .yolo/reports/upgrade-alpha30-proposal.json as history; that loading evidence is historical and does not attest the alpha.33 rules being loaded."
     ]
   },
   "adopted_at": "520a81e8ec824b9ce31a7fbc8a8c08d152eb81ae",
@@ -369,7 +372,8 @@
       "2026-10-14 (.yolo/reports/checkpoint-review-2026-10-14.json, issue #141): the 25 commits after the previous review's subject are reviewed with all four obligations cited and acceptance re-run at 9c05e25 - 255 unit tests, tsc clean, 77 stubbed e2e passed, and the pinned alpha.23 validator reporting structure.status: pass with zero non-compliant rules. Q4 moves from partial to PASS for its inspected scope: acceptance ran on the delivered artifacts of v0.3.2 and v0.4.0 (6 of 6 each). Q5 remains partial - a third opencode session adds no fact the two already-recorded ones do not carry, so no continuation report was written and nothing was re-attributed to pi. Qualification stays `unverified` and no level is claimed: Q5 is not satisfied and the checkpoint-chain finding is still open.",
       "2026-10-20 (issue #160): alpha.30 landed at 67f60594dd2267355be2b4110131cb4eef89cce3. This opencode session reloaded the alpha.30 skill from main after the merge (harness opencode v2.0.32, run ses_edd7daef5ffe1iENC1ar1oRsLD), verified the delivered identity and applied the new rules to the landing record. It does not attest the adopted harness `pi coding agent 1.0.1`, whose continuation remains unrecorded. Qualification stays `unverified`; Q5 remains partial and the checkpoint-chain finding is still open.",
       "2026-10-20 (issue #141): the harness-record ambiguity is resolved by the maintainer's direction \u2014 multiple harnesses are supported; `harness` now names the harness in use (opencode 2.0.32) while each observing session cites its own harness/version. Q5 moves from partial to PASS for its inspected opencode scope: .yolo/reports/continuation-2026-10-13.json records a distinct fresh session loading the pin and reconciling the next action, and the 2026-10-20 session reloaded alpha.30 and continued. Qualification stays `unverified`: the checkpoint-chain gap was accepted by scoped override for checkpoint progression only and is not repaired, so the 'no unresolved required finding' condition for a level claim is not met. No level is claimed.",
-      "2026-10-21 (issue #179, .yolo/reports/checkpoint-review-2026-10-21.json): the 41 commits from 9c05e25 to c62fbd3 are reviewed across ownership, congruence, verification and continuity; v0.5.0 (7/7), v0.6.0 (8/8), v0.7.0 (9/9) and v0.8.0 (10/10) are verified on their installed artifacts; a fresh Cursor session recovered the interrupted #175 session and delivered v0.7.0 and v0.8.0; and the #129/#153 issue_summary findings and #141/#170/#174 issue_state findings are cleared. Qualification stays `unverified` because the historical checkpoint-chain gap (accepted by YOLO-Override: #141 for checkpoint progression only) and the initial schema_version: 1 commit of releases-observed-2026-10-14.json remain in immutable git history."
+      "2026-10-21 (issue #179, .yolo/reports/checkpoint-review-2026-10-21.json): the 41 commits from 9c05e25 to c62fbd3 are reviewed across ownership, congruence, verification and continuity; v0.5.0 (7/7), v0.6.0 (8/8), v0.7.0 (9/9) and v0.8.0 (10/10) are verified on their installed artifacts; a fresh Cursor session recovered the interrupted #175 session and delivered v0.7.0 and v0.8.0; and the #129/#153 issue_summary findings and #141/#170/#174 issue_state findings are cleared. Qualification stays `unverified` because the historical checkpoint-chain gap (accepted by YOLO-Override: #141 for checkpoint progression only) and the initial schema_version: 1 commit of releases-observed-2026-10-14.json remain in immutable git history.",
+      "PENDING alpha.33 candidate (issue #189): the entries above are historical evidence for the alpha.23 and alpha.30 pins; none of them attests alpha.33 loading. Qualification stays unverified and no level is claimed for the candidate."
     ]
   },
   "feedback": {

@@ -1,0 +1,75 @@
+{
+  "format_version": 1,
+  "id": "yolo.feature",
+  "version": "1.0.0",
+  "title": "Suggest a feature",
+  "description": "Public, nonsecret request data only. Submission does not grant execution or admission.",
+  "mode": "feature",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "need": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "impact": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "proposal": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "context": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      }
+    },
+    "required": [
+      "need"
+    ],
+    "additionalProperties": false
+  },
+  "form": {
+    "fields": [
+      {
+        "field": "need",
+        "widget": "textarea",
+        "label": "What are you trying to accomplish?",
+        "help": "Describe the need or desired outcome."
+      },
+      {
+        "field": "impact",
+        "widget": "textarea",
+        "label": "Who would benefit, and how?",
+        "help": "Examples are welcome; priority is decided by the receiver."
+      },
+      {
+        "field": "proposal",
+        "widget": "textarea",
+        "label": "Suggested approach",
+        "help": "Optional; you do not need to design the solution."
+      },
+      {
+        "field": "context",
+        "widget": "textarea",
+        "label": "Context",
+        "help": "Optional observed version/environment and sanitized evidence; no private logs or credentials."
+      }
+    ]
+  },
+  "result_schema": {
+    "type": "object",
+    "properties": {},
+    "required": [],
+    "additionalProperties": false
+  },
+  "protocol": {
+    "id": "yolo.feature.resolution",
+    "version": "1.0.0"
+  }
+}

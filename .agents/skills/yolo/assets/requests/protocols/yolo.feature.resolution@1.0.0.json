@@ -1,0 +1,44 @@
+{
+  "format_version": 1,
+  "id": "yolo.feature.resolution",
+  "version": "1.0.0",
+  "title": "Feature resolution",
+  "stages": [
+    {
+      "id": "interpret",
+      "title": "Interpret and acknowledge",
+      "requirements": [
+        "Preserve original author/source, explain the understood need and search for related requests. A submission is not work admission.",
+        "Clarify the desired outcome and impact rather than requiring a design. Admission, acceptance and delivery follow existing target policy, with no promised ETA from submission."
+      ]
+    },
+    {
+      "id": "clarify",
+      "title": "Clarify only consequential gaps",
+      "requirements": [
+        "Keep plain-text feedback valid. Ask only for information needed to answer or authorize the affected action; independent work can continue."
+      ]
+    },
+    {
+      "id": "decide",
+      "title": "Record disposition and covering outcomes",
+      "requirements": [
+        "Explain the decision/reason under existing authority. Preserve shared/split outcomes and declined or remaining scope; do not mechanically create work tickets."
+      ]
+    },
+    {
+      "id": "resolve",
+      "title": "Verify and report the result",
+      "requirements": [
+        "Distinguish an answer, a tracked request, implementation progress and actual delivered availability. Report failures, blockers and limits honestly."
+      ]
+    },
+    {
+      "id": "follow_up",
+      "title": "Accept follow-up",
+      "requirements": [
+        "Retain the source issue and respond to corrections or post-closure feedback without erasing earlier results."
+      ]
+    }
+  ]
+}
