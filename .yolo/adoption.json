@@ -405,8 +405,10 @@
     ]
   },
   "feedback": {
-    "automatic": false,
-    "acceptance": []
+    "automatic": true,
+    "acceptance": [
+      "Maintainer approval in authenticated harness session (2026-10-22): selected 'Submit demo.yolo-dev.ai request to normzhou/yolo-dev now AND enable feedback.automatic: true' to authorize automatic sanitized upstream feedback and hostname request submission to normzhou/yolo-dev under .yolo/governance/AUTHORITY.md."
+    ]
   },
   "observation": {
     "enabled": true,
