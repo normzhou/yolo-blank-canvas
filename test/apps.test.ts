@@ -18,13 +18,15 @@ describe('canvas app registry', () => {
 
   it('resolves a known app and refuses everything else', () => {
     expect(canvasAppById('tetris')?.title).toBe('Tetris');
+    expect(canvasAppById('puzzle-bobble')?.title).toBe('Puzzle Bobble');
     expect(canvasAppById('unknown')).toBeNull();
     expect(canvasAppById(null)).toBeNull();
     expect(canvasAppById(undefined)).toBeNull();
     expect(canvasAppById('')).toBeNull();
   });
 
-  it('starts with Tetris as the first canvas app', () => {
+  it('starts with Tetris as the first canvas app and includes Puzzle Bobble', () => {
     expect(CANVAS_APPS[0]?.id).toBe('tetris');
+    expect(CANVAS_APPS.map((app) => app.id)).toEqual(['tetris', 'puzzle-bobble']);
   });
 });
