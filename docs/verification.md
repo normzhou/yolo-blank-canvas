@@ -6,7 +6,10 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Stacked slide-deck preview cards, keyboard navigation, ambient effects (#198) and static `demo.yolo-dev.ai` Cloudflare Worker scaffold (#199) — 2026-10-21
 
-Source revision `a5a6942` (the feature commit).
+Source revision `a5a6942` (the feature commit); build and review evidence
+`629e005`; release commit `a70c68f`; published as `v0.13.0` on 2026-10-21. The
+unit and stubbed e2e results below ran against the source revision; the 11/11
+acceptance below ran against the installed tag users receive.
 
 - `npm test`: 25 files, 294 tests passed. `test/theme-tokens.test.ts`,
   `test/theme-discipline.test.ts`, `test/theme-contrast.test.ts`,
@@ -35,6 +38,18 @@ Source revision `a5a6942` (the feature commit).
   Issues / `npx` notice on opening Requests/Feedback).
 - `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`,
   13/13 findings compliant.
+
+### Installed artifact (`v0.13.0`)
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.13.0 --no-open --port 4875`
+in an empty directory, with no source checkout. `GET /api/version` reported both
+`serverBuild` and `clientBuild` as `a5a6942…`; the tagged package version is
+`0.13.0`. The tag points at release commit `a70c68f`, after the assets commit
+`629e005`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4875 npm run e2e:verify-release`:
+**11 passed, 0 failed**. The report is
+[`.yolo/reports/releases-observed-2026-10-21-v0130.json`](../.yolo/reports/releases-observed-2026-10-21-v0130.json).
 
 ## Modern webapp UI redesign (#196) and 2-player Puzzle Bobble layout lock (#195) — 2026-10-21
 

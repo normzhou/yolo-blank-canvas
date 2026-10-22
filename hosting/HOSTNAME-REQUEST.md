@@ -9,7 +9,7 @@ Submit through the maintainer/explicitly authorized upstream request path in `no
 - Requested origin: none (static-only `cloudflare` profile; `BACKEND_ORIGIN` unset)
 - Installed skill tag/full publication: `v0.1.0-alpha.33` (`bbb3af70580d012cb9b5032ef7a03fdb74ee256f`, protocol `da644964ca92eef8448cd782cf6805c724ca2e74`)
 - Hosting profile: `cloudflare` (static Worker + Static Assets serving `../../dist/client` with `run_worker_first: true` and `not_found_handling: "single-page-application"`)
-- Client source/release/artifact identities: `normzhou/yolo-blank-canvas` `v0.13.0` (`hosting/cloudflare/wrangler.json` `yolo-demo-app`)
+- Client source/release/artifact identities: `normzhou/yolo-blank-canvas` `v0.13.0` (source `a5a69429be5605840fc1ca7b984cccfdaf529796`, assets `629e005c06ecb8965e2c04034029f009595523c9`, release `a70c68f5317168ad202db8c607740b25dd1b8197`; `hosting/cloudflare/wrangler.json` `yolo-demo-app`)
 - Host eligibility/readiness: static-only Cloudflare Worker (`Total Upload: 9.80 KiB / gzip: 3.19 KiB`, 17 static assets in `dist/client`); no OCI VM required
 - Primary/accessory cutover resources and persistent data budget: 0 OCI OCPUs / 0 GB VM RAM / 0 GB persistent disk (`cloudflare` static profile only)
 - Owner-operated access intent: private exact-email policy setup requested; identities supplied privately by maintainer

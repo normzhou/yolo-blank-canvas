@@ -1,0 +1,66 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-21",
+  "observed_at": "2026-10-21",
+  "published_at_utc": "2026-10-22T07:03:00Z",
+  "protocol": {
+    "revision": "da644964ca92eef8448cd782cf6805c724ca2e74",
+    "release": "v0.1.0-alpha.33"
+  },
+  "releases": [
+    {
+      "tag": "v0.13.0",
+      "commit": "a70c68f5317168ad202db8c607740b25dd1b8197"
+    }
+  ],
+  "release": {
+    "tag": "v0.13.0",
+    "tag_object": "b3d1c18c0636dbc2351f51d1997255dbdc53cb87",
+    "release_commit": "a70c68f5317168ad202db8c607740b25dd1b8197",
+    "source_commit": "a5a69429be5605840fc1ca7b984cccfdaf529796",
+    "assets_commit": "629e005c06ecb8965e2c04034029f009595523c9",
+    "semver": "minor",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record a5a6942, the source revision. The committed assets were built at that source in 629e005. a70c68f is a release-metadata commit (version and install references, no source changes) after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "294 passed across 25 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID a5a6942" },
+    { "check": "cd hosting/cloudflare && npm run check", "result": "pass", "detail": "wrangler deploy --dry-run (17 static assets, 9.80 KiB) and local workerd preview pass" },
+    { "check": "npm run e2e (stubbed, deterministic)", "result": "pass", "detail": "95 passed, 1 skipped (96 run)" },
+    { "check": "yolo-check . --structure (0.1.0-alpha.33)", "result": "pass", "detail": "13 of 13 findings compliant" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #200 completed success" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "installed_from": "npx --yes github:normzhou/yolo-blank-canvas#v0.13.0 --no-open --port 4875",
+    "installed_into": "an empty directory, no source checkout present",
+    "served_build": "a5a69429be5605840fc1ca7b984cccfdaf529796",
+    "served_version": {
+      "package": "0.13.0",
+      "serverBuild": "a5a69429be5605840fc1ca7b984cccfdaf529796",
+      "clientBuild": "a5a69429be5605840fc1ca7b984cccfdaf529796"
+    },
+    "command": "YOLO_VERIFY_URL=http://127.0.0.1:4875 npm run e2e:verify-release",
+    "result": "pass",
+    "detail": "11 of 11 passed."
+  },
+  "what_this_release_delivers": [
+    "#198 home slide-deck UX enhancements: adds stacked next/previous preview cards (.deck-stack, .deck-stack-card.is-next, .deck-stack-card.is-prev) peeking beneath the active hero card, keyboard-driven slide navigation (ArrowLeft/ArrowRight to flip, Enter/Space to launch), directional slide transition animations (.is-sliding-next/.is-sliding-prev), and subtle dynamic ambient background visual effects (.canvas-ambient)",
+    "#199 static-app preview mode and demo.yolo-dev.ai Cloudflare Worker scaffold: instantiates hosting/cloudflare/ (yolo-demo-app) and hosting/HOSTNAME-REQUEST.md under the cloudflare static profile serving ../../dist/client, and adds static_demo mode when /api/session returns 503 Backend configuration unavailable"
+  ],
+  "carried_known_gaps": [
+    "Live deployment of demo.yolo-dev.ai (#199) awaits maintainer submission of hosting/HOSTNAME-REQUEST.md to normzhou/yolo-dev and owner Cloudflare Worker/gateway secret provisioning.",
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "Acceptance on the delivered artifact is eleven targeted read-only checks. The 294 unit tests and 96 stubbed e2e tests ran against the source revision, not the installed artifact.",
+    "The tag points at a70c68f, a release-metadata commit after the assets commit 629e005, not at the assets commit itself. Both build-ID files still record the source a5a6942, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #198, #199"
+}
