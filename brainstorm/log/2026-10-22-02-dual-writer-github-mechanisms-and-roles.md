@@ -27,9 +27,10 @@
      2. Editing the `yolo:control` issue body (`PATCH /repos/:o/:r/issues/:n`) requires repo `write`/`maintain`/`admin` permission.
      3. **Locking the `yolo:control` issue (`PUT /repos/:o/:r/issues/:n/lock`)** blocks all non-collaborators (`READ`/`NONE`) from posting comments (`403 Forbidden`), while collaborators/maintainers (`write`/`maintain`/`admin`) can still post control-event comments and edit the issue body normally.
    - **Layer 2 (Read-side attribution check):** Both UI and Runner verify `comment.user.login ∈ adoption.authority.maintainers` on every control event.
-   - **Layer 3 (Decoupling regular users from GitHub accounts via Google OIDC + `[bot]`):**
-     - Standard GitHub.com does not mint GitHub user IDs from external Google OIDC tokens (EMU is enterprise-only).
-     - However, regular users **do not need a GitHub account**: they sign in via Google (`login.yolo-dev.ai` / `yolo-client-identity-v1`), receiving a stable opaque `subject` (`user_a`, `user_b`), and the app's backend posts their requests/comments to GitHub using a **GitHub App installation token (`[bot]`)** stamped with `<!-- yolo:requester id="user_8f92a1" -->` (keeping their email private while letting them track "My requests").
-     - The backend's requester route is hard-coded never to write to the locked `yolo:control` issue or apply `yolo:*` labels.
-     - Maintainers (who already own the GitHub repo) either authenticate via GitHub OAuth / local `gh` (Option 3A: posting directly as `normzhou` on GitHub so `yolo:control` events carry native human GitHub authorship) or via their allowlisted Google `subject` in D1 (Option 3B).
+   - **Layer 3 (Decided Identity & Access Model — Maintainers on GitHub, Regular Users via Bot + External ID):**
+     - **Maintainers:** Require a GitHub account; permissions are managed via their GitHub account (`admin`/`maintain` + `adoption.authority.maintainers`).
+     - **Regular Users (`user_a`, `user_b`):** Do not require a GitHub account; authenticated via Google (`login.yolo-dev.ai`) or other external IDs (`<!-- yolo:requester id="user_8f92a1" -->`) and written to GitHub via the web app's bot token.
+     - **Fine-grained GitHub Issue permissions:**
+       - With a **non-collaborator bot account on a public repo**, GitHub's own servers enforce regular-user permissions (`200` on create untagged issue & comment on unlocked issues; `403` on adding/removing labels/tags, editing `yolo:control` body, or commenting on a locked `yolo:control` issue).
+       - With a **GitHub App installation token (`issues: write`, needed for private repos)**, GitHub's API scope is coarse (`issues: write`), so the Webapp Worker enforces the append-only requester surface (`createIssue(title, body)` and `createComment` on unlocked non-control issues) while GitHub cryptographically stamps `user.login = "<app>[bot]"` (`type: "Bot"`), which the Runner/UI never accepts for `yolo:control` or `yolo:*` label/governance actions.
 4. **Walked through all 7 enumerated examples** in [`brainstorm/framework-settings-ui.md`](../framework-settings-ui.md#4-walking-through-the-7-enumerated-surface-area-examples) against this model.

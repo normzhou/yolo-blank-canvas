@@ -70,32 +70,32 @@ Even on top of GitHub's write lock, both the UI and the Runner verify attributio
 - **Issue check:** Must carry the `yolo:control` label and `issue.user.login ∈ adoption.authority.maintainers`.
 - **Event comment check:** Every setting change comment (`<!-- yolo:control-event ... -->`) is verified against `comment.user.login ∈ adoption.authority.maintainers` (and `comment.author_association ∈ {"OWNER", "MEMBER", "COLLABORATOR"}`). Any comment from any other user is ignored.
 
-### Layer 3: Can Regular Users Skip Having a GitHub Account? (Google Auth + `user_a` / `user_b` Mapping)
+### Layer 3: Decided Identity & Access Model (Maintainers on GitHub, Regular Users via Bot + External ID)
 
-**Question:** Does GitHub natively validate external IDs (like Google OIDC) to create a GitHub user ID? And can we let regular users sign in with Google (no GitHub account required) while still mapping them (`user_a`, `user_b`) and segregating them from maintainers?
+**Decided direction (2026-10-22):**
+1. **Repo Maintainers require a GitHub account**, and their permissions are managed natively with their GitHub account (`admin` / `maintain` on the repository + listed in `adoption.authority.maintainers`).
+2. **Regular Users do NOT need a GitHub account.** They sign in to the web app via Google (`login.yolo-dev.ai`) or another external IdP, which tracks their usage under a stable opaque ID (`user_a`, `user_b`, e.g., `<!-- yolo:requester id="user_8f92a1" -->`). The web app uses a **bot token** to write their requests and comments to GitHub.
+3. **Fine-grained GitHub Issue permissions** separate what the Maintainer's GitHub account can touch (`yolo:control` body/comments, `yolo:*` labels/tags, issue state) from what the Regular User bot path can touch (creating untagged request issues and commenting on unlocked request threads).
 
-1. **What GitHub supports natively:**
-   - Standard GitHub.com does **not** let you exchange a Google OIDC token for a GitHub user ID (Enterprise Managed Users / EMU only exists for corporate GitHub Enterprise Cloud orgs and still creates managed GitHub accounts).
-   - Every GitHub API write must be authenticated by either a **GitHub User token (`ghu_...`)** or a **GitHub App Installation token (`[bot]`, `ghs_...`)**.
-2. **How we decouple Regular Users from GitHub accounts (`login.yolo-dev.ai` + GitHub App `[bot]`):**
-   - Under `yolo-client-identity-v1` (`login.yolo-dev.ai`), a regular user signs in with **Google** (zero GitHub account needed).
-   - The app receives a verified principal `{ issuer: "https://login.yolo-dev.ai", subject: "usr_8f92a1", emailVerified: true }`, where `subject` (or a per-app hash `user_a`, `user_b`) is a stable, privacy-preserving user ID.
-   - When `user_a` files a request or comment in the UI, the app's backend posts to GitHub using the app's **GitHub App installation token (`[bot]`)**, embedding an opaque attribution marker (never exposing their raw email on a public repo):
-     ```markdown
-     <!-- yolo:requester id="user_8f92a1" issuer="login.yolo-dev.ai" -->
-     ```
-   - When `user_a` returns later and signs in with Google, the UI matches `user_8f92a1` so they can filter **"My requests"** and reply to their threads without ever creating a GitHub account!
-3. **How Maintainer vs. Regular User Segregation Works in This Model:**
-   - **Regular users (`user_a`, `user_b`)** authenticate via Google (`login.yolo-dev.ai`) → routed through the backend's **Requester API**, which uses the `[bot]` token but is **hard-coded in the backend never to touch `yolo:control`, never to apply `yolo:*` labels, and only to create untagged issues / comments on non-locked issues**. Even on GitHub, the `[bot]`'s requester path cannot mutate locked control state.
-   - **Maintainers (`normzhou`)** already have a GitHub account (since they own the repo). For maintainer actions, we have two choices:
-     - **Option 3A (Hybrid Auth — Google for Users, GitHub OAuth / `gh` for Maintainer):** Regular users sign in with Google (`[bot]` posts as `user_a`). When the maintainer signs in (via GitHub OAuth on hosted, or `gh` locally), their actions post under their **real GitHub user account (`normzhou`)**. That way GitHub itself cryptographically distinguishes `normzhou` (human maintainer) from `yolo-demo-app[bot]` (proxied regular users `user_a`, `user_b`).
-     - **Option 3B (Single Google Login + Linked Maintainer Subject):** Everyone signs in with Google (`login.yolo-dev.ai`). The app's private D1/env maps the maintainer's verified Google `subject` (`sub_normzhou`) to `role: "maintainer"`. Only when `principal.subject === sub_normzhou` does the backend unlock the `yolo:control` write endpoint (or use a separate Maintainer App credential / signed control attestation).
+#### How GitHub's Fine-Grained Issue Permissions Work in Practice
 
-| Actor | Needs GitHub Account? | Login Method | GitHub API Writer Identity | Attribution in Issue / Comment | Can Write to `yolo:control`? |
-| --- | --- | --- | --- | --- | --- |
-| **Anonymous Visitor** | No | None | None (read-only) | N/A | No |
-| **Regular User (`user_a`, `user_b`)** | **No** | Google (`login.yolo-dev.ai`) | App Installation `[bot]` (restricted requester route) | `<!-- yolo:requester id="user_8f92a1" -->` (opaque ID; email stays private) | **No** (blocked by backend route guard + locked `yolo:control` issue) |
-| **Maintainer (`normzhou`)** | Yes (owns repo) | Local `gh`, GitHub OAuth, or Google (`sub_normzhou` in D1 allowlist) | `normzhou` (Option 3A) or Maintainer-gated control writer (Option 3B) | Native GitHub `author: normzhou` (or verified maintainer attestation) | **Yes** |
+There is an important nuance in how GitHub enforces issue-level permissions depending on which kind of **bot token** the web app uses:
+
+| Issue Operation on GitHub | Maintainer Token (`normzhou`, repo `admin`) | Bot Option A: Dedicated Non-Collaborator GitHub Account *(public repos)* | Bot Option B: GitHub App Installation Token (`issues: write` on public or private repos) |
+| --- | --- | --- | --- |
+| **Create new issue (`title` + `body`)** | Allowed | **Allowed by GitHub** | **Allowed** (Worker passes `title` + `body` only) |
+| **Comment on open, unlocked issue** | Allowed | **Allowed by GitHub** | **Allowed** (Worker blocks commenting on `yolo:control` issue) |
+| **Add / remove `labels` (`yolo:*` tags)** | **Allowed by GitHub** | **Blocked by GitHub (`403`)** — non-collaborators cannot set labels | GitHub API allows `issues:write` to label, so **Worker omits `labels`** and **Runner ignores `LabeledEvent` if `actor.type === "Bot"`** |
+| **Edit `yolo:control` issue body** | **Allowed by GitHub** | **Blocked by GitHub (`403`)** — non-collaborators can only edit their own issues | **Worker blocks `PATCH`**, and **Runner verifies `yolo:control` edits/comments have `user.login ∈ authority.maintainers` (human, never `[bot]`)** |
+| **Comment on locked `yolo:control` issue** | **Allowed by GitHub** (collaborators bypass issue lock) | **Blocked by GitHub (`403`)** — locked issues reject non-collaborator comments | **Worker blocks**, and **Runner rejects any `yolo:control` comment where `user.login` is the `[bot]`** |
+| **Edit another user's comment (`user_a` vs `user_b`)** | Allowed (repo admin moderation) | **Blocked** — `user_a` and `user_b` share the bot token, so the **Webapp Worker enforces that `user_a` can only edit/reply to `id="user_a"`** | **Webapp Worker enforces `principal.subject` match** before calling GitHub |
+
+**Key takeaway from the table above:**
+- **Between Maintainer and Regular Users (`[bot]`):**
+  - If the repo is public and the bot uses a **non-collaborator GitHub account (Bot Option A)**, **GitHub's own servers** enforce regular-user permissions (`403` on labels/tags, `403` on editing `yolo:control` body, `403` on commenting on a locked `yolo:control` issue).
+  - If the bot uses a **GitHub App Installation token (Bot Option B)** (which works on both public and private repos), GitHub's API only has a single `issues: write` scope (no native "create/comment without label/edit" sub-scope). However, **GitHub cryptographically stamps every action with `user.login = "<app>[bot]"` (`type: "Bot"`)**, whereas the maintainer's token stamps `user.login = "normzhou"` (`type: "User"`). So combining the **Worker's 2-endpoint requester boundary** (`createIssue(title, body)` and `createComment`) with **GitHub's immutable `user.login` attribution** gives the exact same guarantee!
+- **Between `user_a` and `user_b` (both using the same bot token):**
+  - Because `user_a` and `user_b` share the web app's single bot token on GitHub, GitHub sees both of them as the bot. Therefore, **the Webapp Worker only exposes append-only operations (`createIssue` and `createComment`) to regular users** (never allowing `user_b` to edit or delete `user_a`'s issue body or comments).
 
 ---
 
