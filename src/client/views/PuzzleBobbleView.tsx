@@ -205,16 +205,16 @@ function mascotPalette(character: CharacterId, playerNumber: 1 | 2): { body: str
     case 'cat':
       return {
         body: playerNumber === 1 ? 'var(--tetromino-l)' : 'var(--tetromino-t)',
-        accent: playerNumber === 1 ? 'var(--tetromino-z)' : 'var(--tetromino-i)',
+        accent: playerNumber === 1 ? 'var(--tetromino-z)' : 'var(--tetromino-o)',
       };
     case 'dog':
       return {
-        body: playerNumber === 1 ? 'var(--tetromino-o)' : 'var(--tetromino-i)',
-        accent: playerNumber === 1 ? 'var(--tetromino-l)' : 'var(--tetromino-j)',
+        body: playerNumber === 1 ? 'var(--tetromino-o)' : 'var(--tetromino-l)',
+        accent: playerNumber === 1 ? 'var(--tetromino-l)' : 'var(--tetromino-z)',
       };
     case 'bunny':
       return {
-        body: playerNumber === 1 ? 'var(--tetromino-i)' : 'var(--tetromino-z)',
+        body: playerNumber === 1 ? 'var(--tetromino-t)' : 'var(--tetromino-z)',
         accent: playerNumber === 1 ? 'var(--tetromino-z)' : 'var(--tetromino-o)',
       };
   }
@@ -248,15 +248,37 @@ function CharacterMascotSvg({
   const crankDy = mood === 'normal' || mood === 'hurry' ? Math.cos(crankRad) * 1.8 : 0;
   const leftArmY =
     mood === 'celebrate'
-      ? -9
+      ? -11.5
       : mood === 'cheer'
-        ? -7
+        ? -8.5
         : mood === 'cry'
-          ? -6
+          ? -4.2
           : -2 + crankDy;
-  const leftArmX = mood === 'cry' ? -3.5 : -6 + crankDx;
-  const rightArmY = mood === 'celebrate' ? -9 : mood === 'cry' ? -6 : -1;
-  const rightArmX = mood === 'celebrate' ? 11 : mood === 'cry' ? 7.5 : 10;
+  const leftArmX =
+    mood === 'celebrate'
+      ? -7.6
+      : mood === 'cheer'
+        ? -7.2
+        : mood === 'cry'
+          ? -7.2
+          : -6 + crankDx;
+  const rightArmY =
+    mood === 'celebrate'
+      ? -11.5
+      : mood === 'cheer'
+        ? -8.5
+        : mood === 'cry'
+          ? -4.2
+          : -1;
+  const rightArmX =
+    mood === 'celebrate'
+      ? 11.2
+      : mood === 'cheer'
+        ? 10.6
+        : mood === 'cry'
+          ? 9.8
+          : 10;
+  const topStarY = character === 'bunny' ? -30 : character === 'cat' ? -27 : -24;
 
   return (
     <g transform={`translate(${x}, ${y})`} aria-hidden="true">
@@ -269,19 +291,29 @@ function CharacterMascotSvg({
         {/* Character-specific tail / dorsal crests behind the body */}
         {character === 'dragon' ? (
           <g>
+            <polygon points="9,-16 14,-20 12,-13" fill={accentFill} stroke="var(--text)" strokeWidth="0.8" />
             <polygon points="10,-10 15,-14 14,-7" fill={accentFill} stroke="var(--text)" strokeWidth="0.8" />
             <polygon points="12,-4 17,-7 15,0" fill={accentFill} stroke="var(--text)" strokeWidth="0.8" />
             <polygon points="11,3 17,2 13,7" fill={accentFill} stroke="var(--text)" strokeWidth="0.8" />
           </g>
         ) : null}
         {character === 'cat' ? (
-          <path
-            d="M 11 5 Q 19 2 17 -6 Q 16 -10 13 -8"
-            fill="none"
-            stroke={bodyFill}
-            strokeWidth="3"
-            strokeLinecap="round"
-          />
+          <g>
+            <path
+              d="M 11 5 Q 19 2 17 -6 Q 16 -10 13 -8"
+              fill="none"
+              stroke="var(--text)"
+              strokeWidth="4.4"
+              strokeLinecap="round"
+            />
+            <path
+              d="M 11 5 Q 19 2 17 -6 Q 16 -10 13 -8"
+              fill="none"
+              stroke={bodyFill}
+              strokeWidth="2.6"
+              strokeLinecap="round"
+            />
+          </g>
         ) : null}
         {character === 'dog' ? (
           <ellipse
@@ -309,16 +341,6 @@ function CharacterMascotSvg({
         {/* Body & tummy */}
         <ellipse cx="4" cy="0" rx="10" ry="11" fill={bodyFill} stroke="var(--text)" strokeWidth="1.2" />
         <ellipse cx="1.5" cy="2" rx="5.8" ry="7" fill="var(--on-accent)" opacity="0.88" />
-
-        {/* Right arm (visible when celebrating or crying) */}
-        <circle
-          cx={rightArmX}
-          cy={rightArmY}
-          r="3"
-          fill={bodyFill}
-          stroke="var(--text)"
-          strokeWidth="1"
-        />
 
         {/* Character-specific ears behind/on the head */}
         {character === 'cat' ? (
@@ -373,7 +395,7 @@ function CharacterMascotSvg({
         {/* Head */}
         <circle cx="2" cy="-11" r="8.6" fill={bodyFill} stroke="var(--text)" strokeWidth="1.2" />
 
-        {/* Floppy dog ears on the sides of the head */}
+        {/* Floppy dog ears & snout */}
         {character === 'dog' ? (
           <g>
             <ellipse
@@ -412,6 +434,15 @@ function CharacterMascotSvg({
           </g>
         ) : null}
 
+        {/* Bunny nose & whiskers */}
+        {character === 'bunny' ? (
+          <g>
+            <ellipse cx="1.2" cy="-9.1" rx="1.2" ry="0.85" fill="var(--tetromino-z)" />
+            <line x1="-6.8" y1="-9.5" x2="-3.5" y2="-9.2" stroke="var(--text)" strokeWidth="0.65" />
+            <line x1="6" y1="-9.2" x2="9.3" y2="-9.5" stroke="var(--text)" strokeWidth="0.65" />
+          </g>
+        ) : null}
+
         {/* Eyes & facial expression by mood */}
         {mood === 'celebrate' || mood === 'cheer' ? (
           <g>
@@ -431,8 +462,8 @@ function CharacterMascotSvg({
               strokeLinecap="round"
             />
             {/* Rosy blush cheeks */}
-            <circle cx="-4.2" cy="-9.8" r="1.5" fill="var(--tetromino-z)" opacity="0.65" />
-            <circle cx="6.6" cy="-9.8" r="1.5" fill="var(--tetromino-z)" opacity="0.65" />
+            <circle cx="-4.2" cy="-9.8" r="1.5" fill="var(--tetromino-z)" opacity="0.7" />
+            <circle cx="6.6" cy="-9.8" r="1.5" fill="var(--tetromino-z)" opacity="0.7" />
             {/* Joyful open grin */}
             <path
               d="M -1.2 -8 Q 1.2 -4.6 3.8 -8 Z"
@@ -443,12 +474,12 @@ function CharacterMascotSvg({
           </g>
         ) : mood === 'cry' ? (
           <g>
-            {/* Quivering crying eyes (> <) with watery pools */}
+            {/* Quivering crying eyes (> <) */}
             <path
               d="M -3.8 -13.6 L -0.4 -12.1 L -3.8 -10.6"
               fill="none"
               stroke="var(--text)"
-              strokeWidth="1.2"
+              strokeWidth="1.25"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
@@ -456,51 +487,59 @@ function CharacterMascotSvg({
               d="M 6.2 -13.6 L 2.8 -12.1 L 6.2 -10.6"
               fill="none"
               stroke="var(--text)"
-              strokeWidth="1.2"
+              strokeWidth="1.25"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
             {/* Wailing downturned mouth */}
             <path
-              d="M -1.4 -6.2 Q 1.2 -9.4 3.8 -6.2 Z"
+              d="M -1.4 -6.0 Q 1.2 -9.3 3.8 -6.0 Z"
               fill="var(--tetromino-z)"
               stroke="var(--text)"
               strokeWidth="0.8"
             />
-            {/* Streaming tear trails & animated cascading teardrops */}
-            <ellipse
-              className="pb-mascot-tear pb-mascot-tear-left"
-              cx="-2.6"
-              cy="-9.2"
-              rx="1.5"
-              ry="2.4"
+            {/* Streaming tear trails & animated cascading teardrops on both cheeks */}
+            <g className="pb-mascot-tear pb-mascot-tear-left">
+              <ellipse
+                cx="-3.0"
+                cy="-8.8"
+                rx="1.65"
+                ry="2.7"
+                fill="var(--tetromino-i)"
+                stroke="var(--text)"
+                strokeWidth="0.7"
+              />
+              <circle cx="-3.4" cy="-9.6" r="0.55" fill="var(--on-accent)" />
+            </g>
+            <g className="pb-mascot-tear pb-mascot-tear-right">
+              <ellipse
+                cx="5.4"
+                cy="-8.8"
+                rx="1.65"
+                ry="2.7"
+                fill="var(--tetromino-i)"
+                stroke="var(--text)"
+                strokeWidth="0.7"
+              />
+              <circle cx="5.0" cy="-9.6" r="0.55" fill="var(--on-accent)" />
+            </g>
+            <circle
+              className="pb-mascot-tear pb-mascot-tear-splash"
+              cx="-5.8"
+              cy="-5.8"
+              r="1.35"
               fill="var(--tetromino-i)"
               stroke="var(--text)"
-              strokeWidth="0.5"
-            />
-            <ellipse
-              className="pb-mascot-tear pb-mascot-tear-right"
-              cx="5"
-              cy="-9.2"
-              rx="1.5"
-              ry="2.4"
-              fill="var(--tetromino-i)"
-              stroke="var(--text)"
-              strokeWidth="0.5"
+              strokeWidth="0.55"
             />
             <circle
               className="pb-mascot-tear pb-mascot-tear-splash"
-              cx="-4.2"
-              cy="-4.5"
-              r="1.2"
+              cx="8.2"
+              cy="-5.8"
+              r="1.35"
               fill="var(--tetromino-i)"
-            />
-            <circle
-              className="pb-mascot-tear pb-mascot-tear-splash"
-              cx="6.8"
-              cy="-4.5"
-              r="1.2"
-              fill="var(--tetromino-i)"
+              stroke="var(--text)"
+              strokeWidth="0.55"
             />
           </g>
         ) : (
@@ -549,11 +588,19 @@ function CharacterMascotSvg({
           </g>
         )}
 
-        {/* Left arm cranking, cheering, celebrating, or wiping tears */}
+        {/* Left & right paws (drawn in front so raised celebration/cheer/cry poses read clearly) */}
         <circle
           cx={leftArmX}
           cy={leftArmY}
-          r="3.2"
+          r="3.1"
+          fill={bodyFill}
+          stroke="var(--text)"
+          strokeWidth="1"
+        />
+        <circle
+          cx={rightArmX}
+          cy={rightArmY}
+          r="3"
           fill={bodyFill}
           stroke="var(--text)"
           strokeWidth="1"
@@ -563,7 +610,7 @@ function CharacterMascotSvg({
         <ellipse cx="-2" cy="11" rx="4.5" ry="2.2" fill={accentFill} stroke="var(--text)" strokeWidth="1" />
         <ellipse cx="6" cy="11" rx="4.5" ry="2.2" fill={accentFill} stroke="var(--text)" strokeWidth="1" />
 
-        {/* Celebratory stars & sparkles on round win (`celebrate`) or combo (`cheer`) */}
+        {/* Celebratory 4-point stars & sparkles on round win (`celebrate`) or combo (`cheer`) */}
         {mood === 'celebrate' ? (
           <g aria-hidden="true">
             <polygon
@@ -580,14 +627,12 @@ function CharacterMascotSvg({
               stroke="var(--text)"
               strokeWidth="0.6"
             />
-            <circle
+            <polygon
               className="pb-mascot-sparkle pb-mascot-sparkle-1"
-              cx="2"
-              cy="-25"
-              r="2"
+              points={`2,${topStarY - 3.5} 3,${topStarY - 1} 5.5,${topStarY} 3,${topStarY + 1} 2,${topStarY + 3.5} 1,${topStarY + 1} -1.5,${topStarY} 1,${topStarY - 1}`}
               fill="var(--tetromino-s)"
               stroke="var(--text)"
-              strokeWidth="0.5"
+              strokeWidth="0.55"
             />
           </g>
         ) : mood === 'cheer' ? (
@@ -602,7 +647,7 @@ function CharacterMascotSvg({
 
         {/* Hurry sweat drops */}
         {mood === 'hurry' ? (
-          <g className="pb-mascot-sweat" fill="var(--tetromino-i)">
+          <g className="pb-mascot-sweat" fill="var(--tetromino-i)" stroke="var(--text)" strokeWidth="0.55">
             <circle cx="13" cy="-16" r="1.8" />
             <circle cx="16" cy="-11" r="1.4" />
           </g>
@@ -678,7 +723,7 @@ function LauncherMechanismSvg({
         />
       </g>
 
-      {/* Secondary hand-crank gear on the right */}
+      {/* Secondary hand-crank gear wheel on the right */}
       <g transform={`translate(${LAUNCHER_X + 27}, ${LAUNCHER_Y + 6}) rotate(${crankRotation})`}>
         {Array.from({ length: 8 }, (_, i) => (
           <rect
@@ -694,7 +739,10 @@ function LauncherMechanismSvg({
           />
         ))}
         <circle cx={0} cy={0} r={9.5} fill="var(--warning-weak)" stroke="var(--text)" strokeWidth="1.2" />
-        <line x1={0} y1={0} x2={0} y2={-7} stroke="var(--text)" strokeWidth="1.4" />
+        <line x1={-7.5} y1={0} x2={7.5} y2={0} stroke="var(--border-hover)" strokeWidth="1.2" />
+        <line x1={0} y1={-7.5} x2={0} y2={7.5} stroke="var(--border-hover)" strokeWidth="1.2" />
+        <circle cx={0} cy={0} r={3.2} fill="var(--surface)" stroke="var(--text)" strokeWidth="1" />
+        <circle cx={5.2} cy={0} r={2} fill="var(--accent)" stroke="var(--text)" strokeWidth="0.9" />
       </g>
 
       {/* Rotating ornate pointer arrow */}
