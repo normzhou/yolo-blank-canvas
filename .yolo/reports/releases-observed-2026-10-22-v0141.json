@@ -1,0 +1,64 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-22",
+  "observed_at": "2026-10-22",
+  "published_at_utc": "2026-10-23T00:08:30Z",
+  "protocol": {
+    "revision": "da644964ca92eef8448cd782cf6805c724ca2e74",
+    "release": "v0.1.0-alpha.33"
+  },
+  "releases": [
+    {
+      "tag": "v0.14.1",
+      "commit": "ff6a45dc6f2020820404bdde8c5b238fec6a6eae"
+    }
+  ],
+  "release": {
+    "tag": "v0.14.1",
+    "tag_object": "9d8667a0737168975d15864566b57257c19aeb48",
+    "release_commit": "ff6a45dc6f2020820404bdde8c5b238fec6a6eae",
+    "source_commit": "27ff845e7c291a2bd8709d92c3e83ee0ed0bc9f4",
+    "assets_commit": "90a9d063e79b2c1a036fd9560be386b66f9875cd",
+    "semver": "patch",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record 27ff845, the source revision. The committed assets were built at that source in 90a9d06. ff6a45d is a release-metadata commit (version and install references, no source changes) after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "156 passed across 23 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID 27ff845" },
+    { "check": "npm run e2e (stubbed, deterministic)", "result": "pass", "detail": "42 passed" },
+    { "check": "yolo-check . --structure (0.1.0-alpha.33)", "result": "pass", "detail": "13 of 13 findings compliant" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #206 completed success (39876179702)" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "installed_from": "npx --yes github:normzhou/yolo-blank-canvas#v0.14.1 --no-open --port 4875",
+    "installed_into": "an empty directory, no source checkout present",
+    "served_build": "27ff845e7c291a2bd8709d92c3e83ee0ed0bc9f4",
+    "served_version": {
+      "package": "0.14.1",
+      "serverBuild": "27ff845e7c291a2bd8709d92c3e83ee0ed0bc9f4",
+      "clientBuild": "27ff845e7c291a2bd8709d92c3e83ee0ed0bc9f4"
+    },
+    "command": "YOLO_VERIFY_URL=http://127.0.0.1:4875 npm run e2e:verify-release",
+    "result": "pass",
+    "detail": "11 of 11 passed."
+  },
+  "what_this_release_delivers": [
+    "#204 visual artwork polish following 4x high-DPI inspection: gives 2P Dog (Koro) warm amber/russet colors and 1P Bunny (Usagi) pastel lilac/pink colors so cyan teardrops (--tetromino-i) with dark outlines and white specular glints always have high contrast; moves crying/celebration paws so both teardrops and both raised victory paws are unoccluded; replaces the circular top sparkle with an ear-aware 4-point star polygon; adds Bunny nose/whiskers, 4th Dragon dorsal spike, outlined Cat tail, and spoked hand-crank wheel; and upgrades the home slide-deck Puzzle Bobble preview card with miniature Bub & Mochi mascots and specular bubble highlights"
+  ],
+  "carried_known_gaps": [
+    "Live deployment of demo.yolo-dev.ai (#199) awaits manual task #203 (dedicated Cloudflare Worker API token in ~/.local/share/yolo-demo-app/env.sh) and operator routing on normzhou/yolo-dev#208.",
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "Acceptance on the delivered artifact is eleven targeted read-only checks. The 156 unit tests and 42 stubbed e2e tests ran against the source revision, not the installed artifact.",
+    "The tag points at ff6a45d, a release-metadata commit after the assets commit 90a9d06, not at the assets commit itself. Both build-ID files still record the source 27ff845, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #204"
+}

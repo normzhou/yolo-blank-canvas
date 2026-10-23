@@ -4,6 +4,41 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Puzzle Bobble character artwork, tear contrast, crank gear, and home deck preview polish (#204) — 2026-10-22
+
+Source revision `27ff845` (the artwork polish commit); build and review evidence
+`90a9d06`; release commit `ff6a45d`; published as `v0.14.1` on 2026-10-22. The
+unit and stubbed e2e results below ran against the source revision; the 11/11
+acceptance below ran against the installed tag users receive.
+
+- Visual inspection at 4× DPI across all 4 characters (`Dragon`, `Cat`, `Dog`,
+  `Bunny`) × (`normal`, `celebrate`, `cry`) and the home slide-deck preview:
+  verified high-contrast cyan teardrops (`--tetromino-i` with dark outline and
+  white specular glint) against all 8 player palettes (`2P Dog` warm amber and
+  `1P Bunny` pastel lilac), unoccluded crying tears and foreground raised
+  victory paws, ear-aware 4-point top sparkle, Bunny nose/whiskers, outlined Cat
+  tail, spoked hand-crank wheel, and miniature Bub & Mochi mascots on the home
+  slide-deck preview.
+- `npm test`: 23 files, 156 tests passed in 697ms.
+- `npx tsc --noEmit`: clean.
+- `npm run build`: clean; `dist/client/.build-id` and
+  `server/build-id.generated.js` both report `27ff845…`.
+- `npm run e2e`: 42 passed in 32.7s against the stubbed GitHub adapter.
+- `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`,
+  13/13 findings compliant.
+
+### Installed artifact (`v0.14.1`)
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.14.1 --no-open --port 4875`
+in an empty directory, with no source checkout. `GET /api/version` reported both
+`serverBuild` and `clientBuild` as `27ff845…`; the tagged package version is
+`0.14.1`. The tag points at release commit `ff6a45d`, after the assets commit
+`90a9d06`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4875 npm run e2e:verify-release`:
+**11 passed, 0 failed**. The report is
+[`.yolo/reports/releases-observed-2026-10-22-v0141.json`](../.yolo/reports/releases-observed-2026-10-22-v0141.json).
+
 ## Selectable cute characters and win/lose animations in Puzzle Bobble (#204) — 2026-10-22
 
 Source revision `b679005` (the feature commit); build and review evidence
@@ -990,18 +1025,20 @@ agent, so these were taken under the standing grant rather than left waiting.
 
 ## Tested revision
 
-Release tag `v0.14.0` points at release commit `6570366`. Assets were built from source
-`b679005` (`dist/client/.build-id` and `server/build-id.generated.js` both report `b679005…`)
-and committed in `5ccfe0b`; the release commit itself adds only the `0.14.0` version and install
+Release tag `v0.14.1` points at release commit `ff6a45d`. Assets were built from source
+`27ff845` (`dist/client/.build-id` and `server/build-id.generated.js` both report `27ff845…`)
+and committed in `90a9d06`; the release commit itself adds only the `0.14.1` version and install
 references, with no source changes. The native version at the tagged revision (`package.json`) is
-`0.14.0`. The published artifact was installed from the release into an empty directory and accepted
+`0.14.1`. The published artifact was installed from the release into an empty directory and accepted
 11 of 11 on `e2e:verify-release`, as recorded in
-[`.yolo/reports/releases-observed-2026-10-22-v0140.json`](../.yolo/reports/releases-observed-2026-10-22-v0140.json).
+[`.yolo/reports/releases-observed-2026-10-22-v0141.json`](../.yolo/reports/releases-observed-2026-10-22-v0141.json).
 Its limits travel with it: eleven targeted read-only checks rather than the full suite; the composer
 and feedback checks do not submit a live issue; and the tag points at the release commit after the
 assets commit rather than at it.
 
-The previous revisions named or recorded above were `v0.13.1` (`8b3f76e`, assets from `8117958`,
+The previous revisions named or recorded above were `v0.14.0` (`6570366`, assets from `b679005`,
+[`.yolo/reports/releases-observed-2026-10-22-v0140.json`](../.yolo/reports/releases-observed-2026-10-22-v0140.json)),
+`v0.13.1` (`8b3f76e`, assets from `8117958`,
 [`.yolo/reports/releases-observed-2026-10-22-v0131.json`](../.yolo/reports/releases-observed-2026-10-22-v0131.json)),
 `v0.13.0` (`a70c68f`, assets from `a5a6942`,
 [`.yolo/reports/releases-observed-2026-10-21-v0130.json`](../.yolo/reports/releases-observed-2026-10-21-v0130.json)),
