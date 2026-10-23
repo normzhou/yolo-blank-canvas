@@ -76,7 +76,9 @@ and the 2-player Puzzle Bobble / Bust-A-Move entry (#181) are compiled into the 
 
 For optional static hosting at `demo.yolo-dev.ai` (#199), `hosting/cloudflare/` is instantiated
 under the adopted `cloudflare` profile (`yolo-demo-app`), serving `../../dist/client` behind the
-guarded Worker (`run_worker_first: true`). When `/api/session` returns the static Worker's `503
+guarded Worker (`run_worker_first: true`, `APP_VERSION` set to the released semver tag rather than
+`development`), and `hosting/yolo-identity/` instantiates the local shared-identity preview package
+(`CLIENT_IDENTITY_ENABLED: "false"` by default). When `/api/session` returns the static Worker's `503
 Backend configuration unavailable` response, the client enters `static_demo` mode: the home slide
 deck, Tetris, and Puzzle Bobble run with no startup error banner (`normzhou/yolo-blank-canvas ·
 static preview`), and opening **Requests** or **Feedback** displays a truthful static-preview
