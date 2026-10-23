@@ -1,0 +1,66 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-22",
+  "observed_at": "2026-10-22",
+  "published_at_utc": "2026-10-23T01:30:30Z",
+  "protocol": {
+    "revision": "da644964ca92eef8448cd782cf6805c724ca2e74",
+    "release": "v0.1.0-alpha.33"
+  },
+  "releases": [
+    {
+      "tag": "v0.14.2",
+      "commit": "db571a43672046f5a448ba24cfbcd2271a9a40bd"
+    }
+  ],
+  "release": {
+    "tag": "v0.14.2",
+    "tag_object": "737345c8a0c6ca07d4fef4fc2abf6a1518db525b",
+    "release_commit": "db571a43672046f5a448ba24cfbcd2271a9a40bd",
+    "source_commit": "a38b872b8d34159d46df4a69293e20c6a9649e53",
+    "assets_commit": "42a72e6ec939a1c0ca0b8a8321c971605829020f",
+    "semver": "patch",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record a38b872, the source revision. The committed assets were built at that source in 42a72e6. db571a4 is a release-metadata commit (version and install references, no source changes) after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "157 passed across 23 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID a38b872" },
+    { "check": "npm run e2e (stubbed, deterministic)", "result": "pass", "detail": "42 passed" },
+    { "check": "cd hosting/cloudflare && npm run check", "result": "pass", "detail": "wrangler deploy --dry-run (17 static assets, APP_VERSION=v0.14.2) and local workerd preview pass" },
+    { "check": "cd hosting/yolo-identity && npm test", "result": "pass", "detail": "2 of 2 passed (local workerd/D1 and JS/Python Oracle assertion checks)" },
+    { "check": "yolo-check . --structure (0.1.0-alpha.33)", "result": "pass", "detail": "13 of 13 findings compliant" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #207 completed success (39884262627)" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "installed_from": "npx --yes github:normzhou/yolo-blank-canvas#v0.14.2 --no-open --port 4875",
+    "installed_into": "an empty directory, no source checkout present",
+    "served_build": "a38b872b8d34159d46df4a69293e20c6a9649e53",
+    "served_version": {
+      "package": "0.14.2",
+      "serverBuild": "a38b872b8d34159d46df4a69293e20c6a9649e53",
+      "clientBuild": "a38b872b8d34159d46df4a69293e20c6a9649e53"
+    },
+    "command": "YOLO_VERIFY_URL=http://127.0.0.1:4875 npm run e2e:verify-release",
+    "result": "pass",
+    "detail": "11 of 11 passed."
+  },
+  "what_this_release_delivers": [
+    "#199 static hosting preparation in reply to Receiver revision 1 on normzhou/yolo-dev#208: sets APP_VERSION='v0.14.2' in hosting/cloudflare/wrangler.json (replacing the template default 'development' so GET /__yolo/version returns the release version), instantiates and verifies hosting/yolo-identity (CLIENT_IDENTITY_ENABLED='false', 2/2 native workerd/D1 and Python assertion tests pass), and updates hosting/HOSTNAME-REQUEST.md and test/apps.test.ts"
+  ],
+  "carried_known_gaps": [
+    "Live deployment of demo.yolo-dev.ai (#199) awaits Cloudflare Worker provisioning (#203) and operator routing on normzhou/yolo-dev#208.",
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "Acceptance on the delivered artifact is eleven targeted read-only checks. The 157 unit tests and 42 stubbed e2e tests ran against the source revision, not the installed artifact.",
+    "The tag points at db571a4, a release-metadata commit after the assets commit 42a72e6, not at the assets commit itself. Both build-ID files still record the source a38b872, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #199"
+}

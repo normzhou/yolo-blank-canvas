@@ -4,6 +4,42 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Set `APP_VERSION=v0.14.2` on `yolo-demo-app` Worker and instantiate `hosting/yolo-identity` (#199) — 2026-10-22
+
+Source revision `a38b872` (the hosting preparation commit); build and review
+evidence `42a72e6`; release commit `db571a4`; published as `v0.14.2` on
+2026-10-22. The unit and stubbed e2e results below ran against the source
+revision; the 11/11 acceptance below ran against the installed tag users
+receive.
+
+- `npm test`: 23 files, 157 tests passed in 732ms (`test/apps.test.ts` guards
+  `hosting/cloudflare/wrangler.json` `APP_VERSION` semver and
+  `hosting/yolo-identity/wrangler.json` `CLIENT_IDENTITY_ENABLED: "false"`).
+- `npx tsc --noEmit`: clean.
+- `npm run build`: clean; `dist/client/.build-id` and
+  `server/build-id.generated.js` both report `a38b872…`.
+- `npm run e2e`: 42 passed in 32.5s against the stubbed GitHub adapter.
+- `cd hosting/cloudflare && npm run check` + `preview.mjs`: `wrangler deploy --dry-run`
+  (`17 files`, `9.80 KiB`, `APP_VERSION="v0.14.2"`), `GET /__yolo/version`
+  (`200`, `{"version":"v0.14.2"}`), `GET /` (`200`), `POST /api/session`
+  (`503`), foreign `Origin` (`403`).
+- `cd hosting/yolo-identity && npm test`: 2 passed, 0 failed (`workerd`/D1 and
+  JavaScript/Python Oracle assertion checks).
+- `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`,
+  13/13 findings compliant.
+
+### Installed artifact (`v0.14.2`)
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.14.2 --no-open --port 4875`
+in an empty directory, with no source checkout. `GET /api/version` reported both
+`serverBuild` and `clientBuild` as `a38b872…`; the tagged package version is
+`0.14.2`. The tag points at release commit `db571a4`, after the assets commit
+`42a72e6`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4875 npm run e2e:verify-release`:
+**11 passed, 0 failed**. The report is
+[`.yolo/reports/releases-observed-2026-10-22-v0142.json`](../.yolo/reports/releases-observed-2026-10-22-v0142.json).
+
 ## Puzzle Bobble character artwork, tear contrast, crank gear, and home deck preview polish (#204) — 2026-10-22
 
 Source revision `27ff845` (the artwork polish commit); build and review evidence
@@ -1025,18 +1061,20 @@ agent, so these were taken under the standing grant rather than left waiting.
 
 ## Tested revision
 
-Release tag `v0.14.1` points at release commit `ff6a45d`. Assets were built from source
-`27ff845` (`dist/client/.build-id` and `server/build-id.generated.js` both report `27ff845…`)
-and committed in `90a9d06`; the release commit itself adds only the `0.14.1` version and install
+Release tag `v0.14.2` points at release commit `db571a4`. Assets were built from source
+`a38b872` (`dist/client/.build-id` and `server/build-id.generated.js` both report `a38b872…`)
+and committed in `42a72e6`; the release commit itself adds only the `0.14.2` version and install
 references, with no source changes. The native version at the tagged revision (`package.json`) is
-`0.14.1`. The published artifact was installed from the release into an empty directory and accepted
+`0.14.2`. The published artifact was installed from the release into an empty directory and accepted
 11 of 11 on `e2e:verify-release`, as recorded in
-[`.yolo/reports/releases-observed-2026-10-22-v0141.json`](../.yolo/reports/releases-observed-2026-10-22-v0141.json).
+[`.yolo/reports/releases-observed-2026-10-22-v0142.json`](../.yolo/reports/releases-observed-2026-10-22-v0142.json).
 Its limits travel with it: eleven targeted read-only checks rather than the full suite; the composer
 and feedback checks do not submit a live issue; and the tag points at the release commit after the
 assets commit rather than at it.
 
-The previous revisions named or recorded above were `v0.14.0` (`6570366`, assets from `b679005`,
+The previous revisions named or recorded above were `v0.14.1` (`ff6a45d`, assets from `27ff845`,
+[`.yolo/reports/releases-observed-2026-10-22-v0141.json`](../.yolo/reports/releases-observed-2026-10-22-v0141.json)),
+`v0.14.0` (`6570366`, assets from `b679005`,
 [`.yolo/reports/releases-observed-2026-10-22-v0140.json`](../.yolo/reports/releases-observed-2026-10-22-v0140.json)),
 `v0.13.1` (`8b3f76e`, assets from `8117958`,
 [`.yolo/reports/releases-observed-2026-10-22-v0131.json`](../.yolo/reports/releases-observed-2026-10-22-v0131.json)),

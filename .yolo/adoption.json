@@ -236,15 +236,16 @@
         "v0.12.0": "5bc37e3c0273176d348bcde1ae8770f977384024",
         "v0.13.0": "a70c68f5317168ad202db8c607740b25dd1b8197",
         "v0.13.1": "8b3f76ebe0228b3c10c10388f1611e716f552725",
-        "v0.14.0": "6570366b7e3af9d40a5ff5aa3949c753e73bc737"
+        "v0.14.0": "6570366b7e3af9d40a5ff5aa3949c753e73bc737",
+        "v0.14.1": "ff6a45dc6f2020820404bdde8c5b238fec6a6eae"
       },
       "published": {
-        "tag": "v0.14.1",
-        "commit": "ff6a45dc6f2020820404bdde8c5b238fec6a6eae",
-        "source_commit": "27ff845e7c291a2bd8709d92c3e83ee0ed0bc9f4",
-        "published_at": "2026-10-23T00:08:30Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-10-22-v0141.json",
-        "note": "Patch release. Polishes Puzzle Bobble character artwork, tear contrast across all 8 palettes, ear-aware 4-point victory sparkles, spoked hand-crank wheel, and miniature mascots on the home slide-deck preview (#204, PR #206). Acceptance before tagging: 156 unit, 42 stubbed e2e passed, tsc clean, structure pass. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit ff6a45d after the assets commit 90a9d06; both build-ID files record 27ff845."
+        "tag": "v0.14.2",
+        "commit": "db571a43672046f5a448ba24cfbcd2271a9a40bd",
+        "source_commit": "a38b872b8d34159d46df4a69293e20c6a9649e53",
+        "published_at": "2026-10-23T01:30:30Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-10-22-v0142.json",
+        "note": "Patch release. Sets APP_VERSION='v0.14.2' in hosting/cloudflare/wrangler.json (replacing template 'development'), instantiates and verifies hosting/yolo-identity (2/2 pass), and updates hosting/HOSTNAME-REQUEST.md (#199, PR #207). Acceptance before tagging: 157 unit, 42 stubbed e2e passed, tsc clean, structure pass. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit db571a4 after the assets commit 42a72e6; both build-ID files record a38b872."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -267,7 +268,8 @@
         ".yolo/reports/releases-observed-2026-10-21-v0130.json",
         ".yolo/reports/releases-observed-2026-10-22-v0131.json",
         ".yolo/reports/releases-observed-2026-10-22-v0140.json",
-        ".yolo/reports/releases-observed-2026-10-22-v0141.json"
+        ".yolo/reports/releases-observed-2026-10-22-v0141.json",
+        ".yolo/reports/releases-observed-2026-10-22-v0142.json"
       ]
     }
   },
