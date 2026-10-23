@@ -146,25 +146,39 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
           stroke="var(--border)"
           strokeWidth="1.5"
         />
-        {/* Hexagonal bubble wave */}
+        {/* Hexagonal bubble wave with glossy arcade highlights */}
         <g stroke="var(--text)" strokeWidth="1.1">
-          <circle cx="52" cy="30" r="10" fill="var(--tetromino-z)" />
-          <circle cx="72" cy="30" r="10" fill="var(--tetromino-z)" />
-          <circle cx="92" cy="30" r="10" fill="var(--tetromino-l)" />
-          <circle cx="112" cy="30" r="10" fill="var(--tetromino-l)" />
-          <circle cx="132" cy="30" r="10" fill="var(--tetromino-s)" />
-          <circle cx="152" cy="30" r="10" fill="var(--tetromino-j)" />
-          <circle cx="172" cy="30" r="10" fill="var(--tetromino-j)" />
-
-          <circle cx="62" cy="48" r="10" fill="var(--tetromino-z)" />
-          <circle cx="82" cy="48" r="10" fill="var(--tetromino-t)" />
-          <circle cx="102" cy="48" r="10" fill="var(--tetromino-l)" />
-          <circle cx="122" cy="48" r="10" fill="var(--tetromino-s)" />
-          <circle cx="142" cy="48" r="10" fill="var(--tetromino-s)" />
-          <circle cx="162" cy="48" r="10" fill="var(--tetromino-i)" />
-
-          <circle cx="92" cy="66" r="10" fill="var(--tetromino-t)" />
-          <circle cx="132" cy="66" r="10" fill="var(--tetromino-i)" />
+          {[
+            { cx: 52, cy: 30, fill: 'var(--tetromino-z)' },
+            { cx: 72, cy: 30, fill: 'var(--tetromino-z)' },
+            { cx: 92, cy: 30, fill: 'var(--tetromino-l)' },
+            { cx: 112, cy: 30, fill: 'var(--tetromino-l)' },
+            { cx: 132, cy: 30, fill: 'var(--tetromino-s)' },
+            { cx: 152, cy: 30, fill: 'var(--tetromino-j)' },
+            { cx: 172, cy: 30, fill: 'var(--tetromino-j)' },
+            { cx: 62, cy: 48, fill: 'var(--tetromino-z)' },
+            { cx: 82, cy: 48, fill: 'var(--tetromino-t)' },
+            { cx: 102, cy: 48, fill: 'var(--tetromino-l)' },
+            { cx: 122, cy: 48, fill: 'var(--tetromino-s)' },
+            { cx: 142, cy: 48, fill: 'var(--tetromino-s)' },
+            { cx: 162, cy: 48, fill: 'var(--tetromino-i)' },
+            { cx: 92, cy: 66, fill: 'var(--tetromino-t)' },
+            { cx: 132, cy: 66, fill: 'var(--tetromino-i)' },
+          ].map((b, idx) => (
+            <g key={idx}>
+              <circle cx={b.cx} cy={b.cy} r="10" fill={b.fill} />
+              <ellipse
+                cx={b.cx - 3.2}
+                cy={b.cy - 3.4}
+                rx="2.8"
+                ry="1.7"
+                transform={`rotate(-28 ${b.cx - 3.2} ${b.cy - 3.4})`}
+                fill="var(--on-accent)"
+                stroke="none"
+                opacity="0.85"
+              />
+            </g>
+          ))}
         </g>
         {/* Wall-bounce sight line */}
         <polyline
@@ -176,10 +190,33 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
         />
         {/* Launcher gear & pointer */}
         <circle cx="110" cy="146" r="14" fill="var(--field)" stroke="var(--text)" strokeWidth="1.2" />
+        <polygon points="110,122 105,134 115,134" fill="var(--warning-weak)" stroke="var(--text)" strokeWidth="1" />
         <circle cx="110" cy="146" r="9" fill="var(--tetromino-i)" stroke="var(--text)" strokeWidth="1.1" />
-        {/* Bub & Bob indicator */}
-        <circle cx="78" cy="150" r="7" fill="var(--tetromino-s)" stroke="var(--text)" strokeWidth="1" />
-        <circle cx="142" cy="150" r="7" fill="var(--tetromino-j)" stroke="var(--text)" strokeWidth="1" />
+        {/* Cute P1 Dragon & P2 Cat mascots flanking the launcher */}
+        <g transform="translate(72, 149)" stroke="var(--text)" strokeWidth="0.9">
+          <polygon points="-5,-9 -10,-12 -8,-6" fill="var(--tetromino-l)" />
+          <polygon points="-6,-3 -11,-5 -9,0" fill="var(--tetromino-l)" />
+          <polygon points="-5,3 -10,2 -7,6" fill="var(--tetromino-l)" />
+          <ellipse cx="0" cy="2" rx="6.5" ry="7" fill="var(--tetromino-s)" />
+          <ellipse cx="1.5" cy="3" rx="3.8" ry="4.5" fill="var(--on-accent)" stroke="none" opacity="0.88" />
+          <circle cx="0" cy="-6" r="5.8" fill="var(--tetromino-s)" />
+          <circle cx="-1" cy="-6.8" r="1.3" fill="var(--on-accent)" stroke="none" />
+          <circle cx="-0.8" cy="-6.8" r="0.7" fill="var(--text)" stroke="none" />
+          <circle cx="2.5" cy="-6.8" r="1.3" fill="var(--on-accent)" stroke="none" />
+          <circle cx="2.7" cy="-6.8" r="0.7" fill="var(--text)" stroke="none" />
+        </g>
+        <g transform="translate(148, 149)" stroke="var(--text)" strokeWidth="0.9">
+          <path d="M 6 4 Q 12 2 11 -4" fill="none" stroke="var(--tetromino-l)" strokeWidth="2.2" strokeLinecap="round" />
+          <polygon points="-4,-10 -2,-15 1,-10" fill="var(--tetromino-l)" />
+          <polygon points="1,-10 4,-15 6,-10" fill="var(--tetromino-l)" />
+          <ellipse cx="0" cy="2" rx="6.5" ry="7" fill="var(--tetromino-l)" />
+          <ellipse cx="-1.2" cy="3" rx="3.8" ry="4.5" fill="var(--on-accent)" stroke="none" opacity="0.88" />
+          <circle cx="0" cy="-6" r="5.8" fill="var(--tetromino-l)" />
+          <circle cx="-2.4" cy="-6.8" r="1.3" fill="var(--on-accent)" stroke="none" />
+          <circle cx="-2.6" cy="-6.8" r="0.7" fill="var(--text)" stroke="none" />
+          <circle cx="1.1" cy="-6.8" r="1.3" fill="var(--on-accent)" stroke="none" />
+          <circle cx="0.9" cy="-6.8" r="0.7" fill="var(--text)" stroke="none" />
+        </g>
       </svg>
       <div className="deck-preview-hud">
         <span>1P Bub (ASDF) vs 2P Bob (Arrows)</span>
