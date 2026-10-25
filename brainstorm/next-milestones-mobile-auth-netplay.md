@@ -13,25 +13,34 @@ Following the live launch of [`https://demo.yolo-dev.ai`](https://demo.yolo-dev.
 
 ## Candidate B: Mobile & Tablet Touch Support (Zero-Keyboard Play)
 
-### Problem
-Today, both **Tetris** and **Puzzle Bobble** rely on `window.addEventListener('keydown', ...)` (`Arrow` keys, `Space`, `ASDF`). On a phone or iPad, there is no physical keyboard, so visitors on `https://demo.yolo-dev.ai` can view the boards but cannot aim, fire, or move pieces.
+### Priority & Device-Tier Segregation (2026-10-25 Update)
+- **Leading priority:** Mobile/tablet touch support is the highest-leverage next step because `https://demo.yolo-dev.ai` is now public and visitors opening the link on a phone or iPad currently have no way to play without a physical keyboard.
+- **Good news — Puzzle Bobble 1P mode already exists!** `src/shared/puzzleBobble.ts` (`createMatch('1p')`) and `PuzzleBobbleView.tsx` already implement a full **1-Player mode** where clearing a board awards the speed bonus and automatically advances through `Stage 1` → `Stage 15`. Today it simply defaults to `'2p'` on all screen sizes, which causes the two `360px` boards to stack vertically on a `390px` phone screen.
+- **Three-Tier Device Segregation (`Phone` vs. `Tablet / iPad` vs. `Desktop`):**
+
+| Device Tier | Viewport / Input Detection | Tetris Mode | Puzzle Bobble Mode | Control Surface |
+| --- | --- | --- | --- | --- |
+| **1. Phone (Portrait / Narrow)** | `width < 768px` | **1 Player** (compact board + bottom touch pad) | **1 Player only** (auto-selects `'1p'` and hides the `2 Players` toggle so a second board never stacks below the fold) | Single-player touch controls (drag on board to aim + bottom `◀` `FIRE` `▶` bar) |
+| **2. Tablet / iPad & Wide Touch** | `width >= 768px` and `(pointer: coarse)` | **1 Player** (full board + touch pad) | **2 Players side-by-side** (two `360px` cards = `736px`, fitting `768px+` iPad screens side-by-side!) *or* **1 Player** | **Independent per-card multi-touch:** each player's card has its own touch SVG aim + its own `◀` `FIRE` `▶` touch bar, using `PointerEvent.pointerId` so P1 (left side of iPad) and P2 (right side of iPad) can aim and fire simultaneously with zero interference! |
+| **3. Desktop / Laptop** | `width >= 768px` and `(pointer: fine)` | **1 Player** (keyboard + optional pointer/click) | **2 Players side-by-side** (`ASDF` vs `Arrows`) *or* **1 Player** | Keyboard (`ASDF` / `Arrows` / `Space`) + mouse/trackpad drag-to-aim and click controls |
 
 ### Proposed UX & Input Architecture
 
 1. **Home Slide Deck:**
    - Horizontal touch swipe (`onPointerDown` / `onPointerUp` delta-X) on `.deck-slide-card` flips to the previous/next game slide, alongside existing tap targets (`Play`, stacked preview cards, header switcher).
-2. **Puzzle Bobble — Direct Pointer Aiming + Touch Arcade Bar:**
-   - **Direct Drag-to-Aim on the Board SVG (`PointerEvents`):**
-     - Touching/dragging anywhere on the active player's board SVG computes the exact angle from the launcher pivot `(LAUNCHER_X, LAUNCHER_Y)` to the pointer `(svgX, svgY)`:
+2. **Puzzle Bobble — Direct Pointer Aiming + Per-Board Touch Arcade Bar:**
+   - **Direct Drag-to-Aim on the Board SVG (`PointerEvents` with `pointerId` capture):**
+     - Touching/dragging anywhere on a player's board SVG computes the exact angle from that board's launcher pivot `(LAUNCHER_X, LAUNCHER_Y)` to the pointer `(svgX, svgY)`:
        $$\theta = \operatorname{clamp}\left(\operatorname{atan2}(x - x_0,\; y_0 - y) \cdot \frac{180}{\pi},\; -75^\circ,\; +75^\circ\right)$$
-     - The dashed multi-bounce sight line updates live at 60fps as the finger moves.
-   - **Tactile Touch Control Bar Below the Board:**
-     - Dedicated touch buttons: **`◀ -0.5°`** (tap for `0.5°` micro-step, hold for smooth sweep), **`FIRE`** (prominent primary pill), and **`+0.5° ▶`** (tap for `0.5°` micro-step, hold for smooth sweep).
-     - Prevents accidental shots when adjusting aim on a small screen: dragging on the board aims, and tapping **`FIRE`** (or double-tapping / releasing in a designated launch zone) fires.
-   - **Default Mobile Mode:** On narrow viewports (`≤ 720px`) or coarse pointers (`(pointer: coarse)`), default Puzzle Bobble to **1 Player** (so a single board + touch controls fit on one screen without vertical scrolling), while keeping **2 Players** one tap away.
+     - Because each `<PlayerArena>` tracks its own `activePointerId`, on an iPad in 2P mode **Player 1 and Player 2 can both drag on their own boards at the exact same time** (true multi-touch!).
+   - **Tactile Touch Control Bar Inside Each `<PlayerArena>` Card:**
+     - Dedicated touch buttons inside the card: **`◀ -0.5°`** (tap for `0.5°` micro-step, hold for smooth sweep), **`FIRE`** (prominent primary pill), and **`+0.5° ▶`** (tap for `0.5°` micro-step, hold for smooth sweep).
+     - Putting the touch bar inside `<PlayerArena>` means in 1P phone mode there is one bar at the bottom of the screen, and in 2P iPad mode each player has their own bar directly under their own board.
+   - **Automatic Phone `< 768px` 1P Enforcement:**
+     - When `window.innerWidth < 768`, initialize Puzzle Bobble in `'1p'` mode (and if resized below `768px`, switch to `'1p'`) and hide the `2 Players` mode button so phones always get a clean single-board layout that fits in one viewport.
 3. **Tetris — On-Screen Arcade Pad + Board Gestures:**
    - **On-Screen Touch Pad (`←`, `→`, `↻ Rotate`, `↓ Soft`, `⤓ Drop`):**
-     - Rendered below the board on touch/narrow devices (`pointer: coarse` or `max-width: 720px`), with press-and-hold auto-repeat (`160ms` initial delay, `55ms` repeat) for left/right/soft-drop.
+     - Rendered below the board, with press-and-hold auto-repeat (`160ms` initial delay, `55ms` repeat) for left/right/soft-drop.
    - **Direct Board Touch Gestures:**
      - Drag horizontally across the board to move column-by-column; tap board to rotate; flick down to hard-drop.
    - `touch-action: none` / `user-select: none` on game surfaces so rapid taps never trigger mobile browser pinch-zoom or text selection.
