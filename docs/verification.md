@@ -4,6 +4,25 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Mobile and tablet touch support for Puzzle Bobble, Tetris, and the home slide deck (#212) — 2026-10-25
+
+Source revision `ca12567` (the feature commit).
+
+- `npm test`: 23 files, 157 tests passed (`test/puzzle-bobble.test.ts` verifies
+  `aimAngleFromBoardPoint` and `setPlayerAimAngle`).
+- `npx tsc --noEmit`: clean.
+- `npm run build`: clean; `dist/client/.build-id` and
+  `server/build-id.generated.js` both report `ca12567…`.
+- `npm run e2e`: 43 passed (`e2e/puzzle-bobble.spec.ts` (3) verifies `< 768px`
+  phone `1p`-only enforcement with zero horizontal overflow, `>= 768px`
+  tablet/iPad `2p` side-by-side layout, direct drag-to-aim on the board SVG
+  without accidental firing on release, `FIRE` button shooting, and `tetris-touch-controls`
+  without a keyboard).
+- `cd hosting/cloudflare && npm run check`: `wrangler deploy --dry-run` passes
+  with `APP_VERSION="v0.16.0"`.
+- `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`,
+  13/13 findings compliant.
+
 ## Expand Puzzle Bobble to 15 named classic stages with level stepper (#210) — 2026-10-25
 
 Source revision `faa219f` (the feature commit); build and review evidence
