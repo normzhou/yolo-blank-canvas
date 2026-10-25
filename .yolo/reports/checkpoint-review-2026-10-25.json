@@ -1,0 +1,345 @@
+{
+  "schema_version": 2,
+  "kind": "review-report",
+  "status": "successful-review",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-25",
+  "protocol": {
+    "revision": "da644964ca92eef8448cd782cf6805c724ca2e74",
+    "release": "v0.1.0-alpha.33",
+    "sha256": "2f3663b8819c61c28a3216ce622903b6b36b825ea7f9e3e76504c126135cd305"
+  },
+  "outcome_issue": 208,
+  "revision": "c021e2e335e09859bfde27c40cd6cfa412e4c880",
+  "default_revision": "c021e2e335e09859bfde27c40cd6cfa412e4c880",
+  "from": "c62fbd30c1375e63d0554c500220f5fb1602b97d",
+  "previous_report": ".yolo/reports/checkpoint-review-2026-10-21.json",
+  "interval_note": "Reviews the 78 commits on main from checkpoint c62fbd3 to c021e2e, covering the 2026-10-21 checkpoint landing (#179), 2-player Puzzle Bobble (#181 v0.9.0, #183 v0.10.0, #186/#185 v0.10.1), the v0.1.0-alpha.33 pin upgrade (#189), the full-stage game slide deck and yolo.*@1.0.0 request templates (#187, #174, v0.11.0), the modern webapp UI redesign and locked 2P Puzzle Bobble layout (#196, #195, v0.12.0), stacked preview cards, keyboard slide-deck navigation, ambient effects and static demo.yolo-dev.ai scaffold (#198, #199, v0.13.0), test-suite consolidation (#201, v0.13.1), selectable cute characters and artwork polish (#204, v0.14.0, v0.14.1), APP_VERSION=v0.14.2 + hosting/yolo-identity + live https://demo.yolo-dev.ai publication (#199, #203, normzhou/yolo-dev#208, v0.14.2), feedback.automatic: true authorization, and the brainstorm/ workspace (normzhou/yolo-dev#285). Also supplies historical_findings under checkpoint_history: supplemented-v1 for the six pre-four-obligation reports in the checkpoint chain.",
+  "reviewed_commits": [
+    "ab9728229bfc0d47d5ff9de1c63ed68093518b9a",
+    "f6defae1f98b6c0fd6b7126d861a2ce18908c6cf",
+    "3701a7c67201c30822809397456e1fbadbe78de3",
+    "a398c93d1ae3f39c2387a78d61e7dfce91b0e131",
+    "6d1fb799b9f62aad66e52328f605520b8461eb2c",
+    "a36ffd45503e4c2ba6e9149393a23e568dd4ec24",
+    "c71ee00d67f6b98385bc1a9eb6ca8b86e93b2128",
+    "ae503ca9c223406a894a0c1165ce13d73053efe4",
+    "e21c0d2bae6545501960df24d9189d6594e04603",
+    "6aa3985b9fa901739f9fd61c488c226329884285",
+    "d0074554c1f25b97a2162f0bc7f78d4951733960",
+    "5076e5e51a93505becbc36fb40e14c937abb927b",
+    "91e747f28de466331d0df7cb2a46bb2e267ff5fa",
+    "0be8d419c61bcc24268d5932780a262dfc95c57a",
+    "0da7fcbb97d206d47b98e97988f3bca66d455c20",
+    "d6592f89821a9ab2c8fa78540ec5a812d5054604",
+    "86560945fe7f8465597d9572d0f321a493a4b21c",
+    "3bfb9f655326d1dcc8bdf3135c59b48ca175ac2f",
+    "88a42bc352203e232816044ab8869235814f6e63",
+    "6615d1d014a20d2883ffe04b08105b9ec1da6505",
+    "ed0c53a734b4bc0b09ee362447e419ae80e9ce80",
+    "c26708dcc851f307e9c702cc0cc2c520eb7e47e3",
+    "ea6d1d73c4d9d5716e3de425c779a9851dc0b4ac",
+    "e5502d17aaf6cdef74d683f07fa264b5b369ee83",
+    "d311856151a392c986fca3c212457a91a4b63c79",
+    "46ddf753f0d7b4096053597d316cd9361e0041a6",
+    "85f5578fc632b3c1134c3096fcb9f1ce40a0c021",
+    "47b31c6bf38b061f43b68060b0a5a65ff4c93e17",
+    "886a97c182222e997d25c760e8de784198ff7a88",
+    "23784af158228f15172efdf279683a43374faada",
+    "9044180284ea0737767f08ff35c6143b3e4c3aed",
+    "d65522d57a15b426d73fe411d3a5845371975313",
+    "b547f4e732254b75e649a1aae883cdc5fd617431",
+    "52f001dc1347ad58d8ddc499a8d9434f045e96cf",
+    "48150d6ec2152d6ecded7d73f0b65da2c8c4fc75",
+    "9a6554570a630fb52eece02d8e952452433e10b4",
+    "d678e4876f64deb4b7fbecad6342cd09e82ee0f5",
+    "d8458d757c34d7914750c034ba7d5676f3dbd5c4",
+    "84625a2abba52bebad91b52a4c9d6459d7dac0d4",
+    "d95d08de03b012902c5c2c4d0b4ffa4f373924d3",
+    "ea34475050098a122aaf1cdc7403c6f934492f56",
+    "f22d7d4477e05c01da15f649dd6bfc43cc252b17",
+    "5bc37e3c0273176d348bcde1ae8770f977384024",
+    "060e106ed21a08578951c5c63df0843a0209f273",
+    "a5a69429be5605840fc1ca7b984cccfdaf529796",
+    "629e005c06ecb8965e2c04034029f009595523c9",
+    "d5d59fb2f58a4b82b2f32f062478ae3939a21593",
+    "a70c68f5317168ad202db8c607740b25dd1b8197",
+    "43b25c9dea7c88e2aea2dafbcf64246263fd1a2b",
+    "811795877191e11aedd7981429bceb214681b0bf",
+    "4fbe2d1141350398c5f4abe083f90573708c4261",
+    "5fa96083076abb01344655f71d1ad72a3e10038a",
+    "8b3f76ebe0228b3c10c10388f1611e716f552725",
+    "255468599a800a5db0bd27700abc9c0e6bc60af7",
+    "830d1730c9e57fedecd6c982b60f48169b091fbb",
+    "76dde372f97be004e27d6d278f8d242d2fd57f42",
+    "13ae22b576c215c3ec487393ecd63bfdc1025e63",
+    "c9905b0d9bd0937943fb497f844bcbc1079f8f2b",
+    "4861fbe1fc56995de73d736161d08edcfe73e4b3",
+    "76a0315e7758ce7f86b0815cf624ed1442a677a5",
+    "d1b5a093b458dfa766a04cae77ed20e86a8426fc",
+    "b679005fc66915b882f7f565434e224761e5439d",
+    "5ccfe0bf7351abd607a75029ddc207941c97e216",
+    "fc3887b7a4b245f9811d0c6eb698ec70de416538",
+    "6570366b7e3af9d40a5ff5aa3949c753e73bc737",
+    "ca2557237711921cab400212f0cd879f29f5a944",
+    "27ff845e7c291a2bd8709d92c3e83ee0ed0bc9f4",
+    "90a9d063187d88268f8d34de2ad4a7a969159e56",
+    "b85c1a071830c9f127654e5479f0889cd266b345",
+    "ff6a45dc6f2020820404bdde8c5b238fec6a6eae",
+    "f43a5a55c00e3dda2069de623a176bf3110f30d2",
+    "a38b872b8d34159d46df4a69293e20c6a9649e53",
+    "42a72e6c0b6e2a664aab3f94e56ff921595a30fa",
+    "bf265f9da8bea944d1e75343ec9f8494fb0ada5f",
+    "db571a43672046f5a448ba24cfbcd2271a9a40bd",
+    "203b554c7ea1f701acf8217a9247560dd46c2120",
+    "ddd46ce3359bf60adaf20066e1453dd2f3db7f47",
+    "c021e2e335e09859bfde27c40cd6cfa412e4c880"
+  ],
+  "working_changes": [],
+  "harness": {
+    "name": "Cursor (Gemini 4 Argon)",
+    "version": "darwin-25.6.0",
+    "fresh_session": true,
+    "loading_evidence": [
+      "Loaded AGENTS.md, .agents/skills/yolo/SKILL.md, .yolo/adoption.json, .yolo/protocol.md (v0.1.0-alpha.33, sha256 2f3663b8...), .yolo/governance/CHARTER.md, .yolo/governance/AUTHORITY.md, .yolo/governance/ARCHITECTURE.md, and .yolo/governance/specs/status-presentation.md.",
+      "Reconciled open work (#199 and normzhou/yolo-dev#208), verified live https://demo.yolo-dev.ai over HTTPS and headless Chrome, closed #199, and ran yolo-check . to identify and execute the 78-commit checkpoint review and supplemented-v1 historical chain supplementation (#208)."
+    ]
+  },
+  "github": [
+    "All admitted work outcomes through #204 and #199 are closed as completed with exactly one ## YOLO status summary comment each and no leftover yolo:state:* labels.",
+    "Manual task #203 (yolo:manual) is closed with no state label after maintainer completion and verified Worker deployment.",
+    "Deferred request #170 (yolo:request) remains open with its ## YOLO request triage comment and reconsideration condition.",
+    "Upstream hostname request normzhou/yolo-dev#208 is closed as FULFILLED (Receiver revision 9), with https://demo.yolo-dev.ai serving v0.14.2 (build a38b872) live over HTTPS; upstream feedback normzhou/yolo-dev#285 is open with yolo:request.",
+    "Published releases v0.9.0 (ae503ca), v0.10.0 (0da7fcb), v0.10.1 (c26708d), v0.11.0 (d678e48), v0.12.0 (5bc37e3), v0.13.0 (a70c68f), v0.13.1 (8b3f76e), v0.14.0 (6570366), v0.14.1 (ff6a45d), and v0.14.2 (db571a4) each have immutable tags and 11/11 installed-artifact verification reports."
+  ],
+  "findings": [
+    {
+      "rule": "ownership",
+      "status": "compliant",
+      "detail": "Every authority-controlled or protected change in this 78-commit interval had explicit maintainer approval before landing: (1) the v0.1.0-alpha.33 pin upgrade (#189, PR #190, commit 46ddf75) was approved by maintainer normzhou ('approved'); (2) enabling feedback.automatic: true in .yolo/adoption.json (commit 830d173) was explicitly selected and approved by maintainer normzhou in session ('Submit demo.yolo-dev.ai request to normzhou/yolo-dev now AND enable feedback.automatic: true'); and (3) provisioning the client Cloudflare Worker yolo-demo-app (#199, #203, normzhou/yolo-dev#208) used the maintainer-supplied per-Worker API token and maintainer-selected public static demo visibility. Co-owned ARCHITECTURE.md and status-presentation.md updates in PRs #182, #193, #194, #197, and #200 notified the maintainer at landing. CHARTER.md and AUTHORITY.md were untouched.",
+      "evidence": [
+        "https://github.com/normzhou/yolo-blank-canvas/issues/189",
+        "https://github.com/normzhou/yolo-blank-canvas/pull/190",
+        "https://github.com/normzhou/yolo-blank-canvas/issues/199",
+        "https://github.com/normzhou/yolo-blank-canvas/issues/203",
+        "https://github.com/normzhou/yolo-dev/issues/208",
+        ".yolo/adoption.json"
+      ]
+    },
+    {
+      "rule": "congruence",
+      "status": "compliant",
+      "detail": "All product and hosting slices in the interval advance the Charter purpose ('Build the best UI/UX for gathering and processing feedback requests, so that a YOLO Dev-enabled web app can become a living app') while preserving all six durable constraints: (1) #181/#183/#186/#185/#204 added and polished 2-player Puzzle Bobble (Bust-A-Move) and beveled Tetris blocks as local-view-state canvas apps with zero non-GitHub persistence; (2) #187/#196/#195/#198 redesigned the shell into a unified top navbar, relocated ThemeSwitcher into the Requests panel footer, locked 2P Puzzle Bobble geometry, and added stacked preview cards, keyboard navigation, slide animations, and ambient effects; (3) #174 adopted the v0.1.0-alpha.33 yolo.*@1.0.0 request templates and installed .github/ISSUE_TEMPLATE/yolo.*.yml while preserving backward compatibility; (4) #201 consolidated redundant unit/E2E tests (294 -> 157 unit, 96 -> 42 E2E) and separated visual review captures; and (5) #199 instantiated hosting/cloudflare and hosting/yolo-identity, added truthful static_demo mode on 503 Backend configuration unavailable, and published https://demo.yolo-dev.ai live with no secrets or account IDs in source. The three replica_candidates in .agents/skills/yolo/assets/ remain immutable starter templates.",
+      "evidence": [
+        ".yolo/governance/CHARTER.md",
+        ".yolo/governance/ARCHITECTURE.md",
+        ".yolo/governance/specs/status-presentation.md",
+        "yolo-check . --structure at c021e2e — structure.status: pass, 13/13 findings compliant"
+      ]
+    },
+    {
+      "rule": "verification",
+      "status": "compliant",
+      "detail": "Acceptance was run at c021e2e and across all ten releases in the interval (v0.9.0, v0.10.0, v0.10.1, v0.11.0, v0.12.0, v0.13.0, v0.13.1, v0.14.0, v0.14.1, v0.14.2). At c021e2e: npm test passes 157 tests across 23 files; npx tsc --noEmit is clean; npm run e2e passes 42 tests against the stubbed adapter; cd hosting/cloudflare && npm run check and cd hosting/yolo-identity && npm test pass; yolo-check . --structure passes 13/13; every release passed 11/11 e2e:verify-release on its installed artifact; and https://demo.yolo-dev.ai passed live HTTPS, origin-guard (403 on unsigned direct origin), and headless Chrome Playwright verification.",
+      "evidence": [
+        "npm test — 23 files, 157 tests passed at c021e2e",
+        "npx tsc --noEmit — clean at c021e2e",
+        "npm run e2e — 42 passed at c021e2e",
+        "yolo-check . --structure — pass (13/13 compliant) at c021e2e",
+        ".yolo/reports/releases-observed-2026-10-22-v0142.json",
+        "docs/verification.md"
+      ]
+    },
+    {
+      "rule": "continuity",
+      "status": "compliant",
+      "detail": "Full history back to baseline 520a81e is preserved without rewrite. Using checkpoint_history: supplemented-v1 (adopted in v0.1.0-alpha.33 via #189), this report supplies historical_findings for the six unchanged early reports in the checkpoint chain (delivery-2026-10-06-final.json, delivery-2026-10-06-alpha13.json, delivery-2026-10-05-22.json, delivery-2026-10-05-5.json, activation-2026-10-05.json, and onboarding-l1-proposal.json) that predate the four-obligation rule, resolving the checkpoint finding without modifying any historical report file.",
+      "evidence": [
+        ".yolo/adoption.json",
+        ".yolo/reports/checkpoint-review-2026-10-12.json",
+        ".yolo/reports/checkpoint-review-2026-10-21.json",
+        "https://github.com/normzhou/yolo-blank-canvas/issues/141"
+      ]
+    }
+  ],
+  "historical_findings": [
+    {
+      "report": ".yolo/reports/delivery-2026-10-06-final.json",
+      "sha256": "cc3f65b30188cd89427d1a8710c5f03efe8a3e0d9ce28701640536e5e3607064",
+      "findings": [
+        {
+          "rule": "congruence",
+          "status": "resolved",
+          "evidence": [
+            ".yolo/reports/delivery-2026-10-06-final.json",
+            ".yolo/reports/checkpoint-review-2026-10-12.json",
+            "https://github.com/normzhou/yolo-blank-canvas/issues/141"
+          ],
+          "detail": "Original report at 6f0ec1e recorded delivery, release, issues, ownership, and verification under the pre-four-obligation schema without a separate congruence entry. Re-reviewed in checkpoint-review-2026-10-12.json and here: the interval 870c1e2..6f0ec1e delivered the #38/#39 status-presentation and release-observation updates in full alignment with CHARTER.md and ARCHITECTURE.md."
+        },
+        {
+          "rule": "continuity",
+          "status": "resolved",
+          "evidence": [
+            ".yolo/reports/delivery-2026-10-06-final.json",
+            ".yolo/reports/checkpoint-review-2026-10-12.json",
+            "https://github.com/normzhou/yolo-blank-canvas/issues/141"
+          ],
+          "detail": "Original report at 6f0ec1e omitted a separate continuity rule key while chaining from delivery-2026-10-06-alpha13.json (from 870c1e2 to 6f0ec1e). Re-reviewed in checkpoint-review-2026-10-12.json and here: all commits in 870c1e2..6f0ec1e are accounted for with intact ancestry and synchronized GitHub issue/release records."
+        }
+      ]
+    },
+    {
+      "report": ".yolo/reports/delivery-2026-10-06-alpha13.json",
+      "sha256": "3364843410090372cdd545416ecb8f57165d8e9b15cef0c821a9ad54c40de4d3",
+      "findings": [
+        {
+          "rule": "congruence",
+          "status": "resolved",
+          "evidence": [
+            ".yolo/reports/delivery-2026-10-06-alpha13.json",
+            ".yolo/reports/checkpoint-review-2026-10-12.json",
+            "https://github.com/normzhou/yolo-blank-canvas/issues/36"
+          ],
+          "detail": "Original report at 870c1e2 recorded ownership, verification, and continuity for the alpha.13 upgrade (#36, PR #37) without a separate congruence key. Re-reviewed in checkpoint-review-2026-10-12.json and here: the interval 0c8038f..870c1e2 preserved accepted Charter purpose, governing homes, and target implementation congruence."
+        }
+      ]
+    },
+    {
+      "report": ".yolo/reports/delivery-2026-10-05-22.json",
+      "sha256": "fab1e25137202ad62a67ffda50762e4d18e9dcfc43d9a86b76cfd907b5668619",
+      "findings": [
+        {
+          "rule": "congruence",
+          "status": "resolved",
+          "evidence": [
+            ".yolo/reports/delivery-2026-10-05-22.json",
+            ".yolo/reports/checkpoint-review-2026-10-12.json",
+            "https://github.com/normzhou/yolo-blank-canvas/issues/22"
+          ],
+          "detail": "Original report at 0c8038f recorded ownership, verification, and continuity for outcome #22 (v0.1.1) without a separate congruence key. Re-reviewed in checkpoint-review-2026-10-12.json and here: the interval b4d07db..0c8038f implemented the status-presentation and launcher fixes in congruence with CHARTER.md and ARCHITECTURE.md."
+        }
+      ]
+    },
+    {
+      "report": ".yolo/reports/delivery-2026-10-05-5.json",
+      "sha256": "2f34787ebb050c54e2bcbe82d8671d4910353108f9059b7b87cefd69c8d785d2",
+      "findings": [
+        {
+          "rule": "congruence",
+          "status": "resolved",
+          "evidence": [
+            ".yolo/reports/delivery-2026-10-05-5.json",
+            ".yolo/reports/checkpoint-review-2026-10-12.json",
+            "https://github.com/normzhou/yolo-blank-canvas/issues/5"
+          ],
+          "detail": "Original report at b4d07db recorded ownership, verification, continuity, and architecture for outcome #4/#5 without a separate congruence key. Re-reviewed in checkpoint-review-2026-10-12.json and here: the interval e6efe78..b4d07db delivered the initial Tetris view (#4) and status refinements (#5) in congruence with CHARTER.md and ARCHITECTURE.md."
+        }
+      ]
+    },
+    {
+      "report": ".yolo/reports/activation-2026-10-05.json",
+      "sha256": "6fa0db95f41087561fe5796c133cf3890c4a4dcf673ba36dff2696590b7fa740",
+      "findings": [
+        {
+          "rule": "ownership",
+          "status": "resolved",
+          "evidence": [
+            ".yolo/reports/activation-2026-10-05.json",
+            "https://github.com/normzhou/yolo-blank-canvas/issues/6",
+            ".yolo/adoption.json"
+          ],
+          "detail": "Original report at e6efe78 recorded authority, verification, and continuity using the rule name 'authority' rather than 'ownership'. Re-reviewed in checkpoint-review-2026-10-12.json and here: maintainer normzhou authenticated and accepted the initial Charter and L1 authority grant on issue #6 before activation at e6efe78."
+        },
+        {
+          "rule": "congruence",
+          "status": "resolved",
+          "evidence": [
+            ".yolo/reports/activation-2026-10-05.json",
+            ".yolo/governance/CHARTER.md",
+            ".yolo/governance/ARCHITECTURE.md"
+          ],
+          "detail": "Original report at e6efe78 recorded architecture and layout findings without a separate 'congruence' rule key. Re-reviewed in checkpoint-review-2026-10-12.json and here: the activated L1 setup in 520a81e..e6efe78 aligned CHARTER.md, AUTHORITY.md, ARCHITECTURE.md, AGENTS.md, and .yolo/adoption.json."
+        }
+      ]
+    },
+    {
+      "report": ".yolo/reports/onboarding-l1-proposal.json",
+      "sha256": "7530c77999aa1b3c9d2043282ae603b48588e64ee25e39c0c68e8e7fd04f8380",
+      "findings": [
+        {
+          "rule": "congruence",
+          "status": "resolved",
+          "evidence": [
+            ".yolo/reports/onboarding-l1-proposal.json",
+            ".yolo/governance/CHARTER.md",
+            ".yolo/governance/ARCHITECTURE.md"
+          ],
+          "detail": "Original onboarding report at b0cf4bb recorded ownership, verification, continuity, layout, and architecture without a separate 'congruence' rule key. Re-reviewed in checkpoint-review-2026-10-12.json and here: the onboarding proposal in 520a81e..b0cf4bb accurately mapped the repository's architecture, governing documents, and verification boundaries."
+        }
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "revision": "c021e2e335e09859bfde27c40cd6cfa412e4c880",
+      "result": "pass",
+      "evidence": "npm test (23 files, 157 passed); npx tsc --noEmit (clean); npm run e2e (42 passed); cd hosting/cloudflare && npm run check (pass); cd hosting/yolo-identity && npm test (2 passed); yolo-check . --structure (pass, 13/13 compliant); installed v0.14.2 artifact verified 11/11 via npm run e2e:verify-release (.yolo/reports/releases-observed-2026-10-22-v0142.json); https://demo.yolo-dev.ai verified live over HTTPS and in headless Chrome."
+    }
+  ],
+  "qualification": {
+    "level": 1,
+    "status": "unverified",
+    "criteria": [
+      {
+        "id": "Q1",
+        "verdict": "pass",
+        "reason": "Portable setup is intact on v0.1.0-alpha.33: yolo-check . --structure passes 13/13 with matching protocol digest, 92-file manifest digest, canonical governing homes, and intact harness bindings.",
+        "evidence": [
+          ".yolo/adoption.json",
+          ".yolo/protocol.md"
+        ]
+      },
+      {
+        "id": "Q2",
+        "verdict": "pass",
+        "reason": "Authorized tasks #181, #183, #186/#185, #189, #187, #174, #196/#195, #198, #199/#203, #201, and #204 were interpreted, admitted, verified, and delivered within the standing L1 grant, with authority-controlled changes (#189 pin upgrade, feedback.automatic: true, #203 Worker deployment and visibility) approved by maintainer normzhou.",
+        "evidence": [
+          "https://github.com/normzhou/yolo-blank-canvas/issues/189",
+          "https://github.com/normzhou/yolo-blank-canvas/issues/196",
+          "https://github.com/normzhou/yolo-blank-canvas/issues/198",
+          "https://github.com/normzhou/yolo-blank-canvas/issues/199",
+          "https://github.com/normzhou/yolo-blank-canvas/issues/201",
+          "https://github.com/normzhou/yolo-blank-canvas/issues/204"
+        ]
+      },
+      {
+        "id": "Q3",
+        "verdict": "pass",
+        "reason": "All 78 commits in c62fbd3..c021e2e are reviewed across ownership, congruence, verification, and continuity, and historical_findings supplements the six pre-four-obligation reports in the checkpoint chain.",
+        "evidence": [
+          ".yolo/reports/checkpoint-review-2026-10-25.json"
+        ]
+      },
+      {
+        "id": "Q4",
+        "verdict": "pass",
+        "reason": "v0.9.0 through v0.14.2 were each installed from their immutable tags into an empty directory and passed 11/11 e2e:verify-release, and https://demo.yolo-dev.ai is verified live over HTTPS and in headless Chrome.",
+        "evidence": [
+          ".yolo/reports/releases-observed-2026-10-22-v0142.json",
+          "docs/verification.md"
+        ]
+      },
+      {
+        "id": "Q5",
+        "verdict": "pass",
+        "reason": "Fresh continuation observed across OpenCode and Cursor on v0.1.0-alpha.33, reconciling cross-repo hosting handoffs (normzhou/yolo-dev#208) and advancing work from shared Git/GitHub records.",
+        "evidence": [
+          ".yolo/reports/upgrade-alpha33-proposal.json",
+          ".yolo/reports/checkpoint-review-2026-10-25.json"
+        ]
+      }
+    ]
+  },
+  "next": "Advance checkpoint in .yolo/adoption.json to c021e2e335e09859bfde27c40cd6cfa412e4c880 after this report lands on main."
+}
