@@ -331,6 +331,7 @@ export function App() {
   const deckNavRef = useRef<HTMLElement>(null);
   const appRegionRef = useRef<HTMLElement>(null);
   const panelOpenerRef = useRef<PanelOpener | null>(null);
+  const deckSwipeStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const activeApp = canvasAppById(appId);
   const [slideIndex, setSlideIndex] = useState<number>(() => {
@@ -819,6 +820,22 @@ export function App() {
               data-slide-id={currentSlide.id}
               data-slide-dir={slideDirection ?? 'none'}
               aria-label={`${currentSlide.title} slide`}
+              onPointerDown={(event) => {
+                deckSwipeStartRef.current = { x: event.clientX, y: event.clientY };
+              }}
+              onPointerUp={(event) => {
+                const start = deckSwipeStartRef.current;
+                deckSwipeStartRef.current = null;
+                if (!start) return;
+                const dx = event.clientX - start.x;
+                const dy = event.clientY - start.y;
+                if (Math.abs(dx) >= 48 && Math.abs(dx) > Math.abs(dy) * 1.3) {
+                  stepSlide(dx < 0 ? 1 : -1);
+                }
+              }}
+              onPointerCancel={() => {
+                deckSwipeStartRef.current = null;
+              }}
             >
               <DeckPreviewGraphic appId={currentSlide.id} />
 

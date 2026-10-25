@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
+} from 'react';
 import { TetrisMusic } from '../audio/tetrisMusic';
 import { BACKGROUNDS, nextBackgroundIndex } from '../../shared/tetrisBackgrounds';
 import {
@@ -11,6 +18,7 @@ import {
   LAUNCHER_X,
   LAUNCHER_Y,
   ROW_STEP,
+  aimAngleFromBoardPoint,
   aimGuidePoints,
   aimPlayer,
   aimVelocityDegPerSec,
@@ -29,6 +37,7 @@ import {
   hurryCountdownSeconds,
   queueIncomingGarbage,
   resolveMatchOutcome,
+  setPlayerAimAngle,
   shotsPerCeilingDrop,
   stageTitle,
   stepMatch,
@@ -842,6 +851,12 @@ function PlayerArena({
   onSelectCharacter,
   controlsLabel,
   isTwoPlayer,
+  disabled,
+  onAimStep,
+  onAimDirect,
+  onFire,
+  onHoldAimStart,
+  onHoldAimEnd,
 }: {
   player: PlayerBoardState;
   playerNumber: 1 | 2;
@@ -849,7 +864,23 @@ function PlayerArena({
   onSelectCharacter: (character: CharacterId) => void;
   controlsLabel: string;
   isTwoPlayer: boolean;
+  disabled: boolean;
+  onAimStep: (deltaDeg: number) => void;
+  onAimDirect: (targetAngle: number) => void;
+  onFire: () => void;
+  onHoldAimStart: (keyId: string, deltaDeg: number) => void;
+  onHoldAimEnd: (keyId: string) => void;
 }) {
+  const dragPointerIdRef = useRef<number | null>(null);
+
+  const aimFromPointerEvent = (event: ReactPointerEvent<SVGSVGElement>) => {
+    if (disabled || player.status !== 'playing') return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return;
+    const svgX = ((event.clientX - rect.left) / rect.width) * ARENA_WIDTH;
+    const svgY = ((event.clientY - rect.top) / rect.height) * ARENA_HEIGHT;
+    onAimDirect(aimAngleFromBoardPoint(svgX, svgY));
+  };
   const ceilingY = player.ceilingDrop * ROW_STEP;
   const guide = aimGuidePoints(player.aimAngle, player.ceilingDrop);
   const polylinePoints = guide.map((pt) => `${pt.x},${pt.y}`).join(' ');
@@ -950,6 +981,32 @@ function PlayerArena({
           viewBox={`0 0 ${ARENA_WIDTH} ${ARENA_HEIGHT}`}
           role="img"
           aria-label={`Player ${playerNumber} bubble board`}
+          onPointerDown={(event) => {
+            if (disabled || player.status !== 'playing') return;
+            dragPointerIdRef.current = event.pointerId;
+            if (event.currentTarget.setPointerCapture) {
+              try {
+                event.currentTarget.setPointerCapture(event.pointerId);
+              } catch {
+                // Synthetic pointer events in tests may not register an active pointer id.
+              }
+            }
+            aimFromPointerEvent(event);
+          }}
+          onPointerMove={(event) => {
+            if (dragPointerIdRef.current !== event.pointerId) return;
+            aimFromPointerEvent(event);
+          }}
+          onPointerUp={(event) => {
+            if (dragPointerIdRef.current === event.pointerId) {
+              dragPointerIdRef.current = null;
+            }
+          }}
+          onPointerCancel={(event) => {
+            if (dragPointerIdRef.current === event.pointerId) {
+              dragPointerIdRef.current = null;
+            }
+          }}
         >
           <defs>
             <radialGradient id="pb-sphere-shine" cx="32%" cy="28%" r="55%">
@@ -1267,6 +1324,61 @@ function PlayerArena({
         </aside>
       </div>
       <div
+        className="pb-touch-bar"
+        role="group"
+        aria-label={`Player ${playerNumber} touch controls`}
+        data-testid={`p${playerNumber}-touch-controls`}
+      >
+        <button
+          type="button"
+          className="pb-touch-btn"
+          data-testid={`p${playerNumber}-touch-left`}
+          aria-label={`Player ${playerNumber} aim left`}
+          disabled={disabled || player.status !== 'playing'}
+          onPointerDown={(event) => {
+            event.preventDefault();
+            onHoldAimStart(`p${playerNumber}-left`, -AIM_STEP_DEG);
+          }}
+          onPointerUp={() => onHoldAimEnd(`p${playerNumber}-left`)}
+          onPointerCancel={() => onHoldAimEnd(`p${playerNumber}-left`)}
+          onPointerLeave={() => onHoldAimEnd(`p${playerNumber}-left`)}
+          onClick={(event) => {
+            if (event.detail === 0) onAimStep(-AIM_STEP_DEG);
+          }}
+        >
+          ◀ -0.5°
+        </button>
+        <button
+          type="button"
+          className="primary pb-touch-btn pb-touch-fire"
+          data-testid={`p${playerNumber}-touch-fire`}
+          aria-label={`Player ${playerNumber} fire bubble`}
+          disabled={disabled || player.status !== 'playing'}
+          onClick={() => onFire()}
+        >
+          FIRE
+        </button>
+        <button
+          type="button"
+          className="pb-touch-btn"
+          data-testid={`p${playerNumber}-touch-right`}
+          aria-label={`Player ${playerNumber} aim right`}
+          disabled={disabled || player.status !== 'playing'}
+          onPointerDown={(event) => {
+            event.preventDefault();
+            onHoldAimStart(`p${playerNumber}-right`, AIM_STEP_DEG);
+          }}
+          onPointerUp={() => onHoldAimEnd(`p${playerNumber}-right`)}
+          onPointerCancel={() => onHoldAimEnd(`p${playerNumber}-right`)}
+          onPointerLeave={() => onHoldAimEnd(`p${playerNumber}-right`)}
+          onClick={(event) => {
+            if (event.detail === 0) onAimStep(AIM_STEP_DEG);
+          }}
+        >
+          +0.5° ▶
+        </button>
+      </div>
+      <div
         className={
           statusLine ? `pb-combo-bar is-active pb-combo-${mood}` : 'pb-combo-bar'
         }
@@ -1278,8 +1390,17 @@ function PlayerArena({
   );
 }
 
+const PHONE_MAX_WIDTH = 768;
+
+function isPhoneViewport(): boolean {
+  return typeof window !== 'undefined' && window.innerWidth < PHONE_MAX_WIDTH;
+}
+
 export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
-  const [match, setMatch] = useState<PuzzleBobbleMatch>(() => createMatch('2p'));
+  const [phoneViewport, setPhoneViewport] = useState<boolean>(() => isPhoneViewport());
+  const [match, setMatch] = useState<PuzzleBobbleMatch>(() =>
+    createMatch(isPhoneViewport() ? '1p' : '2p'),
+  );
   const [characters, setCharacters] = useState<[CharacterId, CharacterId]>(['dragon', 'dragon']);
   const [stagePreset, setStagePreset] = useState<number>(0); // 0 = random wave, 1..5 = classic Taito stages
   const [paused, setPaused] = useState(false);
@@ -1322,9 +1443,38 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
   // Deterministic E2E / test hooks to resolve a player's shot or queue incoming attack bubbles.
   useEffect(() => {
     function onInstantResolve(event: Event) {
-      const detail = (event as CustomEvent<{ player?: 0 | 1 }>).detail;
+      const detail = (event as CustomEvent<{ player?: 0 | 1; preventPop?: boolean }>).detail;
       const idx: 0 | 1 = detail?.player === 1 ? 1 : 0;
-      setMatch((current) => fireAndResolvePlayer(current, idx));
+      setMatch((current) => {
+        if (detail?.preventPop) {
+          const target = current.players[idx];
+          if (target) {
+            const safeGrid = target.grid.map((r) => r.slice());
+            // Clear row 3 center neighbors so the test shot never accidentally pops 3 of a kind.
+            for (let r = 2; r < safeGrid.length; r += 1) {
+              for (let c = 2; c <= 5 && c < safeGrid[r].length; c += 1) {
+                if (safeGrid[r][c] === target.currentBubble) {
+                  safeGrid[r][c] = target.currentBubble === 'ruby' ? 'azure' : 'ruby';
+                }
+              }
+            }
+            const nextPlayers =
+              current.players.length === 1
+                ? ([{ ...target, grid: safeGrid }] as [PlayerBoardState])
+                : idx === 0
+                  ? ([{ ...target, grid: safeGrid }, current.players[1]] as [
+                      PlayerBoardState,
+                      PlayerBoardState,
+                    ])
+                  : ([current.players[0], { ...target, grid: safeGrid }] as [
+                      PlayerBoardState,
+                      PlayerBoardState,
+                    ]);
+            return fireAndResolvePlayer({ ...current, players: nextPlayers }, idx);
+          }
+        }
+        return fireAndResolvePlayer(current, idx);
+      });
     }
     function onQueueGarbage(event: Event) {
       const detail = (event as CustomEvent<{ player?: 0 | 1; count?: number; colors?: BubbleColor[] }>).detail;
@@ -1377,6 +1527,36 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     },
     [stagePreset],
   );
+
+  // #212: Enforce 1-Player mode on phone viewports (< 768px) while allowing
+  // 2-Player side-by-side play on tablets/iPads and desktops (>= 768px).
+  useEffect(() => {
+    function onResize() {
+      const phone = isPhoneViewport();
+      setPhoneViewport(phone);
+      if (phone && matchRef.current.mode === '2p') {
+        startNewRound('1p', false);
+      }
+    }
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [startNewRound]);
+
+  const handleHoldAimStart = useCallback(
+    (playerIndex: 0 | 1, keyId: string, deltaDeg: number) => {
+      if (paused || matchRef.current.status !== 'playing') return;
+      const held = heldAimKeysRef.current;
+      if (!held.has(keyId)) {
+        held.set(keyId, performance.now());
+        setMatch((current) => aimPlayer(current, playerIndex, deltaDeg));
+      }
+    },
+    [paused],
+  );
+
+  const handleHoldAimEnd = useCallback((keyId: string) => {
+    heldAimKeysRef.current.delete(keyId);
+  }, []);
 
   // Smooth 60fps aiming + keyboard controls:
   // - Single tap steps by `AIM_STEP_DEG = 0.5°` for high-precision bank shots.
@@ -1486,6 +1666,14 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         if (dStart !== undefined && now - dStart >= tapGraceMs) {
           p1Delta += aimVelocityDegPerSec(now - dStart) * dtSec;
         }
+        const p1TouchLeft = held.get('p1-left');
+        if (p1TouchLeft !== undefined && now - p1TouchLeft >= tapGraceMs) {
+          p1Delta -= aimVelocityDegPerSec(now - p1TouchLeft) * dtSec;
+        }
+        const p1TouchRight = held.get('p1-right');
+        if (p1TouchRight !== undefined && now - p1TouchRight >= tapGraceMs) {
+          p1Delta += aimVelocityDegPerSec(now - p1TouchRight) * dtSec;
+        }
         const leftStart = held.get('ArrowLeft');
         if (leftStart !== undefined && now - leftStart >= tapGraceMs) {
           p2Delta -= aimVelocityDegPerSec(now - leftStart) * dtSec;
@@ -1493,6 +1681,14 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         const rightStart = held.get('ArrowRight');
         if (rightStart !== undefined && now - rightStart >= tapGraceMs) {
           p2Delta += aimVelocityDegPerSec(now - rightStart) * dtSec;
+        }
+        const p2TouchLeft = held.get('p2-left');
+        if (p2TouchLeft !== undefined && now - p2TouchLeft >= tapGraceMs) {
+          p2Delta -= aimVelocityDegPerSec(now - p2TouchLeft) * dtSec;
+        }
+        const p2TouchRight = held.get('p2-right');
+        if (p2TouchRight !== undefined && now - p2TouchRight >= tapGraceMs) {
+          p2Delta += aimVelocityDegPerSec(now - p2TouchRight) * dtSec;
         }
 
         if (p1Delta !== 0 || p2Delta !== 0) {
@@ -1538,22 +1734,24 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
           ) : null}
         </div>
         <div className="row">
-          <div className="filter-group" role="group" aria-label="Player mode">
-            <button
-              type="button"
-              aria-pressed={match.mode === '2p'}
-              onClick={() => startNewRound('2p', false)}
-            >
-              2 Players
-            </button>
-            <button
-              type="button"
-              aria-pressed={match.mode === '1p'}
-              onClick={() => startNewRound('1p', false)}
-            >
-              1 Player
-            </button>
-          </div>
+          {!phoneViewport ? (
+            <div className="filter-group" role="group" aria-label="Player mode">
+              <button
+                type="button"
+                aria-pressed={match.mode === '2p'}
+                onClick={() => startNewRound('2p', false)}
+              >
+                2 Players
+              </button>
+              <button
+                type="button"
+                aria-pressed={match.mode === '1p'}
+                onClick={() => startNewRound('1p', false)}
+              >
+                1 Player
+              </button>
+            </div>
+          ) : null}
           <div className="filter-group pb-stage-stepper" role="group" aria-label="Stage selection" data-testid="pb-stage-selector">
             <button
               type="button"
@@ -1642,10 +1840,16 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
           onSelectCharacter={(c) => setCharacters(([_, p2]) => [c, p2])}
           controlsLabel={
             match.mode === '2p'
-              ? 'ASDF — A/D fine aim · S/F shoot'
-              : 'ASDF or Arrows — A/D or ←/→ aim · S/F or ↑ shoot'
+              ? 'ASDF or Drag · S/F or FIRE'
+              : 'Touch Drag / ASDF / Arrows'
           }
           isTwoPlayer={match.mode === '2p'}
+          disabled={paused || match.status !== 'playing'}
+          onAimStep={(delta) => setMatch((current) => aimPlayer(current, 0, delta))}
+          onAimDirect={(angle) => setMatch((current) => setPlayerAimAngle(current, 0, angle))}
+          onFire={() => setMatch((current) => firePlayerBubble(current, 0))}
+          onHoldAimStart={(keyId, delta) => handleHoldAimStart(0, keyId, delta)}
+          onHoldAimEnd={handleHoldAimEnd}
         />
         {match.mode === '2p' && match.players[1] ? (
           <PlayerArena
@@ -1653,8 +1857,14 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
             playerNumber={2}
             character={characters[1]}
             onSelectCharacter={(c) => setCharacters(([p1]) => [p1, c])}
-            controlsLabel="Arrows — ←/→ fine aim · ↑/↓ shoot"
+            controlsLabel="Arrows or Drag · ↑/↓ or FIRE"
             isTwoPlayer
+            disabled={paused || match.status !== 'playing'}
+            onAimStep={(delta) => setMatch((current) => aimPlayer(current, 1, delta))}
+            onAimDirect={(angle) => setMatch((current) => setPlayerAimAngle(current, 1, angle))}
+            onFire={() => setMatch((current) => firePlayerBubble(current, 1))}
+            onHoldAimStart={(keyId, delta) => handleHoldAimStart(1, keyId, delta)}
+            onHoldAimEnd={handleHoldAimEnd}
           />
         ) : null}
       </div>

@@ -613,6 +613,34 @@ export function aimPlayer(
 }
 
 /**
+ * Sets a player's aim angle directly (used by touch/pointer drag-to-aim, #212),
+ * quantized to 0.5° increments within `[-75°, +75°]`.
+ */
+export function setPlayerAimAngle(
+  match: PuzzleBobbleMatch,
+  playerIndex: 0 | 1,
+  targetAngle: number,
+): PuzzleBobbleMatch {
+  if (match.status !== 'playing') return match;
+  const player = match.players[playerIndex];
+  if (!player || player.status !== 'playing') return match;
+  const quantized = clampAimAngle(Math.round(targetAngle * 2) / 2);
+  if (quantized === player.aimAngle) return match;
+  return replacePlayer(match, playerIndex, { ...player, aimAngle: quantized });
+}
+
+/**
+ * Computes the launcher aim angle in degrees (`[-75°, +75°]`, quantized to `0.5°`)
+ * from a pointer position `(svgX, svgY)` in the `224 × 296` board coordinate space (#212).
+ */
+export function aimAngleFromBoardPoint(svgX: number, svgY: number): number {
+  const dx = svgX - LAUNCHER_X;
+  const dy = Math.max(12, LAUNCHER_Y - svgY);
+  const rawDeg = (Math.atan2(dx, dy) * 180) / Math.PI;
+  return clampAimAngle(Math.round(rawDeg * 2) / 2);
+}
+
+/**
  * Computes a multi-segment aiming sight line from the launcher, including up to
  * two wall bounces, so players can line up narrow bank shots accurately.
  */

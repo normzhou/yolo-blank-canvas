@@ -14,6 +14,7 @@ import {
   SHOT_TIME_LIMIT_MS,
   STAGE_CATALOG,
   TOTAL_STAGES,
+  aimAngleFromBoardPoint,
   aimGuidePoints,
   aimPlayer,
   aimVelocityDegPerSec,
@@ -36,6 +37,7 @@ import {
   scoreForDroppedBubbles,
   scoreForPop,
   scoreForStageClearBonus,
+  setPlayerAimAngle,
   settleBubbleAt,
   shotsPerCeilingDrop,
   stageTitle,
@@ -111,6 +113,16 @@ describe('Puzzle Bobble (Bust-A-Move) arcade rules', () => {
     const banked = aimGuidePoints(60);
     expect(banked.length).toBeGreaterThanOrEqual(3);
     expect(banked[1].x).toBe(ARENA_WIDTH - BUBBLE_RADIUS);
+
+    // Direct touch/pointer drag-to-aim math (#212).
+    expect(aimAngleFromBoardPoint(112, 120)).toBe(0);
+    expect(aimAngleFromBoardPoint(112 + 100, 268 - 100)).toBe(45);
+    expect(aimAngleFromBoardPoint(112 - 100, 268 - 100)).toBe(-45);
+    expect(aimAngleFromBoardPoint(500, 268)).toBe(MAX_AIM_ANGLE);
+    expect(aimAngleFromBoardPoint(-200, 268)).toBe(MIN_AIM_ANGLE);
+
+    match = setPlayerAimAngle(match, 0, -22.5);
+    expect(match.players[0].aimAngle).toBe(-22.5);
   });
 
   it('implements the Neo-Geo exponential drop scoring (20 * 2^(n-1) capped at 1,310,720) and speed bonus', () => {
