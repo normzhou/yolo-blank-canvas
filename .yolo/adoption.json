@@ -238,15 +238,16 @@
         "v0.13.1": "8b3f76ebe0228b3c10c10388f1611e716f552725",
         "v0.14.0": "6570366b7e3af9d40a5ff5aa3949c753e73bc737",
         "v0.14.1": "ff6a45dc6f2020820404bdde8c5b238fec6a6eae",
-        "v0.14.2": "db571a43672046f5a448ba24cfbcd2271a9a40bd"
+        "v0.14.2": "db571a43672046f5a448ba24cfbcd2271a9a40bd",
+        "v0.15.0": "b760fccec0c7b63989dd1c8596af0177efdf3398"
       },
       "published": {
-        "tag": "v0.15.0",
-        "commit": "b760fccec0c7b63989dd1c8596af0177efdf3398",
-        "source_commit": "faa219ff071c50772717b8a692cf7bf06abd6509",
-        "published_at": "2026-10-25T21:11:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-10-25-v0150.json",
-        "note": "Minor release. Expands Puzzle Bobble from 5 stages to 15 named classic arcade stages (#210, PR #211: Stage 1: Paired Blocks through Stage 15: Emperor's Citadel, each verified with zero unanchored starting bubbles), adds Previous stage / Next stage stepper controls, and advances to the next stage on Next round; also deployed live to https://demo.yolo-dev.ai (Version ID: 215c9d30-ecaf-4938-a380-0f54f2c28869). Acceptance before tagging: 157 unit, 42 stubbed e2e passed, tsc clean, structure pass. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit b760fcc after the assets commit ab0d85c; both build-ID files record faa219f."
+        "tag": "v0.16.0",
+        "commit": "5942f23748406bfd38f22b587f6031cb22dfa367",
+        "source_commit": "ca125676c7cf8d4da3c7dc4e6974ff1f8c34906f",
+        "published_at": "2026-10-25T23:44:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-10-25-v0160.json",
+        "note": "Minor release. Adds mobile and tablet touch support across Puzzle Bobble, Tetris, and the home slide deck (#212, PR #213: phone < 768px 1P-only segregation vs tablet/iPad >= 768px 2P side-by-side multi-touch, direct SVG drag-to-aim + FIRE button in Puzzle Bobble, 5-button tactile pad + board gestures in Tetris, and horizontal swipe on the slide deck); also deployed live to https://demo.yolo-dev.ai (Version ID: d7e20e21-8448-40c5-957d-d91190ccfc5a). Acceptance before tagging: 157 unit, 43 stubbed e2e passed, tsc clean, structure pass. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit 5942f23 after the assets commit e1a0130; both build-ID files record ca12567."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -271,7 +272,8 @@
         ".yolo/reports/releases-observed-2026-10-22-v0140.json",
         ".yolo/reports/releases-observed-2026-10-22-v0141.json",
         ".yolo/reports/releases-observed-2026-10-22-v0142.json",
-        ".yolo/reports/releases-observed-2026-10-25-v0150.json"
+        ".yolo/reports/releases-observed-2026-10-25-v0150.json",
+        ".yolo/reports/releases-observed-2026-10-25-v0160.json"
       ]
     }
   },

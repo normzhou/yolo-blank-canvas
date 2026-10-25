@@ -6,7 +6,10 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Mobile and tablet touch support for Puzzle Bobble, Tetris, and the home slide deck (#212) — 2026-10-25
 
-Source revision `ca12567` (the feature commit).
+Source revision `ca12567` (the feature commit); build and review evidence
+`e1a0130`; release commit `5942f23`; published as `v0.16.0` on 2026-10-25. The
+unit and stubbed e2e results below ran against the source revision; the 11/11
+acceptance below ran against the installed tag users receive.
 
 - `npm test`: 23 files, 157 tests passed (`test/puzzle-bobble.test.ts` verifies
   `aimAngleFromBoardPoint` and `setPlayerAimAngle`).
@@ -22,6 +25,18 @@ Source revision `ca12567` (the feature commit).
   with `APP_VERSION="v0.16.0"`.
 - `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`,
   13/13 findings compliant.
+
+### Installed artifact (`v0.16.0`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.16.0 --no-open --port 4875`
+in an empty directory, with no source checkout. `GET /api/version` reported both
+`serverBuild` and `clientBuild` as `ca12567…`; the tagged package version is
+`0.16.0`. The tag points at release commit `5942f23`, after the assets commit
+`e1a0130`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4875 npm run e2e:verify-release`:
+**11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: d7e20e21-8448-40c5-957d-d91190ccfc5a`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.16.0"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 ca125676c7cf8d4da3c7dc4e6974ff1f8c34906f`). The report is
+[`.yolo/reports/releases-observed-2026-10-25-v0160.json`](../.yolo/reports/releases-observed-2026-10-25-v0160.json).
 
 ## Expand Puzzle Bobble to 15 named classic stages with level stepper (#210) — 2026-10-25
 
