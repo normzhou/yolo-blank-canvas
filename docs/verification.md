@@ -4,6 +4,23 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Multi-format closed-loop QA & responsive fixes across 7 device viewports (#212) — 2026-10-25
+
+Source revision `992189c` (the multi-format QA fix commit).
+
+- **Closed-loop visual & geometric inspection across 7 device formats** (`360×640` small phone, `390×844` phone portrait, `844×390` phone landscape, `768×1024` iPad Mini portrait, `820×1180` iPad Air portrait, `1024×768` iPad landscape, `1280×900` desktop):
+  1. **iPad Mini Portrait (`768×1024`) 2P side-by-side fit:** Added `@media (min-width: 768px) and (max-width: 860px)` padding tightening so both `360px` Puzzle Bobble cards sit side-by-side (`top: 342px` on both cards, `scrollH: 1024 === clientH: 1024`) instead of wrapping vertically.
+  2. **Phone Landscape (`844×390`) 1P detection:** Updated `isPhoneViewport()` to check `window.innerWidth < 768 || Math.min(window.innerWidth, window.innerHeight) < 560` so rotating a phone to landscape (`844×390`, short edge `390px < 560px`) stays in 1-Player mode instead of squeezing two `468px`-tall 2P boards into a `390px`-tall screen.
+  3. **Small Phone (`360×640`) `.pb-side` fit:** Compacted `.pb-side` (`96px`) and `.pb-arena-row` gap (`6px`) below `640px` so the `224px` board + `96px` sidebar (`326px`) fits inside the `336px` card with zero clipping (`sideClipped: false`).
+  4. **Tetris cabinet width on wide viewports:** Capped `.tetris:not(.pb-game)` header/touch-bar/footer elements at `max-width: 360px` and centered `.tetris-body` so the Tetris cabinet stays compact around its `237px` board + `92px` sidebar on iPad and desktop.
+- `npm test`: 23 files, 157 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run build`: clean; `dist/client/.build-id` and
+  `server/build-id.generated.js` both report `992189c…`.
+- `npm run e2e`: 43 passed (`e2e/puzzle-bobble.spec.ts` asserts `390×844` phone portrait 1P, `844×390` phone landscape 1P, `360×640` small phone unclipped sidebar, `768×1024` iPad portrait 2P side-by-side, and `1024×768` iPad landscape 2P side-by-side).
+- `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`,
+  13/13 findings compliant.
+
 ## Mobile and tablet touch support for Puzzle Bobble, Tetris, and the home slide deck (#212) — 2026-10-25
 
 Source revision `ca12567` (the feature commit); build and review evidence
