@@ -1,0 +1,64 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-25",
+  "observed_at": "2026-10-25",
+  "published_at_utc": "2026-10-25T21:11:00Z",
+  "protocol": {
+    "revision": "da644964ca92eef8448cd782cf6805c724ca2e74",
+    "release": "v0.1.0-alpha.33"
+  },
+  "releases": [
+    {
+      "tag": "v0.15.0",
+      "commit": "b760fccec0c7b63989dd1c8596af0177efdf3398"
+    }
+  ],
+  "release": {
+    "tag": "v0.15.0",
+    "tag_object": "d9c5d50c2f7db60f2a814608f483a2fb03356f0a",
+    "release_commit": "b760fccec0c7b63989dd1c8596af0177efdf3398",
+    "source_commit": "faa219ff071c50772717b8a692cf7bf06abd6509",
+    "assets_commit": "ab0d85c270b90d1e587e9de8fab93fae65e69197",
+    "semver": "minor",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record faa219f, the source revision. The committed assets were built at that source in ab0d85c. b760fcc is a release-metadata commit (version and install references, no source changes) after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "157 passed across 23 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID faa219f" },
+    { "check": "npm run e2e (stubbed, deterministic)", "result": "pass", "detail": "42 passed (32.7s)" },
+    { "check": "cd hosting/cloudflare && npm run check", "result": "pass", "detail": "wrangler deploy --dry-run (17 static assets, APP_VERSION=v0.15.0)" },
+    { "check": "yolo-check . --structure (0.1.0-alpha.33)", "result": "pass", "detail": "13 of 13 findings compliant" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #211 completed success" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "installed_from": "npx --yes github:normzhou/yolo-blank-canvas#v0.15.0 --no-open --port 4875",
+    "installed_into": "an empty directory, no source checkout present",
+    "served_build": "faa219ff071c50772717b8a692cf7bf06abd6509",
+    "served_version": {
+      "package": "0.15.0",
+      "serverBuild": "faa219ff071c50772717b8a692cf7bf06abd6509",
+      "clientBuild": "faa219ff071c50772717b8a692cf7bf06abd6509"
+    },
+    "command": "YOLO_VERIFY_URL=http://127.0.0.1:4875 npm run e2e:verify-release",
+    "result": "pass",
+    "detail": "11 of 11 passed. Also deployed live to yolo-demo-app (Version ID: 215c9d30-ecaf-4938-a380-0f54f2c28869) and verified at https://demo.yolo-dev.ai/__yolo/version (200 {\"version\":\"v0.15.0\"}) and https://demo.yolo-dev.ai/.build-id (200 faa219ff071c50772717b8a692cf7bf06abd6509)."
+  },
+  "what_this_release_delivers": [
+    "#210 Puzzle Bobble level upgrade: expands STAGE_CATALOG from 5 stages to 15 named classic arcade stages (Stage 1: Paired Blocks through Stage 15: Emperor's Citadel, each verified to have zero unanchored starting bubbles), adds Previous stage / Next stage stepper controls alongside the stage button, surfaces Stage N/15: <Title> in the scene bar, and advances to the next stage when Next round is clicked on a stage preset"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "Acceptance on the delivered artifact is eleven targeted read-only checks. The 157 unit tests and 42 stubbed e2e tests ran against the source revision, not the installed artifact.",
+    "The tag points at b760fcc, a release-metadata commit after the assets commit ab0d85c, not at the assets commit itself. Both build-ID files still record the source faa219f, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #210"
+}

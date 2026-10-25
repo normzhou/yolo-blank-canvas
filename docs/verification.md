@@ -6,7 +6,10 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Expand Puzzle Bobble to 15 named classic stages with level stepper (#210) — 2026-10-25
 
-Source revision `faa219f` (the feature commit).
+Source revision `faa219f` (the feature commit); build and review evidence
+`ab0d85c`; release commit `b760fcc`; published as `v0.15.0` on 2026-10-25. The
+unit and stubbed e2e results below ran against the source revision; the 11/11
+acceptance below ran against the installed tag users receive.
 
 - `npm test`: 23 files, 157 tests passed (`test/puzzle-bobble.test.ts` verifies
   `TOTAL_STAGES === 15`, `STAGE_CATALOG` titles `Stage 1: Paired Blocks` through
@@ -22,6 +25,18 @@ Source revision `faa219f` (the feature commit).
   with `APP_VERSION="v0.15.0"`.
 - `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`,
   13/13 findings compliant.
+
+### Installed artifact (`v0.15.0`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.15.0 --no-open --port 4875`
+in an empty directory, with no source checkout. `GET /api/version` reported both
+`serverBuild` and `clientBuild` as `faa219f…`; the tagged package version is
+`0.15.0`. The tag points at release commit `b760fcc`, after the assets commit
+`ab0d85c`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4875 npm run e2e:verify-release`:
+**11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: 215c9d30-ecaf-4938-a380-0f54f2c28869`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.15.0"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 faa219ff071c50772717b8a692cf7bf06abd6509`). The report is
+[`.yolo/reports/releases-observed-2026-10-25-v0150.json`](../.yolo/reports/releases-observed-2026-10-25-v0150.json).
 
 ## Live static publication at `https://demo.yolo-dev.ai` (#199, `normzhou/yolo-dev#208`) — 2026-10-25
 

@@ -237,15 +237,16 @@
         "v0.13.0": "a70c68f5317168ad202db8c607740b25dd1b8197",
         "v0.13.1": "8b3f76ebe0228b3c10c10388f1611e716f552725",
         "v0.14.0": "6570366b7e3af9d40a5ff5aa3949c753e73bc737",
-        "v0.14.1": "ff6a45dc6f2020820404bdde8c5b238fec6a6eae"
+        "v0.14.1": "ff6a45dc6f2020820404bdde8c5b238fec6a6eae",
+        "v0.14.2": "db571a43672046f5a448ba24cfbcd2271a9a40bd"
       },
       "published": {
-        "tag": "v0.14.2",
-        "commit": "db571a43672046f5a448ba24cfbcd2271a9a40bd",
-        "source_commit": "a38b872b8d34159d46df4a69293e20c6a9649e53",
-        "published_at": "2026-10-23T01:30:30Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-10-22-v0142.json",
-        "note": "Patch release. Sets APP_VERSION='v0.14.2' in hosting/cloudflare/wrangler.json (replacing template 'development'), instantiates and verifies hosting/yolo-identity (2/2 pass), and updates hosting/HOSTNAME-REQUEST.md (#199, PR #207). Acceptance before tagging: 157 unit, 42 stubbed e2e passed, tsc clean, structure pass. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit db571a4 after the assets commit 42a72e6; both build-ID files record a38b872."
+        "tag": "v0.15.0",
+        "commit": "b760fccec0c7b63989dd1c8596af0177efdf3398",
+        "source_commit": "faa219ff071c50772717b8a692cf7bf06abd6509",
+        "published_at": "2026-10-25T21:11:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-10-25-v0150.json",
+        "note": "Minor release. Expands Puzzle Bobble from 5 stages to 15 named classic arcade stages (#210, PR #211: Stage 1: Paired Blocks through Stage 15: Emperor's Citadel, each verified with zero unanchored starting bubbles), adds Previous stage / Next stage stepper controls, and advances to the next stage on Next round; also deployed live to https://demo.yolo-dev.ai (Version ID: 215c9d30-ecaf-4938-a380-0f54f2c28869). Acceptance before tagging: 157 unit, 42 stubbed e2e passed, tsc clean, structure pass. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit b760fcc after the assets commit ab0d85c; both build-ID files record faa219f."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -269,7 +270,8 @@
         ".yolo/reports/releases-observed-2026-10-22-v0131.json",
         ".yolo/reports/releases-observed-2026-10-22-v0140.json",
         ".yolo/reports/releases-observed-2026-10-22-v0141.json",
-        ".yolo/reports/releases-observed-2026-10-22-v0142.json"
+        ".yolo/reports/releases-observed-2026-10-22-v0142.json",
+        ".yolo/reports/releases-observed-2026-10-25-v0150.json"
       ]
     }
   },
