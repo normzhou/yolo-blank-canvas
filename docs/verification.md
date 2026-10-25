@@ -4,6 +4,23 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Live static publication at `https://demo.yolo-dev.ai` (#199, `normzhou/yolo-dev#208`) — 2026-10-25
+
+Deployed client Cloudflare Worker `yolo-demo-app` (`Version ID: 188dcfa2-bd7f-4532-9162-b9dd277a9cf1`, `Deployment ID: fd52d5ff-0642-4d0d-9512-04032fe5f85a`, `APP_VERSION: "v0.14.2"`, build `a38b872b8d34159d46df4a69293e20c6a9649e53`) behind the `yolo-dev` operator gateway on [`normzhou/yolo-dev#208`](https://github.com/normzhou/yolo-dev/issues/208) (**Receiver revision 9 — FULFILLED**).
+
+- **Live HTTPS endpoint checks (`https://demo.yolo-dev.ai`):**
+  - `GET https://demo.yolo-dev.ai/` → `200 OK` (`<title>Blank canvas</title>`)
+  - `GET https://demo.yolo-dev.ai/__yolo/version` → `200 OK` (`{"version":"v0.14.2"}`)
+  - `GET https://demo.yolo-dev.ai/.build-id` → `200 OK` (`a38b872b8d34159d46df4a69293e20c6a9649e53`)
+  - `POST https://demo.yolo-dev.ai/api/session` with `Origin: https://demo.yolo-dev.ai` → `503 Backend configuration unavailable` (truthful static demo mode)
+  - `POST https://demo.yolo-dev.ai/api/session` without matching `Origin` → `403 Forbidden`
+  - Direct origin `GET https://yolo-demo-app.normzhou.workers.dev/__yolo/version` (unsigned) → `403 Forbidden`
+- **Live headless Chrome verification (`Playwright` against `https://demo.yolo-dev.ai/`):**
+  - Home slide deck renders with header badge `normzhou/yolo-blank-canvas · static preview` and zero error banner.
+  - `Play Tetris` opens `https://demo.yolo-dev.ai/?app=tetris` (`Tetris board, 10 by 20` visible).
+  - `Puzzle Bobble` opens `https://demo.yolo-dev.ai/?app=puzzle-bobble` (`Player 1 bubble board` visible).
+  - `Feedback on Puzzle Bobble` displays the truthful `Static preview mode` notice with the `npx --yes github:normzhou/yolo-blank-canvas` command and direct `GitHub Issues` link.
+
 ## Set `APP_VERSION=v0.14.2` on `yolo-demo-app` Worker and instantiate `hosting/yolo-identity` (#199) — 2026-10-22
 
 Source revision `a38b872` (the hosting preparation commit); build and review
