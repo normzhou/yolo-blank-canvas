@@ -178,6 +178,7 @@ Below is the complete mapping of our **7 Framework Surface-Area Domains** (plus 
 
 ## Governing record
 
+- Upstream `yolo-dev` feedback & common-layer proposal: [`normzhou/yolo-dev#285`](https://github.com/normzhou/yolo-dev/issues/285) (`[feedback] Common control-plane & UI layer for framework settings, locked yolo:control state, and external-ID user mapping`)
 - Current UI & `RequestStore` boundary: [`.yolo/governance/ARCHITECTURE.md`](../.yolo/governance/ARCHITECTURE.md)
 - Adopted protocol sections: [`.yolo/protocol.md`](../.yolo/protocol.md) (`Adoption and evidence records`, `L2 coordination and recovery`, `Maintainer-reserved actions`, `Owner-operated app hosting`)
 - Session logs:
