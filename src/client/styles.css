@@ -1253,7 +1253,7 @@ a:visited { color: var(--accent-weak-text); }
   padding: 2px 6px;
   border-radius: var(--radius-sm);
 }
-.tetris-body { display: flex; gap: 16px; align-items: flex-start; }
+.tetris-body { display: flex; gap: 16px; align-items: flex-start; justify-content: center; }
 .tetris-board {
   display: grid;
   grid-template-columns: repeat(10, 22px);
@@ -1335,7 +1335,13 @@ a:visited { color: var(--accent-weak-text); }
   padding: 1px;
   width: fit-content;
 }
-.tetris-next .tetris-cell { border-radius: 2px; }
+.tetris:not(.pb-game) .tetris-header,
+.tetris:not(.pb-game) .tetris-touch-bar,
+.tetris:not(.pb-game) .tetris-scene,
+.tetris:not(.pb-game) .tetris-help,
+.tetris:not(.pb-game) .tetris-over {
+  max-width: 360px;
+}
 .tetris-over { color: var(--problem); font-weight: var(--weight-semibold); margin: 0; }
 .tetris-help, .tetris-scene {
   color: var(--muted);
@@ -1787,6 +1793,13 @@ button.pb-touch-fire {
   }
   .canvas-prompt { white-space: normal; }
 }
+@media (min-width: 768px) and (max-width: 860px) {
+  /* #212: On iPad Portrait (768x1024 / 820x1180), tighten outer canvas and
+     cabinet padding so two 360px player cards sit side-by-side without wrapping. */
+  .canvas { padding: 12px 6px; gap: 10px; }
+  .tetris.pb-game { padding: 10px 6px; }
+  .pb-boards { gap: 10px; }
+}
 @media (max-width: 720px) {
   .deck-slide-card {
     grid-template-columns: 1fr;
@@ -1801,16 +1814,29 @@ button.pb-touch-fire {
   }
 }
 @media (max-width: 640px) {
-  .canvas { padding: 12px 8px; gap: 12px; }
-  .tetris { padding: 10px 8px; }
+  .canvas { padding: 8px 6px; gap: 8px; }
+  .canvas-header { padding: 6px 10px; gap: 6px; }
+  .tetris { margin: 0 auto; padding: 8px 6px; gap: 8px; }
+  .tetris-header { padding: 4px 8px; gap: 6px; }
   .pb-player-card {
-    width: min(360px, calc(100vw - 36px));
-    min-width: min(360px, calc(100vw - 36px));
-    max-width: min(360px, calc(100vw - 36px));
-    flex-basis: min(360px, calc(100vw - 36px));
+    width: min(360px, calc(100vw - 24px));
+    min-width: min(360px, calc(100vw - 24px));
+    max-width: min(360px, calc(100vw - 24px));
+    flex-basis: min(360px, calc(100vw - 24px));
+    padding: 8px;
+    gap: 6px;
   }
   .pb-arena-row {
     width: 100%;
+    gap: 6px;
+    justify-content: space-between;
+  }
+  .pb-side {
+    width: 96px;
+    min-width: 96px;
+    max-width: 96px;
+    flex: 0 0 96px;
+    padding: 6px;
   }
   .canvas-prompt-block { justify-content: flex-start; }
   /* #133: at 390px a right-hand status column squeezes the title, and the title

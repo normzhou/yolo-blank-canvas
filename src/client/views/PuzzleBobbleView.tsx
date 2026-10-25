@@ -1391,9 +1391,14 @@ function PlayerArena({
 }
 
 const PHONE_MAX_WIDTH = 768;
+const PHONE_MAX_SHORT_EDGE = 560;
 
 function isPhoneViewport(): boolean {
-  return typeof window !== 'undefined' && window.innerWidth < PHONE_MAX_WIDTH;
+  if (typeof window === 'undefined') return false;
+  return (
+    window.innerWidth < PHONE_MAX_WIDTH ||
+    Math.min(window.innerWidth, window.innerHeight) < PHONE_MAX_SHORT_EDGE
+  );
 }
 
 export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
