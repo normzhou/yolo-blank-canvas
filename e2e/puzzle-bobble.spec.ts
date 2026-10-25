@@ -127,6 +127,16 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
     await page.getByRole('button', { name: '2 Players', exact: true }).click();
     await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toBeVisible();
 
+    // #210: Step through the 15 classic levels with Next stage / Previous stage and auto-advance on Next round.
+    const stageBtn = page.getByTestId('pb-stage-button');
+    await expect(stageBtn).toHaveText('Wave: Random');
+    await page.getByRole('button', { name: 'Next stage', exact: true }).click();
+    await expect(stageBtn).toHaveText('Stage 1: Paired Blocks');
+    await page.getByRole('button', { name: 'Previous stage', exact: true }).click();
+    await expect(stageBtn).toHaveText('Wave: Random');
+    await page.getByRole('button', { name: 'Previous stage', exact: true }).click();
+    await expect(stageBtn).toHaveText("Stage 15: Emperor's Citadel");
+
     // Escape closes Puzzle Bobble and returns to the blank canvas.
     await page.keyboard.press('Escape');
     await expect(page).toHaveURL((url) => url.pathname === '/' && url.search === '');

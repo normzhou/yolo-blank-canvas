@@ -30,8 +30,10 @@ import {
   queueIncomingGarbage,
   resolveMatchOutcome,
   shotsPerCeilingDrop,
+  stageTitle,
   stepMatch,
   tickShotTimers,
+  TOTAL_STAGES,
   type BubbleColor,
   type CharacterId,
   type MascotMood,
@@ -1552,17 +1554,47 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
               1 Player
             </button>
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              const nextPreset = (stagePreset + 1) % 6;
-              setStagePreset(nextPreset);
-              startNewRound(match.mode, true, nextPreset);
-            }}
-            title="Cycle between random waves and classic Taito arcade stage formations"
-          >
-            {stagePreset === 0 ? 'Wave: Random' : `Stage ${stagePreset}`}
-          </button>
+          <div className="filter-group pb-stage-stepper" role="group" aria-label="Stage selection" data-testid="pb-stage-selector">
+            <button
+              type="button"
+              aria-label="Previous stage"
+              title="Previous stage"
+              onClick={() => {
+                const totalOptions = TOTAL_STAGES + 1;
+                const prevPreset = (stagePreset - 1 + totalOptions) % totalOptions;
+                setStagePreset(prevPreset);
+                startNewRound(match.mode, true, prevPreset);
+              }}
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              data-testid="pb-stage-button"
+              onClick={() => {
+                const nextPreset = (stagePreset + 1) % (TOTAL_STAGES + 1);
+                setStagePreset(nextPreset);
+                startNewRound(match.mode, true, nextPreset);
+              }}
+              title={`Cycle between random waves and ${TOTAL_STAGES} classic arcade stages`}
+            >
+              {stagePreset === 0
+                ? 'Wave: Random'
+                : `Stage ${stagePreset}: ${stageTitle(stagePreset)}`}
+            </button>
+            <button
+              type="button"
+              aria-label="Next stage"
+              title="Next stage"
+              onClick={() => {
+                const nextPreset = (stagePreset + 1) % (TOTAL_STAGES + 1);
+                setStagePreset(nextPreset);
+                startNewRound(match.mode, true, nextPreset);
+              }}
+            >
+              ›
+            </button>
+          </div>
           <button
             type="button"
             aria-pressed={musicOn}
@@ -1584,7 +1616,15 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
           <button
             type="button"
             className="primary"
-            onClick={() => startNewRound(match.mode, true)}
+            onClick={() => {
+              if (match.status === 'round_over' && stagePreset > 0) {
+                const advanced = (stagePreset % TOTAL_STAGES) + 1;
+                setStagePreset(advanced);
+                startNewRound(match.mode, true, advanced);
+              } else {
+                startNewRound(match.mode, true);
+              }
+            }}
           >
             {match.status === 'round_over' ? 'Next round' : 'New game'}
           </button>
@@ -1620,7 +1660,11 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
       </div>
 
       <p className="tetris-scene" aria-live="polite">
-        Bust-A-Move · Scene {backgroundIndex + 1}/{BACKGROUNDS.length}: {art.title}
+        Bust-A-Move ·{' '}
+        {stagePreset === 0 && match.players[0].stage === 1
+          ? 'Wave: Random'
+          : `Stage ${match.players[0].stage}/${TOTAL_STAGES}: ${stageTitle(match.players[0].stage)}`}{' '}
+        · Scene {backgroundIndex + 1}/{BACKGROUNDS.length}: {art.title}
         {nowPlaying ? ` · Music: ${nowPlaying}` : ''}
       </p>
 
