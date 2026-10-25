@@ -4,6 +4,25 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Expand Puzzle Bobble to 15 named classic stages with level stepper (#210) — 2026-10-25
+
+Source revision `faa219f` (the feature commit).
+
+- `npm test`: 23 files, 157 tests passed (`test/puzzle-bobble.test.ts` verifies
+  `TOTAL_STAGES === 15`, `STAGE_CATALOG` titles `Stage 1: Paired Blocks` through
+  `Stage 15: Emperor's Citadel`, and `findFloatingBubbles(createStageGrid(s, () => 0)) === []`
+  for all 15 stages).
+- `npx tsc --noEmit`: clean.
+- `npm run build`: clean; `dist/client/.build-id` and
+  `server/build-id.generated.js` both report `faa219f…`.
+- `npm run e2e`: 42 passed (`e2e/puzzle-bobble.spec.ts` verifies `Next stage` /
+  `Previous stage` stepping across `Wave: Random`, `Stage 1: Paired Blocks`, and
+  `Stage 15: Emperor's Citadel`).
+- `cd hosting/cloudflare && npm run check`: `wrangler deploy --dry-run` passes
+  with `APP_VERSION="v0.15.0"`.
+- `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`,
+  13/13 findings compliant.
+
 ## Live static publication at `https://demo.yolo-dev.ai` (#199, `normzhou/yolo-dev#208`) — 2026-10-25
 
 Deployed client Cloudflare Worker `yolo-demo-app` (`Version ID: 188dcfa2-bd7f-4532-9162-b9dd277a9cf1`, `Deployment ID: fd52d5ff-0642-4d0d-9512-04032fe5f85a`, `APP_VERSION: "v0.14.2"`, build `a38b872b8d34159d46df4a69293e20c6a9649e53`) behind the `yolo-dev` operator gateway on [`normzhou/yolo-dev#208`](https://github.com/normzhou/yolo-dev/issues/208) (**Receiver revision 9 — FULFILLED**).
