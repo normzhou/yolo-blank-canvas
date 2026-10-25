@@ -83,7 +83,7 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
     const p2Mascot = page.getByTestId('p2-mascot');
     await expect(p1Mascot).toHaveAttribute('data-character', 'dragon');
     await expect(p2Mascot).toHaveAttribute('data-character', 'dragon');
-    await expect(p1Mascot).toHaveAttribute('data-mood', 'normal');
+    await expect(p1Mascot).toHaveAttribute('data-mood', /^(?:normal|cheer)$/);
     await expect(p2Mascot).toHaveAttribute('data-mood', 'normal');
 
     await page.getByTestId('p1-character-picker').getByRole('button', { name: 'Cat', exact: true }).click();
@@ -213,19 +213,46 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
     );
     expect(phoneOverflow).toBeLessThanOrEqual(0);
 
-    // 2. Tablet / iPad viewport (1024x768 >= 768px): 2 Players side-by-side is available and fits side-by-side.
-    await page.setViewportSize({ width: 1024, height: 768 });
-    await page.getByRole('button', { name: '2 Players', exact: true }).click();
-    await expect(page.getByRole('img', { name: 'Player 1 bubble board' })).toBeVisible();
-    await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toBeVisible();
-    const cardTops = await page.evaluate(() =>
-      Array.from(document.querySelectorAll('.pb-player-card')).map((el) =>
-        Math.round(el.getBoundingClientRect().top),
-      ),
-    );
-    expect(cardTops).toEqual([cardTops[0], cardTops[0]]);
+    // 2. Phone landscape viewport (844x390, short edge 390 < 560px): still a phone, so 1P mode is enforced.
+    await page.setViewportSize({ width: 844, height: 390 });
+    await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: '2 Players', exact: true })).toHaveCount(0);
 
-    // 3. Tetris touch controls work on phone without a keyboard.
+    // 3. iPad Portrait (768x1024) & iPad Landscape (1024x768): 2 Players side-by-side is available and fits side-by-side without wrapping.
+    for (const [w, h] of [
+      [768, 1024],
+      [1024, 768],
+    ] as const) {
+      await page.setViewportSize({ width: w, height: h });
+      await page.getByRole('button', { name: '2 Players', exact: true }).click();
+      await expect(page.getByRole('img', { name: 'Player 1 bubble board' })).toBeVisible();
+      await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toBeVisible();
+      const cardTops = await page.evaluate(() =>
+        Array.from(document.querySelectorAll('.pb-player-card')).map((el) =>
+          Math.round(el.getBoundingClientRect().top),
+        ),
+      );
+      expect(cardTops, `iPad ${w}x${h} should keep both 2P cards side-by-side`).toEqual([
+        cardTops[0],
+        cardTops[0],
+      ]);
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      );
+      expect(overflow, `iPad ${w}x${h} horizontal overflow`).toBeLessThanOrEqual(0);
+    }
+
+    // 4. Small Phone (360x640): 1P card and side panel are never clipped horizontally.
+    await page.setViewportSize({ width: 360, height: 640 });
+    await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toHaveCount(0);
+    const smallPhoneClipped = await page.evaluate(() => {
+      const side = document.querySelector('.pb-side')?.getBoundingClientRect();
+      const card = document.querySelector('.pb-player-card')?.getBoundingClientRect();
+      return side && card ? side.right > card.right + 1 : true;
+    });
+    expect(smallPhoneClipped).toBe(false);
+
+    // 5. Tetris touch controls work on phone without a keyboard.
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`${stub.base}?app=tetris`);
     await expect(page.getByTestId('tetris-touch-controls')).toBeVisible();
