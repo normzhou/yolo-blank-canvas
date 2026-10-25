@@ -12,6 +12,8 @@ import {
   MIN_AIM_ANGLE,
   ODD_COLS,
   SHOT_TIME_LIMIT_MS,
+  STAGE_CATALOG,
+  TOTAL_STAGES,
   aimGuidePoints,
   aimPlayer,
   aimVelocityDegPerSec,
@@ -36,6 +38,7 @@ import {
   scoreForStageClearBonus,
   settleBubbleAt,
   shotsPerCeilingDrop,
+  stageTitle,
   stepMatch,
   tickShotTimers,
 } from '../src/shared/puzzleBobble';
@@ -237,8 +240,25 @@ describe('Puzzle Bobble (Bust-A-Move) arcade rules', () => {
     expect(match.players[1]?.flying).not.toBeNull();
   });
 
-  it('awards the round to the opponent on danger-line KO, to the clearer on board clear, and supports classic stages', () => {
-    expect(createStageGrid(2, () => 0).flat().some((c) => c !== null)).toBe(true);
+  it('awards the round to the opponent on danger-line KO, to the clearer on board clear, and supports 15 anchored classic stages', () => {
+    expect(TOTAL_STAGES).toBe(15);
+    expect(STAGE_CATALOG).toHaveLength(15);
+    expect(stageTitle(0)).toBe('Random Wave');
+    expect(stageTitle(1)).toBe('Paired Blocks');
+    expect(stageTitle(15)).toBe("Emperor's Citadel");
+
+    const titles = new Set<string>();
+    for (let s = 1; s <= TOTAL_STAGES; s += 1) {
+      titles.add(stageTitle(s));
+      const grid = createStageGrid(s, () => 0);
+      const occupied = grid.flat().filter((c) => c !== null);
+      expect(occupied.length, `Stage ${s} (${stageTitle(s)}) should have bubbles`).toBeGreaterThanOrEqual(8);
+      expect(
+        findFloatingBubbles(grid),
+        `Stage ${s} (${stageTitle(s)}) must have zero unanchored bubbles at spawn`,
+      ).toEqual([]);
+    }
+    expect(titles.size).toBe(15);
 
     let match = createMatch('2p', () => 0.2);
     const koGrid = createEmptyGrid();

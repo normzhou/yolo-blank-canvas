@@ -249,49 +249,196 @@ export function decomposeGarbageOrbs(count: number): Array<'red' | 'yellow'> {
   return [...Array<'red'>(reds).fill('red'), ...Array<'yellow'>(yellows).fill('yellow')];
 }
 
+export interface StageDefinition {
+  stage: number;
+  title: string;
+  template: readonly (readonly string[])[];
+}
+
 /**
- * Classic Taito arcade stage formations (inspired by Neo-Geo Stages 1–5)
- * so solo progression and versus rematches have recognizable hanging anchors.
+ * 15 classic Taito / Neo-Geo arcade stage formations (#183, #210)
+ * with distinct geometry, bank-shot channels, and hanging avalanche anchors.
+ * Every cell in every template has a connected path to row 0 (ceiling).
  */
-const STAGE_TEMPLATES: readonly string[][][] = [
-  // Stage 1: Classic paired color blocks (easy 1xM overhang targets)
-  [
-    ['R', 'R', 'Y', 'Y', 'G', 'G', 'B', 'B'],
-    ['R', 'R', 'Y', 'Y', 'G', 'G', 'B'],
-    ['B', 'B', 'G', 'G', 'Y', 'Y', 'R', 'R'],
-    ['B', 'G', 'G', 'Y', 'Y', 'R', 'R'],
-  ],
-  // Stage 2: Central pendulum stem (pop the top pair to avalanche the stem)
-  [
-    ['.', '.', '.', 'R', 'R', '.', '.', '.'],
-    ['.', '.', '.', 'Y', '.', '.', '.'],
-    ['.', '.', 'G', 'G', 'B', '.', '.', '.'],
-    ['.', '.', 'Y', 'P', 'B', '.', '.'],
-    ['.', '.', '.', 'C', 'C', '.', '.', '.'],
-  ],
-  // Stage 3: Twin hanging bridges
-  [
-    ['R', 'R', '.', '.', '.', '.', 'B', 'B'],
-    ['Y', 'G', 'G', 'P', 'P', 'Y', 'B'],
-    ['R', '.', '.', 'C', 'C', '.', '.', 'B'],
-    ['Y', 'G', '.', 'P', '.', 'Y', 'B'],
-  ],
-  // Stage 4: Twin towers
-  [
-    ['.', 'G', 'G', '.', '.', 'P', 'P', '.'],
-    ['.', 'R', 'Y', '.', 'B', 'C', '.'],
-    ['.', 'R', 'Y', '.', '.', 'B', 'C', '.'],
-    ['.', 'G', 'G', '.', 'P', 'P', '.'],
-    ['.', 'Y', 'R', '.', '.', 'C', 'B', '.'],
-  ],
-  // Stage 5: Diamond lattice
-  [
-    ['R', 'Y', 'G', 'B', 'B', 'G', 'Y', 'R'],
-    ['R', '.', 'G', 'P', 'G', '.', 'R'],
-    ['.', 'Y', 'C', 'P', 'P', 'C', 'Y', '.'],
-    ['.', 'Y', '.', 'C', '.', 'Y', '.'],
-  ],
+export const STAGE_CATALOG: readonly StageDefinition[] = [
+  {
+    stage: 1,
+    title: 'Paired Blocks',
+    template: [
+      ['R', 'R', 'Y', 'Y', 'G', 'G', 'B', 'B'],
+      ['R', 'R', 'Y', 'Y', 'G', 'G', 'B'],
+      ['B', 'B', 'G', 'G', 'Y', 'Y', 'R', 'R'],
+      ['B', 'G', 'G', 'Y', 'Y', 'R', 'R'],
+    ],
+  },
+  {
+    stage: 2,
+    title: 'Pendulum Stem',
+    template: [
+      ['.', '.', '.', 'R', 'R', '.', '.', '.'],
+      ['.', '.', '.', 'Y', '.', '.', '.'],
+      ['.', '.', 'G', 'G', 'B', '.', '.', '.'],
+      ['.', '.', 'Y', 'P', 'B', '.', '.'],
+      ['.', '.', '.', 'C', 'C', '.', '.', '.'],
+    ],
+  },
+  {
+    stage: 3,
+    title: 'Twin Bridges',
+    template: [
+      ['R', 'R', '.', '.', '.', '.', 'B', 'B'],
+      ['Y', 'G', 'G', 'P', 'P', 'Y', 'B'],
+      ['R', '.', '.', 'C', 'C', '.', '.', 'B'],
+      ['Y', 'G', '.', 'P', '.', 'Y', 'B'],
+    ],
+  },
+  {
+    stage: 4,
+    title: 'Twin Towers',
+    template: [
+      ['.', 'G', 'G', '.', '.', 'P', 'P', '.'],
+      ['.', 'R', 'Y', '.', 'B', 'C', '.'],
+      ['.', 'R', 'Y', '.', '.', 'B', 'C', '.'],
+      ['.', 'G', 'G', '.', 'P', 'P', '.'],
+      ['.', 'Y', 'R', '.', '.', 'C', 'B', '.'],
+    ],
+  },
+  {
+    stage: 5,
+    title: 'Diamond Lattice',
+    template: [
+      ['R', 'Y', 'G', 'B', 'B', 'G', 'Y', 'R'],
+      ['R', '.', 'G', 'P', 'G', '.', 'R'],
+      ['.', 'Y', 'C', 'P', 'P', 'C', 'Y', '.'],
+      ['.', 'Y', '.', 'C', '.', 'Y', '.'],
+    ],
+  },
+  {
+    stage: 6,
+    title: 'Chevron Wedge',
+    template: [
+      ['R', 'R', 'Y', 'G', 'G', 'Y', 'B', 'B'],
+      ['.', 'R', 'Y', 'G', 'Y', 'B', '.'],
+      ['.', '.', 'Y', 'P', 'P', 'Y', '.', '.'],
+      ['.', '.', 'C', 'P', 'C', '.', '.'],
+      ['.', '.', '.', 'C', 'C', '.', '.', '.'],
+    ],
+  },
+  {
+    stage: 7,
+    title: 'Honeycomb Arch',
+    template: [
+      ['B', 'B', 'G', 'Y', 'Y', 'G', 'R', 'R'],
+      ['B', 'G', '.', '.', '.', 'G', 'R'],
+      ['P', 'P', '.', '.', '.', '.', 'C', 'C'],
+      ['P', '.', '.', '.', '.', '.', 'C'],
+      ['Y', 'Y', '.', '.', '.', '.', 'Y', 'Y'],
+    ],
+  },
+  {
+    stage: 8,
+    title: 'Zigzag Steps',
+    template: [
+      ['R', 'R', 'Y', 'Y', '.', '.', '.', '.'],
+      ['.', 'R', 'Y', 'G', 'G', '.', '.'],
+      ['.', '.', 'Y', 'G', 'B', 'B', '.', '.'],
+      ['.', '.', '.', 'G', 'B', 'P', 'P'],
+      ['.', '.', '.', '.', 'B', 'P', 'C', 'C'],
+    ],
+  },
+  {
+    stage: 9,
+    title: 'Hourglass Pinch',
+    template: [
+      ['.', 'R', 'R', 'Y', 'Y', 'B', 'B', '.'],
+      ['.', '.', 'G', 'P', 'G', '.', '.'],
+      ['.', '.', '.', 'C', 'C', '.', '.', '.'],
+      ['.', '.', 'Y', 'C', 'Y', '.', '.'],
+      ['.', 'B', 'B', 'G', 'G', 'R', 'R', '.'],
+      ['.', '.', 'B', 'G', 'R', '.', '.'],
+    ],
+  },
+  {
+    stage: 10,
+    title: 'Triple Chandelier',
+    template: [
+      ['R', 'R', '.', 'G', 'G', '.', 'B', 'B'],
+      ['Y', '.', '.', 'P', '.', '.', 'C'],
+      ['Y', 'R', '.', 'P', 'G', '.', 'C', 'B'],
+      ['R', '.', '.', 'G', '.', '.', 'B'],
+      ['.', 'Y', '.', 'C', 'C', '.', 'P', '.'],
+    ],
+  },
+  {
+    stage: 11,
+    title: 'Spiral Bastion',
+    template: [
+      ['.', '.', 'P', 'P', 'C', 'C', 'B', 'B'],
+      ['.', 'G', 'G', '.', '.', '.', 'B'],
+      ['.', 'G', '.', 'R', 'R', '.', '.', 'Y'],
+      ['.', 'Y', 'R', 'Y', '.', '.', 'Y'],
+      ['.', '.', 'Y', 'Y', 'G', 'G', 'P', 'P'],
+    ],
+  },
+  {
+    stage: 12,
+    title: 'Fortress Gate',
+    template: [
+      ['R', 'Y', 'G', 'B', 'B', 'G', 'Y', 'R'],
+      ['R', 'Y', '.', 'B', '.', 'Y', 'R'],
+      ['P', 'C', '.', 'C', 'C', '.', 'C', 'P'],
+      ['P', '.', '.', '.', '.', '.', 'P'],
+      ['G', 'G', '.', '.', '.', '.', 'G', 'G'],
+    ],
+  },
+  {
+    stage: 13,
+    title: 'Crossroads X',
+    template: [
+      ['R', 'R', '.', '.', '.', '.', 'B', 'B'],
+      ['.', 'Y', 'Y', '.', 'G', 'G', '.'],
+      ['.', '.', 'P', 'C', 'C', 'P', '.', '.'],
+      ['.', 'G', 'G', 'C', 'Y', 'Y', '.'],
+      ['B', 'B', '.', '.', '.', '.', 'R', 'R'],
+    ],
+  },
+  {
+    stage: 14,
+    title: 'Sniper Alley',
+    template: [
+      ['R', 'R', 'Y', '.', '.', 'G', 'B', 'B'],
+      ['R', 'Y', 'P', '.', 'C', 'G', 'B'],
+      ['Y', 'P', 'C', '.', '.', 'P', 'G', 'Y'],
+      ['P', 'C', '.', '.', '.', 'P', 'G'],
+      ['C', 'R', 'R', '.', '.', 'B', 'B', 'Y'],
+      ['R', 'Y', '.', '.', '.', 'Y', 'B'],
+    ],
+  },
+  {
+    stage: 15,
+    title: "Emperor's Citadel",
+    template: [
+      ['R', 'Y', 'G', 'P', 'P', 'G', 'Y', 'R'],
+      ['R', 'C', 'B', 'P', 'B', 'C', 'R'],
+      ['Y', 'C', '.', 'G', 'G', '.', 'C', 'Y'],
+      ['Y', '.', 'R', 'B', 'R', '.', 'Y'],
+      ['G', 'P', 'R', '.', '.', 'R', 'P', 'G'],
+      ['P', 'C', '.', '.', '.', 'C', 'P'],
+    ],
+  },
 ];
+
+export const TOTAL_STAGES = STAGE_CATALOG.length;
+
+export function stageTitle(stage: number): string {
+  if (stage <= 0) return 'Random Wave';
+  const def = STAGE_CATALOG[(stage - 1) % STAGE_CATALOG.length];
+  return def ? def.title : `Stage ${stage}`;
+}
+
+const STAGE_TEMPLATES: readonly (readonly (readonly string[])[])[] = STAGE_CATALOG.map(
+  (s) => s.template,
+);
 
 const TEMPLATE_COLOR_MAP: Record<string, number> = {
   R: 0,
