@@ -64,12 +64,13 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
 
     // Player 2 aims left with a fine 0.5° tap on ArrowLeft and resolves a shot ->
     // the 3 incoming bubbles rise from the bottom with `.pb-rise-bubble`!
+    // Ensure the center target cells won't accidentally match 3 of a kind with Player 2's active bubble.
     await page.keyboard.press('ArrowLeft');
     await expect(page.getByTestId('p2-aim')).toHaveText('-0.5°');
     await page.evaluate(() => {
       window.dispatchEvent(
         new CustomEvent('yolo:puzzle-bobble:fire-resolve', {
-          detail: { player: 1 },
+          detail: { player: 1, preventPop: true },
         }),
       );
     });
@@ -175,3 +176,64 @@ test('Feedback on Puzzle Bobble carries app context and isolates ASDF/Arrow keys
     await closeStub(stub);
   }
 });
+
+test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet (>= 768px) supports 2P side-by-side, and touch drag-to-aim + FIRE button and Tetris touch pad work without a keyboard (#212)', async ({
+  page,
+}) => {
+  const stub = await startStubApp();
+  try {
+    // 1. Phone viewport (390x844 < 768px): Puzzle Bobble opens in 1P mode only and hides 2P toggle.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(`${stub.base}?app=puzzle-bobble`);
+    await expect(page.getByRole('img', { name: 'Player 1 bubble board' })).toBeVisible();
+    await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: '2 Players', exact: true })).toHaveCount(0);
+
+    // Drag on Player 1 board to aim (does NOT fire on release), then tap FIRE button to shoot.
+    const p1Board = page.getByRole('img', { name: 'Player 1 bubble board' });
+    const box = await p1Board.boundingBox();
+    expect(box).not.toBeNull();
+    // Touch/drag toward the upper-right of the board -> positive aim angle, 0 shots fired.
+    await page.mouse.move(box!.x + box!.width * 0.5, box!.y + box!.height * 0.5);
+    await page.mouse.down();
+    await page.mouse.move(box!.x + box!.width * 0.82, box!.y + box!.height * 0.35);
+    await page.mouse.up();
+    await expect(page.getByTestId('p1-aim')).toHaveText(/^\+\d+(\.5)?°$/);
+    await expect(page.getByTestId('p1-shots')).toHaveText('0');
+
+    // Fine-tap touch button steps by +0.5°, and tapping FIRE shoots the bubble.
+    await page.getByTestId('p1-touch-left').dispatchEvent('pointerdown', { pointerId: 1 });
+    await page.getByTestId('p1-touch-left').dispatchEvent('pointerup', { pointerId: 1 });
+    await page.getByTestId('p1-touch-fire').click();
+    await expect(page.getByTestId('p1-shots')).toHaveText('1', { timeout: 5000 });
+
+    // No horizontal overflow on 390px phone screen.
+    const phoneOverflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(phoneOverflow).toBeLessThanOrEqual(0);
+
+    // 2. Tablet / iPad viewport (1024x768 >= 768px): 2 Players side-by-side is available and fits side-by-side.
+    await page.setViewportSize({ width: 1024, height: 768 });
+    await page.getByRole('button', { name: '2 Players', exact: true }).click();
+    await expect(page.getByRole('img', { name: 'Player 1 bubble board' })).toBeVisible();
+    await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toBeVisible();
+    const cardTops = await page.evaluate(() =>
+      Array.from(document.querySelectorAll('.pb-player-card')).map((el) =>
+        Math.round(el.getBoundingClientRect().top),
+      ),
+    );
+    expect(cardTops).toEqual([cardTops[0], cardTops[0]]);
+
+    // 3. Tetris touch controls work on phone without a keyboard.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(`${stub.base}?app=tetris`);
+    await expect(page.getByTestId('tetris-touch-controls')).toBeVisible();
+    await page.getByTestId('tetris-touch-rotate').click();
+    await page.getByTestId('tetris-touch-drop').click();
+    await expect(page.locator('.tetris-side .tetris-value').first()).not.toHaveText('0');
+  } finally {
+    await closeStub(stub);
+  }
+});
+

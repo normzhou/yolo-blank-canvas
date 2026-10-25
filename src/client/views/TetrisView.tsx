@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { TetrisMusic } from '../audio/tetrisMusic';
 import {
   BACKGROUNDS,
@@ -207,6 +207,88 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [onExit, paused]);
 
+  // #212: Touch / pointer auto-repeat (DAS) for on-screen Tetris arcade buttons
+  // and direct board gestures (drag left/right to move, tap to rotate, flick down to hard-drop).
+  const repeatTimeoutRef = useRef<number | null>(null);
+  const repeatIntervalRef = useRef<number | null>(null);
+  const boardGestureRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startY: number;
+    lastStepX: number;
+    moved: boolean;
+  } | null>(null);
+
+  const stopTouchRepeat = useCallback(() => {
+    if (repeatTimeoutRef.current !== null) {
+      window.clearTimeout(repeatTimeoutRef.current);
+      repeatTimeoutRef.current = null;
+    }
+    if (repeatIntervalRef.current !== null) {
+      window.clearInterval(repeatIntervalRef.current);
+      repeatIntervalRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => () => stopTouchRepeat(), [stopTouchRepeat]);
+
+  const startTouchRepeat = useCallback(
+    (action: () => void) => {
+      if (paused || game.status !== 'playing') return;
+      stopTouchRepeat();
+      action();
+      repeatTimeoutRef.current = window.setTimeout(() => {
+        repeatIntervalRef.current = window.setInterval(action, 60);
+      }, 160);
+    },
+    [game.status, paused, stopTouchRepeat],
+  );
+
+  const onBoardPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (paused || game.status !== 'playing') return;
+    boardGestureRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      lastStepX: event.clientX,
+      moved: false,
+    };
+  };
+
+  const onBoardPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const g = boardGestureRef.current;
+    if (!g || g.pointerId !== event.pointerId || paused || game.status !== 'playing') return;
+    const stepPx = 22;
+    const dx = event.clientX - g.lastStepX;
+    if (Math.abs(dx) >= stepPx) {
+      const steps = Math.trunc(dx / stepPx);
+      g.lastStepX += steps * stepPx;
+      g.moved = true;
+      setGame((current) => {
+        let next = current;
+        const count = Math.min(10, Math.abs(steps));
+        for (let i = 0; i < count; i += 1) {
+          next = steps > 0 ? moveRight(next) : moveLeft(next);
+        }
+        return next;
+      });
+    }
+  };
+
+  const onBoardPointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const g = boardGestureRef.current;
+    if (!g || g.pointerId !== event.pointerId) return;
+    boardGestureRef.current = null;
+    if (paused || game.status !== 'playing') return;
+    const totalDx = event.clientX - g.startX;
+    const totalDy = event.clientY - g.startY;
+    if (totalDy >= 44 && Math.abs(totalDy) > Math.abs(totalDx) * 1.3) {
+      setGame((current) => hardDrop(current));
+    } else if (!g.moved && Math.hypot(totalDx, totalDy) < 12) {
+      setGame((current) => rotate(current, 1));
+    }
+  };
+
   const board = displayBoard(game);
   const ghost = ghostPiece(game);
   const ghostCoords = new Set<string>();
@@ -250,7 +332,17 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
       </header>
 
       <div className="tetris-body">
-        <div className="tetris-board" role="img" aria-label={`Tetris board, ${BOARD_WIDTH} by ${BOARD_HEIGHT}`}>
+        <div
+          className="tetris-board"
+          role="img"
+          aria-label={`Tetris board, ${BOARD_WIDTH} by ${BOARD_HEIGHT}`}
+          onPointerDown={onBoardPointerDown}
+          onPointerMove={onBoardPointerMove}
+          onPointerUp={onBoardPointerUp}
+          onPointerCancel={() => {
+            boardGestureRef.current = null;
+          }}
+        >
           {board.map((row, y) =>
             row.map((cell, x) => {
               const key = `${x},${y}`;
@@ -280,6 +372,91 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
             <NextPreview type={game.next} />
           </div>
         </aside>
+      </div>
+
+      <div
+        className="tetris-touch-bar"
+        role="group"
+        aria-label="Tetris touch controls"
+        data-testid="tetris-touch-controls"
+      >
+        <button
+          type="button"
+          className="pb-touch-btn"
+          data-testid="tetris-touch-left"
+          aria-label="Move left"
+          disabled={paused || game.status !== 'playing'}
+          onPointerDown={(event) => {
+            event.preventDefault();
+            startTouchRepeat(() => setGame((current) => moveLeft(current)));
+          }}
+          onPointerUp={stopTouchRepeat}
+          onPointerCancel={stopTouchRepeat}
+          onPointerLeave={stopTouchRepeat}
+          onClick={(event) => {
+            if (event.detail === 0) setGame((current) => moveLeft(current));
+          }}
+        >
+          ← Left
+        </button>
+        <button
+          type="button"
+          className="pb-touch-btn"
+          data-testid="tetris-touch-right"
+          aria-label="Move right"
+          disabled={paused || game.status !== 'playing'}
+          onPointerDown={(event) => {
+            event.preventDefault();
+            startTouchRepeat(() => setGame((current) => moveRight(current)));
+          }}
+          onPointerUp={stopTouchRepeat}
+          onPointerCancel={stopTouchRepeat}
+          onPointerLeave={stopTouchRepeat}
+          onClick={(event) => {
+            if (event.detail === 0) setGame((current) => moveRight(current));
+          }}
+        >
+          Right →
+        </button>
+        <button
+          type="button"
+          className="pb-touch-btn"
+          data-testid="tetris-touch-rotate"
+          aria-label="Rotate piece"
+          disabled={paused || game.status !== 'playing'}
+          onClick={() => setGame((current) => rotate(current, 1))}
+        >
+          ↻ Rotate
+        </button>
+        <button
+          type="button"
+          className="pb-touch-btn"
+          data-testid="tetris-touch-soft"
+          aria-label="Soft drop"
+          disabled={paused || game.status !== 'playing'}
+          onPointerDown={(event) => {
+            event.preventDefault();
+            startTouchRepeat(() => setGame((current) => softDrop(current)));
+          }}
+          onPointerUp={stopTouchRepeat}
+          onPointerCancel={stopTouchRepeat}
+          onPointerLeave={stopTouchRepeat}
+          onClick={(event) => {
+            if (event.detail === 0) setGame((current) => softDrop(current));
+          }}
+        >
+          ↓ Soft
+        </button>
+        <button
+          type="button"
+          className="primary pb-touch-btn"
+          data-testid="tetris-touch-drop"
+          aria-label="Hard drop"
+          disabled={paused || game.status !== 'playing'}
+          onClick={() => setGame((current) => hardDrop(current))}
+        >
+          ⤓ Drop
+        </button>
       </div>
 
       {BACKGROUNDS.length > 1 ? (
