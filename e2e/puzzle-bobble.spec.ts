@@ -212,6 +212,9 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
     const phoneMetrics = await page.evaluate(() => {
       const fab = document.querySelector('[data-testid="yolo-feedback-fab"]')?.getBoundingClientRect();
       const logo = document.querySelector('[data-testid="yolo-rotating-logo"]');
+      const logoPaths = logo ? logo.querySelectorAll('path[d="M48 48v30"]').length : 0;
+      const logoViewBox = logo ? logo.getAttribute('viewBox') : '';
+      const logoColor = logo ? window.getComputedStyle(logo).color : '';
       const touchBar = document.querySelector('.pb-touch-bar');
       const touchBarBg = touchBar ? window.getComputedStyle(touchBar).backgroundColor : '';
       return {
@@ -221,6 +224,9 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
         fabWidth: fab ? Math.round(fab.width) : 0,
         fabHeight: fab ? Math.round(fab.height) : 0,
         hasRotatingLogo: Boolean(logo),
+        logoPaths,
+        logoViewBox,
+        logoColor,
         touchBarBg,
       };
     });
@@ -228,6 +234,9 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
     expect(phoneMetrics.vertOverflow).toBeLessThanOrEqual(0);
     expect(phoneMetrics.scrollY).toBe(0);
     expect(phoneMetrics.hasRotatingLogo).toBe(true);
+    expect(phoneMetrics.logoPaths).toBe(3);
+    expect(phoneMetrics.logoViewBox).toBe('0 0 96 96');
+    expect(phoneMetrics.logoColor).toBe('rgb(216, 75, 39)');
     expect(phoneMetrics.fabWidth).toBeLessThanOrEqual(48);
     expect(phoneMetrics.fabHeight).toBeLessThanOrEqual(48);
     expect(phoneMetrics.touchBarBg).toBe('rgba(0, 0, 0, 0)');

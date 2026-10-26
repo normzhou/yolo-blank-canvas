@@ -101,6 +101,7 @@
   --touch-overlay-fire-border: rgba(252, 165, 165, 0.82);
   --touch-overlay-rotate-bg: rgba(168, 85, 247, 0.08);
   --touch-overlay-rotate-border: rgba(216, 180, 254, 0.78);
+  --yolo-brand: #d84b27;
   --yolo-fab-bg: rgba(15, 23, 42, 0.42);
   --yolo-fab-border: rgba(255, 255, 255, 0.55);
   --yolo-fab-shadow: 0 4px 14px rgba(0, 0, 0, 0.32), inset 0 0 8px rgba(255, 255, 255, 0.18);
@@ -365,26 +366,90 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
   margin: 0;
   box-shadow: var(--elevation-panel-centred);
 }
+.yolo-mark,
 .yolo-logo-mark {
   display: inline-block;
+  width: 22px;
+  height: 22px;
   flex-shrink: 0;
   vertical-align: middle;
+  color: var(--yolo-brand);
+  transform-origin: center;
 }
-.yolo-logo-orbit {
-  transform-origin: 12px 12px;
-  animation: yolo-logo-spin 8s linear infinite;
+button.primary.canvas-primary-action .yolo-logo-mark {
+  color: var(--on-accent);
 }
-.yolo-logo-core {
-  transform-origin: 12px 12px;
-  animation: yolo-logo-spin-reverse 5s linear infinite;
+.yolo-mark__motion {
+  transform-origin: 48px 48px;
+  animation: yolo-mark-idle 80628.235ms linear infinite;
 }
-@keyframes yolo-logo-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-@keyframes yolo-logo-spin-reverse {
-  from { transform: rotate(360deg); }
-  to { transform: rotate(0deg); }
+@keyframes yolo-mark-idle {
+  0.000000% { transform: rotate(0deg); animation-timing-function: linear; }
+  6.388288% { transform: rotate(0deg); animation-timing-function: ease-in-out; }
+  6.746136% { transform: rotate(7.203712676651776deg); animation-timing-function: ease-in-out; }
+  7.199242% { transform: rotate(-4.682413239823655deg); animation-timing-function: ease-in-out; }
+  7.399039% { transform: rotate(1.0805569014977663deg); animation-timing-function: ease-in-out; }
+  7.536868% { transform: rotate(0deg); animation-timing-function: ease-in-out; }
+  13.357038% { transform: rotate(0deg); animation-timing-function: ease-in-out; }
+  13.595808% { transform: rotate(8.77392471395433deg); animation-timing-function: ease-in-out; }
+  13.815039% { transform: rotate(-5.703051064070315deg); animation-timing-function: ease-in-out; }
+  14.022932% { transform: rotate(1.3160887070931493deg); animation-timing-function: ease-in-out; }
+  14.113735% { transform: rotate(0deg); animation-timing-function: ease-in-out; }
+  22.288233% { transform: rotate(0deg); animation-timing-function: ease-in-out; }
+  22.614606% { transform: rotate(-7.792651663534343deg); animation-timing-function: ease-in-out; }
+  23.018427% { transform: rotate(5.065223581297324deg); animation-timing-function: ease-in-out; }
+  23.258113% { transform: rotate(-1.1688977495301514deg); animation-timing-function: ease-in-out; }
+  23.390369% { transform: rotate(0deg); animation-timing-function: ease-in-out; }
+  28.657452% { transform: rotate(0deg); animation-timing-function: ease-in-out; }
+  29.048605% { transform: rotate(8.47537649050355deg); animation-timing-function: ease-in-out; }
+  29.407857% { transform: rotate(-5.508994718827307deg); animation-timing-function: ease-in-out; }
+  29.693957% { transform: rotate(1.2713064735755324deg); animation-timing-function: ease-in-out; }
+  29.835298% { transform: rotate(0deg); animation-timing-function: ease-in-out; }
+  33.999469% { transform: rotate(0deg); animation-timing-function: cubic-bezier(0.3333333333333333, 0, 0.6666666666666666, 0.3333333333333333); }
+  34.309535% { transform: rotate(60deg); animation-timing-function: cubic-bezier(0.3333333333333333, 0.6666666666666666, 0.6666666666666666, 1); }
+  34.619600% { transform: rotate(120deg); animation-timing-function: ease-in-out; }
+  34.676777% { transform: rotate(128.0380309233442deg); animation-timing-function: ease-in-out; }
+  34.743483% { transform: rotate(114.77527989982627deg); animation-timing-function: ease-in-out; }
+  34.783507% { transform: rotate(121.20570463850163deg); animation-timing-function: ease-in-out; }
+  34.810190% { transform: rotate(120deg); animation-timing-function: linear; }
+  43.830079% { transform: rotate(120deg); animation-timing-function: cubic-bezier(0.3333333333333333, 0, 0.6666666666666666, 0.3333333333333333); }
+  44.523406% { transform: rotate(-180deg); animation-timing-function: cubic-bezier(0.3333333333333333, 0.6666666666666666, 0.6666666666666666, 1); }
+  45.216732% { transform: rotate(-480deg); animation-timing-function: ease-in-out; }
+  45.268520% { transform: rotate(-487.7650512754917deg); animation-timing-function: ease-in-out; }
+  45.328940% { transform: rotate(-474.9527166709304deg); animation-timing-function: ease-in-out; }
+  45.365192% { transform: rotate(-481.16475769132376deg); animation-timing-function: ease-in-out; }
+  45.389359% { transform: rotate(-480deg); animation-timing-function: linear; }
+  53.201999% { transform: rotate(-480deg); animation-timing-function: ease-in-out; }
+  53.514289% { transform: rotate(-474.4273862512782deg); animation-timing-function: ease-in-out; }
+  53.951797% { transform: rotate(-483.6221989366692deg); animation-timing-function: ease-in-out; }
+  54.096961% { transform: rotate(-479.1641079376917deg); animation-timing-function: ease-in-out; }
+  54.219001% { transform: rotate(-480deg); animation-timing-function: ease-in-out; }
+  59.934072% { transform: rotate(-480deg); animation-timing-function: ease-in-out; }
+  60.278929% { transform: rotate(-471.3763463534415deg); animation-timing-function: ease-in-out; }
+  60.704204% { transform: rotate(-485.60537487026306deg); animation-timing-function: ease-in-out; }
+  60.851866% { transform: rotate(-478.7064519530162deg); animation-timing-function: ease-in-out; }
+  60.977019% { transform: rotate(-480deg); animation-timing-function: ease-in-out; }
+  69.764339% { transform: rotate(-480deg); animation-timing-function: ease-in-out; }
+  70.078301% { transform: rotate(-474.1048747068271deg); animation-timing-function: ease-in-out; }
+  70.439668% { transform: rotate(-483.8318314405624deg); animation-timing-function: ease-in-out; }
+  70.724196% { transform: rotate(-479.11573120602407deg); animation-timing-function: ease-in-out; }
+  70.855086% { transform: rotate(-480deg); animation-timing-function: ease-in-out; }
+  78.625388% { transform: rotate(-480deg); animation-timing-function: ease-in-out; }
+  78.847871% { transform: rotate(-487.8825665805489deg); animation-timing-function: ease-in-out; }
+  79.116499% { transform: rotate(-474.8763317226432deg); animation-timing-function: ease-in-out; }
+  79.303927% { transform: rotate(-481.18238498708234deg); animation-timing-function: ease-in-out; }
+  79.396456% { transform: rotate(-480deg); animation-timing-function: ease-in-out; }
+  85.277123% { transform: rotate(-480deg); animation-timing-function: ease-in-out; }
+  85.551278% { transform: rotate(-472.6711185881868deg); animation-timing-function: ease-in-out; }
+  85.901460% { transform: rotate(-484.7637729176786deg); animation-timing-function: ease-in-out; }
+  86.102331% { transform: rotate(-478.900667788228deg); animation-timing-function: ease-in-out; }
+  86.214860% { transform: rotate(-480deg); animation-timing-function: ease-in-out; }
+  92.484659% { transform: rotate(-480deg); animation-timing-function: ease-in-out; }
+  92.648229% { transform: rotate(-487.1086611524224deg); animation-timing-function: ease-in-out; }
+  92.938384% { transform: rotate(-475.37937025092543deg); animation-timing-function: ease-in-out; }
+  93.048670% { transform: rotate(-481.06629917286335deg); animation-timing-function: ease-in-out; }
+  93.125581% { transform: rotate(-480deg); animation-timing-function: ease-in-out; }
+  100.000000% { transform: rotate(-480deg); animation-timing-function: linear; }
 }
 button.yolo-fab-button,
 button.canvas-primary-action {
@@ -439,13 +504,15 @@ button.canvas-brand-button:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: var(--radius-xs);
-  background: var(--accent);
-  color: var(--on-accent);
-  font-size: var(--text-xs);
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  color: var(--yolo-brand);
   flex-shrink: 0;
+}
+.canvas-brand-mark .yolo-logo-mark {
+  width: 24px;
+  height: 24px;
 }
 .canvas-title { font-size: var(--text-base); font-weight: var(--weight-semibold); margin: 0; white-space: nowrap; }
 .canvas-identity {
@@ -2065,8 +2132,7 @@ button.pb-touch-fire {
   .ambient-orb-1,
   .ambient-orb-2,
   .ambient-orb-3,
-  .yolo-logo-orbit,
-  .yolo-logo-core,
+  .yolo-mark__motion,
   .deck-slide-card.is-sliding-next,
   .deck-slide-card.is-sliding-prev {
     animation: none;
@@ -2151,20 +2217,21 @@ button.pb-touch-fire {
     display: none;
   }
   .canvas.is-playing > .canvas-header button.yolo-fab-button {
-    width: 42px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
     padding: 0;
     border-radius: var(--radius-pill);
     background: var(--yolo-fab-bg);
     border: 1.5px solid var(--yolo-fab-border);
-    color: var(--touch-overlay-text);
+    color: var(--yolo-brand);
     box-shadow: var(--yolo-fab-shadow);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
   }
   .canvas.is-playing > .canvas-header .yolo-logo-mark {
-    width: 20px;
-    height: 20px;
+    width: 30px;
+    height: 30px;
+    color: var(--yolo-brand);
   }
   .tetris-help {
     display: none;

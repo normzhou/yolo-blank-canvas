@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, ApiError, type IssueSummary, type SessionInfo } from './api';
+import { animateYoloMark } from './brand/yoloMark';
 import { Panel, type PanelView } from './components/Panel';
 import { ErrorNotice } from './components/ErrorNotice';
 import { CanvasPalette } from './components/CanvasPalette';
@@ -227,43 +228,40 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
 }
 
 /**
- * Rotating geometric YOLO prism emblem (#217) used on the floating feedback
- * overlay trigger so the feedback launcher is immediately recognizable while
- * occupying minimal screen real estate during full-screen gameplay.
+ * Official `yolo-dev` Threefold symbol (`viewBox="0 0 96 96"`, `#d84b27`, three
+ * 120° square-capped arms `<path d="M48 48v30" />`) with `animateYoloMark`
+ * randomized idle wiggles/120°-step rotations and click-triggered motion (#217).
  */
-function YoloRotatingLogo() {
+function YoloRotatingLogo({ testId }: { testId?: string } = {}) {
+  const svgRef = useRef<SVGSVGElement | null>(null);
+
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const trigger = svg.closest('button') ?? svg;
+    const controller = animateYoloMark(svg, { trigger });
+    return () => controller.destroy();
+  }, []);
+
   return (
     <svg
-      className="yolo-logo-mark"
-      data-testid="yolo-rotating-logo"
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
+      ref={svgRef}
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 96 96"
+      className="yolo-mark yolo-logo-mark"
+      data-testid={testId}
       aria-hidden="true"
     >
-      <g className="yolo-logo-orbit">
-        <polygon
-          points="12,1.5 22.5,12 12,22.5 1.5,12"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        />
-        <circle
-          cx="12"
-          cy="12"
-          r="9.2"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.2"
-          strokeDasharray="3 3"
-          opacity="0.75"
-        />
-      </g>
-      <g className="yolo-logo-core">
-        <polygon
-          points="12,5.5 14.2,9.8 18.5,12 14.2,14.2 12,18.5 9.8,14.2 5.5,12 9.8,9.8"
-          fill="currentColor"
-        />
+      <g
+        className="yolo-mark__motion"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="8"
+        strokeLinecap="square"
+      >
+        <path d="M48 48v30" />
+        <path d="M48 48v30" transform="rotate(120 48 48)" />
+        <path d="M48 48v30" transform="rotate(240 48 48)" />
       </g>
     </svg>
   );
@@ -695,7 +693,7 @@ export function App() {
             title="Return to game deck"
           >
             <span className="canvas-brand-mark" aria-hidden="true">
-              ◆
+              <YoloRotatingLogo />
             </span>
             <h1 className="canvas-title">Blank canvas</h1>
           </button>
@@ -804,7 +802,7 @@ export function App() {
                   openNewRequest('feedback');
                 }}
               >
-                <YoloRotatingLogo />
+                <YoloRotatingLogo testId="yolo-rotating-logo" />
                 <span className="yolo-fab-label">Feedback</span>
               </button>
               <button
