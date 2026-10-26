@@ -248,15 +248,16 @@
         "v0.16.5": "2a3098d77d668665cfe9661244d5e37f4afe6e6f",
         "v0.16.6": "0ad0ae4d657fcb8026100f0d51cab69994075cbd",
         "v0.16.7": "062b9dbf183c59f66e126f2970f0f3460e4f9ed8",
-        "v0.17.0": "61078d99484744174ecd152a23416ab9490e7043"
+        "v0.17.0": "61078d99484744174ecd152a23416ab9490e7043",
+        "v0.17.1": "ac45e5151cdfa07dc24d652a21a6c3328f92de81"
       },
       "published": {
-        "tag": "v0.17.1",
-        "commit": "ac45e5151cdfa07dc24d652a21a6c3328f92de81",
-        "source_commit": "422092292f715c5029a5868167aacf7a08a106ff",
-        "published_at": "2026-10-26T17:01:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-10-26-v0171.json",
-        "note": "Patch release. Defaults the site to fullscreen mode with a transparent YouTube-style 4-corner bracket icon in the bottom-left corner, and moves the wiggling YOLO Threefold symbol to the top-right corner with no circular button chrome (#228, PR #229); also deployed live to https://demo.yolo-dev.ai (Version ID: 2289037d-b8e4-4379-b0dd-73afbb88e65b). Acceptance before tagging: 158 unit, 43 stubbed e2e passed, tsc clean, structure pass. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit ac45e51 after the assets commit 70d368a; both build-ID files record 4220922."
+        "tag": "v0.17.2",
+        "commit": "7002d0709980cc2a71b5910ab36f8de2c9529518",
+        "source_commit": "037e29e2eff0fa52a7c0e57a98186d9de81131d1",
+        "published_at": "2026-10-26T17:33:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-10-26-v0172.json",
+        "note": "Patch release. Moves the YouTube-style fullscreen icon to the bottom-right corner, streamlines the Feedback overlay (icon-badged intent tiles, centered dialog card, zero visible GitHub repo/account/build-SHA/preview clutter), and displays 'Currently feedback on the public version is not available, stay tuned.' on demo.yolo-dev.ai (#230, PR #231); also deployed live to https://demo.yolo-dev.ai (Version ID: fd0fc834-7fa2-47ae-9d71-ae31490d2bfb). Acceptance before tagging: 158 unit, 43 stubbed e2e passed, tsc clean, structure pass. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit 7002d07 after the assets commit 80f161a; both build-ID files record 037e29e."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -291,7 +292,8 @@
         ".yolo/reports/releases-observed-2026-10-25-v0166.json",
         ".yolo/reports/releases-observed-2026-10-25-v0167.json",
         ".yolo/reports/releases-observed-2026-10-26-v0170.json",
-        ".yolo/reports/releases-observed-2026-10-26-v0171.json"
+        ".yolo/reports/releases-observed-2026-10-26-v0171.json",
+        ".yolo/reports/releases-observed-2026-10-26-v0172.json"
       ]
     }
   },

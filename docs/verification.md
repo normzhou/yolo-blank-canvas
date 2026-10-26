@@ -6,6 +6,8 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Bottom-right YouTube fullscreen icon and streamlined Feedback overlay (#230) — 2026-10-26
 
+Source revision `037e29e` (the bottom-right YouTube fullscreen icon and streamlined Feedback overlay commit); build and review evidence `80f161a`; release commit `7002d07`; published as `v0.17.2` on 2026-10-26.
+
 - **Bottom-right YouTube-style fullscreen icon (`src/client/styles.css`):**
   - Moved `button.fullscreen-launcher` (`data-testid="fullscreen-button"`) to `bottom: 10px; right: 12px` (matching YouTube's bottom-right placement) with right-side clearance on mobile touch bars.
 - **Streamlined Feedback overlay & public demo unavailable notice (`src/client/components/Panel.tsx`, `src/client/views/NewRequestView.tsx`, `src/client/components/ErrorNotice.tsx`, `src/client/api.ts`, `src/client/styles.css`):**
@@ -15,6 +17,12 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 - `npx tsc --noEmit`: clean.
 - `npm run e2e`: 43 passed.
 - `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`, 13/13 findings compliant.
+
+### Installed artifact (`v0.17.2`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.17.2 --no-open --port 4883` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `037e29e…`; the tagged package version is `0.17.2`. The tag points at release commit `7002d07`, after the assets commit `80f161a`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4883 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: fd0fc834-7fa2-47ae-9d71-ae31490d2bfb`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.17.2"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 037e29e2eff0fa52a7c0e57a98186d9de81131d1`). The report is [`.yolo/reports/releases-observed-2026-10-26-v0172.json`](../.yolo/reports/releases-observed-2026-10-26-v0172.json).
 
 ## Default fullscreen with bottom-left YouTube-style icon and top-right bare transparent YOLO mark (#228) — 2026-10-26
 

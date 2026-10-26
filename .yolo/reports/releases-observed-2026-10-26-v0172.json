@@ -1,0 +1,64 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-26",
+  "observed_at": "2026-10-26",
+  "published_at_utc": "2026-10-26T17:33:00Z",
+  "protocol": {
+    "revision": "da644964ca92eef8448cd782cf6805c724ca2e74",
+    "release": "v0.1.0-alpha.33"
+  },
+  "releases": [
+    {
+      "tag": "v0.17.2",
+      "commit": "7002d0709980cc2a71b5910ab36f8de2c9529518"
+    }
+  ],
+  "release": {
+    "tag": "v0.17.2",
+    "tag_object": "40249a144d1092834acb16b3172a02545e0265d0",
+    "release_commit": "7002d0709980cc2a71b5910ab36f8de2c9529518",
+    "source_commit": "037e29e2eff0fa52a7c0e57a98186d9de81131d1",
+    "assets_commit": "80f161aefccdd6bad36ffecfed177984ece1a37e",
+    "semver": "patch",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record 037e29e, the source revision. The committed assets were built at that source in 80f161a. 7002d07 is a release-metadata commit (version and install references, no source changes) after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "158 passed across 23 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID 037e29e" },
+    { "check": "npm run e2e (stubbed, deterministic)", "result": "pass", "detail": "43 passed (31.3s)" },
+    { "check": "cd hosting/cloudflare && npm run check", "result": "pass", "detail": "wrangler deploy --dry-run (21 static assets, APP_VERSION=v0.17.2)" },
+    { "check": "yolo-check . --structure (0.1.0-alpha.33)", "result": "pass", "detail": "13 of 13 findings compliant" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #231 completed success" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "installed_from": "npx --yes github:normzhou/yolo-blank-canvas#v0.17.2 --no-open --port 4883",
+    "installed_into": "an empty directory, no source checkout present",
+    "served_build": "037e29e2eff0fa52a7c0e57a98186d9de81131d1",
+    "served_version": {
+      "package": "0.17.2",
+      "serverBuild": "037e29e2eff0fa52a7c0e57a98186d9de81131d1",
+      "clientBuild": "037e29e2eff0fa52a7c0e57a98186d9de81131d1"
+    },
+    "command": "YOLO_VERIFY_URL=http://127.0.0.1:4883 npm run e2e:verify-release",
+    "result": "pass",
+    "detail": "11 of 11 passed. Also deployed live to yolo-demo-app (Version ID: fd0fc834-7fa2-47ae-9d71-ae31490d2bfb) and verified at https://demo.yolo-dev.ai/__yolo/version (200 {\"version\":\"v0.17.2\"}) and https://demo.yolo-dev.ai/.build-id (200 037e29e2eff0fa52a7c0e57a98186d9de81131d1)."
+  },
+  "what_this_release_delivers": [
+    "#230 Bottom-right YouTube fullscreen icon and streamlined Feedback overlay: moves button.fullscreen-launcher to bottom: 10px; right: 12px (matching YouTube placement); centers .panel[data-view='new'] and .panel[data-view='static'] as a modern floating dialog card, removes visible GitHub repo/account/refresh/disconnect/build-SHA/Markdown-preview clutter so attention stays on What would you like to share? (Share feedback, Build or change, Report a problem icon-badged tiles), Title, and the message; replaces the static_demo technical error box on demo.yolo-dev.ai with 'Currently feedback on the public version is not available, stay tuned.'"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "Acceptance on the delivered artifact is eleven targeted read-only checks. The 158 unit tests and 43 stubbed e2e tests ran against the source revision, not the installed artifact.",
+    "The tag points at 7002d07, a release-metadata commit after the assets commit 80f161a, not at the assets commit itself. Both build-ID files still record the source 037e29e, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #230"
+}
