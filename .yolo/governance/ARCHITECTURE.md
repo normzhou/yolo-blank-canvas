@@ -61,11 +61,11 @@ content is an architecture and data-model change recorded here, not a quiet addi
 component; the first such content is the Tetris view (#4), now reached through the canvas gallery.
 
 The main canvas centers on the **game slide deck** (`src/client/App.tsx`, `src/client/apps/registry.ts`),
-while the feedback prompt (**Start a request** / **Open requests**) and navigation controls
-(**Feedback**, **Requests**) stay tucked into a compact, unobtrusive top HUD bar (#187, #196)
-and the theme switcher lives in the **Requests** panel footer so the overlay stays out of the
+with no top header bar (#220): instead, a single floating **wiggling YOLO icon** launcher
+(`button.yolo-launcher`, `src/client/brand/yoloMark.ts`) opens the modal **Requests & Feedback**
+overlay (`<Panel>`), where the theme switcher lives in the footer so the overlay stays out of the
 way until opened. Each registry entry has an id, a title, a summary and one element, and the
-shell owns navigation through the slide deck (`‹` / `›` and slide pills in the header, stacked
+shell owns navigation through the slide deck (`‹` / `›` and slide pills on the home deck, stacked
 next/previous preview cards beneath the hero card, `ArrowLeft` / `ArrowRight` to flip and `Enter` /
 `Space` to launch on the home deck, directional slide animations, and subtle ambient background
 effects, #198) as well as the Ctrl/⌘K (`~`) palette.

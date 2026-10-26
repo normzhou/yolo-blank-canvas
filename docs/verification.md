@@ -4,6 +4,17 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Remove top bar completely and leave only the wiggling YOLO icon launcher (#220) — 2026-10-25
+
+- **OS-icon style wiggling YOLO launcher (`src/client/App.tsx`, `src/client/components/Panel.tsx`, `src/client/styles.css`, `.yolo/governance/ARCHITECTURE.md`):**
+  - Removed `.canvas-header` completely across both the home deck and active games on all viewports, leaving only the floating `44×44px` circular wiggling YOLO icon button (`button.yolo-launcher`, `data-testid="yolo-feedback-fab"`).
+  - Clicking the wiggling YOLO icon opens the modal `<Panel>` overlay layer (including in `static_demo` mode on `https://demo.yolo-dev.ai`, rendering the static preview notice, guided composer, and `ThemeSwitcher` inside the modal overlay).
+  - Integrated the compact `Canvas gallery` (`‹` `Tetris` `Puzzle Bobble` `›`) pill switcher into `.deck-slide-actions` on the home slide card so there is no bar above the card.
+- `npm test`: 23 files, 158 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 43 passed.
+- `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`, 13/13 findings compliant.
+
 ## iOS mobile music playback, full-screen non-scrolling game stage, rotating YOLO logo overlay, and translucent mobile button overlays (#217) — 2026-10-25
 
 Source revision `0a5f192` (the mobile music, full-screen stage, rotating YOLO overlay, and translucent touch buttons commit); build and review evidence `f8d3f70`; release commit `d2fa2b7`; published as `v0.16.3` on 2026-10-25.

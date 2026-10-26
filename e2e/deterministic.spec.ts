@@ -13,12 +13,13 @@ test.afterAll(async () => {
 
 test('canvas empty state, Requests panel with issue-state variants, and refresh', async ({ page, errors, snap }) => {
   await page.goto(stub.base);
-  await expect(page.getByText('What would you like to build or change?')).toBeVisible();
-  await expect(page.getByText('normzhou/yolo-blank-canvas · signed in as normzhou')).toBeVisible();
+  await expect(page.getByTestId('yolo-feedback-fab')).toBeVisible();
+  await expect(page.locator('.canvas-header')).toHaveCount(0);
   await snap('01-canvas');
 
   await page.getByRole('button', { name: 'Open requests', exact: true }).click();
   await expect(page.getByRole('dialog', { name: 'Requests' })).toBeVisible();
+  await expect(page.getByText('signed in as normzhou')).toBeVisible();
   await expect(page.getByText('In progress').first()).toBeVisible();
   await expect(page.getByText('Status needs reconciliation')).toBeVisible();
   await expect(page.getByText('Request open').first()).toBeVisible();
@@ -33,11 +34,10 @@ test('canvas empty state, Requests panel with issue-state variants, and refresh'
   await expect(page.getByText('Completed (reported)')).toBeVisible();
   await snap('03-closed-filter');
 
-  // Panel closes with Escape and focus returns to the trigger.
+  // Panel closes with Escape and focus returns to the YOLO launcher trigger.
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog', { name: 'Requests' })).toHaveCount(0);
-  // Focus returns to the canvas's primary control, which is the way back in (#130).
-  await expect(page.getByRole('button', { name: 'Start a request', exact: true })).toBeFocused();
+  await expect(page.getByRole('button', { name: 'Open requests', exact: true })).toBeFocused();
   expectClean(errors);
 });
 
@@ -75,6 +75,7 @@ test('new-request form creates via stubbed POST and persists a draft across pane
   // not about which view the panel remembers.
   await page.keyboard.press('Escape');
   await expect(page).toHaveURL(/\/$/);
+  await page.getByRole('button', { name: 'Open requests', exact: true }).click();
   await page.getByRole('button', { name: 'Start a request', exact: true }).click();
   await expect(page).toHaveURL(/\?panel=new$/);
   await expect(page.getByLabel('Title')).toHaveValue('A draft that survives');

@@ -1,10 +1,11 @@
 import { useEffect, useRef } from 'react';
-import type { SessionInfo } from '../api';
+import type { ApiError, SessionInfo } from '../api';
 import type { IssueSummary } from '../api';
 import type { NewRequestDraft, TextDraft } from '../drafts';
 import { ListView } from '../views/ListView';
 import { NewRequestView } from '../views/NewRequestView';
 import { DetailView } from '../views/DetailView';
+import { ErrorNotice } from './ErrorNotice';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import { formatClockTime } from '../usePolling';
 
@@ -12,6 +13,8 @@ export type PanelView = { name: 'list' } | { name: 'new' } | { name: 'detail'; i
 
 export function Panel({
   session,
+  sessionError = null,
+  onRetrySession,
   view,
   filter,
   onFilterChange,
@@ -35,7 +38,9 @@ export function Panel({
   onStale,
   onDisconnect,
 }: {
-  session: SessionInfo;
+  session: SessionInfo | null;
+  sessionError?: ApiError | null;
+  onRetrySession?: () => void;
   view: PanelView;
   filter: 'open' | 'closed' | 'all';
   onFilterChange: (next: 'open' | 'closed' | 'all') => void;
@@ -110,22 +115,50 @@ export function Panel({
     };
   }, [onClose]);
 
+  const isStaticDemo = sessionError?.kind === 'static_demo';
+
   return (
     <div className="scrim" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <aside className="panel" role="dialog" aria-modal="true" aria-label="Requests" ref={panelRef}>
         <header className="panel-header">
           <div className="panel-header-meta">
-            <div className="panel-repo">{session.repo ?? 'repository'}</div>
-            <div className="panel-identity">
-              signed in as {session.identity ?? 'unknown'}
+            <div className="panel-repo">
+              {session?.repo ?? (isStaticDemo ? 'normzhou/yolo-blank-canvas' : 'repository')}
+            </div>
+            <div className="panel-identity" data-testid="canvas-identity">
+              {session
+                ? `signed in as ${session.identity ?? 'unknown'}`
+                : isStaticDemo
+                  ? 'normzhou/yolo-blank-canvas · static preview'
+                  : 'Not connected to GitHub.'}
             </div>
           </div>
-          <button type="button" ref={closeRef} onClick={onClose} aria-label="Close Requests panel">
-            Close
-          </button>
+          <div className="panel-header-actions">
+            {session ? (
+              view.name === 'new' ? (
+                <button type="button" onClick={onCancelNew}>
+                  Requests
+                </button>
+              ) : (
+                <button type="button" className="primary" onClick={onNew}>
+                  Start a request
+                </button>
+              )
+            ) : null}
+            <button type="button" ref={closeRef} onClick={onClose} aria-label="Close Requests panel">
+              Close
+            </button>
+          </div>
         </header>
         <div className="panel-body" ref={bodyRef}>
-          {view.name === 'list' ? (
+          {sessionError ? (
+            <ErrorNotice
+              error={sessionError}
+              onRetry={onRetrySession ?? (() => undefined)}
+              retryLabel="Retry connection"
+            />
+          ) : null}
+          {session && view.name === 'list' ? (
             <ListView
               filter={filter}
               onFilterChange={onFilterChange}
@@ -137,7 +170,7 @@ export function Panel({
               createdIssues={createdIssues}
             />
           ) : null}
-          {view.name === 'new' ? (
+          {(session || isStaticDemo) && view.name === 'new' ? (
             <NewRequestView
               draft={newDraft}
               onDraftChange={onNewDraftChange}
@@ -151,7 +184,7 @@ export function Panel({
               }}
             />
           ) : null}
-          {view.name === 'detail' ? (
+          {session && view.name === 'detail' ? (
             <DetailView
               issueNumber={view.number}
               issueHint={view.issue}
@@ -173,9 +206,11 @@ export function Panel({
           </span>
           <div className="panel-footer-actions">
             <ThemeSwitcher />
-            <button type="button" onClick={onDisconnect}>
-              Disconnect
-            </button>
+            {session ? (
+              <button type="button" onClick={onDisconnect}>
+                Disconnect
+              </button>
+            ) : null}
           </div>
         </footer>
       </aside>
