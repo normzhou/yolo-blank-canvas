@@ -6,6 +6,8 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## MS Edge tablet 2-Player support and Browser Fullscreen API toggle (#222) — 2026-10-25
 
+Source revision `79ac07c` (the MS Edge tablet 2P and Browser Fullscreen API commit); build and review evidence `51f7217`; release commit `0ad0ae4`; published as `v0.16.6` on 2026-10-25.
+
 - **MS Edge tablet 2-Player availability (`src/client/views/PuzzleBobbleView.tsx`, `src/client/styles.css`):**
   - Updated `isPhoneViewport()` so only phone-sized viewports (`window.innerWidth < 560` in portrait, or `window.innerWidth < 900 && window.innerHeight < 440` in phone landscape) enforce `1p` mode, while tablets in MS Edge (`600×960` Android portrait, `744×1133` iPad Mini 6 portrait, `768×1024` iPad portrait, and `960×480` / `1024×768` landscape even when MS Edge tabs and address bar compress `innerHeight`) default to **2 Players** with responsive side-by-side layout on `560px–759px` viewports.
 - **Browser Fullscreen API mode (`src/client/fullscreen.ts`, `src/client/App.tsx`, `PuzzleBobbleView.tsx`, `TetrisView.tsx`, `index.html`):**
@@ -14,6 +16,12 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 - `npx tsc --noEmit`: clean.
 - `npm run e2e`: 43 passed (asserting side-by-side 2P boards across `600×960`, `744×1133`, `768×1024`, `960×480`, and `1024×768` plus `fullscreen-button` toggle).
 - `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`, 13/13 findings compliant.
+
+### Installed artifact (`v0.16.6`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.16.6 --no-open --port 4879` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `79ac07c…`; the tagged package version is `0.16.6`. The tag points at release commit `0ad0ae4`, after the assets commit `51f7217`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4879 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: 312f1576-d262-4ec3-bb9f-ee006b73877f`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.16.6"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 79ac07c6558b2c518cbf342bf98890021816fcc5`). The report is [`.yolo/reports/releases-observed-2026-10-25-v0166.json`](../.yolo/reports/releases-observed-2026-10-25-v0166.json).
 
 ## Remove top bar completely and leave only the wiggling YOLO icon launcher (#220) — 2026-10-25
 
