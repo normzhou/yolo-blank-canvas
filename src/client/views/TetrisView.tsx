@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { TetrisMusic } from '../audio/tetrisMusic';
-import { useFullscreen } from '../fullscreen';
 import {
   BACKGROUNDS,
   nextBackgroundIndex,
@@ -120,7 +119,6 @@ function NextPreview({ type }: { type: Tetromino }) {
 }
 
 export function TetrisView({ onExit }: { onExit: () => void }) {
-  const { isFullscreen, toggleFullscreen } = useFullscreen();
   const [game, setGame] = useState<TetrisState>(() => createGame());
   const [paused, setPaused] = useState(false);
   const [musicOn, setMusicOn] = useState(false);
@@ -353,15 +351,6 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
           </button>
           <button type="button" className="primary" onClick={() => { setGame(createGame()); setPaused(false); }}>
             New game
-          </button>
-          <button
-            type="button"
-            data-testid="fullscreen-button"
-            aria-pressed={isFullscreen}
-            onClick={toggleFullscreen}
-            title={isFullscreen ? 'Exit browser full screen' : 'Enter browser full screen'}
-          >
-            {isFullscreen ? 'Exit full screen' : 'Full screen'}
           </button>
           <button type="button" onClick={onExit} aria-label="Close Tetris">
             Close
