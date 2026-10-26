@@ -6,7 +6,9 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Multi-format closed-loop QA & responsive fixes across 7 device viewports (#212) — 2026-10-25
 
-Source revision `992189c` (the multi-format QA fix commit).
+Source revision `992189c` (the multi-format QA fix commit); build and review
+evidence `150cbea`; release commit `5e95bb6`; published as `v0.16.1` on
+2026-10-25.
 
 - **Closed-loop visual & geometric inspection across 7 device formats** (`360×640` small phone, `390×844` phone portrait, `844×390` phone landscape, `768×1024` iPad Mini portrait, `820×1180` iPad Air portrait, `1024×768` iPad landscape, `1280×900` desktop):
   1. **iPad Mini Portrait (`768×1024`) 2P side-by-side fit:** Added `@media (min-width: 768px) and (max-width: 860px)` padding tightening so both `360px` Puzzle Bobble cards sit side-by-side (`top: 342px` on both cards, `scrollH: 1024 === clientH: 1024`) instead of wrapping vertically.
@@ -20,6 +22,18 @@ Source revision `992189c` (the multi-format QA fix commit).
 - `npm run e2e`: 43 passed (`e2e/puzzle-bobble.spec.ts` asserts `390×844` phone portrait 1P, `844×390` phone landscape 1P, `360×640` small phone unclipped sidebar, `768×1024` iPad portrait 2P side-by-side, and `1024×768` iPad landscape 2P side-by-side).
 - `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`,
   13/13 findings compliant.
+
+### Installed artifact (`v0.16.1`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.16.1 --no-open --port 4875`
+in an empty directory, with no source checkout. `GET /api/version` reported both
+`serverBuild` and `clientBuild` as `992189c…`; the tagged package version is
+`0.16.1`. The tag points at release commit `5e95bb6`, after the assets commit
+`150cbea`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4875 npm run e2e:verify-release`:
+**11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: b2dd6550-8251-47b3-82ab-5a645f215292`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.16.1"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 992189cca46a6f368bd87fbcaf9c956bdb946415`). The report is
+[`.yolo/reports/releases-observed-2026-10-25-v0161.json`](../.yolo/reports/releases-observed-2026-10-25-v0161.json).
 
 ## Mobile and tablet touch support for Puzzle Bobble, Tetris, and the home slide deck (#212) — 2026-10-25
 

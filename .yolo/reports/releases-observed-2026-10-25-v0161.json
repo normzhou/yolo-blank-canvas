@@ -1,0 +1,64 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-25",
+  "observed_at": "2026-10-25",
+  "published_at_utc": "2026-10-25T23:58:00Z",
+  "protocol": {
+    "revision": "da644964ca92eef8448cd782cf6805c724ca2e74",
+    "release": "v0.1.0-alpha.33"
+  },
+  "releases": [
+    {
+      "tag": "v0.16.1",
+      "commit": "5e95bb68da474811243833a04b93058971990777"
+    }
+  ],
+  "release": {
+    "tag": "v0.16.1",
+    "tag_object": "e4a3651cfa4a5b0e90f99cffa06137151721b06a",
+    "release_commit": "5e95bb68da474811243833a04b93058971990777",
+    "source_commit": "992189cca46a6f368bd87fbcaf9c956bdb946415",
+    "assets_commit": "150cbea5421e36591b7c60d03ccdf4fba7d09082",
+    "semver": "patch",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record 992189c, the source revision. The committed assets were built at that source in 150cbea. 5e95bb6 is a release-metadata commit (version and install references, no source changes) after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "157 passed across 23 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID 992189c" },
+    { "check": "npm run e2e (stubbed, deterministic)", "result": "pass", "detail": "43 passed across 7 device formats" },
+    { "check": "cd hosting/cloudflare && npm run check", "result": "pass", "detail": "wrangler deploy --dry-run (17 static assets, APP_VERSION=v0.16.1)" },
+    { "check": "yolo-check . --structure (0.1.0-alpha.33)", "result": "pass", "detail": "13 of 13 findings compliant" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #214 completed success" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "installed_from": "npx --yes github:normzhou/yolo-blank-canvas#v0.16.1 --no-open --port 4875",
+    "installed_into": "an empty directory, no source checkout present",
+    "served_build": "992189cca46a6f368bd87fbcaf9c956bdb946415",
+    "served_version": {
+      "package": "0.16.1",
+      "serverBuild": "992189cca46a6f368bd87fbcaf9c956bdb946415",
+      "clientBuild": "992189cca46a6f368bd87fbcaf9c956bdb946415"
+    },
+    "command": "YOLO_VERIFY_URL=http://127.0.0.1:4875 npm run e2e:verify-release",
+    "result": "pass",
+    "detail": "11 of 11 passed. Also deployed live to yolo-demo-app (Version ID: b2dd6550-8251-47b3-82ab-5a645f215292) and verified at https://demo.yolo-dev.ai/__yolo/version (200 {\"version\":\"v0.16.1\"}) and https://demo.yolo-dev.ai/.build-id (200 992189cca46a6f368bd87fbcaf9c956bdb946415)."
+  },
+  "what_this_release_delivers": [
+    "#212 multi-format closed-loop QA fixes: tightens 768px-860px padding so iPad Mini Portrait (768x1024) fits both 360px 2P Puzzle Bobble cards side-by-side without wrapping, updates isPhoneViewport() to check short edge < 560px so Phone Landscape (844x390) stays in 1P mode, compacts .pb-side to 96px below 640px so Small Phone (360x640) never clips the sidebar, and caps Tetris cabinet header/touch-bar/footer at max-width: 360px on wide screens"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "Acceptance on the delivered artifact is eleven targeted read-only checks. The 157 unit tests and 43 stubbed e2e tests ran against the source revision, not the installed artifact.",
+    "The tag points at 5e95bb6, a release-metadata commit after the assets commit 150cbea, not at the assets commit itself. Both build-ID files still record the source 992189c, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #212"
+}
