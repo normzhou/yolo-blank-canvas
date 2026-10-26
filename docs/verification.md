@@ -4,6 +4,18 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Dynamic viewport scaling and text/chrome reduction for Puzzle Bobble and Tetris (#226) — 2026-10-26
+
+- **Dynamic viewport scaling (`src/client/styles.css`, `src/client/views/PuzzleBobbleView.tsx`, `src/client/views/TetrisView.tsx`):**
+  - Scaled Puzzle Bobble `.pb-board` (`--pb-board-w` derived from `vw` and `dvh` for both `1p` and `2p` modes, up to `540px×713px` per board in 2P and `580px×766px` in 1P on desktop, and full-width `374px×494px` with a horizontal telemetry strip on portrait phones) while keeping viewport-locked dimensions (`0px` layout shift, #195).
+  - Scaled Tetris `--tetris-cell-size` (`clamp(18px, min(calc((100dvh - 156px) / 20), calc((100vw - 156px) / 10)), 42px)`) so the `10×20` matrix fills the available screen height.
+- **Reduced unnecessary text and chrome:**
+  - Removed the bottom `.tetris-help` instruction paragraph from active gameplay, moved `.tetris-scene` into `.tetris-header` as a compact inline pill, merged `.pb-char-bar` into `.pb-player-header` with icon-only character buttons (`.sr-only` labels preserved), and replaced idle `INSERT COIN` filler.
+- `npm test`: 23 files, 158 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 43 passed.
+- `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`, 13/13 findings compliant.
+
 ## Multi-touch virtual buttons and simultaneous 2-player touch aiming/firing (#224) — 2026-10-25
 
 Source revision `e6c7543` (the multi-touch virtual buttons commit); build and review evidence `5d2c129`; release commit `062b9db`; published as `v0.16.7` on 2026-10-25.

@@ -326,6 +326,12 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
             1UP
           </span>
           <h2 className="tetris-title">Tetris</h2>
+          {BACKGROUNDS.length > 1 ? (
+            <p className="tetris-scene" aria-live="polite">
+              Scene {backgroundIndex + 1}/{BACKGROUNDS.length}: {BACKGROUNDS[backgroundIndex].title}
+              {nowPlaying ? ` · Music: ${nowPlaying}` : ''}
+            </p>
+          ) : null}
         </div>
         <div className="row">
           <button
@@ -503,23 +509,11 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
         </button>
       </div>
 
-      {BACKGROUNDS.length > 1 ? (
-        <p className="tetris-scene" aria-live="polite">
-          Scene {backgroundIndex + 1}/{BACKGROUNDS.length}: {BACKGROUNDS[backgroundIndex].title}
-          {nowPlaying ? ` · Music: ${nowPlaying}` : ''}
-        </p>
-      ) : null}
-
       {game.status === 'over' ? (
         <p className="tetris-over" role="status">
           Game over — score {game.score}. Start a new game to play again.
         </p>
-      ) : (
-        <p className="tetris-help">
-          Arrow keys move and rotate; down soft-drops; space hard-drops. Clear four lines at once to
-          change the scene. {paused ? 'Paused.' : ''}
-        </p>
-      )}
+      ) : null}
     </section>
   );
 }
