@@ -275,6 +275,20 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
       expect(overflow, `Tablet ${w}x${h} horizontal overflow`).toBeLessThanOrEqual(0);
     }
 
+    // Simultaneous 4-finger multi-touch on 2P tablet (#224): Player 1 holds AIM ▶ (pointerId 11)
+    // while Player 2 holds ◀ AIM (pointerId 21), and both players tap ● FIRE with a second thumb
+    // (pointerId 12 and 22, isPrimary: false) while aim fingers remain held down.
+    await page.getByTestId('p1-touch-right').dispatchEvent('pointerdown', { pointerId: 11, isPrimary: true });
+    await page.getByTestId('p2-touch-left').dispatchEvent('pointerdown', { pointerId: 21, isPrimary: false });
+    await expect(page.getByTestId('p1-aim')).not.toHaveText('0°');
+    await expect(page.getByTestId('p2-aim')).not.toHaveText('0°');
+    await page.getByTestId('p1-touch-fire').dispatchEvent('pointerdown', { pointerId: 12, isPrimary: false });
+    await page.getByTestId('p2-touch-fire').dispatchEvent('pointerdown', { pointerId: 22, isPrimary: false });
+    await page.getByTestId('p1-touch-right').dispatchEvent('pointerup', { pointerId: 11 });
+    await page.getByTestId('p2-touch-left').dispatchEvent('pointerup', { pointerId: 21 });
+    await expect(page.getByTestId('p1-shots')).toHaveText('1', { timeout: 5000 });
+    await expect(page.getByTestId('p2-shots')).toHaveText('1', { timeout: 5000 });
+
     // Full screen button requests/exits browser fullscreen mode (#222).
     const fsBtn = page.getByTestId('fullscreen-button');
     await expect(fsBtn).toHaveText('Full screen');

@@ -1460,6 +1460,13 @@ function PlayerArena({
           disabled={disabled || player.status !== 'playing'}
           onPointerDown={(event) => {
             event.preventDefault();
+            if (event.currentTarget.setPointerCapture) {
+              try {
+                event.currentTarget.setPointerCapture(event.pointerId);
+              } catch {
+                // Synthetic pointer events in tests may not register an active pointer id.
+              }
+            }
             onHoldAimStart(`p${playerNumber}-left`, -AIM_STEP_DEG);
           }}
           onPointerUp={() => onHoldAimEnd(`p${playerNumber}-left`)}
@@ -1477,7 +1484,13 @@ function PlayerArena({
           data-testid={`p${playerNumber}-touch-fire`}
           aria-label={`Player ${playerNumber} fire bubble`}
           disabled={disabled || player.status !== 'playing'}
-          onClick={() => onFire()}
+          onPointerDown={(event) => {
+            event.preventDefault();
+            onFire();
+          }}
+          onClick={(event) => {
+            if (event.detail === 0) onFire();
+          }}
         >
           ● FIRE
         </button>
@@ -1489,6 +1502,13 @@ function PlayerArena({
           disabled={disabled || player.status !== 'playing'}
           onPointerDown={(event) => {
             event.preventDefault();
+            if (event.currentTarget.setPointerCapture) {
+              try {
+                event.currentTarget.setPointerCapture(event.pointerId);
+              } catch {
+                // Synthetic pointer events in tests may not register an active pointer id.
+              }
+            }
             onHoldAimStart(`p${playerNumber}-right`, AIM_STEP_DEG);
           }}
           onPointerUp={() => onHoldAimEnd(`p${playerNumber}-right`)}

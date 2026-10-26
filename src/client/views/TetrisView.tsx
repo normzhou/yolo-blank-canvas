@@ -475,7 +475,13 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
           data-testid="tetris-touch-rotate"
           aria-label="Rotate piece"
           disabled={paused || game.status !== 'playing'}
-          onClick={() => setGame((current) => rotate(current, 1))}
+          onPointerDown={(event) => {
+            event.preventDefault();
+            setGame((current) => rotate(current, 1));
+          }}
+          onClick={(event) => {
+            if (event.detail === 0) setGame((current) => rotate(current, 1));
+          }}
         >
           ↻ ROTATE
         </button>
@@ -485,7 +491,13 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
           data-testid="tetris-touch-drop"
           aria-label="Hard drop"
           disabled={paused || game.status !== 'playing'}
-          onClick={() => setGame((current) => hardDrop(current))}
+          onPointerDown={(event) => {
+            event.preventDefault();
+            setGame((current) => hardDrop(current));
+          }}
+          onClick={(event) => {
+            if (event.detail === 0) setGame((current) => hardDrop(current));
+          }}
         >
           ⤓ DROP
         </button>
