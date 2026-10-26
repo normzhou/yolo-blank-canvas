@@ -269,6 +269,44 @@ function YoloRotatingLogo({ testId }: { testId?: string } = {}) {
 }
 
 /**
+ * YouTube-video style 4-corner bracket fullscreen icon (#228):
+ * - When `isFullscreen` is true, renders 4 inward-pointing corner brackets (exit full screen).
+ * - When `isFullscreen` is false, renders 4 outward-pointing corner brackets (enter full screen).
+ */
+function FullscreenCornerIcon({ isFullscreen }: { isFullscreen: boolean }) {
+  return (
+    <svg
+      className="fullscreen-corner-icon"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="square"
+      strokeLinejoin="miter"
+      aria-hidden="true"
+    >
+      {isFullscreen ? (
+        <>
+          <path d="M 3 8 H 8 V 3" />
+          <path d="M 16 3 V 8 H 21" />
+          <path d="M 21 16 H 16 V 21" />
+          <path d="M 8 21 V 16 H 3" />
+        </>
+      ) : (
+        <>
+          <path d="M 3 9 V 3 H 9" />
+          <path d="M 15 3 H 21 V 9" />
+          <path d="M 21 15 V 21 H 15" />
+          <path d="M 9 21 H 3 V 15" />
+        </>
+      )}
+    </svg>
+  );
+}
+
+/**
  * Subtle dynamic background visual effects (#198): ambient architectural grid
  * lines, soft drifting aura rings, and floating arcade geometry using only
  * theme tokens so Slate, Sand, and Dusk all paint it naturally.
@@ -684,30 +722,45 @@ export function App() {
     <div className={canvasClass}>
       {!activeApp ? <h1 className="sr-only canvas-title">Blank canvas</h1> : null}
 
-      {/* #220: No top bar — just the floating wiggling YOLO icon launcher
-          (like an OS Windows Start icon) that brings up the full YOLO feedback
-          and requests overlay layer. */}
+      {/* #220, #228: No top bar — bare wiggling YOLO Threefold symbol in the
+          top-right corner (with no circular button around it) to open the full
+          YOLO feedback & requests overlay, plus a YouTube-style transparent
+          fullscreen corner-bracket icon in the bottom-left corner. */}
       {!showPanel ? (
-        <button
-          type="button"
-          className="yolo-launcher yolo-fab-button"
-          data-testid="yolo-feedback-fab"
-          ref={activeApp ? feedbackTriggerRef : triggerRef}
-          aria-label={activeApp ? `Feedback on ${activeApp.title}` : 'Open requests'}
-          title={activeApp ? `Give feedback on ${activeApp.title}` : 'YOLO feedback & requests'}
-          onClick={() => {
-            if (activeApp) {
-              panelOpenerRef.current = 'feedback';
-              openNewRequest('feedback');
-            } else {
-              panelOpenerRef.current = 'start';
-              openPanel();
-            }
-          }}
-          disabled={connecting}
-        >
-          <YoloRotatingLogo testId="yolo-rotating-logo" />
-        </button>
+        <>
+          <button
+            type="button"
+            className="yolo-launcher yolo-fab-button"
+            data-testid="yolo-feedback-fab"
+            ref={activeApp ? feedbackTriggerRef : triggerRef}
+            aria-label={activeApp ? `Feedback on ${activeApp.title}` : 'Open requests'}
+            title={activeApp ? `Give feedback on ${activeApp.title}` : 'YOLO feedback & requests'}
+            onClick={() => {
+              if (activeApp) {
+                panelOpenerRef.current = 'feedback';
+                openNewRequest('feedback');
+              } else {
+                panelOpenerRef.current = 'start';
+                openPanel();
+              }
+            }}
+            disabled={connecting}
+          >
+            <YoloRotatingLogo testId="yolo-rotating-logo" />
+          </button>
+          <button
+            type="button"
+            className="fullscreen-launcher"
+            data-testid="fullscreen-button"
+            aria-pressed={isFullscreen}
+            aria-label={isFullscreen ? 'Exit full screen' : 'Full screen'}
+            title={isFullscreen ? 'Exit full screen' : 'Full screen'}
+            onClick={toggleFullscreen}
+          >
+            <FullscreenCornerIcon isFullscreen={isFullscreen} />
+            <span className="sr-only">{isFullscreen ? 'Exit full screen' : 'Full screen'}</span>
+          </button>
+        </>
       ) : null}
 
       {serverSuggestsReload && !reloadPromptDismissed ? (
@@ -845,25 +898,13 @@ export function App() {
                 )}
 
                 <div className="deck-slide-actions">
-                  <div className="row">
-                    <button
-                      type="button"
-                      className="deck-play-button"
-                      onClick={() => openApp(currentSlide.id)}
-                    >
-                      Play {currentSlide.title}
-                    </button>
-                    <button
-                      type="button"
-                      className="deck-fullscreen-button"
-                      data-testid="fullscreen-button"
-                      aria-pressed={isFullscreen}
-                      onClick={toggleFullscreen}
-                      title={isFullscreen ? 'Exit browser full screen' : 'Enter browser full screen'}
-                    >
-                      {isFullscreen ? 'Exit full screen' : 'Full screen'}
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    className="deck-play-button"
+                    onClick={() => openApp(currentSlide.id)}
+                  >
+                    Play {currentSlide.title}
+                  </button>
                   <nav className="canvas-gallery deck-nav" aria-label="Canvas gallery" ref={deckNavRef}>
                     <button
                       type="button"

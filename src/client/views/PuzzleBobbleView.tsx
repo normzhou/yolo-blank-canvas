@@ -7,7 +7,6 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from 'react';
 import { TetrisMusic } from '../audio/tetrisMusic';
-import { useFullscreen } from '../fullscreen';
 import { BACKGROUNDS, nextBackgroundIndex } from '../../shared/tetrisBackgrounds';
 import {
   AIM_STEP_DEG,
@@ -1541,7 +1540,6 @@ function isPhoneViewport(): boolean {
 }
 
 export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
-  const { isFullscreen, toggleFullscreen } = useFullscreen();
   const [phoneViewport, setPhoneViewport] = useState<boolean>(() => isPhoneViewport());
   const [match, setMatch] = useState<PuzzleBobbleMatch>(() =>
     createMatch(isPhoneViewport() ? '1p' : '2p'),
@@ -2000,15 +1998,6 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
             }}
           >
             {match.status === 'round_over' ? 'Next round' : 'New game'}
-          </button>
-          <button
-            type="button"
-            data-testid="fullscreen-button"
-            aria-pressed={isFullscreen}
-            onClick={toggleFullscreen}
-            title={isFullscreen ? 'Exit browser full screen' : 'Enter browser full screen'}
-          >
-            {isFullscreen ? 'Exit full screen' : 'Full screen'}
           </button>
           <button type="button" onClick={onExit} aria-label="Close Puzzle Bobble">
             Close

@@ -4,6 +4,18 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Default fullscreen with bottom-left YouTube-style icon and top-right bare transparent YOLO mark (#228) — 2026-10-26
+
+- **Default fullscreen & bottom-left YouTube-style transparent icon (`src/client/fullscreen.ts`, `src/client/App.tsx`, `src/client/styles.css`):**
+  - Defaulted `data-fullscreen="true"` (`isFullscreen: true`) on load, attempting `requestFullscreen({ navigationUI: 'hide' })` / `webkitRequestFullscreen()` on mount and upgrading to native browser fullscreen on the first user gesture unless toggled off.
+  - Replaced text `"Full screen"` buttons with a single global transparent YouTube-style 4-corner bracket icon button (`button.fullscreen-launcher`, `data-testid="fullscreen-button"`) anchored at `bottom: 10px; left: 12px` (`background: transparent; border: none; box-shadow: none`).
+- **Top-right bare transparent YOLO mark (`src/client/App.tsx`, `src/client/styles.css`):**
+  - Moved `button.yolo-launcher` (`data-testid="yolo-feedback-fab"`) to `top: 10px; right: 12px` and removed all circular button chrome (`background: transparent; border: none; box-shadow: none`), leaving only the bare wiggling `#d84b27` Threefold symbol.
+- `npm test`: 23 files, 158 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 43 passed.
+- `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`, 13/13 findings compliant.
+
 ## Dynamic viewport scaling and text/chrome reduction for Puzzle Bobble and Tetris (#226) — 2026-10-26
 
 Source revision `d46ef4e` (the viewport scaling and text/chrome reduction commit); build and review evidence `24996c5`; release commit `61078d9`; published as `v0.17.0` on 2026-10-26.

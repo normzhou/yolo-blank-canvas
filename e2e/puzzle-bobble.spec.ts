@@ -208,9 +208,15 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
     await expect(page.getByTestId('p1-shots')).toHaveText('1', { timeout: 5000 });
 
     // No horizontal or vertical page scroll overflow on 390px phone screen (#217 full-screen game stage),
-    // and the floating rotating YOLO logo button occupies a compact 42x42 corner orb.
+    // the bare wiggling YOLO mark sits in the top-right with a transparent background (#228),
+    // and the YouTube-style fullscreen icon sits in the bottom-left with a transparent background (#228).
     const phoneMetrics = await page.evaluate(() => {
-      const fab = document.querySelector('[data-testid="yolo-feedback-fab"]')?.getBoundingClientRect();
+      const fabEl = document.querySelector('[data-testid="yolo-feedback-fab"]');
+      const fab = fabEl?.getBoundingClientRect();
+      const fabBg = fabEl ? window.getComputedStyle(fabEl).backgroundColor : '';
+      const fsEl = document.querySelector('[data-testid="fullscreen-button"]');
+      const fs = fsEl?.getBoundingClientRect();
+      const fsBg = fsEl ? window.getComputedStyle(fsEl).backgroundColor : '';
       const logo = document.querySelector('[data-testid="yolo-rotating-logo"]');
       const logoPaths = logo ? logo.querySelectorAll('path[d="M48 48v30"]').length : 0;
       const logoViewBox = logo ? logo.getAttribute('viewBox') : '';
@@ -223,6 +229,14 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
         scrollY: window.scrollY,
         fabWidth: fab ? Math.round(fab.width) : 0,
         fabHeight: fab ? Math.round(fab.height) : 0,
+        fabTop: fab ? Math.round(fab.top) : 999,
+        fabRight: fab ? Math.round(fab.right) : 0,
+        fabBg,
+        fsLeft: fs ? Math.round(fs.left) : 999,
+        fsBottom: fs ? Math.round(fs.bottom) : 0,
+        fsBg,
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
         hasRotatingLogo: Boolean(logo),
         logoPaths,
         logoViewBox,
@@ -239,6 +253,12 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
     expect(phoneMetrics.logoColor).toBe('rgb(216, 75, 39)');
     expect(phoneMetrics.fabWidth).toBeLessThanOrEqual(48);
     expect(phoneMetrics.fabHeight).toBeLessThanOrEqual(48);
+    expect(phoneMetrics.fabTop).toBeLessThanOrEqual(24);
+    expect(phoneMetrics.fabRight).toBeGreaterThanOrEqual(phoneMetrics.viewportWidth - 24);
+    expect(phoneMetrics.fabBg).toBe('rgba(0, 0, 0, 0)');
+    expect(phoneMetrics.fsLeft).toBeLessThanOrEqual(24);
+    expect(phoneMetrics.fsBottom).toBeGreaterThanOrEqual(phoneMetrics.viewportHeight - 24);
+    expect(phoneMetrics.fsBg).toBe('rgba(0, 0, 0, 0)');
     expect(phoneMetrics.touchBarBg).toBe('rgba(0, 0, 0, 0)');
 
     // 2. Phone landscape viewport (844x390, short edge 390 < 560px): still a phone, so 1P mode is enforced.
@@ -289,15 +309,16 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
     await expect(page.getByTestId('p1-shots')).toHaveText('1', { timeout: 5000 });
     await expect(page.getByTestId('p2-shots')).toHaveText('1', { timeout: 5000 });
 
-    // Full screen button requests/exits browser fullscreen mode (#222).
+    // Site starts in fullscreen mode by default, controlled by the bottom-left YouTube-style icon (#222, #228).
     const fsBtn = page.getByTestId('fullscreen-button');
-    await expect(fsBtn).toHaveText('Full screen');
-    await fsBtn.click();
-    await expect(fsBtn).toHaveText('Exit full screen');
     await expect(fsBtn).toHaveAttribute('aria-pressed', 'true');
+    await expect(fsBtn).toHaveText('Exit full screen');
     await fsBtn.click();
-    await expect(fsBtn).toHaveText('Full screen');
     await expect(fsBtn).toHaveAttribute('aria-pressed', 'false');
+    await expect(fsBtn).toHaveText('Full screen');
+    await fsBtn.click();
+    await expect(fsBtn).toHaveAttribute('aria-pressed', 'true');
+    await expect(fsBtn).toHaveText('Exit full screen');
 
     // 4. Small Phone (360x640): 1P card and side panel are never clipped horizontally.
     await page.setViewportSize({ width: 360, height: 640 });
