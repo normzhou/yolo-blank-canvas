@@ -6,7 +6,9 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## 3D arcade cabinet & control deck polish for Puzzle Bobble and Tetris (#215) — 2026-10-25
 
-Source revision `4a09cf5` (the arcade cabinet polish commit).
+Source revision `4a09cf5` (the arcade cabinet polish commit); build and review
+evidence `269f4f1`; release commit `84b7c1e`; published as `v0.16.2` on
+2026-10-25.
 
 - **Closed-loop visual inspection across phone (`390×844`), iPad (`768×1024`), and desktop (`1280×900`):**
   - Scoped dark Neo-Geo / Taito arcade cabinet tokens (`--cabinet-bg`, `--cabinet-surface`, `--cabinet-well`, `--cabinet-bezel`, `--arcade-fire`, `--arcade-rocker`, `--arcade-rotate`) to `.tetris` while preserving opaque `--surface` on `.tetris-side`, `.tetris-title`, `.tetris-help`, and `.tetris-scene`.
@@ -18,6 +20,18 @@ Source revision `4a09cf5` (the arcade cabinet polish commit).
 - `npm run e2e`: 43 passed.
 - `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`,
   13/13 findings compliant.
+
+### Installed artifact (`v0.16.2`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.16.2 --no-open --port 4875`
+in an empty directory, with no source checkout. `GET /api/version` reported both
+`serverBuild` and `clientBuild` as `4a09cf5…`; the tagged package version is
+`0.16.2`. The tag points at release commit `84b7c1e`, after the assets commit
+`269f4f1`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4875 npm run e2e:verify-release`:
+**11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: 506aea64-c332-4f44-b8ae-205ac14f7316`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.16.2"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 4a09cf5d26bf2925e55f65433479a1069ad983b3`). The report is
+[`.yolo/reports/releases-observed-2026-10-25-v0162.json`](../.yolo/reports/releases-observed-2026-10-25-v0162.json).
 
 ## Multi-format closed-loop QA & responsive fixes across 7 device viewports (#212) — 2026-10-25
 

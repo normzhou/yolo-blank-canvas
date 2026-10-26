@@ -240,15 +240,16 @@
         "v0.14.1": "ff6a45dc6f2020820404bdde8c5b238fec6a6eae",
         "v0.14.2": "db571a43672046f5a448ba24cfbcd2271a9a40bd",
         "v0.15.0": "b760fccec0c7b63989dd1c8596af0177efdf3398",
-        "v0.16.0": "5942f23748406bfd38f22b587f6031cb22dfa367"
+        "v0.16.0": "5942f23748406bfd38f22b587f6031cb22dfa367",
+        "v0.16.1": "5e95bb68da474811243833a04b93058971990777"
       },
       "published": {
-        "tag": "v0.16.1",
-        "commit": "5e95bb68da474811243833a04b93058971990777",
-        "source_commit": "992189cca46a6f368bd87fbcaf9c956bdb946415",
-        "published_at": "2026-10-25T23:58:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-10-25-v0161.json",
-        "note": "Patch release. Multi-format closed-loop QA fixes across 7 device viewports (#212, PR #214: iPad Mini Portrait 768x1024 2P side-by-side fit, Phone Landscape 844x390 1P detection via short-edge check, Small Phone 360x640 unclipped 96px sidebar, and compact 360px Tetris cabinet width); also deployed live to https://demo.yolo-dev.ai (Version ID: b2dd6550-8251-47b3-82ab-5a645f215292). Acceptance before tagging: 157 unit, 43 stubbed e2e passed, tsc clean, structure pass. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit 5e95bb6 after the assets commit 150cbea; both build-ID files record 992189c."
+        "tag": "v0.16.2",
+        "commit": "84b7c1ec657d3f26194b7142b9e816fd92b36577",
+        "source_commit": "4a09cf5d26bf2925e55f65433479a1069ad983b3",
+        "published_at": "2026-10-26T00:26:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-10-25-v0162.json",
+        "note": "Patch release. Gives Puzzle Bobble and Tetris an authentic 3D arcade cabinet & control deck feel (#215, PR #216: dark Neo-Geo/Taito cabinet tokens scoped to .tetris, transparent .pb-player-card frame over the pixel-art scene, 1UP/2UP marquee badges, miniature SVG mascot portrait tokens, circular NEXT BUBBLE dome, 2x2 telemetry grid, INSERT COIN LED ticker, in-board WINNER/GAME OVER plaque, and 3D beveled arcade plunger/rocker buttons); also deployed live to https://demo.yolo-dev.ai (Version ID: 506aea64-c332-4f44-b8ae-205ac14f7316). Acceptance before tagging: 157 unit, 43 stubbed e2e passed, tsc clean, structure pass. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit 84b7c1e after the assets commit 269f4f1; both build-ID files record 4a09cf5."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -275,7 +276,8 @@
         ".yolo/reports/releases-observed-2026-10-22-v0142.json",
         ".yolo/reports/releases-observed-2026-10-25-v0150.json",
         ".yolo/reports/releases-observed-2026-10-25-v0160.json",
-        ".yolo/reports/releases-observed-2026-10-25-v0161.json"
+        ".yolo/reports/releases-observed-2026-10-25-v0161.json",
+        ".yolo/reports/releases-observed-2026-10-25-v0162.json"
       ]
     }
   },

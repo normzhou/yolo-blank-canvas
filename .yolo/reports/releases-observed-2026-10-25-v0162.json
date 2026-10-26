@@ -1,0 +1,64 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-25",
+  "observed_at": "2026-10-25",
+  "published_at_utc": "2026-10-26T00:26:00Z",
+  "protocol": {
+    "revision": "da644964ca92eef8448cd782cf6805c724ca2e74",
+    "release": "v0.1.0-alpha.33"
+  },
+  "releases": [
+    {
+      "tag": "v0.16.2",
+      "commit": "84b7c1ec657d3f26194b7142b9e816fd92b36577"
+    }
+  ],
+  "release": {
+    "tag": "v0.16.2",
+    "tag_object": "b4c9a7e6c8cc0bfcdcd426ac9b5a6d8649d244eb",
+    "release_commit": "84b7c1ec657d3f26194b7142b9e816fd92b36577",
+    "source_commit": "4a09cf5d26bf2925e55f65433479a1069ad983b3",
+    "assets_commit": "269f4f1ef1d73bcf57b446b917f21ea5af02cee5",
+    "semver": "patch",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record 4a09cf5, the source revision. The committed assets were built at that source in 269f4f1. 84b7c1e is a release-metadata commit (version and install references, no source changes) after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "157 passed across 23 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID 4a09cf5" },
+    { "check": "npm run e2e (stubbed, deterministic)", "result": "pass", "detail": "43 passed (30.0s)" },
+    { "check": "cd hosting/cloudflare && npm run check", "result": "pass", "detail": "wrangler deploy --dry-run (17 static assets, APP_VERSION=v0.16.2)" },
+    { "check": "yolo-check . --structure (0.1.0-alpha.33)", "result": "pass", "detail": "13 of 13 findings compliant" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #216 completed success" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "installed_from": "npx --yes github:normzhou/yolo-blank-canvas#v0.16.2 --no-open --port 4875",
+    "installed_into": "an empty directory, no source checkout present",
+    "served_build": "4a09cf5d26bf2925e55f65433479a1069ad983b3",
+    "served_version": {
+      "package": "0.16.2",
+      "serverBuild": "4a09cf5d26bf2925e55f65433479a1069ad983b3",
+      "clientBuild": "4a09cf5d26bf2925e55f65433479a1069ad983b3"
+    },
+    "command": "YOLO_VERIFY_URL=http://127.0.0.1:4875 npm run e2e:verify-release",
+    "result": "pass",
+    "detail": "11 of 11 passed. Also deployed live to yolo-demo-app (Version ID: 506aea64-c332-4f44-b8ae-205ac14f7316) and verified at https://demo.yolo-dev.ai/__yolo/version (200 {\"version\":\"v0.16.2\"}) and https://demo.yolo-dev.ai/.build-id (200 4a09cf5d26bf2925e55f65433479a1069ad983b3)."
+  },
+  "what_this_release_delivers": [
+    "#215 3D arcade cabinet & control deck polish: scopes dark Neo-Geo / Taito arcade cabinet tokens (--cabinet-bg, --cabinet-surface, --cabinet-well, --cabinet-bezel, --arcade-fire, --arcade-rocker, --arcade-rotate) to .tetris, replaces flat white enterprise cards with a transparent .pb-player-card frame over the pixel-art scene, adds 1UP/2UP marquee badges, miniature SVG mascot portrait tokens (CharacterTokenIcon), a circular NEXT BUBBLE dome, a 2x2 compact telemetry grid, an INSERT COIN / combo LED ticker, an in-board WINNER / GAME OVER plaque, and 3D beveled arcade plunger/rocker controls"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "Acceptance on the delivered artifact is eleven targeted read-only checks. The 157 unit tests and 43 stubbed e2e tests ran against the source revision, not the installed artifact.",
+    "The tag points at 84b7c1e, a release-metadata commit after the assets commit 269f4f1, not at the assets commit itself. Both build-ID files still record the source 4a09cf5, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #215"
+}
