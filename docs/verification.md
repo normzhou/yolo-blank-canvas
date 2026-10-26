@@ -4,6 +4,21 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## 3D arcade cabinet & control deck polish for Puzzle Bobble and Tetris (#215) — 2026-10-25
+
+Source revision `4a09cf5` (the arcade cabinet polish commit).
+
+- **Closed-loop visual inspection across phone (`390×844`), iPad (`768×1024`), and desktop (`1280×900`):**
+  - Scoped dark Neo-Geo / Taito arcade cabinet tokens (`--cabinet-bg`, `--cabinet-surface`, `--cabinet-well`, `--cabinet-bezel`, `--arcade-fire`, `--arcade-rocker`, `--arcade-rotate`) to `.tetris` while preserving opaque `--surface` on `.tetris-side`, `.tetris-title`, `.tetris-help`, and `.tetris-scene`.
+  - Replaced stacked white enterprise form cards with a transparent `.pb-player-card` frame over the pixel-art scene, a `1UP`/`2UP` marquee plate, a fighter select strip with miniature SVG mascot icons (`CharacterTokenIcon`), a `NEXT BUBBLE` dome, a 2×2 compact telemetry grid (`ANGLE`, `DROP`, `SHOTS`, `WARN`/`LEFT`), an in-board `★ WINNER! ★` / `× GAME OVER ×` plaque, and 3D beveled arcade plunger/rocker buttons (`◀ AIM`, `● FIRE`, `AIM ▶`, `◀`, `▼`, `▶`, `↻ ROTATE`, `⤓ DROP`).
+- `npm test`: 23 files, 157 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run build`: clean; `dist/client/.build-id` and
+  `server/build-id.generated.js` both report `4a09cf5…`.
+- `npm run e2e`: 43 passed.
+- `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`,
+  13/13 findings compliant.
+
 ## Multi-format closed-loop QA & responsive fixes across 7 device viewports (#212) — 2026-10-25
 
 Source revision `992189c` (the multi-format QA fix commit); build and review
