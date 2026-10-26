@@ -89,6 +89,22 @@
   --arcade-rotate: #9333ea;
   --arcade-rotate-lip: #581c87;
 
+  /* #217: Translucent mobile-game virtual gamepad button overlay tokens and
+     floating rotating YOLO logo overlay launcher tokens. */
+  --touch-overlay-bg: rgba(255, 255, 255, 0.03);
+  --touch-overlay-border: rgba(255, 255, 255, 0.55);
+  --touch-overlay-text: rgba(255, 255, 255, 0.92);
+  --touch-overlay-glow: inset 0 0 10px rgba(255, 255, 255, 0.14);
+  --touch-overlay-active-bg: rgba(255, 255, 255, 0.24);
+  --touch-overlay-active-border: rgba(255, 255, 255, 0.95);
+  --touch-overlay-fire-bg: rgba(239, 68, 68, 0.08);
+  --touch-overlay-fire-border: rgba(252, 165, 165, 0.82);
+  --touch-overlay-rotate-bg: rgba(168, 85, 247, 0.08);
+  --touch-overlay-rotate-border: rgba(216, 180, 254, 0.78);
+  --yolo-fab-bg: rgba(15, 23, 42, 0.42);
+  --yolo-fab-border: rgba(255, 255, 255, 0.55);
+  --yolo-fab-shadow: 0 4px 14px rgba(0, 0, 0, 0.32), inset 0 0 8px rgba(255, 255, 255, 0.18);
+
   /* ---- Design tokens ------------------------------------------------------
      The direction chosen in the UI review (#75, stage 4), written down once so
      it is not tribal knowledge buried in individual rules. The type scale was
@@ -265,7 +281,7 @@
 
 * { box-sizing: border-box; }
 
-body { margin: 0; background: var(--bg); }
+html, body { margin: 0; background: var(--bg); overscroll-behavior: none; }
 
 button {
   font: inherit;
@@ -286,6 +302,97 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .canvas { min-height: 100vh; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+/* #217: Full-screen non-scrolling game stage when an arcade game is active.
+   The game fills 100vw x 100dvh edge-to-edge without scrollbars, and the YOLO
+   feedback launcher floats unobtrusively so it consumes minimal real estate. */
+.canvas.is-playing {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  min-height: 100dvh;
+  max-height: 100dvh;
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+.canvas.is-playing > .canvas-header {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  z-index: 9;
+  padding: 4px 6px;
+  gap: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--yolo-fab-bg);
+  border: 1.5px solid var(--yolo-fab-border);
+  box-shadow: var(--yolo-fab-shadow);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--touch-overlay-text);
+}
+.canvas.is-playing > .canvas-header .canvas-identity {
+  display: none;
+}
+.canvas.is-playing > .canvas-header button.canvas-brand-button,
+.canvas.is-playing > .canvas-header .canvas-gallery button,
+.canvas.is-playing > .canvas-header .canvas-actions > button.canvas-requests-button {
+  color: var(--touch-overlay-text);
+  background: transparent;
+  border-color: transparent;
+  padding: 3px 8px;
+}
+.canvas.is-playing > .canvas-header .canvas-gallery {
+  background: transparent;
+  border-color: var(--yolo-fab-border);
+  padding: 1px;
+}
+.canvas.is-playing > .canvas-header .canvas-gallery button.deck-pill.is-active {
+  background: var(--touch-overlay-active-bg);
+  border-color: var(--touch-overlay-active-border);
+  color: var(--touch-overlay-text);
+}
+.canvas.is-playing > .error,
+.canvas.is-playing > .banner {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  width: min(520px, calc(100vw - 24px));
+  margin: 0;
+  box-shadow: var(--elevation-panel-centred);
+}
+.yolo-logo-mark {
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+.yolo-logo-orbit {
+  transform-origin: 12px 12px;
+  animation: yolo-logo-spin 8s linear infinite;
+}
+.yolo-logo-core {
+  transform-origin: 12px 12px;
+  animation: yolo-logo-spin-reverse 5s linear infinite;
+}
+@keyframes yolo-logo-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes yolo-logo-spin-reverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+button.yolo-fab-button,
+button.canvas-primary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
 /* #131: the chosen Q1 direction (#75) made the panel a right-docked column and
    removed the scrim tint, so the canvas reflowed beside it and stayed visible
    at full prompt scale. That left ~56% of a wide viewport looking like live
@@ -794,6 +901,17 @@ button.deck-play-button:hover {
    navigation so the keyboard does not fall back to the document body. */
 .canvas-app { position: relative; z-index: 1; outline: none; width: 100%; display: flex; justify-content: center; }
 .canvas-app .tetris { margin-top: 0; }
+.canvas.is-playing .canvas-deck {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
+}
+.canvas.is-playing .canvas-app {
+  width: 100%;
+  height: 100%;
+  align-items: stretch;
+}
 .canvas-app:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: var(--radius); }
 
 .banner {
@@ -1209,17 +1327,24 @@ a:visited { color: var(--accent-weak-text); }
 
   position: relative;
   overflow: hidden;
-  margin: 1vh auto 0;
-  width: fit-content;
+  margin: 0;
+  width: 100%;
+  height: 100%;
   background: var(--cabinet-bg);
   color: var(--cabinet-text);
-  border: 3px solid var(--cabinet-bezel);
-  border-radius: var(--radius);
-  box-shadow: var(--elevation-panel-centred);
-  padding: 12px;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 8px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  overscroll-behavior: none;
 }
 .tetris-art {
   /* The one place the crossfade length is written down. Removing the outgoing
@@ -1269,25 +1394,25 @@ a:visited { color: var(--accent-weak-text); }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  background: var(--surface);
-  border: 2px solid var(--text);
-  border-bottom-width: 3px;
-  border-radius: var(--radius-sm);
-  padding: 6px 10px;
-  box-shadow: var(--elevation-card);
+  gap: 8px;
+  background: transparent;
+  border: none;
+  padding: 2px 4px;
+  box-shadow: none;
 }
 .tetris-header button {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
-  border: 1.5px solid var(--text);
-  border-bottom-width: 3px;
+  border: 1.5px solid var(--touch-overlay-border);
+  border-radius: var(--radius-pill);
+  background: var(--touch-overlay-bg);
+  color: var(--touch-overlay-text);
   padding: 4px 10px;
 }
 .tetris-header button:active:not(:disabled) {
-  transform: translateY(1px);
-  border-bottom-width: 1.5px;
+  transform: scale(0.96);
+  background: var(--touch-overlay-active-bg);
 }
 .tetris-header .filter-group button[aria-pressed="true"] {
   background: var(--accent-weak);
@@ -1433,9 +1558,9 @@ a:visited { color: var(--accent-weak-text); }
      pulls an arbitrary pixel toward mid-grey, where mid-grey text has no
      contrast. */
   background: var(--surface);
-  border: 1.5px solid var(--text);
-  padding: 5px 8px;
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--cabinet-bezel);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
 }
 
 /* #181, #195, #215: Puzzle Bobble (Bust-A-Move) 2-player and solo arcade view.
@@ -1446,12 +1571,14 @@ a:visited { color: var(--accent-weak-text); }
    `.pb-player-card` is a transparent frame so the pixel-art scene shines
    around the arcade playfield and scoreboard (#215). */
 .pb-game {
-  width: fit-content;
+  width: 100%;
+  height: 100%;
   max-width: 100%;
-  gap: 10px;
+  gap: 8px;
 }
 .pb-header {
   flex-wrap: wrap;
+  width: min(740px, 100%);
 }
 .pb-tally {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -1484,17 +1611,15 @@ a:visited { color: var(--accent-weak-text); }
 }
 .pb-player-header {
   width: 100%;
-  height: 40px;
+  height: 34px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 4px 8px;
-  background: var(--surface);
-  border: 2px solid var(--text);
-  border-bottom-width: 3px;
-  border-radius: var(--radius-sm);
-  box-shadow: var(--elevation-card);
+  padding: 2px 6px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
   overflow: hidden;
 }
 .pb-player-id {
@@ -1573,16 +1698,15 @@ a:visited { color: var(--accent-weak-text); }
 }
 .pb-char-bar {
   width: 100%;
-  height: 30px;
+  height: 28px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 6px;
-  padding: 2px 8px;
-  background: var(--surface);
-  border: 2px solid var(--text);
-  border-radius: var(--radius-sm);
+  padding: 0 4px;
+  background: transparent;
+  border: none;
   overflow: hidden;
   white-space: nowrap;
 }
@@ -1602,16 +1726,15 @@ a:visited { color: var(--accent-weak-text); }
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 2px 7px;
+  padding: 2px 8px;
   min-height: 22px;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
   line-height: 1.1;
-  border-radius: var(--radius-xs);
-  border: 1.5px solid var(--text);
-  border-bottom-width: 2.5px;
-  background: var(--field);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--cabinet-bezel);
+  background: var(--touch-overlay-bg);
   color: var(--text);
 }
 .pb-char-btn:hover {
@@ -1652,63 +1775,63 @@ a:visited { color: var(--accent-weak-text); }
 .tetris-touch-bar {
   width: 100%;
   display: grid;
-  gap: 8px;
+  gap: 10px;
   user-select: none;
   touch-action: manipulation;
-  background: var(--surface);
-  border: 2px solid var(--cabinet-bezel);
-  border-bottom-width: 4px;
-  border-radius: var(--radius);
-  padding: 6px 8px;
-  box-shadow: var(--elevation-card);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 2px 0;
+  box-shadow: none;
 }
 .pb-touch-bar {
-  height: 44px;
+  height: 52px;
   flex-shrink: 0;
   grid-template-columns: 1fr 1.35fr 1fr;
 }
 .tetris-touch-bar {
+  height: 52px;
   grid-template-columns: 1fr 1fr 1fr 1.35fr 1.35fr;
 }
 button.pb-touch-btn {
-  padding: 4px 8px;
-  min-height: 30px;
+  padding: 6px 12px;
+  min-height: 46px;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
   font-variant-numeric: tabular-nums;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border: 2px solid var(--cabinet-bezel);
-  border-bottom-width: 4px;
-  border-radius: var(--radius-sm);
-  background: var(--field);
-  color: var(--text);
+  letter-spacing: 0.06em;
+  border: 2px solid var(--touch-overlay-border);
+  border-radius: var(--radius-pill);
+  background: var(--touch-overlay-bg);
+  color: var(--touch-overlay-text);
+  box-shadow: var(--touch-overlay-glow);
   white-space: nowrap;
   user-select: none;
   touch-action: manipulation;
 }
 button.pb-touch-btn.pb-touch-rocker {
-  background: var(--arcade-rocker);
-  border-color: var(--arcade-rocker-lip);
-  color: var(--on-accent);
+  background: var(--touch-overlay-bg);
+  border-color: var(--touch-overlay-border);
+  color: var(--touch-overlay-text);
 }
 button.pb-touch-btn.pb-touch-rotate {
   border-radius: var(--radius-pill);
-  background: var(--arcade-rotate);
-  border-color: var(--arcade-rotate-lip);
-  color: var(--on-accent);
+  background: var(--touch-overlay-rotate-bg);
+  border-color: var(--touch-overlay-rotate-border);
+  color: var(--touch-overlay-text);
 }
 button.pb-touch-btn:active:not(:disabled) {
-  transform: translateY(2px);
-  border-bottom-width: 2px;
+  background: var(--touch-overlay-active-bg);
+  border-color: var(--touch-overlay-active-border);
+  transform: scale(0.96);
 }
 button.pb-touch-fire {
   border-radius: var(--radius-pill);
-  background: var(--arcade-fire);
-  border: 2px solid var(--arcade-fire-lip);
-  border-bottom-width: 4px;
-  color: var(--on-accent);
+  background: var(--touch-overlay-fire-bg);
+  border: 1.5px solid var(--touch-overlay-fire-border);
+  color: var(--touch-overlay-text);
   letter-spacing: 0.08em;
 }
 .pb-side {
@@ -1942,6 +2065,8 @@ button.pb-touch-fire {
   .ambient-orb-1,
   .ambient-orb-2,
   .ambient-orb-3,
+  .yolo-logo-orbit,
+  .yolo-logo-core,
   .deck-slide-card.is-sliding-next,
   .deck-slide-card.is-sliding-prev {
     animation: none;
@@ -2005,20 +2130,62 @@ button.pb-touch-fire {
     grid-template-columns: 1fr;
   }
   .deck-stack-summary,
-  .deck-keyboard-hint {
+  .deck-keyboard-hint,
+  .canvas-prompt {
+    display: none;
+  }
+  /* #217: On mobile during gameplay, collapse the floating dock to JUST the
+     rotating YOLO logo orb so it takes minimal screen real estate. */
+  .canvas.is-playing > .canvas-header {
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    bottom: 12px;
+    right: 12px;
+  }
+  .canvas.is-playing > .canvas-header .canvas-brand,
+  .canvas.is-playing > .canvas-header .canvas-gallery,
+  .canvas.is-playing > .canvas-header .canvas-requests-button,
+  .canvas.is-playing > .canvas-header .yolo-fab-label {
+    display: none;
+  }
+  .canvas.is-playing > .canvas-header button.yolo-fab-button {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border-radius: var(--radius-pill);
+    background: var(--yolo-fab-bg);
+    border: 1.5px solid var(--yolo-fab-border);
+    color: var(--touch-overlay-text);
+    box-shadow: var(--yolo-fab-shadow);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .canvas.is-playing > .canvas-header .yolo-logo-mark {
+    width: 20px;
+    height: 20px;
+  }
+  .tetris-help {
     display: none;
   }
 }
 @media (max-width: 640px) {
   .canvas { padding: 8px 6px; gap: 8px; }
   .canvas-header { padding: 6px 10px; gap: 6px; }
-  .tetris { margin: 0 auto; padding: 8px 6px; gap: 8px; }
-  .tetris-header { padding: 4px 8px; gap: 6px; }
+  .tetris { margin: 0; padding: 10px 8px 14px; gap: 8px; justify-content: space-between; }
+  .tetris-header { padding: 2px 4px; gap: 6px; width: 100%; }
+  .pb-boards { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; }
+  .pb-touch-bar { height: 56px; margin-top: 6px; padding-right: 48px; }
+  .tetris:not(.pb-game) .tetris-touch-bar { height: 54px; padding-right: 48px; }
+  button.pb-touch-btn { min-height: 50px; }
   .pb-player-card {
-    width: min(360px, calc(100vw - 24px));
-    min-width: min(360px, calc(100vw - 24px));
-    max-width: min(360px, calc(100vw - 24px));
-    flex-basis: min(360px, calc(100vw - 24px));
+    width: min(360px, calc(100vw - 12px));
+    min-width: min(360px, calc(100vw - 12px));
+    max-width: min(360px, calc(100vw - 12px));
+    flex-basis: min(360px, calc(100vw - 12px));
+    height: 100%;
+    justify-content: space-between;
     padding: 0;
     gap: 6px;
   }

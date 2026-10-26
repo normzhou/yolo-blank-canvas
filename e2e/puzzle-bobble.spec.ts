@@ -207,11 +207,30 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
     await page.getByTestId('p1-touch-fire').click();
     await expect(page.getByTestId('p1-shots')).toHaveText('1', { timeout: 5000 });
 
-    // No horizontal overflow on 390px phone screen.
-    const phoneOverflow = await page.evaluate(
-      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-    );
-    expect(phoneOverflow).toBeLessThanOrEqual(0);
+    // No horizontal or vertical page scroll overflow on 390px phone screen (#217 full-screen game stage),
+    // and the floating rotating YOLO logo button occupies a compact 42x42 corner orb.
+    const phoneMetrics = await page.evaluate(() => {
+      const fab = document.querySelector('[data-testid="yolo-feedback-fab"]')?.getBoundingClientRect();
+      const logo = document.querySelector('[data-testid="yolo-rotating-logo"]');
+      const touchBar = document.querySelector('.pb-touch-bar');
+      const touchBarBg = touchBar ? window.getComputedStyle(touchBar).backgroundColor : '';
+      return {
+        horizOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        vertOverflow: document.documentElement.scrollHeight - document.documentElement.clientHeight,
+        scrollY: window.scrollY,
+        fabWidth: fab ? Math.round(fab.width) : 0,
+        fabHeight: fab ? Math.round(fab.height) : 0,
+        hasRotatingLogo: Boolean(logo),
+        touchBarBg,
+      };
+    });
+    expect(phoneMetrics.horizOverflow).toBeLessThanOrEqual(0);
+    expect(phoneMetrics.vertOverflow).toBeLessThanOrEqual(0);
+    expect(phoneMetrics.scrollY).toBe(0);
+    expect(phoneMetrics.hasRotatingLogo).toBe(true);
+    expect(phoneMetrics.fabWidth).toBeLessThanOrEqual(48);
+    expect(phoneMetrics.fabHeight).toBeLessThanOrEqual(48);
+    expect(phoneMetrics.touchBarBg).toBe('rgba(0, 0, 0, 0)');
 
     // 2. Phone landscape viewport (844x390, short edge 390 < 560px): still a phone, so 1P mode is enforced.
     await page.setViewportSize({ width: 844, height: 390 });

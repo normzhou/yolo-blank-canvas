@@ -227,6 +227,49 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
 }
 
 /**
+ * Rotating geometric YOLO prism emblem (#217) used on the floating feedback
+ * overlay trigger so the feedback launcher is immediately recognizable while
+ * occupying minimal screen real estate during full-screen gameplay.
+ */
+function YoloRotatingLogo() {
+  return (
+    <svg
+      className="yolo-logo-mark"
+      data-testid="yolo-rotating-logo"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <g className="yolo-logo-orbit">
+        <polygon
+          points="12,1.5 22.5,12 12,22.5 1.5,12"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        />
+        <circle
+          cx="12"
+          cy="12"
+          r="9.2"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.2"
+          strokeDasharray="3 3"
+          opacity="0.75"
+        />
+      </g>
+      <g className="yolo-logo-core">
+        <polygon
+          points="12,5.5 14.2,9.8 18.5,12 14.2,14.2 12,18.5 9.8,14.2 5.5,12 9.8,9.8"
+          fill="currentColor"
+        />
+      </g>
+    </svg>
+  );
+}
+
+/**
  * Subtle dynamic background visual effects (#198): ambient architectural grid
  * lines, soft drifting aura rings, and floating arcade geometry using only
  * theme tokens so Slate, Sand, and Dusk all paint it naturally.
@@ -633,9 +676,16 @@ export function App() {
 
   const isStaticDemo = sessionError?.kind === 'static_demo';
   const showSessionError = Boolean(sessionError && (!isStaticDemo || staticDemoNoticeOpen));
+  const canvasClass = [
+    'canvas',
+    panelOpen && session ? 'panel-open' : '',
+    activeApp ? 'is-playing' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
-    <div className={panelOpen && session ? 'canvas panel-open' : 'canvas'}>
+    <div className={canvasClass}>
       <header className="canvas-header">
         <div className="canvas-brand">
           <button
@@ -708,8 +758,9 @@ export function App() {
           </button>
         </nav>
 
-        {/* Unobtrusive feedback & requests dock on the right (#187, #196).
-            No raw theme buttons or redundant Canvas button in the top bar. */}
+        {/* Unobtrusive feedback & requests dock on the right (#187, #196, #217).
+            During gameplay (.canvas.is-playing), the rotating YOLO logo button
+            floats unobtrusively so the game owns the full screen. */}
         <span className="canvas-actions">
           {!activeApp ? (
             <div className="canvas-prompt-block">
@@ -724,7 +775,8 @@ export function App() {
                 }}
                 disabled={connecting}
               >
-                {session || isStaticDemo ? 'Start a request' : 'Connect GitHub'}
+                <YoloRotatingLogo />
+                <span>{session || isStaticDemo ? 'Start a request' : 'Connect GitHub'}</span>
               </button>
               <div className="canvas-secondary-actions">
                 <button
@@ -742,7 +794,8 @@ export function App() {
             <>
               <button
                 type="button"
-                className="canvas-feedback"
+                className="canvas-feedback yolo-fab-button"
+                data-testid="yolo-feedback-fab"
                 ref={feedbackTriggerRef}
                 aria-label={`Feedback on ${activeApp.title}`}
                 title={`Give feedback on ${activeApp.title}`}
@@ -751,10 +804,12 @@ export function App() {
                   openNewRequest('feedback');
                 }}
               >
-                Feedback
+                <YoloRotatingLogo />
+                <span className="yolo-fab-label">Feedback</span>
               </button>
               <button
                 type="button"
+                className="canvas-requests-button"
                 ref={requestsTriggerRef}
                 onClick={() => {
                   panelOpenerRef.current = 'requests';

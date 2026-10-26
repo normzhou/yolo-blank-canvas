@@ -4,6 +4,19 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## iOS mobile music playback, full-screen non-scrolling game stage, rotating YOLO logo overlay, and translucent mobile button overlays (#217) — 2026-10-25
+
+- **iOS Safari & Chrome music playback (`src/client/audio/tetrisMusic.ts`, `TetrisView.tsx`, `PuzzleBobbleView.tsx`):**
+  - Unlocks and starts playback synchronously inside the `Music off` -> `Music on` `onClick` user gesture (`ensureContext()` + `setActive(...)`), sets `navigator.audioSession.type = 'playback'` (iOS 17+), plays a 1-sample silent unlock buffer, and decodes `.m4a` tracks via `fetch(track.src)` + `AudioContext.decodeAudioData` so playback does not depend on HTTP `206 Partial Content` byte-range responses on static Worker origins.
+- **Full-screen non-scrolling game stage & rotating YOLO logo overlay (`src/client/App.tsx`, `src/client/styles.css`, `index.html`):**
+  - Active games (`.canvas.is-playing`) fill `100vw × 100dvh` with `touch-action: none`, `overscroll-behavior: none`, and non-passive `touchmove` `preventDefault()` so dragging on the screen aims or moves pieces without scrolling the browser viewport.
+  - Replaced the top header bar during gameplay with a floating **rotating YOLO logo** button (`data-testid="yolo-feedback-fab"`, `42×42px` on mobile) that opens the full-screen Feedback/Requests overlay (`<Panel>`).
+  - Styled mobile touch buttons (`.pb-touch-btn`) as translucent ring-outline mobile game virtual overlays (`--touch-overlay-bg: rgba(255, 255, 255, 0.03)`, `--touch-overlay-border: rgba(255, 255, 255, 0.55)`).
+- `npm test`: 23 files, 158 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 43 passed (`horizOverflow <= 0`, `vertOverflow <= 0`, `scrollY === 0`, `fabWidth <= 48`, `touchBarBg === 'rgba(0, 0, 0, 0)'`).
+- `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`, 13/13 findings compliant.
+
 ## 3D arcade cabinet & control deck polish for Puzzle Bobble and Tetris (#215) — 2026-10-25
 
 Source revision `4a09cf5` (the arcade cabinet polish commit); build and review

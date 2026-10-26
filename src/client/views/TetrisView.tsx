@@ -131,6 +131,19 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
   const gameRef = useRef(game);
   gameRef.current = game;
   const tetrisCountRef = useRef(game.tetrisCount);
+  const gameSectionRef = useRef<HTMLElement>(null);
+
+  // #217: Prevent browser viewport scroll or rubber-banding when dragging
+  // anywhere on the full-screen game stage on iOS Safari / Chrome.
+  useEffect(() => {
+    const el = gameSectionRef.current;
+    if (!el) return;
+    const onTouchMove = (event: TouchEvent) => {
+      event.preventDefault();
+    };
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    return () => el.removeEventListener('touchmove', onTouchMove);
+  }, []);
 
   // Clearing four lines at once advances the backdrop to the next scene. A new
   // game resets the counter, which only lowers the ref and never cycles.
@@ -303,7 +316,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
   }
 
   return (
-    <section className="tetris" aria-label="Tetris game">
+    <section className="tetris" aria-label="Tetris game" ref={gameSectionRef}>
       <PixelBackdrop art={BACKGROUNDS[backgroundIndex]} />
       <header className="tetris-header">
         <div className="row">
@@ -319,6 +332,9 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
             onClick={() => {
               const next = !musicOn;
               if (next && !(musicRef.current?.ensureContext() ?? false)) return; // no Web Audio available
+              // #217: Start or stop synchronously inside the user tap gesture
+              // so iOS Safari / Chrome WebKit allows audio playback.
+              musicRef.current?.setActive(next && game.status === 'playing' && !paused);
               setMusicOn(next);
             }}
           >

@@ -920,10 +920,12 @@ function PlayerArena({
   onHoldAimEnd: (keyId: string) => void;
 }) {
   const dragPointerIdRef = useRef<number | null>(null);
+  const boardSvgRef = useRef<SVGSVGElement | null>(null);
 
-  const aimFromPointerEvent = (event: ReactPointerEvent<SVGSVGElement>) => {
+  const aimFromPointerEvent = (event: ReactPointerEvent<Element>) => {
     if (disabled || player.status !== 'playing') return;
-    const rect = event.currentTarget.getBoundingClientRect();
+    const svgEl = boardSvgRef.current ?? event.currentTarget;
+    const rect = svgEl.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return;
     const svgX = ((event.clientX - rect.left) / rect.width) * ARENA_WIDTH;
     const svgY = ((event.clientY - rect.top) / rect.height) * ARENA_HEIGHT;
@@ -1027,40 +1029,43 @@ function PlayerArena({
         </div>
       </div>
 
-      <div className="pb-arena-row">
+      <div
+        className="pb-arena-row"
+        onPointerDown={(event) => {
+          if (disabled || player.status !== 'playing') return;
+          dragPointerIdRef.current = event.pointerId;
+          if (event.currentTarget.setPointerCapture) {
+            try {
+              event.currentTarget.setPointerCapture(event.pointerId);
+            } catch {
+              // Synthetic pointer events in tests may not register an active pointer id.
+            }
+          }
+          aimFromPointerEvent(event);
+        }}
+        onPointerMove={(event) => {
+          if (dragPointerIdRef.current !== event.pointerId) return;
+          aimFromPointerEvent(event);
+        }}
+        onPointerUp={(event) => {
+          if (dragPointerIdRef.current === event.pointerId) {
+            dragPointerIdRef.current = null;
+          }
+        }}
+        onPointerCancel={(event) => {
+          if (dragPointerIdRef.current === event.pointerId) {
+            dragPointerIdRef.current = null;
+          }
+        }}
+      >
         <svg
+          ref={boardSvgRef}
           className="pb-board"
           width={ARENA_WIDTH}
           height={ARENA_HEIGHT}
           viewBox={`0 0 ${ARENA_WIDTH} ${ARENA_HEIGHT}`}
           role="img"
           aria-label={`Player ${playerNumber} bubble board`}
-          onPointerDown={(event) => {
-            if (disabled || player.status !== 'playing') return;
-            dragPointerIdRef.current = event.pointerId;
-            if (event.currentTarget.setPointerCapture) {
-              try {
-                event.currentTarget.setPointerCapture(event.pointerId);
-              } catch {
-                // Synthetic pointer events in tests may not register an active pointer id.
-              }
-            }
-            aimFromPointerEvent(event);
-          }}
-          onPointerMove={(event) => {
-            if (dragPointerIdRef.current !== event.pointerId) return;
-            aimFromPointerEvent(event);
-          }}
-          onPointerUp={(event) => {
-            if (dragPointerIdRef.current === event.pointerId) {
-              dragPointerIdRef.current = null;
-            }
-          }}
-          onPointerCancel={(event) => {
-            if (dragPointerIdRef.current === event.pointerId) {
-              dragPointerIdRef.current = null;
-            }
-          }}
         >
           <defs>
             <radialGradient id="pb-sphere-shine" cx="32%" cy="28%" r="55%">
@@ -1530,6 +1535,19 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
   const matchRef = useRef(match);
   matchRef.current = match;
   const heldAimKeysRef = useRef<Map<string, number>>(new Map());
+  const gameSectionRef = useRef<HTMLElement>(null);
+
+  // #217: Prevent browser viewport scroll or rubber-banding when dragging
+  // anywhere on the full-screen game stage on iOS Safari / Chrome.
+  useEffect(() => {
+    const el = gameSectionRef.current;
+    if (!el) return;
+    const onTouchMove = (event: TouchEvent) => {
+      event.preventDefault();
+    };
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    return () => el.removeEventListener('touchmove', onTouchMove);
+  }, []);
 
   // Audio playback follows active match state.
   useEffect(() => {
@@ -1833,7 +1851,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
   const art = BACKGROUNDS[backgroundIndex] ?? BACKGROUNDS[0];
 
   return (
-    <section className="tetris pb-game" aria-label="Puzzle Bobble game">
+    <section className="tetris pb-game" aria-label="Puzzle Bobble game" ref={gameSectionRef}>
       <div className="tetris-art" aria-hidden="true">
         <img className="tetris-art-layer is-current" src={art.src} alt="" aria-hidden="true" />
       </div>
@@ -1913,6 +1931,9 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
             onClick={() => {
               const next = !musicOn;
               if (next && !(musicRef.current?.ensureContext() ?? false)) return;
+              // #217: Start or stop synchronously inside the user tap gesture
+              // so iOS Safari / Chrome WebKit allows audio playback.
+              musicRef.current?.setActive(next && match.status === 'playing' && !paused);
               setMusicOn(next);
             }}
           >
