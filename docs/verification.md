@@ -6,12 +6,20 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Multi-touch virtual buttons and simultaneous 2-player touch aiming/firing (#224) — 2026-10-25
 
+Source revision `e6c7543` (the multi-touch virtual buttons commit); build and review evidence `5d2c129`; release commit `062b9db`; published as `v0.16.7` on 2026-10-25.
+
 - **Multi-touch virtual buttons (`src/client/views/PuzzleBobbleView.tsx`, `src/client/views/TetrisView.tsx`):**
   - Switched `● FIRE` (Puzzle Bobble) and `↻ ROTATE` / `⤓ DROP` (Tetris) from `onClick`-only to immediate `onPointerDown` activation (with `onClick` `event.detail === 0` fallback for keyboard activation) and added `setPointerCapture(event.pointerId)` on `◀ AIM` and `AIM ▶` so non-primary touches (`isPrimary: false`) fire immediately with zero latency even while up to 3 other fingers are holding aim or dragging on a board.
 - `npm test`: 23 files, 158 tests passed.
 - `npx tsc --noEmit`: clean.
 - `npm run e2e`: 43 passed (including simultaneous 4-pointer multi-touch test across Player 1 and Player 2).
 - `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`, 13/13 findings compliant.
+
+### Installed artifact (`v0.16.7`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.16.7 --no-open --port 4880` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `e6c7543…`; the tagged package version is `0.16.7`. The tag points at release commit `062b9db`, after the assets commit `5d2c129`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4880 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: 737a6568-d93a-425e-abfa-a58d9f2184ce`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.16.7"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 e6c7543676dd41ddcfd4355aeb9a43e4267f554b`). The report is [`.yolo/reports/releases-observed-2026-10-25-v0167.json`](../.yolo/reports/releases-observed-2026-10-25-v0167.json).
 
 ## MS Edge tablet 2-Player support and Browser Fullscreen API toggle (#222) — 2026-10-25
 

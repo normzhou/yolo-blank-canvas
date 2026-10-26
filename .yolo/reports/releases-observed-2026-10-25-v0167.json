@@ -1,0 +1,64 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-25",
+  "observed_at": "2026-10-25",
+  "published_at_utc": "2026-10-26T04:18:00Z",
+  "protocol": {
+    "revision": "da644964ca92eef8448cd782cf6805c724ca2e74",
+    "release": "v0.1.0-alpha.33"
+  },
+  "releases": [
+    {
+      "tag": "v0.16.7",
+      "commit": "062b9dbf183c59f66e126f2970f0f3460e4f9ed8"
+    }
+  ],
+  "release": {
+    "tag": "v0.16.7",
+    "tag_object": "50d0e11be723500222cb9c68d124b6a2bed6dfad",
+    "release_commit": "062b9dbf183c59f66e126f2970f0f3460e4f9ed8",
+    "source_commit": "e6c7543676dd41ddcfd4355aeb9a43e4267f554b",
+    "assets_commit": "5d2c12935b146b4689334ba2be49af3d4a362cb1",
+    "semver": "patch",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record e6c7543, the source revision. The committed assets were built at that source in 5d2c129. 062b9db is a release-metadata commit (version and install references, no source changes) after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "158 passed across 23 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID e6c7543" },
+    { "check": "npm run e2e (stubbed, deterministic)", "result": "pass", "detail": "43 passed" },
+    { "check": "cd hosting/cloudflare && npm run check", "result": "pass", "detail": "wrangler deploy --dry-run (21 static assets, APP_VERSION=v0.16.7)" },
+    { "check": "yolo-check . --structure (0.1.0-alpha.33)", "result": "pass", "detail": "13 of 13 findings compliant" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #225 completed success" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "installed_from": "npx --yes github:normzhou/yolo-blank-canvas#v0.16.7 --no-open --port 4880",
+    "installed_into": "an empty directory, no source checkout present",
+    "served_build": "e6c7543676dd41ddcfd4355aeb9a43e4267f554b",
+    "served_version": {
+      "package": "0.16.7",
+      "serverBuild": "e6c7543676dd41ddcfd4355aeb9a43e4267f554b",
+      "clientBuild": "e6c7543676dd41ddcfd4355aeb9a43e4267f554b"
+    },
+    "command": "YOLO_VERIFY_URL=http://127.0.0.1:4880 npm run e2e:verify-release",
+    "result": "pass",
+    "detail": "11 of 11 passed. Also deployed live to yolo-demo-app (Version ID: 737a6568-d93a-425e-abfa-a58d9f2184ce) and verified at https://demo.yolo-dev.ai/__yolo/version (200 {\"version\":\"v0.16.7\"}) and https://demo.yolo-dev.ai/.build-id (200 e6c7543676dd41ddcfd4355aeb9a43e4267f554b)."
+  },
+  "what_this_release_delivers": [
+    "#224 Multi-touch virtual buttons and simultaneous 2-player touch aiming/firing: switches FIRE (Puzzle Bobble) and ROTATE / DROP (Tetris) from onClick-only to immediate onPointerDown activation (with onClick event.detail===0 keyboard fallback) and adds setPointerCapture(event.pointerId) on AIM rockers so non-primary touches (isPrimary: false) fire immediately with zero latency even while up to 3 other fingers are holding aim or dragging on a board"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "Acceptance on the delivered artifact is eleven targeted read-only checks. The 158 unit tests and 43 stubbed e2e tests ran against the source revision, not the installed artifact.",
+    "The tag points at 062b9db, a release-metadata commit after the assets commit 5d2c129, not at the assets commit itself. Both build-ID files still record the source e6c7543, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #224"
+}

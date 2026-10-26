@@ -245,15 +245,16 @@
         "v0.16.2": "84b7c1ec657d3f26194b7142b9e816fd92b36577",
         "v0.16.3": "d2fa2b73d4fa5fff3a76d237529908b0f3401c27",
         "v0.16.4": "2a63a2baa64fa3bf600b7b5dd4cee92dd62113c1",
-        "v0.16.5": "2a3098d77d668665cfe9661244d5e37f4afe6e6f"
+        "v0.16.5": "2a3098d77d668665cfe9661244d5e37f4afe6e6f",
+        "v0.16.6": "0ad0ae4d657fcb8026100f0d51cab69994075cbd"
       },
       "published": {
-        "tag": "v0.16.6",
-        "commit": "0ad0ae4d657fcb8026100f0d51cab69994075cbd",
-        "source_commit": "79ac07c6558b2c518cbf342bf98890021816fcc5",
-        "published_at": "2026-10-26T03:11:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-10-25-v0166.json",
-        "note": "Patch release. Enables 2-Player side-by-side mode across MS Edge tablet viewports (600x960, 744x1133, 768x1024, 960x480 with browser toolbars, 1024x768) and adds a Browser Fullscreen API toggle (Full screen / Exit full screen, requestFullscreen({ navigationUI: 'hide' }) + WebKit fallback) on the home deck, Tetris, and Puzzle Bobble (#222, PR #223); also deployed live to https://demo.yolo-dev.ai (Version ID: 312f1576-d262-4ec3-bb9f-ee006b73877f). Acceptance before tagging: 158 unit, 43 stubbed e2e passed, tsc clean, structure pass. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit 0ad0ae4 after the assets commit 51f7217; both build-ID files record 79ac07c."
+        "tag": "v0.16.7",
+        "commit": "062b9dbf183c59f66e126f2970f0f3460e4f9ed8",
+        "source_commit": "e6c7543676dd41ddcfd4355aeb9a43e4267f554b",
+        "published_at": "2026-10-26T04:18:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-10-25-v0167.json",
+        "note": "Patch release. Makes virtual buttons (FIRE, AIM rockers, ROTATE, DROP) and 2-player touch aiming/firing 100% multi-touch safe via immediate onPointerDown activation and per-finger setPointerCapture (#224, PR #225); also deployed live to https://demo.yolo-dev.ai (Version ID: 737a6568-d93a-425e-abfa-a58d9f2184ce). Acceptance before tagging: 158 unit, 43 stubbed e2e passed, tsc clean, structure pass. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit 062b9db after the assets commit 5d2c129; both build-ID files record e6c7543."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -285,7 +286,8 @@
         ".yolo/reports/releases-observed-2026-10-25-v0163.json",
         ".yolo/reports/releases-observed-2026-10-25-v0164.json",
         ".yolo/reports/releases-observed-2026-10-25-v0165.json",
-        ".yolo/reports/releases-observed-2026-10-25-v0166.json"
+        ".yolo/reports/releases-observed-2026-10-25-v0166.json",
+        ".yolo/reports/releases-observed-2026-10-25-v0167.json"
       ]
     }
   },
