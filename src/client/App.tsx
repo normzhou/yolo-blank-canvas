@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, ApiError, type IssueSummary, type SessionInfo } from './api';
 import { animateYoloMark } from './brand/yoloMark';
+import { useFullscreen } from './fullscreen';
 import { Panel, type PanelView } from './components/Panel';
 import { ErrorNotice } from './components/ErrorNotice';
 import { CanvasPalette } from './components/CanvasPalette';
@@ -362,6 +363,7 @@ export function App() {
   const [replyDrafts, setReplyDrafts] = useState<Record<number, TextDraft>>({});
   const [serverClientBuild, setServerClientBuild] = useState<string | null>(null);
   const [reloadPromptDismissed, setReloadPromptDismissed] = useState(false);
+  const { isFullscreen, toggleFullscreen } = useFullscreen();
 
   const triggerRef = useRef<HTMLButtonElement>(null);
   const feedbackTriggerRef = useRef<HTMLButtonElement>(null);
@@ -843,13 +845,25 @@ export function App() {
                 )}
 
                 <div className="deck-slide-actions">
-                  <button
-                    type="button"
-                    className="deck-play-button"
-                    onClick={() => openApp(currentSlide.id)}
-                  >
-                    Play {currentSlide.title}
-                  </button>
+                  <div className="row">
+                    <button
+                      type="button"
+                      className="deck-play-button"
+                      onClick={() => openApp(currentSlide.id)}
+                    >
+                      Play {currentSlide.title}
+                    </button>
+                    <button
+                      type="button"
+                      className="deck-fullscreen-button"
+                      data-testid="fullscreen-button"
+                      aria-pressed={isFullscreen}
+                      onClick={toggleFullscreen}
+                      title={isFullscreen ? 'Exit browser full screen' : 'Enter browser full screen'}
+                    >
+                      {isFullscreen ? 'Exit full screen' : 'Full screen'}
+                    </button>
+                  </div>
                   <nav className="canvas-gallery deck-nav" aria-label="Canvas gallery" ref={deckNavRef}>
                     <button
                       type="button"

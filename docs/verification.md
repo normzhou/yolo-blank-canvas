@@ -4,6 +4,17 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## MS Edge tablet 2-Player support and Browser Fullscreen API toggle (#222) — 2026-10-25
+
+- **MS Edge tablet 2-Player availability (`src/client/views/PuzzleBobbleView.tsx`, `src/client/styles.css`):**
+  - Updated `isPhoneViewport()` so only phone-sized viewports (`window.innerWidth < 560` in portrait, or `window.innerWidth < 900 && window.innerHeight < 440` in phone landscape) enforce `1p` mode, while tablets in MS Edge (`600×960` Android portrait, `744×1133` iPad Mini 6 portrait, `768×1024` iPad portrait, and `960×480` / `1024×768` landscape even when MS Edge tabs and address bar compress `innerHeight`) default to **2 Players** with responsive side-by-side layout on `560px–759px` viewports.
+- **Browser Fullscreen API mode (`src/client/fullscreen.ts`, `src/client/App.tsx`, `PuzzleBobbleView.tsx`, `TetrisView.tsx`, `index.html`):**
+  - Added `useFullscreen()` (`requestFullscreen({ navigationUI: 'hide' })` + `webkitRequestFullscreen` fallback + `exitFullscreen` / `webkitExitFullscreen`) and `Full screen` / `Exit full screen` toggle buttons (`data-testid="fullscreen-button"`, `aria-pressed`) on the home slide deck, Tetris, and Puzzle Bobble.
+- `npm test`: 23 files, 158 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 43 passed (asserting side-by-side 2P boards across `600×960`, `744×1133`, `768×1024`, `960×480`, and `1024×768` plus `fullscreen-button` toggle).
+- `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`, 13/13 findings compliant.
+
 ## Remove top bar completely and leave only the wiggling YOLO icon launcher (#220) — 2026-10-25
 
 Source revision `071b13a` (the top-bar removal and wiggling YOLO launcher commit); build and review evidence `ff8c47c`; release commit `2a3098d`; published as `v0.16.5` on 2026-10-25.
