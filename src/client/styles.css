@@ -362,7 +362,7 @@ button.yolo-launcher .yolo-logo-mark {
 button.fullscreen-launcher {
   position: fixed;
   bottom: 10px;
-  left: 12px;
+  right: 12px;
   z-index: 9;
   width: 38px;
   height: 38px;
@@ -1065,6 +1065,15 @@ button.deck-fullscreen-button[aria-pressed="true"] {
   flex-direction: column;
   box-shadow: var(--elevation-panel-centred);
 }
+.panel[data-view='new'],
+.panel[data-view='static'] {
+  height: auto;
+  max-height: min(680px, calc(100dvh - 32px));
+  margin: auto 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
 /* #165: the navigation palette. It is a small, centred dialog rather than a
    second full-height panel: switching canvas content is a momentary act, and the
    app behind it should stay the thing you are looking at. */
@@ -1117,7 +1126,12 @@ button.deck-fullscreen-button[aria-pressed="true"] {
 }
 .panel-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 16px; border-bottom: 1px solid var(--border); gap: 8px;
+  padding: 14px 18px; border-bottom: 1px solid var(--border); gap: 8px;
+}
+.panel-heading {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--text);
 }
 .panel-header-actions {
   display: inline-flex;
@@ -1127,6 +1141,24 @@ button.deck-fullscreen-button[aria-pressed="true"] {
 }
 .panel-repo { font-weight: var(--weight-semibold); }
 .panel-identity { color: var(--muted); font-size: var(--text-xs); }
+.public-feedback-notice {
+  padding: 28px 20px;
+  text-align: center;
+  background: var(--field);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.public-feedback-title {
+  margin: 0 0 8px;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--text);
+}
+.public-feedback-message {
+  margin: 0;
+  font-size: var(--text-base);
+  color: var(--muted);
+}
 .panel-body {
   flex: 1;
   overflow: auto;
@@ -1235,8 +1267,8 @@ input[type="text"], textarea {
   width: 100%; font: inherit; padding: 8px; border: 1px solid var(--field-border); border-radius: var(--radius-sm);
   background: var(--field); color: var(--text);
 }
-textarea { min-height: 140px; resize: vertical; }
-textarea.compact-field { min-height: 64px; }
+textarea { min-height: 96px; resize: vertical; }
+textarea.compact-field { min-height: 60px; }
 .field { margin-bottom: 12px; }
 .hint { color: var(--muted); font-size: var(--text-xs); margin-top: 4px; }
 .hint.error-hint { color: var(--problem); font-weight: var(--weight-semibold); }
@@ -1279,12 +1311,12 @@ textarea.compact-field { min-height: 64px; }
 
 .intent-fieldset {
   border: none;
-  margin: 0 0 12px;
+  margin: 0 0 16px;
   padding: 0;
 }
 .intent-fieldset > legend {
   padding: 0;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   font-size: var(--text-base);
   font-weight: var(--weight-semibold);
   color: var(--text);
@@ -1295,13 +1327,15 @@ textarea.compact-field { min-height: 64px; }
   gap: var(--space-3);
 }
 .intent-card {
+  position: relative;
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  gap: var(--space-2);
+  gap: 6px;
   margin: 0;
-  padding: 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  padding: 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
   background: var(--field);
   color: var(--text);
   font-size: var(--text-base);
@@ -1309,14 +1343,28 @@ textarea.compact-field { min-height: 64px; }
   cursor: pointer;
 }
 .intent-card:hover { border-color: var(--border-hover); }
+.intent-card:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 .intent-card input[type="radio"] {
-  margin: 3px 0 0;
-  accent-color: var(--accent);
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.intent-card-icon {
+  display: block;
+  flex-shrink: 0;
+  color: var(--muted);
 }
 .intent-card-content {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   min-width: 0;
 }
 .intent-card-title {
@@ -1327,12 +1375,14 @@ textarea.compact-field { min-height: 64px; }
   font-size: var(--text-xs);
   font-weight: var(--weight-regular);
   color: var(--muted);
+  line-height: 1.35;
 }
 .intent-card.is-selected {
   background: var(--accent-weak);
   border-color: var(--accent);
   color: var(--accent-weak-text);
 }
+.intent-card.is-selected .intent-card-icon,
 .intent-card.is-selected .intent-card-hint {
   color: var(--accent-weak-text);
 }
@@ -1438,7 +1488,9 @@ a:visited { color: var(--accent-weak-text); }
   .toolbar .spacer { display: none; }
   .toolbar button:not(.primary) { grid-column: 2; grid-row: 1; justify-self: end; }
   .toolbar button.primary { grid-column: 1 / -1; grid-row: 2; justify-self: start; }
-  .intent-grid { grid-template-columns: 1fr; }
+  .intent-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); }
+  .intent-card { padding: 10px 8px; align-items: center; text-align: center; }
+  .intent-card-hint { display: none; }
 }
 
 .tetris {
@@ -2366,8 +2418,8 @@ button.pb-touch-fire {
   }
   .tetris-header { padding: 2px 44px 2px 4px; gap: 4px; width: 100%; }
   .pb-boards { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; }
-  .pb-touch-bar { height: 48px; padding-left: 44px; padding-right: 0; }
-  .tetris:not(.pb-game) .tetris-touch-bar { height: 48px; padding-left: 44px; padding-right: 0; }
+  .pb-touch-bar { height: 48px; padding-right: 44px; padding-left: 0; }
+  .tetris:not(.pb-game) .tetris-touch-bar { height: 48px; padding-right: 44px; padding-left: 0; }
   button.pb-touch-btn { min-height: 44px; }
   /* #133: at 390px a right-hand status column squeezes the title, and the title
      is the thing being read. Stack instead: title, then status, then time. */

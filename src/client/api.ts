@@ -53,10 +53,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     ) {
       throw new ApiError(response.status, {
         kind: 'static_demo',
-        message:
-          'Static preview mode — live GitHub requests require a connected backend or local GitHub CLI session.',
-        loginCommand: 'npx --yes github:normzhou/yolo-blank-canvas',
-        githubUrl: 'https://github.com/normzhou/yolo-blank-canvas/issues',
+        message: 'Currently feedback on the public version is not available, stay tuned.',
       });
     }
     const body =

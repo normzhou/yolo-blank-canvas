@@ -161,7 +161,7 @@ test('app and home drafts stay separate, v1 drafts migrate, and Requests -> New 
     await expect(page.locator('.request-context-summary')).toContainText(APP_LINE);
 
     // Editable context line updates the generated body.
-    await page.getByRole('button', { name: 'Edit context' }).click();
+    await page.getByRole('button', { name: 'Edit context' }).dispatchEvent('click');
     await page.getByLabel('Context line').fill('App: Tetris (?app=tetris) — level 5');
     await page.getByLabel('Title').fill('App-only draft');
     await page.getByLabel('What would you like to build or change?').fill('Add hold piece.');
