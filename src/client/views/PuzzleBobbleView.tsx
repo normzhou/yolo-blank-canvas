@@ -967,17 +967,38 @@ function PlayerArena({
 
   return (
     <div className="pb-player-card" data-player={playerNumber}>
-      {/* Arcade 1UP/2UP Marquee Plate (#215) */}
+      {/* Compact single-line arcade marquee + character picker (#215, #226) */}
       <div className="pb-player-header">
         <div className="pb-player-id">
           <span className={`pb-up-badge pb-up-${playerNumber}`} aria-hidden="true">
             {playerNumber}UP
           </span>
           <span className="pb-player-title" data-testid={`p${playerNumber}-title`}>
-            {isTwoPlayer
-              ? `${playerNumber}P · ${charName}`
-              : `1P · ${charName} · Stage ${player.stage}`}
+            {`${playerNumber}P · ${charName}`}
           </span>
+        </div>
+        <div
+          className="pb-char-options"
+          role="group"
+          aria-label={`Player ${playerNumber} character`}
+          data-testid={`p${playerNumber}-character-picker`}
+        >
+          {CHARACTER_OPTIONS.map((opt) => (
+            <button
+              key={opt.id}
+              type="button"
+              className={character === opt.id ? 'pb-char-btn is-selected' : 'pb-char-btn'}
+              aria-pressed={character === opt.id}
+              title={`Play as ${opt.label}`}
+              onClick={(event) => {
+                onSelectCharacter(opt.id);
+                event.currentTarget.blur();
+              }}
+            >
+              <CharacterTokenIcon id={opt.id} />
+              <span className="sr-only">{opt.label}</span>
+            </button>
+          ))}
         </div>
         <div className="pb-status-pills">
           {hurrySeconds !== null ? (
@@ -999,34 +1020,6 @@ function PlayerArena({
                     : `STAGE ${player.stage}`}
             </span>
           )}
-        </div>
-      </div>
-
-      {/* Arcade Fighter Select Strip (#215) */}
-      <div
-        className="pb-char-bar"
-        role="group"
-        aria-label={`Player ${playerNumber} character`}
-        data-testid={`p${playerNumber}-character-picker`}
-      >
-        <span className="pb-char-label">SELECT</span>
-        <div className="pb-char-options">
-          {CHARACTER_OPTIONS.map((opt) => (
-            <button
-              key={opt.id}
-              type="button"
-              className={character === opt.id ? 'pb-char-btn is-selected' : 'pb-char-btn'}
-              aria-pressed={character === opt.id}
-              title={`Play as ${opt.label}`}
-              onClick={(event) => {
-                onSelectCharacter(opt.id);
-                event.currentTarget.blur();
-              }}
-            >
-              <CharacterTokenIcon id={opt.id} />
-              <span>{opt.label}</span>
-            </button>
-          ))}
         </div>
       </div>
 
@@ -1368,18 +1361,18 @@ function PlayerArena({
 
         <aside className="tetris-side pb-side">
           <div className="tetris-stat pb-score-slot">
-            <span className="tetris-label">{playerNumber}UP Score</span>
+            <span className="tetris-label">Score</span>
             <span className="tetris-value pb-score-value" aria-live="polite" data-testid={`p${playerNumber}-score`}>
               {player.score.toLocaleString()}
             </span>
           </div>
 
           <div className="tetris-stat pb-next-dome">
-            <span className="tetris-label">Next Bubble</span>
+            <span className="tetris-label">Next</span>
             <div className="pb-next-orb-well">
               <svg
-                width={BUBBLE_RADIUS * 2 + 10}
-                height={BUBBLE_RADIUS * 2 + 10}
+                width={BUBBLE_RADIUS * 2 + 6}
+                height={BUBBLE_RADIUS * 2 + 6}
                 viewBox={`0 0 ${BUBBLE_RADIUS * 2 + 10} ${BUBBLE_RADIUS * 2 + 10}`}
                 aria-label={`Player ${playerNumber} next bubble ${player.nextBubble}`}
               >
@@ -1442,7 +1435,7 @@ function PlayerArena({
           >
             {hurrySeconds !== null
               ? `HURRY! ${hurrySeconds}s`
-              : statusLine ?? (player.ceilingWarning ? 'DROP NEXT!' : 'INSERT COIN')}
+              : statusLine ?? (player.ceilingWarning ? 'DROP NEXT!' : `STAGE ${player.stage}`)}
           </div>
         </aside>
       </div>
@@ -1889,7 +1882,12 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
   const art = BACKGROUNDS[backgroundIndex] ?? BACKGROUNDS[0];
 
   return (
-    <section className="tetris pb-game" aria-label="Puzzle Bobble game" ref={gameSectionRef}>
+    <section
+      className="tetris pb-game"
+      data-mode={match.mode}
+      aria-label="Puzzle Bobble game"
+      ref={gameSectionRef}
+    >
       <div className="tetris-art" aria-hidden="true">
         <img className="tetris-art-layer is-current" src={art.src} alt="" aria-hidden="true" />
       </div>
@@ -1902,6 +1900,10 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
               1P {match.wins[0]} – {match.wins[1]} 2P
             </span>
           ) : null}
+          <p className="tetris-scene" aria-live="polite">
+            Scene {backgroundIndex + 1}/{BACKGROUNDS.length}: {art.title}
+            {nowPlaying ? ` · Music: ${nowPlaying}` : ''}
+          </p>
         </div>
         <div className="row">
           {!phoneViewport ? (
@@ -2051,29 +2053,13 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         ) : null}
       </div>
 
-      <p className="tetris-scene" aria-live="polite">
-        Bust-A-Move ·{' '}
-        {stagePreset === 0 && match.players[0].stage === 1
-          ? 'Wave: Random'
-          : `Stage ${match.players[0].stage}/${TOTAL_STAGES}: ${stageTitle(match.players[0].stage)}`}{' '}
-        · Scene {backgroundIndex + 1}/{BACKGROUNDS.length}: {art.title}
-        {nowPlaying ? ` · Music: ${nowPlaying}` : ''}
-      </p>
-
       {match.status === 'round_over' ? (
         <p className="tetris-over pb-banner" role="status">
           {match.winner !== null
             ? `Player ${match.winner + 1} wins the round! (${match.wins[0]}–${match.wins[1]}). Press Next round to battle again.`
             : `Game over — score ${match.players[0].score.toLocaleString()}. Press Next round to play again.`}
         </p>
-      ) : (
-        <p className="tetris-help">
-          {match.mode === '2p'
-            ? '1P: A/D aim, S/F fire · 2P: ←/→ aim, ↑/↓ fire · Pop 4+ & drop clusters to send attacks'
-            : 'A/D or ←/→ aim (0.5° tap, hold sweep) · S/F or Space fire · Drop clusters for avalanche bonus'}
-          {paused ? ' · Paused' : ''}
-        </p>
-      )}
+      ) : null}
     </section>
   );
 }

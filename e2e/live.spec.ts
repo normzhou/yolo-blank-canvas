@@ -54,8 +54,9 @@ test.afterAll(async () => {
 
 test('canvas renders real data with the real identity, no console errors', async ({ page, errors, snap }) => {
   await page.goto(base);
-  await expect(page.getByText('What would you like to build or change?')).toBeVisible();
-  await expect(page.getByText('normzhou/yolo-blank-canvas · signed in as normzhou')).toBeVisible();
+  await expect(page.getByTestId('yolo-feedback-fab')).toBeVisible();
+  await page.getByRole('button', { name: 'Open requests', exact: true }).click();
+  await expect(page.getByText('signed in as normzhou')).toBeVisible();
   await snap('live-01-canvas');
   expectClean(errors);
 });
@@ -135,8 +136,9 @@ test('a second run against a different --repo serves that repository, read-only'
   const launched = await launchApp(['--repo', 'normzhou/yolo-dev']);
   try {
     await page.goto(launched.base);
-    await expect(page.getByText('normzhou/yolo-dev · signed in as normzhou')).toBeVisible();
     await page.getByRole('button', { name: 'Open requests', exact: true }).click();
+    await expect(page.locator('.panel-repo')).toHaveText('normzhou/yolo-dev');
+    await expect(page.getByText('signed in as normzhou')).toBeVisible();
     await expect(page.locator('.issue-row').first()).toBeVisible();
     await snap('live-05-second-repo');
     expectClean(errors);
