@@ -6,6 +6,8 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Default fullscreen with bottom-left YouTube-style icon and top-right bare transparent YOLO mark (#228) — 2026-10-26
 
+Source revision `4220922` (the default fullscreen, bottom-left YouTube icon, and top-right bare YOLO mark commit); build and review evidence `70d368a`; release commit `ac45e51`; published as `v0.17.1` on 2026-10-26.
+
 - **Default fullscreen & bottom-left YouTube-style transparent icon (`src/client/fullscreen.ts`, `src/client/App.tsx`, `src/client/styles.css`):**
   - Defaulted `data-fullscreen="true"` (`isFullscreen: true`) on load, attempting `requestFullscreen({ navigationUI: 'hide' })` / `webkitRequestFullscreen()` on mount and upgrading to native browser fullscreen on the first user gesture unless toggled off.
   - Replaced text `"Full screen"` buttons with a single global transparent YouTube-style 4-corner bracket icon button (`button.fullscreen-launcher`, `data-testid="fullscreen-button"`) anchored at `bottom: 10px; left: 12px` (`background: transparent; border: none; box-shadow: none`).
@@ -15,6 +17,12 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 - `npx tsc --noEmit`: clean.
 - `npm run e2e`: 43 passed.
 - `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`, 13/13 findings compliant.
+
+### Installed artifact (`v0.17.1`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.17.1 --no-open --port 4882` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `4220922…`; the tagged package version is `0.17.1`. The tag points at release commit `ac45e51`, after the assets commit `70d368a`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4882 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: 2289037d-b8e4-4379-b0dd-73afbb88e65b`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.17.1"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 422092292f715c5029a5868167aacf7a08a106ff`). The report is [`.yolo/reports/releases-observed-2026-10-26-v0171.json`](../.yolo/reports/releases-observed-2026-10-26-v0171.json).
 
 ## Dynamic viewport scaling and text/chrome reduction for Puzzle Bobble and Tetris (#226) — 2026-10-26
 
