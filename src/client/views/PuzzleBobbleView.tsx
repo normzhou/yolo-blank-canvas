@@ -7,6 +7,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from 'react';
 import { TetrisMusic } from '../audio/tetrisMusic';
+import { useFullscreen } from '../fullscreen';
 import { BACKGROUNDS, nextBackgroundIndex } from '../../shared/tetrisBackgrounds';
 import {
   AIM_STEP_DEG,
@@ -1504,18 +1505,30 @@ function PlayerArena({
   );
 }
 
-const PHONE_MAX_WIDTH = 768;
-const PHONE_MAX_SHORT_EDGE = 560;
+const PHONE_PORTRAIT_MAX_WIDTH = 560;
+const PHONE_LANDSCAPE_MAX_WIDTH = 900;
+const PHONE_LANDSCAPE_MAX_HEIGHT = 440;
 
+/**
+ * Distinguishes phones from tablets (#212, #222):
+ * - Phone portrait has `innerWidth < 560` (e.g. 360x640, 390x844, 430x932).
+ * - Phone landscape has `innerWidth < 900 && innerHeight < 440` (e.g. 844x390).
+ * - Tablets in MS Edge / Safari / Chrome (portrait >= 600px like 600x960, 712x1138,
+ *   744x1133, 768x1024, or landscape >= 900px / height >= 440px even when browser
+ *   tabs/address bars reduce innerHeight to ~460–540px) return `false` so 2 Players
+ *   mode is available and selectable.
+ */
 function isPhoneViewport(): boolean {
   if (typeof window === 'undefined') return false;
-  return (
-    window.innerWidth < PHONE_MAX_WIDTH ||
-    Math.min(window.innerWidth, window.innerHeight) < PHONE_MAX_SHORT_EDGE
-  );
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  if (w < PHONE_PORTRAIT_MAX_WIDTH) return true;
+  if (w < PHONE_LANDSCAPE_MAX_WIDTH && h < PHONE_LANDSCAPE_MAX_HEIGHT) return true;
+  return false;
 }
 
 export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
+  const { isFullscreen, toggleFullscreen } = useFullscreen();
   const [phoneViewport, setPhoneViewport] = useState<boolean>(() => isPhoneViewport());
   const [match, setMatch] = useState<PuzzleBobbleMatch>(() =>
     createMatch(isPhoneViewport() ? '1p' : '2p'),
@@ -1660,15 +1673,20 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     [stagePreset],
   );
 
-  // #212: Enforce 1-Player mode on phone viewports (< 768px) while allowing
-  // 2-Player side-by-side play on tablets/iPads and desktops (>= 768px).
+  // #212, #222: Enforce 1-Player mode on phone viewports while allowing
+  // 2-Player side-by-side play on all tablets (including 600–759px portrait and
+  // landscape with MS Edge toolbars) and desktops.
   useEffect(() => {
     function onResize() {
       const phone = isPhoneViewport();
-      setPhoneViewport(phone);
-      if (phone && matchRef.current.mode === '2p') {
-        startNewRound('1p', false);
-      }
+      setPhoneViewport((prevPhone) => {
+        if (phone && matchRef.current.mode === '2p') {
+          startNewRound('1p', false);
+        } else if (!phone && prevPhone && matchRef.current.mode === '1p') {
+          startNewRound('2p', false);
+        }
+        return phone;
+      });
     }
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
@@ -1960,6 +1978,15 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
             }}
           >
             {match.status === 'round_over' ? 'Next round' : 'New game'}
+          </button>
+          <button
+            type="button"
+            data-testid="fullscreen-button"
+            aria-pressed={isFullscreen}
+            onClick={toggleFullscreen}
+            title={isFullscreen ? 'Exit browser full screen' : 'Enter browser full screen'}
+          >
+            {isFullscreen ? 'Exit full screen' : 'Full screen'}
           </button>
           <button type="button" onClick={onExit} aria-label="Close Puzzle Bobble">
             Close

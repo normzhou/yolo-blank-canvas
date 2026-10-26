@@ -945,6 +945,20 @@ button.deck-play-button:hover {
   background: var(--accent);
   color: var(--on-accent);
 }
+button.deck-fullscreen-button {
+  background: var(--field);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  padding: 10px 18px;
+  border-radius: var(--radius-pill);
+}
+button.deck-fullscreen-button[aria-pressed="true"] {
+  background: var(--accent-weak);
+  border-color: var(--accent);
+  color: var(--accent-weak-text);
+}
 .deck-slide-counter {
   display: inline-flex;
   align-items: center;
@@ -2195,12 +2209,60 @@ button.pb-touch-fire {
   }
   .canvas-prompt { white-space: normal; }
 }
-@media (min-width: 768px) and (max-width: 860px) {
-  /* #212: On iPad Portrait (768x1024 / 820x1180), tighten outer canvas and
+@media (min-width: 760px) and (max-width: 860px) {
+  /* #212, #222: On iPad / tablet portrait (768x1024 / 800x1280 / 820x1180), tighten outer canvas and
      cabinet padding so two 360px player cards sit side-by-side without wrapping. */
   .canvas { padding: 12px 6px; gap: 10px; }
   .tetris.pb-game { padding: 10px 6px; }
   .pb-boards { gap: 10px; }
+}
+@media (min-width: 560px) and (max-width: 759px) {
+  /* #222: On 600px–744px portrait tablets (e.g. Android tablets in MS Edge, iPad Mini 6 744x1133),
+     scale both 2P player cards to fit side-by-side without wrapping or horizontal overflow. */
+  .tetris.pb-game { padding: 8px 4px; gap: 6px; }
+  .pb-boards { flex-wrap: nowrap; gap: 6px; width: 100%; }
+  .pb-player-card {
+    width: calc(50vw - 8px);
+    min-width: calc(50vw - 8px);
+    max-width: calc(50vw - 8px);
+    flex: 0 0 calc(50vw - 8px);
+  }
+  .pb-char-label {
+    display: none;
+  }
+  .pb-char-btn {
+    padding: 2px 5px;
+  }
+  .pb-arena-row {
+    width: 100%;
+    gap: 4px;
+  }
+  .pb-board {
+    width: calc(100% - 92px);
+    height: auto;
+    aspect-ratio: 224 / 296;
+    flex: 1 1 auto;
+  }
+  .pb-side {
+    width: 88px;
+    min-width: 88px;
+    max-width: 88px;
+    flex: 0 0 88px;
+    height: auto;
+    padding: 4px;
+  }
+}
+@media (max-height: 540px) {
+  /* #222: When browser toolbars (e.g. MS Edge tabs + address bar on a landscape tablet)
+     compress vertical viewport height, tighten vertical spacing and hide secondary footer lines. */
+  .tetris { padding: 4px 8px; gap: 4px; }
+  .tetris-header { gap: 6px; padding: 2px 4px; }
+  .tetris-header .row { gap: 4px; }
+  .tetris-header button { padding: 2px 7px; }
+  .tetris-help,
+  .tetris-scene { display: none; }
+  .pb-touch-bar { height: 38px; }
+  button.pb-touch-btn { min-height: 34px; padding: 2px 8px; }
 }
 @media (max-width: 720px) {
   .deck-slide-card {
@@ -2215,46 +2277,12 @@ button.pb-touch-fire {
   .canvas-prompt {
     display: none;
   }
-  /* #217: On mobile during gameplay, collapse the floating dock to JUST the
-     rotating YOLO logo orb so it takes minimal screen real estate. */
-  .canvas.is-playing > .canvas-header {
-    padding: 0;
-    background: transparent;
-    border: none;
-    box-shadow: none;
-    bottom: 12px;
-    right: 12px;
-  }
-  .canvas.is-playing > .canvas-header .canvas-brand,
-  .canvas.is-playing > .canvas-header .canvas-gallery,
-  .canvas.is-playing > .canvas-header .canvas-requests-button,
-  .canvas.is-playing > .canvas-header .yolo-fab-label {
-    display: none;
-  }
-  .canvas.is-playing > .canvas-header button.yolo-fab-button {
-    width: 44px;
-    height: 44px;
-    padding: 0;
-    border-radius: var(--radius-pill);
-    background: var(--yolo-fab-bg);
-    border: 1.5px solid var(--yolo-fab-border);
-    color: var(--yolo-brand);
-    box-shadow: var(--yolo-fab-shadow);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-  }
-  .canvas.is-playing > .canvas-header .yolo-logo-mark {
-    width: 30px;
-    height: 30px;
-    color: var(--yolo-brand);
-  }
   .tetris-help {
     display: none;
   }
 }
-@media (max-width: 640px) {
+@media (max-width: 559px) {
   .canvas { padding: 8px 6px; gap: 8px; }
-  .canvas-header { padding: 6px 10px; gap: 6px; }
   .tetris { margin: 0; padding: 10px 8px 14px; gap: 8px; justify-content: space-between; }
   .tetris-header { padding: 2px 4px; gap: 6px; width: 100%; }
   .pb-boards { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; }
@@ -2283,7 +2311,6 @@ button.pb-touch-fire {
     flex: 0 0 104px;
     padding: 6px;
   }
-  .canvas-prompt-block { justify-content: flex-start; }
   /* #133: at 390px a right-hand status column squeezes the title, and the title
      is the thing being read. Stack instead: title, then status, then time. */
   .issue-row button.issue-title { grid-template-columns: 1fr; }

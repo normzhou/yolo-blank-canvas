@@ -246,9 +246,14 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
     await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: '2 Players', exact: true })).toHaveCount(0);
 
-    // 3. iPad Portrait (768x1024) & iPad Landscape (1024x768): 2 Players side-by-side is available and fits side-by-side without wrapping.
+    // 3. Tablets across MS Edge / Safari / Chrome (600x960 Android portrait, 744x1133 iPad Mini 6 portrait,
+    // 768x1024 iPad portrait, 960x480 landscape with MS Edge toolbars, 1024x768 landscape):
+    // 2 Players side-by-side is available and fits side-by-side without wrapping (#212, #222).
     for (const [w, h] of [
+      [600, 960],
+      [744, 1133],
       [768, 1024],
+      [960, 480],
       [1024, 768],
     ] as const) {
       await page.setViewportSize({ width: w, height: h });
@@ -260,15 +265,25 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
           Math.round(el.getBoundingClientRect().top),
         ),
       );
-      expect(cardTops, `iPad ${w}x${h} should keep both 2P cards side-by-side`).toEqual([
+      expect(cardTops, `Tablet ${w}x${h} should keep both 2P cards side-by-side`).toEqual([
         cardTops[0],
         cardTops[0],
       ]);
       const overflow = await page.evaluate(
         () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
       );
-      expect(overflow, `iPad ${w}x${h} horizontal overflow`).toBeLessThanOrEqual(0);
+      expect(overflow, `Tablet ${w}x${h} horizontal overflow`).toBeLessThanOrEqual(0);
     }
+
+    // Full screen button requests/exits browser fullscreen mode (#222).
+    const fsBtn = page.getByTestId('fullscreen-button');
+    await expect(fsBtn).toHaveText('Full screen');
+    await fsBtn.click();
+    await expect(fsBtn).toHaveText('Exit full screen');
+    await expect(fsBtn).toHaveAttribute('aria-pressed', 'true');
+    await fsBtn.click();
+    await expect(fsBtn).toHaveText('Full screen');
+    await expect(fsBtn).toHaveAttribute('aria-pressed', 'false');
 
     // 4. Small Phone (360x640): 1P card and side panel are never clipped horizontally.
     await page.setViewportSize({ width: 360, height: 640 });
