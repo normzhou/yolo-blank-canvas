@@ -8,7 +8,32 @@ import {
   requestTemplate,
   type NewRequestDraft,
   type RequestField,
+  type RequestIntent,
 } from '../requestTemplates';
+
+function IntentIcon({ intent }: { intent: RequestIntent }) {
+  if (intent === 'feedback') {
+    return (
+      <svg className="intent-card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+      </svg>
+    );
+  }
+  if (intent === 'change') {
+    return (
+      <svg className="intent-card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+      </svg>
+    );
+  }
+  return (
+    <svg className="intent-card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12" y2="12" />
+      <line x1="12" y1="16" x2="12.01" y2="16" />
+    </svg>
+  );
+}
 
 /**
  * Captures one ordinary request. The guided form only shapes the body; it adds
@@ -135,11 +160,10 @@ export function NewRequestView({
 
   const contextLine = draft.context.split('\n')[0]?.trim() ?? '';
   const showContext = draft.context.trim().length > 0 || contextOpen;
-  const buildLabel = build.trim() && build.trim() !== 'unknown' ? build.trim().slice(0, 7) : '';
 
   return (
-    <form onSubmit={submit} noValidate>
-      <h2 style={{ marginTop: 0, fontSize: 16 }}>New request</h2>
+    <form className="feedback-form" onSubmit={submit} noValidate>
+      <h2 className="sr-only">New request</h2>
       <ErrorNotice
         error={error}
         onRetry={error?.kind === 'write_unconfirmed' ? undefined : retry}
@@ -147,11 +171,9 @@ export function NewRequestView({
       />
 
       {draft.mode === 'guided' && showContext ? (
-        <div className="request-context">
+        <div className={contextOpen ? 'request-context' : 'request-context sr-only'}>
           <div className="request-context-summary">
-            <span className="request-context-label">Context</span>
             <code>{contextLine || 'No app context'}</code>
-            {buildLabel ? <span className="request-context-build">build {buildLabel}</span> : null}
             <button
               type="button"
               className="link-button"
@@ -173,7 +195,6 @@ export function NewRequestView({
                 value={draft.context}
                 onChange={(event) => onDraftChange({ ...draft, context: event.target.value })}
               />
-              <p className="hint">Posted first in the issue body so the request keeps its app context.</p>
             </div>
           ) : null}
         </div>
@@ -181,7 +202,7 @@ export function NewRequestView({
 
       {draft.mode === 'guided' ? (
         <fieldset className="intent-fieldset">
-          <legend>What kind of request?</legend>
+          <legend>What would you like to share?</legend>
           <div className="intent-grid">
             {REQUEST_INTENTS.map((intent) => {
               const option = requestTemplate(intent);
@@ -195,6 +216,7 @@ export function NewRequestView({
                     checked={selected}
                     onChange={() => switchIntent(intent)}
                   />
+                  <IntentIcon intent={intent} />
                   <span className="intent-card-content">
                     <span className="intent-card-title">{option.label}</span>
                     <span className="intent-card-hint">{option.hint}</span>
@@ -212,6 +234,7 @@ export function NewRequestView({
           id="new-request-title"
           ref={titleRef}
           type="text"
+          placeholder="Short summary..."
           value={draft.title}
           maxLength={256}
           onChange={(event) => onDraftChange({ ...draft, title: event.target.value })}
@@ -232,6 +255,8 @@ export function NewRequestView({
             <textarea
               id="new-request-details"
               ref={detailsRef}
+              rows={4}
+              placeholder={template.primaryHint}
               value={draft.details}
               onChange={(event) => onDraftChange({ ...draft, details: event.target.value })}
               aria-invalid={touched && primaryMissing}
@@ -239,7 +264,7 @@ export function NewRequestView({
                 touched && primaryMissing ? 'new-request-details-error new-request-details-hint' : 'new-request-details-hint'
               }
             />
-            <p className="hint" id="new-request-details-hint">
+            <p className="hint sr-only" id="new-request-details-hint">
               {template.primaryHint}
             </p>
             {touched && primaryMissing ? (
@@ -256,22 +281,24 @@ export function NewRequestView({
                 id={`new-request-${template.secondary.key}`}
                 className="compact-field"
                 rows={2}
+                placeholder={template.secondary.hint}
                 value={draft.fields[template.secondary.key]}
                 onChange={(event) => setField(template.secondary!.key, event.target.value)}
               />
-              <p className="hint">{template.secondary.hint}</p>
             </div>
           ) : null}
 
-          <button
-            type="button"
-            className="disclosure"
-            aria-expanded={moreOpen}
-            aria-controls="new-request-more"
-            onClick={() => setMoreOpen((open) => !open)}
-          >
-            {moreOpen ? 'Fewer details' : 'More details'}
-          </button>
+          {template.more.length > 0 || moreOpen ? (
+            <button
+              type="button"
+              className="disclosure"
+              aria-expanded={moreOpen}
+              aria-controls="new-request-more"
+              onClick={() => setMoreOpen((open) => !open)}
+            >
+              {moreOpen ? 'Fewer details' : 'More details'}
+            </button>
+          ) : null}
           {moreOpen ? (
             <div id="new-request-more" className="more-details">
               {template.more.map((field) => (
@@ -284,7 +311,6 @@ export function NewRequestView({
                     value={draft.fields[field.key]}
                     onChange={(event) => setField(field.key, event.target.value)}
                   />
-                  <p className="hint">{field.hint}</p>
                 </div>
               ))}
               <div className="field">
@@ -296,19 +322,14 @@ export function NewRequestView({
                   value={draft.fields.notes}
                   onChange={(event) => setField(NOTES_FIELD.key, event.target.value)}
                 />
-                <p className="hint">{NOTES_FIELD.hint}</p>
               </div>
             </div>
           ) : null}
 
-          <details className="request-preview">
+          <details className="request-preview sr-only">
             <summary>Preview issue body</summary>
             <pre aria-label="Generated issue body">{generatedBody}</pre>
           </details>
-
-          <p className="hint request-public-note">
-            This creates a public GitHub issue. Don&apos;t include secrets or private logs.
-          </p>
 
           <div className="row request-actions">
             <button type="submit" className="primary" disabled={submitting}>

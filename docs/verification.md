@@ -4,6 +4,18 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Bottom-right YouTube fullscreen icon and streamlined Feedback overlay (#230) — 2026-10-26
+
+- **Bottom-right YouTube-style fullscreen icon (`src/client/styles.css`):**
+  - Moved `button.fullscreen-launcher` (`data-testid="fullscreen-button"`) to `bottom: 10px; right: 12px` (matching YouTube's bottom-right placement) with right-side clearance on mobile touch bars.
+- **Streamlined Feedback overlay & public demo unavailable notice (`src/client/components/Panel.tsx`, `src/client/views/NewRequestView.tsx`, `src/client/components/ErrorNotice.tsx`, `src/client/api.ts`, `src/client/styles.css`):**
+  - Centered `.panel[data-view='new']` and `.panel[data-view='static']` as a compact modal card, replaced visible GitHub repo/account/refresh/build-SHA/preview chrome with a clean **"Feedback"** header and icon-badged intent tiles (`Share feedback`, `Build or change`, `Report a problem`), and kept all 3 intent tiles in a single horizontal row on mobile so the form fits on one screen without scrolling.
+  - On `demo.yolo-dev.ai` (`static_demo` mode), replaced the technical `npx` / `GitHub CLI` error box and disabled form with **"Currently feedback on the public version is not available, stay tuned."**
+- `npm test`: 23 files, 158 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 43 passed.
+- `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`, 13/13 findings compliant.
+
 ## Default fullscreen with bottom-left YouTube-style icon and top-right bare transparent YOLO mark (#228) — 2026-10-26
 
 Source revision `4220922` (the default fullscreen, bottom-left YouTube icon, and top-right bare YOLO mark commit); build and review evidence `70d368a`; release commit `ac45e51`; published as `v0.17.1` on 2026-10-26.

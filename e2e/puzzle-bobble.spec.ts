@@ -209,7 +209,7 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
 
     // No horizontal or vertical page scroll overflow on 390px phone screen (#217 full-screen game stage),
     // the bare wiggling YOLO mark sits in the top-right with a transparent background (#228),
-    // and the YouTube-style fullscreen icon sits in the bottom-left with a transparent background (#228).
+    // and the YouTube-style fullscreen icon sits in the bottom-right with a transparent background (#228, #230).
     const phoneMetrics = await page.evaluate(() => {
       const fabEl = document.querySelector('[data-testid="yolo-feedback-fab"]');
       const fab = fabEl?.getBoundingClientRect();
@@ -232,7 +232,7 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
         fabTop: fab ? Math.round(fab.top) : 999,
         fabRight: fab ? Math.round(fab.right) : 0,
         fabBg,
-        fsLeft: fs ? Math.round(fs.left) : 999,
+        fsRight: fs ? Math.round(fs.right) : 0,
         fsBottom: fs ? Math.round(fs.bottom) : 0,
         fsBg,
         viewportWidth: window.innerWidth,
@@ -256,7 +256,7 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
     expect(phoneMetrics.fabTop).toBeLessThanOrEqual(24);
     expect(phoneMetrics.fabRight).toBeGreaterThanOrEqual(phoneMetrics.viewportWidth - 24);
     expect(phoneMetrics.fabBg).toBe('rgba(0, 0, 0, 0)');
-    expect(phoneMetrics.fsLeft).toBeLessThanOrEqual(24);
+    expect(phoneMetrics.fsRight).toBeGreaterThanOrEqual(phoneMetrics.viewportWidth - 24);
     expect(phoneMetrics.fsBottom).toBeGreaterThanOrEqual(phoneMetrics.viewportHeight - 24);
     expect(phoneMetrics.fsBg).toBe('rgba(0, 0, 0, 0)');
     expect(phoneMetrics.touchBarBg).toBe('rgba(0, 0, 0, 0)');

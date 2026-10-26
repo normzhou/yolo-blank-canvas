@@ -14,24 +14,22 @@ export function ErrorNotice({
   retryLabel?: string;
 }) {
   if (!error) return null;
+  if (error.kind === 'static_demo') {
+    return (
+      <div className="public-feedback-notice" role="alert" data-testid="public-feedback-notice">
+        <p className="public-feedback-title">Feedback coming soon</p>
+        <p className="public-feedback-message">{error.message}</p>
+      </div>
+    );
+  }
   const needsLogin = error.kind === 'auth_required' || error.kind === 'session_required';
   const unconfirmed = error.kind === 'write_unconfirmed';
-  const staticDemo = error.kind === 'static_demo';
   return (
     <div className="error" role="alert">
       <div>{error.message}</div>
-      {(needsLogin || staticDemo) && error.loginCommand ? (
+      {needsLogin && error.loginCommand ? (
         <div className="hint">
           Run in your terminal: <code>{error.loginCommand}</code>
-        </div>
-      ) : null}
-      {staticDemo && error.githubUrl ? (
-        <div className="hint">
-          Or view and file requests directly on{' '}
-          <a href={error.githubUrl} target="_blank" rel="noreferrer noopener">
-            GitHub Issues
-          </a>
-          .
         </div>
       ) : null}
       {unconfirmed && error.githubUrl ? (

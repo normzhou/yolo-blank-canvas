@@ -241,20 +241,15 @@ test('static preview mode runs games cleanly without a startup error banner and 
     await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
     await expect(page.getByRole('alert')).toHaveCount(0);
 
-    // Clicking the wiggling YOLO icon opens the full YOLO feedback overlay with the truthful static preview notice.
+    // Clicking the wiggling YOLO icon opens the feedback overlay with the clean public-version unavailable notice (#230).
     await page.getByRole('button', { name: 'Feedback on Tetris' }).click();
     await expect(page.getByRole('dialog', { name: 'Requests' })).toBeVisible();
-    await expect(page.getByTestId('canvas-identity')).toHaveText(
-      'normzhou/yolo-blank-canvas · static preview',
-    );
     const alert = page.getByRole('alert');
     await expect(alert).toBeVisible();
-    await expect(alert).toContainText('Static preview mode');
-    await expect(alert).toContainText('npx --yes github:normzhou/yolo-blank-canvas');
-    await expect(alert.getByRole('link', { name: 'GitHub Issues' })).toHaveAttribute(
-      'href',
-      'https://github.com/normzhou/yolo-blank-canvas/issues',
+    await expect(alert).toContainText(
+      'Currently feedback on the public version is not available, stay tuned.',
     );
+    await expect(page.locator('#new-request-title')).toHaveCount(0);
   } finally {
     await closeStub(stub);
   }

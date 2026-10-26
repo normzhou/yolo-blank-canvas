@@ -116,16 +116,27 @@ export function Panel({
   }, [onClose]);
 
   const isStaticDemo = sessionError?.kind === 'static_demo';
+  const panelMode = isStaticDemo ? 'static' : view.name;
 
   return (
     <div className="scrim" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
-      <aside className="panel" role="dialog" aria-modal="true" aria-label="Requests" ref={panelRef}>
+      <aside
+        className="panel"
+        data-view={panelMode}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Requests"
+        ref={panelRef}
+      >
         <header className="panel-header">
           <div className="panel-header-meta">
-            <div className="panel-repo">
+            <div className="panel-heading">
+              {isStaticDemo || view.name === 'new' ? 'Feedback' : 'Requests'}
+            </div>
+            <div className="panel-repo sr-only">
               {session?.repo ?? (isStaticDemo ? 'normzhou/yolo-blank-canvas' : 'repository')}
             </div>
-            <div className="panel-identity" data-testid="canvas-identity">
+            <div className="panel-identity sr-only" data-testid="canvas-identity">
               {session
                 ? `signed in as ${session.identity ?? 'unknown'}`
                 : isStaticDemo
@@ -154,7 +165,7 @@ export function Panel({
           {sessionError ? (
             <ErrorNotice
               error={sessionError}
-              onRetry={onRetrySession ?? (() => undefined)}
+              onRetry={isStaticDemo ? undefined : (onRetrySession ?? (() => undefined))}
               retryLabel="Retry connection"
             />
           ) : null}
@@ -170,7 +181,7 @@ export function Panel({
               createdIssues={createdIssues}
             />
           ) : null}
-          {(session || isStaticDemo) && view.name === 'new' ? (
+          {session && view.name === 'new' ? (
             <NewRequestView
               draft={newDraft}
               onDraftChange={onNewDraftChange}
@@ -200,13 +211,13 @@ export function Panel({
           ) : null}
         </div>
         <footer className="panel-footer">
-          <span className="panel-refresh-status">
+          <span className="panel-refresh-status sr-only">
             Last refresh: {formatClockTime(lastRefreshedAt)}
             {stale ? <span className="stale"> · stale</span> : null}
           </span>
           <div className="panel-footer-actions">
             <ThemeSwitcher />
-            {session ? (
+            {session && view.name !== 'new' ? (
               <button type="button" onClick={onDisconnect}>
                 Disconnect
               </button>
