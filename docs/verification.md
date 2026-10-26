@@ -6,6 +6,8 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Dynamic viewport scaling and text/chrome reduction for Puzzle Bobble and Tetris (#226) — 2026-10-26
 
+Source revision `d46ef4e` (the viewport scaling and text/chrome reduction commit); build and review evidence `24996c5`; release commit `61078d9`; published as `v0.17.0` on 2026-10-26.
+
 - **Dynamic viewport scaling (`src/client/styles.css`, `src/client/views/PuzzleBobbleView.tsx`, `src/client/views/TetrisView.tsx`):**
   - Scaled Puzzle Bobble `.pb-board` (`--pb-board-w` derived from `vw` and `dvh` for both `1p` and `2p` modes, up to `540px×713px` per board in 2P and `580px×766px` in 1P on desktop, and full-width `374px×494px` with a horizontal telemetry strip on portrait phones) while keeping viewport-locked dimensions (`0px` layout shift, #195).
   - Scaled Tetris `--tetris-cell-size` (`clamp(18px, min(calc((100dvh - 156px) / 20), calc((100vw - 156px) / 10)), 42px)`) so the `10×20` matrix fills the available screen height.
@@ -15,6 +17,12 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 - `npx tsc --noEmit`: clean.
 - `npm run e2e`: 43 passed.
 - `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`, 13/13 findings compliant.
+
+### Installed artifact (`v0.17.0`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.17.0 --no-open --port 4881` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `d46ef4e…`; the tagged package version is `0.17.0`. The tag points at release commit `61078d9`, after the assets commit `24996c5`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4881 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: 873a7846-b61d-49d3-a8d7-00ee08d68422`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.17.0"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 d46ef4e9eef5ae856b5e792cca0c4a8cbee03159`). The report is [`.yolo/reports/releases-observed-2026-10-26-v0170.json`](../.yolo/reports/releases-observed-2026-10-26-v0170.json).
 
 ## Multi-touch virtual buttons and simultaneous 2-player touch aiming/firing (#224) — 2026-10-25
 
