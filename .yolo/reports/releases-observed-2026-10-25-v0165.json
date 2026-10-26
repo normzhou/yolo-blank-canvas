@@ -1,0 +1,64 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-25",
+  "observed_at": "2026-10-25",
+  "published_at_utc": "2026-10-26T02:47:00Z",
+  "protocol": {
+    "revision": "da644964ca92eef8448cd782cf6805c724ca2e74",
+    "release": "v0.1.0-alpha.33"
+  },
+  "releases": [
+    {
+      "tag": "v0.16.5",
+      "commit": "2a3098d77d668665cfe9661244d5e37f4afe6e6f"
+    }
+  ],
+  "release": {
+    "tag": "v0.16.5",
+    "tag_object": "e001d653a3b50c2f35964ea8c7c887386eac814f",
+    "release_commit": "2a3098d77d668665cfe9661244d5e37f4afe6e6f",
+    "source_commit": "071b13ab28508772660e134ac495bc10da963058",
+    "assets_commit": "ff8c47cfa8995e453963128b2b086cf799c56b92",
+    "semver": "patch",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record 071b13a, the source revision. The committed assets were built at that source in ff8c47c. 2a3098d is a release-metadata commit (version and install references, no source changes) after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "158 passed across 23 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID 071b13a" },
+    { "check": "npm run e2e (stubbed, deterministic)", "result": "pass", "detail": "43 passed (30.8s)" },
+    { "check": "cd hosting/cloudflare && npm run check", "result": "pass", "detail": "wrangler deploy --dry-run (21 static assets, APP_VERSION=v0.16.5)" },
+    { "check": "yolo-check . --structure (0.1.0-alpha.33)", "result": "pass", "detail": "13 of 13 findings compliant" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #221 completed success" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "installed_from": "npx --yes github:normzhou/yolo-blank-canvas#v0.16.5 --no-open --port 4878",
+    "installed_into": "an empty directory, no source checkout present",
+    "served_build": "071b13ab28508772660e134ac495bc10da963058",
+    "served_version": {
+      "package": "0.16.5",
+      "serverBuild": "071b13ab28508772660e134ac495bc10da963058",
+      "clientBuild": "071b13ab28508772660e134ac495bc10da963058"
+    },
+    "command": "YOLO_VERIFY_URL=http://127.0.0.1:4878 npm run e2e:verify-release",
+    "result": "pass",
+    "detail": "11 of 11 passed. Also deployed live to yolo-demo-app (Version ID: b5f727cf-5d83-4f17-958e-95a07f3af503) and verified at https://demo.yolo-dev.ai/__yolo/version (200 {\"version\":\"v0.16.5\"}) and https://demo.yolo-dev.ai/.build-id (200 071b13ab28508772660e134ac495bc10da963058)."
+  },
+  "what_this_release_delivers": [
+    "#220 Remove top bar completely and leave only the wiggling YOLO icon launcher: removes .canvas-header across both the home deck and active games on all viewports, leaves only the floating 44x44px circular wiggling YOLO icon button (button.yolo-launcher, data-testid='yolo-feedback-fab') that opens the full modal YOLO Feedback & Requests overlay (<Panel>) including in static_demo mode on https://demo.yolo-dev.ai, and integrates the compact Canvas gallery switcher into .deck-slide-actions inside the slide card"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "Acceptance on the delivered artifact is eleven targeted read-only checks. The 158 unit tests and 43 stubbed e2e tests ran against the source revision, not the installed artifact.",
+    "The tag points at 2a3098d, a release-metadata commit after the assets commit ff8c47c, not at the assets commit itself. Both build-ID files still record the source 071b13a, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #220"
+}

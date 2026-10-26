@@ -6,6 +6,8 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Remove top bar completely and leave only the wiggling YOLO icon launcher (#220) — 2026-10-25
 
+Source revision `071b13a` (the top-bar removal and wiggling YOLO launcher commit); build and review evidence `ff8c47c`; release commit `2a3098d`; published as `v0.16.5` on 2026-10-25.
+
 - **OS-icon style wiggling YOLO launcher (`src/client/App.tsx`, `src/client/components/Panel.tsx`, `src/client/styles.css`, `.yolo/governance/ARCHITECTURE.md`):**
   - Removed `.canvas-header` completely across both the home deck and active games on all viewports, leaving only the floating `44×44px` circular wiggling YOLO icon button (`button.yolo-launcher`, `data-testid="yolo-feedback-fab"`).
   - Clicking the wiggling YOLO icon opens the modal `<Panel>` overlay layer (including in `static_demo` mode on `https://demo.yolo-dev.ai`, rendering the static preview notice, guided composer, and `ThemeSwitcher` inside the modal overlay).
@@ -14,6 +16,12 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 - `npx tsc --noEmit`: clean.
 - `npm run e2e`: 43 passed.
 - `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`, 13/13 findings compliant.
+
+### Installed artifact (`v0.16.5`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.16.5 --no-open --port 4878` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `071b13a…`; the tagged package version is `0.16.5`. The tag points at release commit `2a3098d`, after the assets commit `ff8c47c`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4878 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: b5f727cf-5d83-4f17-958e-95a07f3af503`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.16.5"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 071b13ab28508772660e134ac495bc10da963058`). The report is [`.yolo/reports/releases-observed-2026-10-25-v0165.json`](../.yolo/reports/releases-observed-2026-10-25-v0165.json).
 
 ## iOS mobile music playback, full-screen non-scrolling game stage, rotating YOLO logo overlay, and translucent mobile button overlays (#217) — 2026-10-25
 
