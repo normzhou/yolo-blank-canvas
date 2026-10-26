@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
-import { PLAYLIST, shuffledTracks } from '../src/shared/tetrisMusic';
+import { PLAYLIST, shuffledTracks, type Track } from '../src/shared/tetrisMusic';
+import { TetrisMusic } from '../src/client/audio/tetrisMusic';
 
 describe('tetris playlist', () => {
   it('offers several distinct, well-formed tracks', () => {
@@ -36,5 +37,62 @@ describe('tetris playlist', () => {
     expect(shuffledTracks(() => 0.5).map((track) => track.id)).toEqual(
       shuffledTracks(() => 0.5).map((track) => track.id),
     );
+  });
+
+  it('unlocks Web Audio synchronously in ensureContext and plays decoded .m4a buffers on iOS WebKit (#217)', async () => {
+    const startedNodes: Array<{ offset?: number }> = [];
+    const resume = vi.fn(async () => undefined);
+    const decodeAudioData = vi.fn(async () => ({ duration: 32 } as unknown as AudioBuffer));
+
+    class FakeAudioContext {
+      state = 'suspended';
+      currentTime = 0;
+      destination = {};
+      resume = resume;
+      createBuffer = vi.fn(() => ({ duration: 0.001 } as unknown as AudioBuffer));
+      createBufferSource = vi.fn(() => ({
+        buffer: null as AudioBuffer | null,
+        onended: null as (() => void) | null,
+        connect: vi.fn(),
+        disconnect: vi.fn(),
+        start: vi.fn((_when?: number, offset?: number) => {
+          startedNodes.push({ offset });
+        }),
+        stop: vi.fn(),
+      }));
+      decodeAudioData = decodeAudioData;
+      close = vi.fn(async () => undefined);
+    }
+
+    const audioSession = { type: 'ambient' };
+    vi.stubGlobal('window', { AudioContext: FakeAudioContext });
+    vi.stubGlobal('navigator', { audioSession });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: true,
+        arrayBuffer: async () => new ArrayBuffer(16),
+      })),
+    );
+
+    try {
+      const seen: Track[] = [];
+      const player = new TetrisMusic((track) => seen.push(track));
+      expect(player.ensureContext()).toBe(true);
+      expect(audioSession.type).toBe('playback');
+      expect(resume).toHaveBeenCalledTimes(1);
+      // 1-sample silent unlock buffer started synchronously inside ensureContext().
+      expect(startedNodes.length).toBeGreaterThanOrEqual(1);
+      expect(seen).toHaveLength(1);
+
+      player.setActive(true);
+      await new Promise((r) => setTimeout(r, 10));
+      expect(decodeAudioData).toHaveBeenCalledTimes(1);
+      // Second node is the decoded chiptune track buffer.
+      expect(startedNodes.length).toBe(2);
+      player.dispose();
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });
