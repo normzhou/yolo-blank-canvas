@@ -306,7 +306,12 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     <section className="tetris" aria-label="Tetris game">
       <PixelBackdrop art={BACKGROUNDS[backgroundIndex]} />
       <header className="tetris-header">
-        <h2 className="tetris-title">Tetris</h2>
+        <div className="row">
+          <span className="pb-up-badge pb-up-1" aria-hidden="true">
+            1UP
+          </span>
+          <h2 className="tetris-title">Tetris</h2>
+        </div>
         <div className="row">
           <button
             type="button"
@@ -382,7 +387,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
       >
         <button
           type="button"
-          className="pb-touch-btn"
+          className="pb-touch-btn pb-touch-rocker"
           data-testid="tetris-touch-left"
           aria-label="Move left"
           disabled={paused || game.status !== 'playing'}
@@ -397,40 +402,11 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
             if (event.detail === 0) setGame((current) => moveLeft(current));
           }}
         >
-          ← Left
+          ◀
         </button>
         <button
           type="button"
-          className="pb-touch-btn"
-          data-testid="tetris-touch-right"
-          aria-label="Move right"
-          disabled={paused || game.status !== 'playing'}
-          onPointerDown={(event) => {
-            event.preventDefault();
-            startTouchRepeat(() => setGame((current) => moveRight(current)));
-          }}
-          onPointerUp={stopTouchRepeat}
-          onPointerCancel={stopTouchRepeat}
-          onPointerLeave={stopTouchRepeat}
-          onClick={(event) => {
-            if (event.detail === 0) setGame((current) => moveRight(current));
-          }}
-        >
-          Right →
-        </button>
-        <button
-          type="button"
-          className="pb-touch-btn"
-          data-testid="tetris-touch-rotate"
-          aria-label="Rotate piece"
-          disabled={paused || game.status !== 'playing'}
-          onClick={() => setGame((current) => rotate(current, 1))}
-        >
-          ↻ Rotate
-        </button>
-        <button
-          type="button"
-          className="pb-touch-btn"
+          className="pb-touch-btn pb-touch-rocker"
           data-testid="tetris-touch-soft"
           aria-label="Soft drop"
           disabled={paused || game.status !== 'playing'}
@@ -445,17 +421,46 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
             if (event.detail === 0) setGame((current) => softDrop(current));
           }}
         >
-          ↓ Soft
+          ▼
         </button>
         <button
           type="button"
-          className="primary pb-touch-btn"
+          className="pb-touch-btn pb-touch-rocker"
+          data-testid="tetris-touch-right"
+          aria-label="Move right"
+          disabled={paused || game.status !== 'playing'}
+          onPointerDown={(event) => {
+            event.preventDefault();
+            startTouchRepeat(() => setGame((current) => moveRight(current)));
+          }}
+          onPointerUp={stopTouchRepeat}
+          onPointerCancel={stopTouchRepeat}
+          onPointerLeave={stopTouchRepeat}
+          onClick={(event) => {
+            if (event.detail === 0) setGame((current) => moveRight(current));
+          }}
+        >
+          ▶
+        </button>
+        <button
+          type="button"
+          className="pb-touch-btn pb-touch-rotate"
+          data-testid="tetris-touch-rotate"
+          aria-label="Rotate piece"
+          disabled={paused || game.status !== 'playing'}
+          onClick={() => setGame((current) => rotate(current, 1))}
+        >
+          ↻ ROTATE
+        </button>
+        <button
+          type="button"
+          className="primary pb-touch-btn pb-touch-fire"
           data-testid="tetris-touch-drop"
           aria-label="Hard drop"
           disabled={paused || game.status !== 'playing'}
           onClick={() => setGame((current) => hardDrop(current))}
         >
-          ⤓ Drop
+          ⤓ DROP
         </button>
       </div>
 

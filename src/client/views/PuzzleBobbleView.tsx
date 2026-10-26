@@ -844,6 +844,54 @@ function GarbageOrbsRow({ count, label }: { count: number; label: string }) {
   );
 }
 
+/**
+ * Miniature 12x12 mascot emblem for the arcade fighter select strip (#215).
+ * Marked `aria-hidden="true"` so the button's accessible name remains the character label.
+ */
+function CharacterTokenIcon({ id }: { id: CharacterId }) {
+  switch (id) {
+    case 'dragon':
+      return (
+        <svg className="pb-char-icon" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+          <polygon points="3,4 5,1 7,1 9,4" fill="var(--tetromino-l)" />
+          <circle cx="6" cy="7" r="4" fill="var(--tetromino-s)" stroke="var(--text)" strokeWidth="1" />
+          <circle cx="4.8" cy="6.3" r="0.9" fill="var(--text)" />
+          <circle cx="7.2" cy="6.3" r="0.9" fill="var(--text)" />
+        </svg>
+      );
+    case 'cat':
+      return (
+        <svg className="pb-char-icon" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+          <polygon points="2,6 2.5,1.5 5.5,4" fill="var(--tetromino-i)" stroke="var(--text)" strokeWidth="0.9" />
+          <polygon points="10,6 9.5,1.5 6.5,4" fill="var(--tetromino-i)" stroke="var(--text)" strokeWidth="0.9" />
+          <circle cx="6" cy="7" r="3.8" fill="var(--tetromino-i)" stroke="var(--text)" strokeWidth="1" />
+          <circle cx="4.8" cy="6.5" r="0.9" fill="var(--text)" />
+          <circle cx="7.2" cy="6.5" r="0.9" fill="var(--text)" />
+        </svg>
+      );
+    case 'dog':
+      return (
+        <svg className="pb-char-icon" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+          <ellipse cx="2.2" cy="7" rx="1.4" ry="2.8" fill="var(--tetromino-z)" stroke="var(--text)" strokeWidth="0.9" />
+          <ellipse cx="9.8" cy="7" rx="1.4" ry="2.8" fill="var(--tetromino-z)" stroke="var(--text)" strokeWidth="0.9" />
+          <circle cx="6" cy="6.8" r="3.8" fill="var(--tetromino-o)" stroke="var(--text)" strokeWidth="1" />
+          <circle cx="4.8" cy="6.2" r="0.9" fill="var(--text)" />
+          <circle cx="7.2" cy="6.2" r="0.9" fill="var(--text)" />
+        </svg>
+      );
+    case 'bunny':
+      return (
+        <svg className="pb-char-icon" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+          <ellipse cx="4.3" cy="3" rx="1.2" ry="2.6" fill="var(--tetromino-t)" stroke="var(--text)" strokeWidth="0.9" />
+          <ellipse cx="7.7" cy="3" rx="1.2" ry="2.6" fill="var(--tetromino-t)" stroke="var(--text)" strokeWidth="0.9" />
+          <circle cx="6" cy="7.6" r="3.5" fill="var(--tetromino-t)" stroke="var(--text)" strokeWidth="1" />
+          <circle cx="4.8" cy="7.2" r="0.9" fill="var(--text)" />
+          <circle cx="7.2" cy="7.2" r="0.9" fill="var(--text)" />
+        </svg>
+      );
+  }
+}
+
 function PlayerArena({
   player,
   playerNumber,
@@ -916,14 +964,17 @@ function PlayerArena({
 
   return (
     <div className="pb-player-card" data-player={playerNumber}>
+      {/* Arcade 1UP/2UP Marquee Plate (#215) */}
       <div className="pb-player-header">
-        <div>
+        <div className="pb-player-id">
+          <span className={`pb-up-badge pb-up-${playerNumber}`} aria-hidden="true">
+            {playerNumber}UP
+          </span>
           <span className="pb-player-title" data-testid={`p${playerNumber}-title`}>
             {isTwoPlayer
               ? `${playerNumber}P · ${charName}`
               : `1P · ${charName} · Stage ${player.stage}`}
           </span>
-          <span className="pb-player-controls">{controlsLabel}</span>
         </div>
         <div className="pb-status-pills">
           {hurrySeconds !== null ? (
@@ -932,29 +983,30 @@ function PlayerArena({
             </span>
           ) : player.incomingGarbage > 0 ? (
             <span className="badge waiting" role="status">
-              Incoming +{player.incomingGarbage}
+              ATK +{player.incomingGarbage}
             </span>
           ) : (
             <span className={player.ceilingWarning ? 'badge waiting' : 'badge'}>
               {player.status === 'won'
-                ? 'YOU WIN!'
+                ? 'WINNER!'
                 : player.status === 'ko'
-                  ? 'LOST'
+                  ? 'KO'
                   : player.ceilingWarning
-                    ? 'Drop next!'
-                    : `${settledCount} bubbles`}
+                    ? 'DROP NEXT!'
+                    : `STAGE ${player.stage}`}
             </span>
           )}
         </div>
       </div>
 
+      {/* Arcade Fighter Select Strip (#215) */}
       <div
         className="pb-char-bar"
         role="group"
         aria-label={`Player ${playerNumber} character`}
         data-testid={`p${playerNumber}-character-picker`}
       >
-        <span className="pb-char-label">Character</span>
+        <span className="pb-char-label">SELECT</span>
         <div className="pb-char-options">
           {CHARACTER_OPTIONS.map((opt) => (
             <button
@@ -962,12 +1014,14 @@ function PlayerArena({
               type="button"
               className={character === opt.id ? 'pb-char-btn is-selected' : 'pb-char-btn'}
               aria-pressed={character === opt.id}
+              title={`Play as ${opt.label}`}
               onClick={(event) => {
                 onSelectCharacter(opt.id);
                 event.currentTarget.blur();
               }}
             >
-              {opt.label}
+              <CharacterTokenIcon id={opt.id} />
+              <span>{opt.label}</span>
             </button>
           ))}
         </div>
@@ -1267,59 +1321,122 @@ function PlayerArena({
             playerNumber={playerNumber}
             character={character}
           />
+
+          {/* In-board arcade win/lose marquee plaque (#215) */}
+          {player.status !== 'playing' ? (
+            <g aria-hidden="true">
+              <rect
+                x={28}
+                y={104}
+                width={ARENA_WIDTH - 56}
+                height={44}
+                rx={8}
+                fill="var(--surface)"
+                stroke="var(--text)"
+                strokeWidth="2.5"
+              />
+              <rect
+                x={32}
+                y={108}
+                width={ARENA_WIDTH - 64}
+                height={36}
+                rx={5}
+                fill={player.status === 'won' ? 'var(--accent-weak)' : 'var(--problem-weak)'}
+                stroke={player.status === 'won' ? 'var(--accent)' : 'var(--problem-border)'}
+                strokeWidth="1.5"
+              />
+              <text
+                x={LAUNCHER_X}
+                y={131}
+                textAnchor="middle"
+                fontSize="16"
+                fontWeight="700"
+                fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+                fill={player.status === 'won' ? 'var(--accent-weak-text)' : 'var(--problem)'}
+              >
+                {player.status === 'won' ? '★ WINNER! ★' : '× GAME OVER ×'}
+              </text>
+            </g>
+          ) : null}
         </svg>
 
         <aside className="tetris-side pb-side">
-          <div className="tetris-stat">
-            <span className="tetris-label">Score</span>
-            <span className="tetris-value" aria-live="polite" data-testid={`p${playerNumber}-score`}>
+          <div className="tetris-stat pb-score-slot">
+            <span className="tetris-label">{playerNumber}UP Score</span>
+            <span className="tetris-value pb-score-value" aria-live="polite" data-testid={`p${playerNumber}-score`}>
               {player.score.toLocaleString()}
             </span>
           </div>
-          <div className="tetris-stat">
-            <span className="tetris-label">Aim</span>
-            <span className="pb-stat-small" data-testid={`p${playerNumber}-aim`}>
-              {formatAimAngle(player.aimAngle)}
-            </span>
-          </div>
-          <div className="tetris-stat">
-            <span className="tetris-label">Shots</span>
-            <span className="pb-stat-small" data-testid={`p${playerNumber}-shots`}>
-              {player.shotsFired}
-            </span>
-          </div>
-          <div className="tetris-stat">
-            <span className="tetris-label">Ceiling</span>
-            <span className="pb-stat-small" title="Shots until the compressor drops one row">
-              {shotsLeftUntilDrop} {shotsLeftUntilDrop === 1 ? 'shot' : 'shots'}
-            </span>
-          </div>
-          {isTwoPlayer ? (
-            <div className="tetris-stat">
-              <span className="tetris-label">Incoming</span>
-              <span className="pb-stat-small" data-testid={`p${playerNumber}-incoming`}>
-                {player.incomingGarbage}
-                <GarbageOrbsRow
-                  count={player.incomingGarbage}
-                  label={`${player.incomingGarbage} incoming attack bubbles`}
+
+          <div className="tetris-stat pb-next-dome">
+            <span className="tetris-label">Next Bubble</span>
+            <div className="pb-next-orb-well">
+              <svg
+                width={BUBBLE_RADIUS * 2 + 10}
+                height={BUBBLE_RADIUS * 2 + 10}
+                viewBox={`0 0 ${BUBBLE_RADIUS * 2 + 10} ${BUBBLE_RADIUS * 2 + 10}`}
+                aria-label={`Player ${playerNumber} next bubble ${player.nextBubble}`}
+              >
+                <BubbleSvg
+                  cx={BUBBLE_RADIUS + 5}
+                  cy={BUBBLE_RADIUS + 5}
+                  color={player.nextBubble}
                 />
+              </svg>
+            </div>
+          </div>
+
+          <div className="pb-telemetry-grid">
+            <div className="tetris-stat">
+              <span className="tetris-label">Angle</span>
+              <span className="pb-stat-small" data-testid={`p${playerNumber}-aim`}>
+                {formatAimAngle(player.aimAngle)}
               </span>
             </div>
-          ) : null}
-          <div className="tetris-stat">
-            <span className="tetris-label">Next</span>
-            <svg
-              width={BUBBLE_RADIUS * 2 + 6}
-              height={BUBBLE_RADIUS * 2 + 6}
-              viewBox={`0 0 ${BUBBLE_RADIUS * 2 + 6} ${BUBBLE_RADIUS * 2 + 6}`}
-              aria-label={`Player ${playerNumber} next bubble ${player.nextBubble}`}
-            >
-              <BubbleSvg
-                cx={BUBBLE_RADIUS + 3}
-                cy={BUBBLE_RADIUS + 3}
-                color={player.nextBubble}
-              />
-            </svg>
+            <div className="tetris-stat">
+              <span className="tetris-label">Drop</span>
+              <span className="pb-stat-small" title="Shots until the compressor drops one row">
+                {shotsLeftUntilDrop}
+              </span>
+            </div>
+            <div className="tetris-stat">
+              <span className="tetris-label">Shots</span>
+              <span className="pb-stat-small" data-testid={`p${playerNumber}-shots`}>
+                {player.shotsFired}
+              </span>
+            </div>
+            {isTwoPlayer ? (
+              <div className="tetris-stat">
+                <span className="tetris-label">Warn</span>
+                <span className="pb-stat-small" data-testid={`p${playerNumber}-incoming`}>
+                  {player.incomingGarbage}
+                  <GarbageOrbsRow
+                    count={player.incomingGarbage}
+                    label={`${player.incomingGarbage} incoming attack bubbles`}
+                  />
+                </span>
+              </div>
+            ) : (
+              <div className="tetris-stat">
+                <span className="tetris-label">Left</span>
+                <span className="pb-stat-small">{settledCount}</span>
+              </div>
+            )}
+          </div>
+
+          <div
+            className={
+              hurrySeconds !== null
+                ? 'pb-combo-bar is-active pb-combo-cry'
+                : statusLine
+                  ? `pb-combo-bar is-active pb-combo-${mood}`
+                  : 'pb-combo-bar'
+            }
+            role={statusLine || hurrySeconds !== null ? 'status' : undefined}
+          >
+            {hurrySeconds !== null
+              ? `HURRY! ${hurrySeconds}s`
+              : statusLine ?? (player.ceilingWarning ? 'DROP NEXT!' : 'INSERT COIN')}
           </div>
         </aside>
       </div>
@@ -1331,7 +1448,7 @@ function PlayerArena({
       >
         <button
           type="button"
-          className="pb-touch-btn"
+          className="pb-touch-btn pb-touch-rocker"
           data-testid={`p${playerNumber}-touch-left`}
           aria-label={`Player ${playerNumber} aim left`}
           disabled={disabled || player.status !== 'playing'}
@@ -1346,7 +1463,7 @@ function PlayerArena({
             if (event.detail === 0) onAimStep(-AIM_STEP_DEG);
           }}
         >
-          ◀ -0.5°
+          ◀ AIM
         </button>
         <button
           type="button"
@@ -1356,11 +1473,11 @@ function PlayerArena({
           disabled={disabled || player.status !== 'playing'}
           onClick={() => onFire()}
         >
-          FIRE
+          ● FIRE
         </button>
         <button
           type="button"
-          className="pb-touch-btn"
+          className="pb-touch-btn pb-touch-rocker"
           data-testid={`p${playerNumber}-touch-right`}
           aria-label={`Player ${playerNumber} aim right`}
           disabled={disabled || player.status !== 'playing'}
@@ -1375,16 +1492,8 @@ function PlayerArena({
             if (event.detail === 0) onAimStep(AIM_STEP_DEG);
           }}
         >
-          +0.5° ▶
+          AIM ▶
         </button>
-      </div>
-      <div
-        className={
-          statusLine ? `pb-combo-bar is-active pb-combo-${mood}` : 'pb-combo-bar'
-        }
-        role={statusLine ? 'status' : undefined}
-      >
-        {statusLine ?? 'Ready'}
       </div>
     </div>
   );
