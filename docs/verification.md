@@ -6,6 +6,8 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## iOS mobile music playback, full-screen non-scrolling game stage, rotating YOLO logo overlay, and translucent mobile button overlays (#217) — 2026-10-25
 
+Source revision `0a5f192` (the mobile music, full-screen stage, rotating YOLO overlay, and translucent touch buttons commit); build and review evidence `f8d3f70`; release commit `d2fa2b7`; published as `v0.16.3` on 2026-10-25.
+
 - **iOS Safari & Chrome music playback (`src/client/audio/tetrisMusic.ts`, `TetrisView.tsx`, `PuzzleBobbleView.tsx`):**
   - Unlocks and starts playback synchronously inside the `Music off` -> `Music on` `onClick` user gesture (`ensureContext()` + `setActive(...)`), sets `navigator.audioSession.type = 'playback'` (iOS 17+), plays a 1-sample silent unlock buffer, and decodes `.m4a` tracks via `fetch(track.src)` + `AudioContext.decodeAudioData` so playback does not depend on HTTP `206 Partial Content` byte-range responses on static Worker origins.
 - **Full-screen non-scrolling game stage & rotating YOLO logo overlay (`src/client/App.tsx`, `src/client/styles.css`, `index.html`):**
@@ -16,6 +18,12 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 - `npx tsc --noEmit`: clean.
 - `npm run e2e`: 43 passed (`horizOverflow <= 0`, `vertOverflow <= 0`, `scrollY === 0`, `fabWidth <= 48`, `touchBarBg === 'rgba(0, 0, 0, 0)'`).
 - `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`, 13/13 findings compliant.
+
+### Installed artifact (`v0.16.3`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.16.3 --no-open --port 4876` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `0a5f192…`; the tagged package version is `0.16.3`. The tag points at release commit `d2fa2b7`, after the assets commit `f8d3f70`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4876 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: d45d253c-040f-4d8a-a48b-d55490f489a0`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.16.3"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 0a5f1923454f1c6418c7c865d144480984ffff0c`). The report is [`.yolo/reports/releases-observed-2026-10-25-v0163.json`](../.yolo/reports/releases-observed-2026-10-25-v0163.json).
 
 ## 3D arcade cabinet & control deck polish for Puzzle Bobble and Tetris (#215) — 2026-10-25
 
