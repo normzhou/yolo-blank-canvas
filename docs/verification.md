@@ -4,6 +4,15 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Multi-touch virtual buttons and simultaneous 2-player touch aiming/firing (#224) — 2026-10-25
+
+- **Multi-touch virtual buttons (`src/client/views/PuzzleBobbleView.tsx`, `src/client/views/TetrisView.tsx`):**
+  - Switched `● FIRE` (Puzzle Bobble) and `↻ ROTATE` / `⤓ DROP` (Tetris) from `onClick`-only to immediate `onPointerDown` activation (with `onClick` `event.detail === 0` fallback for keyboard activation) and added `setPointerCapture(event.pointerId)` on `◀ AIM` and `AIM ▶` so non-primary touches (`isPrimary: false`) fire immediately with zero latency even while up to 3 other fingers are holding aim or dragging on a board.
+- `npm test`: 23 files, 158 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 43 passed (including simultaneous 4-pointer multi-touch test across Player 1 and Player 2).
+- `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`, 13/13 findings compliant.
+
 ## MS Edge tablet 2-Player support and Browser Fullscreen API toggle (#222) — 2026-10-25
 
 Source revision `79ac07c` (the MS Edge tablet 2P and Browser Fullscreen API commit); build and review evidence `51f7217`; release commit `0ad0ae4`; published as `v0.16.6` on 2026-10-25.
