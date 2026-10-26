@@ -78,6 +78,7 @@ test('typing in the composer does not push a history entry per keystroke', async
   const stub = await startStubApp();
   try {
     await page.goto(stub.base);
+    await page.getByRole('button', { name: 'Open requests', exact: true }).click();
     await page.getByRole('button', { name: 'Start a request', exact: true }).click();
     await expect(page).toHaveURL(/\?panel=new$/);
 
@@ -87,9 +88,9 @@ test('typing in the composer does not push a history entry per keystroke', async
     const after = await page.evaluate(() => history.length);
     expect(after, 'typing must not grow the history stack').toBe(before);
 
-    // One back leaves the composer for the resting state, rather than replaying
-    // anything. The canvas was entry one and `?panel=new` entry two; there was no
-    // intermediate list visit to undo.
+    // Back steps from `?panel=new` to `?panel`, and one more back returns to `/`.
+    await page.goBack();
+    await expect(page).toHaveURL(/\?panel$/);
     await page.goBack();
     await expect(page).toHaveURL(/\/$/);
     await expect(page.getByRole('dialog', { name: 'Requests' })).toHaveCount(0);
@@ -105,6 +106,7 @@ test('the resting state is a clean URL and the composer is a short one', async (
     await expect(page).toHaveURL(/\/$/);
     await expect(page.getByRole('dialog', { name: 'Requests' })).toHaveCount(0);
 
+    await page.getByRole('button', { name: 'Open requests', exact: true }).click();
     await page.getByRole('button', { name: 'Start a request', exact: true }).click();
     await expect(page).toHaveURL(/\?panel=new$/);
 

@@ -133,6 +133,7 @@ test('the tilde is not stolen from a text field', async ({ page }) => {
   const stub = await startStubApp();
   try {
     await page.goto(stub.base);
+    await page.getByRole('button', { name: 'Open requests', exact: true }).click();
     await page.getByRole('button', { name: 'Start a request', exact: true }).click();
     const title = page.getByLabel('Title');
     await expect(title).toBeVisible();
@@ -145,7 +146,7 @@ test('the tilde is not stolen from a text field', async ({ page }) => {
   }
 });
 
-test('the game slide deck flips between slides and switches active games in place (#187)', async ({
+test('the game slide deck flips between slides and launches active games (#187)', async ({
   page,
 }) => {
   const stub = await startStubApp();
@@ -160,15 +161,16 @@ test('the game slide deck flips between slides and switches active games in plac
     await expect(card).toHaveAttribute('data-slide-id', 'puzzle-bobble');
     await expect(page.getByRole('button', { name: 'Play Puzzle Bobble', exact: true })).toBeVisible();
 
+    // Flip back to the previous slide on the home deck, then forward again.
+    await page.getByRole('button', { name: 'Previous slide' }).click();
+    await expect(card).toHaveAttribute('data-slide-id', 'tetris');
+    await page.getByRole('button', { name: 'Next slide' }).click();
+    await expect(card).toHaveAttribute('data-slide-id', 'puzzle-bobble');
+
     // Launch Puzzle Bobble directly from the slide deck card.
     await page.getByRole('button', { name: 'Play Puzzle Bobble', exact: true }).click();
     await expect(page).toHaveURL(/\?app=puzzle-bobble$/);
     await expect(page.getByRole('heading', { name: 'Puzzle Bobble' })).toBeVisible();
-
-    // Prev slide while a game is active flips directly to Tetris on stage.
-    await page.getByRole('button', { name: 'Previous slide' }).click();
-    await expect(page).toHaveURL(/\?app=tetris$/);
-    await expect(page.getByRole('heading', { name: 'Tetris' })).toBeVisible();
   } finally {
     await closeStub(stub);
   }
@@ -229,10 +231,8 @@ test('static preview mode runs games cleanly without a startup error banner and 
     );
     await page.goto(stub.base);
 
-    // Header badge identifies static preview, and no error alert blocks the home deck.
-    await expect(page.getByTestId('canvas-identity')).toHaveText(
-      'normzhou/yolo-blank-canvas · static preview',
-    );
+    // No startup error alert blocks the home deck, and there is no top bar.
+    await expect(page.locator('.canvas-header')).toHaveCount(0);
     await expect(page.getByRole('alert')).toHaveCount(0);
 
     // Games launch and play normally in static preview mode.
@@ -241,8 +241,12 @@ test('static preview mode runs games cleanly without a startup error banner and 
     await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
     await expect(page.getByRole('alert')).toHaveCount(0);
 
-    // Clicking Feedback or Requests reveals the truthful static preview notice with GitHub Issues link and npx command.
+    // Clicking the wiggling YOLO icon opens the full YOLO feedback overlay with the truthful static preview notice.
     await page.getByRole('button', { name: 'Feedback on Tetris' }).click();
+    await expect(page.getByRole('dialog', { name: 'Requests' })).toBeVisible();
+    await expect(page.getByTestId('canvas-identity')).toHaveText(
+      'normzhou/yolo-blank-canvas · static preview',
+    );
     const alert = page.getByRole('alert');
     await expect(alert).toBeVisible();
     await expect(alert).toContainText('Static preview mode');

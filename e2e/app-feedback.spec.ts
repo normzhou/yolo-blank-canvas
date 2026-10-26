@@ -86,6 +86,7 @@ test('entry defaults, intent switching, validation focus, editable context, and 
   const stub = await startStubApp();
   try {
     await page.goto(stub.base);
+    await page.getByRole('button', { name: 'Open requests', exact: true }).click();
     await page.getByRole('button', { name: 'Start a request', exact: true }).click();
     await expect(page.getByRole('radio', { name: /Build or change/ })).toBeChecked();
 
@@ -151,6 +152,7 @@ test('app and home drafts stay separate, v1 drafts migrate, and Requests -> New 
 
     // App draft is separate from the home draft.
     await page.goto(`${stub.base}?app=tetris`);
+    await page.getByRole('button', { name: 'Feedback on Tetris' }).click();
     await page.getByRole('button', { name: 'Requests', exact: true }).click();
     await expect(page).toHaveURL(/\?app=tetris&panel$/);
     await page.getByRole('button', { name: 'New request' }).first().click();

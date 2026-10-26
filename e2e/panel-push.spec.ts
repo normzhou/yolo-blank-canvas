@@ -38,19 +38,19 @@ async function geometry(page: import('@playwright/test').Page) {
     const canvas = document.querySelector('.canvas') as HTMLElement;
     const scrimEl = document.querySelector('.scrim') as HTMLElement | null;
     const panelEl = document.querySelector('.panel') as HTMLElement | null;
-    const promptEl = document.querySelector('.canvas-prompt') as HTMLElement | null;
+    const deckEl = document.querySelector('.deck-slide-card') as HTMLElement | null;
 
-    // What actually receives a pointer at the prompt's own centre? If this is the
-    // scrim, the prompt is inert and `aria-modal` is honest.
+    // What actually receives a pointer at the deck card's own centre? If this is
+    // the scrim or panel, the canvas behind it is inert and `aria-modal` is honest.
     let hitsPromptCentre: string | null = null;
-    if (promptEl) {
-      const r = promptEl.getBoundingClientRect();
+    if (deckEl) {
+      const r = deckEl.getBoundingClientRect();
       const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
       hitsPromptCentre = top ? top.className || top.tagName : null;
     }
 
     return {
-      prompt: rect('.canvas-prompt'),
+      prompt: rect('.deck-slide-card'),
       panel: rect('.panel'),
       paddingRight: getComputedStyle(canvas).paddingRight,
       scrimBackground: scrimEl ? getComputedStyle(scrimEl).backgroundColor : 'rgba(0, 0, 0, 0)',
@@ -74,13 +74,13 @@ test('the open workflow is a modal working surface, not a column beside an inert
   try {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto(stub.base);
-    await expect(page.getByText('What would you like to build or change?')).toBeVisible();
+    await expect(page.getByTestId('deck-slide-card')).toBeVisible();
     await page.getByRole('button', { name: 'Open requests', exact: true }).click();
     await expect(page.getByRole('dialog', { name: 'Requests' })).toBeVisible();
     await listSettled(page);
 
     const box = await geometry(page);
-    expect(box.prompt, 'the prompt should still be rendered').not.toBeNull();
+    expect(box.prompt, 'the deck card should still be rendered').not.toBeNull();
     expect(box.panel, 'the panel should be open').not.toBeNull();
 
     // #131: the scrim is visible. This is the assertion #75 asserted the
@@ -91,13 +91,10 @@ test('the open workflow is a modal working surface, not a column beside an inert
     // ...and the canvas is therefore genuinely inert, which is what makes
     // `aria-modal="true"` honest rather than merely present.
     expect(box.ariaModal).toBe('true');
-    // The prompt must not receive the pointer. What does receive it depends on
-    // layout — the scrim, or the working surface when it overlaps the prompt's
-    // centre — so the assertion is that the prompt itself is not the hit target.
     expect(
       box.hitsPromptCentre,
-      'the prompt must not receive pointer events while the workflow is open',
-    ).not.toContain('canvas-prompt');
+      'the deck card must not receive pointer events while the workflow is open',
+    ).not.toContain('deck-slide-card');
 
     // The working surface is centred, not docked to an edge.
     const centreOffset = Math.abs((box.panel!.left + box.panel!.right) / 2 - box.viewportWidth / 2);

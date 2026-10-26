@@ -362,13 +362,9 @@ export function App() {
   const [replyDrafts, setReplyDrafts] = useState<Record<number, TextDraft>>({});
   const [serverClientBuild, setServerClientBuild] = useState<string | null>(null);
   const [reloadPromptDismissed, setReloadPromptDismissed] = useState(false);
-  const [staticDemoNoticeOpen, setStaticDemoNoticeOpen] = useState(
-    () => readRoute(window.location.search).open,
-  );
 
   const triggerRef = useRef<HTMLButtonElement>(null);
   const feedbackTriggerRef = useRef<HTMLButtonElement>(null);
-  const requestsTriggerRef = useRef<HTMLButtonElement>(null);
   const deckNavRef = useRef<HTMLElement>(null);
   const appRegionRef = useRef<HTMLElement>(null);
   const panelOpenerRef = useRef<PanelOpener | null>(null);
@@ -520,14 +516,17 @@ export function App() {
 
   const enterRequests = useCallback(
     async (destination: RouteTarget, issue: IssueSummary | null = null) => {
-      setStaticDemoNoticeOpen(true);
       if (!session) {
+        if (sessionError?.kind === 'static_demo') {
+          navigate(destination, issue);
+          return;
+        }
         const info = await connect();
         if (!info) return;
       }
       navigate(destination, issue);
     },
-    [connect, navigate, session],
+    [connect, navigate, session, sessionError?.kind],
   );
 
   const openPanel = useCallback(() => {
@@ -559,12 +558,8 @@ export function App() {
           ? triggerRef.current
           : opener === 'feedback'
             ? feedbackTriggerRef.current
-            : opener === 'requests'
-              ? requestsTriggerRef.current
-              : null;
-      const fallback = activeApp
-        ? feedbackTriggerRef.current ?? requestsTriggerRef.current
-        : triggerRef.current;
+            : null;
+      const fallback = activeApp ? feedbackTriggerRef.current : triggerRef.current;
       (byOpener ?? fallback)?.focus();
     });
   }, [activeApp, navigate]);
@@ -673,10 +668,11 @@ export function App() {
     serverClientBuild !== CLIENT_BUILD;
 
   const isStaticDemo = sessionError?.kind === 'static_demo';
-  const showSessionError = Boolean(sessionError && (!isStaticDemo || staticDemoNoticeOpen));
+  const showSessionError = Boolean(sessionError && !isStaticDemo);
+  const showPanel = panelOpen && Boolean(session || isStaticDemo);
   const canvasClass = [
     'canvas',
-    panelOpen && session ? 'panel-open' : '',
+    showPanel ? 'panel-open' : '',
     activeApp ? 'is-playing' : '',
   ]
     .filter(Boolean)
@@ -684,142 +680,33 @@ export function App() {
 
   return (
     <div className={canvasClass}>
-      <header className="canvas-header">
-        <div className="canvas-brand">
-          <button
-            type="button"
-            className="canvas-brand-button"
-            onClick={() => openApp(null)}
-            title="Return to game deck"
-          >
-            <span className="canvas-brand-mark" aria-hidden="true">
-              <YoloRotatingLogo />
-            </span>
-            <h1 className="canvas-title">Blank canvas</h1>
-          </button>
-          {!panelOpen ? (
-            <p className="canvas-identity" data-testid="canvas-identity">
-              {session
-                ? `${session.repo} · signed in as ${session.identity}`
-                : isStaticDemo
-                  ? 'normzhou/yolo-blank-canvas · static preview'
-                  : connecting
-                    ? 'Connecting to GitHub…'
-                    : 'Not connected to GitHub.'}
-            </p>
-          ) : null}
-        </div>
+      {!activeApp ? <h1 className="sr-only canvas-title">Blank canvas</h1> : null}
 
-        {/* Integrated centered game deck switcher (#187, #196): one sleek
-            segmented bar instead of a second floating row or a redundant
-            "Canvas" modal button. */}
-        <nav className="canvas-gallery deck-nav" aria-label="Canvas gallery" ref={deckNavRef}>
-          <button
-            type="button"
-            className="deck-step-btn"
-            aria-label="Previous slide"
-            title="Previous game slide"
-            onClick={() => stepSlide(-1)}
-          >
-            ‹
-          </button>
-          {CANVAS_APPS.map((app, index) => (
-            <button
-              key={app.id}
-              type="button"
-              className={
-                (activeApp ? activeApp.id === app.id : slideIndex === index)
-                  ? 'deck-pill is-active'
-                  : 'deck-pill'
-              }
-              onClick={() => {
-                if (index !== slideIndex) {
-                  setSlideDirection(index > slideIndex ? 'next' : 'prev');
-                  setSlideTick((t) => t + 1);
-                }
-                setSlideIndex(index);
-                openApp(app.id);
-              }}
-              title={app.summary}
-            >
-              {app.title}
-            </button>
-          ))}
-          <button
-            type="button"
-            className="deck-step-btn"
-            aria-label="Next slide"
-            title="Next game slide"
-            onClick={() => stepSlide(1)}
-          >
-            ›
-          </button>
-        </nav>
-
-        {/* Unobtrusive feedback & requests dock on the right (#187, #196, #217).
-            During gameplay (.canvas.is-playing), the rotating YOLO logo button
-            floats unobtrusively so the game owns the full screen. */}
-        <span className="canvas-actions">
-          {!activeApp ? (
-            <div className="canvas-prompt-block">
-              <p className="canvas-prompt">What would you like to build or change?</p>
-              <button
-                type="button"
-                className="primary canvas-primary-action"
-                ref={triggerRef}
-                onClick={() => {
-                  panelOpenerRef.current = 'start';
-                  openNewRequest('change');
-                }}
-                disabled={connecting}
-              >
-                <YoloRotatingLogo />
-                <span>{session || isStaticDemo ? 'Start a request' : 'Connect GitHub'}</span>
-              </button>
-              <div className="canvas-secondary-actions">
-                <button
-                  type="button"
-                  onClick={() => {
-                    panelOpenerRef.current = 'start';
-                    openPanel();
-                  }}
-                >
-                  Open requests
-                </button>
-              </div>
-            </div>
-          ) : !panelOpen ? (
-            <>
-              <button
-                type="button"
-                className="canvas-feedback yolo-fab-button"
-                data-testid="yolo-feedback-fab"
-                ref={feedbackTriggerRef}
-                aria-label={`Feedback on ${activeApp.title}`}
-                title={`Give feedback on ${activeApp.title}`}
-                onClick={() => {
-                  panelOpenerRef.current = 'feedback';
-                  openNewRequest('feedback');
-                }}
-              >
-                <YoloRotatingLogo testId="yolo-rotating-logo" />
-                <span className="yolo-fab-label">Feedback</span>
-              </button>
-              <button
-                type="button"
-                className="canvas-requests-button"
-                ref={requestsTriggerRef}
-                onClick={() => {
-                  panelOpenerRef.current = 'requests';
-                  void enterRequests({ name: 'list' });
-                }}
-              >
-                Requests
-              </button>
-            </>
-          ) : null}
-        </span>
-      </header>
+      {/* #220: No top bar — just the floating wiggling YOLO icon launcher
+          (like an OS Windows Start icon) that brings up the full YOLO feedback
+          and requests overlay layer. */}
+      {!showPanel ? (
+        <button
+          type="button"
+          className="yolo-launcher yolo-fab-button"
+          data-testid="yolo-feedback-fab"
+          ref={activeApp ? feedbackTriggerRef : triggerRef}
+          aria-label={activeApp ? `Feedback on ${activeApp.title}` : 'Open requests'}
+          title={activeApp ? `Give feedback on ${activeApp.title}` : 'YOLO feedback & requests'}
+          onClick={() => {
+            if (activeApp) {
+              panelOpenerRef.current = 'feedback';
+              openNewRequest('feedback');
+            } else {
+              panelOpenerRef.current = 'start';
+              openPanel();
+            }
+          }}
+          disabled={connecting}
+        >
+          <YoloRotatingLogo testId="yolo-rotating-logo" />
+        </button>
+      ) : null}
 
       {serverSuggestsReload && !reloadPromptDismissed ? (
         <div className="banner warning" role="status">
@@ -963,12 +850,44 @@ export function App() {
                   >
                     Play {currentSlide.title}
                   </button>
-                  <span className="deck-slide-counter">
-                    <span className="deck-keyboard-hint">
-                      <kbd>←</kbd> <kbd>→</kbd> Flip · <kbd>Enter</kbd> Play ·{' '}
-                    </span>
-                    Slide {slideIndex + 1} of {CANVAS_APPS.length}
-                  </span>
+                  <nav className="canvas-gallery deck-nav" aria-label="Canvas gallery" ref={deckNavRef}>
+                    <button
+                      type="button"
+                      className="deck-step-btn"
+                      aria-label="Previous slide"
+                      title="Previous game slide"
+                      onClick={() => stepSlide(-1)}
+                    >
+                      ‹
+                    </button>
+                    {CANVAS_APPS.map((app, index) => (
+                      <button
+                        key={app.id}
+                        type="button"
+                        className={slideIndex === index ? 'deck-pill is-active' : 'deck-pill'}
+                        onClick={() => {
+                          if (index !== slideIndex) {
+                            setSlideDirection(index > slideIndex ? 'next' : 'prev');
+                            setSlideTick((t) => t + 1);
+                          }
+                          setSlideIndex(index);
+                          openApp(app.id);
+                        }}
+                        title={app.summary}
+                      >
+                        {app.title}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      className="deck-step-btn"
+                      aria-label="Next slide"
+                      title="Next game slide"
+                      onClick={() => stepSlide(1)}
+                    >
+                      ›
+                    </button>
+                  </nav>
                 </div>
               </div>
             </section>
@@ -1023,9 +942,11 @@ export function App() {
         />
       ) : null}
 
-      {panelOpen && session ? (
+      {showPanel ? (
         <Panel
           session={session}
+          sessionError={isStaticDemo ? sessionError : null}
+          onRetrySession={() => void connect()}
           view={view}
           filter={filter}
           onFilterChange={setFilter}
