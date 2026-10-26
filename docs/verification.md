@@ -19,6 +19,12 @@ Source revision `0a5f192` (the mobile music, full-screen stage, rotating YOLO ov
 - `npm run e2e`: 43 passed (`horizOverflow <= 0`, `vertOverflow <= 0`, `scrollY === 0`, `fabWidth <= 48`, `touchBarBg === 'rgba(0, 0, 0, 0)'`).
 - `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`, 13/13 findings compliant.
 
+### Installed artifact (`v0.16.4`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.16.4 --no-open --port 4877` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `674b890…`; the tagged package version is `0.16.4`. The tag points at release commit `2a63a2b`, after the assets commit `8de8015`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4877 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: 14110910-ec13-4cf8-8127-28ef83ec99d7`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.16.4"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 674b8905c31bfde7b27362229bf48a85a4ce0544`). The report is [`.yolo/reports/releases-observed-2026-10-25-v0164.json`](../.yolo/reports/releases-observed-2026-10-25-v0164.json).
+
 ### Installed artifact (`v0.16.3`) & Live `https://demo.yolo-dev.ai` Update
 
 Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.16.3 --no-open --port 4876` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `0a5f192…`; the tagged package version is `0.16.3`. The tag points at release commit `d2fa2b7`, after the assets commit `f8d3f70`.

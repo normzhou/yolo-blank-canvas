@@ -242,15 +242,16 @@
         "v0.15.0": "b760fccec0c7b63989dd1c8596af0177efdf3398",
         "v0.16.0": "5942f23748406bfd38f22b587f6031cb22dfa367",
         "v0.16.1": "5e95bb68da474811243833a04b93058971990777",
-        "v0.16.2": "84b7c1ec657d3f26194b7142b9e816fd92b36577"
+        "v0.16.2": "84b7c1ec657d3f26194b7142b9e816fd92b36577",
+        "v0.16.3": "d2fa2b73d4fa5fff3a76d237529908b0f3401c27"
       },
       "published": {
-        "tag": "v0.16.3",
-        "commit": "d2fa2b73d4fa5fff3a76d237529908b0f3401c27",
-        "source_commit": "0a5f1923454f1c6418c7c865d144480984ffff0c",
-        "published_at": "2026-10-26T01:07:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-10-25-v0163.json",
-        "note": "Patch release. Fixes iOS Safari & Chrome music playback via synchronous Web Audio API gesture unlock + navigator.audioSession.type='playback' + decoded .m4a buffers, makes active games full-screen (100vw x 100dvh) with non-scrolling touch-drag prevention, replaces top chrome during gameplay with a floating rotating YOLO logo orb for the full-screen Feedback/Requests overlay, and styles mobile touch buttons as translucent ring-outline mobile game virtual overlays (#217, PR #218); also deployed live to https://demo.yolo-dev.ai (Version ID: d45d253c-040f-4d8a-a48b-d55490f489a0). Acceptance before tagging: 158 unit, 43 stubbed e2e passed, tsc clean, structure pass. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit d2fa2b7 after the assets commit f8d3f70; both build-ID files record 0a5f192."
+        "tag": "v0.16.4",
+        "commit": "2a63a2baa64fa3bf600b7b5dd4cee92dd62113c1",
+        "source_commit": "674b8905c31bfde7b27362229bf48a85a4ce0544",
+        "published_at": "2026-10-26T01:32:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-10-25-v0164.json",
+        "note": "Patch release. Replaces the placeholder diamond/star icon with the official yolo-dev Threefold symbol asset (viewBox='0 0 96 96', #d84b27, three 120-degree square-capped <path d='M48 48v30' /> arms, animateYoloMark motion, yolo-mark.svg, yolo-mark-static.svg, and symbol.svg) (#217, PR #219); also deployed live to https://demo.yolo-dev.ai (Version ID: 14110910-ec13-4cf8-8127-28ef83ec99d7). Acceptance before tagging: 158 unit, 43 stubbed e2e passed, tsc clean, structure pass. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit 2a63a2b after the assets commit 8de8015; both build-ID files record 674b890."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -279,7 +280,8 @@
         ".yolo/reports/releases-observed-2026-10-25-v0160.json",
         ".yolo/reports/releases-observed-2026-10-25-v0161.json",
         ".yolo/reports/releases-observed-2026-10-25-v0162.json",
-        ".yolo/reports/releases-observed-2026-10-25-v0163.json"
+        ".yolo/reports/releases-observed-2026-10-25-v0163.json",
+        ".yolo/reports/releases-observed-2026-10-25-v0164.json"
       ]
     }
   },
