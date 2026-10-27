@@ -6,6 +6,8 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Game-specific 2-minute Tetris & whimsical Puzzle Bobble soundtracks with closed-loop audio verification (#232) — 2026-10-26
 
+Source revision `76afac0` (the game-specific 2-minute soundtracks and closed-loop audio verification commit); build and review evidence `d7e10e9`; release commit `fdaa140`; published as `v0.18.0` on 2026-10-26.
+
 - **Dedicated ~2-minute soundtracks (`public/tetris/*.m4a`, `src/shared/tetrisMusic.ts`, `src/client/audio/tetrisMusic.ts`, `src/client/views/PuzzleBobbleView.tsx`, `docs/assets.md`):**
   - **Tetris (`TETRIS_PLAYLIST` / `PLAYLIST`)**:
     - `korobeiniki.m4a` (*Korobeiniki (Type A)*, `117.6s`, `922 KB`, RMS `0.202`, musical band ratio `93.11%`)
@@ -22,6 +24,12 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 - `npx tsc --noEmit`: clean.
 - `npm run e2e`: 43 passed.
 - `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`, 13/13 findings compliant.
+
+### Installed artifact (`v0.18.0`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.18.0 --no-open --port 4884` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `76afac0…`; the tagged package version is `0.18.0`. The tag points at release commit `fdaa140`, after the assets commit `d7e10e9`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4884 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: 86526c3c-4cc8-4220-89ed-023405179554`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.18.0"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 76afac0068c261ba233559a5756260ef98e407e0`). The report is [`.yolo/reports/releases-observed-2026-10-26-v0180.json`](../.yolo/reports/releases-observed-2026-10-26-v0180.json).
 
 ## Bottom-right YouTube fullscreen icon and streamlined Feedback overlay (#230) — 2026-10-26
 
