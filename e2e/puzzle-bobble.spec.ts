@@ -155,10 +155,14 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
       )
       .toBe(true);
 
-    // Escape closes Puzzle Bobble, crossfades to the Selector Screen soundtrack, and returns to the blank canvas.
+    // Escape opens the in-game Pause Menu (#237), and Exit to menu returns to the selector screen.
+    // Flipping the selector slide to Tetris crossfades to the Tetris soundtrack (#240).
     await page.keyboard.press('Escape');
+    await expect(page.getByTestId('game-pause-menu')).toBeVisible();
+    await page.getByRole('button', { name: 'Close Puzzle Bobble' }).click();
     await expect(page).toHaveURL((url) => url.pathname === '/' && url.search === '');
     await expect(page.getByRole('heading', { name: 'Blank canvas' })).toBeVisible();
+    await page.getByRole('button', { name: 'Previous slide' }).click();
     await expect
       .poll(async () =>
         page.evaluate(() => {
@@ -170,7 +174,7 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
           const m = fn ? fn() : { crossfadeCount: 0, trackId: null, sfxLog: [] };
           return (
             m.crossfadeCount >= 1 &&
-            Boolean(m.trackId?.startsWith('selector-')) &&
+            Boolean(m.trackId && !m.trackId.startsWith('pb-')) &&
             m.sfxLog.includes('bubble-shoot') &&
             m.sfxLog.includes('garbage-rise') &&
             m.sfxLog.includes('round-win')

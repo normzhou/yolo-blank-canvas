@@ -181,6 +181,8 @@ test('Tetris: board renders, music toggles with a stable track label, scenes cyc
   expect(sfxLog).toContain('tetris-four-line');
   expect(sfxLog).toContain('tetris-drop');
   await page.keyboard.press('Escape');
+  await expect(page.getByTestId('game-pause-menu')).toBeVisible();
+  await page.getByRole('button', { name: 'Close Tetris' }).click();
   await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toHaveCount(0);
   expectClean(errors);
 });
