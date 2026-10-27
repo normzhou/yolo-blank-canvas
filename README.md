@@ -110,12 +110,14 @@ Layout:
 | `server/gh.js` | the only `gh api` call site; validates arguments, JSON on stdin, no shell |
 | `server/github.js` | the four GitHub operations: list/get issues, list/create comments, create issue |
 | `server/request-store.js` | the `RequestStore` port and `GitHubRequestStore` adapter |
-| `server/app.js` | Express app: session, identity, issue/comment endpoints, static UI |
+| `server/app.js` | Express app: session, identity, issue/comment endpoints, 2P netplay relay, static UI |
+| `server/netplay.js` | ephemeral 2P online presence, open game invites, and real-time room event relay |
 | `server/security.js` | loopback Host guard, same-origin/cross-site guard, security headers |
 | `server/session.js` | in-memory opaque session; browser holds only an HttpOnly cookie |
 | `src/shared/status.ts` | status and reported-summary derivation (shared, pure) |
-| `src/shared/tetris.ts` | Tetris rules and board state (shared, pure; local to the view) |
+| `src/shared/tetris.ts` | Tetris rules, Versus garbage mechanics, and board state (shared, pure) |
 | `src/shared/puzzleBobble.ts` | Puzzle Bobble (Bust-A-Move) hex-grid and 2P versus rules (shared, pure; local to the view) |
+| `src/client/netplay.ts` | client 2P online coordinator (`/api/netplay` + `BroadcastChannel` zero-latency local bridge) |
 | `src/shared/tetrisMusic.ts` | Tetris track list and shuffled playlist (shared, pure) |
 | `src/shared/tetrisBackgrounds.ts` | Tetris backdrop scenes and the four-line cycle (shared, pure) |
 | `src/client/audio/tetrisMusic.ts` | HTMLAudio playback of bundled tracks; reports the tune now playing |

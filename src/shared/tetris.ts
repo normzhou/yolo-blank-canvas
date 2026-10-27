@@ -8,8 +8,21 @@
  */
 
 export type Tetromino = 'I' | 'J' | 'L' | 'O' | 'S' | 'T' | 'Z';
-export type Cell = Tetromino | null;
+export type Cell = Tetromino | 'G' | null;
 export type Board = Cell[][];
+
+export interface GarbageBatch {
+  lines: number;
+  holeColumn: number;
+}
+
+export interface TetrisLockEvent {
+  id: number;
+  cleared: number;
+  sentGarbage: number;
+  canceledGarbage: number;
+  risenGarbage: number;
+}
 
 export interface Piece {
   type: Tetromino;
@@ -33,6 +46,12 @@ export interface TetrisState {
   bag: Tetromino[];
   /** Number of four-line clears so far, used to cycle the view's backdrop. */
   tetrisCount: number;
+  /** Pending incoming garbage batches from a 2P opponent (#236). */
+  pendingGarbage: GarbageBatch[];
+  /** Total garbage lines sent to the opponent across this match (#236). */
+  garbageSent: number;
+  /** Monotonic event descriptor for the most recent piece lock (#236). */
+  lastLockEvent: TetrisLockEvent | null;
 }
 
 export const BOARD_WIDTH = 10;
@@ -186,9 +205,70 @@ export function clearLines(board: Board): { board: Board; cleared: number } {
 }
 
 const LINE_SCORES = [0, 100, 300, 500, 800];
+const GARBAGE_TABLE = [0, 0, 1, 2, 4];
 
 export function scoreForLines(cleared: number, level: number): number {
   return (LINE_SCORES[cleared] ?? 0) * level;
+}
+
+/**
+ * Standard competitive Versus Tetris garbage table (#236):
+ * 1 line (Single) -> 0
+ * 2 lines (Double) -> 1
+ * 3 lines (Triple) -> 2
+ * 4 lines (Tetris) -> 4
+ */
+export function garbageForLines(cleared: number): number {
+  return GARBAGE_TABLE[cleared] ?? 0;
+}
+
+/** Total number of pending incoming garbage lines queued on a board (#236). */
+export function pendingGarbageCount(state: Pick<TetrisState, 'pendingGarbage'>): number {
+  return state.pendingGarbage.reduce((sum, batch) => sum + Math.max(0, batch.lines), 0);
+}
+
+/**
+ * Queue incoming garbage rows from a 2P opponent (#236).
+ * Each attack wave has 1 aligned empty hole column (`0..9`).
+ */
+export function queueTetrisGarbage(
+  state: TetrisState,
+  lines: number,
+  holeColumn?: number,
+  rng: () => number = Math.random,
+): TetrisState {
+  const count = Math.max(0, Math.trunc(lines));
+  if (count === 0 || state.status !== 'playing') return state;
+  const col =
+    typeof holeColumn === 'number' && Number.isFinite(holeColumn)
+      ? Math.max(0, Math.min(BOARD_WIDTH - 1, Math.trunc(holeColumn)))
+      : Math.floor(rng() * BOARD_WIDTH);
+  return {
+    ...state,
+    pendingGarbage: [...state.pendingGarbage, { lines: count, holeColumn: col }],
+  };
+}
+
+/**
+ * Push garbage batches up from the bottom of the board (#236).
+ * Each batch's rows share a single aligned empty hole at `holeColumn`, while all
+ * other columns in those rows are filled with `'G'`.
+ */
+export function addGarbageLines(board: Board, batches: readonly GarbageBatch[]): { board: Board; added: number } {
+  const garbageRows: Cell[][] = [];
+  for (const batch of batches) {
+    const count = Math.max(0, Math.trunc(batch.lines));
+    const hole = Math.max(0, Math.min(BOARD_WIDTH - 1, Math.trunc(batch.holeColumn)));
+    for (let i = 0; i < count; i += 1) {
+      const row = Array<Cell>(BOARD_WIDTH).fill('G');
+      row[hole] = null;
+      garbageRows.push(row);
+    }
+  }
+  if (garbageRows.length === 0) return { board, added: 0 };
+  const combined = [...board, ...garbageRows];
+  const nextBoard = combined.slice(combined.length - BOARD_HEIGHT);
+  return { board: nextBoard, added: garbageRows.length };
 }
 
 export function levelForLines(lines: number): number {
@@ -219,6 +299,9 @@ export function createGame(rng: () => number = Math.random): TetrisState {
     status: 'playing',
     bag: afterSecond.bag,
     tetrisCount: 0,
+    pendingGarbage: [],
+    garbageSent: 0,
+    lastLockEvent: null,
   };
   return withPiece(base, afterFirst.type);
 }
@@ -226,11 +309,46 @@ export function createGame(rng: () => number = Math.random): TetrisState {
 function lockAndSpawn(state: TetrisState, rng: () => number): TetrisState {
   if (!state.piece || state.status !== 'playing') return state;
   const merged = mergePiece(state.board, state.piece);
-  const { board, cleared } = clearLines(merged);
+  const { board: clearedBoard, cleared } = clearLines(merged);
   const lines = state.lines + cleared;
   const level = levelForLines(lines);
   const score = state.score + scoreForLines(cleared, state.level);
   const tetrisCount = state.tetrisCount + (cleared === 4 ? 1 : 0);
+
+  // Competitive Versus garbage resolution (#236):
+  // - If lines were cleared, calculate attack power (`0, 1, 2, 4`), cancel any
+  //   pending incoming garbage first, and send remaining attack lines to opponent.
+  // - If 0 lines were cleared and pending garbage is waiting, push pending garbage
+  //   up from the bottom of the board before spawning the next piece.
+  let remainingPending = state.pendingGarbage.map((b) => ({ ...b }));
+  let sentGarbage = 0;
+  let canceledGarbage = 0;
+  let risenGarbage = 0;
+  let board = clearedBoard;
+
+  if (cleared > 0) {
+    let attack = garbageForLines(cleared);
+    while (attack > 0 && remainingPending.length > 0) {
+      const first = remainingPending[0];
+      if (first.lines <= attack) {
+        attack -= first.lines;
+        canceledGarbage += first.lines;
+        remainingPending.shift();
+      } else {
+        first.lines -= attack;
+        canceledGarbage += attack;
+        attack = 0;
+      }
+    }
+    sentGarbage = attack;
+  } else if (remainingPending.length > 0) {
+    const addedResult = addGarbageLines(board, remainingPending);
+    board = addedResult.board;
+    risenGarbage = addedResult.added;
+    remainingPending = [];
+  }
+
+  const nextEventId = (state.lastLockEvent?.id ?? 0) + 1;
   const taken = takeFromBag(state.bag, rng);
   const next: TetrisState = {
     ...state,
@@ -241,6 +359,15 @@ function lockAndSpawn(state: TetrisState, rng: () => number): TetrisState {
     next: taken.type,
     bag: taken.bag,
     tetrisCount,
+    pendingGarbage: remainingPending,
+    garbageSent: state.garbageSent + sentGarbage,
+    lastLockEvent: {
+      id: nextEventId,
+      cleared,
+      sentGarbage,
+      canceledGarbage,
+      risenGarbage,
+    },
   };
   return withPiece(next, state.next);
 }

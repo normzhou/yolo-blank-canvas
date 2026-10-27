@@ -11,6 +11,11 @@ import {
   getSharedMusicOn,
   subscribeSharedAudio,
 } from '../audio/tetrisMusic';
+import {
+  getSharedNetplay,
+  type NetplayState,
+  type PuzzleBobbleRadarSnapshot,
+} from '../netplay';
 import { PUZZLE_BOBBLE_PLAYLIST } from '../../shared/tetrisMusic';
 import { BACKGROUNDS, nextBackgroundIndex } from '../../shared/tetrisBackgrounds';
 import {
@@ -897,6 +902,129 @@ function CharacterTokenIcon({ id }: { id: CharacterId }) {
   }
 }
 
+function mulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function createRadarFromBoard(board: PlayerBoardState): PuzzleBobbleRadarSnapshot {
+  return {
+    grid: board.grid.map((row) => row.slice()),
+    ceilingDrop: board.ceilingDrop,
+    score: board.score,
+    status: board.status,
+    incomingGarbage: board.incomingGarbage,
+    aimAngle: board.aimAngle,
+    currentBubble: board.currentBubble,
+  };
+}
+
+function OpponentBubbleRadar({
+  opponentName,
+  radar,
+}: {
+  opponentName: string;
+  radar: PuzzleBobbleRadarSnapshot;
+}) {
+  const ceilingY = radar.ceilingDrop * ROW_STEP;
+  const rad = ((radar.aimAngle - 90) * Math.PI) / 180;
+  const tipX = LAUNCHER_X + Math.cos(rad) * 32;
+  const tipY = LAUNCHER_Y + Math.sin(rad) * 32;
+  const statusLabel =
+    radar.status === 'ko' ? 'KO' : radar.status === 'won' ? 'WIN' : 'LIVE';
+
+  return (
+    <div
+      className="netplay-radar-card pb-radar-card"
+      data-testid="pb-opponent-radar"
+      aria-label={`Opponent ${opponentName} mini radar`}
+    >
+      <div className="netplay-radar-header">
+        <span className="netplay-radar-name" title={opponentName}>
+          VS {opponentName}
+        </span>
+        <span
+          className={
+            statusLabel === 'KO'
+              ? 'netplay-radar-badge is-ko'
+              : 'netplay-radar-badge'
+          }
+          data-testid="pb-opponent-status"
+        >
+          {statusLabel}
+        </span>
+      </div>
+      <svg
+        className="pb-radar-svg"
+        viewBox={`0 0 ${ARENA_WIDTH} ${ARENA_HEIGHT}`}
+        role="img"
+        aria-label={`${opponentName} bubble radar, score ${radar.score}`}
+      >
+        {ceilingY > 0 ? (
+          <rect
+            x={0}
+            y={0}
+            width={ARENA_WIDTH}
+            height={ceilingY}
+            fill="var(--closed-weak)"
+          />
+        ) : null}
+        <line
+          x1={4}
+          y1={DANGER_LINE_Y}
+          x2={ARENA_WIDTH - 4}
+          y2={DANGER_LINE_Y}
+          stroke="var(--tetromino-z)"
+          strokeWidth="2"
+          strokeDasharray="6 4"
+        />
+        {radar.grid.map((row, r) =>
+          row.slice(0, colsForRow(r)).map((color, c) => {
+            if (!color) return null;
+            const center = bubbleCenter(r, c, radar.ceilingDrop);
+            return (
+              <circle
+                key={`${r},${c}`}
+                cx={center.x}
+                cy={center.y}
+                r={BUBBLE_RADIUS - 1}
+                fill={BUBBLE_TOKEN[color]}
+                stroke="var(--text)"
+                strokeWidth="1.2"
+              />
+            );
+          }),
+        )}
+        <line
+          x1={LAUNCHER_X}
+          y1={LAUNCHER_Y}
+          x2={tipX}
+          y2={tipY}
+          stroke="var(--tetromino-o)"
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
+        <circle
+          cx={LAUNCHER_X}
+          cy={LAUNCHER_Y}
+          r={BUBBLE_RADIUS - 2}
+          fill={BUBBLE_TOKEN[radar.currentBubble]}
+          stroke="var(--text)"
+          strokeWidth="1.2"
+        />
+      </svg>
+      <div className="netplay-radar-stats">
+        <span data-testid="pb-opponent-score">{radar.score} pts</span>
+      </div>
+    </div>
+  );
+}
+
 function PlayerArena({
   player,
   playerNumber,
@@ -904,6 +1032,8 @@ function PlayerArena({
   onSelectCharacter,
   controlsLabel,
   isTwoPlayer,
+  onlineOpponent,
+  isInvitingOnline,
   disabled,
   onAimStep,
   onAimDirect,
@@ -917,6 +1047,8 @@ function PlayerArena({
   onSelectCharacter: (character: CharacterId) => void;
   controlsLabel: string;
   isTwoPlayer: boolean;
+  onlineOpponent?: { name: string; radar: PuzzleBobbleRadarSnapshot } | null;
+  isInvitingOnline?: boolean;
   disabled: boolean;
   onAimStep: (deltaDeg: number) => void;
   onAimDirect: (targetAngle: number) => void;
@@ -1371,23 +1503,37 @@ function PlayerArena({
             </span>
           </div>
 
-          <div className="tetris-stat pb-next-dome">
-            <span className="tetris-label">Next</span>
-            <div className="pb-next-orb-well">
-              <svg
-                width={BUBBLE_RADIUS * 2 + 6}
-                height={BUBBLE_RADIUS * 2 + 6}
-                viewBox={`0 0 ${BUBBLE_RADIUS * 2 + 10} ${BUBBLE_RADIUS * 2 + 10}`}
-                aria-label={`Player ${playerNumber} next bubble ${player.nextBubble}`}
-              >
-                <BubbleSvg
-                  cx={BUBBLE_RADIUS + 5}
-                  cy={BUBBLE_RADIUS + 5}
-                  color={player.nextBubble}
-                />
-              </svg>
+          {onlineOpponent ? (
+            <OpponentBubbleRadar
+              opponentName={onlineOpponent.name}
+              radar={onlineOpponent.radar}
+            />
+          ) : (
+            <div className="tetris-stat pb-next-dome">
+              <span className="tetris-label">Next</span>
+              <div className="pb-next-orb-well">
+                <svg
+                  width={BUBBLE_RADIUS * 2 + 6}
+                  height={BUBBLE_RADIUS * 2 + 6}
+                  viewBox={`0 0 ${BUBBLE_RADIUS * 2 + 10} ${BUBBLE_RADIUS * 2 + 10}`}
+                  aria-label={`Player ${playerNumber} next bubble ${player.nextBubble}`}
+                >
+                  <BubbleSvg
+                    cx={BUBBLE_RADIUS + 5}
+                    cy={BUBBLE_RADIUS + 5}
+                    color={player.nextBubble}
+                  />
+                </svg>
+              </div>
             </div>
-          </div>
+          )}
+
+          {isInvitingOnline && !onlineOpponent ? (
+            <div className="netplay-waiting-pill" data-testid="pb-invite-waiting" role="status">
+              <span className="netplay-online-dot" aria-hidden="true" />
+              Inviting…
+            </div>
+          ) : null}
 
           <div className="pb-telemetry-grid">
             <div className="tetris-stat">
@@ -1557,14 +1703,156 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
   const [nowPlaying, setNowPlaying] = useState<string | null>(
     () => getSharedArcadeAudio().getCurrentTrack()?.title ?? null,
   );
+  const [netplay, setNetplay] = useState<NetplayState>(() => getSharedNetplay().getState());
+  const [opponentRadar, setOpponentRadar] = useState<PuzzleBobbleRadarSnapshot>(() =>
+    createRadarFromBoard(match.players[0]),
+  );
 
   const matchRef = useRef(match);
   matchRef.current = match;
+  const activeRoomIdRef = useRef<string | null>(null);
+  const onlineOutcomeSentRef = useRef<boolean>(false);
   const heldAimKeysRef = useRef<Map<string, number>>(new Map());
   const gameSectionRef = useRef<HTMLElement>(null);
   const prevShotsRef = useRef<[number, number]>([0, 0]);
   const prevEventIdsRef = useRef<[number, number]>([0, 0]);
   const prevMatchStatusRef = useRef(match.status);
+
+  const activePbRoom =
+    netplay.activeRoom && netplay.activeRoom.gameId === 'puzzle-bobble'
+      ? netplay.activeRoom
+      : null;
+  const isOnline2P = activePbRoom !== null;
+  const isInviting = netplay.myPendingInvite?.gameId === 'puzzle-bobble';
+
+  const startOnlineRoundWithSeed = useCallback(
+    (seed: number, resetWins = false, preset = stagePreset) => {
+      const rng = mulberry32(seed);
+      prevShotsRef.current = [0, 0];
+      prevEventIdsRef.current = [0, 0];
+      prevMatchStatusRef.current = 'playing';
+      onlineOutcomeSentRef.current = false;
+
+      let nextBoard: PlayerBoardState;
+      if (preset > 0) {
+        const grid = createStageGrid(preset, rng);
+        nextBoard = createPlayerBoard(rng, grid, preset);
+      } else {
+        const seeded = createMatch('1p', rng);
+        nextBoard = seeded.players[0];
+      }
+      const initialRadar = createRadarFromBoard(nextBoard);
+      setOpponentRadar(initialRadar);
+      setMatch((current) => ({
+        mode: '1p',
+        players: [nextBoard],
+        status: 'playing',
+        winner: null,
+        wins: resetWins ? [0, 0] : current.wins,
+      }));
+      setPaused(false);
+    },
+    [stagePreset],
+  );
+
+  useEffect(() => {
+    const client = getSharedNetplay();
+    const unsubState = client.subscribe((nextState) => {
+      setNetplay(nextState);
+      const room =
+        nextState.activeRoom && nextState.activeRoom.gameId === 'puzzle-bobble'
+          ? nextState.activeRoom
+          : null;
+      if (room && activeRoomIdRef.current !== room.id) {
+        activeRoomIdRef.current = room.id;
+        startOnlineRoundWithSeed(room.seed, true);
+      } else if (!room && activeRoomIdRef.current !== null) {
+        activeRoomIdRef.current = null;
+      }
+    });
+
+    const unsubEvents = client.onRoomEvent((event) => {
+      if (event.kind === 'match_start') {
+        const payload = event.payload as { gameId?: string; seed?: number; id?: string; roomId?: string } | null;
+        if (payload && payload.gameId === 'puzzle-bobble') {
+          const rid = payload.id ?? payload.roomId ?? null;
+          if (rid && activeRoomIdRef.current !== rid) {
+            activeRoomIdRef.current = rid;
+            startOnlineRoundWithSeed(payload.seed ?? 2026, true);
+          }
+        }
+        return;
+      }
+
+      if (event.senderId === client.getState().clientId) return;
+
+      if (event.kind === 'pb_attack') {
+        const payload = event.payload as { count?: number; colors?: BubbleColor[] } | null;
+        const colors = Array.isArray(payload?.colors)
+          ? payload.colors
+          : generateGarbageColors(payload?.count ?? 2, () => 0.3);
+        if (colors.length > 0) {
+          setMatch((current) => {
+            const p0 = current.players[0];
+            if (!p0 || p0.status !== 'playing') return current;
+            const updated = queueIncomingGarbage(p0, colors);
+            return { ...current, players: [updated] };
+          });
+        }
+        return;
+      }
+
+      if (event.kind === 'pb_state') {
+        const snapshot = event.payload as PuzzleBobbleRadarSnapshot | null;
+        if (snapshot && Array.isArray(snapshot.grid)) {
+          setOpponentRadar(snapshot);
+        }
+        return;
+      }
+
+      if (event.kind === 'pb_outcome') {
+        const payload = event.payload as { outcome?: 'cleared' | 'ko' } | null;
+        if (payload?.outcome === 'ko') {
+          setOpponentRadar((prev) => ({ ...prev, status: 'ko' }));
+          setMatch((current) => {
+            if (current.status === 'round_over') return current;
+            onlineOutcomeSentRef.current = true;
+            return resolveMatchOutcome(current, 0);
+          });
+        } else if (payload?.outcome === 'cleared') {
+          setOpponentRadar((prev) => ({ ...prev, status: 'won' }));
+          setMatch((current) => {
+            if (current.status === 'round_over') return current;
+            onlineOutcomeSentRef.current = true;
+            return resolveMatchOutcome(current, 1);
+          });
+        }
+        return;
+      }
+
+      if (event.kind === 'pb_rematch') {
+        const payload = event.payload as { seed?: number; preset?: number } | null;
+        const nextPreset = typeof payload?.preset === 'number' ? payload.preset : stagePreset;
+        if (nextPreset !== stagePreset) setStagePreset(nextPreset);
+        startOnlineRoundWithSeed(payload?.seed ?? Date.now(), false, nextPreset);
+        return;
+      }
+
+      if (event.kind === 'player_left') {
+        setOpponentRadar((prev) => ({ ...prev, status: 'ko' }));
+        setMatch((current) => {
+          if (current.status === 'round_over') return current;
+          onlineOutcomeSentRef.current = true;
+          return resolveMatchOutcome(current, 0);
+        });
+      }
+    });
+
+    return () => {
+      unsubState();
+      unsubEvents();
+    };
+  }, [stagePreset, startOnlineRoundWithSeed]);
 
   useEffect(() => {
     const audio = getSharedArcadeAudio();
@@ -1593,8 +1881,9 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     getSharedArcadeAudio().setActive(musicOn && match.status === 'playing' && !paused);
   }, [musicOn, paused, match.status]);
 
-  // #234: Trigger real-time Tone.js-style SFX when players shoot bubbles, pop
-  // clusters, send/receive rising attack bubbles, or finish a round.
+  // #234, #236: Trigger real-time Tone.js-style SFX when players shoot bubbles, pop
+  // clusters, send/receive rising attack bubbles, or finish a round, and relay
+  // 2P Online attacks, radar state, and round outcomes.
   useEffect(() => {
     const sfx = getSharedArcadeAudio().sfx;
     match.players.forEach((p, idx) => {
@@ -1610,22 +1899,52 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         if (ev.popped.length > 0) {
           sfx.playBubblePop(ev.popped.length, ev.dropped.length);
         }
-        if (ev.sentGarbage > 0) {
-          sfx.playGarbageSend(ev.sentGarbage);
+        const onlineAttack =
+          isOnline2P && i === 0
+            ? Math.min(12, Math.max(0, ev.popped.length - 3) + ev.dropped.length)
+            : 0;
+        if (ev.sentGarbage > 0 || onlineAttack > 0) {
+          sfx.playGarbageSend(Math.max(ev.sentGarbage, onlineAttack));
         }
         if (ev.risenGarbage.length > 0) {
           sfx.playGarbageRise(ev.risenGarbage.length);
+        }
+
+        if (isOnline2P && i === 0) {
+          if (onlineAttack > 0) {
+            const colors = generateGarbageColors(onlineAttack);
+            void getSharedNetplay().sendRoomEvent('pb_attack', {
+              count: onlineAttack,
+              colors,
+            });
+          }
+          if (ev.clearBonus > 0 && !onlineOutcomeSentRef.current) {
+            onlineOutcomeSentRef.current = true;
+            void getSharedNetplay().sendRoomEvent('pb_outcome', { outcome: 'cleared' });
+            setOpponentRadar((prev) => ({ ...prev, status: 'ko' }));
+            setMatch((cur) => (cur.status === 'round_over' ? cur : resolveMatchOutcome(cur, 0)));
+          }
+          void getSharedNetplay().sendRoomEvent('pb_state', createRadarFromBoard(p));
         }
       } else if (!ev) {
         prevEventIdsRef.current[i] = 0;
       }
     });
 
+    const p0 = match.players[0];
+    if (isOnline2P && p0 && p0.status === 'ko' && !onlineOutcomeSentRef.current) {
+      onlineOutcomeSentRef.current = true;
+      void getSharedNetplay().sendRoomEvent('pb_outcome', { outcome: 'ko' });
+      void getSharedNetplay().sendRoomEvent('pb_state', createRadarFromBoard(p0));
+      setOpponentRadar((prev) => ({ ...prev, status: 'won' }));
+      setMatch((cur) => (cur.status === 'round_over' ? cur : resolveMatchOutcome(cur, 1)));
+    }
+
     if (match.status === 'round_over' && prevMatchStatusRef.current === 'playing') {
       sfx.playRoundEnd(match.winner !== null);
     }
     prevMatchStatusRef.current = match.status;
-  }, [match]);
+  }, [isOnline2P, match]);
 
   // Advance flying bubbles and the 10s HURRY UP! shot clock at ~60fps.
   useEffect(() => {
@@ -1646,9 +1965,42 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
   // Deterministic E2E / test hooks to resolve a player's shot or queue incoming attack bubbles.
   useEffect(() => {
     function onInstantResolve(event: Event) {
-      const detail = (event as CustomEvent<{ player?: 0 | 1; preventPop?: boolean }>).detail;
+      const detail = (
+        event as CustomEvent<{ player?: 0 | 1; preventPop?: boolean; forceClusterPop?: boolean }>
+      ).detail;
       const idx: 0 | 1 = detail?.player === 1 ? 1 : 0;
       setMatch((current) => {
+        if (detail?.forceClusterPop) {
+          const target = current.players[idx];
+          if (target) {
+            const popGrid = target.grid.map((r) => r.slice());
+            const color = target.currentBubble;
+            // Create a 4-bubble matching cluster around the center frontier (row 3, cols 2..4)
+            // so a straight-up shot at 0° pops 5 bubbles -> sends 2+ garbage bubbles to opponent.
+            for (let r = 0; r < 3; r += 1) {
+              for (let c = 0; c < popGrid[r].length; c += 1) {
+                if (popGrid[r][c] === null) popGrid[r][c] = color === 'ruby' ? 'azure' : 'ruby';
+              }
+            }
+            popGrid[3][2] = color;
+            popGrid[3][3] = color;
+            popGrid[3][4] = color;
+            popGrid[2][3] = color;
+            for (let r = 4; r < popGrid.length; r += 1) {
+              for (let c = 0; c < popGrid[r].length; c += 1) {
+                popGrid[r][c] = null;
+              }
+            }
+            const updatedTarget: PlayerBoardState = { ...target, aimAngle: 0, grid: popGrid };
+            const nextPlayers =
+              current.players.length === 1
+                ? ([updatedTarget] as [PlayerBoardState])
+                : idx === 0
+                  ? ([updatedTarget, current.players[1]] as [PlayerBoardState, PlayerBoardState])
+                  : ([current.players[0], updatedTarget] as [PlayerBoardState, PlayerBoardState]);
+            return fireAndResolvePlayer({ ...current, players: nextPlayers }, idx);
+          }
+        }
         if (detail?.preventPop) {
           const target = current.players[idx];
           if (target) {
@@ -1926,10 +2278,30 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
 
   const art = BACKGROUNDS[backgroundIndex] ?? BACKGROUNDS[0];
 
+  const handleNextOrNewRound = () => {
+    const nextPreset =
+      match.status === 'round_over' && stagePreset > 0
+        ? (stagePreset % TOTAL_STAGES) + 1
+        : stagePreset;
+    if (nextPreset !== stagePreset) {
+      setStagePreset(nextPreset);
+    }
+    if (isOnline2P) {
+      const nextSeed = ((Date.now() & 0x7fffffff) ^ 0x6a09e667) >>> 0 || 2026;
+      startOnlineRoundWithSeed(nextSeed, false, nextPreset);
+      void getSharedNetplay().sendRoomEvent('pb_rematch', {
+        seed: nextSeed,
+        preset: nextPreset,
+      });
+    } else {
+      startNewRound(match.mode, true, nextPreset);
+    }
+  };
+
   return (
     <section
       className="tetris pb-game"
-      data-mode={match.mode}
+      data-mode={isOnline2P ? '1p' : match.mode}
       aria-label="Puzzle Bobble game"
       ref={gameSectionRef}
     >
@@ -1940,7 +2312,11 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
       <header className="tetris-header pb-header">
         <div className="row">
           <h2 className="tetris-title">Puzzle Bobble</h2>
-          {match.mode === '2p' ? (
+          {isOnline2P && activePbRoom ? (
+            <span className="pb-tally" data-testid="pb-online-tally" aria-label="Online round wins">
+              YOU {match.wins[0]} – {match.wins[1]} {activePbRoom.opponent.name}
+            </span>
+          ) : match.mode === '2p' ? (
             <span className="pb-tally" aria-label="Round wins">
               1P {match.wins[0]} – {match.wins[1]} 2P
             </span>
@@ -1951,24 +2327,58 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
           </p>
         </div>
         <div className="row">
-          {!phoneViewport ? (
-            <div className="filter-group" role="group" aria-label="Player mode">
-              <button
-                type="button"
-                aria-pressed={match.mode === '2p'}
-                onClick={() => startNewRound('2p', false)}
-              >
-                2 Players
-              </button>
-              <button
-                type="button"
-                aria-pressed={match.mode === '1p'}
-                onClick={() => startNewRound('1p', false)}
-              >
-                1 Player
-              </button>
-            </div>
-          ) : null}
+          <div className="filter-group" role="group" aria-label="Player mode">
+            {!phoneViewport ? (
+              <>
+                <button
+                  type="button"
+                  aria-pressed={!isOnline2P && !isInviting && match.mode === '2p'}
+                  onClick={() => {
+                    if (isOnline2P) void getSharedNetplay().leaveRoom();
+                    if (isInviting) void getSharedNetplay().cancelInvite();
+                    startNewRound('2p', false);
+                  }}
+                >
+                  2 Players
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={!isOnline2P && !isInviting && match.mode === '1p'}
+                  onClick={() => {
+                    if (isOnline2P) void getSharedNetplay().leaveRoom();
+                    if (isInviting) void getSharedNetplay().cancelInvite();
+                    startNewRound('1p', false);
+                  }}
+                >
+                  1 Player
+                </button>
+              </>
+            ) : null}
+            <button
+              type="button"
+              data-testid="pb-2p-online-btn"
+              aria-pressed={isOnline2P || isInviting}
+              onClick={() => {
+                if (isOnline2P) {
+                  void getSharedNetplay().leaveRoom();
+                  startNewRound(phoneViewport ? '1p' : '2p', false);
+                } else if (isInviting) {
+                  void getSharedNetplay().cancelInvite();
+                } else {
+                  if (match.mode === '2p') {
+                    startNewRound('1p', false);
+                  }
+                  void getSharedNetplay().sendInvite('puzzle-bobble');
+                }
+              }}
+            >
+              {isOnline2P
+                ? `2P Online (${activePbRoom.opponent.name})`
+                : isInviting
+                  ? 'Waiting 2P… (Cancel)'
+                  : '2P Online'}
+            </button>
+          </div>
           <div className="filter-group pb-stage-stepper" role="group" aria-label="Stage selection" data-testid="pb-stage-selector">
             <button
               type="button"
@@ -2020,15 +2430,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
           <button
             type="button"
             className="primary"
-            onClick={() => {
-              if (match.status === 'round_over' && stagePreset > 0) {
-                const advanced = (stagePreset % TOTAL_STAGES) + 1;
-                setStagePreset(advanced);
-                startNewRound(match.mode, true, advanced);
-              } else {
-                startNewRound(match.mode, true);
-              }
-            }}
+            onClick={handleNextOrNewRound}
           >
             {match.status === 'round_over' ? 'Next round' : 'New game'}
           </button>
@@ -2045,11 +2447,17 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
           character={characters[0]}
           onSelectCharacter={(c) => setCharacters(([_, p2]) => [c, p2])}
           controlsLabel={
-            match.mode === '2p'
+            match.mode === '2p' && !isOnline2P
               ? 'ASDF or Drag · S/F or FIRE'
               : 'Touch Drag / ASDF / Arrows'
           }
-          isTwoPlayer={match.mode === '2p'}
+          isTwoPlayer={match.mode === '2p' || isOnline2P}
+          onlineOpponent={
+            isOnline2P && activePbRoom
+              ? { name: activePbRoom.opponent.name, radar: opponentRadar }
+              : null
+          }
+          isInvitingOnline={isInviting && !isOnline2P}
           disabled={paused || match.status !== 'playing'}
           onAimStep={(delta) => setMatch((current) => aimPlayer(current, 0, delta))}
           onAimDirect={(angle) => setMatch((current) => setPlayerAimAngle(current, 0, angle))}
@@ -2057,7 +2465,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
           onHoldAimStart={(keyId, delta) => handleHoldAimStart(0, keyId, delta)}
           onHoldAimEnd={handleHoldAimEnd}
         />
-        {match.mode === '2p' && match.players[1] ? (
+        {!isOnline2P && match.mode === '2p' && match.players[1] ? (
           <PlayerArena
             player={match.players[1]}
             playerNumber={2}
@@ -2076,10 +2484,14 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
       </div>
 
       {match.status === 'round_over' ? (
-        <p className="tetris-over pb-banner" role="status">
-          {match.winner !== null
-            ? `Player ${match.winner + 1} wins the round! (${match.wins[0]}–${match.wins[1]}). Press Next round to battle again.`
-            : `Game over — score ${match.players[0].score.toLocaleString()}. Press Next round to play again.`}
+        <p className="tetris-over pb-banner" role="status" data-testid="pb-round-banner">
+          {isOnline2P && activePbRoom
+            ? match.winner === 0
+              ? `YOU WIN! Beat ${activePbRoom.opponent.name} (${match.wins[0]}–${match.wins[1]}). Press Next round for a rematch.`
+              : `${activePbRoom.opponent.name} wins the round! (${match.wins[0]}–${match.wins[1]}). Press Next round for a rematch.`
+            : match.winner !== null
+              ? `Player ${match.winner + 1} wins the round! (${match.wins[0]}–${match.wins[1]}). Press Next round to battle again.`
+              : `Game over — score ${match.players[0].score.toLocaleString()}. Press Next round to play again.`}
         </p>
       ) : null}
     </section>

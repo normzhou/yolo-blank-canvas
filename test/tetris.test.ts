@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  addGarbageLines,
   BOARD_HEIGHT,
   BOARD_WIDTH,
   clearLines,
@@ -8,12 +9,15 @@ import {
   createGame,
   displayBoard,
   dropInterval,
+  garbageForLines,
   ghostPiece,
   hardDrop,
   levelForLines,
   mergePiece,
   moveLeft,
   moveRight,
+  pendingGarbageCount,
+  queueTetrisGarbage,
   rotationCells,
   scoreForLines,
   shuffledBag,
@@ -229,5 +233,53 @@ describe('tetris game flow', () => {
 
     const resting = withPiece(game, 'O', 4, BOARD_HEIGHT - 2);
     expect(ghostPiece(resting)).toBeNull();
+  });
+
+  it('implements standard Versus garbage table (0 / 1 / 2 / 4) and aligned-hole garbage rising (#236)', () => {
+    expect(garbageForLines(1)).toBe(0);
+    expect(garbageForLines(2)).toBe(1);
+    expect(garbageForLines(3)).toBe(2);
+    expect(garbageForLines(4)).toBe(4);
+
+    // Queue 2 lines of garbage with aligned hole at column 3
+    let game = createGame(() => 0.5);
+    game = queueTetrisGarbage(game, 2, 3);
+    expect(pendingGarbageCount(game)).toBe(2);
+
+    // Lock a piece without clearing lines -> pending garbage rises from bottom
+    const locked = hardDrop(withPiece(game, 'O', 0, 0));
+    expect(pendingGarbageCount(locked)).toBe(0);
+    expect(locked.lastLockEvent?.risenGarbage).toBe(2);
+    expect(locked.board[BOARD_HEIGHT - 1][3]).toBeNull();
+    expect(locked.board[BOARD_HEIGHT - 2][3]).toBeNull();
+    expect(locked.board[BOARD_HEIGHT - 1][0]).toBe('G');
+    expect(locked.board[BOARD_HEIGHT - 2][0]).toBe('G');
+    // The O piece that locked at rows 18-19 was pushed up 2 rows to 16-17
+    expect(locked.board[BOARD_HEIGHT - 3][0]).toBe('O');
+  });
+
+  it('counters pending incoming garbage when clearing lines and sends excess attack (#236)', () => {
+    const game = createGame(() => 0.5);
+    const rows: Partial<Record<number, Partial<Record<number, Tetromino>>>> = {};
+    for (let y = BOARD_HEIGHT - 4; y < BOARD_HEIGHT; y += 1) {
+      const columns: Partial<Record<number, Tetromino>> = {};
+      for (let x = 0; x < BOARD_WIDTH - 1; x += 1) columns[x] = 'I';
+      rows[y] = columns;
+    }
+    // Queue 1 line of pending garbage, then score a 4-line Tetris (attack = 4)
+    const prepared = queueTetrisGarbage({ ...game, board: boardWith(rows) }, 1, 5);
+    const vertical = withPiece(prepared, 'I', BOARD_WIDTH - 3, 0, 1);
+    const after = hardDrop(vertical);
+    expect(after.lastLockEvent?.cleared).toBe(4);
+    expect(after.lastLockEvent?.canceledGarbage).toBe(1);
+    expect(after.lastLockEvent?.sentGarbage).toBe(3);
+    expect(after.garbageSent).toBe(3);
+    expect(pendingGarbageCount(after)).toBe(0);
+
+    // Verify addGarbageLines directly
+    const added = addGarbageLines(createEmptyBoard(), [{ lines: 3, holeColumn: 7 }]);
+    expect(added.added).toBe(3);
+    expect(added.board[BOARD_HEIGHT - 1][7]).toBeNull();
+    expect(added.board[BOARD_HEIGHT - 1][6]).toBe('G');
   });
 });
