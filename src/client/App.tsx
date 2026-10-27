@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, ApiError, type IssueSummary, type SessionInfo } from './api';
+import {
+  getSharedArcadeAudio,
+  getSharedMusicOn,
+  setSharedMusicOn,
+  subscribeSharedAudio,
+} from './audio/tetrisMusic';
 import { animateYoloMark } from './brand/yoloMark';
 import { useFullscreen } from './fullscreen';
 import { Panel, type PanelView } from './components/Panel';
@@ -7,6 +13,11 @@ import { ErrorNotice } from './components/ErrorNotice';
 import { CanvasPalette } from './components/CanvasPalette';
 import { CANVAS_APPS, canvasAppById } from './apps/registry';
 import { BACKGROUNDS } from '../shared/tetrisBackgrounds';
+import {
+  PUZZLE_BOBBLE_PLAYLIST,
+  SELECTOR_PLAYLIST,
+  TETRIS_PLAYLIST,
+} from '../shared/tetrisMusic';
 import { useVisible } from './usePolling';
 import { appContextLine } from './feedback';
 import {
@@ -124,7 +135,7 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
         </svg>
         <div className="deck-preview-hud">
           <span>10×20 Matrix</span>
-          <span>6 Scenes · 5 Chiptunes</span>
+          <span>6 Scenes · 5 FM/Chip Tracks</span>
         </div>
       </div>
     );
@@ -269,6 +280,41 @@ function YoloRotatingLogo({ testId }: { testId?: string } = {}) {
 }
 
 /**
+ * YouTube-video style speaker / sound icon (#234):
+ * - When `isMuted` is true, renders speaker cone with a diagonal mute slash.
+ * - When `isMuted` is false, renders speaker cone with dual radiating sound waves.
+ */
+function SoundSpeakerIcon({ isMuted }: { isMuted: boolean }) {
+  return (
+    <svg
+      className="sound-speaker-icon"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.1"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="currentColor" />
+      {isMuted ? (
+        <>
+          <line x1="22" y1="9" x2="16" y2="15" />
+          <line x1="16" y1="9" x2="22" y2="15" />
+        </>
+      ) : (
+        <>
+          <path d="M 15.54 8.46 a 5 5 0 0 1 0 7.07" />
+          <path d="M 19.07 4.93 a 10 10 0 0 1 0 14.14" />
+        </>
+      )}
+    </svg>
+  );
+}
+
+/**
  * YouTube-video style 4-corner bracket fullscreen icon (#228):
  * - When `isFullscreen` is true, renders 4 inward-pointing corner brackets (exit full screen).
  * - When `isFullscreen` is false, renders 4 outward-pointing corner brackets (enter full screen).
@@ -402,6 +448,34 @@ export function App() {
   const [serverClientBuild, setServerClientBuild] = useState<string | null>(null);
   const [reloadPromptDismissed, setReloadPromptDismissed] = useState(false);
   const { isFullscreen, toggleFullscreen } = useFullscreen();
+  const [musicOn, setMusicOn] = useState<boolean>(() => getSharedMusicOn());
+  const [nowPlaying, setNowPlaying] = useState<string | null>(
+    () => getSharedArcadeAudio().getCurrentTrack()?.title ?? null,
+  );
+
+  useEffect(() => {
+    return subscribeSharedAudio((nextOn, nextTitle) => {
+      setMusicOn(nextOn);
+      setNowPlaying(nextTitle);
+    });
+  }, []);
+
+  // #234: Crossfade into the appropriate soundtrack for the active screen
+  // (Selector Screen <-> Tetris <-> Puzzle Bobble).
+  useEffect(() => {
+    const audio = getSharedArcadeAudio();
+    const targetPlaylist =
+      appId === 'puzzle-bobble'
+        ? PUZZLE_BOBBLE_PLAYLIST
+        : appId === 'tetris'
+          ? TETRIS_PLAYLIST
+          : SELECTOR_PLAYLIST;
+    audio.setPlaylist(targetPlaylist);
+    if (appId === null) {
+      audio.setActive(getSharedMusicOn());
+    }
+    setNowPlaying(audio.getCurrentTrack()?.title ?? null);
+  }, [appId]);
 
   const triggerRef = useRef<HTMLButtonElement>(null);
   const feedbackTriggerRef = useRef<HTMLButtonElement>(null);
@@ -722,10 +796,10 @@ export function App() {
     <div className={canvasClass}>
       {!activeApp ? <h1 className="sr-only canvas-title">Blank canvas</h1> : null}
 
-      {/* #220, #228: No top bar — bare wiggling YOLO Threefold symbol in the
-          top-right corner (with no circular button around it) to open the full
-          YOLO feedback & requests overlay, plus a YouTube-style transparent
-          fullscreen corner-bracket icon in the bottom-left corner. */}
+      {/* #220, #228, #230, #234: No top bar — bare wiggling YOLO Threefold symbol
+          in the top-right corner to open the full YOLO feedback & requests overlay,
+          plus YouTube-style transparent sound on/off and fullscreen icons in the
+          bottom-right corner. */}
       {!showPanel ? (
         <>
           <button
@@ -747,6 +821,31 @@ export function App() {
             disabled={connecting}
           >
             <YoloRotatingLogo testId="yolo-rotating-logo" />
+          </button>
+          <button
+            type="button"
+            className="sound-launcher"
+            data-testid="sound-button"
+            aria-pressed={musicOn}
+            aria-label={musicOn ? 'Music on' : 'Music off'}
+            title={
+              musicOn
+                ? `Sound on${nowPlaying ? ` · ${nowPlaying}` : ''} (click to mute)`
+                : 'Sound off (click to unmute)'
+            }
+            onClick={() => {
+              const targetPlaylist =
+                appId === 'puzzle-bobble'
+                  ? PUZZLE_BOBBLE_PLAYLIST
+                  : appId === 'tetris'
+                    ? TETRIS_PLAYLIST
+                    : SELECTOR_PLAYLIST;
+              getSharedArcadeAudio().setPlaylist(targetPlaylist);
+              setSharedMusicOn(!musicOn, true);
+            }}
+          >
+            <SoundSpeakerIcon isMuted={!musicOn} />
+            <span className="sr-only">{musicOn ? 'Music on' : 'Music off'}</span>
           </button>
           <button
             type="button"

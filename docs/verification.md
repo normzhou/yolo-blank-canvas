@@ -4,6 +4,22 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Tone.js-style PolySynth/FMSynth/MembraneSynth engine, expanded + selector soundtracks with crossfading, game SFX, YouTube sound icon, and borderless arcade HUD (#234) — 2026-10-26
+
+- **Tone.js-Style Synth Engine & Real-Time Arcade SFX (`src/client/audio/toneSynth.ts`):**
+  - Implemented native Web Audio `TonePolySynth`, `ToneFMSynth`, and `ToneMembraneSynth` (CSP-clean under `default-src 'none'; script-src 'self'`, zero `blob:` workers) sharing the same iOS-unlocked `AudioContext` and `AnalyserNode` as `TetrisMusic`.
+  - Wired real-time `ArcadeSfx` into **Puzzle Bobble** (`bubble-shoot`, `bubble-pop`, `bubble-avalanche`, `garbage-send`, `garbage-rise`, `round-win` / `round-lose`) and **Tetris** (`tetris-rotate`, `tetris-drop`, `tetris-line-clear`, `tetris-four-line` fanfare, `tetris-over`).
+- **Expanded Soundtracks + Selector Screen Playlist + Crossfading (`public/tetris/*.m4a`, `src/shared/tetrisMusic.ts`, `src/client/audio/tetrisMusic.ts`):**
+  - Kept all 6 existing tracks and added 6 new full-length (~2-minute) FM/PolySynth/MembraneSynth tracks (`selector-arcade-lobby.m4a` `116.0s`, `selector-pixel-lounge.m4a` `114.3s`, `technotris-fm.m4a` `118.4s`, `cosmic-odyssey.m4a` `118.3s`, `pb-candy-playground.m4a` `118.3s`, `pb-soda-pop.m4a` `114.9s` — 12 tracks total across `SELECTOR_PLAYLIST`, `TETRIS_PLAYLIST`, and `PUZZLE_BOBBLE_PLAYLIST`), verified via closed-loop `afconvert` decode, STFT spectral analysis, and spectrogram inspection (`/tmp/qa-234/new-tracks-spectrograms.png`).
+  - Added dual-voice `GainNode` crossfading (`CROSSFADE_SEC = 1.2s`) when switching between screens (`SELECTOR_PLAYLIST` <-> `TETRIS_PLAYLIST` <-> `PUZZLE_BOBBLE_PLAYLIST`) or advancing tracks.
+- **YouTube-Style Transparent Sound Icon & Borderless Arcade HUD (`src/client/App.tsx`, `src/client/styles.css`):**
+  - Added `button.sound-launcher` (`data-testid="sound-button"`, `right: 52px; bottom: 10px`) right beside `button.fullscreen-launcher` in the bottom-right corner and removed text `Music off` buttons from the game headers.
+  - Removed boxy app-button borders from `.tetris-header button`, `.filter-group`, `.pb-tally`, `.pb-status-pills .badge`, `.pb-char-btn`, `.tetris-side`, `.pb-side`, `.tetris-stat`, `.pb-next-orb-well`, and `.pb-combo-bar`.
+- `npm test`: 23 files, 158 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 43 passed.
+- `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`, 13/13 findings compliant.
+
 ## Game-specific 2-minute Tetris & whimsical Puzzle Bobble soundtracks with closed-loop audio verification (#232) — 2026-10-26
 
 Source revision `76afac0` (the game-specific 2-minute soundtracks and closed-loop audio verification commit); build and review evidence `d7e10e9`; release commit `fdaa140`; published as `v0.18.0` on 2026-10-26.

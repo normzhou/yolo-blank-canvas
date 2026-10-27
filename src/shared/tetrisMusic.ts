@@ -1,18 +1,26 @@
 /**
- * Game-specific arcade/SNES chiptune soundtracks (#232).
+ * Game-specific arcade/SNES & Tone.js-style (FMSynth, PolySynth, MembraneSynth)
+ * soundtracks (#232, #234).
  *
- * Each game has its own dedicated playlist of full-length (~2-minute) tracks
+ * Each screen has its own dedicated playlist of full-length (~2-minute) tracks
  * bundled in `public/tetris/` (AAC-LC `.m4a` at 44.1 kHz, encoded via macOS
  * `afconvert`), so playback is 100% local and offline:
  *
- * - **Tetris (`PLAYLIST` / `TETRIS_PLAYLIST`)**:
+ * - **Selector Screen (`SELECTOR_PLAYLIST`, 2 tracks)**:
+ *   1. *Arcade Neon Lobby* — chill FMSynth electric-piano, PolySynth 7th chords & MembraneSynth lounge groove
+ *   2. *Pixel Lounge Overworld* — upbeat 16-bit game-select overworld theme
+ * - **Tetris (`PLAYLIST` / `TETRIS_PLAYLIST`, 5 tracks)**:
  *   1. *Korobeiniki (Type A)* — traditional 19th-century Russian folk song (public domain)
  *   2. *Kalinka & Troika (Type B)* — traditional Russian folk medley (public domain)
  *   3. *Baroque Invention (Type C)* — J.S. Bach *French Suite No. 3 in B minor, BWV 814* (public domain)
- * - **Puzzle Bobble (`PUZZLE_BOBBLE_PLAYLIST`)**:
- *   1. *Bubble Dragon March* — original whimsical major-key marimba/bell arcade march (CC0)
- *   2. *Rainbow Island Carnival* — original sunny tropical calypso/flute-synth arcade tune (CC0)
- *   3. *Starlight Carousel* — original music-box & glockenspiel pastel synth bounce (CC0)
+ *   4. *Technotris FM Drive* — YM2612/Genesis-style FMSynth slap bass, PolySynth lead & MembraneSynth electro-polka
+ *   5. *Cosmic Block Odyssey* — shimmering FMSynth bell arpeggios & PolySynth minor chords
+ * - **Puzzle Bobble (`PUZZLE_BOBBLE_PLAYLIST`, 5 tracks)**:
+ *   1. *Bubble Dragon March* — whimsical major-key marimba/bell arcade march
+ *   2. *Rainbow Island Carnival* — sunny tropical calypso/flute-synth arcade tune
+ *   3. *Starlight Carousel* — music-box & glockenspiel pastel synth bounce
+ *   4. *Candy Cloud Playground* — whimsical FMSynth toy-piano, PolySynth staccato brass & MembraneSynth bongos
+ *   5. *Bubblegum Soda Pop* — cheerful A-major Japanese arcade pop theme
  */
 
 /** A named, bundled audio track. */
@@ -26,12 +34,22 @@ export interface Track {
 }
 
 /**
+ * The home selector screen playlist (~2 minutes per track).
+ */
+export const SELECTOR_PLAYLIST: ReadonlyArray<Track> = [
+  { id: 'selector-arcade-lobby', title: 'Arcade Neon Lobby', src: 'tetris/selector-arcade-lobby.m4a' },
+  { id: 'selector-pixel-lounge', title: 'Pixel Lounge Overworld', src: 'tetris/selector-pixel-lounge.m4a' },
+];
+
+/**
  * The Tetris background playlist (~2 minutes per track).
  */
 export const TETRIS_PLAYLIST: ReadonlyArray<Track> = [
   { id: 'korobeiniki', title: 'Korobeiniki (Type A)', src: 'tetris/korobeiniki.m4a' },
   { id: 'kalinka-troika', title: 'Kalinka & Troika (Type B)', src: 'tetris/kalinka-troika.m4a' },
   { id: 'baroque-invention', title: 'Baroque Invention (Type C)', src: 'tetris/baroque-invention.m4a' },
+  { id: 'technotris-fm', title: 'Technotris FM Drive', src: 'tetris/technotris-fm.m4a' },
+  { id: 'cosmic-odyssey', title: 'Cosmic Block Odyssey', src: 'tetris/cosmic-odyssey.m4a' },
 ];
 
 /** Default alias retained for existing callers and tests. */
@@ -44,6 +62,8 @@ export const PUZZLE_BOBBLE_PLAYLIST: ReadonlyArray<Track> = [
   { id: 'pb-bubble-march', title: 'Bubble Dragon March', src: 'tetris/pb-bubble-march.m4a' },
   { id: 'pb-rainbow-carnival', title: 'Rainbow Island Carnival', src: 'tetris/pb-rainbow-carnival.m4a' },
   { id: 'pb-starlight-carousel', title: 'Starlight Carousel', src: 'tetris/pb-starlight-carousel.m4a' },
+  { id: 'pb-candy-playground', title: 'Candy Cloud Playground', src: 'tetris/pb-candy-playground.m4a' },
+  { id: 'pb-soda-pop', title: 'Bubblegum Soda Pop', src: 'tetris/pb-soda-pop.m4a' },
 ];
 
 /**

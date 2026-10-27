@@ -138,10 +138,11 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
     await page.getByRole('button', { name: 'Previous stage', exact: true }).click();
     await expect(stageBtn).toHaveText("Stage 15: Emperor's Citadel");
 
-    // #232: Puzzle Bobble plays its own whimsical ~2-minute soundtrack verified via closed-loop Web Audio AnalyserNode.
+    // #232, #234: Puzzle Bobble plays its own whimsical ~2-minute soundtrack verified via closed-loop Web Audio AnalyserNode,
+    // and Escape back to the Selector Screen crossfades smoothly into the selector soundtrack!
     await page.getByRole('button', { name: /Music off/ }).click();
     await expect(page.locator('.tetris-scene')).toContainText(
-      /Music: (?:Bubble Dragon March|Rainbow Island Carnival|Starlight Carousel)/,
+      /Music: (?:Bubble Dragon March|Rainbow Island Carnival|Starlight Carousel|Candy Cloud Playground|Bubblegum Soda Pop)/,
     );
     await expect
       .poll(async () =>
@@ -154,10 +155,29 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
       )
       .toBe(true);
 
-    // Escape closes Puzzle Bobble and returns to the blank canvas.
+    // Escape closes Puzzle Bobble, crossfades to the Selector Screen soundtrack, and returns to the blank canvas.
     await page.keyboard.press('Escape');
     await expect(page).toHaveURL((url) => url.pathname === '/' && url.search === '');
     await expect(page.getByRole('heading', { name: 'Blank canvas' })).toBeVisible();
+    await expect
+      .poll(async () =>
+        page.evaluate(() => {
+          const fn = (
+            window as unknown as {
+              __yoloAudioMetrics?: () => { crossfadeCount: number; trackId: string | null; sfxLog: string[] };
+            }
+          ).__yoloAudioMetrics;
+          const m = fn ? fn() : { crossfadeCount: 0, trackId: null, sfxLog: [] };
+          return (
+            m.crossfadeCount >= 1 &&
+            Boolean(m.trackId?.startsWith('selector-')) &&
+            m.sfxLog.includes('bubble-shoot') &&
+            m.sfxLog.includes('garbage-rise') &&
+            m.sfxLog.includes('round-win')
+          );
+        }),
+      )
+      .toBe(true);
   } finally {
     await closeStub(stub);
   }
@@ -233,6 +253,9 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
       const fsEl = document.querySelector('[data-testid="fullscreen-button"]');
       const fs = fsEl?.getBoundingClientRect();
       const fsBg = fsEl ? window.getComputedStyle(fsEl).backgroundColor : '';
+      const sndEl = document.querySelector('[data-testid="sound-button"]');
+      const snd = sndEl?.getBoundingClientRect();
+      const sndBg = sndEl ? window.getComputedStyle(sndEl).backgroundColor : '';
       const logo = document.querySelector('[data-testid="yolo-rotating-logo"]');
       const logoPaths = logo ? logo.querySelectorAll('path[d="M48 48v30"]').length : 0;
       const logoViewBox = logo ? logo.getAttribute('viewBox') : '';
@@ -251,6 +274,9 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
         fsRight: fs ? Math.round(fs.right) : 0,
         fsBottom: fs ? Math.round(fs.bottom) : 0,
         fsBg,
+        sndRight: snd ? Math.round(snd.right) : 0,
+        sndBottom: snd ? Math.round(snd.bottom) : 0,
+        sndBg,
         viewportWidth: window.innerWidth,
         viewportHeight: window.innerHeight,
         hasRotatingLogo: Boolean(logo),
@@ -275,6 +301,9 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
     expect(phoneMetrics.fsRight).toBeGreaterThanOrEqual(phoneMetrics.viewportWidth - 24);
     expect(phoneMetrics.fsBottom).toBeGreaterThanOrEqual(phoneMetrics.viewportHeight - 24);
     expect(phoneMetrics.fsBg).toBe('rgba(0, 0, 0, 0)');
+    expect(phoneMetrics.sndRight).toBeLessThan(phoneMetrics.fsRight);
+    expect(phoneMetrics.sndBottom).toBe(phoneMetrics.fsBottom);
+    expect(phoneMetrics.sndBg).toBe('rgba(0, 0, 0, 0)');
     expect(phoneMetrics.touchBarBg).toBe('rgba(0, 0, 0, 0)');
 
     // 2. Phone landscape viewport (844x390, short edge 390 < 560px): still a phone, so 1P mode is enforced.

@@ -1,13 +1,20 @@
 import { PLAYLIST, shuffledTracks, type Track } from '../../shared/tetrisMusic';
+import { ArcadeSfx, type SfxEventName } from './toneSynth';
 
 type AudioContextConstructor = typeof AudioContext;
+
+export const CROSSFADE_SEC = 1.2;
 
 export interface AudioOutputMetrics {
   rms: number;
   peak: number;
   activeBins: number;
   trackId: string | null;
+  trackTitle: string | null;
   durationSec: number;
+  crossfadeCount: number;
+  activeFadingNodes: number;
+  sfxLog: SfxEventName[];
 }
 
 function getAudioContextConstructor(): AudioContextConstructor | null {
@@ -19,46 +26,76 @@ function getAudioContextConstructor(): AudioContextConstructor | null {
   return win.AudioContext ?? win.webkitAudioContext ?? null;
 }
 
+interface ActiveVoice {
+  source: AudioBufferSourceNode;
+  gain: GainNode | null;
+  crossfadeTimer: ReturnType<typeof setTimeout> | null;
+}
+
 /**
- * Plays the background chiptune tracks — bundled free audio, one shuffled
- * track after another, so the music keeps varying across a session.
- *
- * Why Web Audio API (`AudioContext` + `fetch` + `decodeAudioData`) is primary
- * (#217, #232):
- * 1. On iOS Safari and iOS Chrome (both WebKit), `HTMLAudioElement` uses
- *    CoreMedia's HTTP streamer, which requires HTTP `206 Partial Content`
- *    byte-range responses and fails when a static Worker origin serves `.m4a`
- *    with `200 OK`. `fetch(track.src)` + `decodeAudioData` loads the compact
- *    AAC-LC `.m4a` files over standard `200 OK` HTTP without needing byte-range
- *    headers.
- * 2. iOS WebKit requires audio to be unlocked synchronously inside the user
- *    tap gesture (`ensureContext()` + `setActive(true)` in `onClick`), and
- *    setting `navigator.audioSession.type = 'playback'` (iOS 17+) lets game
- *    music play even when the iPhone hardware Ring/Silent switch is on.
- * 3. Connects an `AnalyserNode` (`sampleOutputMetrics()` / `window.__yoloAudioMetrics`)
- *    so closed-loop tests can measure real-time decoded waveform RMS, peak,
- *    and active frequency bins during live browser playback (#232).
+ * Plays the background chiptune tracks and real-time `Tone.js`-style arcade
+ * sound effects — with smooth `GainNode` crossfading between tracks and
+ * between screens (`SELECTOR_PLAYLIST` <-> `TETRIS_PLAYLIST` <-> `PUZZLE_BOBBLE_PLAYLIST`,
+ * #217, #232, #234).
  */
 export class TetrisMusic {
-  private readonly onTrackChange?: (track: Track) => void;
-  private readonly playlist: ReadonlyArray<Track>;
+  private onTrackChange?: (track: Track) => void;
+  private playlist: ReadonlyArray<Track>;
   private ctx: AudioContext | null = null;
   private analyser: AnalyserNode | null = null;
-  private sourceNode: AudioBufferSourceNode | null = null;
+  private currentVoice: ActiveVoice | null = null;
+  private fadingVoices = new Set<ActiveVoice>();
   private bufferCache = new Map<string, AudioBuffer>();
   private pendingLoads = new Map<string, Promise<AudioBuffer | null>>();
   private audio: HTMLAudioElement | null = null;
   private active = false;
+  private sfxEnabled = false;
   private queue: Track[] = [];
   private currentTrack: Track | null = null;
   private lastTrackId: string | null = null;
   private startedAt = 0;
   private pauseOffset = 0;
   private playToken = 0;
+  private crossfadeCount = 0;
+  public readonly sfx: ArcadeSfx;
 
   constructor(onTrackChange?: (track: Track) => void, playlist: ReadonlyArray<Track> = PLAYLIST) {
     this.onTrackChange = onTrackChange;
     this.playlist = playlist;
+    this.sfx = new ArcadeSfx(() => ({
+      ctx: this.ctx,
+      output: this.analyser ?? this.ctx?.destination ?? null,
+      enabled: this.sfxEnabled,
+    }));
+  }
+
+  setTrackChangeListener(listener?: (track: Track) => void): void {
+    this.onTrackChange = listener;
+    if (this.currentTrack && listener) {
+      listener(this.currentTrack);
+    }
+  }
+
+  getCurrentTrack(): Track | null {
+    return this.currentTrack;
+  }
+
+  /**
+   * Switches the active playlist (e.g. Selector Screen <-> Tetris <-> Puzzle Bobble).
+   * If a track from the previous playlist is currently playing, crossfades
+   * smoothly (`CROSSFADE_SEC = 1.2s`) into a track from the new playlist (#234).
+   */
+  setPlaylist(nextPlaylist: ReadonlyArray<Track>): void {
+    if (this.playlist === nextPlaylist) return;
+    this.playlist = nextPlaylist;
+    this.queue = [];
+    this.pauseOffset = 0;
+    const inNewPlaylist = this.currentTrack
+      ? nextPlaylist.some((t) => t.id === this.currentTrack?.id)
+      : false;
+    if (!inNewPlaylist && (this.ctx || this.audio)) {
+      this.advance(this.active && this.currentVoice !== null);
+    }
   }
 
   /**
@@ -103,7 +140,7 @@ export class TetrisMusic {
         }
 
         if (!this.currentTrack) {
-          this.advance();
+          this.advance(false);
         }
         return true;
       } catch {
@@ -116,21 +153,26 @@ export class TetrisMusic {
     if (!this.audio) {
       this.audio = new Audio();
       this.audio.preload = 'auto';
-      this.audio.addEventListener('ended', () => this.advance());
-      this.audio.addEventListener('error', () => this.advance());
-      this.advance();
+      this.audio.addEventListener('ended', () => this.advance(false));
+      this.audio.addEventListener('error', () => this.advance(false));
+      this.advance(false);
     }
     return true;
   }
 
   /**
    * Samples real-time audio output metrics from the live `AnalyserNode` and
-   * decoded `AudioBuffer` for closed-loop verification (#232).
+   * decoded `AudioBuffer` for closed-loop verification (#232, #234).
    */
   sampleOutputMetrics(): AudioOutputMetrics {
     const trackId = this.currentTrack?.id ?? null;
+    const trackTitle = this.currentTrack?.title ?? null;
     const cached = trackId ? this.bufferCache.get(trackId) : undefined;
     const durationSec = cached?.duration ?? 0;
+    const sfxLog =
+      typeof window !== 'undefined'
+        ? ((window as unknown as { __yoloSfxLog?: SfxEventName[] }).__yoloSfxLog ?? [])
+        : [];
 
     if (this.analyser) {
       const timeDomain = new Float32Array(this.analyser.fftSize);
@@ -150,14 +192,39 @@ export class TetrisMusic {
       for (let i = 0; i < freqBins.length; i += 1) {
         if (freqBins[i] > 16) activeBins += 1;
       }
-      return { rms, peak, activeBins, trackId, durationSec };
+      return {
+        rms,
+        peak,
+        activeBins,
+        trackId,
+        trackTitle,
+        durationSec,
+        crossfadeCount: this.crossfadeCount,
+        activeFadingNodes: this.fadingVoices.size,
+        sfxLog,
+      };
     }
 
-    return { rms: 0, peak: 0, activeBins: 0, trackId, durationSec };
+    return {
+      rms: 0,
+      peak: 0,
+      activeBins: 0,
+      trackId,
+      trackTitle,
+      durationSec,
+      crossfadeCount: this.crossfadeCount,
+      activeFadingNodes: this.fadingVoices.size,
+      sfxLog,
+    };
+  }
+
+  setSfxEnabled(enabled: boolean): void {
+    this.sfxEnabled = enabled;
   }
 
   /** Start or stop playback. Safe to call both in `onClick` and `useEffect`. */
   setActive(active: boolean): void {
+    this.sfxEnabled = active;
     if (this.active === active) {
       if (active && this.ctx && this.ctx.state !== 'running') {
         void this.ctx.resume().catch(() => undefined);
@@ -168,20 +235,20 @@ export class TetrisMusic {
 
     if (this.ctx) {
       if (!active) {
-        if (this.sourceNode) {
+        if (this.currentVoice) {
           this.pauseOffset += Math.max(0, this.ctx.currentTime - this.startedAt);
         }
         this.playToken += 1;
-        this.stopSourceNode();
+        this.stopAllVoices();
         return;
       }
       if (this.ctx.state !== 'running') {
         void this.ctx.resume().catch(() => undefined);
       }
-      if (!this.currentTrack) {
-        this.advance();
+      if (!this.currentTrack || !this.playlist.some((t) => t.id === this.currentTrack?.id)) {
+        this.advance(false);
       } else {
-        void this.playDecodedTrack(this.currentTrack, this.pauseOffset);
+        void this.playDecodedTrack(this.currentTrack, this.pauseOffset, false);
       }
       return;
     }
@@ -196,8 +263,9 @@ export class TetrisMusic {
 
   dispose(): void {
     this.active = false;
+    this.sfxEnabled = false;
     this.playToken += 1;
-    this.stopSourceNode();
+    this.stopAllVoices();
     if (this.analyser) {
       try {
         this.analyser.disconnect();
@@ -224,16 +292,63 @@ export class TetrisMusic {
     this.pauseOffset = 0;
   }
 
-  private stopSourceNode(): void {
-    if (!this.sourceNode) return;
+  private stopVoiceImmediate(voice: ActiveVoice | null): void {
+    if (!voice) return;
+    if (voice.crossfadeTimer !== null) {
+      clearTimeout(voice.crossfadeTimer);
+      voice.crossfadeTimer = null;
+    }
     try {
-      this.sourceNode.onended = null;
-      this.sourceNode.stop();
-      this.sourceNode.disconnect();
+      voice.source.onended = null;
+      voice.source.stop();
+      voice.source.disconnect();
     } catch {
       // Node may already have stopped.
     }
-    this.sourceNode = null;
+    if (voice.gain) {
+      try {
+        voice.gain.disconnect();
+      } catch {
+        // Ignore.
+      }
+    }
+  }
+
+  private stopAllVoices(): void {
+    this.stopVoiceImmediate(this.currentVoice);
+    this.currentVoice = null;
+    for (const v of this.fadingVoices) {
+      this.stopVoiceImmediate(v);
+    }
+    this.fadingVoices.clear();
+  }
+
+  private fadeOutVoice(voice: ActiveVoice, fadeSec = CROSSFADE_SEC): void {
+    if (voice.crossfadeTimer !== null) {
+      clearTimeout(voice.crossfadeTimer);
+      voice.crossfadeTimer = null;
+    }
+    voice.source.onended = null;
+
+    if (!this.ctx || !voice.gain || typeof voice.gain.gain?.linearRampToValueAtTime !== 'function') {
+      this.stopVoiceImmediate(voice);
+      return;
+    }
+
+    try {
+      const now = this.ctx.currentTime || 0;
+      const currentVal = typeof voice.gain.gain.value === 'number' ? voice.gain.gain.value : 1;
+      voice.gain.gain.setValueAtTime(Math.max(0.0001, currentVal), now);
+      voice.gain.gain.linearRampToValueAtTime(0.0001, now + fadeSec);
+      this.fadingVoices.add(voice);
+      this.crossfadeCount += 1;
+      setTimeout(() => {
+        this.fadingVoices.delete(voice);
+        this.stopVoiceImmediate(voice);
+      }, Math.round((fadeSec + 0.05) * 1000));
+    } catch {
+      this.stopVoiceImmediate(voice);
+    }
   }
 
   private loadBuffer(track: Track): Promise<AudioBuffer | null> {
@@ -263,13 +378,26 @@ export class TetrisMusic {
     return task;
   }
 
-  private async playDecodedTrack(track: Track, offsetSec: number): Promise<void> {
+  private async playDecodedTrack(
+    track: Track,
+    offsetSec: number,
+    crossfade: boolean,
+  ): Promise<void> {
     this.playToken += 1;
     const token = this.playToken;
-    this.stopSourceNode();
 
     const buffer = await this.loadBuffer(track);
     if (!buffer || !this.active || !this.ctx || token !== this.playToken) return;
+
+    if (this.currentVoice) {
+      if (crossfade) {
+        this.fadeOutVoice(this.currentVoice, CROSSFADE_SEC);
+        this.currentVoice = null;
+      } else {
+        this.stopVoiceImmediate(this.currentVoice);
+        this.currentVoice = null;
+      }
+    }
 
     if (this.ctx.state !== 'running') {
       void this.ctx.resume().catch(() => undefined);
@@ -277,27 +405,60 @@ export class TetrisMusic {
 
     const source = this.ctx.createBufferSource();
     source.buffer = buffer;
-    source.connect(this.analyser ?? this.ctx.destination);
+
+    let gainNode: GainNode | null = null;
+    const dest = this.analyser ?? this.ctx.destination;
+    if (typeof this.ctx.createGain === 'function') {
+      gainNode = this.ctx.createGain();
+      const now = this.ctx.currentTime || 0;
+      if (crossfade && typeof gainNode.gain?.setValueAtTime === 'function') {
+        gainNode.gain.setValueAtTime(0.0001, now);
+        if (typeof gainNode.gain.linearRampToValueAtTime === 'function') {
+          gainNode.gain.linearRampToValueAtTime(1.0, now + CROSSFADE_SEC);
+        }
+      } else if (typeof gainNode.gain?.setValueAtTime === 'function') {
+        gainNode.gain.setValueAtTime(1.0, now);
+      }
+      source.connect(gainNode);
+      gainNode.connect(dest);
+    } else {
+      source.connect(dest);
+    }
+
     const safeOffset = offsetSec > 0 && offsetSec < buffer.duration ? offsetSec : 0;
     this.pauseOffset = safeOffset;
     this.startedAt = this.ctx.currentTime;
-    this.sourceNode = source;
+
+    const voice: ActiveVoice = { source, gain: gainNode, crossfadeTimer: null };
+    this.currentVoice = voice;
+
+    // Schedule seamless crossfade into the next track before this buffer ends.
+    const remainingSec = buffer.duration - safeOffset;
+    if (remainingSec > CROSSFADE_SEC * 2.5) {
+      voice.crossfadeTimer = setTimeout(() => {
+        if (this.playToken === token && this.active && this.currentVoice === voice) {
+          this.pauseOffset = 0;
+          this.advance(true);
+        }
+      }, Math.round((remainingSec - CROSSFADE_SEC) * 1000));
+    }
+
     source.onended = () => {
-      if (this.playToken === token && this.active) {
-        this.sourceNode = null;
+      if (this.playToken === token && this.active && this.currentVoice === voice) {
+        this.currentVoice = null;
         this.pauseOffset = 0;
-        this.advance();
+        this.advance(false);
       }
     };
     try {
       source.start(0, safeOffset);
     } catch {
-      this.sourceNode = null;
+      this.currentVoice = null;
     }
   }
 
   /** Move to the next queued track, reshuffling and avoiding an immediate repeat. */
-  private advance(): void {
+  public advance(crossfade = true): void {
     if (this.queue.length === 0) {
       this.queue = shuffledTracks(Math.random, this.playlist);
       if (this.queue.length > 1 && this.queue[0].id === this.lastTrackId) {
@@ -317,7 +478,7 @@ export class TetrisMusic {
 
     if (this.ctx) {
       if (this.active) {
-        void this.playDecodedTrack(next, 0);
+        void this.playDecodedTrack(next, 0, crossfade && this.currentVoice !== null);
       } else {
         // Preload the first track buffer in the background so playback starts
         // instantaneously as soon as setActive(true) is called.
@@ -330,4 +491,50 @@ export class TetrisMusic {
     this.audio.src = next.src;
     if (this.active) void this.audio.play().catch(() => undefined);
   }
+}
+
+/**
+ * Shared singleton audio controller so the global YouTube-style sound button
+ * in `App.tsx` can drive music crossfades and real-time SFX across the
+ * Selector Screen, Tetris, and Puzzle Bobble (#234).
+ */
+let sharedController: TetrisMusic | null = null;
+let sharedMusicOn = false;
+const stateListeners = new Set<(musicOn: boolean, nowPlaying: string | null) => void>();
+
+export function getSharedArcadeAudio(): TetrisMusic {
+  if (!sharedController) {
+    sharedController = new TetrisMusic((track) => {
+      for (const listener of stateListeners) {
+        listener(sharedMusicOn, track.title);
+      }
+    });
+  }
+  return sharedController;
+}
+
+export function getSharedMusicOn(): boolean {
+  return sharedMusicOn;
+}
+
+export function setSharedMusicOn(next: boolean, activePlayable = true): boolean {
+  const audio = getSharedArcadeAudio();
+  if (next && !audio.ensureContext()) return false;
+  sharedMusicOn = next;
+  audio.setActive(next && activePlayable);
+  audio.setSfxEnabled(next);
+  const title = audio.getCurrentTrack()?.title ?? null;
+  for (const listener of stateListeners) {
+    listener(sharedMusicOn, title);
+  }
+  return true;
+}
+
+export function subscribeSharedAudio(
+  listener: (musicOn: boolean, nowPlaying: string | null) => void,
+): () => void {
+  stateListeners.add(listener);
+  return () => {
+    stateListeners.delete(listener);
+  };
 }
