@@ -145,11 +145,22 @@ test('Tetris: board renders, music toggles with a stable track label, scenes cyc
   await expect(page.getByText(/Scene 1\/\d+:/)).toBeVisible();
   await snap('09-tetris-board');
 
-  // Music on: the track label appears and must not spin (the #67 CSP regression).
+  // Music on: the track label appears and must not spin (the #67 CSP regression),
+  // and closed-loop Web Audio AnalyserNode confirms a full-length (~2-min) Tetris track is actively playing (#232).
   await page.getByRole('button', { name: /Music off/ }).click();
   const sceneLine = page.locator('.tetris-scene');
-  await expect(sceneLine).toContainText('Music:');
+  await expect(sceneLine).toContainText(/Music: (?:Korobeiniki|Kalinka & Troika|Baroque Invention)/);
   const first = await sceneLine.textContent();
+  await expect
+    .poll(async () =>
+      page.evaluate(() => {
+        const fn = (window as unknown as { __yoloAudioMetrics?: () => { durationSec: number; rms: number } })
+          .__yoloAudioMetrics;
+        const m = fn ? fn() : { durationSec: 0, rms: 0 };
+        return m.durationSec >= 105 && m.rms > 0.005;
+      }),
+    )
+    .toBe(true);
   await page.waitForTimeout(3000);
   expect(await sceneLine.textContent()).toBe(first);
   await snap('10-tetris-music');

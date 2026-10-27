@@ -1,6 +1,14 @@
-import { shuffledTracks, type Track } from '../../shared/tetrisMusic';
+import { PLAYLIST, shuffledTracks, type Track } from '../../shared/tetrisMusic';
 
 type AudioContextConstructor = typeof AudioContext;
+
+export interface AudioOutputMetrics {
+  rms: number;
+  peak: number;
+  activeBins: number;
+  trackId: string | null;
+  durationSec: number;
+}
 
 function getAudioContextConstructor(): AudioContextConstructor | null {
   if (typeof window === 'undefined') return null;
@@ -16,7 +24,7 @@ function getAudioContextConstructor(): AudioContextConstructor | null {
  * track after another, so the music keeps varying across a session.
  *
  * Why Web Audio API (`AudioContext` + `fetch` + `decodeAudioData`) is primary
- * (#217):
+ * (#217, #232):
  * 1. On iOS Safari and iOS Chrome (both WebKit), `HTMLAudioElement` uses
  *    CoreMedia's HTTP streamer, which requires HTTP `206 Partial Content`
  *    byte-range responses and fails when a static Worker origin serves `.m4a`
@@ -27,10 +35,15 @@ function getAudioContextConstructor(): AudioContextConstructor | null {
  *    tap gesture (`ensureContext()` + `setActive(true)` in `onClick`), and
  *    setting `navigator.audioSession.type = 'playback'` (iOS 17+) lets game
  *    music play even when the iPhone hardware Ring/Silent switch is on.
+ * 3. Connects an `AnalyserNode` (`sampleOutputMetrics()` / `window.__yoloAudioMetrics`)
+ *    so closed-loop tests can measure real-time decoded waveform RMS, peak,
+ *    and active frequency bins during live browser playback (#232).
  */
 export class TetrisMusic {
   private readonly onTrackChange?: (track: Track) => void;
+  private readonly playlist: ReadonlyArray<Track>;
   private ctx: AudioContext | null = null;
+  private analyser: AnalyserNode | null = null;
   private sourceNode: AudioBufferSourceNode | null = null;
   private bufferCache = new Map<string, AudioBuffer>();
   private pendingLoads = new Map<string, Promise<AudioBuffer | null>>();
@@ -43,8 +56,9 @@ export class TetrisMusic {
   private pauseOffset = 0;
   private playToken = 0;
 
-  constructor(onTrackChange?: (track: Track) => void) {
+  constructor(onTrackChange?: (track: Track) => void, playlist: ReadonlyArray<Track> = PLAYLIST) {
     this.onTrackChange = onTrackChange;
+    this.playlist = playlist;
   }
 
   /**
@@ -66,6 +80,11 @@ export class TetrisMusic {
       try {
         if (!this.ctx) {
           this.ctx = new AudioCtx();
+          if (typeof this.ctx.createAnalyser === 'function') {
+            this.analyser = this.ctx.createAnalyser();
+            this.analyser.fftSize = 1024;
+            this.analyser.connect(this.ctx.destination);
+          }
         }
         if (this.ctx.state !== 'running') {
           void this.ctx.resume().catch(() => undefined);
@@ -78,12 +97,18 @@ export class TetrisMusic {
         unlockNode.connect(this.ctx.destination);
         unlockNode.start(0);
 
+        if (typeof window !== 'undefined') {
+          (window as unknown as { __yoloAudioMetrics?: () => AudioOutputMetrics }).__yoloAudioMetrics =
+            () => this.sampleOutputMetrics();
+        }
+
         if (!this.currentTrack) {
           this.advance();
         }
         return true;
       } catch {
         this.ctx = null;
+        this.analyser = null;
       }
     }
 
@@ -96,6 +121,39 @@ export class TetrisMusic {
       this.advance();
     }
     return true;
+  }
+
+  /**
+   * Samples real-time audio output metrics from the live `AnalyserNode` and
+   * decoded `AudioBuffer` for closed-loop verification (#232).
+   */
+  sampleOutputMetrics(): AudioOutputMetrics {
+    const trackId = this.currentTrack?.id ?? null;
+    const cached = trackId ? this.bufferCache.get(trackId) : undefined;
+    const durationSec = cached?.duration ?? 0;
+
+    if (this.analyser) {
+      const timeDomain = new Float32Array(this.analyser.fftSize);
+      this.analyser.getFloatTimeDomainData(timeDomain);
+      let sumSq = 0;
+      let peak = 0;
+      for (let i = 0; i < timeDomain.length; i += 1) {
+        const v = Math.abs(timeDomain[i]);
+        sumSq += v * v;
+        if (v > peak) peak = v;
+      }
+      const rms = Math.sqrt(sumSq / timeDomain.length);
+
+      const freqBins = new Uint8Array(this.analyser.frequencyBinCount);
+      this.analyser.getByteFrequencyData(freqBins);
+      let activeBins = 0;
+      for (let i = 0; i < freqBins.length; i += 1) {
+        if (freqBins[i] > 16) activeBins += 1;
+      }
+      return { rms, peak, activeBins, trackId, durationSec };
+    }
+
+    return { rms: 0, peak: 0, activeBins: 0, trackId, durationSec };
   }
 
   /** Start or stop playback. Safe to call both in `onClick` and `useEffect`. */
@@ -140,6 +198,14 @@ export class TetrisMusic {
     this.active = false;
     this.playToken += 1;
     this.stopSourceNode();
+    if (this.analyser) {
+      try {
+        this.analyser.disconnect();
+      } catch {
+        // Ignore if already disconnected.
+      }
+      this.analyser = null;
+    }
     if (this.ctx) {
       void this.ctx.close().catch(() => undefined);
       this.ctx = null;
@@ -211,7 +277,7 @@ export class TetrisMusic {
 
     const source = this.ctx.createBufferSource();
     source.buffer = buffer;
-    source.connect(this.ctx.destination);
+    source.connect(this.analyser ?? this.ctx.destination);
     const safeOffset = offsetSec > 0 && offsetSec < buffer.duration ? offsetSec : 0;
     this.pauseOffset = safeOffset;
     this.startedAt = this.ctx.currentTime;
@@ -233,7 +299,7 @@ export class TetrisMusic {
   /** Move to the next queued track, reshuffling and avoiding an immediate repeat. */
   private advance(): void {
     if (this.queue.length === 0) {
-      this.queue = shuffledTracks();
+      this.queue = shuffledTracks(Math.random, this.playlist);
       if (this.queue.length > 1 && this.queue[0].id === this.lastTrackId) {
         const distinct = this.queue.findIndex((track) => track.id !== this.lastTrackId);
         if (distinct > 0) {
