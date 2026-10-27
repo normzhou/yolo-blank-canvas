@@ -1,0 +1,63 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-27",
+  "observed_at": "2026-10-27",
+  "published_at_utc": "2026-10-27T18:50:00Z",
+  "protocol": {
+    "revision": "da644964ca92eef8448cd782cf6805c724ca2e74",
+    "release": "v0.1.0-alpha.33"
+  },
+  "releases": [
+    {
+      "tag": "v0.20.0",
+      "commit": "cefbdd63d3674397aa44e2c90006476eacb82a9d"
+    }
+  ],
+  "release": {
+    "tag": "v0.20.0",
+    "tag_object": "691bb8a6d5569b655363c92673a10a38a0920931",
+    "release_commit": "cefbdd63d3674397aa44e2c90006476eacb82a9d",
+    "source_commit": "aeb69f1660a91305c843dc4c2fd3528ce741690e",
+    "assets_commit": "6c3c6753462d97c87cd96a4604c6bd941afdffbf",
+    "semver": "minor",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record aeb69f1, the source revision. The committed assets were built at that source in 6c3c675. cefbdd6 is a release-metadata commit (version and install references, no source changes) after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "161 passed across 23 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID aeb69f1" },
+    { "check": "npm run e2e (stubbed, deterministic)", "result": "pass", "detail": "44 passed (39.8s), including 2-browser-session 2P Online Puzzle Bobble and Tetris" },
+    { "check": "cd hosting/cloudflare && npm run check", "result": "pass", "detail": "wrangler deploy --dry-run (28 static assets, APP_VERSION=v0.20.0)" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #241 completed success" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "installed_from": "npx --yes github:normzhou/yolo-blank-canvas#v0.20.0 --no-open --port 4886",
+    "installed_into": "an empty directory, no source checkout present",
+    "served_build": "aeb69f1660a91305c843dc4c2fd3528ce741690e",
+    "served_version": {
+      "package": "0.20.0",
+      "serverBuild": "aeb69f1660a91305c843dc4c2fd3528ce741690e",
+      "clientBuild": "aeb69f1660a91305c843dc4c2fd3528ce741690e"
+    },
+    "command": "YOLO_VERIFY_URL=http://127.0.0.1:4886 npm run e2e:verify-release",
+    "result": "pass",
+    "detail": "11 of 11 passed."
+  },
+  "what_this_release_delivers": [
+    "#236 2-player online networking for Tetris and Puzzle Bobble with presence pill, corner invite toast, Versus garbage rules, and Opponent Mini-Radar"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "Acceptance on the delivered artifact is eleven targeted read-only checks. The 161 unit tests and 44 stubbed e2e tests ran against the source revision, not the installed artifact.",
+    "The tag points at cefbdd6, a release-metadata commit after the assets commit 6c3c675, not at the assets commit itself. Both build-ID files still record the source aeb69f1, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #236"
+}
