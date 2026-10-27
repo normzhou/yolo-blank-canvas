@@ -6,7 +6,11 @@ import {
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
-import { TetrisMusic } from '../audio/tetrisMusic';
+import {
+  getSharedArcadeAudio,
+  getSharedMusicOn,
+  subscribeSharedAudio,
+} from '../audio/tetrisMusic';
 import { PUZZLE_BOBBLE_PLAYLIST } from '../../shared/tetrisMusic';
 import { BACKGROUNDS, nextBackgroundIndex } from '../../shared/tetrisBackgrounds';
 import {
@@ -1548,22 +1552,29 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
   const [characters, setCharacters] = useState<[CharacterId, CharacterId]>(['dragon', 'dragon']);
   const [stagePreset, setStagePreset] = useState<number>(0); // 0 = random wave, 1..5 = classic Taito stages
   const [paused, setPaused] = useState(false);
-  const [musicOn, setMusicOn] = useState(false);
+  const [musicOn, setMusicOn] = useState<boolean>(() => getSharedMusicOn());
   const [backgroundIndex, setBackgroundIndex] = useState(1);
-  const [nowPlaying, setNowPlaying] = useState<string | null>(null);
-
-  const musicRef = useRef<TetrisMusic | null>(null);
-  if (musicRef.current === null) {
-    musicRef.current = new TetrisMusic(
-      (track) => setNowPlaying(track.title),
-      PUZZLE_BOBBLE_PLAYLIST,
-    );
-  }
+  const [nowPlaying, setNowPlaying] = useState<string | null>(
+    () => getSharedArcadeAudio().getCurrentTrack()?.title ?? null,
+  );
 
   const matchRef = useRef(match);
   matchRef.current = match;
   const heldAimKeysRef = useRef<Map<string, number>>(new Map());
   const gameSectionRef = useRef<HTMLElement>(null);
+  const prevShotsRef = useRef<[number, number]>([0, 0]);
+  const prevEventIdsRef = useRef<[number, number]>([0, 0]);
+  const prevMatchStatusRef = useRef(match.status);
+
+  useEffect(() => {
+    const audio = getSharedArcadeAudio();
+    audio.setPlaylist(PUZZLE_BOBBLE_PLAYLIST);
+    setNowPlaying(audio.getCurrentTrack()?.title ?? null);
+    return subscribeSharedAudio((nextOn, nextTitle) => {
+      setMusicOn(nextOn);
+      setNowPlaying(nextTitle);
+    });
+  }, []);
 
   // #217: Prevent browser viewport scroll or rubber-banding when dragging
   // anywhere on the full-screen game stage on iOS Safari / Chrome.
@@ -1579,10 +1590,42 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
 
   // Audio playback follows active match state.
   useEffect(() => {
-    musicRef.current?.setActive(musicOn && match.status === 'playing' && !paused);
+    getSharedArcadeAudio().setActive(musicOn && match.status === 'playing' && !paused);
   }, [musicOn, paused, match.status]);
 
-  useEffect(() => () => musicRef.current?.dispose(), []);
+  // #234: Trigger real-time Tone.js-style SFX when players shoot bubbles, pop
+  // clusters, send/receive rising attack bubbles, or finish a round.
+  useEffect(() => {
+    const sfx = getSharedArcadeAudio().sfx;
+    match.players.forEach((p, idx) => {
+      const i = idx as 0 | 1;
+      if (p.shotsFired > prevShotsRef.current[i]) {
+        sfx.playBubbleShoot();
+      }
+      prevShotsRef.current[i] = p.shotsFired;
+
+      const ev = p.lastEvent;
+      if (ev && ev.id !== prevEventIdsRef.current[i]) {
+        prevEventIdsRef.current[i] = ev.id;
+        if (ev.popped.length > 0) {
+          sfx.playBubblePop(ev.popped.length, ev.dropped.length);
+        }
+        if (ev.sentGarbage > 0) {
+          sfx.playGarbageSend(ev.sentGarbage);
+        }
+        if (ev.risenGarbage.length > 0) {
+          sfx.playGarbageRise(ev.risenGarbage.length);
+        }
+      } else if (!ev) {
+        prevEventIdsRef.current[i] = 0;
+      }
+    });
+
+    if (match.status === 'round_over' && prevMatchStatusRef.current === 'playing') {
+      sfx.playRoundEnd(match.winner !== null);
+    }
+    prevMatchStatusRef.current = match.status;
+  }, [match]);
 
   // Advance flying bubbles and the 10s HURRY UP! shot clock at ~60fps.
   useEffect(() => {
@@ -1904,7 +1947,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
           ) : null}
           <p className="tetris-scene" aria-live="polite">
             Scene {backgroundIndex + 1}/{BACKGROUNDS.length}: {art.title}
-            {nowPlaying ? ` · Music: ${nowPlaying}` : ''}
+            {musicOn && nowPlaying ? ` · Music: ${nowPlaying}` : ''}
           </p>
         </div>
         <div className="row">
@@ -1967,20 +2010,6 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
               ›
             </button>
           </div>
-          <button
-            type="button"
-            aria-pressed={musicOn}
-            onClick={() => {
-              const next = !musicOn;
-              if (next && !(musicRef.current?.ensureContext() ?? false)) return;
-              // #217: Start or stop synchronously inside the user tap gesture
-              // so iOS Safari / Chrome WebKit allows audio playback.
-              musicRef.current?.setActive(next && match.status === 'playing' && !paused);
-              setMusicOn(next);
-            }}
-          >
-            Music {musicOn ? 'on' : 'off'}
-          </button>
           <button
             type="button"
             onClick={() => setPaused((value) => !value)}

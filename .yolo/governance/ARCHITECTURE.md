@@ -115,7 +115,7 @@ The durable observable contracts, verified by the test suite:
 | Canvas app registry and addressable `?app=` locations | `src/client/apps/registry.ts`, `src/client/route.ts` | `test/apps.test.ts`, `test/route.test.ts`, `e2e/canvas-gallery.spec.ts` |
 | Tetris rules and board state (local to the view, not a GitHub record) | `src/shared/tetris.ts` | `test/tetris.test.ts` |
 | Puzzle Bobble (Bust-A-Move) hex-grid, 2P versus rules, selectable cute characters and win/lose animations (local to the view, not a GitHub record) | `src/shared/puzzleBobble.ts`, `src/client/views/PuzzleBobbleView.tsx` | `test/puzzle-bobble.test.ts`, `e2e/puzzle-bobble.spec.ts` |
-| Tetris track list and shuffled bundled-asset playlist | `src/shared/tetrisMusic.ts` | `test/tetris-music.test.ts` |
+| Tetris track list, selector/Puzzle Bobble playlists, crossfading, and Tone.js-style FMSynth/PolySynth/MembraneSynth SFX | `src/shared/tetrisMusic.ts`, `src/client/audio/tetrisMusic.ts`, `src/client/audio/toneSynth.ts` | `test/tetris-music.test.ts`, `e2e/deterministic.spec.ts`, `e2e/puzzle-bobble.spec.ts` |
 | Tetris backdrop scenes (bundled sourced art) and the four-line cycle | `src/shared/tetrisBackgrounds.ts` | `test/tetris-backgrounds.test.ts` |
 
 The app also presents the shared YOLO request-to-result vocabulary, and its behavior is

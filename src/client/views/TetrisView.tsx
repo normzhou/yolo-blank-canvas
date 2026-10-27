@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
-import { TetrisMusic } from '../audio/tetrisMusic';
+import {
+  getSharedArcadeAudio,
+  getSharedMusicOn,
+  subscribeSharedAudio,
+} from '../audio/tetrisMusic';
+import { TETRIS_PLAYLIST } from '../../shared/tetrisMusic';
 import {
   BACKGROUNDS,
   nextBackgroundIndex,
@@ -121,17 +126,27 @@ function NextPreview({ type }: { type: Tetromino }) {
 export function TetrisView({ onExit }: { onExit: () => void }) {
   const [game, setGame] = useState<TetrisState>(() => createGame());
   const [paused, setPaused] = useState(false);
-  const [musicOn, setMusicOn] = useState(false);
+  const [musicOn, setMusicOn] = useState<boolean>(() => getSharedMusicOn());
   const [backgroundIndex, setBackgroundIndex] = useState(0);
-  const [nowPlaying, setNowPlaying] = useState<string | null>(null);
-  const musicRef = useRef<TetrisMusic | null>(null);
-  if (musicRef.current === null) {
-    musicRef.current = new TetrisMusic((track) => setNowPlaying(track.title));
-  }
+  const [nowPlaying, setNowPlaying] = useState<string | null>(
+    () => getSharedArcadeAudio().getCurrentTrack()?.title ?? null,
+  );
   const gameRef = useRef(game);
   gameRef.current = game;
   const tetrisCountRef = useRef(game.tetrisCount);
+  const prevLinesRef = useRef(game.lines);
+  const prevStatusRef = useRef(game.status);
   const gameSectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const audio = getSharedArcadeAudio();
+    audio.setPlaylist(TETRIS_PLAYLIST);
+    setNowPlaying(audio.getCurrentTrack()?.title ?? null);
+    return subscribeSharedAudio((nextOn, nextTitle) => {
+      setMusicOn(nextOn);
+      setNowPlaying(nextTitle);
+    });
+  }, []);
 
   // #217: Prevent browser viewport scroll or rubber-banding when dragging
   // anywhere on the full-screen game stage on iOS Safari / Chrome.
@@ -154,24 +169,39 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     tetrisCountRef.current = game.tetrisCount;
   }, [game.tetrisCount]);
 
+  // #234: Trigger real-time Tone.js-style SFX on line clears, 4-line TETRIS, and Game Over.
+  useEffect(() => {
+    if (game.lines > prevLinesRef.current) {
+      const cleared = game.lines - prevLinesRef.current;
+      getSharedArcadeAudio().sfx.playLineClear(cleared);
+    }
+    prevLinesRef.current = game.lines;
+  }, [game.lines]);
+
+  useEffect(() => {
+    if (game.status === 'over' && prevStatusRef.current === 'playing') {
+      getSharedArcadeAudio().sfx.playGameOver();
+    }
+    prevStatusRef.current = game.status;
+  }, [game.status]);
+
   // Browser-driven test hook: a synthetic four-line clear, as the game would
   // record on a real one, so the cycle can be exercised without scripted
   // gameplay. Play rules are unchanged.
   useEffect(() => {
     function forceFourLineClear() {
+      getSharedArcadeAudio().sfx.playLineClear(4);
       setGame((current) => ({ ...current, tetrisCount: current.tetrisCount + 1 }));
     }
     window.addEventListener('yolo:tetris:four-line-clear', forceFourLineClear);
     return () => window.removeEventListener('yolo:tetris:four-line-clear', forceFourLineClear);
   }, []);
 
-  // Drive playback from game state. The audio context itself is created by the
-  // Music button click, because browsers require a user gesture to start audio.
+  // Drive playback from game state. The audio context itself is unlocked by the
+  // bottom-right YouTube-style speaker icon button.
   useEffect(() => {
-    musicRef.current?.setActive(musicOn && game.status === 'playing' && !paused);
+    getSharedArcadeAudio().setActive(musicOn && game.status === 'playing' && !paused);
   }, [musicOn, paused, game.status]);
-
-  useEffect(() => () => musicRef.current?.dispose(), []);
 
   // Gravity. Restarts when the level (speed) changes and stops when not playing.
   useEffect(() => {
@@ -205,11 +235,13 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
           break;
         case 'ArrowUp':
           event.preventDefault();
+          getSharedArcadeAudio().sfx.playRotate();
           setGame((current) => rotate(current, 1));
           break;
         case ' ':
         case 'Spacebar':
           event.preventDefault();
+          getSharedArcadeAudio().sfx.playHardDrop();
           setGame((current) => hardDrop(current));
           break;
         default:
@@ -296,8 +328,10 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     const totalDx = event.clientX - g.startX;
     const totalDy = event.clientY - g.startY;
     if (totalDy >= 44 && Math.abs(totalDy) > Math.abs(totalDx) * 1.3) {
+      getSharedArcadeAudio().sfx.playHardDrop();
       setGame((current) => hardDrop(current));
     } else if (!g.moved && Math.hypot(totalDx, totalDy) < 12) {
+      getSharedArcadeAudio().sfx.playRotate();
       setGame((current) => rotate(current, 1));
     }
   };
@@ -327,25 +361,11 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
           {BACKGROUNDS.length > 1 ? (
             <p className="tetris-scene" aria-live="polite">
               Scene {backgroundIndex + 1}/{BACKGROUNDS.length}: {BACKGROUNDS[backgroundIndex].title}
-              {nowPlaying ? ` · Music: ${nowPlaying}` : ''}
+              {musicOn && nowPlaying ? ` · Music: ${nowPlaying}` : ''}
             </p>
           ) : null}
         </div>
         <div className="row">
-          <button
-            type="button"
-            aria-pressed={musicOn}
-            onClick={() => {
-              const next = !musicOn;
-              if (next && !(musicRef.current?.ensureContext() ?? false)) return; // no Web Audio available
-              // #217: Start or stop synchronously inside the user tap gesture
-              // so iOS Safari / Chrome WebKit allows audio playback.
-              musicRef.current?.setActive(next && game.status === 'playing' && !paused);
-              setMusicOn(next);
-            }}
-          >
-            Music {musicOn ? 'on' : 'off'}
-          </button>
           <button type="button" onClick={() => setPaused((value) => !value)} disabled={game.status !== 'playing'}>
             {paused ? 'Resume' : 'Pause'}
           </button>
@@ -472,10 +492,14 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
           disabled={paused || game.status !== 'playing'}
           onPointerDown={(event) => {
             event.preventDefault();
+            getSharedArcadeAudio().sfx.playRotate();
             setGame((current) => rotate(current, 1));
           }}
           onClick={(event) => {
-            if (event.detail === 0) setGame((current) => rotate(current, 1));
+            if (event.detail === 0) {
+              getSharedArcadeAudio().sfx.playRotate();
+              setGame((current) => rotate(current, 1));
+            }
           }}
         >
           ↻ ROTATE
@@ -488,10 +512,14 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
           disabled={paused || game.status !== 'playing'}
           onPointerDown={(event) => {
             event.preventDefault();
+            getSharedArcadeAudio().sfx.playHardDrop();
             setGame((current) => hardDrop(current));
           }}
           onClick={(event) => {
-            if (event.detail === 0) setGame((current) => hardDrop(current));
+            if (event.detail === 0) {
+              getSharedArcadeAudio().sfx.playHardDrop();
+              setGame((current) => hardDrop(current));
+            }
           }}
         >
           ⤓ DROP

@@ -149,7 +149,9 @@ test('Tetris: board renders, music toggles with a stable track label, scenes cyc
   // and closed-loop Web Audio AnalyserNode confirms a full-length (~2-min) Tetris track is actively playing (#232).
   await page.getByRole('button', { name: /Music off/ }).click();
   const sceneLine = page.locator('.tetris-scene');
-  await expect(sceneLine).toContainText(/Music: (?:Korobeiniki|Kalinka & Troika|Baroque Invention)/);
+  await expect(sceneLine).toContainText(
+    /Music: (?:Korobeiniki|Kalinka & Troika|Baroque Invention|Technotris FM Drive|Cosmic Block Odyssey)/,
+  );
   const first = await sceneLine.textContent();
   await expect
     .poll(async () =>
@@ -165,13 +167,19 @@ test('Tetris: board renders, music toggles with a stable track label, scenes cyc
   expect(await sceneLine.textContent()).toBe(first);
   await snap('10-tetris-music');
 
-  // A four-line clear advances the scene; the same tune keeps playing (no repeat spin).
+  // A four-line clear advances the scene and triggers the 4-line TETRIS SFX fanfare (#234).
   await page.evaluate(() => window.dispatchEvent(new Event('yolo:tetris:four-line-clear')));
   await expect(sceneLine).toContainText('Scene 2/');
   await snap('11-tetris-next-scene');
 
-  // Keyboard: hard-drop works, Escape closes the view.
+  // Keyboard: hard-drop works (triggering tetris-drop SFX), Escape closes the view.
   await page.keyboard.press('Space');
+  const sfxLog = await page.evaluate(() => {
+    const fn = (window as unknown as { __yoloAudioMetrics?: () => { sfxLog: string[] } }).__yoloAudioMetrics;
+    return fn ? fn().sfxLog : [];
+  });
+  expect(sfxLog).toContain('tetris-four-line');
+  expect(sfxLog).toContain('tetris-drop');
   await page.keyboard.press('Escape');
   await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toHaveCount(0);
   expectClean(errors);
