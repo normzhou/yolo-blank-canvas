@@ -6,6 +6,12 @@ import {
   setSharedMusicOn,
   subscribeSharedAudio,
 } from './audio/tetrisMusic';
+import {
+  getSharedGamePaused,
+  setSharedGamePaused,
+  subscribeSharedGamePause,
+  toggleSharedGamePaused,
+} from './gamePause';
 import { animateYoloMark } from './brand/yoloMark';
 import { useFullscreen } from './fullscreen';
 import { Panel, type PanelView } from './components/Panel';
@@ -77,12 +83,17 @@ function composerFor(
 }
 
 /**
- * Rich miniature vector preview for each game on the home slide deck (#196).
+ * Rich miniature vector preview for each game on the home slide deck (#196, #240),
+ * with a delayed fade-in animated gameplay loop showing the game being played.
  */
 function DeckPreviewGraphic({ appId }: { appId: string }) {
   if (appId === 'tetris') {
     return (
-      <div className="deck-preview-stage">
+      <div
+        className="deck-preview-stage is-live-preview"
+        data-testid="deck-live-preview"
+        data-preview-game="tetris"
+      >
         <img className="deck-preview-bg" src={BACKGROUNDS[0].src} alt="" aria-hidden="true" />
         <svg
           className="deck-preview-svg"
@@ -100,19 +111,24 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
             stroke="var(--border)"
             strokeWidth="1.5"
           />
-          {/* Active falling T-piece */}
-          <g fill="var(--tetromino-t)" stroke="var(--text)" strokeWidth="1">
-            <rect x="98" y="28" width="12" height="12" rx="2" />
-            <rect x="86" y="40" width="12" height="12" rx="2" />
-            <rect x="98" y="40" width="12" height="12" rx="2" />
-            <rect x="110" y="40" width="12" height="12" rx="2" />
-          </g>
           {/* Dashed ghost landing piece */}
           <g fill="none" stroke="var(--muted)" strokeWidth="1.2" strokeDasharray="3 2">
             <rect x="98" y="108" width="12" height="12" rx="2" />
             <rect x="86" y="120" width="12" height="12" rx="2" />
             <rect x="98" y="120" width="12" height="12" rx="2" />
             <rect x="110" y="120" width="12" height="12" rx="2" />
+          </g>
+          {/* Animated falling T-piece (delayed fade-in gameplay preview #240) */}
+          <g
+            className="deck-tetris-falling-piece"
+            fill="var(--tetromino-t)"
+            stroke="var(--text)"
+            strokeWidth="1"
+          >
+            <rect x="98" y="28" width="12" height="12" rx="2" />
+            <rect x="86" y="40" width="12" height="12" rx="2" />
+            <rect x="98" y="40" width="12" height="12" rx="2" />
+            <rect x="110" y="40" width="12" height="12" rx="2" />
           </g>
           {/* Settled bottom stack (I, L, S, O, J blocks) */}
           <g stroke="var(--text)" strokeWidth="1">
@@ -133,6 +149,16 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
             <rect x="62" y="128" width="12" height="12" rx="2" fill="var(--tetromino-s)" />
             <rect x="74" y="128" width="12" height="12" rx="2" fill="var(--tetromino-s)" />
           </g>
+          {/* Line-clear pulse highlight */}
+          <rect
+            className="deck-tetris-line-flash"
+            x="48"
+            y="151"
+            width="124"
+            height="14"
+            rx="2"
+            fill="var(--tetromino-o)"
+          />
         </svg>
         <div className="deck-preview-hud">
           <span>10×20 Matrix</span>
@@ -143,7 +169,11 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
   }
 
   return (
-    <div className="deck-preview-stage">
+    <div
+      className="deck-preview-stage is-live-preview"
+      data-testid="deck-live-preview"
+      data-preview-game="puzzle-bobble"
+    >
       <img className="deck-preview-bg" src={BACKGROUNDS[1].src} alt="" aria-hidden="true" />
       <svg
         className="deck-preview-svg"
@@ -202,9 +232,30 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
           strokeWidth="1.8"
           strokeDasharray="4 3"
         />
-        {/* Launcher gear & pointer */}
+        {/* Animated flying bubble & cluster pop ring (#240) */}
+        <circle
+          className="deck-pb-flying-bubble"
+          cx="132"
+          cy="84"
+          r="9.5"
+          fill="var(--tetromino-i)"
+          stroke="var(--text)"
+          strokeWidth="1.1"
+        />
+        <circle
+          className="deck-pb-pop-ring"
+          cx="132"
+          cy="66"
+          r="14"
+          fill="none"
+          stroke="var(--tetromino-o)"
+          strokeWidth="2"
+        />
+        {/* Launcher gear & animated pointer */}
         <circle cx="110" cy="146" r="14" fill="var(--field)" stroke="var(--text)" strokeWidth="1.2" />
-        <polygon points="110,122 105,134 115,134" fill="var(--warning-weak)" stroke="var(--text)" strokeWidth="1" />
+        <g className="deck-pb-aim-sweep">
+          <polygon points="110,122 105,134 115,134" fill="var(--warning-weak)" stroke="var(--text)" strokeWidth="1" />
+        </g>
         <circle cx="110" cy="146" r="9" fill="var(--tetromino-i)" stroke="var(--text)" strokeWidth="1.1" />
         {/* Cute P1 Dragon & P2 Cat mascots flanking the launcher */}
         <g transform="translate(72, 149)" stroke="var(--text)" strokeWidth="0.9">
@@ -237,6 +288,37 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
         <span>0.5° Aim · 60fps</span>
       </div>
     </div>
+  );
+}
+
+/**
+ * YouTube-video style Pause / Play icon (#237):
+ * - When `isPaused` is false, renders two vertical pause bars.
+ * - When `isPaused` is true, renders a play triangle.
+ */
+function PausePlayIcon({ isPaused }: { isPaused: boolean }) {
+  return (
+    <svg
+      className="pause-play-icon"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {isPaused ? (
+        <polygon points="6 4 20 12 6 20 6 4" />
+      ) : (
+        <>
+          <rect x="6" y="4" width="4" height="16" rx="1" />
+          <rect x="14" y="4" width="4" height="16" rx="1" />
+        </>
+      )}
+    </svg>
   );
 }
 
@@ -453,12 +535,20 @@ export function App() {
   const [nowPlaying, setNowPlaying] = useState<string | null>(
     () => getSharedArcadeAudio().getCurrentTrack()?.title ?? null,
   );
+  const [gamePaused, setGamePaused] = useState<boolean>(() => getSharedGamePaused());
   const [netplay, setNetplay] = useState<NetplayState>(() => getSharedNetplay().getState());
+  const [deckDragOffsetX, setDeckDragOffsetX] = useState<number>(0);
 
   useEffect(() => {
     return subscribeSharedAudio((nextOn, nextTitle) => {
       setMusicOn(nextOn);
       setNowPlaying(nextTitle);
+    });
+  }, []);
+
+  useEffect(() => {
+    return subscribeSharedGamePause((nextPaused) => {
+      setGamePaused(nextPaused);
     });
   }, []);
 
@@ -470,24 +560,8 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    setSharedGamePaused(false);
     getSharedNetplay().setCurrentApp(appId);
-  }, [appId]);
-
-  // #234: Crossfade into the appropriate soundtrack for the active screen
-  // (Selector Screen <-> Tetris <-> Puzzle Bobble).
-  useEffect(() => {
-    const audio = getSharedArcadeAudio();
-    const targetPlaylist =
-      appId === 'puzzle-bobble'
-        ? PUZZLE_BOBBLE_PLAYLIST
-        : appId === 'tetris'
-          ? TETRIS_PLAYLIST
-          : SELECTOR_PLAYLIST;
-    audio.setPlaylist(targetPlaylist);
-    if (appId === null) {
-      audio.setActive(getSharedMusicOn());
-    }
-    setNowPlaying(audio.getCurrentTrack()?.title ?? null);
   }, [appId]);
 
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -517,6 +591,24 @@ export function App() {
   const prevSlideIndex = deckLen > 0 ? (((slideIndex - 1) % deckLen) + deckLen) % deckLen : 0;
   const nextSlide = CANVAS_APPS[nextSlideIndex] ?? currentSlide;
   const prevSlide = CANVAS_APPS[prevSlideIndex] ?? currentSlide;
+
+  // #234, #240: Crossfade into the active or selected game's own soundtrack
+  // (Tetris vs Puzzle Bobble) both inside the game and on the selection menu!
+  const activeMusicGameId = appId ?? currentSlide.id;
+  useEffect(() => {
+    const audio = getSharedArcadeAudio();
+    const targetPlaylist =
+      activeMusicGameId === 'puzzle-bobble'
+        ? PUZZLE_BOBBLE_PLAYLIST
+        : activeMusicGameId === 'tetris'
+          ? TETRIS_PLAYLIST
+          : SELECTOR_PLAYLIST;
+    audio.setPlaylist(targetPlaylist);
+    if (appId === null) {
+      audio.setActive(getSharedMusicOn());
+    }
+    setNowPlaying(audio.getCurrentTrack()?.title ?? null);
+  }, [activeMusicGameId, appId]);
 
   const stepSlide = useCallback(
     (delta: number) => {
@@ -864,6 +956,22 @@ export function App() {
             <span className="netplay-online-dot" aria-hidden="true" />
             <span className="online-presence-count">{netplay.onlineCount} online</span>
           </div>
+          {activeApp ? (
+            <button
+              type="button"
+              className="pause-launcher"
+              data-testid="pause-button"
+              aria-pressed={gamePaused}
+              aria-label={gamePaused ? 'Resume' : 'Pause'}
+              title={gamePaused ? 'Resume game (Esc)' : 'Pause game (Esc)'}
+              onClick={() => {
+                toggleSharedGamePaused();
+              }}
+            >
+              <PausePlayIcon isPaused={gamePaused} />
+              <span className="sr-only">{gamePaused ? 'Resume' : 'Pause'}</span>
+            </button>
+          ) : null}
           <button
             type="button"
             className="sound-launcher"
@@ -877,9 +985,9 @@ export function App() {
             }
             onClick={() => {
               const targetPlaylist =
-                appId === 'puzzle-bobble'
+                activeMusicGameId === 'puzzle-bobble'
                   ? PUZZLE_BOBBLE_PLAYLIST
-                  : appId === 'tetris'
+                  : activeMusicGameId === 'tetris'
                     ? TETRIS_PLAYLIST
                     : SELECTOR_PLAYLIST;
               getSharedArcadeAudio().setPlaylist(targetPlaylist);
@@ -1003,25 +1111,74 @@ export function App() {
                     ? 'deck-slide-card is-sliding-prev'
                     : 'deck-slide-card'
               }
+              style={
+                deckDragOffsetX !== 0
+                  ? {
+                      transform: `translateX(${deckDragOffsetX}px) rotate(${(
+                        deckDragOffsetX * 0.035
+                      ).toFixed(2)}deg)`,
+                    }
+                  : undefined
+              }
               data-testid="deck-slide-card"
               data-slide-id={currentSlide.id}
               data-slide-dir={slideDirection ?? 'none'}
               aria-label={`${currentSlide.title} slide`}
               onPointerDown={(event) => {
                 deckSwipeStartRef.current = { x: event.clientX, y: event.clientY };
+                setDeckDragOffsetX(0);
+              }}
+              onPointerMove={(event) => {
+                const start = deckSwipeStartRef.current;
+                if (!start) return;
+                const dx = event.clientX - start.x;
+                const dy = event.clientY - start.y;
+                if (Math.abs(dx) > Math.abs(dy)) {
+                  setDeckDragOffsetX(Math.max(-120, Math.min(120, Math.round(dx * 0.55))));
+                }
               }}
               onPointerUp={(event) => {
                 const start = deckSwipeStartRef.current;
                 deckSwipeStartRef.current = null;
+                setDeckDragOffsetX(0);
                 if (!start) return;
                 const dx = event.clientX - start.x;
                 const dy = event.clientY - start.y;
-                if (Math.abs(dx) >= 48 && Math.abs(dx) > Math.abs(dy) * 1.3) {
+                if (Math.abs(dx) >= 36 && Math.abs(dx) > Math.abs(dy) * 1.1) {
                   stepSlide(dx < 0 ? 1 : -1);
                 }
               }}
               onPointerCancel={() => {
                 deckSwipeStartRef.current = null;
+                setDeckDragOffsetX(0);
+              }}
+              onTouchStart={(event) => {
+                const t = event.touches[0];
+                if (!t) return;
+                deckSwipeStartRef.current = { x: t.clientX, y: t.clientY };
+                setDeckDragOffsetX(0);
+              }}
+              onTouchMove={(event) => {
+                const start = deckSwipeStartRef.current;
+                const t = event.touches[0];
+                if (!start || !t) return;
+                const dx = t.clientX - start.x;
+                const dy = t.clientY - start.y;
+                if (Math.abs(dx) > Math.abs(dy)) {
+                  setDeckDragOffsetX(Math.max(-120, Math.min(120, Math.round(dx * 0.55))));
+                }
+              }}
+              onTouchEnd={(event) => {
+                const start = deckSwipeStartRef.current;
+                deckSwipeStartRef.current = null;
+                setDeckDragOffsetX(0);
+                const t = event.changedTouches[0];
+                if (!start || !t) return;
+                const dx = t.clientX - start.x;
+                const dy = t.clientY - start.y;
+                if (Math.abs(dx) >= 36 && Math.abs(dx) > Math.abs(dy) * 1.1) {
+                  stepSlide(dx < 0 ? 1 : -1);
+                }
               }}
             >
               <DeckPreviewGraphic appId={currentSlide.id} />

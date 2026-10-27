@@ -4,6 +4,22 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Universal YouTube-Style Pause Icon & Pause Menu, Circular Translucent Mobile Overlay Controls, Natural Mobile Swipe Deck, and Animated Selector Game Previews with Per-Game Music (#242: #237, #238, #239, #240) — 2026-10-27
+
+- **Universal YouTube-Style Pause Icon & In-Game Pause Menu (`src/client/gamePause.ts`, `src/client/App.tsx`, `src/client/views/TetrisView.tsx`, `src/client/views/PuzzleBobbleView.tsx`, #237):**
+  - Added `button.pause-launcher` (`data-testid="pause-button"`) in the bottom-right control cluster alongside the YouTube-style sound (`button.sound-launcher`) and fullscreen (`button.fullscreen-launcher`) icons whenever a game is active, and removed the text `Pause` and `Close` buttons from the in-game header.
+  - Pressing `Escape` or clicking `button.pause-launcher` opens the centered arcade **Pause Menu** (`data-testid="game-pause-menu"`, `role="dialog"`, `aria-label="Game paused"`) with **Continue** (`data-testid="pause-menu-resume"`), **New game** (`data-testid="pause-menu-restart"`), and **Exit to menu** (`data-testid="pause-menu-exit"`, `aria-label="Close Tetris"` / `aria-label="Close Puzzle Bobble"`).
+- **Circular Translucent Mobile Virtual Overlay Buttons (`src/client/styles.css`, `src/client/views/TetrisView.tsx`, `src/client/views/PuzzleBobbleView.tsx`, #238):**
+  - Styled `button.pb-touch-btn` as circular, semi-transparent arcade buttons (`border-radius: var(--radius-pill)`, `44px–48px` diameter) grouped into left/right clusters (`.touch-cluster-left`, `.touch-cluster-right`) with an active tap highlight (`border-color: var(--tetromino-o); color: var(--tetromino-o); transform: scale(1.1)`), floating cleanly over the bottom of the stage on phone viewports (`@media (max-width: 559px)`).
+- **Natural Mobile Swipe Gesture on the Game Deck (`src/client/App.tsx`, `src/client/styles.css`, #239):**
+  - Added `touch-action: pan-y` on `.deck-slide-card` plus real-time horizontal finger-tracking drag offset (`deckDragOffsetX`) for both pointer and touch events (`onPointerMove` / `onTouchMove`) and a responsive `36px` swipe threshold to flip between games naturally on mobile.
+- **Animated Gameplay Previews with Delayed Fade-In & Per-Game Music on the Selector Screen (`src/client/App.tsx`, `src/client/styles.css`, #240):**
+  - Added delayed fade-in (`450ms`) animated gameplay loops inside `DeckPreviewGraphic` (`data-testid="deck-live-preview"`, `data-preview-game={appId}`): falling/locking T-piece and line-clear flash on Tetris; sweeping aim pointer, flying bubble, and cluster pop ring on Puzzle Bobble.
+  - Crossfades the selector screen soundtrack to the currently selected slide's own game playlist (`TETRIS_PLAYLIST` when viewing Tetris, `PUZZLE_BOBBLE_PLAYLIST` when viewing Puzzle Bobble).
+- `npm test`: 23 files, 161 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 45 passed.
+
 ## 2-Player Online Networking for Tetris and Puzzle Bobble with Presence, Corner Invite Toast, Versus Garbage Rules, and Opponent Mini-Radar (#236) — 2026-10-27
 
 Source revision `aeb69f1` (the 2P online networking, Versus garbage rules, and Opponent Mini-Radar commit); build and review evidence `6c3c675`; release commit `cefbdd6`; published as `v0.20.0` on 2026-10-27.

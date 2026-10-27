@@ -21,7 +21,7 @@ async function closeStub(stub: RunningStub) {
   await new Promise<void>((resolve) => stub.server.close(() => resolve()));
 }
 
-test('the home gallery opens Tetris and close returns to the canvas', async ({ page }) => {
+test('the home gallery opens Tetris and the Pause Menu exits to the canvas (#237)', async ({ page }) => {
   const stub = await startStubApp();
   try {
     await page.goto(stub.base);
@@ -34,6 +34,9 @@ test('the home gallery opens Tetris and close returns to the canvas', async ({ p
     await expect(page.getByRole('heading', { name: 'Tetris' })).toBeVisible();
     await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
 
+    // Clicking the universal bottom-right YouTube-style Pause icon opens the Pause Menu (#237).
+    await page.getByTestId('pause-button').click();
+    await expect(page.getByTestId('game-pause-menu')).toBeVisible();
     await page.getByRole('button', { name: 'Close Tetris' }).click();
     await expect(page).toHaveURL((url) => url.pathname === '/' && url.search === '');
     await expect(page.getByRole('heading', { name: 'Blank canvas' })).toBeVisible();
@@ -104,9 +107,44 @@ test('Escape closes the palette before the app, and the tilde alias opens it', a
     await expect(page.getByRole('heading', { name: 'Tetris' })).toBeVisible();
     await expect(page).toHaveURL(/\?app=tetris$/);
 
-    // The second Escape reaches the app and leaves it.
+    // The second Escape reaches the app and opens the in-game Pause Menu (#237).
     await page.keyboard.press('Escape');
+    await expect(page.getByTestId('game-pause-menu')).toBeVisible();
+    await page.getByRole('button', { name: 'Close Tetris' }).click();
     await expect(page.getByRole('heading', { name: 'Blank canvas' })).toBeVisible();
+  } finally {
+    await closeStub(stub);
+  }
+});
+
+test('mobile horizontal swipe gesture flips the game deck (#239) and selector card displays animated live preview with per-game music (#240)', async ({
+  page,
+}) => {
+  const stub = await startStubApp();
+  try {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(stub.base);
+
+    const card = page.getByTestId('deck-slide-card');
+    await expect(card).toHaveAttribute('data-slide-id', 'tetris');
+    await expect(page.getByTestId('deck-live-preview')).toHaveAttribute(
+      'data-preview-game',
+      'tetris',
+    );
+
+    // Swipe left across the deck card -> flips to Puzzle Bobble and updates live preview.
+    const box = await card.boundingBox();
+    expect(box).not.toBeNull();
+    await page.mouse.move(box!.x + box!.width * 0.8, box!.y + box!.height * 0.5);
+    await page.mouse.down();
+    await page.mouse.move(box!.x + box!.width * 0.2, box!.y + box!.height * 0.5);
+    await page.mouse.up();
+
+    await expect(card).toHaveAttribute('data-slide-id', 'puzzle-bobble');
+    await expect(page.getByTestId('deck-live-preview')).toHaveAttribute(
+      'data-preview-game',
+      'puzzle-bobble',
+    );
   } finally {
     await closeStub(stub);
   }

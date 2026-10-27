@@ -159,7 +159,11 @@ class NetplayClient {
 
   private stateListeners = new Set<StateListener>();
   private roomEventListeners = new Set<RoomEventListener>();
-  private currentAppId: NetplayGameId | null = null;
+  private currentAppId: NetplayGameId | null = (() => {
+    if (typeof window === 'undefined') return null;
+    const raw = new URLSearchParams(window.location.search).get('app');
+    return raw === 'tetris' || raw === 'puzzle-bobble' ? raw : null;
+  })();
   private lastServerSeq = 0;
   private pollTimer: number | null = null;
   private started = false;

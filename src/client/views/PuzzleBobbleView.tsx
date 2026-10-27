@@ -12,6 +12,12 @@ import {
   subscribeSharedAudio,
 } from '../audio/tetrisMusic';
 import {
+  getSharedGamePaused,
+  setSharedGamePaused,
+  subscribeSharedGamePause,
+  toggleSharedGamePaused,
+} from '../gamePause';
+import {
   getSharedNetplay,
   type NetplayState,
   type PuzzleBobbleRadarSnapshot,
@@ -1595,74 +1601,78 @@ function PlayerArena({
         aria-label={`Player ${playerNumber} touch controls`}
         data-testid={`p${playerNumber}-touch-controls`}
       >
-        <button
-          type="button"
-          className="pb-touch-btn pb-touch-rocker"
-          data-testid={`p${playerNumber}-touch-left`}
-          aria-label={`Player ${playerNumber} aim left`}
-          disabled={disabled || player.status !== 'playing'}
-          onPointerDown={(event) => {
-            event.preventDefault();
-            if (event.currentTarget.setPointerCapture) {
-              try {
-                event.currentTarget.setPointerCapture(event.pointerId);
-              } catch {
-                // Synthetic pointer events in tests may not register an active pointer id.
+        <div className="touch-cluster touch-cluster-left">
+          <button
+            type="button"
+            className="pb-touch-btn pb-touch-rocker"
+            data-testid={`p${playerNumber}-touch-left`}
+            aria-label={`Player ${playerNumber} aim left`}
+            disabled={disabled || player.status !== 'playing'}
+            onPointerDown={(event) => {
+              event.preventDefault();
+              if (event.currentTarget.setPointerCapture) {
+                try {
+                  event.currentTarget.setPointerCapture(event.pointerId);
+                } catch {
+                  // Synthetic pointer events in tests may not register an active pointer id.
+                }
               }
-            }
-            onHoldAimStart(`p${playerNumber}-left`, -AIM_STEP_DEG);
-          }}
-          onPointerUp={() => onHoldAimEnd(`p${playerNumber}-left`)}
-          onPointerCancel={() => onHoldAimEnd(`p${playerNumber}-left`)}
-          onPointerLeave={() => onHoldAimEnd(`p${playerNumber}-left`)}
-          onClick={(event) => {
-            if (event.detail === 0) onAimStep(-AIM_STEP_DEG);
-          }}
-        >
-          ◀ AIM
-        </button>
-        <button
-          type="button"
-          className="primary pb-touch-btn pb-touch-fire"
-          data-testid={`p${playerNumber}-touch-fire`}
-          aria-label={`Player ${playerNumber} fire bubble`}
-          disabled={disabled || player.status !== 'playing'}
-          onPointerDown={(event) => {
-            event.preventDefault();
-            onFire();
-          }}
-          onClick={(event) => {
-            if (event.detail === 0) onFire();
-          }}
-        >
-          ● FIRE
-        </button>
-        <button
-          type="button"
-          className="pb-touch-btn pb-touch-rocker"
-          data-testid={`p${playerNumber}-touch-right`}
-          aria-label={`Player ${playerNumber} aim right`}
-          disabled={disabled || player.status !== 'playing'}
-          onPointerDown={(event) => {
-            event.preventDefault();
-            if (event.currentTarget.setPointerCapture) {
-              try {
-                event.currentTarget.setPointerCapture(event.pointerId);
-              } catch {
-                // Synthetic pointer events in tests may not register an active pointer id.
+              onHoldAimStart(`p${playerNumber}-left`, -AIM_STEP_DEG);
+            }}
+            onPointerUp={() => onHoldAimEnd(`p${playerNumber}-left`)}
+            onPointerCancel={() => onHoldAimEnd(`p${playerNumber}-left`)}
+            onPointerLeave={() => onHoldAimEnd(`p${playerNumber}-left`)}
+            onClick={(event) => {
+              if (event.detail === 0) onAimStep(-AIM_STEP_DEG);
+            }}
+          >
+            ◀
+          </button>
+          <button
+            type="button"
+            className="pb-touch-btn pb-touch-rocker"
+            data-testid={`p${playerNumber}-touch-right`}
+            aria-label={`Player ${playerNumber} aim right`}
+            disabled={disabled || player.status !== 'playing'}
+            onPointerDown={(event) => {
+              event.preventDefault();
+              if (event.currentTarget.setPointerCapture) {
+                try {
+                  event.currentTarget.setPointerCapture(event.pointerId);
+                } catch {
+                  // Synthetic pointer events in tests may not register an active pointer id.
+                }
               }
-            }
-            onHoldAimStart(`p${playerNumber}-right`, AIM_STEP_DEG);
-          }}
-          onPointerUp={() => onHoldAimEnd(`p${playerNumber}-right`)}
-          onPointerCancel={() => onHoldAimEnd(`p${playerNumber}-right`)}
-          onPointerLeave={() => onHoldAimEnd(`p${playerNumber}-right`)}
-          onClick={(event) => {
-            if (event.detail === 0) onAimStep(AIM_STEP_DEG);
-          }}
-        >
-          AIM ▶
-        </button>
+              onHoldAimStart(`p${playerNumber}-right`, AIM_STEP_DEG);
+            }}
+            onPointerUp={() => onHoldAimEnd(`p${playerNumber}-right`)}
+            onPointerCancel={() => onHoldAimEnd(`p${playerNumber}-right`)}
+            onPointerLeave={() => onHoldAimEnd(`p${playerNumber}-right`)}
+            onClick={(event) => {
+              if (event.detail === 0) onAimStep(AIM_STEP_DEG);
+            }}
+          >
+            ▶
+          </button>
+        </div>
+        <div className="touch-cluster touch-cluster-right">
+          <button
+            type="button"
+            className="primary pb-touch-btn pb-touch-fire"
+            data-testid={`p${playerNumber}-touch-fire`}
+            aria-label={`Player ${playerNumber} fire bubble`}
+            disabled={disabled || player.status !== 'playing'}
+            onPointerDown={(event) => {
+              event.preventDefault();
+              onFire();
+            }}
+            onClick={(event) => {
+              if (event.detail === 0) onFire();
+            }}
+          >
+            ●
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -1697,7 +1707,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
   );
   const [characters, setCharacters] = useState<[CharacterId, CharacterId]>(['dragon', 'dragon']);
   const [stagePreset, setStagePreset] = useState<number>(0); // 0 = random wave, 1..5 = classic Taito stages
-  const [paused, setPaused] = useState(false);
+  const [paused, setPaused] = useState<boolean>(() => getSharedGamePaused());
   const [musicOn, setMusicOn] = useState<boolean>(() => getSharedMusicOn());
   const [backgroundIndex, setBackgroundIndex] = useState(1);
   const [nowPlaying, setNowPlaying] = useState<string | null>(
@@ -1707,6 +1717,17 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
   const [opponentRadar, setOpponentRadar] = useState<PuzzleBobbleRadarSnapshot>(() =>
     createRadarFromBoard(match.players[0]),
   );
+
+  useEffect(() => {
+    setSharedGamePaused(false);
+    const unsub = subscribeSharedGamePause((nextPaused) => {
+      setPaused(nextPaused);
+    });
+    return () => {
+      unsub();
+      setSharedGamePaused(false);
+    };
+  }, []);
 
   const matchRef = useRef(match);
   matchRef.current = match;
@@ -2130,7 +2151,8 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     function onKeyDown(event: KeyboardEvent) {
       if (event.metaKey || event.ctrlKey || event.altKey) return;
       if (event.key === 'Escape') {
-        onExit();
+        event.preventDefault();
+        toggleSharedGamePaused();
         return;
       }
       if (paused || matchRef.current.status !== 'playing') return;
@@ -2422,20 +2444,10 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
           </div>
           <button
             type="button"
-            onClick={() => setPaused((value) => !value)}
-            disabled={match.status !== 'playing'}
-          >
-            {paused ? 'Resume' : 'Pause'}
-          </button>
-          <button
-            type="button"
             className="primary"
             onClick={handleNextOrNewRound}
           >
             {match.status === 'round_over' ? 'Next round' : 'New game'}
-          </button>
-          <button type="button" onClick={onExit} aria-label="Close Puzzle Bobble">
-            Close
           </button>
         </div>
       </header>
@@ -2482,6 +2494,51 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
           />
         ) : null}
       </div>
+
+      {paused ? (
+        <div className="game-pause-backdrop">
+          <div
+            className="game-pause-menu"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Game paused"
+            data-testid="game-pause-menu"
+          >
+            <span className="game-pause-kicker">Puzzle Bobble</span>
+            <h3 className="game-pause-title">Paused</h3>
+            <div className="game-pause-actions">
+              <button
+                type="button"
+                className="primary"
+                data-testid="pause-menu-resume"
+                aria-label="Continue game"
+                onClick={() => setSharedGamePaused(false)}
+              >
+                Continue
+              </button>
+              <button
+                type="button"
+                data-testid="pause-menu-restart"
+                aria-label="Restart game"
+                onClick={() => {
+                  handleNextOrNewRound();
+                  setSharedGamePaused(false);
+                }}
+              >
+                New game
+              </button>
+              <button
+                type="button"
+                data-testid="pause-menu-exit"
+                aria-label="Close Puzzle Bobble"
+                onClick={onExit}
+              >
+                Exit to menu
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {match.status === 'round_over' ? (
         <p className="tetris-over pb-banner" role="status" data-testid="pb-round-banner">

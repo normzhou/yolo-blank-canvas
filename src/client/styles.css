@@ -359,6 +359,7 @@ button.yolo-launcher .yolo-logo-mark {
   height: 34px;
   color: var(--yolo-brand);
 }
+button.pause-launcher,
 button.sound-launcher,
 button.fullscreen-launcher {
   position: fixed;
@@ -383,25 +384,33 @@ button.fullscreen-launcher {
 button.sound-launcher {
   right: 52px;
 }
+button.pause-launcher {
+  right: 92px;
+}
+.canvas.is-playing button.pause-launcher,
 .canvas.is-playing button.sound-launcher,
 .canvas.is-playing button.fullscreen-launcher {
   color: var(--touch-overlay-text);
   opacity: 0.76;
 }
+button.pause-launcher[aria-pressed='true'],
 button.sound-launcher[aria-pressed='true'] {
   color: var(--tetromino-o);
   opacity: 0.95;
 }
+button.pause-launcher:hover:not(:disabled),
 button.sound-launcher:hover:not(:disabled),
 button.fullscreen-launcher:hover:not(:disabled) {
   border-color: transparent;
   opacity: 1;
   transform: scale(1.1);
 }
+button.pause-launcher:active:not(:disabled),
 button.sound-launcher:active:not(:disabled),
 button.fullscreen-launcher:active:not(:disabled) {
   transform: scale(0.94);
 }
+.pause-play-icon,
 .sound-speaker-icon,
 .fullscreen-corner-icon {
   display: block;
@@ -813,6 +822,8 @@ button.deck-stack-card:hover {
   align-items: stretch;
   gap: var(--space-6);
   text-align: left;
+  touch-action: pan-y;
+  user-select: none;
 }
 .deck-slide-card.is-sliding-next {
   animation: deck-slide-in-next 250ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -852,6 +863,55 @@ button.deck-stack-card:hover {
   align-items: center;
   justify-content: center;
   padding: 16px;
+}
+/* #240: Delayed fade-in animated gameplay preview inside the selector card. */
+.deck-tetris-falling-piece {
+  animation: deck-tetris-fall 2200ms steps(6, end) 450ms infinite;
+}
+.deck-tetris-line-flash {
+  opacity: 0;
+  animation: deck-tetris-flash 2200ms ease-in-out 450ms infinite;
+}
+.deck-pb-aim-sweep {
+  transform-origin: 110px 146px;
+  animation: deck-pb-sweep 2400ms ease-in-out 450ms infinite alternate;
+}
+.deck-pb-flying-bubble {
+  opacity: 0;
+  animation: deck-pb-shot 2400ms cubic-bezier(0.2, 0.85, 0.3, 1) 450ms infinite;
+}
+.deck-pb-pop-ring {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: deck-pb-pop 2400ms ease-out 450ms infinite;
+}
+@keyframes deck-tetris-fall {
+  0% { transform: translateY(0); opacity: 0; }
+  12% { transform: translateY(0); opacity: 1; }
+  80% { transform: translateY(80px); opacity: 1; }
+  100% { transform: translateY(80px); opacity: 0.9; }
+}
+@keyframes deck-tetris-flash {
+  0%, 75% { opacity: 0; }
+  85% { opacity: 0.7; }
+  100% { opacity: 0; }
+}
+@keyframes deck-pb-sweep {
+  from { transform: rotate(-18deg); }
+  to { transform: rotate(22deg); }
+}
+@keyframes deck-pb-shot {
+  0%, 15% { transform: translate(-22px, 62px); opacity: 0; }
+  25% { transform: translate(-22px, 62px); opacity: 1; }
+  55% { transform: translate(50px, 8px); opacity: 1; }
+  80% { transform: translate(0, -18px); opacity: 1; }
+  100% { transform: translate(0, -18px); opacity: 0; }
+}
+@keyframes deck-pb-pop {
+  0%, 76% { transform: scale(0.6); opacity: 0; }
+  86% { transform: scale(1.2); opacity: 0.9; }
+  100% { transform: scale(1.65); opacity: 0; }
 }
 .deck-preview-bg {
   position: absolute;
@@ -2009,34 +2069,45 @@ a:visited { color: var(--accent-weak-text); }
 .pb-touch-bar,
 .tetris-touch-bar {
   width: 100%;
-  display: grid;
-  gap: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   user-select: none;
   touch-action: manipulation;
   background: transparent;
   border: none;
   border-radius: var(--radius-pill);
-  padding: 2px 0;
+  padding: 2px 4px;
   box-shadow: none;
 }
 .pb-touch-bar {
-  height: 44px;
+  height: 48px;
   flex-shrink: 0;
-  grid-template-columns: 1fr 1.35fr 1fr;
 }
 .tetris-touch-bar {
-  height: 48px;
-  grid-template-columns: 1fr 1fr 1fr 1.35fr 1.35fr;
+  height: 52px;
+}
+.touch-cluster {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: auto;
 }
 button.pb-touch-btn {
-  padding: 4px 10px;
-  min-height: 40px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: var(--text-xs);
+  font-size: var(--text-base);
   font-weight: var(--weight-semibold);
   font-variant-numeric: tabular-nums;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
   border: 1px solid var(--touch-overlay-border);
   border-radius: var(--radius-pill);
   background: var(--touch-overlay-bg);
@@ -2045,6 +2116,7 @@ button.pb-touch-btn {
   white-space: nowrap;
   user-select: none;
   touch-action: manipulation;
+  transition: transform 90ms ease, background-color 90ms ease, border-color 90ms ease;
 }
 button.pb-touch-btn.pb-touch-rocker {
   background: var(--touch-overlay-bg);
@@ -2059,15 +2131,72 @@ button.pb-touch-btn.pb-touch-rotate {
 }
 button.pb-touch-btn:active:not(:disabled) {
   background: var(--touch-overlay-active-bg);
-  border-color: var(--touch-overlay-active-border);
-  transform: scale(0.96);
+  border-color: var(--tetromino-o);
+  color: var(--tetromino-o);
+  transform: scale(1.1);
 }
 button.pb-touch-fire {
   border-radius: var(--radius-pill);
   background: var(--touch-overlay-fire-bg);
   border: 1px solid var(--touch-overlay-fire-border);
   color: var(--touch-overlay-text);
+}
+/* #237: In-game arcade Pause Menu modal overlay (Escape / Pause icon). */
+.game-pause-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.game-pause-menu {
+  pointer-events: auto;
+  min-width: 240px;
+  max-width: min(320px, calc(100vw - 32px));
+  padding: 18px 20px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--elevation-panel-centred);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  text-align: center;
+}
+.game-pause-kicker {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
   letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.game-pause-title {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--tetromino-o);
+}
+.game-pause-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+.game-pause-actions button {
+  width: 100%;
+  justify-content: center;
+  padding: 8px 14px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
 }
 .pb-side {
   width: var(--pb-side-w);
@@ -2309,7 +2438,12 @@ button.pb-touch-fire {
   .ambient-orb-3,
   .yolo-mark__motion,
   .deck-slide-card.is-sliding-next,
-  .deck-slide-card.is-sliding-prev {
+  .deck-slide-card.is-sliding-prev,
+  .deck-tetris-falling-piece,
+  .deck-tetris-line-flash,
+  .deck-pb-aim-sweep,
+  .deck-pb-flying-bubble,
+  .deck-pb-pop-ring {
     animation: none;
   }
   .pb-pop-ring,
@@ -2658,9 +2792,25 @@ button.pb-touch-fire {
   }
   .tetris-header { padding: 2px 44px 2px 4px; gap: 4px; width: 100%; }
   .pb-boards { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; }
-  .pb-touch-bar { height: 48px; padding-right: 84px; padding-left: 0; }
-  .tetris:not(.pb-game) .tetris-touch-bar { height: 48px; padding-right: 84px; padding-left: 0; }
-  button.pb-touch-btn { min-height: 44px; }
+  .pb-touch-bar,
+  .tetris:not(.pb-game) .tetris-touch-bar {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: 50px;
+    width: auto;
+    height: 52px;
+    padding: 0;
+    z-index: 8;
+    pointer-events: none;
+  }
+  button.pb-touch-btn {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    padding: 0;
+  }
   /* #133: at 390px a right-hand status column squeezes the title, and the title
      is the thing being read. Stack instead: title, then status, then time. */
   .issue-row button.issue-title { grid-template-columns: 1fr; }

@@ -5,6 +5,12 @@ import {
   subscribeSharedAudio,
 } from '../audio/tetrisMusic';
 import {
+  getSharedGamePaused,
+  setSharedGamePaused,
+  subscribeSharedGamePause,
+  toggleSharedGamePaused,
+} from '../gamePause';
+import {
   getSharedNetplay,
   type NetplayState,
   type TetrisRadarSnapshot,
@@ -198,9 +204,17 @@ function OpponentTetrisRadar({
 }
 
 export function TetrisView({ onExit }: { onExit: () => void }) {
-  const rngRef = useRef<() => number>(Math.random);
-  const [game, setGame] = useState<TetrisState>(() => createGame(rngRef.current));
-  const [paused, setPaused] = useState(false);
+  const customRngRef = useRef<(() => number) | null>(null);
+  const rngRef = {
+    get current(): () => number {
+      return customRngRef.current ?? Math.random;
+    },
+    set current(fn: (() => number) | null) {
+      customRngRef.current = fn === Math.random ? null : fn;
+    },
+  };
+  const [game, setGame] = useState<TetrisState>(() => createGame());
+  const [paused, setPaused] = useState<boolean>(() => getSharedGamePaused());
   const [musicOn, setMusicOn] = useState<boolean>(() => getSharedMusicOn());
   const [backgroundIndex, setBackgroundIndex] = useState(0);
   const [nowPlaying, setNowPlaying] = useState<string | null>(
@@ -212,6 +226,17 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
   );
   const [roundOutcome, setRoundOutcome] = useState<'playing' | 'won' | 'lost'>('playing');
   const [wins, setWins] = useState<[number, number]>([0, 0]);
+
+  useEffect(() => {
+    setSharedGamePaused(false);
+    const unsub = subscribeSharedGamePause((nextPaused) => {
+      setPaused(nextPaused);
+    });
+    return () => {
+      unsub();
+      setSharedGamePaused(false);
+    };
+  }, []);
 
   const gameRef = useRef(game);
   gameRef.current = game;
@@ -457,11 +482,12 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     return () => window.clearInterval(id);
   }, [paused, game.level, matchEnded]);
 
-  // Keyboard controls: arrows move/rotate/soft-drop, space hard-drops, Escape closes.
+  // Keyboard controls: arrows move/rotate/soft-drop, space hard-drops, Escape toggles Pause Menu (#237).
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
-        onExit();
+        event.preventDefault();
+        toggleSharedGamePaused();
         return;
       }
       if (paused || gameRef.current.status !== 'playing' || (isOnline2P && roundOutcomeRef.current !== 'playing')) {
@@ -610,7 +636,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
       prevLockIdRef.current = 0;
       setGame(createGame(rngRef.current));
       setRoundOutcome('playing');
-      setPaused(false);
+      setSharedGamePaused(false);
     }
   };
 
@@ -668,14 +694,8 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
                   : '2P Online'}
             </button>
           </div>
-          <button type="button" onClick={() => setPaused((value) => !value)} disabled={matchEnded}>
-            {paused ? 'Resume' : 'Pause'}
-          </button>
           <button type="button" className="primary" onClick={handleNewOrRematch}>
             {isOnline2P && matchEnded ? 'Next round' : 'New game'}
-          </button>
-          <button type="button" onClick={onExit} aria-label="Close Tetris">
-            Close
           </button>
         </div>
       </header>
@@ -762,109 +782,158 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
         </aside>
       </div>
 
+      {paused ? (
+        <div className="game-pause-backdrop">
+          <div
+            className="game-pause-menu"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Game paused"
+            data-testid="game-pause-menu"
+          >
+            <span className="game-pause-kicker">Tetris</span>
+            <h3 className="game-pause-title">Paused</h3>
+            <div className="game-pause-actions">
+              <button
+                type="button"
+                className="primary"
+                data-testid="pause-menu-resume"
+                aria-label="Continue game"
+                onClick={() => setSharedGamePaused(false)}
+              >
+                Continue
+              </button>
+              <button
+                type="button"
+                data-testid="pause-menu-restart"
+                aria-label="Restart game"
+                onClick={() => {
+                  handleNewOrRematch();
+                  setSharedGamePaused(false);
+                }}
+              >
+                New game
+              </button>
+              <button
+                type="button"
+                data-testid="pause-menu-exit"
+                aria-label="Close Tetris"
+                onClick={onExit}
+              >
+                Exit to menu
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <div
         className="tetris-touch-bar"
         role="group"
         aria-label="Tetris touch controls"
         data-testid="tetris-touch-controls"
       >
-        <button
-          type="button"
-          className="pb-touch-btn pb-touch-rocker"
-          data-testid="tetris-touch-left"
-          aria-label="Move left"
-          disabled={paused || matchEnded}
-          onPointerDown={(event) => {
-            event.preventDefault();
-            startTouchRepeat(() => setGame((current) => moveLeft(current)));
-          }}
-          onPointerUp={stopTouchRepeat}
-          onPointerCancel={stopTouchRepeat}
-          onPointerLeave={stopTouchRepeat}
-          onClick={(event) => {
-            if (event.detail === 0) setGame((current) => moveLeft(current));
-          }}
-        >
-          ◀
-        </button>
-        <button
-          type="button"
-          className="pb-touch-btn pb-touch-rocker"
-          data-testid="tetris-touch-soft"
-          aria-label="Soft drop"
-          disabled={paused || matchEnded}
-          onPointerDown={(event) => {
-            event.preventDefault();
-            startTouchRepeat(() => setGame((current) => softDrop(current, rngRef.current)));
-          }}
-          onPointerUp={stopTouchRepeat}
-          onPointerCancel={stopTouchRepeat}
-          onPointerLeave={stopTouchRepeat}
-          onClick={(event) => {
-            if (event.detail === 0) setGame((current) => softDrop(current, rngRef.current));
-          }}
-        >
-          ▼
-        </button>
-        <button
-          type="button"
-          className="pb-touch-btn pb-touch-rocker"
-          data-testid="tetris-touch-right"
-          aria-label="Move right"
-          disabled={paused || matchEnded}
-          onPointerDown={(event) => {
-            event.preventDefault();
-            startTouchRepeat(() => setGame((current) => moveRight(current)));
-          }}
-          onPointerUp={stopTouchRepeat}
-          onPointerCancel={stopTouchRepeat}
-          onPointerLeave={stopTouchRepeat}
-          onClick={(event) => {
-            if (event.detail === 0) setGame((current) => moveRight(current));
-          }}
-        >
-          ▶
-        </button>
-        <button
-          type="button"
-          className="pb-touch-btn pb-touch-rotate"
-          data-testid="tetris-touch-rotate"
-          aria-label="Rotate piece"
-          disabled={paused || matchEnded}
-          onPointerDown={(event) => {
-            event.preventDefault();
-            getSharedArcadeAudio().sfx.playRotate();
-            setGame((current) => rotate(current, 1));
-          }}
-          onClick={(event) => {
-            if (event.detail === 0) {
+        <div className="touch-cluster touch-cluster-left">
+          <button
+            type="button"
+            className="pb-touch-btn pb-touch-rocker"
+            data-testid="tetris-touch-left"
+            aria-label="Move left"
+            disabled={paused || matchEnded}
+            onPointerDown={(event) => {
+              event.preventDefault();
+              startTouchRepeat(() => setGame((current) => moveLeft(current)));
+            }}
+            onPointerUp={stopTouchRepeat}
+            onPointerCancel={stopTouchRepeat}
+            onPointerLeave={stopTouchRepeat}
+            onClick={(event) => {
+              if (event.detail === 0) setGame((current) => moveLeft(current));
+            }}
+          >
+            ◀
+          </button>
+          <button
+            type="button"
+            className="pb-touch-btn pb-touch-rocker"
+            data-testid="tetris-touch-soft"
+            aria-label="Soft drop"
+            disabled={paused || matchEnded}
+            onPointerDown={(event) => {
+              event.preventDefault();
+              startTouchRepeat(() => setGame((current) => softDrop(current, rngRef.current)));
+            }}
+            onPointerUp={stopTouchRepeat}
+            onPointerCancel={stopTouchRepeat}
+            onPointerLeave={stopTouchRepeat}
+            onClick={(event) => {
+              if (event.detail === 0) setGame((current) => softDrop(current, rngRef.current));
+            }}
+          >
+            ▼
+          </button>
+          <button
+            type="button"
+            className="pb-touch-btn pb-touch-rocker"
+            data-testid="tetris-touch-right"
+            aria-label="Move right"
+            disabled={paused || matchEnded}
+            onPointerDown={(event) => {
+              event.preventDefault();
+              startTouchRepeat(() => setGame((current) => moveRight(current)));
+            }}
+            onPointerUp={stopTouchRepeat}
+            onPointerCancel={stopTouchRepeat}
+            onPointerLeave={stopTouchRepeat}
+            onClick={(event) => {
+              if (event.detail === 0) setGame((current) => moveRight(current));
+            }}
+          >
+            ▶
+          </button>
+        </div>
+        <div className="touch-cluster touch-cluster-right">
+          <button
+            type="button"
+            className="pb-touch-btn pb-touch-rotate"
+            data-testid="tetris-touch-rotate"
+            aria-label="Rotate piece"
+            disabled={paused || matchEnded}
+            onPointerDown={(event) => {
+              event.preventDefault();
               getSharedArcadeAudio().sfx.playRotate();
               setGame((current) => rotate(current, 1));
-            }
-          }}
-        >
-          ↻ ROTATE
-        </button>
-        <button
-          type="button"
-          className="primary pb-touch-btn pb-touch-fire"
-          data-testid="tetris-touch-drop"
-          aria-label="Hard drop"
-          disabled={paused || matchEnded}
-          onPointerDown={(event) => {
-            event.preventDefault();
-            getSharedArcadeAudio().sfx.playHardDrop();
-            setGame((current) => hardDrop(current, rngRef.current));
-          }}
-          onClick={(event) => {
-            if (event.detail === 0) {
+            }}
+            onClick={(event) => {
+              if (event.detail === 0) {
+                getSharedArcadeAudio().sfx.playRotate();
+                setGame((current) => rotate(current, 1));
+              }
+            }}
+          >
+            ↻
+          </button>
+          <button
+            type="button"
+            className="primary pb-touch-btn pb-touch-fire"
+            data-testid="tetris-touch-drop"
+            aria-label="Hard drop"
+            disabled={paused || matchEnded}
+            onPointerDown={(event) => {
+              event.preventDefault();
               getSharedArcadeAudio().sfx.playHardDrop();
               setGame((current) => hardDrop(current, rngRef.current));
-            }
-          }}
-        >
-          ⤓ DROP
-        </button>
+            }}
+            onClick={(event) => {
+              if (event.detail === 0) {
+                getSharedArcadeAudio().sfx.playHardDrop();
+                setGame((current) => hardDrop(current, rngRef.current));
+              }
+            }}
+          >
+            ⤓
+          </button>
+        </div>
       </div>
 
       {isOnline2P && roundOutcome === 'won' && activeTetrisRoom ? (
