@@ -7,6 +7,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from 'react';
 import { TetrisMusic } from '../audio/tetrisMusic';
+import { PUZZLE_BOBBLE_PLAYLIST } from '../../shared/tetrisMusic';
 import { BACKGROUNDS, nextBackgroundIndex } from '../../shared/tetrisBackgrounds';
 import {
   AIM_STEP_DEG,
@@ -1553,7 +1554,10 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
 
   const musicRef = useRef<TetrisMusic | null>(null);
   if (musicRef.current === null) {
-    musicRef.current = new TetrisMusic((track) => setNowPlaying(track.title));
+    musicRef.current = new TetrisMusic(
+      (track) => setNowPlaying(track.title),
+      PUZZLE_BOBBLE_PLAYLIST,
+    );
   }
 
   const matchRef = useRef(match);

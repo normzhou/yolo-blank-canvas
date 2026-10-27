@@ -4,6 +4,25 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Game-specific 2-minute Tetris & whimsical Puzzle Bobble soundtracks with closed-loop audio verification (#232) — 2026-10-26
+
+- **Dedicated ~2-minute soundtracks (`public/tetris/*.m4a`, `src/shared/tetrisMusic.ts`, `src/client/audio/tetrisMusic.ts`, `src/client/views/PuzzleBobbleView.tsx`, `docs/assets.md`):**
+  - **Tetris (`TETRIS_PLAYLIST` / `PLAYLIST`)**:
+    - `korobeiniki.m4a` (*Korobeiniki (Type A)*, `117.6s`, `922 KB`, RMS `0.202`, musical band ratio `93.11%`)
+    - `kalinka-troika.m4a` (*Kalinka & Troika (Type B)*, `116.7s`, `917 KB`, RMS `0.238`, musical band ratio `91.18%`)
+    - `baroque-invention.m4a` (*Baroque Invention (Type C)* — J.S. Bach *BWV 814 Menuet & Trio*, `115.9s`, `854 KB`, RMS `0.215`, musical band ratio `84.97%`)
+  - **Puzzle Bobble (`PUZZLE_BOBBLE_PLAYLIST`)**:
+    - `pb-bubble-march.m4a` (*Bubble Dragon March*, `114.7s`, `900 KB`, RMS `0.188`, musical band ratio `96.34%`)
+    - `pb-rainbow-carnival.m4a` (*Rainbow Island Carnival*, `116.6s`, `915 KB`, RMS `0.244`, musical band ratio `95.79%`)
+    - `pb-starlight-carousel.m4a` (*Starlight Carousel*, `114.6s`, `903 KB`, RMS `0.225`, musical band ratio `93.69%`)
+  - **Closed-loop verification**:
+    - Decoded every `.m4a` back to PCM WAV via `afconvert` and verified duration (`>= 114s`), RMS loudness (`0.188–0.244`), peak headroom (`0.785–0.874`), minimum 1s window RMS (`>= 0.109`, zero dead-silence gaps), and STFT musical harmonic band energy (`84.97%–96.34%`), plus visually inspected the 6-track spectrogram sheet (`/tmp/qa-232/spectrograms.png`).
+    - Wired an `AnalyserNode` (`sampleOutputMetrics()` / `window.__yoloAudioMetrics`) into `TetrisMusic` and verified real-time decoded waveform `rms > 0.005` and `durationSec >= 105` in headless Chrome for both Tetris (`e2e/deterministic.spec.ts`) and Puzzle Bobble (`e2e/puzzle-bobble.spec.ts`).
+- `npm test`: 23 files, 158 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 43 passed.
+- `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`, 13/13 findings compliant.
+
 ## Bottom-right YouTube fullscreen icon and streamlined Feedback overlay (#230) — 2026-10-26
 
 Source revision `037e29e` (the bottom-right YouTube fullscreen icon and streamlined Feedback overlay commit); build and review evidence `80f161a`; release commit `7002d07`; published as `v0.17.2` on 2026-10-26.

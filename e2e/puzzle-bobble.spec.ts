@@ -138,6 +138,22 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
     await page.getByRole('button', { name: 'Previous stage', exact: true }).click();
     await expect(stageBtn).toHaveText("Stage 15: Emperor's Citadel");
 
+    // #232: Puzzle Bobble plays its own whimsical ~2-minute soundtrack verified via closed-loop Web Audio AnalyserNode.
+    await page.getByRole('button', { name: /Music off/ }).click();
+    await expect(page.locator('.tetris-scene')).toContainText(
+      /Music: (?:Bubble Dragon March|Rainbow Island Carnival|Starlight Carousel)/,
+    );
+    await expect
+      .poll(async () =>
+        page.evaluate(() => {
+          const fn = (window as unknown as { __yoloAudioMetrics?: () => { durationSec: number; rms: number } })
+            .__yoloAudioMetrics;
+          const m = fn ? fn() : { durationSec: 0, rms: 0 };
+          return m.durationSec >= 105 && m.rms > 0.005;
+        }),
+      )
+      .toBe(true);
+
     // Escape closes Puzzle Bobble and returns to the blank canvas.
     await page.keyboard.press('Escape');
     await expect(page).toHaveURL((url) => url.pathname === '/' && url.search === '');
