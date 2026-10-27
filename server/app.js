@@ -11,6 +11,7 @@ import { createSessionStore, sessionIdFrom, setSessionCookie, clearSessionCookie
 import { buildInfo, CLIENT_DIR } from './build.js';
 import { hostGuard, sameOriginGuard, securityHeaders } from './security.js';
 import { GhError, ValidationError, effectiveIdentity, checkRepoAccess } from './gh.js';
+import { createNetplayHub } from './netplay.js';
 
 export const LOGIN_COMMAND = 'gh auth login --hostname github.com --web --skip-ssh-key';
 const IDENTITY_TTL_MS = 20_000;
@@ -22,6 +23,7 @@ export function createApp({
   repoAccess = checkRepoAccess,
   store = createSessionStore(),
   now = () => Date.now(),
+  netplayHub = createNetplayHub({ now }),
 } = {}) {
   if (!requestStore) throw new TypeError('A requestStore is required.');
 
@@ -101,6 +103,18 @@ export function createApp({
 
   app.get('/api/version', (req, res) => {
     res.json(buildInfo());
+  });
+
+  app.get('/api/netplay', (req, res) => {
+    const clientId = typeof req.query.clientId === 'string' ? req.query.clientId : '';
+    const afterSeq = Number.parseInt(String(req.query.afterSeq ?? '0'), 10) || 0;
+    res.json(netplayHub.snapshotFor(clientId, afterSeq));
+  });
+
+  app.post('/api/netplay', (req, res) => {
+    const body = req.body && typeof req.body === 'object' ? req.body : {};
+    const result = netplayHub.handleAction(body);
+    res.status(result.status).json(result.payload);
   });
 
   app.post('/api/session', (req, res) => {

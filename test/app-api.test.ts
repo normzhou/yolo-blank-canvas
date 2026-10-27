@@ -313,6 +313,83 @@ describe('issue operations', () => {
       server.close();
     }
   });
+
+  it('tracks multi-user online presence, open 2P invites, and room event relay via /api/netplay (#236)', async () => {
+    const { server, request, json } = await start();
+    try {
+      // Player 1 and Player 2 send heartbeats
+      const p1Hb = await request(
+        '/api/netplay',
+        json({ action: 'heartbeat', clientId: 'p1-test', name: 'Alice', app: 'tetris' }),
+      );
+      expect(p1Hb.status).toBe(200);
+      expect(p1Hb.body.onlineCount).toBe(1);
+
+      const p2Hb = await request(
+        '/api/netplay',
+        json({ action: 'heartbeat', clientId: 'p2-test', name: 'Bob', app: 'home' }),
+      );
+      expect(p2Hb.status).toBe(200);
+      expect(p2Hb.body.onlineCount).toBe(2);
+
+      // Player 1 broadcasts an open 2P Tetris invite
+      const invRes = await request(
+        '/api/netplay',
+        json({ action: 'invite', clientId: 'p1-test', name: 'Alice', gameId: 'tetris' }),
+      );
+      expect(invRes.status).toBe(200);
+      expect(invRes.body.myPendingInvites[0]?.gameId).toBe('tetris');
+      const inviteId = invRes.body.myPendingInvites[0].id as string;
+
+      // Player 2 sees the open invite in their next heartbeat
+      const p2SeeInv = await request(
+        '/api/netplay',
+        json({ action: 'heartbeat', clientId: 'p2-test', name: 'Bob', app: 'home' }),
+      );
+      expect(p2SeeInv.body.openInvites).toHaveLength(1);
+      expect(p2SeeInv.body.openInvites[0].id).toBe(inviteId);
+      expect(p2SeeInv.body.openInvites[0].hostName).toBe('Alice');
+
+      // Player 2 accepts the invite -> room created with shared seed
+      const p2Accept = await request(
+        '/api/netplay',
+        json({ action: 'accept_invite', clientId: 'p2-test', name: 'Bob', inviteId }),
+      );
+      expect(p2Accept.status).toBe(200);
+      expect(p2Accept.body.activeRoom).not.toBeNull();
+      expect(p2Accept.body.activeRoom.gameId).toBe('tetris');
+      expect(p2Accept.body.activeRoom.players[0].name).toBe('Alice');
+      expect(p2Accept.body.activeRoom.players[1].name).toBe('Bob');
+      const roomId = p2Accept.body.activeRoom.id as string;
+
+      // Player 1 sends a garbage attack event in the room
+      const p1Attack = await request(
+        '/api/netplay',
+        json({
+          action: 'room_event',
+          clientId: 'p1-test',
+          roomId,
+          kind: 'tetris_attack',
+          payload: { lines: 4, holeColumn: 3 },
+          afterSeq: 0,
+        }),
+      );
+      expect(p1Attack.status).toBe(200);
+
+      // Player 2 receives the room event on poll
+      const p2Poll = await request(
+        '/api/netplay',
+        json({ action: 'heartbeat', clientId: 'p2-test', name: 'Bob', app: 'tetris', afterSeq: 0 }),
+      );
+      const attackEvent = p2Poll.body.activeRoom.events.find(
+        (ev: { kind: string }) => ev.kind === 'tetris_attack',
+      );
+      expect(attackEvent).toBeDefined();
+      expect(attackEvent.payload).toEqual({ lines: 4, holeColumn: 3 });
+    } finally {
+      server.close();
+    }
+  });
 });
 
 function baseOrigin(server: Server): string {

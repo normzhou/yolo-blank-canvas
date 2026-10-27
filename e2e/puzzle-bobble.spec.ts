@@ -387,3 +387,141 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
   }
 });
 
+test('2P Online networking (#236): 2 independent browser sessions discover presence, join via corner invite toast, exchange live garbage attacks and rising garbage, and update Opponent Mini-Radars in Puzzle Bobble and Tetris', async ({
+  browser,
+}) => {
+  const stub = await startStubApp();
+  const ctx1 = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const ctx2 = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  try {
+    const page1 = await ctx1.newPage();
+    const page2 = await ctx2.newPage();
+
+    await page1.goto(stub.base);
+    await page2.goto(stub.base);
+
+    // 1. Both isolated browser sessions register presence and see "2 online" (aria-label="2 players online").
+    await expect(page1.getByTestId('online-presence-pill')).toContainText('2 online', {
+      timeout: 6000,
+    });
+    await expect(page1.getByTestId('online-presence-pill')).toHaveAttribute(
+      'aria-label',
+      '2 players online',
+    );
+    await expect(page2.getByTestId('online-presence-pill')).toContainText('2 online', {
+      timeout: 6000,
+    });
+    await expect(page2.getByTestId('deck-online-count')).toContainText('2 Online');
+
+    // 2. Browser Session 1 opens Puzzle Bobble and broadcasts an open 2P Online invite.
+    await page1.goto(`${stub.base}?app=puzzle-bobble`);
+    await expect(page1.getByRole('heading', { name: 'Puzzle Bobble' })).toBeVisible();
+    await page1.getByTestId('pb-2p-online-btn').click();
+    await expect(page1.getByTestId('pb-invite-waiting')).toBeVisible();
+
+    // Browser Session 2 (browsing the home canvas) sees the non-blocking corner invite toast and clicks Join 2P.
+    const toast2 = page2.getByTestId('netplay-invite-toast');
+    await expect(toast2).toBeVisible({ timeout: 6000 });
+    await expect(toast2).toContainText('Puzzle Bobble');
+    await page2.getByTestId('netplay-accept-invite').click();
+
+    // Browser Session 2 automatically navigates to Puzzle Bobble, and BOTH sessions render ONLY their own
+    // single full-size board (`data-mode="1p"`) plus the live Opponent Mini-Radar in the sidebar.
+    await expect(page2).toHaveURL(/\?app=puzzle-bobble/);
+    await expect(page1.getByTestId('pb-opponent-radar')).toBeVisible({ timeout: 6000 });
+    await expect(page2.getByTestId('pb-opponent-radar')).toBeVisible({ timeout: 6000 });
+    await expect(page1.getByRole('img', { name: 'Player 2 bubble board' })).toHaveCount(0);
+    await expect(page2.getByRole('img', { name: 'Player 2 bubble board' })).toHaveCount(0);
+
+    // Browser Session 1 pops a 5-bubble cluster (`forceClusterPop: true`) -> sends garbage attack + radar state
+    // over `/api/netplay` to Browser Session 2!
+    await page1.evaluate(() => {
+      window.dispatchEvent(
+        new CustomEvent('yolo:puzzle-bobble:fire-resolve', {
+          detail: { player: 0, forceClusterPop: true },
+        }),
+      );
+    });
+
+    // Browser Session 2's Opponent Mini-Radar updates live with Session 1's score, AND Session 2's incoming
+    // warning counter (`p1-incoming`) and bottom staging tray (`p1-incoming-indicator`) show the attack bubbles!
+    await expect(page2.getByTestId('pb-opponent-score')).not.toHaveText('0 pts', {
+      timeout: 6000,
+    });
+    await expect(page2.getByTestId('p1-incoming')).not.toHaveText('0', {
+      timeout: 6000,
+    });
+    await expect(page2.getByTestId('p1-incoming-indicator')).toBeVisible();
+
+    // Browser Session 2 resolves a non-popping shot -> those incoming attack bubbles rise from the bottom
+    // of Session 2's board (`.pb-rise-bubble`), and Session 1's Opponent Mini-Radar updates with Session 2's state!
+    await page2.evaluate(() => {
+      window.dispatchEvent(
+        new CustomEvent('yolo:puzzle-bobble:fire-resolve', {
+          detail: { player: 0, preventPop: true },
+        }),
+      );
+    });
+    const p2BoardOnSession2 = page2.getByRole('img', { name: 'Player 1 bubble board' });
+    await expect(p2BoardOnSession2.locator('.pb-rise-bubble').first()).toBeVisible();
+    await page1.screenshot({ path: 'e2e/screenshots/15-netplay-pb-session1.png' });
+    await page2.screenshot({ path: 'e2e/screenshots/15-netplay-pb-session2.png' });
+
+    // 3. Now test 2P Online Tetris end-to-end across the two browser sessions.
+    await page1.goto(`${stub.base}?app=tetris`);
+    await expect(page1.getByRole('heading', { name: 'Tetris' })).toBeVisible();
+    await page1.getByTestId('tetris-2p-online-btn').click();
+    await expect(page1.getByTestId('tetris-invite-waiting')).toBeVisible();
+
+    // Browser Session 2 receives the Tetris corner invite toast and joins.
+    await expect(page2.getByTestId('netplay-invite-toast')).toContainText('Tetris', {
+      timeout: 6000,
+    });
+    await page2.getByTestId('netplay-accept-invite').click();
+
+    await expect(page2).toHaveURL(/\?app=tetris/);
+    await expect(page1.getByTestId('tetris-opponent-radar')).toBeVisible({ timeout: 6000 });
+    await expect(page2.getByTestId('tetris-opponent-radar')).toBeVisible({ timeout: 6000 });
+    await expect(page1.getByTestId('tetris-garbage-meter')).toBeVisible();
+    await expect(page2.getByTestId('tetris-garbage-meter')).toBeVisible();
+
+    // Browser Session 1 clears a 4-line Tetris -> sends 4 garbage lines (`tetris_attack`) + radar state
+    // over `/api/netplay` to Browser Session 2!
+    await page1.evaluate(() => {
+      window.dispatchEvent(new CustomEvent('yolo:tetris:four-line-clear'));
+    });
+
+    // Browser Session 2 sees Session 1's score (`800 pts`) and lines (`4L`) in the Opponent Mini-Radar,
+    // AND Session 2's vertical incoming garbage meter lights up with 4 active segments!
+    await expect(page2.getByTestId('tetris-opponent-score')).toHaveText('800 pts', {
+      timeout: 6000,
+    });
+    await expect(page2.getByTestId('tetris-opponent-lines')).toHaveText('4L', {
+      timeout: 6000,
+    });
+    await expect(
+      page2.getByTestId('tetris-garbage-meter').locator('.tetris-garbage-segment.is-active'),
+    ).toHaveCount(4, { timeout: 6000 });
+
+    // Browser Session 2 presses Space (hard-drop without clearing a line) ->
+    // the 4 incoming garbage lines rise from the bottom of Session 2's board as 36 grey `.tetromino-g` cells
+    // (4 rows × 9 filled columns + 1 hole column per row), and Session 1's Opponent Mini-Radar renders
+    // Session 2's risen `.tetris-radar-cell.tetromino-g` rows live!
+    await page2.keyboard.press('Space');
+    await expect(
+      page2.getByTestId('tetris-garbage-meter').locator('.tetris-garbage-segment.is-active'),
+    ).toHaveCount(0);
+    await expect(page2.locator('.tetris-board .tetris-cell.tetromino-g')).toHaveCount(36);
+    await expect(
+      page1.getByTestId('tetris-opponent-radar').locator('.tetris-radar-cell.tetromino-g'),
+    ).toHaveCount(36, { timeout: 6000 });
+
+    await page1.screenshot({ path: 'e2e/screenshots/16-netplay-tetris-session1.png' });
+    await page2.screenshot({ path: 'e2e/screenshots/16-netplay-tetris-session2.png' });
+  } finally {
+    await ctx1.close();
+    await ctx2.close();
+    await closeStub(stub);
+  }
+});
+

@@ -4,6 +4,20 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## 2-Player Online Networking for Tetris and Puzzle Bobble with Presence, Corner Invite Toast, Versus Garbage Rules, and Opponent Mini-Radar (#236) — 2026-10-27
+
+- **Multi-User Presence, Open Invites & Room Event Relay (`server/netplay.js`, `server/app.js`, `hosting/cloudflare/worker.mjs`, `src/client/netplay.ts`):**
+  - Added `/api/netplay` (`GET` and `POST`) on both the local Express server and the Cloudflare Worker (`demo.yolo-dev.ai`), bridged with `BroadcastChannel('yolo:netplay:v1')` on the client for instant same-browser multi-tab pairing as well as cross-device/remote pairing.
+  - Added the non-intrusive bottom-left online presence pill (`data-testid="online-presence-pill"`, e.g. `2 online`, `aria-label="2 players online"`), home deck online count badge (`data-testid="deck-online-badge"`), and non-blocking bottom-right corner invite toast (`data-testid="netplay-invite-toast"`) with `Join 2P` (`data-testid="netplay-accept-invite"`) and `Dismiss` (`data-testid="netplay-dismiss-invite"`).
+- **Competitive Versus Tetris Garbage & Opponent Mini-Radar (`src/shared/tetris.ts`, `src/client/views/TetrisView.tsx`, `test/tetris.test.ts`):**
+  - Implemented standard Versus Tetris garbage rules (`garbageForLines`: 2 lines → 1 garbage, 3 lines → 2 garbage, 4-line Tetris → 4 garbage, plus `+1` per consecutive line-clear combo starting from the 2nd consecutive clear), incoming garbage countering (`queueTetrisGarbage`), and bottom garbage line insertion (`addGarbageLines` with 9 `'G'` blocks and 1 aligned empty hole column when a piece locks without clearing lines).
+  - Added `2P Online` mode (`data-testid="tetris-2p-online-btn"`), the vertical 20-segment incoming garbage warning meter (`data-testid="tetris-garbage-meter"`), and the live 10×20 **Opponent Mini-Radar** (`data-testid="tetris-opponent-radar"`) in `.tetris-side`.
+- **Single-Screen 2P Online Puzzle Bobble & Opponent Mini-Radar (`src/client/views/PuzzleBobbleView.tsx`):**
+  - Added `2P Online` mode (`data-testid="pb-2p-online-btn"`): each player's screen renders only their own full-size single-player board (`data-mode="1p"`, no second full-size board) alongside a live **Opponent Mini-Radar** (`data-testid="pb-opponent-radar"`) in `.pb-side` showing the opponent's settled hex bubbles, compressor drop, danger line, launcher aim angle, score, and round status, while syncing garbage bubble attacks (`pb_attack`), stage clear / KO outcomes (`pb_outcome`), and rematches (`pb_rematch`).
+- `npm test`: 23 files, 161 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 44 passed.
+
 ## Tone.js-style PolySynth/FMSynth/MembraneSynth engine, expanded + selector soundtracks with crossfading, game SFX, YouTube sound icon, and borderless arcade HUD (#234) — 2026-10-26
 
 Source revision `76b8b7d` (the Tone.js-style synth engine, 12 tracks with crossfading, game SFX, YouTube sound icon, and borderless arcade HUD commit); build and review evidence `e7cea3a`; release commit `d74fe06`; published as `v0.19.0` on 2026-10-26.

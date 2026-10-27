@@ -4,6 +4,11 @@ import {
   getSharedMusicOn,
   subscribeSharedAudio,
 } from '../audio/tetrisMusic';
+import {
+  getSharedNetplay,
+  type NetplayState,
+  type TetrisRadarSnapshot,
+} from '../netplay';
 import { TETRIS_PLAYLIST } from '../../shared/tetrisMusic';
 import {
   BACKGROUNDS,
@@ -13,6 +18,7 @@ import {
 import {
   BOARD_HEIGHT,
   BOARD_WIDTH,
+  createEmptyBoard,
   createGame,
   displayBoard,
   dropInterval,
@@ -20,6 +26,8 @@ import {
   hardDrop,
   moveLeft,
   moveRight,
+  pendingGarbageCount,
+  queueTetrisGarbage,
   rotate,
   rotationCells,
   softDrop,
@@ -34,7 +42,28 @@ function motionReduced(): boolean {
   return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-const CELL_CLASS: Record<Tetromino, string> = {
+function mulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function createInitialTetrisRadar(): TetrisRadarSnapshot {
+  return {
+    board: createEmptyBoard(),
+    score: 0,
+    lines: 0,
+    level: 1,
+    status: 'playing',
+    pendingGarbage: 0,
+  };
+}
+
+const CELL_CLASS: Record<Tetromino | 'G', string> = {
   I: 'tetromino-i',
   J: 'tetromino-j',
   L: 'tetromino-l',
@@ -42,6 +71,7 @@ const CELL_CLASS: Record<Tetromino, string> = {
   S: 'tetromino-s',
   T: 'tetromino-t',
   Z: 'tetromino-z',
+  G: 'tetromino-g',
 };
 
 function cellClass(cell: Cell): string {
@@ -55,8 +85,6 @@ function ArtLayer({ art, past, onFaded }: { art: Backdrop; past: boolean; onFade
       src={art.src}
       alt=""
       aria-hidden="true"
-      // The fade decides when the layer goes: removing it on a second copy of
-      // the duration lets the two drift apart and pop the art mid-fade.
       onAnimationEnd={
         past
           ? (event) => {
@@ -68,17 +96,6 @@ function ArtLayer({ art, past, onFaded }: { art: Backdrop; past: boolean; onFade
   );
 }
 
-/**
- * Crossfades between scenes: the new scene fades in while the previous one
- * fades out.
- *
- * The outgoing layer is removed by its own `animationend`, so the unmount
- * happens where the fade actually ends rather than at a second copy of its
- * length. Under `prefers-reduced-motion: reduce` no animation runs, so that
- * event never arrives and the layer is dropped on the next frame instead —
- * there is nothing to fade, and leaving it in the DOM would accumulate one
- * hidden layer per scene change.
- */
 function PixelBackdrop({ art }: { art: Backdrop }) {
   const [layers, setLayers] = useState<Array<{ key: number; art: Backdrop }>>([{ key: 0, art }]);
   const keyRef = useRef(0);
@@ -93,7 +110,6 @@ function PixelBackdrop({ art }: { art: Backdrop }) {
     });
   }, [art]);
 
-  // Cut, not crossfade: no animation means no `animationend` to wait for.
   useEffect(() => {
     if (layers.length <= 1 || !motionReduced()) return;
     const id = window.requestAnimationFrame(dropPastLayers);
@@ -123,20 +139,190 @@ function NextPreview({ type }: { type: Tetromino }) {
   );
 }
 
+function OpponentTetrisRadar({
+  opponentName,
+  radar,
+  roundOutcome,
+}: {
+  opponentName: string;
+  radar: TetrisRadarSnapshot;
+  roundOutcome: 'playing' | 'won' | 'lost';
+}) {
+  const statusLabel =
+    roundOutcome === 'won' || radar.status === 'over'
+      ? 'KO'
+      : roundOutcome === 'lost'
+        ? 'WIN'
+        : 'LIVE';
+  return (
+    <div
+      className="netplay-radar-card"
+      data-testid="tetris-opponent-radar"
+      aria-label={`Opponent ${opponentName} mini radar`}
+    >
+      <div className="netplay-radar-header">
+        <span className="netplay-radar-name" title={opponentName}>
+          VS {opponentName}
+        </span>
+        <span
+          className={
+            statusLabel === 'KO'
+              ? 'netplay-radar-badge is-ko'
+              : 'netplay-radar-badge'
+          }
+          data-testid="tetris-opponent-status"
+        >
+          {statusLabel}
+        </span>
+      </div>
+      <div
+        className="tetris-radar-grid"
+        role="img"
+        aria-label={`${opponentName} board radar, score ${radar.score}, lines ${radar.lines}`}
+      >
+        {radar.board.map((row, y) =>
+          row.map((cell, x) => (
+            <div
+              key={`${x},${y}`}
+              className={cell ? `tetris-radar-cell ${CELL_CLASS[cell]}` : 'tetris-radar-cell'}
+            />
+          )),
+        )}
+      </div>
+      <div className="netplay-radar-stats">
+        <span data-testid="tetris-opponent-score">{radar.score} pts</span>
+        <span data-testid="tetris-opponent-lines">{radar.lines}L</span>
+      </div>
+    </div>
+  );
+}
+
 export function TetrisView({ onExit }: { onExit: () => void }) {
-  const [game, setGame] = useState<TetrisState>(() => createGame());
+  const rngRef = useRef<() => number>(Math.random);
+  const [game, setGame] = useState<TetrisState>(() => createGame(rngRef.current));
   const [paused, setPaused] = useState(false);
   const [musicOn, setMusicOn] = useState<boolean>(() => getSharedMusicOn());
   const [backgroundIndex, setBackgroundIndex] = useState(0);
   const [nowPlaying, setNowPlaying] = useState<string | null>(
     () => getSharedArcadeAudio().getCurrentTrack()?.title ?? null,
   );
+  const [netplay, setNetplay] = useState<NetplayState>(() => getSharedNetplay().getState());
+  const [opponentRadar, setOpponentRadar] = useState<TetrisRadarSnapshot>(() =>
+    createInitialTetrisRadar(),
+  );
+  const [roundOutcome, setRoundOutcome] = useState<'playing' | 'won' | 'lost'>('playing');
+  const [wins, setWins] = useState<[number, number]>([0, 0]);
+
   const gameRef = useRef(game);
   gameRef.current = game;
+  const roundOutcomeRef = useRef(roundOutcome);
+  roundOutcomeRef.current = roundOutcome;
+  const activeRoomIdRef = useRef<string | null>(null);
   const tetrisCountRef = useRef(game.tetrisCount);
   const prevLinesRef = useRef(game.lines);
   const prevStatusRef = useRef(game.status);
+  const prevLockIdRef = useRef<number>(0);
   const gameSectionRef = useRef<HTMLElement>(null);
+
+  const activeTetrisRoom =
+    netplay.activeRoom && netplay.activeRoom.gameId === 'tetris' ? netplay.activeRoom : null;
+  const isOnline2P = activeTetrisRoom !== null;
+  const isInviting = netplay.myPendingInvite?.gameId === 'tetris';
+
+  const startOnlineRoundWithSeed = useCallback((seed: number, resetTally = false) => {
+    rngRef.current = mulberry32(seed);
+    const fresh = createGame(rngRef.current);
+    prevLinesRef.current = 0;
+    prevStatusRef.current = 'playing';
+    prevLockIdRef.current = 0;
+    setGame(fresh);
+    setOpponentRadar(createInitialTetrisRadar());
+    setRoundOutcome('playing');
+    setPaused(false);
+    if (resetTally) {
+      setWins([0, 0]);
+    }
+  }, []);
+
+  useEffect(() => {
+    const client = getSharedNetplay();
+    const unsubState = client.subscribe((nextState) => {
+      setNetplay(nextState);
+      const room =
+        nextState.activeRoom && nextState.activeRoom.gameId === 'tetris'
+          ? nextState.activeRoom
+          : null;
+      if (room && activeRoomIdRef.current !== room.id) {
+        activeRoomIdRef.current = room.id;
+        startOnlineRoundWithSeed(room.seed, true);
+      } else if (!room && activeRoomIdRef.current !== null) {
+        activeRoomIdRef.current = null;
+        rngRef.current = Math.random;
+        setRoundOutcome('playing');
+      }
+    });
+
+    const unsubEvents = client.onRoomEvent((event) => {
+      if (event.kind === 'match_start') {
+        const payload = event.payload as { gameId?: string; seed?: number; id?: string; roomId?: string } | null;
+        if (payload && payload.gameId === 'tetris') {
+          const rid = payload.id ?? payload.roomId ?? null;
+          if (rid && activeRoomIdRef.current !== rid) {
+            activeRoomIdRef.current = rid;
+            startOnlineRoundWithSeed(payload.seed ?? 1337, true);
+          }
+        }
+        return;
+      }
+
+      if (event.senderId === client.getState().clientId) return;
+
+      if (event.kind === 'tetris_attack') {
+        const payload = event.payload as { lines?: number; holeColumn?: number } | null;
+        const lines = Number(payload?.lines ?? 0);
+        if (lines > 0) {
+          setGame((current) => queueTetrisGarbage(current, lines, payload?.holeColumn));
+        }
+        return;
+      }
+
+      if (event.kind === 'tetris_state') {
+        const snapshot = event.payload as TetrisRadarSnapshot | null;
+        if (snapshot && Array.isArray(snapshot.board)) {
+          setOpponentRadar(snapshot);
+        }
+        return;
+      }
+
+      if (event.kind === 'tetris_ko') {
+        setOpponentRadar((prev) => ({ ...prev, status: 'over' }));
+        if (roundOutcomeRef.current === 'playing') {
+          setRoundOutcome('won');
+          setWins(([myW, oppW]) => [myW + 1, oppW]);
+          getSharedArcadeAudio().sfx.playRoundEnd(true);
+        }
+        return;
+      }
+
+      if (event.kind === 'tetris_rematch') {
+        const payload = event.payload as { seed?: number } | null;
+        startOnlineRoundWithSeed(payload?.seed ?? Date.now(), false);
+        return;
+      }
+
+      if (event.kind === 'player_left') {
+        setOpponentRadar((prev) => ({ ...prev, status: 'over' }));
+        if (roundOutcomeRef.current === 'playing') {
+          setRoundOutcome('won');
+        }
+      }
+    });
+
+    return () => {
+      unsubState();
+      unsubEvents();
+    };
+  }, [startOnlineRoundWithSeed]);
 
   useEffect(() => {
     const audio = getSharedArcadeAudio();
@@ -160,8 +346,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     return () => el.removeEventListener('touchmove', onTouchMove);
   }, []);
 
-  // Clearing four lines at once advances the backdrop to the next scene. A new
-  // game resets the counter, which only lowers the ref and never cycles.
+  // Clearing four lines at once advances the backdrop to the next scene.
   useEffect(() => {
     if (game.tetrisCount > tetrisCountRef.current) {
       setBackgroundIndex((index) => nextBackgroundIndex(index));
@@ -169,7 +354,8 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     tetrisCountRef.current = game.tetrisCount;
   }, [game.tetrisCount]);
 
-  // #234: Trigger real-time Tone.js-style SFX on line clears, 4-line TETRIS, and Game Over.
+  // #234, #236: Trigger real-time Tone.js-style SFX on line clears, garbage send/rise, and Game Over,
+  // and relay 2P Versus garbage attacks and live radar snapshots to the opponent.
   useEffect(() => {
     if (game.lines > prevLinesRef.current) {
       const cleared = game.lines - prevLinesRef.current;
@@ -179,38 +365,97 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
   }, [game.lines]);
 
   useEffect(() => {
+    const lockEv = game.lastLockEvent;
+    if (lockEv && lockEv.id !== prevLockIdRef.current) {
+      prevLockIdRef.current = lockEv.id;
+      const sfx = getSharedArcadeAudio().sfx;
+      if (lockEv.sentGarbage > 0) {
+        sfx.playGarbageSend(lockEv.sentGarbage);
+        if (isOnline2P) {
+          const holeColumn = Math.floor(rngRef.current() * BOARD_WIDTH);
+          void getSharedNetplay().sendRoomEvent('tetris_attack', {
+            lines: lockEv.sentGarbage,
+            holeColumn,
+          });
+        }
+      }
+      if (lockEv.risenGarbage > 0) {
+        sfx.playGarbageRise(lockEv.risenGarbage);
+      }
+      if (isOnline2P) {
+        void getSharedNetplay().sendRoomEvent('tetris_state', {
+          board: displayBoard(game),
+          score: game.score,
+          lines: game.lines,
+          level: game.level,
+          status: game.status,
+          pendingGarbage: pendingGarbageCount(game),
+        } satisfies TetrisRadarSnapshot);
+      }
+    }
+  }, [game, isOnline2P]);
+
+  useEffect(() => {
     if (game.status === 'over' && prevStatusRef.current === 'playing') {
       getSharedArcadeAudio().sfx.playGameOver();
+      if (isOnline2P && roundOutcomeRef.current === 'playing') {
+        setRoundOutcome('lost');
+        setWins(([myW, oppW]) => [myW, oppW + 1]);
+        void getSharedNetplay().sendRoomEvent('tetris_ko', { score: game.score, lines: game.lines });
+      }
     }
     prevStatusRef.current = game.status;
-  }, [game.status]);
+  }, [game.lines, game.score, game.status, isOnline2P]);
 
-  // Browser-driven test hook: a synthetic four-line clear, as the game would
-  // record on a real one, so the cycle can be exercised without scripted
-  // gameplay. Play rules are unchanged.
+  // Browser-driven test hooks: synthetic four-line clear and deterministic Versus garbage queue (#236).
   useEffect(() => {
     function forceFourLineClear() {
       getSharedArcadeAudio().sfx.playLineClear(4);
-      setGame((current) => ({ ...current, tetrisCount: current.tetrisCount + 1 }));
+      setGame((current) => ({
+        ...current,
+        lines: current.lines + 4,
+        score: current.score + 800 * current.level,
+        tetrisCount: current.tetrisCount + 1,
+        garbageSent: current.garbageSent + 4,
+        lastLockEvent: {
+          id: (current.lastLockEvent?.id ?? 0) + 1,
+          cleared: 4,
+          combo: 1,
+          sentGarbage: 4,
+          canceledGarbage: 0,
+          risenGarbage: 0,
+        },
+      }));
+    }
+    function onQueueGarbage(event: Event) {
+      const detail = (event as CustomEvent<{ lines?: number; holeColumn?: number }>).detail;
+      const lines = detail?.lines ?? 2;
+      const holeColumn = detail?.holeColumn ?? 4;
+      setGame((current) => queueTetrisGarbage(current, lines, holeColumn));
     }
     window.addEventListener('yolo:tetris:four-line-clear', forceFourLineClear);
-    return () => window.removeEventListener('yolo:tetris:four-line-clear', forceFourLineClear);
+    window.addEventListener('yolo:tetris:queue-garbage', onQueueGarbage);
+    return () => {
+      window.removeEventListener('yolo:tetris:four-line-clear', forceFourLineClear);
+      window.removeEventListener('yolo:tetris:queue-garbage', onQueueGarbage);
+    };
   }, []);
 
-  // Drive playback from game state. The audio context itself is unlocked by the
-  // bottom-right YouTube-style speaker icon button.
+  const matchEnded = game.status !== 'playing' || (isOnline2P && roundOutcome !== 'playing');
+
+  // Drive playback from game state.
   useEffect(() => {
-    getSharedArcadeAudio().setActive(musicOn && game.status === 'playing' && !paused);
-  }, [musicOn, paused, game.status]);
+    getSharedArcadeAudio().setActive(musicOn && !matchEnded && !paused);
+  }, [musicOn, paused, matchEnded]);
 
   // Gravity. Restarts when the level (speed) changes and stops when not playing.
   useEffect(() => {
-    if (paused || game.status !== 'playing') return;
+    if (paused || matchEnded) return;
     const id = window.setInterval(() => {
-      setGame((current) => tick(current));
+      setGame((current) => tick(current, rngRef.current));
     }, dropInterval(game.level));
     return () => window.clearInterval(id);
-  }, [paused, game.level, game.status]);
+  }, [paused, game.level, matchEnded]);
 
   // Keyboard controls: arrows move/rotate/soft-drop, space hard-drops, Escape closes.
   useEffect(() => {
@@ -219,7 +464,9 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
         onExit();
         return;
       }
-      if (paused || gameRef.current.status !== 'playing') return;
+      if (paused || gameRef.current.status !== 'playing' || (isOnline2P && roundOutcomeRef.current !== 'playing')) {
+        return;
+      }
       switch (event.key) {
         case 'ArrowLeft':
           event.preventDefault();
@@ -231,7 +478,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
           break;
         case 'ArrowDown':
           event.preventDefault();
-          setGame((current) => softDrop(current));
+          setGame((current) => softDrop(current, rngRef.current));
           break;
         case 'ArrowUp':
           event.preventDefault();
@@ -242,7 +489,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
         case 'Spacebar':
           event.preventDefault();
           getSharedArcadeAudio().sfx.playHardDrop();
-          setGame((current) => hardDrop(current));
+          setGame((current) => hardDrop(current, rngRef.current));
           break;
         default:
           break;
@@ -250,10 +497,10 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     }
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [onExit, paused]);
+  }, [isOnline2P, onExit, paused]);
 
   // #212: Touch / pointer auto-repeat (DAS) for on-screen Tetris arcade buttons
-  // and direct board gestures (drag left/right to move, tap to rotate, flick down to hard-drop).
+  // and direct board gestures.
   const repeatTimeoutRef = useRef<number | null>(null);
   const repeatIntervalRef = useRef<number | null>(null);
   const boardGestureRef = useRef<{
@@ -279,18 +526,18 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
 
   const startTouchRepeat = useCallback(
     (action: () => void) => {
-      if (paused || game.status !== 'playing') return;
+      if (paused || matchEnded) return;
       stopTouchRepeat();
       action();
       repeatTimeoutRef.current = window.setTimeout(() => {
         repeatIntervalRef.current = window.setInterval(action, 60);
       }, 160);
     },
-    [game.status, paused, stopTouchRepeat],
+    [matchEnded, paused, stopTouchRepeat],
   );
 
   const onBoardPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (paused || game.status !== 'playing') return;
+    if (paused || matchEnded) return;
     boardGestureRef.current = {
       pointerId: event.pointerId,
       startX: event.clientX,
@@ -302,7 +549,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
 
   const onBoardPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
     const g = boardGestureRef.current;
-    if (!g || g.pointerId !== event.pointerId || paused || game.status !== 'playing') return;
+    if (!g || g.pointerId !== event.pointerId || paused || matchEnded) return;
     const stepPx = 22;
     const dx = event.clientX - g.lastStepX;
     if (Math.abs(dx) >= stepPx) {
@@ -324,12 +571,12 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     const g = boardGestureRef.current;
     if (!g || g.pointerId !== event.pointerId) return;
     boardGestureRef.current = null;
-    if (paused || game.status !== 'playing') return;
+    if (paused || matchEnded) return;
     const totalDx = event.clientX - g.startX;
     const totalDy = event.clientY - g.startY;
     if (totalDy >= 44 && Math.abs(totalDy) > Math.abs(totalDx) * 1.3) {
       getSharedArcadeAudio().sfx.playHardDrop();
-      setGame((current) => hardDrop(current));
+      setGame((current) => hardDrop(current, rngRef.current));
     } else if (!g.moved && Math.hypot(totalDx, totalDy) < 12) {
       getSharedArcadeAudio().sfx.playRotate();
       setGame((current) => rotate(current, 1));
@@ -349,6 +596,24 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     }
   }
 
+  const pendingGarbage = pendingGarbageCount(game);
+
+  const handleNewOrRematch = () => {
+    if (isOnline2P) {
+      const nextSeed = ((Date.now() & 0x7fffffff) ^ 0x3c6ef372) >>> 0 || 2026;
+      startOnlineRoundWithSeed(nextSeed, false);
+      void getSharedNetplay().sendRoomEvent('tetris_rematch', { seed: nextSeed });
+    } else {
+      rngRef.current = Math.random;
+      prevLinesRef.current = 0;
+      prevStatusRef.current = 'playing';
+      prevLockIdRef.current = 0;
+      setGame(createGame(rngRef.current));
+      setRoundOutcome('playing');
+      setPaused(false);
+    }
+  };
+
   return (
     <section className="tetris" aria-label="Tetris game" ref={gameSectionRef}>
       <PixelBackdrop art={BACKGROUNDS[backgroundIndex]} />
@@ -358,6 +623,11 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
             1UP
           </span>
           <h2 className="tetris-title">Tetris</h2>
+          {isOnline2P && activeTetrisRoom ? (
+            <span className="pb-tally" data-testid="tetris-2p-tally" aria-label="Online 2P round wins">
+              YOU {wins[0]} – {wins[1]} {activeTetrisRoom.opponent.name}
+            </span>
+          ) : null}
           {BACKGROUNDS.length > 1 ? (
             <p className="tetris-scene" aria-live="polite">
               Scene {backgroundIndex + 1}/{BACKGROUNDS.length}: {BACKGROUNDS[backgroundIndex].title}
@@ -366,11 +636,43 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
           ) : null}
         </div>
         <div className="row">
-          <button type="button" onClick={() => setPaused((value) => !value)} disabled={game.status !== 'playing'}>
+          <div className="filter-group" role="group" aria-label="Tetris player mode">
+            <button
+              type="button"
+              aria-pressed={!isOnline2P && !isInviting}
+              onClick={() => {
+                if (isOnline2P) void getSharedNetplay().leaveRoom();
+                if (isInviting) void getSharedNetplay().cancelInvite();
+              }}
+            >
+              1 Player
+            </button>
+            <button
+              type="button"
+              data-testid="tetris-2p-online-btn"
+              aria-pressed={isOnline2P || isInviting}
+              onClick={() => {
+                if (isOnline2P) {
+                  void getSharedNetplay().leaveRoom();
+                } else if (isInviting) {
+                  void getSharedNetplay().cancelInvite();
+                } else {
+                  void getSharedNetplay().sendInvite('tetris');
+                }
+              }}
+            >
+              {isOnline2P
+                ? `2P Online (${activeTetrisRoom.opponent.name})`
+                : isInviting
+                  ? 'Waiting 2P… (Cancel)'
+                  : '2P Online'}
+            </button>
+          </div>
+          <button type="button" onClick={() => setPaused((value) => !value)} disabled={matchEnded}>
             {paused ? 'Resume' : 'Pause'}
           </button>
-          <button type="button" className="primary" onClick={() => { setGame(createGame()); setPaused(false); }}>
-            New game
+          <button type="button" className="primary" onClick={handleNewOrRematch}>
+            {isOnline2P && matchEnded ? 'Next round' : 'New game'}
           </button>
           <button type="button" onClick={onExit} aria-label="Close Tetris">
             Close
@@ -401,6 +703,32 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
             }),
           )}
         </div>
+
+        {(isOnline2P || pendingGarbage > 0) ? (
+          <div
+            className="tetris-garbage-meter"
+            data-testid="tetris-garbage-meter"
+            role="status"
+            aria-label={`${pendingGarbage} incoming garbage lines`}
+            title={`${pendingGarbage} incoming garbage lines`}
+          >
+            {Array.from({ length: BOARD_HEIGHT }, (_, idx) => {
+              const rowFromBottom = BOARD_HEIGHT - 1 - idx;
+              const active = rowFromBottom < pendingGarbage;
+              return (
+                <div
+                  key={idx}
+                  className={
+                    active
+                      ? 'tetris-garbage-segment is-active'
+                      : 'tetris-garbage-segment'
+                  }
+                />
+              );
+            })}
+          </div>
+        ) : null}
+
         <aside className="tetris-side">
           <div className="tetris-stat">
             <span className="tetris-label">Score</span>
@@ -418,6 +746,19 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
             <span className="tetris-label">Next</span>
             <NextPreview type={game.next} />
           </div>
+          {isInviting && !isOnline2P ? (
+            <div className="netplay-waiting-pill" data-testid="tetris-invite-waiting" role="status">
+              <span className="netplay-online-dot" aria-hidden="true" />
+              Inviting online players…
+            </div>
+          ) : null}
+          {isOnline2P && activeTetrisRoom ? (
+            <OpponentTetrisRadar
+              opponentName={activeTetrisRoom.opponent.name}
+              radar={opponentRadar}
+              roundOutcome={roundOutcome}
+            />
+          ) : null}
         </aside>
       </div>
 
@@ -432,7 +773,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
           className="pb-touch-btn pb-touch-rocker"
           data-testid="tetris-touch-left"
           aria-label="Move left"
-          disabled={paused || game.status !== 'playing'}
+          disabled={paused || matchEnded}
           onPointerDown={(event) => {
             event.preventDefault();
             startTouchRepeat(() => setGame((current) => moveLeft(current)));
@@ -451,16 +792,16 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
           className="pb-touch-btn pb-touch-rocker"
           data-testid="tetris-touch-soft"
           aria-label="Soft drop"
-          disabled={paused || game.status !== 'playing'}
+          disabled={paused || matchEnded}
           onPointerDown={(event) => {
             event.preventDefault();
-            startTouchRepeat(() => setGame((current) => softDrop(current)));
+            startTouchRepeat(() => setGame((current) => softDrop(current, rngRef.current)));
           }}
           onPointerUp={stopTouchRepeat}
           onPointerCancel={stopTouchRepeat}
           onPointerLeave={stopTouchRepeat}
           onClick={(event) => {
-            if (event.detail === 0) setGame((current) => softDrop(current));
+            if (event.detail === 0) setGame((current) => softDrop(current, rngRef.current));
           }}
         >
           ▼
@@ -470,7 +811,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
           className="pb-touch-btn pb-touch-rocker"
           data-testid="tetris-touch-right"
           aria-label="Move right"
-          disabled={paused || game.status !== 'playing'}
+          disabled={paused || matchEnded}
           onPointerDown={(event) => {
             event.preventDefault();
             startTouchRepeat(() => setGame((current) => moveRight(current)));
@@ -489,7 +830,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
           className="pb-touch-btn pb-touch-rotate"
           data-testid="tetris-touch-rotate"
           aria-label="Rotate piece"
-          disabled={paused || game.status !== 'playing'}
+          disabled={paused || matchEnded}
           onPointerDown={(event) => {
             event.preventDefault();
             getSharedArcadeAudio().sfx.playRotate();
@@ -509,16 +850,16 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
           className="primary pb-touch-btn pb-touch-fire"
           data-testid="tetris-touch-drop"
           aria-label="Hard drop"
-          disabled={paused || game.status !== 'playing'}
+          disabled={paused || matchEnded}
           onPointerDown={(event) => {
             event.preventDefault();
             getSharedArcadeAudio().sfx.playHardDrop();
-            setGame((current) => hardDrop(current));
+            setGame((current) => hardDrop(current, rngRef.current));
           }}
           onClick={(event) => {
             if (event.detail === 0) {
               getSharedArcadeAudio().sfx.playHardDrop();
-              setGame((current) => hardDrop(current));
+              setGame((current) => hardDrop(current, rngRef.current));
             }
           }}
         >
@@ -526,7 +867,15 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
         </button>
       </div>
 
-      {game.status === 'over' ? (
+      {isOnline2P && roundOutcome === 'won' && activeTetrisRoom ? (
+        <p className="tetris-over" role="status" data-testid="tetris-online-banner">
+          YOU WIN! {activeTetrisRoom.opponent.name} topped out ({wins[0]}–{wins[1]}). Press Next round for a rematch.
+        </p>
+      ) : isOnline2P && roundOutcome === 'lost' && activeTetrisRoom ? (
+        <p className="tetris-over" role="status" data-testid="tetris-online-banner">
+          KO! {activeTetrisRoom.opponent.name} wins the round ({wins[0]}–{wins[1]}). Press Next round for a rematch.
+        </p>
+      ) : game.status === 'over' ? (
         <p className="tetris-over" role="status">
           Game over — score {game.score}. Start a new game to play again.
         </p>

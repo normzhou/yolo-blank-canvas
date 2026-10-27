@@ -12,6 +12,7 @@ import { Panel, type PanelView } from './components/Panel';
 import { ErrorNotice } from './components/ErrorNotice';
 import { CanvasPalette } from './components/CanvasPalette';
 import { CANVAS_APPS, canvasAppById } from './apps/registry';
+import { getSharedNetplay, type NetplayState } from './netplay';
 import { BACKGROUNDS } from '../shared/tetrisBackgrounds';
 import {
   PUZZLE_BOBBLE_PLAYLIST,
@@ -452,6 +453,7 @@ export function App() {
   const [nowPlaying, setNowPlaying] = useState<string | null>(
     () => getSharedArcadeAudio().getCurrentTrack()?.title ?? null,
   );
+  const [netplay, setNetplay] = useState<NetplayState>(() => getSharedNetplay().getState());
 
   useEffect(() => {
     return subscribeSharedAudio((nextOn, nextTitle) => {
@@ -459,6 +461,17 @@ export function App() {
       setNowPlaying(nextTitle);
     });
   }, []);
+
+  useEffect(() => {
+    const client = getSharedNetplay();
+    return client.subscribe((nextState) => {
+      setNetplay(nextState);
+    });
+  }, []);
+
+  useEffect(() => {
+    getSharedNetplay().setCurrentApp(appId);
+  }, [appId]);
 
   // #234: Crossfade into the appropriate soundtrack for the active screen
   // (Selector Screen <-> Tetris <-> Puzzle Bobble).
@@ -603,7 +616,26 @@ export function App() {
     setAppId(id);
   }, []);
 
-  const exitApp = useCallback(() => openApp(null), [openApp]);
+  const exitApp = useCallback(() => {
+    void getSharedNetplay().leaveRoom();
+    void getSharedNetplay().cancelInvite();
+    openApp(null);
+  }, [openApp]);
+
+  const lastOpenedRoomIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    const room = netplay.activeRoom;
+    if (!room) {
+      lastOpenedRoomIdRef.current = null;
+      return;
+    }
+    if (lastOpenedRoomIdRef.current !== room.id) {
+      lastOpenedRoomIdRef.current = room.id;
+      if (appId !== room.gameId) {
+        openApp(room.gameId);
+      }
+    }
+  }, [netplay.activeRoom, appId, openApp]);
 
   useEffect(() => {
     const onPopState = () => {
@@ -822,6 +854,16 @@ export function App() {
           >
             <YoloRotatingLogo testId="yolo-rotating-logo" />
           </button>
+          <div
+            className="online-presence-pill"
+            data-testid="online-presence-pill"
+            role="status"
+            aria-label={`${netplay.onlineCount} ${netplay.onlineCount === 1 ? 'player' : 'players'} online`}
+            title={`Online players (${netplay.onlineCount}): ${netplay.players.map((p) => p.name).join(', ')}`}
+          >
+            <span className="netplay-online-dot" aria-hidden="true" />
+            <span className="online-presence-count">{netplay.onlineCount} online</span>
+          </div>
           <button
             type="button"
             className="sound-launcher"
@@ -860,6 +902,57 @@ export function App() {
             <span className="sr-only">{isFullscreen ? 'Exit full screen' : 'Full screen'}</span>
           </button>
         </>
+      ) : null}
+
+      {/* #236: Non-obtrusive corner invite notification toast so players can keep
+          playing solo or browsing and accept or dismiss a 2P Online match at will. */}
+      {!netplay.activeRoom && netplay.openInvites.length > 0 ? (
+        <aside
+          className="netplay-toast-stack"
+          aria-label="Online 2P game invitations"
+          data-testid="netplay-invite-toast"
+        >
+          {netplay.openInvites.slice(0, 2).map((invite) => {
+            const gameTitle = invite.gameId === 'puzzle-bobble' ? 'Puzzle Bobble' : 'Tetris';
+            return (
+              <div key={invite.id} className="netplay-toast" role="status">
+                <div className="netplay-toast-copy">
+                  <span className="netplay-toast-kicker">
+                    <span className="netplay-online-dot" aria-hidden="true" />
+                    2P Online Challenge
+                  </span>
+                  <span className="netplay-toast-title">
+                    <strong>{invite.hostName}</strong> wants to play <strong>{gameTitle}</strong>
+                  </span>
+                </div>
+                <div className="netplay-toast-actions">
+                  <button
+                    type="button"
+                    className="primary netplay-toast-accept"
+                    data-testid="netplay-accept-invite"
+                    onClick={async () => {
+                      const room = await getSharedNetplay().acceptInvite(invite);
+                      if (room) {
+                        openApp(room.gameId);
+                      }
+                    }}
+                  >
+                    Accept
+                  </button>
+                  <button
+                    type="button"
+                    className="netplay-toast-dismiss"
+                    data-testid="netplay-dismiss-invite"
+                    aria-label="Ignore invite"
+                    onClick={() => void getSharedNetplay().dismissInvite(invite.id)}
+                  >
+                    Ignore
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </aside>
       ) : null}
 
       {serverSuggestsReload && !reloadPromptDismissed ? (
@@ -937,9 +1030,12 @@ export function App() {
                 <div className="deck-slide-meta">
                   <span className="deck-slide-badge">
                     0{slideIndex + 1} / 0{CANVAS_APPS.length} ·{' '}
-                    {currentSlide.id === 'tetris' ? 'Solo Marathon' : '2P Versus & Solo'}
+                    {currentSlide.id === 'tetris' ? '1P & 2P Online' : '2P Online, Versus & Solo'}
                   </span>
-                  <span className="deck-slide-tag">Local View State</span>
+                  <span className="deck-slide-tag" data-testid="deck-online-count">
+                    <span className="netplay-online-dot" aria-hidden="true" />
+                    {netplay.onlineCount} Online
+                  </span>
                 </div>
 
                 <div className="deck-slide-title">{currentSlide.title}</div>
