@@ -6,6 +6,8 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Tone.js-style PolySynth/FMSynth/MembraneSynth engine, expanded + selector soundtracks with crossfading, game SFX, YouTube sound icon, and borderless arcade HUD (#234) — 2026-10-26
 
+Source revision `76b8b7d` (the Tone.js-style synth engine, 12 tracks with crossfading, game SFX, YouTube sound icon, and borderless arcade HUD commit); build and review evidence `e7cea3a`; release commit `d74fe06`; published as `v0.19.0` on 2026-10-26.
+
 - **Tone.js-Style Synth Engine & Real-Time Arcade SFX (`src/client/audio/toneSynth.ts`):**
   - Implemented native Web Audio `TonePolySynth`, `ToneFMSynth`, and `ToneMembraneSynth` (CSP-clean under `default-src 'none'; script-src 'self'`, zero `blob:` workers) sharing the same iOS-unlocked `AudioContext` and `AnalyserNode` as `TetrisMusic`.
   - Wired real-time `ArcadeSfx` into **Puzzle Bobble** (`bubble-shoot`, `bubble-pop`, `bubble-avalanche`, `garbage-send`, `garbage-rise`, `round-win` / `round-lose`) and **Tetris** (`tetris-rotate`, `tetris-drop`, `tetris-line-clear`, `tetris-four-line` fanfare, `tetris-over`).
@@ -19,6 +21,12 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 - `npx tsc --noEmit`: clean.
 - `npm run e2e`: 43 passed.
 - `yolo-check . --structure` (`0.1.0-alpha.33`): `structure.status: pass`, 13/13 findings compliant.
+
+### Installed artifact (`v0.19.0`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.19.0 --no-open --port 4885` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `76b8b7d…`; the tagged package version is `0.19.0`. The tag points at release commit `d74fe06`, after the assets commit `e7cea3a`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4885 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: aa7611eb-7d54-4d61-a159-c8fb9acbcfdf`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.19.0"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 76b8b7d537cd2e33933dfdbbdc06fc0a59167c4d`). The report is [`.yolo/reports/releases-observed-2026-10-26-v0190.json`](../.yolo/reports/releases-observed-2026-10-26-v0190.json).
 
 ## Game-specific 2-minute Tetris & whimsical Puzzle Bobble soundtracks with closed-loop audio verification (#232) — 2026-10-26
 

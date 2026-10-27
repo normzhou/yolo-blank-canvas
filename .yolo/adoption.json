@@ -250,15 +250,16 @@
         "v0.16.7": "062b9dbf183c59f66e126f2970f0f3460e4f9ed8",
         "v0.17.0": "61078d99484744174ecd152a23416ab9490e7043",
         "v0.17.1": "ac45e5151cdfa07dc24d652a21a6c3328f92de81",
-        "v0.17.2": "7002d0709980cc2a71b5910ab36f8de2c9529518"
+        "v0.17.2": "7002d0709980cc2a71b5910ab36f8de2c9529518",
+        "v0.18.0": "fdaa140881579645ba11bc18413ac6cb733e2c34"
       },
       "published": {
-        "tag": "v0.18.0",
-        "commit": "fdaa140881579645ba11bc18413ac6cb733e2c34",
-        "source_commit": "76afac0068c261ba233559a5756260ef98e407e0",
-        "published_at": "2026-10-27T01:28:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-10-26-v0180.json",
-        "note": "Minor release. Replaces the short JRPG/shooter tracks with dedicated ~2-minute arcade/SNES soundtracks for Tetris (Korobeiniki Type A, Kalinka & Troika Type B, Baroque Invention BWV 814 Type C) and whimsical Puzzle Bobble (Bubble Dragon March, Rainbow Island Carnival, Starlight Carousel), verified via closed-loop DSP/spectral analysis, spectrogram inspection, and live browser Web Audio AnalyserNode testing (#232, PR #233); also deployed live to https://demo.yolo-dev.ai (Version ID: 86526c3c-4cc8-4220-89ed-023405179554). Acceptance before tagging: 158 unit, 43 stubbed e2e passed, tsc clean, structure pass. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit fdaa140 after the assets commit d7e10e9; both build-ID files record 76afac0."
+        "tag": "v0.19.0",
+        "commit": "d74fe0663f0902faea39bbb1b944ada5657f2d16",
+        "source_commit": "76b8b7d537cd2e33933dfdbbdc06fc0a59167c4d",
+        "published_at": "2026-10-27T02:38:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-10-26-v0190.json",
+        "note": "Minor release. Adds Tone.js-style PolySynth/FMSynth/MembraneSynth engine (src/client/audio/toneSynth.ts), expands soundtracks to 12 full-length (~2-min) tracks across Selector Screen, Tetris, and Puzzle Bobble with 1.2s GainNode crossfading, adds real-time arcade SFX for both games, places a YouTube-style transparent speaker icon next to the bottom-right fullscreen icon, and removes boxy app-button borders from the in-game HUD (#234, PR #235); also deployed live to https://demo.yolo-dev.ai (Version ID: aa7611eb-7d54-4d61-a159-c8fb9acbcfdf). Acceptance before tagging: 158 unit, 43 stubbed e2e passed, tsc clean, structure pass. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit d74fe06 after the assets commit e7cea3a; both build-ID files record 76b8b7d."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -295,7 +296,8 @@
         ".yolo/reports/releases-observed-2026-10-26-v0170.json",
         ".yolo/reports/releases-observed-2026-10-26-v0171.json",
         ".yolo/reports/releases-observed-2026-10-26-v0172.json",
-        ".yolo/reports/releases-observed-2026-10-26-v0180.json"
+        ".yolo/reports/releases-observed-2026-10-26-v0180.json",
+        ".yolo/reports/releases-observed-2026-10-26-v0190.json"
       ]
     }
   },
