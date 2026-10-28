@@ -397,6 +397,14 @@ test('2P Online networking (#236): 2 independent browser sessions discover prese
   const stub = await startStubApp();
   const ctx1 = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   const ctx2 = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  // Disable BroadcastChannel in both contexts to simulate two completely different
+  // browsers (e.g. Chrome and Safari) that can only communicate via `/api/netplay` (#244).
+  await ctx1.addInitScript(() => {
+    delete (window as { BroadcastChannel?: unknown }).BroadcastChannel;
+  });
+  await ctx2.addInitScript(() => {
+    delete (window as { BroadcastChannel?: unknown }).BroadcastChannel;
+  });
   try {
     const page1 = await ctx1.newPage();
     const page2 = await ctx2.newPage();
