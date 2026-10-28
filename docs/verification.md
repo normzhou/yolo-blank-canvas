@@ -4,6 +4,25 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Arcade UI Declutter, Unified Pause/Mode Menu with Smart 2P Availability, 20s Invite Timeout + Both-Players-Ready Gate, 3-2-1 Countdown, Touch-Only Spread Controls, and Drag-Release Auto-Shoot (#248) — 2026-10-27
+
+- **Arcade UI Declutter (`src/client/views/TetrisView.tsx`, `src/client/views/PuzzleBobbleView.tsx`):**
+  - Removed visible `Angle`, `Drop`, `Shots`, and bottom combo bar clutter from the Puzzle Bobble sidebar (keeping only `SCORE`, `NEXT` / `VS Opponent` mini-radar, and `WARN` in 2P mode while preserving `.sr-only` accessibility/test hooks), and moved header mode/stage/new-game buttons into the unified In-Game Menu.
+- **Unified In-Game Menu with Smart 2P Mode Availability (`src/client/views/TetrisView.tsx`, `src/client/views/PuzzleBobbleView.tsx`):**
+  - `1 Player`, `2 Players` (Local 2P), `2P Online`, Stage selector, `Continue`, `New game`, and `Exit to menu` live in the unified `game-pause-menu` (opened via the bottom-right Pause icon or `Escape`).
+  - `2P Online` is only enabled when `onlineCount > 1` (or when already inviting/in-room); `2 Players` (Local 2P) is only rendered when there is sufficient screen space (`!phoneViewport`) and a hardware keyboard is available.
+- **20-Second Invite Timeout & Both-Players-Ready Gate (`server/netplay.js`, `hosting/cloudflare/worker.mjs`, `src/client/netplay.ts`):**
+  - Open 2P invites count down from **20 seconds** (`INVITE_TIMEOUT_MS = 20_000`, `data-testid="netplay-invite-countdown"`) and auto-cancel on timeout.
+  - Accepted invites enter `status: 'ready_check'` (`data-testid="netplay-ready-modal"`), holding the match until **both players click Ready!** (`data-testid="netplay-ready-btn"`, `action: 'player_ready'`).
+- **3, 2, 1 Arcade Countdown (`data-testid="arcade-countdown"`):**
+  - Displays a centered `3 → 2 → 1` countdown overlay before starting gameplay on initial launch, `New game`, `Next round`, or after both players mark Ready in 2P Online.
+- **Touch-Only Spread Virtual Controls & Drag-Release Auto-Shoot (`src/client/views/PuzzleBobbleView.tsx`, `src/client/views/TetrisView.tsx`):**
+  - Virtual touch controls only render when touch input is available (`detectTouchAvailable()`), spread out in Puzzle Bobble with the left circle (`◀`) on the left, shoot circle (`●`) in the middle, and right circle (`▶`) on the right.
+  - Releasing a drag-to-aim gesture on the Puzzle Bobble board (`onPointerUp`) automatically fires the bubble along the aimed angle.
+- `npm test`: 23 files, 161 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 45 passed.
+
 ## Global `NetplayHub` Durable Object Coordinator for Cross-Browser 2P Online Presence & Auto-Matchmaking on `demo.yolo-dev.ai` (#244) — 2026-10-27
 
 Source revision `9043f29` (the Cloudflare `NetplayHub` Durable Object and auto-matchmaking commit); build and review evidence `667b082`; release commit `28418c7`; published as `v0.21.1` on 2026-10-27.

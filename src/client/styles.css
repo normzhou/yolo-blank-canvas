@@ -2116,6 +2116,7 @@ button.pb-touch-btn {
   white-space: nowrap;
   user-select: none;
   touch-action: manipulation;
+  pointer-events: auto;
   transition: transform 90ms ease, background-color 90ms ease, border-color 90ms ease;
 }
 button.pb-touch-btn.pb-touch-rocker {
@@ -2141,7 +2142,46 @@ button.pb-touch-fire {
   border: 1px solid var(--touch-overlay-fire-border);
   color: var(--touch-overlay-text);
 }
-/* #237: In-game arcade Pause Menu modal overlay (Escape / Pause icon). */
+.tetris .tetris-scene.sr-only {
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+/* #248: 3, 2, 1 Arcade Countdown overlay before starting a game. */
+.arcade-countdown-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.tetris-board {
+  position: relative;
+}
+.tetris-board .arcade-countdown-backdrop {
+  position: absolute;
+  inset: 0;
+}
+.arcade-countdown-digit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 72px;
+  min-height: 72px;
+  padding: 10px 22px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--tetromino-o);
+  background: var(--surface);
+  color: var(--tetromino-o);
+  box-shadow: var(--elevation-panel-centred);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--text-display);
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+/* #237, #248: In-game arcade Pause / Mode / Ready Menu modal overlay. */
 .game-pause-backdrop {
   position: fixed;
   inset: 0;
@@ -2153,8 +2193,8 @@ button.pb-touch-fire {
 }
 .game-pause-menu {
   pointer-events: auto;
-  min-width: 240px;
-  max-width: min(320px, calc(100vw - 32px));
+  min-width: 260px;
+  max-width: min(340px, calc(100vw - 32px));
   padding: 18px 20px;
   border-radius: var(--radius);
   border: 1px solid var(--border);
@@ -2183,6 +2223,46 @@ button.pb-touch-fire {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--tetromino-o);
+}
+.game-pause-copy {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--text-base);
+  color: var(--text);
+}
+.game-pause-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.game-pause-section .filter-group {
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.netplay-ready-roster {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border);
+  background: var(--field);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--text-xs);
+}
+.netplay-ready-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.netplay-ready-pill {
+  color: var(--muted);
+  font-weight: var(--weight-semibold);
+}
+.netplay-ready-pill.is-ready {
+  color: var(--tetromino-s);
 }
 .game-pause-actions {
   display: flex;

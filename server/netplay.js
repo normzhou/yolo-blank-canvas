@@ -9,7 +9,7 @@
  */
 
 const PLAYER_TTL_MS = 18_000;
-const INVITE_TTL_MS = 45_000;
+const INVITE_TTL_MS = 20_000;
 const ROOM_TTL_MS = 120_000;
 const MAX_ROOM_EVENTS = 160;
 
@@ -121,6 +121,7 @@ export function createNetplayHub({ now = () => Date.now() } = {}) {
           id: room.id,
           gameId: room.gameId,
           seed: room.seed,
+          status: room.status || 'playing',
           players: room.players,
           events,
           lastSeq: room.nextSeq - 1,
@@ -228,22 +229,24 @@ export function createNetplayHub({ now = () => Date.now() } = {}) {
               id: roomId,
               gameId,
               seed,
+              status: 'ready_check',
               players: [
-                { id: host.id, name: host.name, slot: 0 },
-                { id: player.id, name: player.name, slot: 1 },
+                { id: host.id, name: host.name, slot: 0, ready: false },
+                { id: player.id, name: player.name, slot: 1, ready: false },
               ],
               events: [
                 {
                   seq: 1,
                   senderId: host.id,
-                  kind: 'match_start',
+                  kind: 'room_joined',
                   payload: {
                     roomId,
                     gameId,
                     seed,
+                    status: 'ready_check',
                     players: [
-                      { id: host.id, name: host.name, slot: 0 },
-                      { id: player.id, name: player.name, slot: 1 },
+                      { id: host.id, name: host.name, slot: 0, ready: false },
+                      { id: player.id, name: player.name, slot: 1, ready: false },
                     ],
                   },
                   at: currentTime,
@@ -341,22 +344,24 @@ export function createNetplayHub({ now = () => Date.now() } = {}) {
         id: roomId,
         gameId: inv.gameId,
         seed: seed || 1337,
+        status: 'ready_check',
         players: [
-          { id: host.id, name: host.name, slot: /** @type {0} */ (0) },
-          { id: player.id, name: player.name, slot: /** @type {1} */ (1) },
+          { id: host.id, name: host.name, slot: /** @type {0} */ (0), ready: false },
+          { id: player.id, name: player.name, slot: /** @type {1} */ (1), ready: false },
         ],
         events: [
           {
             seq: 1,
             senderId: host.id,
-            kind: 'match_start',
+            kind: 'room_joined',
             payload: {
               roomId,
               gameId: inv.gameId,
               seed: seed || 1337,
+              status: 'ready_check',
               players: [
-                { id: host.id, name: host.name, slot: 0 },
-                { id: player.id, name: player.name, slot: 1 },
+                { id: host.id, name: host.name, slot: 0, ready: false },
+                { id: player.id, name: player.name, slot: 1, ready: false },
               ],
             },
             at: currentTime,
@@ -386,6 +391,45 @@ export function createNetplayHub({ now = () => Date.now() } = {}) {
       player.updatedAt = currentTime;
 
       return { status: 200, payload: snapshotFor(clientId, 0) };
+    }
+
+    if (action === 'player_ready') {
+      const roomId = cleanId(body.roomId) || player.roomId;
+      const room = roomId ? rooms.get(roomId) : null;
+      if (!room) {
+        return { status: 404, payload: { error: { kind: 'room_not_found', message: 'Match room ended.' } } };
+      }
+      const member = room.players.find((p) => p.id === clientId);
+      if (member) {
+        member.ready = true;
+      }
+      const seq = room.nextSeq++;
+      room.events.push({
+        seq,
+        senderId: clientId,
+        kind: 'player_ready',
+        payload: { playerId: clientId, players: room.players.map((p) => ({ ...p })) },
+        at: currentTime,
+      });
+      if (room.players.every((p) => p.ready) && room.status !== 'playing') {
+        room.status = 'playing';
+        const startSeq = room.nextSeq++;
+        room.events.push({
+          seq: startSeq,
+          senderId: clientId,
+          kind: 'match_start',
+          payload: {
+            roomId: room.id,
+            gameId: room.gameId,
+            seed: room.seed,
+            players: room.players.map((p) => ({ ...p })),
+          },
+          at: currentTime,
+        });
+      }
+      room.updatedAt = currentTime;
+      const afterSeq = typeof body.afterSeq === 'number' ? body.afterSeq : seq - 1;
+      return { status: 200, payload: snapshotFor(clientId, afterSeq) };
     }
 
     if (action === 'room_event') {

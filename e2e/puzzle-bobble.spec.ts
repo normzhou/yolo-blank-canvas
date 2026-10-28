@@ -27,6 +27,11 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
     await expect(page.getByRole('img', { name: 'Player 1 bubble board' })).toBeVisible();
     await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toBeVisible();
 
+    // #248: 3, 2, 1 arcade countdown is displayed before gameplay starts, and virtual touch keys
+    // are hidden on a non-touch desktop viewport (1280x800).
+    await expect(page.getByTestId('arcade-countdown')).toBeVisible();
+    await expect(page.getByTestId('p1-touch-controls')).toHaveCount(0);
+
     // Player 1 aims right with fine 0.5° taps on D and shoots with F.
     await expect(page.getByTestId('p1-aim')).toHaveText('0°');
     await page.keyboard.press('d');
@@ -122,21 +127,33 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
     });
     expect(boxAfter).toEqual(boxBefore);
 
-    // Switch to 1 Player mode and back to 2 Players.
+    // #248: Mode and Stage selection live inside the unified In-Game Menu (Pause / Escape),
+    // and 2P Online is disabled when only 1 player is online.
+    await page.getByTestId('pause-button').click();
+    await expect(page.getByTestId('game-pause-menu')).toBeVisible();
+    await expect(page.getByTestId('pb-2p-online-btn')).toBeDisabled();
+
+    // Switch to 1 Player mode and back to 2 Players via the Pause Menu.
     await page.getByRole('button', { name: '1 Player', exact: true }).click();
     await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toHaveCount(0);
+    await page.getByTestId('pause-button').click();
     await page.getByRole('button', { name: '2 Players', exact: true }).click();
     await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toBeVisible();
 
-    // #210: Step through the 15 classic levels with Next stage / Previous stage and auto-advance on Next round.
+    // #210: Step through the 15 classic levels with Next stage / Previous stage inside the Pause Menu.
+    await page.getByTestId('pause-button').click();
     const stageBtn = page.getByTestId('pb-stage-button');
     await expect(stageBtn).toHaveText('Wave: Random');
     await page.getByRole('button', { name: 'Next stage', exact: true }).click();
+    await page.getByTestId('pause-button').click();
     await expect(stageBtn).toHaveText('Stage 1: Paired Blocks');
     await page.getByRole('button', { name: 'Previous stage', exact: true }).click();
+    await page.getByTestId('pause-button').click();
     await expect(stageBtn).toHaveText('Wave: Random');
     await page.getByRole('button', { name: 'Previous stage', exact: true }).click();
+    await page.getByTestId('pause-button').click();
     await expect(stageBtn).toHaveText("Stage 15: Emperor's Citadel");
+    await page.getByTestId('pause-menu-resume').click();
 
     // #232, #234: Puzzle Bobble plays its own whimsical ~2-minute soundtrack verified via closed-loop Web Audio AnalyserNode,
     // and Escape back to the Selector Screen crossfades smoothly into the selector soundtrack!
@@ -222,30 +239,43 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
 }) => {
   const stub = await startStubApp();
   try {
-    // 1. Phone viewport (390x844 < 768px): Puzzle Bobble opens in 1P mode only and hides 2P toggle.
+    // 1. Phone viewport (390x844 < 768px): Puzzle Bobble opens in 1P mode only and hides 2P Local in the Pause Menu.
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`${stub.base}?app=puzzle-bobble`);
     await expect(page.getByRole('img', { name: 'Player 1 bubble board' })).toBeVisible();
     await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toHaveCount(0);
+    await page.getByTestId('pause-button').click();
     await expect(page.getByRole('button', { name: '2 Players', exact: true })).toHaveCount(0);
+    await page.getByTestId('pause-menu-resume').click();
 
-    // Drag on Player 1 board to aim (does NOT fire on release), then tap FIRE button to shoot.
+    // #248: Virtual circular buttons on Puzzle Bobble are spread out: left circle on left, shoot in middle, right circle on right.
+    const btnPositions = await page.evaluate(() => {
+      const left = document.querySelector('[data-testid="p1-touch-left"]')?.getBoundingClientRect();
+      const fire = document.querySelector('[data-testid="p1-touch-fire"]')?.getBoundingClientRect();
+      const right = document.querySelector('[data-testid="p1-touch-right"]')?.getBoundingClientRect();
+      return {
+        leftX: left ? Math.round(left.left) : 0,
+        fireX: fire ? Math.round(fire.left) : 0,
+        rightX: right ? Math.round(right.left) : 0,
+      };
+    });
+    expect(btnPositions.leftX).toBeLessThan(btnPositions.fireX);
+    expect(btnPositions.fireX).toBeLessThan(btnPositions.rightX);
+
+    // #248: Dragging on Player 1 board to aim and releasing (`mouse.up`) automatically fires the bubble!
     const p1Board = page.getByRole('img', { name: 'Player 1 bubble board' });
     const box = await p1Board.boundingBox();
     expect(box).not.toBeNull();
-    // Touch/drag toward the upper-right of the board -> positive aim angle, 0 shots fired.
     await page.mouse.move(box!.x + box!.width * 0.5, box!.y + box!.height * 0.5);
     await page.mouse.down();
     await page.mouse.move(box!.x + box!.width * 0.82, box!.y + box!.height * 0.35);
     await page.mouse.up();
     await expect(page.getByTestId('p1-aim')).toHaveText(/^\+\d+(\.5)?°$/);
-    await expect(page.getByTestId('p1-shots')).toHaveText('0');
-
-    // Fine-tap touch button steps by +0.5°, and tapping FIRE shoots the bubble.
-    await page.getByTestId('p1-touch-left').dispatchEvent('pointerdown', { pointerId: 1 });
-    await page.getByTestId('p1-touch-left').dispatchEvent('pointerup', { pointerId: 1 });
-    await page.getByTestId('p1-touch-fire').click();
     await expect(page.getByTestId('p1-shots')).toHaveText('1', { timeout: 5000 });
+
+    // Fine-tap touch button steps by 0.5°.
+    await page.getByTestId('p1-touch-left').dispatchEvent('pointerdown', { pointerId: 1, pointerType: 'touch' });
+    await page.getByTestId('p1-touch-left').dispatchEvent('pointerup', { pointerId: 1, pointerType: 'touch' });
 
     // No horizontal or vertical page scroll overflow on 390px phone screen (#217 full-screen game stage),
     // the bare wiggling YOLO mark sits in the top-right with a transparent background (#228),
@@ -317,7 +347,7 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
 
     // 3. Tablets across MS Edge / Safari / Chrome (600x960 Android portrait, 744x1133 iPad Mini 6 portrait,
     // 768x1024 iPad portrait, 960x480 landscape with MS Edge toolbars, 1024x768 landscape):
-    // 2 Players side-by-side is available and fits side-by-side without wrapping (#212, #222).
+    // 2 Players side-by-side is available in the Pause Menu and fits side-by-side without wrapping (#212, #222, #248).
     for (const [w, h] of [
       [600, 960],
       [744, 1133],
@@ -326,6 +356,7 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
       [1024, 768],
     ] as const) {
       await page.setViewportSize({ width: w, height: h });
+      await page.getByTestId('pause-button').click();
       await page.getByRole('button', { name: '2 Players', exact: true }).click();
       await expect(page.getByRole('img', { name: 'Player 1 bubble board' })).toBeVisible();
       await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toBeVisible();
@@ -347,14 +378,14 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
     // Simultaneous 4-finger multi-touch on 2P tablet (#224): Player 1 holds AIM ▶ (pointerId 11)
     // while Player 2 holds ◀ AIM (pointerId 21), and both players tap ● FIRE with a second thumb
     // (pointerId 12 and 22, isPrimary: false) while aim fingers remain held down.
-    await page.getByTestId('p1-touch-right').dispatchEvent('pointerdown', { pointerId: 11, isPrimary: true });
-    await page.getByTestId('p2-touch-left').dispatchEvent('pointerdown', { pointerId: 21, isPrimary: false });
+    await page.getByTestId('p1-touch-right').dispatchEvent('pointerdown', { pointerId: 11, isPrimary: true, pointerType: 'touch' });
+    await page.getByTestId('p2-touch-left').dispatchEvent('pointerdown', { pointerId: 21, isPrimary: false, pointerType: 'touch' });
     await expect(page.getByTestId('p1-aim')).not.toHaveText('0°');
     await expect(page.getByTestId('p2-aim')).not.toHaveText('0°');
-    await page.getByTestId('p1-touch-fire').dispatchEvent('pointerdown', { pointerId: 12, isPrimary: false });
-    await page.getByTestId('p2-touch-fire').dispatchEvent('pointerdown', { pointerId: 22, isPrimary: false });
-    await page.getByTestId('p1-touch-right').dispatchEvent('pointerup', { pointerId: 11 });
-    await page.getByTestId('p2-touch-left').dispatchEvent('pointerup', { pointerId: 21 });
+    await page.getByTestId('p1-touch-fire').dispatchEvent('pointerdown', { pointerId: 12, isPrimary: false, pointerType: 'touch' });
+    await page.getByTestId('p2-touch-fire').dispatchEvent('pointerdown', { pointerId: 22, isPrimary: false, pointerType: 'touch' });
+    await page.getByTestId('p1-touch-right').dispatchEvent('pointerup', { pointerId: 11, pointerType: 'touch' });
+    await page.getByTestId('p2-touch-left').dispatchEvent('pointerup', { pointerId: 21, pointerType: 'touch' });
     await expect(page.getByTestId('p1-shots')).toHaveText('1', { timeout: 5000 });
     await expect(page.getByTestId('p2-shots')).toHaveText('1', { timeout: 5000 });
 
@@ -425,21 +456,31 @@ test('2P Online networking (#236): 2 independent browser sessions discover prese
     });
     await expect(page2.getByTestId('deck-online-count')).toContainText('2 Online');
 
-    // 2. Browser Session 1 opens Puzzle Bobble and broadcasts an open 2P Online invite.
+    // 2. Browser Session 1 opens Puzzle Bobble, opens the Pause Menu, and broadcasts an open 2P Online invite.
     await page1.goto(`${stub.base}?app=puzzle-bobble`);
     await expect(page1.getByRole('heading', { name: 'Puzzle Bobble' })).toBeVisible();
+    await page1.getByTestId('pause-button').click();
+    await expect(page1.getByTestId('pb-2p-online-btn')).toBeEnabled({ timeout: 6000 });
     await page1.getByTestId('pb-2p-online-btn').click();
     await expect(page1.getByTestId('pb-invite-waiting')).toBeVisible();
+    await expect(page1.getByTestId('netplay-invite-countdown')).toContainText(/\d+s/);
 
-    // Browser Session 2 (browsing the home canvas) sees the non-blocking corner invite toast and clicks Join 2P.
+    // Browser Session 2 (browsing the home canvas) sees the non-blocking corner invite toast and clicks Accept.
     const toast2 = page2.getByTestId('netplay-invite-toast');
     await expect(toast2).toBeVisible({ timeout: 6000 });
     await expect(toast2).toContainText('Puzzle Bobble');
     await page2.getByTestId('netplay-accept-invite').click();
 
-    // Browser Session 2 automatically navigates to Puzzle Bobble, and BOTH sessions render ONLY their own
-    // single full-size board (`data-mode="1p"`) plus the live Opponent Mini-Radar in the sidebar.
+    // Browser Session 2 automatically navigates to Puzzle Bobble, and BOTH sessions enter the Ready Check modal (#248)!
     await expect(page2).toHaveURL(/\?app=puzzle-bobble/);
+    await expect(page1.getByTestId('netplay-ready-modal')).toBeVisible({ timeout: 6000 });
+    await expect(page2.getByTestId('netplay-ready-modal')).toBeVisible({ timeout: 6000 });
+
+    // Both players click Ready! -> Ready Check closes and both sessions show their single local board + Opponent Mini-Radar.
+    await page1.getByTestId('netplay-ready-btn').click();
+    await page2.getByTestId('netplay-ready-btn').click();
+    await expect(page1.getByTestId('netplay-ready-modal')).toHaveCount(0, { timeout: 6000 });
+    await expect(page2.getByTestId('netplay-ready-modal')).toHaveCount(0, { timeout: 6000 });
     await expect(page1.getByTestId('pb-opponent-radar')).toBeVisible({ timeout: 6000 });
     await expect(page2.getByTestId('pb-opponent-radar')).toBeVisible({ timeout: 6000 });
     await expect(page1.getByRole('img', { name: 'Player 2 bubble board' })).toHaveCount(0);
@@ -482,16 +523,24 @@ test('2P Online networking (#236): 2 independent browser sessions discover prese
     // 3. Now test 2P Online Tetris end-to-end across the two browser sessions.
     await page1.goto(`${stub.base}?app=tetris`);
     await expect(page1.getByRole('heading', { name: 'Tetris' })).toBeVisible();
+    await page1.getByTestId('pause-button').click();
+    await expect(page1.getByTestId('tetris-2p-online-btn')).toBeEnabled({ timeout: 6000 });
     await page1.getByTestId('tetris-2p-online-btn').click();
     await expect(page1.getByTestId('tetris-invite-waiting')).toBeVisible();
 
-    // Browser Session 2 receives the Tetris corner invite toast and joins.
+    // Browser Session 2 receives the Tetris corner invite toast, accepts, and both players click Ready!
     await expect(page2.getByTestId('netplay-invite-toast')).toContainText('Tetris', {
       timeout: 6000,
     });
     await page2.getByTestId('netplay-accept-invite').click();
 
     await expect(page2).toHaveURL(/\?app=tetris/);
+    await expect(page1.getByTestId('netplay-ready-modal')).toBeVisible({ timeout: 6000 });
+    await expect(page2.getByTestId('netplay-ready-modal')).toBeVisible({ timeout: 6000 });
+    await page1.getByTestId('netplay-ready-btn').click();
+    await page2.getByTestId('netplay-ready-btn').click();
+    await expect(page1.getByTestId('netplay-ready-modal')).toHaveCount(0, { timeout: 6000 });
+    await expect(page2.getByTestId('netplay-ready-modal')).toHaveCount(0, { timeout: 6000 });
     await expect(page1.getByTestId('tetris-opponent-radar')).toBeVisible({ timeout: 6000 });
     await expect(page2.getByTestId('tetris-opponent-radar')).toBeVisible({ timeout: 6000 });
     await expect(page1.getByTestId('tetris-garbage-meter')).toBeVisible();

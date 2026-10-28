@@ -12,6 +12,7 @@ import {
 } from '../gamePause';
 import {
   getSharedNetplay,
+  INVITE_TIMEOUT_MS,
   type NetplayState,
   type TetrisRadarSnapshot,
 } from '../netplay';
@@ -46,6 +47,14 @@ import {
 /** `prefers-reduced-motion: reduce`, where the crossfade is cut, not animated. */
 function motionReduced(): boolean {
   return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function detectTouchAvailable(): boolean {
+  if (typeof window === 'undefined') return false;
+  if (window.innerWidth < 768 || (window.innerWidth < 900 && window.innerHeight < 440)) return true;
+  if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0) return true;
+  if (typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches) return true;
+  return false;
 }
 
 function mulberry32(seed: number): () => number {
@@ -226,6 +235,10 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
   );
   const [roundOutcome, setRoundOutcome] = useState<'playing' | 'won' | 'lost'>('playing');
   const [wins, setWins] = useState<[number, number]>([0, 0]);
+  const [countdown, setCountdown] = useState<number>(() => (motionReduced() ? 0 : 3));
+  const [inviteSecondsLeft, setInviteSecondsLeft] = useState<number>(20);
+  const touchSeenRef = useRef<boolean>(detectTouchAvailable());
+  const [touchAvailable, setTouchAvailable] = useState<boolean>(() => touchSeenRef.current);
 
   useEffect(() => {
     setSharedGamePaused(false);
@@ -238,11 +251,31 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     };
   }, []);
 
+  useEffect(() => {
+    const onResize = () => {
+      if (detectTouchAvailable()) touchSeenRef.current = true;
+      setTouchAvailable(touchSeenRef.current || detectTouchAvailable());
+    };
+    const onPointerDown = (e: PointerEvent) => {
+      if (e.pointerType === 'touch') {
+        touchSeenRef.current = true;
+        setTouchAvailable(true);
+      }
+    };
+    window.addEventListener('resize', onResize);
+    window.addEventListener('pointerdown', onPointerDown, { passive: true });
+    return () => {
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('pointerdown', onPointerDown);
+    };
+  }, []);
+
   const gameRef = useRef(game);
   gameRef.current = game;
   const roundOutcomeRef = useRef(roundOutcome);
   roundOutcomeRef.current = roundOutcome;
   const activeRoomIdRef = useRef<string | null>(null);
+  const activeRoomStartedRef = useRef<string | null>(null);
   const tetrisCountRef = useRef(game.tetrisCount);
   const prevLinesRef = useRef(game.lines);
   const prevStatusRef = useRef(game.status);
@@ -252,7 +285,11 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
   const activeTetrisRoom =
     netplay.activeRoom && netplay.activeRoom.gameId === 'tetris' ? netplay.activeRoom : null;
   const isOnline2P = activeTetrisRoom !== null;
+  const isReadyCheck = activeTetrisRoom?.status === 'ready_check';
   const isInviting = netplay.myPendingInvite?.gameId === 'tetris';
+  const myRoomPlayer = activeTetrisRoom?.players.find((p) => p.id === netplay.clientId);
+  const myReady = Boolean(myRoomPlayer?.ready);
+  const oppReady = Boolean(activeTetrisRoom?.opponent?.ready);
 
   const startOnlineRoundWithSeed = useCallback((seed: number, resetTally = false) => {
     rngRef.current = mulberry32(seed);
@@ -263,11 +300,41 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     setGame(fresh);
     setOpponentRadar(createInitialTetrisRadar());
     setRoundOutcome('playing');
-    setPaused(false);
+    setSharedGamePaused(false);
+    setCountdown(motionReduced() ? 0 : 3);
     if (resetTally) {
       setWins([0, 0]);
     }
   }, []);
+
+  // 20-second invite countdown timer (#248).
+  useEffect(() => {
+    const invite = netplay.myPendingInvite;
+    if (!invite || invite.gameId !== 'tetris') {
+      setInviteSecondsLeft(20);
+      return;
+    }
+    const updateTimer = () => {
+      const elapsed = Date.now() - invite.createdAt;
+      const remaining = Math.max(0, Math.ceil((INVITE_TIMEOUT_MS - elapsed) / 1000));
+      setInviteSecondsLeft(remaining);
+      if (remaining <= 0) {
+        void getSharedNetplay().cancelInvite();
+      }
+    };
+    updateTimer();
+    const id = window.setInterval(updateTimer, 250);
+    return () => window.clearInterval(id);
+  }, [netplay.myPendingInvite]);
+
+  // 3, 2, 1 arcade start countdown (#248).
+  useEffect(() => {
+    if (countdown <= 0 || paused || isReadyCheck || isInviting) return;
+    const id = window.setTimeout(() => {
+      setCountdown((c) => Math.max(0, c - 1));
+    }, 450);
+    return () => window.clearTimeout(id);
+  }, [countdown, paused, isReadyCheck, isInviting]);
 
   useEffect(() => {
     const client = getSharedNetplay();
@@ -279,9 +346,21 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
           : null;
       if (room && activeRoomIdRef.current !== room.id) {
         activeRoomIdRef.current = room.id;
+        setSharedGamePaused(false);
+        if (room.status === 'playing') {
+          activeRoomStartedRef.current = room.id;
+          startOnlineRoundWithSeed(room.seed, true);
+        }
+      } else if (
+        room &&
+        room.status === 'playing' &&
+        activeRoomStartedRef.current !== room.id
+      ) {
+        activeRoomStartedRef.current = room.id;
         startOnlineRoundWithSeed(room.seed, true);
       } else if (!room && activeRoomIdRef.current !== null) {
         activeRoomIdRef.current = null;
+        activeRoomStartedRef.current = null;
         rngRef.current = Math.random;
         setRoundOutcome('playing');
       }
@@ -292,8 +371,9 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
         const payload = event.payload as { gameId?: string; seed?: number; id?: string; roomId?: string } | null;
         if (payload && payload.gameId === 'tetris') {
           const rid = payload.id ?? payload.roomId ?? null;
-          if (rid && activeRoomIdRef.current !== rid) {
+          if (rid && activeRoomStartedRef.current !== rid) {
             activeRoomIdRef.current = rid;
+            activeRoomStartedRef.current = rid;
             startOnlineRoundWithSeed(payload.seed ?? 1337, true);
           }
         }
@@ -473,14 +553,14 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     getSharedArcadeAudio().setActive(musicOn && !matchEnded && !paused);
   }, [musicOn, paused, matchEnded]);
 
-  // Gravity. Restarts when the level (speed) changes and stops when not playing.
+  // Gravity. Restarts when the level (speed) changes and stops when not playing or during countdown/ready-check.
   useEffect(() => {
-    if (paused || matchEnded) return;
+    if (paused || matchEnded || isReadyCheck || isInviting || countdown > 0) return;
     const id = window.setInterval(() => {
       setGame((current) => tick(current, rngRef.current));
     }, dropInterval(game.level));
     return () => window.clearInterval(id);
-  }, [paused, game.level, matchEnded]);
+  }, [paused, game.level, matchEnded, isReadyCheck, isInviting, countdown]);
 
   // Keyboard controls: arrows move/rotate/soft-drop, space hard-drops, Escape toggles Pause Menu (#237).
   useEffect(() => {
@@ -490,30 +570,35 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
         toggleSharedGamePaused();
         return;
       }
-      if (paused || gameRef.current.status !== 'playing' || (isOnline2P && roundOutcomeRef.current !== 'playing')) {
+      if (paused || isReadyCheck || gameRef.current.status !== 'playing' || (isOnline2P && roundOutcomeRef.current !== 'playing')) {
         return;
       }
       switch (event.key) {
         case 'ArrowLeft':
           event.preventDefault();
+          setCountdown(0);
           setGame((current) => moveLeft(current));
           break;
         case 'ArrowRight':
           event.preventDefault();
+          setCountdown(0);
           setGame((current) => moveRight(current));
           break;
         case 'ArrowDown':
           event.preventDefault();
+          setCountdown(0);
           setGame((current) => softDrop(current, rngRef.current));
           break;
         case 'ArrowUp':
           event.preventDefault();
+          setCountdown(0);
           getSharedArcadeAudio().sfx.playRotate();
           setGame((current) => rotate(current, 1));
           break;
         case ' ':
         case 'Spacebar':
           event.preventDefault();
+          setCountdown(0);
           getSharedArcadeAudio().sfx.playHardDrop();
           setGame((current) => hardDrop(current, rngRef.current));
           break;
@@ -523,7 +608,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     }
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isOnline2P, onExit, paused]);
+  }, [isOnline2P, isReadyCheck, onExit, paused]);
 
   // #212: Touch / pointer auto-repeat (DAS) for on-screen Tetris arcade buttons
   // and direct board gestures.
@@ -637,8 +722,11 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
       setGame(createGame(rngRef.current));
       setRoundOutcome('playing');
       setSharedGamePaused(false);
+      setCountdown(motionReduced() ? 0 : 3);
     }
   };
+
+  const canSelectOnline2P = netplay.onlineCount > 1 || isOnline2P || isInviting;
 
   return (
     <section className="tetris" aria-label="Tetris game" ref={gameSectionRef}>
@@ -655,48 +743,11 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
             </span>
           ) : null}
           {BACKGROUNDS.length > 1 ? (
-            <p className="tetris-scene" aria-live="polite">
+            <span className="tetris-scene sr-only" aria-live="polite">
               Scene {backgroundIndex + 1}/{BACKGROUNDS.length}: {BACKGROUNDS[backgroundIndex].title}
               {musicOn && nowPlaying ? ` · Music: ${nowPlaying}` : ''}
-            </p>
+            </span>
           ) : null}
-        </div>
-        <div className="row">
-          <div className="filter-group" role="group" aria-label="Tetris player mode">
-            <button
-              type="button"
-              aria-pressed={!isOnline2P && !isInviting}
-              onClick={() => {
-                if (isOnline2P) void getSharedNetplay().leaveRoom();
-                if (isInviting) void getSharedNetplay().cancelInvite();
-              }}
-            >
-              1 Player
-            </button>
-            <button
-              type="button"
-              data-testid="tetris-2p-online-btn"
-              aria-pressed={isOnline2P || isInviting}
-              onClick={() => {
-                if (isOnline2P) {
-                  void getSharedNetplay().leaveRoom();
-                } else if (isInviting) {
-                  void getSharedNetplay().cancelInvite();
-                } else {
-                  void getSharedNetplay().sendInvite('tetris');
-                }
-              }}
-            >
-              {isOnline2P
-                ? `2P Online (${activeTetrisRoom.opponent.name})`
-                : isInviting
-                  ? 'Waiting 2P… (Cancel)'
-                  : '2P Online'}
-            </button>
-          </div>
-          <button type="button" className="primary" onClick={handleNewOrRematch}>
-            {isOnline2P && matchEnded ? 'Next round' : 'New game'}
-          </button>
         </div>
       </header>
 
@@ -722,6 +773,16 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
               return <div key={key} className={cls} />;
             }),
           )}
+          {!paused && !isReadyCheck && !isInviting && countdown > 0 ? (
+            <div
+              className="arcade-countdown-backdrop"
+              data-testid="arcade-countdown"
+              role="status"
+              aria-live="polite"
+            >
+              <span className="arcade-countdown-digit">{countdown}</span>
+            </div>
+          ) : null}
         </div>
 
         {(isOnline2P || pendingGarbage > 0) ? (
@@ -766,12 +827,6 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
             <span className="tetris-label">Next</span>
             <NextPreview type={game.next} />
           </div>
-          {isInviting && !isOnline2P ? (
-            <div className="netplay-waiting-pill" data-testid="tetris-invite-waiting" role="status">
-              <span className="netplay-online-dot" aria-hidden="true" />
-              Inviting online players…
-            </div>
-          ) : null}
           {isOnline2P && activeTetrisRoom ? (
             <OpponentTetrisRadar
               opponentName={activeTetrisRoom.opponent.name}
@@ -781,6 +836,78 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
           ) : null}
         </aside>
       </div>
+
+      {isInviting && !isOnline2P ? (
+        <div className="game-pause-backdrop">
+          <div
+            className="game-pause-menu"
+            role="status"
+            aria-live="polite"
+            data-testid="tetris-invite-waiting"
+          >
+            <span className="game-pause-kicker">2P Online Matchmaking</span>
+            <h3 className="game-pause-title">Waiting for player…</h3>
+            <p className="game-pause-copy" data-testid="netplay-invite-countdown">
+              Invite expires in <strong>{inviteSecondsLeft}s</strong>
+            </p>
+            <div className="game-pause-actions">
+              <button
+                type="button"
+                data-testid="tetris-cancel-invite-btn"
+                onClick={() => void getSharedNetplay().cancelInvite()}
+              >
+                Cancel invite
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {isOnline2P && isReadyCheck && activeTetrisRoom ? (
+        <div className="game-pause-backdrop">
+          <div
+            className="game-pause-menu"
+            role="dialog"
+            aria-modal="true"
+            aria-label="2P Online Ready Check"
+            data-testid="netplay-ready-modal"
+          >
+            <span className="game-pause-kicker">2P Online Tetris</span>
+            <h3 className="game-pause-title">Players Ready?</h3>
+            <div className="netplay-ready-roster">
+              <div className="netplay-ready-row">
+                <span>YOU ({netplay.clientName})</span>
+                <span className={myReady ? 'netplay-ready-pill is-ready' : 'netplay-ready-pill'}>
+                  {myReady ? 'READY ✓' : 'Waiting…'}
+                </span>
+              </div>
+              <div className="netplay-ready-row">
+                <span>{activeTetrisRoom.opponent.name}</span>
+                <span className={oppReady ? 'netplay-ready-pill is-ready' : 'netplay-ready-pill'}>
+                  {oppReady ? 'READY ✓' : 'Waiting…'}
+                </span>
+              </div>
+            </div>
+            <div className="game-pause-actions">
+              <button
+                type="button"
+                className="primary"
+                data-testid="netplay-ready-btn"
+                disabled={myReady}
+                onClick={() => void getSharedNetplay().setReady()}
+              >
+                {myReady ? 'Waiting for opponent…' : 'Ready!'}
+              </button>
+              <button
+                type="button"
+                onClick={() => void getSharedNetplay().leaveRoom()}
+              >
+                Leave match
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {paused ? (
         <div className="game-pause-backdrop">
@@ -793,6 +920,49 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
           >
             <span className="game-pause-kicker">Tetris</span>
             <h3 className="game-pause-title">Paused</h3>
+            <div className="game-pause-section">
+              <span className="tetris-label">Game Mode</span>
+              <div className="filter-group" role="group" aria-label="Tetris player mode">
+                <button
+                  type="button"
+                  aria-pressed={!isOnline2P && !isInviting}
+                  onClick={() => {
+                    if (isOnline2P) void getSharedNetplay().leaveRoom();
+                    if (isInviting) void getSharedNetplay().cancelInvite();
+                    setSharedGamePaused(false);
+                  }}
+                >
+                  1 Player
+                </button>
+                <button
+                  type="button"
+                  data-testid="tetris-2p-online-btn"
+                  aria-pressed={isOnline2P || isInviting}
+                  disabled={!canSelectOnline2P}
+                  title={
+                    canSelectOnline2P
+                      ? 'Challenge online players to 2P Versus Tetris'
+                      : 'Requires at least 2 players online'
+                  }
+                  onClick={() => {
+                    if (isOnline2P) {
+                      void getSharedNetplay().leaveRoom();
+                    } else if (isInviting) {
+                      void getSharedNetplay().cancelInvite();
+                    } else if (canSelectOnline2P) {
+                      setSharedGamePaused(false);
+                      void getSharedNetplay().sendInvite('tetris');
+                    }
+                  }}
+                >
+                  {isOnline2P
+                    ? `2P Online (${activeTetrisRoom.opponent.name})`
+                    : isInviting
+                      ? `Waiting 2P… (${inviteSecondsLeft}s)`
+                      : '2P Online'}
+                </button>
+              </div>
+            </div>
             <div className="game-pause-actions">
               <button
                 type="button"
@@ -812,7 +982,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
                   setSharedGamePaused(false);
                 }}
               >
-                New game
+                {isOnline2P && matchEnded ? 'Next round' : 'New game'}
               </button>
               <button
                 type="button"
@@ -827,126 +997,153 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
         </div>
       ) : null}
 
-      <div
-        className="tetris-touch-bar"
-        role="group"
-        aria-label="Tetris touch controls"
-        data-testid="tetris-touch-controls"
-      >
-        <div className="touch-cluster touch-cluster-left">
-          <button
-            type="button"
-            className="pb-touch-btn pb-touch-rocker"
-            data-testid="tetris-touch-left"
-            aria-label="Move left"
-            disabled={paused || matchEnded}
-            onPointerDown={(event) => {
-              event.preventDefault();
-              startTouchRepeat(() => setGame((current) => moveLeft(current)));
-            }}
-            onPointerUp={stopTouchRepeat}
-            onPointerCancel={stopTouchRepeat}
-            onPointerLeave={stopTouchRepeat}
-            onClick={(event) => {
-              if (event.detail === 0) setGame((current) => moveLeft(current));
-            }}
-          >
-            ◀
-          </button>
-          <button
-            type="button"
-            className="pb-touch-btn pb-touch-rocker"
-            data-testid="tetris-touch-soft"
-            aria-label="Soft drop"
-            disabled={paused || matchEnded}
-            onPointerDown={(event) => {
-              event.preventDefault();
-              startTouchRepeat(() => setGame((current) => softDrop(current, rngRef.current)));
-            }}
-            onPointerUp={stopTouchRepeat}
-            onPointerCancel={stopTouchRepeat}
-            onPointerLeave={stopTouchRepeat}
-            onClick={(event) => {
-              if (event.detail === 0) setGame((current) => softDrop(current, rngRef.current));
-            }}
-          >
-            ▼
-          </button>
-          <button
-            type="button"
-            className="pb-touch-btn pb-touch-rocker"
-            data-testid="tetris-touch-right"
-            aria-label="Move right"
-            disabled={paused || matchEnded}
-            onPointerDown={(event) => {
-              event.preventDefault();
-              startTouchRepeat(() => setGame((current) => moveRight(current)));
-            }}
-            onPointerUp={stopTouchRepeat}
-            onPointerCancel={stopTouchRepeat}
-            onPointerLeave={stopTouchRepeat}
-            onClick={(event) => {
-              if (event.detail === 0) setGame((current) => moveRight(current));
-            }}
-          >
-            ▶
-          </button>
-        </div>
-        <div className="touch-cluster touch-cluster-right">
-          <button
-            type="button"
-            className="pb-touch-btn pb-touch-rotate"
-            data-testid="tetris-touch-rotate"
-            aria-label="Rotate piece"
-            disabled={paused || matchEnded}
-            onPointerDown={(event) => {
-              event.preventDefault();
-              getSharedArcadeAudio().sfx.playRotate();
-              setGame((current) => rotate(current, 1));
-            }}
-            onClick={(event) => {
-              if (event.detail === 0) {
+      {touchAvailable ? (
+        <div
+          className="tetris-touch-bar"
+          role="group"
+          aria-label="Tetris touch controls"
+          data-testid="tetris-touch-controls"
+        >
+          <div className="touch-cluster touch-cluster-left">
+            <button
+              type="button"
+              className="pb-touch-btn pb-touch-rocker"
+              data-testid="tetris-touch-left"
+              aria-label="Move left"
+              disabled={paused || matchEnded || isReadyCheck}
+              onPointerDown={(event) => {
+                event.preventDefault();
+                setCountdown(0);
+                startTouchRepeat(() => setGame((current) => moveLeft(current)));
+              }}
+              onPointerUp={stopTouchRepeat}
+              onPointerCancel={stopTouchRepeat}
+              onPointerLeave={stopTouchRepeat}
+              onClick={(event) => {
+                if (event.detail === 0) {
+                  setCountdown(0);
+                  setGame((current) => moveLeft(current));
+                }
+              }}
+            >
+              ◀
+            </button>
+            <button
+              type="button"
+              className="pb-touch-btn pb-touch-rocker"
+              data-testid="tetris-touch-soft"
+              aria-label="Soft drop"
+              disabled={paused || matchEnded || isReadyCheck}
+              onPointerDown={(event) => {
+                event.preventDefault();
+                setCountdown(0);
+                startTouchRepeat(() => setGame((current) => softDrop(current, rngRef.current)));
+              }}
+              onPointerUp={stopTouchRepeat}
+              onPointerCancel={stopTouchRepeat}
+              onPointerLeave={stopTouchRepeat}
+              onClick={(event) => {
+                if (event.detail === 0) {
+                  setCountdown(0);
+                  setGame((current) => softDrop(current, rngRef.current));
+                }
+              }}
+            >
+              ▼
+            </button>
+            <button
+              type="button"
+              className="pb-touch-btn pb-touch-rocker"
+              data-testid="tetris-touch-right"
+              aria-label="Move right"
+              disabled={paused || matchEnded || isReadyCheck}
+              onPointerDown={(event) => {
+                event.preventDefault();
+                setCountdown(0);
+                startTouchRepeat(() => setGame((current) => moveRight(current)));
+              }}
+              onPointerUp={stopTouchRepeat}
+              onPointerCancel={stopTouchRepeat}
+              onPointerLeave={stopTouchRepeat}
+              onClick={(event) => {
+                if (event.detail === 0) {
+                  setCountdown(0);
+                  setGame((current) => moveRight(current));
+                }
+              }}
+            >
+              ▶
+            </button>
+          </div>
+          <div className="touch-cluster touch-cluster-right">
+            <button
+              type="button"
+              className="pb-touch-btn pb-touch-rotate"
+              data-testid="tetris-touch-rotate"
+              aria-label="Rotate piece"
+              disabled={paused || matchEnded || isReadyCheck}
+              onPointerDown={(event) => {
+                event.preventDefault();
+                setCountdown(0);
                 getSharedArcadeAudio().sfx.playRotate();
                 setGame((current) => rotate(current, 1));
-              }
-            }}
-          >
-            ↻
-          </button>
-          <button
-            type="button"
-            className="primary pb-touch-btn pb-touch-fire"
-            data-testid="tetris-touch-drop"
-            aria-label="Hard drop"
-            disabled={paused || matchEnded}
-            onPointerDown={(event) => {
-              event.preventDefault();
-              getSharedArcadeAudio().sfx.playHardDrop();
-              setGame((current) => hardDrop(current, rngRef.current));
-            }}
-            onClick={(event) => {
-              if (event.detail === 0) {
+              }}
+              onClick={(event) => {
+                if (event.detail === 0) {
+                  setCountdown(0);
+                  getSharedArcadeAudio().sfx.playRotate();
+                  setGame((current) => rotate(current, 1));
+                }
+              }}
+            >
+              ↻
+            </button>
+            <button
+              type="button"
+              className="primary pb-touch-btn pb-touch-fire"
+              data-testid="tetris-touch-drop"
+              aria-label="Hard drop"
+              disabled={paused || matchEnded || isReadyCheck}
+              onPointerDown={(event) => {
+                event.preventDefault();
+                setCountdown(0);
                 getSharedArcadeAudio().sfx.playHardDrop();
                 setGame((current) => hardDrop(current, rngRef.current));
-              }
-            }}
-          >
-            ⤓
-          </button>
+              }}
+              onClick={(event) => {
+                if (event.detail === 0) {
+                  setCountdown(0);
+                  getSharedArcadeAudio().sfx.playHardDrop();
+                  setGame((current) => hardDrop(current, rngRef.current));
+                }
+              }}
+            >
+              ⤓
+            </button>
+          </div>
         </div>
-      </div>
+      ) : null}
 
       {isOnline2P && roundOutcome === 'won' && activeTetrisRoom ? (
         <p className="tetris-over" role="status" data-testid="tetris-online-banner">
-          YOU WIN! {activeTetrisRoom.opponent.name} topped out ({wins[0]}–{wins[1]}). Press Next round for a rematch.
+          YOU WIN! {activeTetrisRoom.opponent.name} topped out ({wins[0]}–{wins[1]}).{' '}
+          <button type="button" className="primary" onClick={handleNewOrRematch}>
+            Next round
+          </button>
         </p>
       ) : isOnline2P && roundOutcome === 'lost' && activeTetrisRoom ? (
         <p className="tetris-over" role="status" data-testid="tetris-online-banner">
-          KO! {activeTetrisRoom.opponent.name} wins the round ({wins[0]}–{wins[1]}). Press Next round for a rematch.
+          KO! {activeTetrisRoom.opponent.name} wins the round ({wins[0]}–{wins[1]}).{' '}
+          <button type="button" className="primary" onClick={handleNewOrRematch}>
+            Next round
+          </button>
         </p>
       ) : game.status === 'over' ? (
         <p className="tetris-over" role="status">
-          Game over — score {game.score}. Start a new game to play again.
+          Game over — score {game.score}.{' '}
+          <button type="button" className="primary" onClick={handleNewOrRematch}>
+            New game
+          </button>
         </p>
       ) : null}
     </section>
