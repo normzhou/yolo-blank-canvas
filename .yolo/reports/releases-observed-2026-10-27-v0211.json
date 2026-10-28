@@ -1,0 +1,63 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-27",
+  "observed_at": "2026-10-27",
+  "published_at_utc": "2026-10-28T10:56:00Z",
+  "protocol": {
+    "revision": "da644964ca92eef8448cd782cf6805c724ca2e74",
+    "release": "v0.1.0-alpha.33"
+  },
+  "releases": [
+    {
+      "tag": "v0.21.1",
+      "commit": "28418c70b998611d38473a311e737555facf66c1"
+    }
+  ],
+  "release": {
+    "tag": "v0.21.1",
+    "tag_object": "3595f69efad8e0ef336374de3a2f7768104c1166",
+    "release_commit": "28418c70b998611d38473a311e737555facf66c1",
+    "source_commit": "9043f29a46e6fc58c637e1e9399b623967dfd113",
+    "assets_commit": "667b082764f37fbce0b65af666e955596f2594dd",
+    "semver": "patch",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record 9043f29, the source revision. The committed assets were built at that source in 667b082. 28418c7 is a release-metadata commit (version and install references, no source changes) after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "161 passed across 23 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID 9043f29" },
+    { "check": "npm run e2e (stubbed, deterministic)", "result": "pass", "detail": "45 passed (with BroadcastChannel disabled across contexts)" },
+    { "check": "cd hosting/cloudflare && npm run check", "result": "pass", "detail": "wrangler deploy --dry-run (NetplayHub Durable Object, APP_VERSION=v0.21.1)" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #245 completed success" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "installed_from": "npx --yes github:normzhou/yolo-blank-canvas#v0.21.1 --no-open --port 4888",
+    "installed_into": "an empty directory, no source checkout present",
+    "served_build": "9043f29a46e6fc58c637e1e9399b623967dfd113",
+    "served_version": {
+      "package": "0.21.1",
+      "serverBuild": "9043f29a46e6fc58c637e1e9399b623967dfd113",
+      "clientBuild": "9043f29a46e6fc58c637e1e9399b623967dfd113"
+    },
+    "command": "YOLO_VERIFY_URL=http://127.0.0.1:4888 npm run e2e:verify-release",
+    "result": "pass",
+    "detail": "11 of 11 passed (15.0s). Also deployed live to yolo-demo-app (Version ID: 2c878bbd-1af6-48b0-85bc-95cb166b8394) and verified at https://demo.yolo-dev.ai/__yolo/version (200 {\"version\":\"v0.21.1\"}) and https://demo.yolo-dev.ai/.build-id (200 9043f29a46e6fc58c637e1e9399b623967dfd113), plus live Google Chrome + Safari/WebKit 2P presence and matchmaking."
+  },
+  "what_this_release_delivers": [
+    "#244 Global NetplayHub Durable Object coordinator on demo.yolo-dev.ai for cross-browser 2P online presence and auto-matchmaking"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "Acceptance on the delivered artifact is eleven targeted read-only checks. The 161 unit tests and 45 stubbed e2e tests ran against the source revision, not the installed artifact.",
+    "The tag points at 28418c7, a release-metadata commit after the assets commit 667b082, not at the assets commit itself. Both build-ID files still record the source 9043f29, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #244"
+}

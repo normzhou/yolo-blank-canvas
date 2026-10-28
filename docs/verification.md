@@ -6,6 +6,8 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Global `NetplayHub` Durable Object Coordinator for Cross-Browser 2P Online Presence & Auto-Matchmaking on `demo.yolo-dev.ai` (#244) — 2026-10-27
 
+Source revision `9043f29` (the Cloudflare `NetplayHub` Durable Object and auto-matchmaking commit); build and review evidence `667b082`; release commit `28418c7`; published as `v0.21.1` on 2026-10-27.
+
 - **Global Cloudflare Durable Object (`hosting/cloudflare/worker.mjs`, `hosting/cloudflare/wrangler.json`):**
   - Exported the `NetplayHub` Durable Object class (`new_sqlite_classes: ["NetplayHub"]`, bound as `env.NETPLAY_HUB`) and routed all `/api/netplay` requests on `https://demo.yolo-dev.ai` to the single global coordinator stub `env.NETPLAY_HUB.get(env.NETPLAY_HUB.idFromName('global'))` with `ctx.storage` state persistence so separate browsers (e.g. Chrome and Safari) and separate connections never land on isolated per-request V8 isolates.
   - Added auto-pairing when a second player clicks `2P Online` (`action: 'invite'`) for a game that already has an open invite from another online player (`server/netplay.js`, `hosting/cloudflare/worker.mjs`).
@@ -13,6 +15,12 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 - `npx tsc --noEmit`: clean.
 - `npm run e2e`: 45 passed (with `BroadcastChannel` disabled across both contexts to verify HTTP-only `/api/netplay` synchronization).
 - Live Chrome + Safari/WebKit Playwright verification against `https://demo.yolo-dev.ai`: both browsers see `2 online`, pair into a 2P Online match, and sync live Opponent Mini-Radars and scores.
+
+### Installed artifact (`v0.21.1`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.21.1 --no-open --port 4888` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `9043f29…`; the tagged package version is `0.21.1`. The tag points at release commit `28418c7`, after the assets commit `667b082`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4888 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: 2c878bbd-1af6-48b0-85bc-95cb166b8394`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.21.1"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 9043f29a46e6fc58c637e1e9399b623967dfd113`). The report is [`.yolo/reports/releases-observed-2026-10-27-v0211.json`](../.yolo/reports/releases-observed-2026-10-27-v0211.json).
 
 ## Universal YouTube-Style Pause Icon & Pause Menu, Circular Translucent Mobile Overlay Controls, Natural Mobile Swipe Deck, and Animated Selector Game Previews with Per-Game Music (#242: #237, #238, #239, #240) — 2026-10-27
 
