@@ -1,0 +1,68 @@
+{
+  "name": "yolo-feedback-bridge",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "tsc --noEmit && node --check server.mjs",
+    "test": "node --test test.mjs work.test.mjs",
+    "build": "node build.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "version": "0.1.0-alpha.41",
+  "description": "Client-owned feedback UI and bounded L1 work bridge",
+  "exports": {
+    ".": {
+      "types": "./dist/src/browser.d.ts",
+      "import": "./dist/src/browser.js"
+    },
+    "./server": {
+      "types": "./dist/src/work.d.ts",
+      "import": "./dist/src/work.js"
+    },
+    "./worker-client": {
+      "types": "./dist/src/work-client.d.ts",
+      "import": "./dist/src/work-client.js"
+    },
+    "./react": {
+      "types": "./dist/src/react.d.ts",
+      "import": "./dist/src/react.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "server.mjs",
+    "forms.mjs",
+    "ui-assets.mjs",
+    "library-assets.mjs",
+    "client.mjs",
+    "index.html",
+    "styles.css",
+    "styles-library.css",
+    "schema.sql",
+    "cli.mjs",
+    "fixture.mjs",
+    "test.mjs",
+    "work.test.mjs",
+    "build.mjs",
+    "tsconfig.json"
+  ],
+  "bin": {
+    "yolo-feedback": "./cli.mjs"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2",
+    "@types/react": "18.3.31",
+    "react": "18.3.1"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  }
+}

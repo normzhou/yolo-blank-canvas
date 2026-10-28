@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir, platform, arch } from 'node:os';
 import { execFile } from 'node:child_process';
+import { explicitActivity } from './observer-core.mjs';
 
 // The binding wraps this definition with the harness-provided Plugin.define.
 export default {
@@ -36,12 +37,12 @@ export default {
       let text = event.prompt.text ?? '';
       const prefix = 'Read `.agents/skills/yolo/SKILL.md` from the repository root and follow the requested activity.\nUser request: ';
       if (text.startsWith(prefix)) text = '$yolo ' + text.slice(prefix.length).trim();
-      const match = /^\s*[$/]yolo\s+(init|upgrade|check|work|request|feedback)(?:\s|$)/.exec(text);
+      const match = explicitActivity(text);
       if (!match && !sessions.has(id)) return;
       if (sessions.size >= 64 && !sessions.has(id)) return;
       sessions.add(id);
       // Only the recognized enum and dry-run bit leave the plugin process.
-      await send({ hook_event_name: 'prompt', session_id: id, prompt: match ? '$yolo ' + match[1] + (/(?:^|\s)--dry-run(?:\s|$)/.test(text) ? ' --dry-run' : '') : '' });
+      await send({ hook_event_name: 'prompt', session_id: id, prompt: match ? '$yolo ' + match.activity + (match.dry ? ' --dry-run' : '') : '' });
     });
     const controller = new AbortController();
     const stream = (async () => {

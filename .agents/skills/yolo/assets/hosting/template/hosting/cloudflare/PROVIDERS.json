@@ -14,5 +14,13 @@
   "runtime_secrets": "https://developers.cloudflare.com/workers/configuration/secrets/",
   "deployment": "https://developers.cloudflare.com/workers/versions-and-deployments/",
   "rollback": "https://developers.cloudflare.com/workers/versions-and-deployments/rollbacks/",
-  "state_encryption": "https://opentofu.org/docs/language/state/encryption/"
+  "state_encryption": "https://opentofu.org/docs/language/state/encryption/",
+  "token_bootstrap": "https://developers.cloudflare.com/fundamentals/api/how-to/create-via-api/",
+  "account_token_compatibility": "https://developers.cloudflare.com/fundamentals/api/get-started/account-owned-tokens/",
+  "permission_catalog": "https://developers.cloudflare.com/fundamentals/api/reference/permissions/",
+  "account_token_verification": "https://developers.cloudflare.com/api/resources/accounts/subresources/tokens/methods/verify/",
+  "user_token_verification": "https://developers.cloudflare.com/api/resources/user/subresources/tokens/methods/verify/",
+  "account_token_management": "https://developers.cloudflare.com/api/resources/accounts/subresources/tokens/",
+  "user_token_management": "https://developers.cloudflare.com/api/resources/user/subresources/tokens/",
+  "worker_roles": "https://developers.cloudflare.com/workers/authorization/workers/"
 }

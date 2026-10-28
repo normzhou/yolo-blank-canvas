@@ -53,7 +53,7 @@ Read the exact protocol returned by `inspect` (five tailored stages per starter)
 - Bug: investigate observed versus expected behavior; missing reproduction is allowed.
 - Question/help: answer directly where possible; do not invent an implementation ticket.
 
-Reuse the existing receiver-owned request/status summary. A tracked request is not admitted work; a merge is not delivered availability. Keep actionable replies self-contained on the request issue. Name the exact edited requester reply reviewed, settled scope and simultaneous requester/receiver/manual dependencies. The bundled response schema defines these fields, but authenticated response read/write/resume and automatic outbound monitoring remain #145, **not this adapter**. Preserve existing ordinary status semantics and do not manufacture structured success.
+Reuse the existing receiver-owned request/status summary. A tracked request is not admitted work; a merge is not delivered availability. Keep actionable replies self-contained on the request issue. Name the exact edited requester reply reviewed, settled scope and simultaneous requester/receiver/manual dependencies. Use the separate [authenticated response/continuation guide](request-responses.md) when the active target contract and accepted configuration enable it. Form parsing alone authenticates no receiver; ordinary work/check monitoring is explicitly configured and is not a background service. Preserve existing ordinary status semantics and do not manufacture structured success.
 
 ## Client-owned definitions
 

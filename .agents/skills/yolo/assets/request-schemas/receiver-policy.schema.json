@@ -1,0 +1,80 @@
+{
+  "type": "object",
+  "properties": {
+    "format_version": {
+      "const": 1
+    },
+    "repository": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+    },
+    "repository_node_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "receiver_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "maxItems": 100,
+      "uniqueItems": true,
+      "minItems": 1
+    },
+    "pack_path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "pack_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "supported_actions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "maxItems": 100,
+      "uniqueItems": true
+    },
+    "supported_checks": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "maxItems": 100,
+      "uniqueItems": true
+    },
+    "authority_evidence": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "maxItems": 100,
+      "uniqueItems": true,
+      "minItems": 1
+    }
+  },
+  "required": [
+    "format_version",
+    "repository",
+    "repository_node_id",
+    "receiver_ids",
+    "pack_path",
+    "pack_sha256",
+    "supported_actions",
+    "supported_checks",
+    "authority_evidence"
+  ],
+  "additionalProperties": false
+}

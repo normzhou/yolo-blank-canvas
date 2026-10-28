@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "yolo-__APP_SLUG__-app",
+  "name": "__WORKER_NAME__",
   "main": "worker.mjs",
   "compatibility_date": "2026-10-19",
   "compatibility_flags": ["global_fetch_strictly_public"],
@@ -14,7 +14,7 @@
   },
   "vars": {
     "PUBLIC_ORIGIN": "https://__APP_SLUG__.yolo-dev.ai",
-    "BACKEND_ORIGIN": "https://api-origin-__APP_SLUG__.yolo-dev.ai",
+    "BACKEND_ORIGIN": "__BACKEND_ORIGIN__",
     "APP_VERSION": "development"
   }
 }
