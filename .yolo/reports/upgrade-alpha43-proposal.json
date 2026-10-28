@@ -2,7 +2,7 @@
   "schema_version": 2,
   "target": "normzhou/yolo-blank-canvas",
   "kind": "upgrade-proposal",
-  "status": "proposed",
+  "status": "landed",
   "protocol": {
     "revision": "99aa6881f344da6ca6005f5516fb1112ab4caa23",
     "sha256": "55870cedc00c362248c8920580385de85bfbf0b7eb91cabcbbe2b41965810eb1"
@@ -130,5 +130,19 @@
   "limits": [
     "This proposal is not qualification: qualification stays unverified.",
     "The migration only touches .agents/skills/yolo/**, .yolo/protocol.md, .yolo/adoption.json, .yolo/reports/upgrade-alpha43-proposal.json, and the 5 installer hook/plugin files; app code, tests and verification results are unchanged."
-  ]
+  ],
+  "landed": {
+    "effective_commit": "a56b5349a37baa19268787a7ec4c69204a320db2",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/247",
+    "proposal_commit": "579bc0178789b425f068a2150445bf909253548f",
+    "direction": "Maintainer normzhou requested '/yolo upgrade preview' in this authenticated harness session on 2026-10-27; PR #247 passed CI and structural validation before merge.",
+    "delivered_validation": "alpha.43 executable --structure on main@a56b534: structure.status pass, exit 0, zero non-compliant findings, zero warnings.",
+    "delivered_identity": "protocol sha256 55870cedc00c362248c8920580385de85bfbf0b7eb91cabcbbe2b41965810eb1; bundle revision 99aa6881f344da6ca6005f5516fb1112ab4caa23; manifest sha256 50902b5b61937c1fee3e9e78b6a8e52301eb2480a91237fa15d09ca498232f1e; all manifest files verified; five installer hook/plugin files present.",
+    "loading_evidence": "This gemini-cli session reloaded the alpha.43 skill from main after PR #247 merged at a56b534 and wrote this landing record under the alpha.43 rules.",
+    "post_landing_operations_completed": [
+      "activation.state moved from proposed to active with the landed revision observed on the default branch.",
+      "upgrades[] appended: from da644964ca92eef8448cd782cf6805c724ca2e74 to 99aa6881f344da6ca6005f5516fb1112ab4caa23, effective a56b5349a37baa19268787a7ec4c69204a320db2.",
+      "harness.observed_sessions extended with this session's alpha.43 reload observation."
+    ]
+  }
 }
