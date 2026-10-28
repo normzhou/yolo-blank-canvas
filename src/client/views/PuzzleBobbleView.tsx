@@ -19,6 +19,7 @@ import {
 } from '../gamePause';
 import {
   getSharedNetplay,
+  INVITE_TIMEOUT_MS,
   type NetplayState,
   type PuzzleBobbleRadarSnapshot,
 } from '../netplay';
@@ -1036,10 +1037,9 @@ function PlayerArena({
   playerNumber,
   character,
   onSelectCharacter,
-  controlsLabel,
   isTwoPlayer,
+  showTouchControls,
   onlineOpponent,
-  isInvitingOnline,
   disabled,
   onAimStep,
   onAimDirect,
@@ -1051,10 +1051,9 @@ function PlayerArena({
   playerNumber: 1 | 2;
   character: CharacterId;
   onSelectCharacter: (character: CharacterId) => void;
-  controlsLabel: string;
   isTwoPlayer: boolean;
+  showTouchControls: boolean;
   onlineOpponent?: { name: string; radar: PuzzleBobbleRadarSnapshot } | null;
-  isInvitingOnline?: boolean;
   disabled: boolean;
   onAimStep: (deltaDeg: number) => void;
   onAimDirect: (targetAngle: number) => void;
@@ -1079,17 +1078,8 @@ function PlayerArena({
   const polylinePoints = guide.map((pt) => `${pt.x},${pt.y}`).join(' ');
   const summary = eventSummary(player);
   const hurrySeconds = hurryCountdownSeconds(player);
-  const dropInterval = shotsPerCeilingDrop(player.grid);
-  const shotsLeftUntilDrop = Math.max(1, dropInterval - player.shotsSinceDrop);
   const charName = characterDisplayName(character, playerNumber);
   const mood = deriveMascotMood(player);
-
-  let settledCount = 0;
-  for (const row of player.grid) {
-    for (const cell of row) {
-      if (cell !== null) settledCount += 1;
-    }
-  }
 
   const lastEv = player.lastEvent;
   const risenKeySet = new Set<string>(
@@ -1151,17 +1141,15 @@ function PlayerArena({
             <span className="badge waiting" role="status">
               ATK +{player.incomingGarbage}
             </span>
-          ) : (
+          ) : player.status !== 'playing' || player.ceilingWarning ? (
             <span className={player.ceilingWarning ? 'badge waiting' : 'badge'}>
               {player.status === 'won'
                 ? 'WINNER!'
                 : player.status === 'ko'
                   ? 'KO'
-                  : player.ceilingWarning
-                    ? 'DROP NEXT!'
-                    : `STAGE ${player.stage}`}
+                  : 'DROP NEXT!'}
             </span>
-          )}
+          ) : null}
         </div>
       </div>
 
@@ -1186,6 +1174,10 @@ function PlayerArena({
         onPointerUp={(event) => {
           if (dragPointerIdRef.current === event.pointerId) {
             dragPointerIdRef.current = null;
+            if (!disabled && player.status === 'playing') {
+              aimFromPointerEvent(event);
+              onFire();
+            }
           }
         }}
         onPointerCancel={(event) => {
@@ -1534,74 +1526,41 @@ function PlayerArena({
             </div>
           )}
 
-          {isInvitingOnline && !onlineOpponent ? (
-            <div className="netplay-waiting-pill" data-testid="pb-invite-waiting" role="status">
-              <span className="netplay-online-dot" aria-hidden="true" />
-              Inviting…
+          {/* Screen-reader / test telemetry hooks kept invisible so the arcade cabinet stays uncluttered (#248) */}
+          <span className="sr-only" data-testid={`p${playerNumber}-aim`}>
+            {formatAimAngle(player.aimAngle)}
+          </span>
+          <span className="sr-only" data-testid={`p${playerNumber}-shots`}>
+            {player.shotsFired}
+          </span>
+
+          {isTwoPlayer ? (
+            <div className="tetris-stat">
+              <span className="tetris-label">Warn</span>
+              <span className="pb-stat-small" data-testid={`p${playerNumber}-incoming`}>
+                {player.incomingGarbage}
+                <GarbageOrbsRow
+                  count={player.incomingGarbage}
+                  label={`${player.incomingGarbage} incoming attack bubbles`}
+                />
+              </span>
             </div>
           ) : null}
 
-          <div className="pb-telemetry-grid">
-            <div className="tetris-stat">
-              <span className="tetris-label">Angle</span>
-              <span className="pb-stat-small" data-testid={`p${playerNumber}-aim`}>
-                {formatAimAngle(player.aimAngle)}
-              </span>
-            </div>
-            <div className="tetris-stat">
-              <span className="tetris-label">Drop</span>
-              <span className="pb-stat-small" title="Shots until the compressor drops one row">
-                {shotsLeftUntilDrop}
-              </span>
-            </div>
-            <div className="tetris-stat">
-              <span className="tetris-label">Shots</span>
-              <span className="pb-stat-small" data-testid={`p${playerNumber}-shots`}>
-                {player.shotsFired}
-              </span>
-            </div>
-            {isTwoPlayer ? (
-              <div className="tetris-stat">
-                <span className="tetris-label">Warn</span>
-                <span className="pb-stat-small" data-testid={`p${playerNumber}-incoming`}>
-                  {player.incomingGarbage}
-                  <GarbageOrbsRow
-                    count={player.incomingGarbage}
-                    label={`${player.incomingGarbage} incoming attack bubbles`}
-                  />
-                </span>
-              </div>
-            ) : (
-              <div className="tetris-stat">
-                <span className="tetris-label">Left</span>
-                <span className="pb-stat-small">{settledCount}</span>
-              </div>
-            )}
-          </div>
-
-          <div
-            className={
-              hurrySeconds !== null
-                ? 'pb-combo-bar is-active pb-combo-cry'
-                : statusLine
-                  ? `pb-combo-bar is-active pb-combo-${mood}`
-                  : 'pb-combo-bar'
-            }
-            role={statusLine || hurrySeconds !== null ? 'status' : undefined}
-          >
+          <span className="sr-only" role={statusLine || hurrySeconds !== null ? 'status' : undefined}>
             {hurrySeconds !== null
               ? `HURRY! ${hurrySeconds}s`
               : statusLine ?? (player.ceilingWarning ? 'DROP NEXT!' : `STAGE ${player.stage}`)}
-          </div>
+          </span>
         </aside>
       </div>
-      <div
-        className="pb-touch-bar"
-        role="group"
-        aria-label={`Player ${playerNumber} touch controls`}
-        data-testid={`p${playerNumber}-touch-controls`}
-      >
-        <div className="touch-cluster touch-cluster-left">
+      {showTouchControls ? (
+        <div
+          className="pb-touch-bar"
+          role="group"
+          aria-label={`Player ${playerNumber} touch controls`}
+          data-testid={`p${playerNumber}-touch-controls`}
+        >
           <button
             type="button"
             className="pb-touch-btn pb-touch-rocker"
@@ -1630,6 +1589,22 @@ function PlayerArena({
           </button>
           <button
             type="button"
+            className="primary pb-touch-btn pb-touch-fire"
+            data-testid={`p${playerNumber}-touch-fire`}
+            aria-label={`Player ${playerNumber} fire bubble`}
+            disabled={disabled || player.status !== 'playing'}
+            onPointerDown={(event) => {
+              event.preventDefault();
+              onFire();
+            }}
+            onClick={(event) => {
+              if (event.detail === 0) onFire();
+            }}
+          >
+            ●
+          </button>
+          <button
+            type="button"
             className="pb-touch-btn pb-touch-rocker"
             data-testid={`p${playerNumber}-touch-right`}
             aria-label={`Player ${playerNumber} aim right`}
@@ -1655,25 +1630,7 @@ function PlayerArena({
             ▶
           </button>
         </div>
-        <div className="touch-cluster touch-cluster-right">
-          <button
-            type="button"
-            className="primary pb-touch-btn pb-touch-fire"
-            data-testid={`p${playerNumber}-touch-fire`}
-            aria-label={`Player ${playerNumber} fire bubble`}
-            disabled={disabled || player.status !== 'playing'}
-            onPointerDown={(event) => {
-              event.preventDefault();
-              onFire();
-            }}
-            onClick={(event) => {
-              if (event.detail === 0) onFire();
-            }}
-          >
-            ●
-          </button>
-        </div>
-      </div>
+      ) : null}
     </div>
   );
 }
@@ -1700,8 +1657,35 @@ function isPhoneViewport(): boolean {
   return false;
 }
 
+function detectTouchAvailable(): boolean {
+  if (typeof window === 'undefined') return false;
+  if (isPhoneViewport()) return true;
+  if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0) return true;
+  if (typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches) return true;
+  return false;
+}
+
+function hasKeyboardAvailable(): boolean {
+  if (typeof window === 'undefined') return true;
+  if (isPhoneViewport()) return false;
+  if (typeof window.matchMedia === 'function') {
+    const coarseOnly =
+      window.matchMedia('(pointer: coarse)').matches &&
+      !window.matchMedia('(any-pointer: fine)').matches;
+    if (coarseOnly && window.innerWidth < 768) return false;
+  }
+  return true;
+}
+
+function motionReduced(): boolean {
+  return typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
 export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
   const [phoneViewport, setPhoneViewport] = useState<boolean>(() => isPhoneViewport());
+  const touchSeenRef = useRef<boolean>(detectTouchAvailable());
+  const [touchAvailable, setTouchAvailable] = useState<boolean>(() => touchSeenRef.current);
+  const [keyboardAvailable, setKeyboardAvailable] = useState<boolean>(() => hasKeyboardAvailable());
   const [match, setMatch] = useState<PuzzleBobbleMatch>(() =>
     createMatch(isPhoneViewport() ? '1p' : '2p'),
   );
@@ -1717,6 +1701,8 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
   const [opponentRadar, setOpponentRadar] = useState<PuzzleBobbleRadarSnapshot>(() =>
     createRadarFromBoard(match.players[0]),
   );
+  const [countdown, setCountdown] = useState<number>(() => (motionReduced() ? 0 : 3));
+  const [inviteSecondsLeft, setInviteSecondsLeft] = useState<number>(20);
 
   useEffect(() => {
     setSharedGamePaused(false);
@@ -1729,9 +1715,21 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     };
   }, []);
 
+  useEffect(() => {
+    const onPointerDown = (e: PointerEvent) => {
+      if (e.pointerType === 'touch') {
+        touchSeenRef.current = true;
+        setTouchAvailable(true);
+      }
+    };
+    window.addEventListener('pointerdown', onPointerDown, { passive: true });
+    return () => window.removeEventListener('pointerdown', onPointerDown);
+  }, []);
+
   const matchRef = useRef(match);
   matchRef.current = match;
   const activeRoomIdRef = useRef<string | null>(null);
+  const activeRoomStartedRef = useRef<string | null>(null);
   const onlineOutcomeSentRef = useRef<boolean>(false);
   const heldAimKeysRef = useRef<Map<string, number>>(new Map());
   const gameSectionRef = useRef<HTMLElement>(null);
@@ -1744,7 +1742,11 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
       ? netplay.activeRoom
       : null;
   const isOnline2P = activePbRoom !== null;
+  const isReadyCheck = activePbRoom?.status === 'ready_check';
   const isInviting = netplay.myPendingInvite?.gameId === 'puzzle-bobble';
+  const myRoomPlayer = activePbRoom?.players.find((p) => p.id === netplay.clientId);
+  const myReady = Boolean(myRoomPlayer?.ready);
+  const oppReady = Boolean(activePbRoom?.opponent?.ready);
 
   const startOnlineRoundWithSeed = useCallback(
     (seed: number, resetWins = false, preset = stagePreset) => {
@@ -1771,10 +1773,40 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         winner: null,
         wins: resetWins ? [0, 0] : current.wins,
       }));
-      setPaused(false);
+      setSharedGamePaused(false);
+      setCountdown(motionReduced() ? 0 : 3);
     },
     [stagePreset],
   );
+
+  // 20-second invite countdown timer (#248).
+  useEffect(() => {
+    const invite = netplay.myPendingInvite;
+    if (!invite || invite.gameId !== 'puzzle-bobble') {
+      setInviteSecondsLeft(20);
+      return;
+    }
+    const updateTimer = () => {
+      const elapsed = Date.now() - invite.createdAt;
+      const remaining = Math.max(0, Math.ceil((INVITE_TIMEOUT_MS - elapsed) / 1000));
+      setInviteSecondsLeft(remaining);
+      if (remaining <= 0) {
+        void getSharedNetplay().cancelInvite();
+      }
+    };
+    updateTimer();
+    const id = window.setInterval(updateTimer, 250);
+    return () => window.clearInterval(id);
+  }, [netplay.myPendingInvite]);
+
+  // 3, 2, 1 arcade start countdown (#248).
+  useEffect(() => {
+    if (countdown <= 0 || paused || isReadyCheck || isInviting) return;
+    const id = window.setTimeout(() => {
+      setCountdown((c) => Math.max(0, c - 1));
+    }, 450);
+    return () => window.clearTimeout(id);
+  }, [countdown, paused, isReadyCheck, isInviting]);
 
   useEffect(() => {
     const client = getSharedNetplay();
@@ -1786,9 +1818,21 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
           : null;
       if (room && activeRoomIdRef.current !== room.id) {
         activeRoomIdRef.current = room.id;
+        setSharedGamePaused(false);
+        if (room.status === 'playing') {
+          activeRoomStartedRef.current = room.id;
+          startOnlineRoundWithSeed(room.seed, true);
+        }
+      } else if (
+        room &&
+        room.status === 'playing' &&
+        activeRoomStartedRef.current !== room.id
+      ) {
+        activeRoomStartedRef.current = room.id;
         startOnlineRoundWithSeed(room.seed, true);
       } else if (!room && activeRoomIdRef.current !== null) {
         activeRoomIdRef.current = null;
+        activeRoomStartedRef.current = null;
       }
     });
 
@@ -1797,8 +1841,9 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         const payload = event.payload as { gameId?: string; seed?: number; id?: string; roomId?: string } | null;
         if (payload && payload.gameId === 'puzzle-bobble') {
           const rid = payload.id ?? payload.roomId ?? null;
-          if (rid && activeRoomIdRef.current !== rid) {
+          if (rid && activeRoomStartedRef.current !== rid) {
             activeRoomIdRef.current = rid;
+            activeRoomStartedRef.current = rid;
             startOnlineRoundWithSeed(payload.seed ?? 2026, true);
           }
         }
@@ -1969,7 +2014,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
 
   // Advance flying bubbles and the 10s HURRY UP! shot clock at ~60fps.
   useEffect(() => {
-    if (paused || match.status !== 'playing') return;
+    if (paused || isReadyCheck || isInviting || match.status !== 'playing') return;
     let lastTime = performance.now();
     const id = window.setInterval(() => {
       const now = performance.now();
@@ -1977,11 +2022,11 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
       lastTime = now;
       setMatch((current) => {
         const stepped = stepMatch(current);
-        return tickShotTimers(stepped, dtMs);
+        return countdown > 0 ? stepped : tickShotTimers(stepped, dtMs);
       });
     }, 16);
     return () => window.clearInterval(id);
-  }, [match.status, paused]);
+  }, [match.status, paused, isReadyCheck, isInviting, countdown]);
 
   // Deterministic E2E / test hooks to resolve a player's shot or queue incoming attack bubbles.
   useEffect(() => {
@@ -2098,7 +2143,8 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         }
         return createMatch(mode, Math.random, wins);
       });
-      setPaused(false);
+      setSharedGamePaused(false);
+      setCountdown(motionReduced() ? 0 : 3);
       setBackgroundIndex((index) => nextBackgroundIndex(index));
     },
     [stagePreset],
@@ -2110,6 +2156,9 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
   useEffect(() => {
     function onResize() {
       const phone = isPhoneViewport();
+      if (detectTouchAvailable()) touchSeenRef.current = true;
+      setTouchAvailable(touchSeenRef.current || detectTouchAvailable());
+      setKeyboardAvailable(hasKeyboardAvailable());
       setPhoneViewport((prevPhone) => {
         if (phone && matchRef.current.mode === '2p') {
           startNewRound('1p', false);
@@ -2320,6 +2369,9 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     }
   };
 
+  const canSelectLocal2P = !phoneViewport && keyboardAvailable;
+  const canSelectOnline2P = netplay.onlineCount > 1 || isOnline2P || isInviting;
+
   return (
     <section
       className="tetris pb-game"
@@ -2343,112 +2395,10 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
               1P {match.wins[0]} – {match.wins[1]} 2P
             </span>
           ) : null}
-          <p className="tetris-scene" aria-live="polite">
+          <p className="tetris-scene sr-only" aria-live="polite">
             Scene {backgroundIndex + 1}/{BACKGROUNDS.length}: {art.title}
             {musicOn && nowPlaying ? ` · Music: ${nowPlaying}` : ''}
           </p>
-        </div>
-        <div className="row">
-          <div className="filter-group" role="group" aria-label="Player mode">
-            {!phoneViewport ? (
-              <>
-                <button
-                  type="button"
-                  aria-pressed={!isOnline2P && !isInviting && match.mode === '2p'}
-                  onClick={() => {
-                    if (isOnline2P) void getSharedNetplay().leaveRoom();
-                    if (isInviting) void getSharedNetplay().cancelInvite();
-                    startNewRound('2p', false);
-                  }}
-                >
-                  2 Players
-                </button>
-                <button
-                  type="button"
-                  aria-pressed={!isOnline2P && !isInviting && match.mode === '1p'}
-                  onClick={() => {
-                    if (isOnline2P) void getSharedNetplay().leaveRoom();
-                    if (isInviting) void getSharedNetplay().cancelInvite();
-                    startNewRound('1p', false);
-                  }}
-                >
-                  1 Player
-                </button>
-              </>
-            ) : null}
-            <button
-              type="button"
-              data-testid="pb-2p-online-btn"
-              aria-pressed={isOnline2P || isInviting}
-              onClick={() => {
-                if (isOnline2P) {
-                  void getSharedNetplay().leaveRoom();
-                  startNewRound(phoneViewport ? '1p' : '2p', false);
-                } else if (isInviting) {
-                  void getSharedNetplay().cancelInvite();
-                } else {
-                  if (match.mode === '2p') {
-                    startNewRound('1p', false);
-                  }
-                  void getSharedNetplay().sendInvite('puzzle-bobble');
-                }
-              }}
-            >
-              {isOnline2P
-                ? `2P Online (${activePbRoom.opponent.name})`
-                : isInviting
-                  ? 'Waiting 2P… (Cancel)'
-                  : '2P Online'}
-            </button>
-          </div>
-          <div className="filter-group pb-stage-stepper" role="group" aria-label="Stage selection" data-testid="pb-stage-selector">
-            <button
-              type="button"
-              aria-label="Previous stage"
-              title="Previous stage"
-              onClick={() => {
-                const totalOptions = TOTAL_STAGES + 1;
-                const prevPreset = (stagePreset - 1 + totalOptions) % totalOptions;
-                setStagePreset(prevPreset);
-                startNewRound(match.mode, true, prevPreset);
-              }}
-            >
-              ‹
-            </button>
-            <button
-              type="button"
-              data-testid="pb-stage-button"
-              onClick={() => {
-                const nextPreset = (stagePreset + 1) % (TOTAL_STAGES + 1);
-                setStagePreset(nextPreset);
-                startNewRound(match.mode, true, nextPreset);
-              }}
-              title={`Cycle between random waves and ${TOTAL_STAGES} classic arcade stages`}
-            >
-              {stagePreset === 0
-                ? 'Wave: Random'
-                : `Stage ${stagePreset}: ${stageTitle(stagePreset)}`}
-            </button>
-            <button
-              type="button"
-              aria-label="Next stage"
-              title="Next stage"
-              onClick={() => {
-                const nextPreset = (stagePreset + 1) % (TOTAL_STAGES + 1);
-                setStagePreset(nextPreset);
-                startNewRound(match.mode, true, nextPreset);
-              }}
-            >
-              ›
-            </button>
-          </div>
-          <button
-            type="button"
-            className="primary"
-            onClick={handleNextOrNewRound}
-          >
-            {match.status === 'round_over' ? 'Next round' : 'New game'}
-          </button>
         </div>
       </header>
 
@@ -2458,23 +2408,30 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
           playerNumber={1}
           character={characters[0]}
           onSelectCharacter={(c) => setCharacters(([_, p2]) => [c, p2])}
-          controlsLabel={
-            match.mode === '2p' && !isOnline2P
-              ? 'ASDF or Drag · S/F or FIRE'
-              : 'Touch Drag / ASDF / Arrows'
-          }
           isTwoPlayer={match.mode === '2p' || isOnline2P}
+          showTouchControls={touchAvailable}
           onlineOpponent={
             isOnline2P && activePbRoom
               ? { name: activePbRoom.opponent.name, radar: opponentRadar }
               : null
           }
-          isInvitingOnline={isInviting && !isOnline2P}
-          disabled={paused || match.status !== 'playing'}
-          onAimStep={(delta) => setMatch((current) => aimPlayer(current, 0, delta))}
-          onAimDirect={(angle) => setMatch((current) => setPlayerAimAngle(current, 0, angle))}
-          onFire={() => setMatch((current) => firePlayerBubble(current, 0))}
-          onHoldAimStart={(keyId, delta) => handleHoldAimStart(0, keyId, delta)}
+          disabled={paused || isReadyCheck || match.status !== 'playing'}
+          onAimStep={(delta) => {
+            setCountdown(0);
+            setMatch((current) => aimPlayer(current, 0, delta));
+          }}
+          onAimDirect={(angle) => {
+            setCountdown(0);
+            setMatch((current) => setPlayerAimAngle(current, 0, angle));
+          }}
+          onFire={() => {
+            setCountdown(0);
+            setMatch((current) => firePlayerBubble(current, 0));
+          }}
+          onHoldAimStart={(keyId, delta) => {
+            setCountdown(0);
+            handleHoldAimStart(0, keyId, delta);
+          }}
           onHoldAimEnd={handleHoldAimEnd}
         />
         {!isOnline2P && match.mode === '2p' && match.players[1] ? (
@@ -2483,17 +2440,112 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
             playerNumber={2}
             character={characters[1]}
             onSelectCharacter={(c) => setCharacters(([p1]) => [p1, c])}
-            controlsLabel="Arrows or Drag · ↑/↓ or FIRE"
             isTwoPlayer
-            disabled={paused || match.status !== 'playing'}
-            onAimStep={(delta) => setMatch((current) => aimPlayer(current, 1, delta))}
-            onAimDirect={(angle) => setMatch((current) => setPlayerAimAngle(current, 1, angle))}
-            onFire={() => setMatch((current) => firePlayerBubble(current, 1))}
-            onHoldAimStart={(keyId, delta) => handleHoldAimStart(1, keyId, delta)}
+            showTouchControls={touchAvailable}
+            disabled={paused || isReadyCheck || match.status !== 'playing'}
+            onAimStep={(delta) => {
+              setCountdown(0);
+              setMatch((current) => aimPlayer(current, 1, delta));
+            }}
+            onAimDirect={(angle) => {
+              setCountdown(0);
+              setMatch((current) => setPlayerAimAngle(current, 1, angle));
+            }}
+            onFire={() => {
+              setCountdown(0);
+              setMatch((current) => firePlayerBubble(current, 1));
+            }}
+            onHoldAimStart={(keyId, delta) => {
+              setCountdown(0);
+              handleHoldAimStart(1, keyId, delta);
+            }}
             onHoldAimEnd={handleHoldAimEnd}
           />
         ) : null}
       </div>
+
+      {!paused && !isReadyCheck && !isInviting && countdown > 0 ? (
+        <div
+          className="arcade-countdown-backdrop"
+          data-testid="arcade-countdown"
+          role="status"
+          aria-live="polite"
+        >
+          <span className="arcade-countdown-digit">{countdown}</span>
+        </div>
+      ) : null}
+
+      {isInviting && !isOnline2P ? (
+        <div className="game-pause-backdrop">
+          <div
+            className="game-pause-menu"
+            role="status"
+            aria-live="polite"
+            data-testid="pb-invite-waiting"
+          >
+            <span className="game-pause-kicker">2P Online Matchmaking</span>
+            <h3 className="game-pause-title">Waiting for player…</h3>
+            <p className="game-pause-copy" data-testid="netplay-invite-countdown">
+              Invite expires in <strong>{inviteSecondsLeft}s</strong>
+            </p>
+            <div className="game-pause-actions">
+              <button
+                type="button"
+                data-testid="pb-cancel-invite-btn"
+                onClick={() => void getSharedNetplay().cancelInvite()}
+              >
+                Cancel invite
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {isOnline2P && isReadyCheck && activePbRoom ? (
+        <div className="game-pause-backdrop">
+          <div
+            className="game-pause-menu"
+            role="dialog"
+            aria-modal="true"
+            aria-label="2P Online Ready Check"
+            data-testid="netplay-ready-modal"
+          >
+            <span className="game-pause-kicker">2P Online Puzzle Bobble</span>
+            <h3 className="game-pause-title">Players Ready?</h3>
+            <div className="netplay-ready-roster">
+              <div className="netplay-ready-row">
+                <span>YOU ({netplay.clientName})</span>
+                <span className={myReady ? 'netplay-ready-pill is-ready' : 'netplay-ready-pill'}>
+                  {myReady ? 'READY ✓' : 'Waiting…'}
+                </span>
+              </div>
+              <div className="netplay-ready-row">
+                <span>{activePbRoom.opponent.name}</span>
+                <span className={oppReady ? 'netplay-ready-pill is-ready' : 'netplay-ready-pill'}>
+                  {oppReady ? 'READY ✓' : 'Waiting…'}
+                </span>
+              </div>
+            </div>
+            <div className="game-pause-actions">
+              <button
+                type="button"
+                className="primary"
+                data-testid="netplay-ready-btn"
+                disabled={myReady}
+                onClick={() => void getSharedNetplay().setReady()}
+              >
+                {myReady ? 'Waiting for opponent…' : 'Ready!'}
+              </button>
+              <button
+                type="button"
+                onClick={() => void getSharedNetplay().leaveRoom()}
+              >
+                Leave match
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {paused ? (
         <div className="game-pause-backdrop">
@@ -2506,6 +2558,115 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
           >
             <span className="game-pause-kicker">Puzzle Bobble</span>
             <h3 className="game-pause-title">Paused</h3>
+            <div className="game-pause-section">
+              <span className="tetris-label">Game Mode</span>
+              <div className="filter-group" role="group" aria-label="Player mode">
+                {canSelectLocal2P ? (
+                  <button
+                    type="button"
+                    aria-pressed={!isOnline2P && !isInviting && match.mode === '2p'}
+                    onClick={() => {
+                      if (isOnline2P) void getSharedNetplay().leaveRoom();
+                      if (isInviting) void getSharedNetplay().cancelInvite();
+                      startNewRound('2p', false);
+                    }}
+                  >
+                    2 Players
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  aria-pressed={!isOnline2P && !isInviting && match.mode === '1p'}
+                  onClick={() => {
+                    if (isOnline2P) void getSharedNetplay().leaveRoom();
+                    if (isInviting) void getSharedNetplay().cancelInvite();
+                    startNewRound('1p', false);
+                  }}
+                >
+                  1 Player
+                </button>
+                <button
+                  type="button"
+                  data-testid="pb-2p-online-btn"
+                  aria-pressed={isOnline2P || isInviting}
+                  disabled={!canSelectOnline2P}
+                  title={
+                    canSelectOnline2P
+                      ? 'Challenge online players to 2P Puzzle Bobble'
+                      : 'Requires at least 2 players online'
+                  }
+                  onClick={() => {
+                    if (isOnline2P) {
+                      void getSharedNetplay().leaveRoom();
+                      startNewRound(canSelectLocal2P ? '2p' : '1p', false);
+                    } else if (isInviting) {
+                      void getSharedNetplay().cancelInvite();
+                    } else if (canSelectOnline2P) {
+                      if (match.mode === '2p') {
+                        startNewRound('1p', false);
+                      }
+                      setSharedGamePaused(false);
+                      void getSharedNetplay().sendInvite('puzzle-bobble');
+                    }
+                  }}
+                >
+                  {isOnline2P
+                    ? `2P Online (${activePbRoom.opponent.name})`
+                    : isInviting
+                      ? `Waiting 2P… (${inviteSecondsLeft}s)`
+                      : '2P Online'}
+                </button>
+              </div>
+            </div>
+            <div className="game-pause-section">
+              <span className="tetris-label">Stage</span>
+              <div
+                className="filter-group pb-stage-stepper"
+                role="group"
+                aria-label="Stage selection"
+                data-testid="pb-stage-selector"
+              >
+                <button
+                  type="button"
+                  aria-label="Previous stage"
+                  title="Previous stage"
+                  onClick={() => {
+                    const totalOptions = TOTAL_STAGES + 1;
+                    const prevPreset = (stagePreset - 1 + totalOptions) % totalOptions;
+                    setStagePreset(prevPreset);
+                    startNewRound(match.mode, true, prevPreset);
+                  }}
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  data-testid="pb-stage-button"
+                  onClick={() => {
+                    const nextPreset = (stagePreset + 1) % (TOTAL_STAGES + 1);
+                    setStagePreset(nextPreset);
+                    startNewRound(match.mode, true, nextPreset);
+                  }}
+                  title={`Cycle between random waves and ${TOTAL_STAGES} classic arcade stages`}
+                >
+                  {stagePreset === 0
+                    ? 'Wave: Random'
+                    : `Stage ${stagePreset}: ${stageTitle(stagePreset)}`}
+                </button>
+                <button
+                  type="button"
+                  aria-label="Next stage"
+                  title="Next stage"
+                  onClick={() => {
+                    const nextPreset = (stagePreset + 1) % (TOTAL_STAGES + 1);
+                    setStagePreset(nextPreset);
+                    startNewRound(match.mode, true, nextPreset);
+                  }}
+                >
+                  ›
+                </button>
+              </div>
+            </div>
             <div className="game-pause-actions">
               <button
                 type="button"
@@ -2525,7 +2686,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
                   setSharedGamePaused(false);
                 }}
               >
-                New game
+                {match.status === 'round_over' ? 'Next round' : 'New game'}
               </button>
               <button
                 type="button"
@@ -2544,11 +2705,14 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         <p className="tetris-over pb-banner" role="status" data-testid="pb-round-banner">
           {isOnline2P && activePbRoom
             ? match.winner === 0
-              ? `YOU WIN! Beat ${activePbRoom.opponent.name} (${match.wins[0]}–${match.wins[1]}). Press Next round for a rematch.`
-              : `${activePbRoom.opponent.name} wins the round! (${match.wins[0]}–${match.wins[1]}). Press Next round for a rematch.`
+              ? `YOU WIN! Beat ${activePbRoom.opponent.name} (${match.wins[0]}–${match.wins[1]}). `
+              : `${activePbRoom.opponent.name} wins the round! (${match.wins[0]}–${match.wins[1]}). `
             : match.winner !== null
-              ? `Player ${match.winner + 1} wins the round! (${match.wins[0]}–${match.wins[1]}). Press Next round to battle again.`
-              : `Game over — score ${match.players[0].score.toLocaleString()}. Press Next round to play again.`}
+              ? `Player ${match.winner + 1} wins the round! (${match.wins[0]}–${match.wins[1]}). `
+              : `Game over — score ${match.players[0].score.toLocaleString()}. `}
+          <button type="button" className="primary" onClick={handleNextOrNewRound}>
+            Next round
+          </button>
         </p>
       ) : null}
     </section>

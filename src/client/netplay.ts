@@ -11,6 +11,8 @@
 import type { Board } from '../shared/tetris';
 import type { BubbleColor, BubbleGrid } from '../shared/puzzleBobble';
 
+export const INVITE_TIMEOUT_MS = 20_000;
+
 export type NetplayGameId = 'tetris' | 'puzzle-bobble';
 export type NetplayPlayerStatus = 'idle' | 'inviting' | 'playing_2p';
 
@@ -33,6 +35,7 @@ export interface NetplayRoomPlayer {
   id: string;
   name: string;
   slot: 0 | 1;
+  ready?: boolean;
 }
 
 export interface NetplayRoomEvent {
@@ -47,6 +50,7 @@ export interface NetplayActiveRoom {
   id: string;
   gameId: NetplayGameId;
   seed: number;
+  status: 'ready_check' | 'playing';
   players: [NetplayRoomPlayer, NetplayRoomPlayer];
   mySlot: 0 | 1;
   opponent: NetplayRoomPlayer;
@@ -313,16 +317,17 @@ class NetplayClient {
       return;
     }
 
-    if (msg.type === 'match_start') {
+    if (msg.type === 'room_joined' || msg.type === 'match_start') {
       const room = msg.room as {
         id: string;
         gameId: NetplayGameId;
         seed: number;
+        status?: 'ready_check' | 'playing';
         players: [NetplayRoomPlayer, NetplayRoomPlayer];
       } | null;
       const inviteId = typeof msg.inviteId === 'string' ? msg.inviteId : '';
       if (inviteId) this.localInvites.delete(inviteId);
-      if (!room || ! Array.isArray(room.players)) return;
+      if (!room || !Array.isArray(room.players)) return;
       const me = room.players.find((p) => p.id === this.identity.id);
       const opponent = room.players.find((p) => p.id !== this.identity.id);
       if (!me || !opponent) return;
@@ -331,6 +336,7 @@ class NetplayClient {
         id: room.id,
         gameId: room.gameId,
         seed: room.seed,
+        status: room.status ?? (msg.type === 'match_start' ? 'playing' : 'ready_check'),
         players: room.players,
         mySlot: me.slot,
         opponent,
@@ -344,10 +350,40 @@ class NetplayClient {
       this.emitRoomEvent({
         seq: 1,
         senderId: fromId,
-        kind: 'match_start',
+        kind: activeRoom.status === 'playing' ? 'match_start' : 'room_joined',
         payload: activeRoom,
         at: now,
       });
+      return;
+    }
+
+    if (msg.type === 'player_ready') {
+      const roomId = typeof msg.roomId === 'string' ? msg.roomId : '';
+      const curRoom = this.state.activeRoom;
+      if (!curRoom || curRoom.id !== roomId) return;
+      const nextPlayers = curRoom.players.map((p) =>
+        p.id === fromId ? { ...p, ready: true } : p,
+      ) as [NetplayRoomPlayer, NetplayRoomPlayer];
+      const me = nextPlayers.find((p) => p.id === this.identity.id) ?? curRoom.players[curRoom.mySlot];
+      const opponent = nextPlayers.find((p) => p.id !== this.identity.id) ?? curRoom.opponent;
+      const allReady = nextPlayers.every((p) => Boolean(p.ready));
+      const nextRoom: NetplayActiveRoom = {
+        ...curRoom,
+        status: allReady ? 'playing' : 'ready_check',
+        players: nextPlayers,
+        mySlot: me.slot,
+        opponent,
+      };
+      this.updateState({ activeRoom: nextRoom });
+      if (allReady && curRoom.status !== 'playing') {
+        this.emitRoomEvent({
+          seq: ++this.localSeq,
+          senderId: fromId,
+          kind: 'match_start',
+          payload: nextRoom,
+          at: now,
+        });
+      }
       return;
     }
 
@@ -382,6 +418,7 @@ class NetplayClient {
       id: string;
       gameId: NetplayGameId;
       seed: number;
+      status?: 'ready_check' | 'playing';
       players: [NetplayRoomPlayer, NetplayRoomPlayer];
       events: NetplayRoomEvent[];
       lastSeq: number;
@@ -392,7 +429,7 @@ class NetplayClient {
       if (now - peer.updatedAt > 15_000) this.localPeers.delete(id);
     }
     for (const [id, inv] of this.localInvites.entries()) {
-      if (now - inv.createdAt > 45_000) this.localInvites.delete(id);
+      if (now - inv.createdAt > INVITE_TIMEOUT_MS) this.localInvites.delete(id);
     }
 
     const playerMap = new Map<string, OnlinePlayerInfo>();
@@ -437,10 +474,13 @@ class NetplayClient {
       const opponent = sr.players.find((p) => p.id !== this.identity.id);
       if (me && opponent) {
         const isNewRoom = !activeRoom || activeRoom.id !== sr.id;
+        const resolvedStatus: 'ready_check' | 'playing' =
+          sr.status ?? (sr.players.every((p) => p.ready) ? 'playing' : 'ready_check');
         activeRoom = {
           id: sr.id,
           gameId: sr.gameId,
           seed: sr.seed,
+          status: resolvedStatus,
           players: sr.players,
           mySlot: me.slot,
           opponent,
@@ -453,7 +493,12 @@ class NetplayClient {
           this.lastServerSeq = sr.lastSeq;
         }
         for (const ev of sr.events ?? []) {
-          if (ev.senderId !== this.identity.id || ev.kind === 'match_start') {
+          if (
+            ev.senderId !== this.identity.id ||
+            ev.kind === 'match_start' ||
+            ev.kind === 'room_joined' ||
+            ev.kind === 'player_ready'
+          ) {
             this.emitRoomEvent(ev);
           }
         }
@@ -479,6 +524,13 @@ class NetplayClient {
       }
       if (serverSnapshot?.myPendingInvites && serverSnapshot.myPendingInvites.length > 0) {
         myPendingInvite = serverSnapshot.myPendingInvites[0];
+      } else if (serverSnapshot && Array.isArray(serverSnapshot.myPendingInvites) && serverSnapshot.myPendingInvites.length === 0) {
+        if (myPendingInvite && now - myPendingInvite.createdAt > INVITE_TIMEOUT_MS) {
+          myPendingInvite = null;
+        }
+      }
+      if (myPendingInvite && now - myPendingInvite.createdAt > INVITE_TIMEOUT_MS) {
+        myPendingInvite = null;
       }
     } else {
       myPendingInvite = null;
@@ -579,12 +631,13 @@ class NetplayClient {
       this.reconcileLocalState(data as never);
       if (this.state.activeRoom) {
         this.broadcastLocal({
-          type: 'match_start',
+          type: 'room_joined',
           inviteId: invite.id,
           room: {
             id: this.state.activeRoom.id,
             gameId: this.state.activeRoom.gameId,
             seed: this.state.activeRoom.seed,
+            status: this.state.activeRoom.status,
             players: this.state.activeRoom.players,
           },
         });
@@ -596,13 +649,14 @@ class NetplayClient {
     const roomId = `room_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
     const seed = ((Date.now() & 0x7fffffff) ^ 0x5a5a5a5a) >>> 0 || 1337;
     const players: [NetplayRoomPlayer, NetplayRoomPlayer] = [
-      { id: invite.hostId, name: invite.hostName, slot: 0 },
-      { id: this.identity.id, name: this.identity.name, slot: 1 },
+      { id: invite.hostId, name: invite.hostName, slot: 0, ready: false },
+      { id: this.identity.id, name: this.identity.name, slot: 1, ready: false },
     ];
     const activeRoom: NetplayActiveRoom = {
       id: roomId,
       gameId: invite.gameId,
       seed,
+      status: 'ready_check',
       players,
       mySlot: 1,
       opponent: players[0],
@@ -613,12 +667,36 @@ class NetplayClient {
       openInvites: [],
     });
     this.broadcastLocal({
-      type: 'match_start',
+      type: 'room_joined',
       inviteId: invite.id,
-      room: { id: roomId, gameId: invite.gameId, seed, players },
+      room: { id: roomId, gameId: invite.gameId, seed, status: 'ready_check', players },
     });
     this.schedulePoll();
     return activeRoom;
+  }
+
+  async setReady(): Promise<void> {
+    const curRoom = this.state.activeRoom;
+    if (!curRoom) return;
+    const nextPlayers = curRoom.players.map((p) =>
+      p.id === this.identity.id ? { ...p, ready: true } : p,
+    ) as [NetplayRoomPlayer, NetplayRoomPlayer];
+    const allReady = nextPlayers.every((p) => Boolean(p.ready));
+    const nextRoom: NetplayActiveRoom = {
+      ...curRoom,
+      status: allReady ? 'playing' : 'ready_check',
+      players: nextPlayers,
+    };
+    this.updateState({ activeRoom: nextRoom });
+    this.broadcastLocal({
+      type: 'player_ready',
+      roomId: curRoom.id,
+    });
+    const data = await this.postAction({
+      action: 'player_ready',
+      roomId: curRoom.id,
+    });
+    if (data) this.reconcileLocalState(data as never);
   }
 
   async sendRoomEvent(kind: string, payload: unknown): Promise<void> {

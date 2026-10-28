@@ -1,7 +1,7 @@
 import {publicOrigin, originAuthorization, cleanRequestHeaders, cleanResponse, failure, withinDeadline} from './transport.mjs';
 
 const PLAYER_TTL_MS = 18_000;
-const INVITE_TTL_MS = 45_000;
+const INVITE_TTL_MS = 20_000;
 const ROOM_TTL_MS = 120_000;
 const MAX_ROOM_EVENTS = 160;
 const VALID_GAMES = new Set(['tetris', 'puzzle-bobble']);
@@ -116,7 +116,7 @@ export class NetplayHub {
         const minSeq = rawMinSeq > lastRoomSeq ? 0 : rawMinSeq;
         const events = room.events.filter(ev => ev.seq > minSeq);
         activeRoom = {
-          id: room.id, gameId: room.gameId, seed: room.seed, players: room.players,
+          id: room.id, gameId: room.gameId, seed: room.seed, status: room.status || 'playing', players: room.players,
           events, lastSeq: room.nextSeq - 1,
         };
       }
@@ -202,11 +202,11 @@ export class NetplayHub {
             const roomId = this.nextId('room');
             const seed = ((now & 0x7fffffff) ^ 0x5a5a5a5a) >>> 0 || 1337;
             const room = {
-              id: roomId, gameId, seed,
-              players: [{id: host.id, name: host.name, slot: 0}, {id: player.id, name: player.name, slot: 1}],
+              id: roomId, gameId, seed, status: 'ready_check',
+              players: [{id: host.id, name: host.name, slot: 0, ready: false}, {id: player.id, name: player.name, slot: 1, ready: false}],
               events: [{
-                seq: 1, senderId: host.id, kind: 'match_start',
-                payload: {roomId, gameId, seed, players: [{id: host.id, name: host.name, slot: 0}, {id: player.id, name: player.name, slot: 1}]},
+                seq: 1, senderId: host.id, kind: 'room_joined',
+                payload: {roomId, gameId, seed, status: 'ready_check', players: [{id: host.id, name: host.name, slot: 0, ready: false}, {id: player.id, name: player.name, slot: 1, ready: false}]},
                 at: now,
               }],
               nextSeq: 2, updatedAt: now,
@@ -263,11 +263,11 @@ export class NetplayHub {
       const roomId = this.nextId('room');
       const seed = ((now & 0x7fffffff) ^ 0x5a5a5a5a) >>> 0 || 1337;
       const room = {
-        id: roomId, gameId: inv.gameId, seed,
-        players: [{id: host.id, name: host.name, slot: 0}, {id: player.id, name: player.name, slot: 1}],
+        id: roomId, gameId: inv.gameId, seed, status: 'ready_check',
+        players: [{id: host.id, name: host.name, slot: 0, ready: false}, {id: player.id, name: player.name, slot: 1, ready: false}],
         events: [{
-          seq: 1, senderId: host.id, kind: 'match_start',
-          payload: {roomId, gameId: inv.gameId, seed, players: [{id: host.id, name: host.name, slot: 0}, {id: player.id, name: player.name, slot: 1}]},
+          seq: 1, senderId: host.id, kind: 'room_joined',
+          payload: {roomId, gameId: inv.gameId, seed, status: 'ready_check', players: [{id: host.id, name: host.name, slot: 0, ready: false}, {id: player.id, name: player.name, slot: 1, ready: false}]},
           at: now,
         }],
         nextSeq: 2, updatedAt: now,
@@ -281,6 +281,25 @@ export class NetplayHub {
       player.roomId = roomId; player.status = 'playing_2p'; player.appId = inv.gameId; player.updatedAt = now;
       await this.persist();
       return Response.json(this.snapshot(clientId, 0), {headers: {'cache-control': 'no-store'}});
+    }
+
+    if (action === 'player_ready') {
+      const roomId = cleanId(body.roomId) || player.roomId;
+      const room = roomId ? this.rooms.get(roomId) : null;
+      if (!room) return Response.json({error: {kind: 'room_not_found', message: 'Match room ended.'}}, {status: 404, headers: {'cache-control': 'no-store'}});
+      const member = room.players.find(p => p.id === clientId);
+      if (member) member.ready = true;
+      const seq = room.nextSeq++;
+      room.events.push({seq, senderId: clientId, kind: 'player_ready', payload: {playerId: clientId, players: room.players.map(p => ({...p}))}, at: now});
+      if (room.players.every(p => p.ready) && room.status !== 'playing') {
+        room.status = 'playing';
+        const startSeq = room.nextSeq++;
+        room.events.push({seq: startSeq, senderId: clientId, kind: 'match_start', payload: {roomId: room.id, gameId: room.gameId, seed: room.seed, players: room.players.map(p => ({...p}))}, at: now});
+      }
+      room.updatedAt = now;
+      const afterSeq = typeof body.afterSeq === 'number' ? body.afterSeq : seq - 1;
+      await this.persist();
+      return Response.json(this.snapshot(clientId, afterSeq), {headers: {'cache-control': 'no-store'}});
     }
 
     if (action === 'room_event') {

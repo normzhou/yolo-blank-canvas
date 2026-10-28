@@ -350,7 +350,7 @@ describe('issue operations', () => {
       expect(p2SeeInv.body.openInvites[0].id).toBe(inviteId);
       expect(p2SeeInv.body.openInvites[0].hostName).toBe('Alice');
 
-      // Player 2 accepts the invite -> room created with shared seed
+      // Player 2 accepts the invite -> room created in ready_check status (#248)
       const p2Accept = await request(
         '/api/netplay',
         json({ action: 'accept_invite', clientId: 'p2-test', name: 'Bob', inviteId }),
@@ -358,9 +358,23 @@ describe('issue operations', () => {
       expect(p2Accept.status).toBe(200);
       expect(p2Accept.body.activeRoom).not.toBeNull();
       expect(p2Accept.body.activeRoom.gameId).toBe('tetris');
+      expect(p2Accept.body.activeRoom.status).toBe('ready_check');
       expect(p2Accept.body.activeRoom.players[0].name).toBe('Alice');
       expect(p2Accept.body.activeRoom.players[1].name).toBe('Bob');
       const roomId = p2Accept.body.activeRoom.id as string;
+
+      // Both players mark Ready -> room status transitions to 'playing'
+      const p1Ready = await request(
+        '/api/netplay',
+        json({ action: 'player_ready', clientId: 'p1-test', roomId }),
+      );
+      expect(p1Ready.body.activeRoom.status).toBe('ready_check');
+
+      const p2Ready = await request(
+        '/api/netplay',
+        json({ action: 'player_ready', clientId: 'p2-test', roomId }),
+      );
+      expect(p2Ready.body.activeRoom.status).toBe('playing');
 
       // Player 1 sends a garbage attack event in the room
       const p1Attack = await request(
