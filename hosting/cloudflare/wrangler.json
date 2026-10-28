@@ -12,9 +12,23 @@
     "run_worker_first": true,
     "not_found_handling": "single-page-application"
   },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "NETPLAY_HUB",
+        "class_name": "NetplayHub"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["NetplayHub"]
+    }
+  ],
   "vars": {
     "PUBLIC_ORIGIN": "https://demo.yolo-dev.ai",
     "BACKEND_ORIGIN": "",
-    "APP_VERSION": "v0.21.0"
+    "APP_VERSION": "v0.21.1"
   }
 }

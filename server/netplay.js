@@ -213,6 +213,62 @@ export function createNetplayHub({ now = () => Date.now() } = {}) {
           invites.delete(id);
         }
       }
+      // If another online player is already inviting for this exact game, auto-pair immediately!
+      for (const [existingId, existingInv] of invites.entries()) {
+        if (
+          existingInv.status === 'open' &&
+          existingInv.gameId === gameId &&
+          existingInv.hostId !== clientId
+        ) {
+          const host = players.get(existingInv.hostId);
+          if (host && host.status !== 'playing_2p') {
+            const roomId = nextId('room');
+            const seed = ((currentTime & 0x7fffffff) ^ 0x5a5a5a5a) >>> 0 || 1337;
+            const room = {
+              id: roomId,
+              gameId,
+              seed,
+              players: [
+                { id: host.id, name: host.name, slot: 0 },
+                { id: player.id, name: player.name, slot: 1 },
+              ],
+              events: [
+                {
+                  seq: 1,
+                  senderId: host.id,
+                  kind: 'match_start',
+                  payload: {
+                    roomId,
+                    gameId,
+                    seed,
+                    players: [
+                      { id: host.id, name: host.name, slot: 0 },
+                      { id: player.id, name: player.name, slot: 1 },
+                    ],
+                  },
+                  at: currentTime,
+                },
+              ],
+              nextSeq: 2,
+              updatedAt: currentTime,
+            };
+            rooms.set(roomId, room);
+            invites.delete(existingId);
+            host.roomId = roomId;
+            host.status = 'playing_2p';
+            host.appId = gameId;
+            host.updatedAt = currentTime;
+            player.roomId = roomId;
+            player.status = 'playing_2p';
+            player.appId = gameId;
+            player.updatedAt = currentTime;
+            return {
+              status: 200,
+              payload: snapshotFor(clientId, 0),
+            };
+          }
+        }
+      }
       const inviteId = cleanId(body.inviteId) || nextId('inv');
       invites.set(inviteId, {
         id: inviteId,

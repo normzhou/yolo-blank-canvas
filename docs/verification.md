@@ -4,6 +4,16 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Global `NetplayHub` Durable Object Coordinator for Cross-Browser 2P Online Presence & Auto-Matchmaking on `demo.yolo-dev.ai` (#244) — 2026-10-27
+
+- **Global Cloudflare Durable Object (`hosting/cloudflare/worker.mjs`, `hosting/cloudflare/wrangler.json`):**
+  - Exported the `NetplayHub` Durable Object class (`new_sqlite_classes: ["NetplayHub"]`, bound as `env.NETPLAY_HUB`) and routed all `/api/netplay` requests on `https://demo.yolo-dev.ai` to the single global coordinator stub `env.NETPLAY_HUB.get(env.NETPLAY_HUB.idFromName('global'))` with `ctx.storage` state persistence so separate browsers (e.g. Chrome and Safari) and separate connections never land on isolated per-request V8 isolates.
+  - Added auto-pairing when a second player clicks `2P Online` (`action: 'invite'`) for a game that already has an open invite from another online player (`server/netplay.js`, `hosting/cloudflare/worker.mjs`).
+- `npm test`: 23 files, 161 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 45 passed (with `BroadcastChannel` disabled across both contexts to verify HTTP-only `/api/netplay` synchronization).
+- Live Chrome + Safari/WebKit Playwright verification against `https://demo.yolo-dev.ai`: both browsers see `2 online`, pair into a 2P Online match, and sync live Opponent Mini-Radars and scores.
+
 ## Universal YouTube-Style Pause Icon & Pause Menu, Circular Translucent Mobile Overlay Controls, Natural Mobile Swipe Deck, and Animated Selector Game Previews with Per-Game Music (#242: #237, #238, #239, #240) — 2026-10-27
 
 Source revision `8e4bbed` (the universal YouTube-style pause icon, Pause Menu, circular mobile overlay controls, swipe deck, and animated selector game previews commit); build and review evidence `2dc29d2`; release commit `510a920`; published as `v0.21.0` on 2026-10-27.
