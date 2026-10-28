@@ -6,6 +6,8 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Universal YouTube-Style Pause Icon & Pause Menu, Circular Translucent Mobile Overlay Controls, Natural Mobile Swipe Deck, and Animated Selector Game Previews with Per-Game Music (#242: #237, #238, #239, #240) — 2026-10-27
 
+Source revision `8e4bbed` (the universal YouTube-style pause icon, Pause Menu, circular mobile overlay controls, swipe deck, and animated selector game previews commit); build and review evidence `2dc29d2`; release commit `510a920`; published as `v0.21.0` on 2026-10-27.
+
 - **Universal YouTube-Style Pause Icon & In-Game Pause Menu (`src/client/gamePause.ts`, `src/client/App.tsx`, `src/client/views/TetrisView.tsx`, `src/client/views/PuzzleBobbleView.tsx`, #237):**
   - Added `button.pause-launcher` (`data-testid="pause-button"`) in the bottom-right control cluster alongside the YouTube-style sound (`button.sound-launcher`) and fullscreen (`button.fullscreen-launcher`) icons whenever a game is active, and removed the text `Pause` and `Close` buttons from the in-game header.
   - Pressing `Escape` or clicking `button.pause-launcher` opens the centered arcade **Pause Menu** (`data-testid="game-pause-menu"`, `role="dialog"`, `aria-label="Game paused"`) with **Continue** (`data-testid="pause-menu-resume"`), **New game** (`data-testid="pause-menu-restart"`), and **Exit to menu** (`data-testid="pause-menu-exit"`, `aria-label="Close Tetris"` / `aria-label="Close Puzzle Bobble"`).
@@ -19,6 +21,12 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 - `npm test`: 23 files, 161 tests passed.
 - `npx tsc --noEmit`: clean.
 - `npm run e2e`: 45 passed.
+
+### Installed artifact (`v0.21.0`)
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.21.0 --no-open --port 4887` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `8e4bbed…`; the tagged package version is `0.21.0`. The tag points at release commit `510a920`, after the assets commit `2dc29d2`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4887 npm run e2e:verify-release`: **11 passed, 0 failed**. The report is [`.yolo/reports/releases-observed-2026-10-27-v0210.json`](../.yolo/reports/releases-observed-2026-10-27-v0210.json).
 
 ## 2-Player Online Networking for Tetris and Puzzle Bobble with Presence, Corner Invite Toast, Versus Garbage Rules, and Opponent Mini-Radar (#236) — 2026-10-27
 

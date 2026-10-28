@@ -330,5 +330,9 @@ test('the released canvas gallery includes 2-player Puzzle Bobble with ASDF and 
   await expect(page.getByTestId('p2-aim')).toHaveText(/^-(?:0\.5|3)°$/);
 
   await page.keyboard.press('Escape');
+  const pauseMenu = page.getByTestId('game-pause-menu');
+  if ((await pauseMenu.count()) > 0) {
+    await page.getByRole('button', { name: 'Close Puzzle Bobble' }).click();
+  }
   await expect(page.getByRole('heading', { name: 'Blank canvas' })).toBeVisible();
 });

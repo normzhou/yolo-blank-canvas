@@ -252,15 +252,16 @@
         "v0.17.1": "ac45e5151cdfa07dc24d652a21a6c3328f92de81",
         "v0.17.2": "7002d0709980cc2a71b5910ab36f8de2c9529518",
         "v0.18.0": "fdaa140881579645ba11bc18413ac6cb733e2c34",
-        "v0.19.0": "d74fe0663f0902faea39bbb1b944ada5657f2d16"
+        "v0.19.0": "d74fe0663f0902faea39bbb1b944ada5657f2d16",
+        "v0.20.0": "cefbdd63d3674397aa44e2c90006476eacb82a9d"
       },
       "published": {
-        "tag": "v0.20.0",
-        "commit": "cefbdd63d3674397aa44e2c90006476eacb82a9d",
-        "source_commit": "aeb69f1660a91305c843dc4c2fd3528ce741690e",
-        "published_at": "2026-10-27T18:50:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-10-27-v0200.json",
-        "note": "Minor release. Adds 2-player online networking for Tetris and Puzzle Bobble with multi-user presence pill, non-blocking corner invite toast, Versus Tetris garbage rules and vertical incoming garbage meter, single-screen 2P Online Puzzle Bobble, and live Opponent Mini-Radar in both games (#236, PR #241). Acceptance before tagging: 161 unit, 44 stubbed e2e passed, tsc clean. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit cefbdd6 after the assets commit 6c3c675; both build-ID files record aeb69f1."
+        "tag": "v0.21.0",
+        "commit": "510a9202557419d60a9fb3181bd63da323e9d4f5",
+        "source_commit": "8e4bbedf34b51c5b4356ecd51078a8d5b2bf825c",
+        "published_at": "2026-10-27T21:16:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-10-27-v0210.json",
+        "note": "Minor release. Adds universal YouTube-style pause icon & in-game Pause Menu (#237), circular translucent mobile virtual overlay buttons (#238), natural mobile deck swipe (#239), and animated selector game previews with per-game music (#240) (#242, PR #243). Acceptance before tagging: 161 unit, 45 stubbed e2e passed, tsc clean. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit 510a920 after the assets commit 2dc29d2; both build-ID files record 8e4bbed."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -299,7 +300,8 @@
         ".yolo/reports/releases-observed-2026-10-26-v0172.json",
         ".yolo/reports/releases-observed-2026-10-26-v0180.json",
         ".yolo/reports/releases-observed-2026-10-26-v0190.json",
-        ".yolo/reports/releases-observed-2026-10-27-v0200.json"
+        ".yolo/reports/releases-observed-2026-10-27-v0200.json",
+        ".yolo/reports/releases-observed-2026-10-27-v0210.json"
       ]
     }
   },
