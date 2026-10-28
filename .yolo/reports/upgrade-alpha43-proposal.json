@@ -1,0 +1,134 @@
+{
+  "schema_version": 2,
+  "target": "normzhou/yolo-blank-canvas",
+  "kind": "upgrade-proposal",
+  "status": "proposed",
+  "protocol": {
+    "revision": "99aa6881f344da6ca6005f5516fb1112ab4caa23",
+    "sha256": "55870cedc00c362248c8920580385de85bfbf0b7eb91cabcbbe2b41965810eb1"
+  },
+  "revision": "a1449ebb20377d5f78fb0fa35edae26a75547791",
+  "default_revision": "a1449ebb20377d5f78fb0fa35edae26a75547791",
+  "from": "a1449ebb20377d5f78fb0fa35edae26a75547791",
+  "previous_report": ".yolo/reports/checkpoint-review-2026-10-25.json",
+  "reviewed_commits": {
+    "checkpoint": "c021e2e335e09859bfde27c40cd6cfa412e4c880",
+    "head_at_proposal": "a1449ebb20377d5f78fb0fa35edae26a75547791",
+    "note": "This is a migration proposal from v0.1.0-alpha.33 to v0.1.0-alpha.43, not a checkpoint review. Existing checkpoint c021e2e and all historical reports are preserved byte-unchanged."
+  },
+  "working_changes": [
+    "M .agents/skills/yolo/** (v0.1.0-alpha.43 bundle, verbatim from publication 7a4fcd727429d7bc8903cb26e4efd14fa9ed6000)",
+    "A .agents/skills/yolo/references/{brand-assets,client-feedback,client-feedback-library,request-responses}.md",
+    "A .agents/skills/yolo/assets/brand/*, .agents/skills/yolo/assets/feedback/*, .agents/skills/yolo/assets/work-bridge/*",
+    "M .yolo/protocol.md (byte-identical to the publisher's declared output identity 55870cedc00c362248c8920580385de85bfbf0b7eb91cabcbbe2b41965810eb1)",
+    "M .yolo/adoption.json (candidate mapping; activation.state proposed, prior evidence preserved)",
+    "M .claude/settings.json, .gemini/settings.json, .cursor/hooks.json, .codex/hooks.json, .opencode/plugins/yolo-observer.js (updated by installer with new protocol SHA-256 55870ced...)"
+  ],
+  "revision_note": "Requested by the maintainer in this authenticated harness session: '/yolo upgrade preview'. Resolved once with the pinned alpha.33 executable to v0.1.0-alpha.43 at publication 7a4fcd727429d7bc8903cb26e4efd14fa9ed6000.",
+  "upgrade": {
+    "channel": "preview (explicitly requested)",
+    "old_release": "v0.1.0-alpha.33",
+    "old_publication": "bbb3af70580d012cb9b5032ef7a03fdb74ee256f",
+    "old_source_inputs": "da644964ca92eef8448cd782cf6805c724ca2e74",
+    "new_release": "v0.1.0-alpha.43",
+    "new_publication": "7a4fcd727429d7bc8903cb26e4efd14fa9ed6000",
+    "new_source_inputs": "99aa6881f344da6ca6005f5516fb1112ab4caa23",
+    "releases_crossed": [
+      "v0.1.0-alpha.34",
+      "v0.1.0-alpha.35",
+      "v0.1.0-alpha.36",
+      "v0.1.0-alpha.37",
+      "v0.1.0-alpha.38",
+      "v0.1.0-alpha.39",
+      "v0.1.0-alpha.40",
+      "v0.1.0-alpha.41",
+      "v0.1.0-alpha.42",
+      "v0.1.0-alpha.43"
+    ],
+    "publisher_dates": "alpha.34 2026-10-22 ... alpha.43 2026-10-27"
+  },
+  "rule_tooling_delta": [
+    "maintainer-reserved action handoff discipline (specs/issue-management.md, specs/activities.md): complete all authorized preparation before handing a blocker to the maintainer, leaving only the reserved/unavailable action in one existing manual issue; consent-only work uses a concrete in-session proposal and authorized execution after approval",
+    "optional request response wire v2 and outbound request monitoring (specs/request-interface.md, specs/request-templates.md, references/request-responses.md): adds yolo:response:v2, yolo:transition:v2 receipts, yolo:reply:v1, and optional requests/outbound.json continuation while preserving v1 and existing target intake unchanged",
+    "optional client-owned feedback & L1 work bridge (references/client-feedback.md, references/client-feedback-library.md, assets/feedback/*, assets/work-bridge/*): opt-in client feedback UI/API and work-bridge package; no automatic activation on upgrade",
+    "optional local brand assets (references/brand-assets.md, assets/brand/*): bundles static/animated YOLO mark SVGs and motion helper inside .agents/skills/yolo/assets/brand/",
+    "app-hosting minimum-exchange launch (specs/app-hosting.md, references/app-hosting.md): single consolidated intake and bootstrap-grant preparation for optional app hosting",
+    "observation boundary clarification (specs/observation.md): explicit commands optionally after a short closed courtesy prefix start a segment; hooks add no model calls, prompts, context, or approval decisions"
+  ],
+  "governing_clause_index": [
+    {
+      "action": "pin selection and staging",
+      "old": "Assisted distribution -> Release selection with the pinned alpha.33 executable and its read-only resolver",
+      "candidate": "same contract in alpha.43; newest published non-draft release selected once for 'preview'",
+      "compatibility": "compatible - same operation; resolved once to v0.1.0-alpha.43 @ 7a4fcd727429d7bc8903cb26e4efd14fa9ed6000"
+    },
+    {
+      "action": "installing bundle and native bindings",
+      "old": "install --bundle with 92-file manifest inventory and 5 hook/plugin bindings",
+      "candidate": "install --bundle with full alpha.43 manifest inventory and the same 5 hook/plugin bindings updated to protocol SHA-256 55870ced...",
+      "compatibility": "compatible - existing publisher-owned hook files were backed up to /Users/normzhou/.gemini/tmp/yolo-blank-canvas/backup-alpha33 and refreshed by the alpha.43 installer; no local customizations or owner settings were overwritten"
+    },
+    {
+      "action": "request intake, responses, and work bridge",
+      "old": "request-outcome-v2 intake with v1 starter templates and target-owned composer",
+      "candidate": "adds optional wire v2 response receipts, optional outbound request monitoring, and optional client-feedback / work-bridge packages while explicitly preserving v1 and existing target configuration unless separately adopted",
+      "compatibility": "compatible - upgrading the pin does not alter the app composer, issue templates, or authority grant"
+    }
+  ],
+  "action_permission_comparison": [
+    "agent authority unchanged: no Charter, AUTHORITY.md, ARCHITECTURE.md, or AGENTS.md edit is proposed or required",
+    "feedback.automatic remains true and observation.enabled remains true with their existing accepted consent records preserved verbatim",
+    "no new execution permission or automatic form/bridge/hosting activation is introduced by the candidate bundle"
+  ],
+  "release_applicability": {
+    "profile": "both snapshots declare semver-v1 + recoverable-v1",
+    "recorded_published_release": "verification.release.effective_commit stays 6efd602c...; published v0.21.1 record and legacy_tags stay intact",
+    "repair": "none needed"
+  },
+  "restoration_steps": [
+    "revert this proposal's commit(s); the target reads .yolo/protocol.md, .yolo/adoption.json, .agents/skills/yolo/**, and hook files from Git and rolls back to the alpha.33 pin cleanly",
+    "backup of the exact pre-upgrade alpha.33 skill and hook files is also retained at /Users/normzhou/.gemini/tmp/yolo-blank-canvas/backup-alpha33 during this session",
+    "prior reports and checkpoint c021e2e remain byte-unchanged"
+  ],
+  "finding_classification": [
+    {
+      "rule": "structure_validation",
+      "status": "compliant",
+      "evidence": [
+        "yolo-check . --structure (0.1.0-alpha.43 executable, SHA-256 verified against SHA256SUMS): structure.status pass, 13/13 findings compliant, 0 warnings"
+      ],
+      "detail": "Strict structural validation of the staged candidate files passed with the verified alpha.43 executable."
+    },
+    {
+      "rule": "replica_scan",
+      "status": "compliant",
+      "evidence": [
+        "replica_candidates: .agents/skills/yolo/assets/architecture.md, .agents/skills/yolo/assets/authority.md, .agents/skills/yolo/assets/charter.md",
+        ".yolo/governance/{CHARTER,AUTHORITY,ARCHITECTURE}.md are target-owned and not byte-copies"
+      ],
+      "detail": "Same three publisher starter template files inside .agents/skills/yolo/assets/ as in alpha.33; preserved as intentional non-governing template artifacts."
+    }
+  ],
+  "factual_review": {
+    "selection": "yolo-check resolve preview (alpha.33 executable) returned v0.1.0-alpha.43 at 7a4fcd727429d7bc8903cb26e4efd14fa9ed6000; pinned for the entire migration",
+    "downloads": "yolo-check_darwin_arm64 + SHA256SUMS for v0.1.0-alpha.43 downloaded from normzhou/yolo-dev, verified OK against SHA256SUMS, and --version confirmed publication 7a4fcd727429d7bc8903cb26e4efd14fa9ed6000 and version 0.1.0-alpha.43",
+    "staging": "all manifest-covered files installed via alpha.43 install --bundle and verified against manifest 50902b5b61937c1fee3e9e78b6a8e52301eb2480a91237fa15d09ca498232f1e",
+    "snapshot": ".yolo/protocol.md verified byte-identical to publisher output 55870cedc00c362248c8920580385de85bfbf0b7eb91cabcbbe2b41965810eb1",
+    "post_install_validation": "alpha.43 yolo-check . --structure: structure.status pass, 13/13 findings compliant"
+  },
+  "semantic_review": {
+    "diff_reading": "All diffs across SKILL.md, protocol.md, provenance.json, and docs/agent-onboarding.md reviewed. The additions refine maintainer-reserved handoff preparation, add optional request wire v2/outbound monitoring, optional client-feedback/work-bridge helpers, optional brand assets, and minimum-exchange app-hosting launch.",
+    "authority_unchanged": "No protected document edited; candidate uses activation.state: proposed until landed and observed on main.",
+    "preserved_history": "Baseline, upgrades[], checkpoint c021e2e, unresolved[], qualification, feedback, observation, and release history preserved verbatim."
+  },
+  "pending_decisions": [
+    "none in authority.pending — no protected edit or authority-control change is involved"
+  ],
+  "planned_operations": [
+    "open proposal PR for #246, run CI and structural validation, merge to main under standing L1 delivery authority, observe landed commit on main, and activate the v0.1.0-alpha.43 pin"
+  ],
+  "limits": [
+    "This proposal is not qualification: qualification stays unverified.",
+    "The migration only touches .agents/skills/yolo/**, .yolo/protocol.md, .yolo/adoption.json, .yolo/reports/upgrade-alpha43-proposal.json, and the 5 installer hook/plugin files; app code, tests and verification results are unchanged."
+  ]
+}

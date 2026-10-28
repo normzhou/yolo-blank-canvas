@@ -3,8 +3,14 @@ import { randomUUID } from 'node:crypto';
 const activities = new Set(['init', 'upgrade', 'check', 'request', 'work', 'feedback']);
 const identifier = () => randomUUID().replaceAll('-', '');
 export function explicitActivity(text) {
-  // Both documented invocation forms count: /yolo (Pi and the slash harnesses) and $yolo (Codex).
-  const match = /^(?:\/yolo|\$yolo)\s+(\w+)(?:\s|$)/.exec(text);
+  // Closed short courtesy prefixes are explicit invocations; arbitrary mentions are not.
+  const direct = /^\s*(?:\/yolo|\$yolo)\s+(\w+)(?:\s|$)/;
+  let match = direct.exec(text);
+  if (!match) {
+    const i = text.slice(0, 129).search(/[$/]/);
+    const courtesy = /^(?:(?:great|good|cool|okay|ok|yes|sure|thanks|please|then|sounds\s+good|keep\s+(?:going|working)|in\s+that\s+case|continue|let'?s\s+go)[\s,!.:;]+)+$/i;
+    if (i > 0 && i <= 128 && courtesy.test(text.slice(0, i).trimStart())) match = direct.exec(text.slice(i));
+  }
   return match && activities.has(match[1]) ? { activity: match[1], dry: /(?:^|\s)--dry-run(?:\s|$)/.test(text) } : null;
 }
 export class NativeObserver {

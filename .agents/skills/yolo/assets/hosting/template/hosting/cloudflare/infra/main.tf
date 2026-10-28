@@ -13,7 +13,7 @@ provider "cloudflare" {}
 # their bindings; routine app releases do not change this resource/state.
 resource "cloudflare_worker" "app" {
   account_id = var.client_account_id
-  name       = "yolo-__APP_SLUG__-app"
+  name       = "__WORKER_NAME__"
 
   lifecycle {
     prevent_destroy = true
