@@ -261,7 +261,7 @@
         "source_commit": "8e4bbedf34b51c5b4356ecd51078a8d5b2bf825c",
         "published_at": "2026-10-27T21:16:00Z",
         "acceptance": ".yolo/reports/releases-observed-2026-10-27-v0210.json",
-        "note": "Minor release. Adds universal YouTube-style pause icon & in-game Pause Menu (#237), circular translucent mobile virtual overlay buttons (#238), natural mobile deck swipe (#239), and animated selector game previews with per-game music (#240) (#242, PR #243). Acceptance before tagging: 161 unit, 45 stubbed e2e passed, tsc clean. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit 510a920 after the assets commit 2dc29d2; both build-ID files record 8e4bbed."
+        "note": "Minor release. Adds universal YouTube-style pause icon & in-game Pause Menu (#237), circular translucent mobile virtual overlay buttons (#238), natural mobile deck swipe (#239), and animated selector game previews with per-game music (#240) (#242, PR #243); also deployed live to https://demo.yolo-dev.ai (Version ID: bc6fc297-f48d-490b-95dd-b8d7b8d6bb16). Acceptance before tagging: 161 unit, 45 stubbed e2e passed, tsc clean. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit 510a920 after the assets commit 2dc29d2; both build-ID files record 8e4bbed."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."

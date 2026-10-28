@@ -22,11 +22,11 @@ Source revision `8e4bbed` (the universal YouTube-style pause icon, Pause Menu, c
 - `npx tsc --noEmit`: clean.
 - `npm run e2e`: 45 passed.
 
-### Installed artifact (`v0.21.0`)
+### Installed artifact (`v0.21.0`) & Live `https://demo.yolo-dev.ai` Update
 
 Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.21.0 --no-open --port 4887` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `8e4bbed…`; the tagged package version is `0.21.0`. The tag points at release commit `510a920`, after the assets commit `2dc29d2`.
 
-`YOLO_VERIFY_URL=http://127.0.0.1:4887 npm run e2e:verify-release`: **11 passed, 0 failed**. The report is [`.yolo/reports/releases-observed-2026-10-27-v0210.json`](../.yolo/reports/releases-observed-2026-10-27-v0210.json).
+`YOLO_VERIFY_URL=http://127.0.0.1:4887 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: bc6fc297-f48d-490b-95dd-b8d7b8d6bb16`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.21.0"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 8e4bbedf34b51c5b4356ecd51078a8d5b2bf825c`). The report is [`.yolo/reports/releases-observed-2026-10-27-v0210.json`](../.yolo/reports/releases-observed-2026-10-27-v0210.json).
 
 ## 2-Player Online Networking for Tetris and Puzzle Bobble with Presence, Corner Invite Toast, Versus Garbage Rules, and Opponent Mini-Radar (#236) — 2026-10-27
 

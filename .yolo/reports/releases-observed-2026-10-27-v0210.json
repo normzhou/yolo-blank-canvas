@@ -44,8 +44,8 @@
     },
     "command": "YOLO_VERIFY_URL=http://127.0.0.1:4887 npm run e2e:verify-release",
     "result": "pass",
-    "detail": "11 of 11 passed."
-  },
+    "detail": "11 of 11 passed (28.1s). Also deployed live to yolo-demo-app (Version ID: bc6fc297-f48d-490b-95dd-b8d7b8d6bb16) and verified at https://demo.yolo-dev.ai/__yolo/version (200 {\"version\":\"v0.21.0\"}) and https://demo.yolo-dev.ai/.build-id (200 8e4bbedf34b51c5b4356ecd51078a8d5b2bf825c)."
+    },
   "what_this_release_delivers": [
     "#242 Universal YouTube-style pause icon & in-game Pause Menu (#237), circular translucent mobile virtual overlay buttons (#238), natural mobile deck swipe (#239), and animated selector game previews with per-game music (#240)"
   ],
