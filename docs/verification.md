@@ -6,6 +6,8 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Arcade UI Declutter, Unified Pause/Mode Menu with Smart 2P Availability, 20s Invite Timeout + Both-Players-Ready Gate, 3-2-1 Countdown, Touch-Only Spread Controls, and Drag-Release Auto-Shoot (#248) — 2026-10-27
 
+Source revision `5f454c5` (the arcade HUD declutter, unified Pause/Mode menu, 20s invite timeout + both-ready gate, 3-2-1 countdown, touch-only spread controls, and drag-release auto-shoot commit); build and review evidence `a624ea2`; release commit `4cfc7cd`; published as `v0.22.0` on 2026-10-27.
+
 - **Arcade UI Declutter (`src/client/views/TetrisView.tsx`, `src/client/views/PuzzleBobbleView.tsx`):**
   - Removed visible `Angle`, `Drop`, `Shots`, and bottom combo bar clutter from the Puzzle Bobble sidebar (keeping only `SCORE`, `NEXT` / `VS Opponent` mini-radar, and `WARN` in 2P mode while preserving `.sr-only` accessibility/test hooks), and moved header mode/stage/new-game buttons into the unified In-Game Menu.
 - **Unified In-Game Menu with Smart 2P Mode Availability (`src/client/views/TetrisView.tsx`, `src/client/views/PuzzleBobbleView.tsx`):**
@@ -22,6 +24,12 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 - `npm test`: 23 files, 161 tests passed.
 - `npx tsc --noEmit`: clean.
 - `npm run e2e`: 45 passed.
+
+### Installed artifact (`v0.22.0`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.22.0 --no-open --port 4889` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `5f454c5…`; the tagged package version is `0.22.0`. The tag points at release commit `4cfc7cd`, after the assets commit `a624ea2`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4889 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: 482b8cc2-9ed3-4ee3-8889-0c4af740ca12`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.22.0"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 5f454c5312c04d486c2bd843da6a4629f84416c9`). The report is [`.yolo/reports/releases-observed-2026-10-27-v0220.json`](../.yolo/reports/releases-observed-2026-10-27-v0220.json).
 
 ## Global `NetplayHub` Durable Object Coordinator for Cross-Browser 2P Online Presence & Auto-Matchmaking on `demo.yolo-dev.ai` (#244) — 2026-10-27
 
