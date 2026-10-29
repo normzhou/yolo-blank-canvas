@@ -12,6 +12,7 @@ import type { Board } from '../shared/tetris';
 import type { BubbleColor, BubbleGrid } from '../shared/puzzleBobble';
 
 export const INVITE_TIMEOUT_MS = 20_000;
+export const SYNC_TIMEOUT_MS = 15_000;
 
 export type NetplayGameId = 'tetris' | 'puzzle-bobble';
 export type NetplayPlayerStatus = 'idle' | 'inviting' | 'playing_2p';
@@ -51,6 +52,9 @@ export interface NetplayActiveRoom {
   gameId: NetplayGameId;
   seed: number;
   status: 'ready_check' | 'playing';
+  syncStatus?: 'ok' | 'paused' | 'timeout';
+  syncRemainingMs?: number;
+  laggingPlayerNames?: string[];
   players: [NetplayRoomPlayer, NetplayRoomPlayer];
   mySlot: 0 | 1;
   opponent: NetplayRoomPlayer;
@@ -238,6 +242,13 @@ class NetplayClient {
       }
     }
 
+    window.addEventListener('yolo:netplay:simulate-lag', (event: Event) => {
+      const detail = (
+        event as CustomEvent<{ lagging?: boolean; forceElapsedMs?: number }>
+      ).detail;
+      void this.simulateLag(Boolean(detail?.lagging), detail?.forceElapsedMs);
+    });
+
     void this.heartbeat();
     this.schedulePoll();
   }
@@ -419,6 +430,9 @@ class NetplayClient {
       gameId: NetplayGameId;
       seed: number;
       status?: 'ready_check' | 'playing';
+      syncStatus?: 'ok' | 'paused' | 'timeout';
+      syncRemainingMs?: number;
+      laggingPlayerNames?: string[];
       players: [NetplayRoomPlayer, NetplayRoomPlayer];
       events: NetplayRoomEvent[];
       lastSeq: number;
@@ -481,6 +495,9 @@ class NetplayClient {
           gameId: sr.gameId,
           seed: sr.seed,
           status: resolvedStatus,
+          syncStatus: sr.syncStatus ?? 'ok',
+          syncRemainingMs: sr.syncRemainingMs ?? SYNC_TIMEOUT_MS,
+          laggingPlayerNames: sr.laggingPlayerNames ?? [],
           players: sr.players,
           mySlot: me.slot,
           opponent,
@@ -497,7 +514,9 @@ class NetplayClient {
             ev.senderId !== this.identity.id ||
             ev.kind === 'match_start' ||
             ev.kind === 'room_joined' ||
-            ev.kind === 'player_ready'
+            ev.kind === 'player_ready' ||
+            ev.kind === 'sync_resumed' ||
+            ev.kind === 'sync_timeout'
           ) {
             this.emitRoomEvent(ev);
           }
@@ -583,9 +602,47 @@ class NetplayClient {
     });
     const data = await this.postAction({ action: 'heartbeat', status });
     if (data) {
+      this.localOfflineSince = null;
       this.reconcileLocalState(data as never);
     } else {
+      if (this.state.activeRoom && this.state.activeRoom.status === 'playing') {
+        if (!this.localOfflineSince) {
+          this.localOfflineSince = Date.now();
+        }
+        const elapsed = Math.max(0, Date.now() - this.localOfflineSince);
+        const remaining = Math.max(0, SYNC_TIMEOUT_MS - elapsed);
+        this.updateState({
+          activeRoom: {
+            ...this.state.activeRoom,
+            syncStatus: remaining <= 0 ? 'timeout' : 'paused',
+            syncRemainingMs: remaining,
+            laggingPlayerNames: [this.identity.name],
+          },
+        });
+        if (remaining <= 0) {
+          this.emitRoomEvent({
+            seq: ++this.localSeq,
+            senderId: this.identity.id,
+            kind: 'sync_timeout',
+            payload: { laggingPlayerNames: [this.identity.name] },
+            at: Date.now(),
+          });
+        }
+      }
       this.reconcileLocalState();
+    }
+  }
+
+  private localOfflineSince: number | null = null;
+
+  async simulateLag(lagging: boolean, forceElapsedMs?: number): Promise<void> {
+    const data = await this.postAction({
+      action: 'simulate_lag',
+      lagging,
+      forceElapsedMs,
+    });
+    if (data) {
+      this.reconcileLocalState(data as never);
     }
   }
 

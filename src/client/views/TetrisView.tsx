@@ -286,10 +286,45 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     netplay.activeRoom && netplay.activeRoom.gameId === 'tetris' ? netplay.activeRoom : null;
   const isOnline2P = activeTetrisRoom !== null;
   const isReadyCheck = activeTetrisRoom?.status === 'ready_check';
+  const isNetworkPaused = Boolean(
+    isOnline2P &&
+      activeTetrisRoom?.status === 'playing' &&
+      activeTetrisRoom?.syncStatus === 'paused',
+  );
+  const syncSecondsLeft = Math.max(
+    0,
+    Math.ceil((activeTetrisRoom?.syncRemainingMs ?? 15_000) / 1000),
+  );
   const isInviting = netplay.myPendingInvite?.gameId === 'tetris';
   const myRoomPlayer = activeTetrisRoom?.players.find((p) => p.id === netplay.clientId);
   const myReady = Boolean(myRoomPlayer?.ready);
   const oppReady = Boolean(activeTetrisRoom?.opponent?.ready);
+
+  useEffect(() => {
+    if (activeTetrisRoom?.syncStatus === 'timeout') {
+      void getSharedNetplay().leaveRoom();
+      onExit();
+    }
+  }, [activeTetrisRoom?.syncStatus, onExit]);
+
+  // Continuous 2P keep-alive and live board radar push (#250).
+  useEffect(() => {
+    if (!isOnline2P || isReadyCheck || isNetworkPaused || roundOutcome !== 'playing') return;
+    const pushRadar = () => {
+      const cur = gameRef.current;
+      void getSharedNetplay().sendRoomEvent('tetris_state', {
+        board: displayBoard(cur),
+        score: cur.score,
+        lines: cur.lines,
+        level: cur.level,
+        status: cur.status,
+        pendingGarbage: pendingGarbageCount(cur),
+      } satisfies TetrisRadarSnapshot);
+    };
+    pushRadar();
+    const id = window.setInterval(pushRadar, 600);
+    return () => window.clearInterval(id);
+  }, [isOnline2P, isReadyCheck, isNetworkPaused, roundOutcome]);
 
   const startOnlineRoundWithSeed = useCallback((seed: number, resetTally = false) => {
     rngRef.current = mulberry32(seed);
@@ -329,12 +364,12 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
 
   // 3, 2, 1 arcade start countdown (#248).
   useEffect(() => {
-    if (countdown <= 0 || paused || isReadyCheck || isInviting) return;
+    if (countdown <= 0 || paused || isReadyCheck || isInviting || isNetworkPaused) return;
     const id = window.setTimeout(() => {
       setCountdown((c) => Math.max(0, c - 1));
     }, 450);
     return () => window.clearTimeout(id);
-  }, [countdown, paused, isReadyCheck, isInviting]);
+  }, [countdown, paused, isReadyCheck, isInviting, isNetworkPaused]);
 
   useEffect(() => {
     const client = getSharedNetplay();
@@ -377,6 +412,17 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
             startOnlineRoundWithSeed(payload.seed ?? 1337, true);
           }
         }
+        return;
+      }
+
+      if (event.kind === 'sync_resumed') {
+        setCountdown(motionReduced() ? 0 : 3);
+        return;
+      }
+
+      if (event.kind === 'sync_timeout') {
+        void getSharedNetplay().leaveRoom();
+        onExit();
         return;
       }
 
@@ -553,14 +599,14 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     getSharedArcadeAudio().setActive(musicOn && !matchEnded && !paused);
   }, [musicOn, paused, matchEnded]);
 
-  // Gravity. Restarts when the level (speed) changes and stops when not playing or during countdown/ready-check.
+  // Gravity. Restarts when the level (speed) changes and stops when not playing or during countdown/ready-check/network-pause.
   useEffect(() => {
-    if (paused || matchEnded || isReadyCheck || isInviting || countdown > 0) return;
+    if (paused || matchEnded || isReadyCheck || isInviting || isNetworkPaused || countdown > 0) return;
     const id = window.setInterval(() => {
       setGame((current) => tick(current, rngRef.current));
     }, dropInterval(game.level));
     return () => window.clearInterval(id);
-  }, [paused, game.level, matchEnded, isReadyCheck, isInviting, countdown]);
+  }, [paused, game.level, matchEnded, isReadyCheck, isInviting, isNetworkPaused, countdown]);
 
   // Keyboard controls: arrows move/rotate/soft-drop, space hard-drops, Escape toggles Pause Menu (#237).
   useEffect(() => {
@@ -570,7 +616,13 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
         toggleSharedGamePaused();
         return;
       }
-      if (paused || isReadyCheck || gameRef.current.status !== 'playing' || (isOnline2P && roundOutcomeRef.current !== 'playing')) {
+      if (
+        paused ||
+        isReadyCheck ||
+        isNetworkPaused ||
+        gameRef.current.status !== 'playing' ||
+        (isOnline2P && roundOutcomeRef.current !== 'playing')
+      ) {
         return;
       }
       switch (event.key) {
@@ -903,6 +955,44 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
                 onClick={() => void getSharedNetplay().leaveRoom()}
               >
                 Leave match
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {isNetworkPaused && activeTetrisRoom ? (
+        <div className="game-pause-backdrop">
+          <div
+            className="game-pause-menu"
+            role="alert"
+            aria-live="assertive"
+            data-testid="netplay-sync-modal"
+          >
+            <span className="game-pause-kicker">Network Sync Interrupted</span>
+            <h3 className="game-pause-title">Connection Paused</h3>
+            <p className="game-pause-copy">
+              Waiting for{' '}
+              <strong>
+                {activeTetrisRoom.laggingPlayerNames?.length
+                  ? activeTetrisRoom.laggingPlayerNames.join(', ')
+                  : 'both players'}
+              </strong>{' '}
+              to re-sync…
+            </p>
+            <p className="game-pause-copy" data-testid="netplay-sync-countdown">
+              Exiting in <strong>{syncSecondsLeft}s</strong>
+            </p>
+            <div className="game-pause-actions">
+              <button
+                type="button"
+                data-testid="netplay-sync-exit"
+                onClick={() => {
+                  void getSharedNetplay().leaveRoom();
+                  onExit();
+                }}
+              >
+                Exit match now
               </button>
             </div>
           </div>

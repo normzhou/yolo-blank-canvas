@@ -1743,10 +1743,39 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
       : null;
   const isOnline2P = activePbRoom !== null;
   const isReadyCheck = activePbRoom?.status === 'ready_check';
+  const isNetworkPaused = Boolean(
+    isOnline2P &&
+      activePbRoom?.status === 'playing' &&
+      activePbRoom?.syncStatus === 'paused',
+  );
+  const syncSecondsLeft = Math.max(
+    0,
+    Math.ceil((activePbRoom?.syncRemainingMs ?? 15_000) / 1000),
+  );
   const isInviting = netplay.myPendingInvite?.gameId === 'puzzle-bobble';
   const myRoomPlayer = activePbRoom?.players.find((p) => p.id === netplay.clientId);
   const myReady = Boolean(myRoomPlayer?.ready);
   const oppReady = Boolean(activePbRoom?.opponent?.ready);
+
+  useEffect(() => {
+    if (activePbRoom?.syncStatus === 'timeout') {
+      void getSharedNetplay().leaveRoom();
+      onExit();
+    }
+  }, [activePbRoom?.syncStatus, onExit]);
+
+  // Continuous 2P keep-alive and live board radar push (#250).
+  useEffect(() => {
+    if (!isOnline2P || isReadyCheck || isNetworkPaused || match.status !== 'playing') return;
+    const pushRadar = () => {
+      const p0 = matchRef.current.players[0];
+      if (!p0) return;
+      void getSharedNetplay().sendRoomEvent('pb_state', createRadarFromBoard(p0));
+    };
+    pushRadar();
+    const id = window.setInterval(pushRadar, 600);
+    return () => window.clearInterval(id);
+  }, [isOnline2P, isReadyCheck, isNetworkPaused, match.status]);
 
   const startOnlineRoundWithSeed = useCallback(
     (seed: number, resetWins = false, preset = stagePreset) => {
@@ -1801,12 +1830,12 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
 
   // 3, 2, 1 arcade start countdown (#248).
   useEffect(() => {
-    if (countdown <= 0 || paused || isReadyCheck || isInviting) return;
+    if (countdown <= 0 || paused || isReadyCheck || isInviting || isNetworkPaused) return;
     const id = window.setTimeout(() => {
       setCountdown((c) => Math.max(0, c - 1));
     }, 450);
     return () => window.clearTimeout(id);
-  }, [countdown, paused, isReadyCheck, isInviting]);
+  }, [countdown, paused, isReadyCheck, isInviting, isNetworkPaused]);
 
   useEffect(() => {
     const client = getSharedNetplay();
@@ -1847,6 +1876,17 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
             startOnlineRoundWithSeed(payload.seed ?? 2026, true);
           }
         }
+        return;
+      }
+
+      if (event.kind === 'sync_resumed') {
+        setCountdown(motionReduced() ? 0 : 3);
+        return;
+      }
+
+      if (event.kind === 'sync_timeout') {
+        void getSharedNetplay().leaveRoom();
+        onExit();
         return;
       }
 
@@ -2014,7 +2054,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
 
   // Advance flying bubbles and the 10s HURRY UP! shot clock at ~60fps.
   useEffect(() => {
-    if (paused || isReadyCheck || isInviting || match.status !== 'playing') return;
+    if (paused || isReadyCheck || isInviting || isNetworkPaused || match.status !== 'playing') return;
     let lastTime = performance.now();
     const id = window.setInterval(() => {
       const now = performance.now();
@@ -2026,7 +2066,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
       });
     }, 16);
     return () => window.clearInterval(id);
-  }, [match.status, paused, isReadyCheck, isInviting, countdown]);
+  }, [match.status, paused, isReadyCheck, isInviting, isNetworkPaused, countdown]);
 
   // Deterministic E2E / test hooks to resolve a player's shot or queue incoming attack bubbles.
   useEffect(() => {
@@ -2541,6 +2581,44 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
                 onClick={() => void getSharedNetplay().leaveRoom()}
               >
                 Leave match
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {isNetworkPaused && activePbRoom ? (
+        <div className="game-pause-backdrop">
+          <div
+            className="game-pause-menu"
+            role="alert"
+            aria-live="assertive"
+            data-testid="netplay-sync-modal"
+          >
+            <span className="game-pause-kicker">Network Sync Interrupted</span>
+            <h3 className="game-pause-title">Connection Paused</h3>
+            <p className="game-pause-copy">
+              Waiting for{' '}
+              <strong>
+                {activePbRoom.laggingPlayerNames?.length
+                  ? activePbRoom.laggingPlayerNames.join(', ')
+                  : 'both players'}
+              </strong>{' '}
+              to re-sync…
+            </p>
+            <p className="game-pause-copy" data-testid="netplay-sync-countdown">
+              Exiting in <strong>{syncSecondsLeft}s</strong>
+            </p>
+            <div className="game-pause-actions">
+              <button
+                type="button"
+                data-testid="netplay-sync-exit"
+                onClick={() => {
+                  void getSharedNetplay().leaveRoom();
+                  onExit();
+                }}
+              >
+                Exit match now
               </button>
             </div>
           </div>

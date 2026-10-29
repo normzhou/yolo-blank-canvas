@@ -577,6 +577,37 @@ test('2P Online networking (#236): 2 independent browser sessions discover prese
       page1.getByTestId('tetris-opponent-radar').locator('.tetris-radar-cell.tetromino-g'),
     ).toHaveCount(36, { timeout: 6000 });
 
+    // 4. Network Sync Keep-Alive: if Session 1 has network issues, BOTH Session 1 and Session 2
+    // automatically pause with `netplay-sync-modal` and the 15s countdown (`netplay-sync-countdown`) (#250).
+    await page1.evaluate(() => {
+      window.dispatchEvent(
+        new CustomEvent('yolo:netplay:simulate-lag', { detail: { lagging: true } }),
+      );
+    });
+    await expect(page1.getByTestId('netplay-sync-modal')).toBeVisible({ timeout: 6000 });
+    await expect(page2.getByTestId('netplay-sync-modal')).toBeVisible({ timeout: 6000 });
+    await expect(page2.getByTestId('netplay-sync-countdown')).toContainText(/Exiting in \d+s/);
+
+    // When Session 1 reconnects before 15s, BOTH sides automatically close the sync modal and resume!
+    await page1.evaluate(() => {
+      window.dispatchEvent(
+        new CustomEvent('yolo:netplay:simulate-lag', { detail: { lagging: false } }),
+      );
+    });
+    await expect(page1.getByTestId('netplay-sync-modal')).toHaveCount(0, { timeout: 6000 });
+    await expect(page2.getByTestId('netplay-sync-modal')).toHaveCount(0, { timeout: 6000 });
+
+    // When a player cannot be re-synced within 15s, both sides automatically exit the match!
+    await page1.evaluate(() => {
+      window.dispatchEvent(
+        new CustomEvent('yolo:netplay:simulate-lag', {
+          detail: { lagging: true, forceElapsedMs: 15_500 },
+        }),
+      );
+    });
+    await expect(page1.getByRole('heading', { name: 'Tetris' })).toHaveCount(0, { timeout: 6000 });
+    await expect(page2.getByRole('heading', { name: 'Tetris' })).toHaveCount(0, { timeout: 6000 });
+
     await page1.screenshot({ path: 'e2e/screenshots/16-netplay-tetris-session1.png' });
     await page2.screenshot({ path: 'e2e/screenshots/16-netplay-tetris-session2.png' });
   } finally {
