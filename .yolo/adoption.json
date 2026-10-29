@@ -261,15 +261,16 @@
         "v0.19.0": "d74fe0663f0902faea39bbb1b944ada5657f2d16",
         "v0.20.0": "cefbdd63d3674397aa44e2c90006476eacb82a9d",
         "v0.21.0": "510a9202557419d60a9fb3181bd63da323e9d4f5",
-        "v0.21.1": "28418c70b998611d38473a311e737555facf66c1"
+        "v0.21.1": "28418c70b998611d38473a311e737555facf66c1",
+        "v0.22.0": "4cfc7cdd965af4321db6c2bece9c9ff52ef7f3e3"
       },
       "published": {
-        "tag": "v0.22.0",
-        "commit": "4cfc7cdd965af4321db6c2bece9c9ff52ef7f3e3",
-        "source_commit": "5f454c5312c04d486c2bd843da6a4629f84416c9",
-        "published_at": "2026-10-28T23:32:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-10-27-v0220.json",
-        "note": "Minor release. Declutters arcade cabinet HUD, unifies Pause/Mode/Stage menu with smart 2P availability (2P Online requires >1 online, 2P Local requires screen + keyboard), adds 20s invite timeout + both-players-ready gate, adds 3-2-1 start countdown, shows virtual touch keys only when touch is available (spread left/shoot/right in Puzzle Bobble), and auto-shoots on drag release (#248, PR #249); deployed live to https://demo.yolo-dev.ai (Version ID: 482b8cc2-9ed3-4ee3-8889-0c4af740ca12). Acceptance before tagging: 161 unit, 45 stubbed e2e passed, tsc clean. Acceptance on the delivered artifact: 11 of 11. The tag points at release commit 4cfc7cd after the assets commit a624ea2; both build-ID files record 5f454c5."
+        "tag": "v0.22.1",
+        "commit": "0c2b0735c7b79dab49ebc8f80d5d5e6c2cdd5e59",
+        "source_commit": "a4bc07772160ba92f48e53fc7c006bdfd6e2295f",
+        "published_at": "2026-10-28T23:55:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-10-27-v0221.json",
+        "note": "Patch release. Adds real-time 2P Online keep-alive heartbeats, live radar state deduplication, synchronized network-lag pause on both sides, automatic resume with countdown on reconnect, and a 15-second disconnect timeout for Tetris and Puzzle Bobble (#250, PR #251); deployed live to https://demo.yolo-dev.ai (Version ID: 30ddc56a-2ab9-4889-81da-aa89af58335c). Acceptance before tagging: 161 unit, 45 stubbed e2e passed, tsc clean. Acceptance on the delivered artifact: 11 of 11. The tag points at 0c2b073 after the assets commit 259ff0f; both build-ID files record a4bc077."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -311,7 +312,8 @@
         ".yolo/reports/releases-observed-2026-10-27-v0200.json",
         ".yolo/reports/releases-observed-2026-10-27-v0210.json",
         ".yolo/reports/releases-observed-2026-10-27-v0211.json",
-        ".yolo/reports/releases-observed-2026-10-27-v0220.json"
+        ".yolo/reports/releases-observed-2026-10-27-v0220.json",
+        ".yolo/reports/releases-observed-2026-10-27-v0221.json"
       ]
     }
   },

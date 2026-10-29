@@ -4,6 +4,27 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## 2P Online Keep-Alive Heartbeat, Live Radar State Deduplication, Synchronized Lag-Pause on Both Sides, Auto-Resume on Reconnect, and 15s Disconnect Timeout (#250) — 2026-10-27
+
+Source revision `a4bc077` (the 2P Online keep-alive, state deduplication, synchronized lag-pause, auto-resume, and 15-second disconnect timeout commit); build and review evidence `259ff0f`; release commit `0c2b073`; published as `v0.22.1` on 2026-10-27.
+
+- **Continuous Keep-Alive & Deduplicated State Relay (`server/netplay.js`, `hosting/cloudflare/worker.mjs`, `src/client/netplay.ts`):**
+  - Tracks per-player `lastSeenAt` in active 2P rooms on every heartbeat/poll/event (`SYNC_LAG_THRESHOLD_MS = 2_500`) and broadcasts live board radar snapshots every 600ms while deduplicating older `tetris_state` / `pb_state` frames in `room.events`.
+- **Synchronized Network-Lag Pause on Both Sides (`src/client/views/TetrisView.tsx`, `src/client/views/PuzzleBobbleView.tsx`):**
+  - If either player stops responding for `> 2.5s` (or experiences local fetch failures), the room enters `syncStatus: 'paused'`, automatically freezing gameplay on **both** sides and showing a **Network Sync Interrupted — Connection Paused** modal (`data-testid="netplay-sync-modal"`) with a live **15s** countdown (`data-testid="netplay-sync-countdown"`).
+- **Auto-Resume with Countdown or 15s Timeout Exit (`SYNC_TIMEOUT_MS = 15_000`):**
+  - When both sides reconnect before 15 seconds, `sync_resumed` closes the sync modal on both sides and triggers a `3 → 2 → 1` countdown to resume gameplay smoothly.
+  - If the connection cannot be re-synced within **15 seconds**, `sync_timeout` automatically ends and exits the 2P match cleanly.
+- `npm test`: 23 files, 161 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 45 passed.
+
+### Installed artifact (`v0.22.1`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.22.1 --no-open --port 4890` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `a4bc077…`; the tagged package version is `0.22.1`. The tag points at release commit `0c2b073`, after the assets commit `259ff0f`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4890 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: 30ddc56a-2ab9-4889-81da-aa89af58335c`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.22.1"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 a4bc07772160ba92f48e53fc7c006bdfd6e2295f`). The report is [`.yolo/reports/releases-observed-2026-10-27-v0221.json`](../.yolo/reports/releases-observed-2026-10-27-v0221.json).
+
 ## Arcade UI Declutter, Unified Pause/Mode Menu with Smart 2P Availability, 20s Invite Timeout + Both-Players-Ready Gate, 3-2-1 Countdown, Touch-Only Spread Controls, and Drag-Release Auto-Shoot (#248) — 2026-10-27
 
 Source revision `5f454c5` (the arcade HUD declutter, unified Pause/Mode menu, 20s invite timeout + both-ready gate, 3-2-1 countdown, touch-only spread controls, and drag-release auto-shoot commit); build and review evidence `a624ea2`; release commit `4cfc7cd`; published as `v0.22.0` on 2026-10-27.
