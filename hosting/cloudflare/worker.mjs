@@ -3,6 +3,8 @@ import {publicOrigin, originAuthorization, cleanRequestHeaders, cleanResponse, f
 const PLAYER_TTL_MS = 18_000;
 const INVITE_TTL_MS = 20_000;
 const ROOM_TTL_MS = 120_000;
+const SYNC_LAG_THRESHOLD_MS = 2_500;
+const SYNC_TIMEOUT_MS = 15_000;
 const MAX_ROOM_EVENTS = 160;
 const VALID_GAMES = new Set(['tetris', 'puzzle-bobble']);
 const VALID_STATUSES = new Set(['idle', 'inviting', 'playing_2p']);
@@ -111,12 +113,47 @@ export class NetplayHub {
     if (self && self.roomId) {
       const room = this.rooms.get(self.roomId);
       if (room) {
+        let syncStatus = 'ok';
+        let syncRemainingMs = SYNC_TIMEOUT_MS;
+        let laggingPlayerNames = [];
+        if (room.status === 'playing') {
+          const laggingPlayers = room.players.filter(
+            p => p.lagging === true || (now - (p.lastSeenAt || room.updatedAt) > SYNC_LAG_THRESHOLD_MS),
+          );
+          if (laggingPlayers.length > 0) {
+            if (!room.syncPausedSince) room.syncPausedSince = now;
+            const elapsed = Math.max(0, now - room.syncPausedSince);
+            syncRemainingMs = Math.max(0, SYNC_TIMEOUT_MS - elapsed);
+            laggingPlayerNames = laggingPlayers.map(p => p.name);
+            if (syncRemainingMs <= 0) {
+              syncStatus = 'timeout';
+              if (!room.timeoutEmitted) {
+                room.timeoutEmitted = true;
+                room.events.push({
+                  seq: room.nextSeq++, senderId: laggingPlayers[0].id,
+                  kind: 'sync_timeout', payload: {laggingPlayerNames}, at: now,
+                });
+              }
+            } else {
+              syncStatus = 'paused';
+            }
+          } else {
+            if (room.syncPausedSince) {
+              room.syncPausedSince = null;
+              room.events.push({
+                seq: room.nextSeq++, senderId: clientId,
+                kind: 'sync_resumed', payload: {resumedAt: now}, at: now,
+              });
+            }
+          }
+        }
         const lastRoomSeq = room.nextSeq - 1;
         const rawMinSeq = Number.isFinite(afterSeq) ? Math.max(0, Math.trunc(afterSeq)) : 0;
         const minSeq = rawMinSeq > lastRoomSeq ? 0 : rawMinSeq;
         const events = room.events.filter(ev => ev.seq > minSeq);
         activeRoom = {
-          id: room.id, gameId: room.gameId, seed: room.seed, status: room.status || 'playing', players: room.players,
+          id: room.id, gameId: room.gameId, seed: room.seed, status: room.status || 'playing',
+          syncStatus, syncRemainingMs, laggingPlayerNames, players: room.players,
           events, lastSeq: room.nextSeq - 1,
         };
       }
@@ -157,6 +194,28 @@ export class NetplayHub {
       if (appId !== undefined) player.appId = appId;
       if (requestedStatus && (!player.roomId || requestedStatus === 'idle')) player.status = requestedStatus;
       player.updatedAt = now;
+    }
+
+    if (player.roomId && this.rooms.has(player.roomId)) {
+      const activeRm = this.rooms.get(player.roomId);
+      const member = activeRm?.players.find(p => p.id === clientId);
+      if (member && !member.lagging && action !== 'simulate_lag') {
+        member.lastSeenAt = now;
+      }
+    }
+
+    if (action === 'simulate_lag') {
+      if (player.roomId && this.rooms.has(player.roomId)) {
+        const rm = this.rooms.get(player.roomId);
+        const member = rm.players.find(p => p.id === clientId);
+        if (member) {
+          member.lagging = Boolean(body.lagging);
+          if (!member.lagging) member.lastSeenAt = now;
+          else if (typeof body.forceElapsedMs === 'number') rm.syncPausedSince = now - body.forceElapsedMs;
+        }
+      }
+      await this.persist();
+      return Response.json(this.snapshot(clientId, 0), {headers: {'cache-control': 'no-store'}});
     }
 
     if (action === 'heartbeat' || action === 'poll') {
@@ -293,6 +352,11 @@ export class NetplayHub {
       room.events.push({seq, senderId: clientId, kind: 'player_ready', payload: {playerId: clientId, players: room.players.map(p => ({...p}))}, at: now});
       if (room.players.every(p => p.ready) && room.status !== 'playing') {
         room.status = 'playing';
+        room.syncPausedSince = null;
+        for (const p of room.players) {
+          p.lastSeenAt = now;
+          p.lagging = false;
+        }
         const startSeq = room.nextSeq++;
         room.events.push({seq: startSeq, senderId: clientId, kind: 'match_start', payload: {roomId: room.id, gameId: room.gameId, seed: room.seed, players: room.players.map(p => ({...p}))}, at: now});
       }
@@ -307,6 +371,9 @@ export class NetplayHub {
       const room = roomId ? this.rooms.get(roomId) : null;
       if (!room) return Response.json({error: {kind: 'room_not_found', message: 'Match room ended.'}}, {status: 404, headers: {'cache-control': 'no-store'}});
       const kind = typeof body.kind === 'string' ? body.kind.slice(0, 40) : 'state';
+      if (kind === 'tetris_state' || kind === 'pb_state') {
+        room.events = room.events.filter(ev => !(ev.senderId === clientId && ev.kind === kind));
+      }
       const seq = room.nextSeq++;
       room.events.push({seq, senderId: clientId, kind, payload: body.payload ?? null, at: now});
       if (room.events.length > MAX_ROOM_EVENTS) room.events.splice(0, room.events.length - MAX_ROOM_EVENTS);

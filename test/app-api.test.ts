@@ -400,6 +400,53 @@ describe('issue operations', () => {
       );
       expect(attackEvent).toBeDefined();
       expect(attackEvent.payload).toEqual({ lines: 4, holeColumn: 3 });
+      expect(p2Poll.body.activeRoom.syncStatus).toBe('ok');
+
+      // Player 1 experiences network lag -> both players see syncStatus === 'paused' with 15s countdown (#250)
+      const p1Lag = await request(
+        '/api/netplay',
+        json({ action: 'simulate_lag', clientId: 'p1-test', lagging: true }),
+      );
+      expect(p1Lag.body.activeRoom.syncStatus).toBe('paused');
+      expect(p1Lag.body.activeRoom.laggingPlayerNames).toEqual(['Alice']);
+
+      const p2LagSee = await request(
+        '/api/netplay',
+        json({ action: 'heartbeat', clientId: 'p2-test', name: 'Bob', app: 'tetris' }),
+      );
+      expect(p2LagSee.body.activeRoom.syncStatus).toBe('paused');
+      expect(p2LagSee.body.activeRoom.syncRemainingMs).toBeLessThanOrEqual(15_000);
+      expect(p2LagSee.body.activeRoom.syncRemainingMs).toBeGreaterThan(0);
+
+      // Player 1 reconnects before 15s -> syncStatus returns to 'ok' and sync_resumed event is emitted
+      const p1Recover = await request(
+        '/api/netplay',
+        json({ action: 'simulate_lag', clientId: 'p1-test', lagging: false }),
+      );
+      expect(p1Recover.body.activeRoom.syncStatus).toBe('ok');
+      expect(
+        p1Recover.body.activeRoom.events.some(
+          (ev: { kind: string }) => ev.kind === 'sync_resumed',
+        ),
+      ).toBe(true);
+
+      // If network lag exceeds 15s -> syncStatus becomes 'timeout' and sync_timeout event is emitted
+      const p1Timeout = await request(
+        '/api/netplay',
+        json({
+          action: 'simulate_lag',
+          clientId: 'p1-test',
+          lagging: true,
+          forceElapsedMs: 15_500,
+        }),
+      );
+      expect(p1Timeout.body.activeRoom.syncStatus).toBe('timeout');
+      expect(p1Timeout.body.activeRoom.syncRemainingMs).toBe(0);
+      expect(
+        p1Timeout.body.activeRoom.events.some(
+          (ev: { kind: string }) => ev.kind === 'sync_timeout',
+        ),
+      ).toBe(true);
     } finally {
       server.close();
     }
