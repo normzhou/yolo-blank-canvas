@@ -1133,11 +1133,7 @@ function PlayerArena({
           ))}
         </div>
         <div className="pb-status-pills">
-          {hurrySeconds !== null ? (
-            <span className="badge problem pb-hurry-badge" role="status">
-              HURRY UP! {hurrySeconds}
-            </span>
-          ) : player.incomingGarbage > 0 ? (
+          {player.incomingGarbage > 0 ? (
             <span className="badge waiting" role="status">
               ATK +{player.incomingGarbage}
             </span>
@@ -1490,6 +1486,24 @@ function PlayerArena({
                 {player.status === 'won' ? '★ WINNER! ★' : '× GAME OVER ×'}
               </text>
             </g>
+          ) : hurrySeconds !== null && player.status === 'playing' ? (
+            <text
+              x={LAUNCHER_X}
+              y={ARENA_HEIGHT / 2}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fontSize="20"
+              fontWeight="800"
+              fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+              fill="var(--tetromino-z)"
+              stroke="var(--cabinet-well)"
+              strokeWidth="4"
+              paintOrder="stroke fill"
+              role="status"
+              data-testid={`p${playerNumber}-hurry-overlay`}
+            >
+              HURRY UP! {hurrySeconds}
+            </text>
           ) : null}
         </svg>
 
@@ -1691,7 +1705,13 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
   );
   const [characters, setCharacters] = useState<[CharacterId, CharacterId]>(['dragon', 'dragon']);
   const [stagePreset, setStagePreset] = useState<number>(0); // 0 = random wave, 1..5 = classic Taito stages
-  const [paused, setPaused] = useState<boolean>(() => getSharedGamePaused());
+  const [paused, setPaused] = useState<boolean>(() => {
+    if (!getSharedNetplay().getState().activeRoom) {
+      setSharedGamePaused(true);
+      return true;
+    }
+    return getSharedGamePaused();
+  });
   const [musicOn, setMusicOn] = useState<boolean>(() => getSharedMusicOn());
   const [backgroundIndex, setBackgroundIndex] = useState(1);
   const [nowPlaying, setNowPlaying] = useState<string | null>(
@@ -1701,11 +1721,13 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
   const [opponentRadar, setOpponentRadar] = useState<PuzzleBobbleRadarSnapshot>(() =>
     createRadarFromBoard(match.players[0]),
   );
-  const [countdown, setCountdown] = useState<number>(() => (motionReduced() ? 0 : 3));
+  const [countdown, setCountdown] = useState<number>(3);
   const [inviteSecondsLeft, setInviteSecondsLeft] = useState<number>(20);
 
   useEffect(() => {
-    setSharedGamePaused(false);
+    if (!getSharedNetplay().getState().activeRoom) {
+      setSharedGamePaused(true);
+    }
     const unsub = subscribeSharedGamePause((nextPaused) => {
       setPaused(nextPaused);
     });
@@ -1803,7 +1825,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         wins: resetWins ? [0, 0] : current.wins,
       }));
       setSharedGamePaused(false);
-      setCountdown(motionReduced() ? 0 : 3);
+      setCountdown(3);
     },
     [stagePreset],
   );
@@ -1828,12 +1850,19 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     return () => window.clearInterval(id);
   }, [netplay.myPendingInvite]);
 
-  // 3, 2, 1 arcade start countdown (#248).
+  // 3, 2, 1 car-race start countdown with sound effects (#248, #252).
   useEffect(() => {
     if (countdown <= 0 || paused || isReadyCheck || isInviting || isNetworkPaused) return;
+    getSharedArcadeAudio().sfx.playCountdown(countdown);
     const id = window.setTimeout(() => {
-      setCountdown((c) => Math.max(0, c - 1));
-    }, 450);
+      setCountdown((c) => {
+        const next = Math.max(0, c - 1);
+        if (next === 0) {
+          getSharedArcadeAudio().sfx.playCountdown(0);
+        }
+        return next;
+      });
+    }, 700);
     return () => window.clearTimeout(id);
   }, [countdown, paused, isReadyCheck, isInviting, isNetworkPaused]);
 
@@ -1880,7 +1909,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
       }
 
       if (event.kind === 'sync_resumed') {
-        setCountdown(motionReduced() ? 0 : 3);
+        setCountdown(3);
         return;
       }
 
@@ -1984,8 +2013,8 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
 
   // Audio playback follows active match state.
   useEffect(() => {
-    getSharedArcadeAudio().setActive(musicOn && match.status === 'playing' && !paused);
-  }, [musicOn, paused, match.status]);
+    getSharedArcadeAudio().setActive(musicOn && match.status === 'playing');
+  }, [musicOn, match.status]);
 
   // #234, #236: Trigger real-time Tone.js-style SFX when players shoot bubbles, pop
   // clusters, send/receive rising attack bubbles, or finish a round, and relay
@@ -2169,7 +2198,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
   }, []);
 
   const startNewRound = useCallback(
-    (mode: '2p' | '1p', keepWins = true, preset = stagePreset) => {
+    (mode: '2p' | '1p', keepWins = true, preset = stagePreset, unpause = true) => {
       setMatch((current) => {
         const wins: [number, number] = keepWins ? current.wins : [0, 0];
         if (preset > 0) {
@@ -2183,8 +2212,10 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         }
         return createMatch(mode, Math.random, wins);
       });
-      setSharedGamePaused(false);
-      setCountdown(motionReduced() ? 0 : 3);
+      if (unpause) {
+        setSharedGamePaused(false);
+      }
+      setCountdown(3);
       setBackgroundIndex((index) => nextBackgroundIndex(index));
     },
     [stagePreset],
@@ -2201,16 +2232,16 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
       setKeyboardAvailable(hasKeyboardAvailable());
       setPhoneViewport((prevPhone) => {
         if (phone && matchRef.current.mode === '2p') {
-          startNewRound('1p', false);
+          startNewRound('1p', false, stagePreset, false);
         } else if (!phone && prevPhone && matchRef.current.mode === '1p') {
-          startNewRound('2p', false);
+          startNewRound('2p', false, stagePreset, false);
         }
         return phone;
       });
     }
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
-  }, [startNewRound]);
+  }, [stagePreset, startNewRound]);
 
   const handleHoldAimStart = useCallback(
     (playerIndex: 0 | 1, keyId: string, deltaDeg: number) => {
@@ -2457,19 +2488,15 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
           }
           disabled={paused || isReadyCheck || match.status !== 'playing'}
           onAimStep={(delta) => {
-            setCountdown(0);
             setMatch((current) => aimPlayer(current, 0, delta));
           }}
           onAimDirect={(angle) => {
-            setCountdown(0);
             setMatch((current) => setPlayerAimAngle(current, 0, angle));
           }}
           onFire={() => {
-            setCountdown(0);
             setMatch((current) => firePlayerBubble(current, 0));
           }}
           onHoldAimStart={(keyId, delta) => {
-            setCountdown(0);
             handleHoldAimStart(0, keyId, delta);
           }}
           onHoldAimEnd={handleHoldAimEnd}
@@ -2484,19 +2511,15 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
             showTouchControls={touchAvailable}
             disabled={paused || isReadyCheck || match.status !== 'playing'}
             onAimStep={(delta) => {
-              setCountdown(0);
               setMatch((current) => aimPlayer(current, 1, delta));
             }}
             onAimDirect={(angle) => {
-              setCountdown(0);
               setMatch((current) => setPlayerAimAngle(current, 1, angle));
             }}
             onFire={() => {
-              setCountdown(0);
               setMatch((current) => firePlayerBubble(current, 1));
             }}
             onHoldAimStart={(keyId, delta) => {
-              setCountdown(0);
               handleHoldAimStart(1, keyId, delta);
             }}
             onHoldAimEnd={handleHoldAimEnd}

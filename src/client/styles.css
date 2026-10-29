@@ -822,6 +822,7 @@ button.deck-stack-card:hover {
   align-items: stretch;
   gap: var(--space-6);
   text-align: left;
+  cursor: pointer;
   touch-action: pan-y;
   user-select: none;
 }
@@ -2147,7 +2148,7 @@ button.pb-touch-fire {
   border: none;
   background: transparent;
 }
-/* #248: 3, 2, 1 Arcade Countdown overlay before starting a game. */
+/* #248, #252: 3, 2, 1 Arcade Countdown & HURRY UP! plain arcade text overlays. */
 .arcade-countdown-backdrop {
   position: fixed;
   inset: 0;
@@ -2168,18 +2169,42 @@ button.pb-touch-fire {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 72px;
-  min-height: 72px;
-  padding: 10px 22px;
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--tetromino-o);
-  background: var(--surface);
+  padding: 0;
+  border: none;
+  background: transparent;
   color: var(--tetromino-o);
-  box-shadow: var(--elevation-panel-centred);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--text-display);
   font-weight: var(--weight-semibold);
   font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  transform: scale(2.4);
+  text-shadow:
+    -2px -2px 0 var(--cabinet-well),
+    2px -2px 0 var(--cabinet-well),
+    -2px 2px 0 var(--cabinet-well),
+    2px 2px 0 var(--cabinet-well);
+}
+.arcade-center-text {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--text-display);
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  color: var(--tetromino-z);
+  transform: scale(1.2);
+  text-shadow:
+    -2px -2px 0 var(--cabinet-well),
+    2px -2px 0 var(--cabinet-well),
+    -2px 2px 0 var(--cabinet-well),
+    2px 2px 0 var(--cabinet-well);
 }
 /* #237, #248: In-game arcade Pause / Mode / Ready Menu modal overlay. */
 .game-pause-backdrop {

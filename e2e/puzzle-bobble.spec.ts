@@ -27,9 +27,15 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
     await expect(page.getByRole('img', { name: 'Player 1 bubble board' })).toBeVisible();
     await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toBeVisible();
 
-    // #248: 3, 2, 1 arcade countdown is displayed before gameplay starts, and virtual touch keys
-    // are hidden on a non-touch desktop viewport (1280x800).
+    // #252: Game opens on the Game Menu first; clicking Continue starts the 3, 2, 1 car-race countdown
+    // rendered as plain arcade text (no circle border) with countdown sound effects.
+    await expect(page.getByTestId('game-pause-menu')).toBeVisible();
+    await page.getByTestId('pause-menu-resume').click();
     await expect(page.getByTestId('arcade-countdown')).toBeVisible();
+    const countdownBorderStyle = await page
+      .locator('.arcade-countdown-digit')
+      .evaluate((el) => getComputedStyle(el).borderStyle);
+    expect(countdownBorderStyle).toBe('none');
     await expect(page.getByTestId('p1-touch-controls')).toHaveCount(0);
 
     // Player 1 aims right with fine 0.5° taps on D and shoots with F.
@@ -239,12 +245,12 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
 }) => {
   const stub = await startStubApp();
   try {
-    // 1. Phone viewport (390x844 < 768px): Puzzle Bobble opens in 1P mode only and hides 2P Local in the Pause Menu.
+    // 1. Phone viewport (390x844 < 768px): Puzzle Bobble opens in 1P mode on the Game Menu and hides 2P Local.
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`${stub.base}?app=puzzle-bobble`);
     await expect(page.getByRole('img', { name: 'Player 1 bubble board' })).toBeVisible();
     await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toHaveCount(0);
-    await page.getByTestId('pause-button').click();
+    await expect(page.getByTestId('game-pause-menu')).toBeVisible();
     await expect(page.getByRole('button', { name: '2 Players', exact: true })).toHaveCount(0);
     await page.getByTestId('pause-menu-resume').click();
 
@@ -413,6 +419,8 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
     // 5. Tetris touch controls work on phone without a keyboard.
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`${stub.base}?app=tetris`);
+    await expect(page.getByTestId('game-pause-menu')).toBeVisible();
+    await page.getByTestId('pause-menu-resume').click();
     await expect(page.getByTestId('tetris-touch-controls')).toBeVisible();
     await page.getByTestId('tetris-touch-rotate').click();
     await page.getByTestId('tetris-touch-drop').click();
@@ -456,10 +464,10 @@ test('2P Online networking (#236): 2 independent browser sessions discover prese
     });
     await expect(page2.getByTestId('deck-online-count')).toContainText('2 Online');
 
-    // 2. Browser Session 1 opens Puzzle Bobble, opens the Pause Menu, and broadcasts an open 2P Online invite.
+    // 2. Browser Session 1 opens Puzzle Bobble (entering directly on the Game Menu) and broadcasts an open 2P Online invite.
     await page1.goto(`${stub.base}?app=puzzle-bobble`);
     await expect(page1.getByRole('heading', { name: 'Puzzle Bobble' })).toBeVisible();
-    await page1.getByTestId('pause-button').click();
+    await expect(page1.getByTestId('game-pause-menu')).toBeVisible();
     await expect(page1.getByTestId('pb-2p-online-btn')).toBeEnabled({ timeout: 6000 });
     await page1.getByTestId('pb-2p-online-btn').click();
     await expect(page1.getByTestId('pb-invite-waiting')).toBeVisible();
@@ -523,7 +531,7 @@ test('2P Online networking (#236): 2 independent browser sessions discover prese
     // 3. Now test 2P Online Tetris end-to-end across the two browser sessions.
     await page1.goto(`${stub.base}?app=tetris`);
     await expect(page1.getByRole('heading', { name: 'Tetris' })).toBeVisible();
-    await page1.getByTestId('pause-button').click();
+    await expect(page1.getByTestId('game-pause-menu')).toBeVisible();
     await expect(page1.getByTestId('tetris-2p-online-btn')).toBeEnabled({ timeout: 6000 });
     await page1.getByTestId('tetris-2p-online-btn').click();
     await expect(page1.getByTestId('tetris-invite-waiting')).toBeVisible();

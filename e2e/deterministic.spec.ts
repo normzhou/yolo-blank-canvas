@@ -142,6 +142,8 @@ test('Tetris: board renders, music toggles with a stable track label, scenes cyc
   await page.goto(stub.base);
   await page.getByRole('button', { name: 'Tetris', exact: true }).click();
   await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
+  await expect(page.getByTestId('game-pause-menu')).toBeVisible();
+  await page.getByTestId('pause-menu-resume').click();
   await expect(page.getByText(/Scene 1\/\d+:/)).toBeVisible();
   await snap('09-tetris-board');
 
