@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from 'react';
 import {
   getSharedArcadeAudio,
   getSharedMusicOn,
@@ -140,7 +148,7 @@ function PixelBackdrop({ art }: { art: Backdrop }) {
   );
 }
 
-function NextPreview({ type }: { type: Tetromino }) {
+const NextPreview = memo(function NextPreview({ type }: { type: Tetromino }) {
   const cells = rotationCells(type, 0);
   const filled = new Set(cells.map(([x, y]) => `${x},${y}`));
   return (
@@ -152,9 +160,9 @@ function NextPreview({ type }: { type: Tetromino }) {
       )}
     </div>
   );
-}
+});
 
-function OpponentTetrisRadar({
+const OpponentTetrisRadar = memo(function OpponentTetrisRadar({
   opponentName,
   radar,
   roundOutcome,
@@ -210,7 +218,7 @@ function OpponentTetrisRadar({
       </div>
     </div>
   );
-}
+});
 
 export function TetrisView({ onExit }: { onExit: () => void }) {
   const customRngRef = useRef<(() => number) | null>(null);
@@ -315,19 +323,24 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     }
   }, [activeTetrisRoom?.syncStatus, onExit]);
 
-  // Continuous 2P keep-alive and live board radar push (#250).
+  // Continuous 2P keep-alive and live board radar push (#250, #254: deduplicated).
+  const lastRadarDigestRef = useRef<string>('');
   useEffect(() => {
     if (!isOnline2P || isReadyCheck || isNetworkPaused || roundOutcome !== 'playing') return;
     const pushRadar = () => {
       const cur = gameRef.current;
-      void getSharedNetplay().sendRoomEvent('tetris_state', {
+      const snap: TetrisRadarSnapshot = {
         board: displayBoard(cur),
         score: cur.score,
         lines: cur.lines,
         level: cur.level,
         status: cur.status,
         pendingGarbage: pendingGarbageCount(cur),
-      } satisfies TetrisRadarSnapshot);
+      };
+      const digest = JSON.stringify(snap);
+      if (digest === lastRadarDigestRef.current) return;
+      lastRadarDigestRef.current = digest;
+      void getSharedNetplay().sendRoomEvent('tetris_state', snap);
     };
     pushRadar();
     const id = window.setInterval(pushRadar, 600);
@@ -756,18 +769,27 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     }
   };
 
-  const board = displayBoard(game);
-  const ghost = ghostPiece(game);
-  const ghostCoords = new Set<string>();
-  if (ghost) {
-    for (const [dx, dy] of rotationCells(ghost.type, ghost.rotation)) {
-      const gx = ghost.x + dx;
-      const gy = ghost.y + dy;
-      if (gy >= 0 && gy < BOARD_HEIGHT && gx >= 0 && gx < BOARD_WIDTH && board[gy][gx] === null) {
-        ghostCoords.add(`${gx},${gy}`);
+  const board = useMemo(() => displayBoard(game), [game]);
+  const { ghost, ghostCoords } = useMemo(() => {
+    const g = ghostPiece(game);
+    const coords = new Set<string>();
+    if (g) {
+      for (const [dx, dy] of rotationCells(g.type, g.rotation)) {
+        const gx = g.x + dx;
+        const gy = g.y + dy;
+        if (
+          gy >= 0 &&
+          gy < BOARD_HEIGHT &&
+          gx >= 0 &&
+          gx < BOARD_WIDTH &&
+          board[gy][gx] === null
+        ) {
+          coords.add(`${gx},${gy}`);
+        }
       }
     }
-  }
+    return { ghost: g, ghostCoords: coords };
+  }, [game, board]);
 
   const pendingGarbage = pendingGarbageCount(game);
 

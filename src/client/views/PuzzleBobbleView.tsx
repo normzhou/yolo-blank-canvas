@@ -1,6 +1,8 @@
 import {
+  memo,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type CSSProperties,
@@ -931,7 +933,7 @@ function createRadarFromBoard(board: PlayerBoardState): PuzzleBobbleRadarSnapsho
   };
 }
 
-function OpponentBubbleRadar({
+const OpponentBubbleRadar = memo(function OpponentBubbleRadar({
   opponentName,
   radar,
 }: {
@@ -1030,7 +1032,51 @@ function OpponentBubbleRadar({
       </div>
     </div>
   );
-}
+});
+
+const SettledBubbleGridSvg = memo(function SettledBubbleGridSvg({
+  grid,
+  ceilingDrop,
+  ceilingWarning,
+  lastEvent,
+}: {
+  grid: PlayerBoardState['grid'];
+  ceilingDrop: number;
+  ceilingWarning: boolean;
+  lastEvent: PlayerBoardState['lastEvent'];
+}) {
+  const stagingY = DANGER_LINE_Y + 12;
+  const risenKeySet = new Set<string>(
+    (lastEvent?.risenGarbage ?? []).map((cell) => `${cell.row},${cell.col}`),
+  );
+  return (
+    <g className={ceilingWarning ? 'pb-cluster-warning' : undefined}>
+      {grid.map((row, r) =>
+        Array.from({ length: colsForRow(r) }, (_, c) => {
+          const color = row[c];
+          if (!color) return null;
+          const center = bubbleCenter(r, c, ceilingDrop);
+          const coordKey = `${r},${c}`;
+          const justRose = risenKeySet.has(coordKey) && lastEvent !== null;
+          return (
+            <BubbleSvg
+              key={justRose ? `${coordKey}-rise-${lastEvent.id}` : coordKey}
+              cx={center.x}
+              cy={center.y}
+              color={color}
+              className={justRose ? 'pb-rise-bubble' : undefined}
+              style={
+                justRose
+                  ? ({ '--pb-rise-from': `${stagingY - center.y}px` } as CSSProperties)
+                  : undefined
+              }
+            />
+          );
+        }),
+      )}
+    </g>
+  );
+});
 
 function PlayerArena({
   player,
@@ -1074,17 +1120,16 @@ function PlayerArena({
     onAimDirect(aimAngleFromBoardPoint(svgX, svgY));
   };
   const ceilingY = player.ceilingDrop * ROW_STEP;
-  const guide = aimGuidePoints(player.aimAngle, player.ceilingDrop);
-  const polylinePoints = guide.map((pt) => `${pt.x},${pt.y}`).join(' ');
+  const polylinePoints = useMemo(() => {
+    const guide = aimGuidePoints(player.aimAngle, player.ceilingDrop);
+    return guide.map((pt) => `${pt.x},${pt.y}`).join(' ');
+  }, [player.aimAngle, player.ceilingDrop]);
   const summary = eventSummary(player);
   const hurrySeconds = hurryCountdownSeconds(player);
   const charName = characterDisplayName(character, playerNumber);
   const mood = deriveMascotMood(player);
 
   const lastEv = player.lastEvent;
-  const risenKeySet = new Set<string>(
-    (lastEv?.risenGarbage ?? []).map((cell) => `${cell.row},${cell.col}`),
-  );
   const incomingPreview = player.incomingQueue.slice(0, 6);
   const orbList = decomposeGarbageOrbs(player.incomingGarbage);
   const gaugeX = playerNumber === 1 ? ARENA_WIDTH - 11 : 11;
@@ -1339,31 +1384,12 @@ function PlayerArena({
           ) : null}
 
           {/* Settled hexagonal grid bubbles (trembles rapidly with 0.5px amplitude when ceilingWarning is active) */}
-          <g className={player.ceilingWarning ? 'pb-cluster-warning' : undefined}>
-            {player.grid.map((row, r) =>
-              Array.from({ length: colsForRow(r) }, (_, c) => {
-                const color = row[c];
-                if (!color) return null;
-                const center = bubbleCenter(r, c, player.ceilingDrop);
-                const coordKey = `${r},${c}`;
-                const justRose = risenKeySet.has(coordKey) && lastEv !== null;
-                return (
-                  <BubbleSvg
-                    key={justRose ? `${coordKey}-rise-${lastEv.id}` : coordKey}
-                    cx={center.x}
-                    cy={center.y}
-                    color={color}
-                    className={justRose ? 'pb-rise-bubble' : undefined}
-                    style={
-                      justRose
-                        ? ({ '--pb-rise-from': `${stagingY - center.y}px` } as CSSProperties)
-                        : undefined
-                    }
-                  />
-                );
-              }),
-            )}
-          </g>
+          <SettledBubbleGridSvg
+            grid={player.grid}
+            ceilingDrop={player.ceilingDrop}
+            ceilingWarning={player.ceilingWarning}
+            lastEvent={lastEv}
+          />
 
           {/* On-board indicator of attack bubbles sent from the other side and about to come up (#186) */}
           {player.incomingGarbage > 0 ? (
@@ -1786,13 +1812,18 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     }
   }, [activePbRoom?.syncStatus, onExit]);
 
-  // Continuous 2P keep-alive and live board radar push (#250).
+  // Continuous 2P keep-alive and live board radar push (#250, #254: deduplicated).
+  const lastRadarDigestRef = useRef<string>('');
   useEffect(() => {
     if (!isOnline2P || isReadyCheck || isNetworkPaused || match.status !== 'playing') return;
     const pushRadar = () => {
       const p0 = matchRef.current.players[0];
       if (!p0) return;
-      void getSharedNetplay().sendRoomEvent('pb_state', createRadarFromBoard(p0));
+      const snap = createRadarFromBoard(p0);
+      const digest = JSON.stringify(snap);
+      if (digest === lastRadarDigestRef.current) return;
+      lastRadarDigestRef.current = digest;
+      void getSharedNetplay().sendRoomEvent('pb_state', snap);
     };
     pushRadar();
     const id = window.setInterval(pushRadar, 600);
@@ -2081,7 +2112,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     prevMatchStatusRef.current = match.status;
   }, [isOnline2P, match]);
 
-  // Advance flying bubbles and the 10s HURRY UP! shot clock at ~60fps.
+  // Advance flying bubbles and the 10s HURRY UP! shot clock at ~60fps (#254: skip React state allocation when no bubble is flying and hurrySeconds is unchanged).
   useEffect(() => {
     if (paused || isReadyCheck || isInviting || isNetworkPaused || match.status !== 'playing') return;
     let lastTime = performance.now();
@@ -2090,8 +2121,39 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
       const dtMs = Math.min(64, Math.max(0, now - lastTime));
       lastTime = now;
       setMatch((current) => {
-        const stepped = stepMatch(current);
-        return countdown > 0 ? stepped : tickShotTimers(stepped, dtMs);
+        const anyFlying = current.players.some((p) => p && p.flying !== null);
+        const stepped = anyFlying ? stepMatch(current) : current;
+        if (countdown > 0) return stepped;
+
+        let needsRender = stepped !== current;
+        for (const p of stepped.players) {
+          if (!p || p.status !== 'playing') continue;
+          if (p.flying !== null) {
+            p.stageElapsedMs += dtMs;
+            continue;
+          }
+          const prevHurry = hurryCountdownSeconds(p);
+          const nextRemaining = p.shotTimerMs - dtMs;
+          if (nextRemaining <= 0) {
+            needsRender = true;
+            break;
+          }
+          const nextHurry =
+            nextRemaining > 5000 ? null : Math.max(1, Math.ceil(nextRemaining / 1000));
+          if (nextHurry !== prevHurry) {
+            needsRender = true;
+            break;
+          }
+        }
+        if (!needsRender) {
+          for (const p of stepped.players) {
+            if (!p || p.status !== 'playing' || p.flying !== null) continue;
+            p.stageElapsedMs += dtMs;
+            p.shotTimerMs -= dtMs;
+          }
+          return current;
+        }
+        return tickShotTimers(stepped, dtMs);
       });
     }, 16);
     return () => window.clearInterval(id);
