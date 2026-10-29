@@ -4,6 +4,31 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Menu-on-Entry Flow, Car-Race 3-2-1 Plain Text Countdown with SFX, Centered HURRY UP Text, Whole-Card Deck Launch, and 50% Music Rebalance (#252) — 2026-10-27
+
+Source revision `083e729` (the menu-on-entry, car-race `3-2-1` countdown with SFX, centered `HURRY UP!` text, whole-card deck launch, and 50% music rebalance commit); build and review evidence `3f14363`; release commit `550bd5b`; published as `v0.22.2` on 2026-10-27.
+
+- **Whole-Card Game Launch on Home Deck (`src/client/App.tsx`, `src/client/styles.css`):**
+  - Removed the separate `Play` button from `.deck-slide-actions` and made clicking anywhere on the active `.deck-slide-card` (`role="button"`, `aria-label="Play <Title>"`) launch the game directly.
+- **Enter Games on the Game Menu (`src/client/App.tsx`, `src/client/views/TetrisView.tsx`, `src/client/views/PuzzleBobbleView.tsx`):**
+  - Opening Tetris or Puzzle Bobble enters on the unified Game Menu (`data-testid="game-pause-menu"`) first so players can choose `1 Player`, `2 Players`, `2P Online`, or Stage before starting gameplay.
+- **Always-On Car-Race `3, 2, 1` Plain Text Countdown with SFX (`src/client/audio/toneSynth.ts`, `src/client/styles.css`):**
+  - Always runs a `3 → 2 → 1` countdown (`700ms` per beat) when starting from the Game Menu, starting a new game/round, or starting/resuming a 2P Online match.
+  - Rendered as bold centered arcade text without a circle (`border: none; background: transparent;`), accompanied by synthesized race-start beeps (`countdown-tick` at `A4` and `countdown-go` launch chord at `A5`).
+- **Centered `HURRY UP!` Arcade Text (`src/client/views/PuzzleBobbleView.tsx`):**
+  - Renders `HURRY UP! <seconds>` (`data-testid="p1-hurry-overlay"`) right across the center of the Puzzle Bobble board.
+- **Music vs. SFX Volume Rebalance (`src/client/audio/tetrisMusic.ts`):**
+  - Reduced background music gain by 50% (`MUSIC_GAIN = 0.5`) so arcade sound effects cut through clearly.
+- `npm test`: 23 files, 162 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 45 passed.
+
+### Installed artifact (`v0.22.2`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.22.2 --no-open --port 4891` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `083e729…`; the tagged package version is `0.22.2`. The tag points at release commit `550bd5b`, after the assets commit `3f14363`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4891 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: dd5b3955-d288-48dc-8b0b-04568c5ba2ce`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.22.2"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 083e7291ade88d1fbde5dc08b803839578be8674`). The report is [`.yolo/reports/releases-observed-2026-10-27-v0222.json`](../.yolo/reports/releases-observed-2026-10-27-v0222.json).
+
 ## 2P Online Keep-Alive Heartbeat, Live Radar State Deduplication, Synchronized Lag-Pause on Both Sides, Auto-Resume on Reconnect, and 15s Disconnect Timeout (#250) — 2026-10-27
 
 Source revision `a4bc077` (the 2P Online keep-alive, state deduplication, synchronized lag-pause, auto-resume, and 15-second disconnect timeout commit); build and review evidence `259ff0f`; release commit `0c2b073`; published as `v0.22.1` on 2026-10-27.
