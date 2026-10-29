@@ -62,11 +62,32 @@ export interface NetplayActiveRoom {
 
 export interface TetrisRadarSnapshot {
   board: Board;
+  settledBoard?: Board;
+  activePiece?: {
+    type: 'I' | 'O' | 'T' | 'S' | 'Z' | 'J' | 'L';
+    x: number;
+    y: number;
+    rotation: number;
+  } | null;
+  lastEvent?: {
+    id: number;
+    clearedLines: number;
+    sentGarbage: number;
+    risenGarbage: number;
+  } | null;
   score: number;
   lines: number;
   level: number;
   status: 'playing' | 'over';
   pendingGarbage: number;
+}
+
+export interface PuzzleBobbleRadarCellEvent {
+  row: number;
+  col: number;
+  x: number;
+  y: number;
+  color: BubbleColor;
 }
 
 export interface PuzzleBobbleRadarSnapshot {
@@ -77,6 +98,18 @@ export interface PuzzleBobbleRadarSnapshot {
   incomingGarbage: number;
   aimAngle: number;
   currentBubble: BubbleColor;
+  flying?: {
+    x: number;
+    y: number;
+    color: BubbleColor;
+  } | null;
+  lastEvent?: {
+    id: number;
+    popped: PuzzleBobbleRadarCellEvent[];
+    dropped: PuzzleBobbleRadarCellEvent[];
+    risenGarbage: PuzzleBobbleRadarCellEvent[];
+    sentGarbage: number;
+  } | null;
 }
 
 export interface NetplayState {
