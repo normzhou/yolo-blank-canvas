@@ -223,7 +223,13 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     },
   };
   const [game, setGame] = useState<TetrisState>(() => createGame());
-  const [paused, setPaused] = useState<boolean>(() => getSharedGamePaused());
+  const [paused, setPaused] = useState<boolean>(() => {
+    if (!getSharedNetplay().getState().activeRoom) {
+      setSharedGamePaused(true);
+      return true;
+    }
+    return getSharedGamePaused();
+  });
   const [musicOn, setMusicOn] = useState<boolean>(() => getSharedMusicOn());
   const [backgroundIndex, setBackgroundIndex] = useState(0);
   const [nowPlaying, setNowPlaying] = useState<string | null>(
@@ -235,13 +241,15 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
   );
   const [roundOutcome, setRoundOutcome] = useState<'playing' | 'won' | 'lost'>('playing');
   const [wins, setWins] = useState<[number, number]>([0, 0]);
-  const [countdown, setCountdown] = useState<number>(() => (motionReduced() ? 0 : 3));
+  const [countdown, setCountdown] = useState<number>(3);
   const [inviteSecondsLeft, setInviteSecondsLeft] = useState<number>(20);
   const touchSeenRef = useRef<boolean>(detectTouchAvailable());
   const [touchAvailable, setTouchAvailable] = useState<boolean>(() => touchSeenRef.current);
 
   useEffect(() => {
-    setSharedGamePaused(false);
+    if (!getSharedNetplay().getState().activeRoom) {
+      setSharedGamePaused(true);
+    }
     const unsub = subscribeSharedGamePause((nextPaused) => {
       setPaused(nextPaused);
     });
@@ -336,7 +344,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     setOpponentRadar(createInitialTetrisRadar());
     setRoundOutcome('playing');
     setSharedGamePaused(false);
-    setCountdown(motionReduced() ? 0 : 3);
+    setCountdown(3);
     if (resetTally) {
       setWins([0, 0]);
     }
@@ -362,12 +370,19 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     return () => window.clearInterval(id);
   }, [netplay.myPendingInvite]);
 
-  // 3, 2, 1 arcade start countdown (#248).
+  // 3, 2, 1 car-race start countdown with sound effects (#248, #252).
   useEffect(() => {
     if (countdown <= 0 || paused || isReadyCheck || isInviting || isNetworkPaused) return;
+    getSharedArcadeAudio().sfx.playCountdown(countdown);
     const id = window.setTimeout(() => {
-      setCountdown((c) => Math.max(0, c - 1));
-    }, 450);
+      setCountdown((c) => {
+        const next = Math.max(0, c - 1);
+        if (next === 0) {
+          getSharedArcadeAudio().sfx.playCountdown(0);
+        }
+        return next;
+      });
+    }, 700);
     return () => window.clearTimeout(id);
   }, [countdown, paused, isReadyCheck, isInviting, isNetworkPaused]);
 
@@ -416,7 +431,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
       }
 
       if (event.kind === 'sync_resumed') {
-        setCountdown(motionReduced() ? 0 : 3);
+        setCountdown(3);
         return;
       }
 
@@ -596,8 +611,8 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
 
   // Drive playback from game state.
   useEffect(() => {
-    getSharedArcadeAudio().setActive(musicOn && !matchEnded && !paused);
-  }, [musicOn, paused, matchEnded]);
+    getSharedArcadeAudio().setActive(musicOn && !matchEnded);
+  }, [musicOn, matchEnded]);
 
   // Gravity. Restarts when the level (speed) changes and stops when not playing or during countdown/ready-check/network-pause.
   useEffect(() => {
@@ -628,29 +643,24 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
       switch (event.key) {
         case 'ArrowLeft':
           event.preventDefault();
-          setCountdown(0);
           setGame((current) => moveLeft(current));
           break;
         case 'ArrowRight':
           event.preventDefault();
-          setCountdown(0);
           setGame((current) => moveRight(current));
           break;
         case 'ArrowDown':
           event.preventDefault();
-          setCountdown(0);
           setGame((current) => softDrop(current, rngRef.current));
           break;
         case 'ArrowUp':
           event.preventDefault();
-          setCountdown(0);
           getSharedArcadeAudio().sfx.playRotate();
           setGame((current) => rotate(current, 1));
           break;
         case ' ':
         case 'Spacebar':
           event.preventDefault();
-          setCountdown(0);
           getSharedArcadeAudio().sfx.playHardDrop();
           setGame((current) => hardDrop(current, rngRef.current));
           break;
@@ -774,7 +784,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
       setGame(createGame(rngRef.current));
       setRoundOutcome('playing');
       setSharedGamePaused(false);
-      setCountdown(motionReduced() ? 0 : 3);
+      setCountdown(3);
     }
   };
 
@@ -1103,7 +1113,6 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
               disabled={paused || matchEnded || isReadyCheck}
               onPointerDown={(event) => {
                 event.preventDefault();
-                setCountdown(0);
                 startTouchRepeat(() => setGame((current) => moveLeft(current)));
               }}
               onPointerUp={stopTouchRepeat}
@@ -1111,7 +1120,6 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
               onPointerLeave={stopTouchRepeat}
               onClick={(event) => {
                 if (event.detail === 0) {
-                  setCountdown(0);
                   setGame((current) => moveLeft(current));
                 }
               }}
@@ -1126,7 +1134,6 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
               disabled={paused || matchEnded || isReadyCheck}
               onPointerDown={(event) => {
                 event.preventDefault();
-                setCountdown(0);
                 startTouchRepeat(() => setGame((current) => softDrop(current, rngRef.current)));
               }}
               onPointerUp={stopTouchRepeat}
@@ -1134,7 +1141,6 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
               onPointerLeave={stopTouchRepeat}
               onClick={(event) => {
                 if (event.detail === 0) {
-                  setCountdown(0);
                   setGame((current) => softDrop(current, rngRef.current));
                 }
               }}
@@ -1149,7 +1155,6 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
               disabled={paused || matchEnded || isReadyCheck}
               onPointerDown={(event) => {
                 event.preventDefault();
-                setCountdown(0);
                 startTouchRepeat(() => setGame((current) => moveRight(current)));
               }}
               onPointerUp={stopTouchRepeat}
@@ -1157,7 +1162,6 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
               onPointerLeave={stopTouchRepeat}
               onClick={(event) => {
                 if (event.detail === 0) {
-                  setCountdown(0);
                   setGame((current) => moveRight(current));
                 }
               }}
@@ -1174,13 +1178,11 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
               disabled={paused || matchEnded || isReadyCheck}
               onPointerDown={(event) => {
                 event.preventDefault();
-                setCountdown(0);
                 getSharedArcadeAudio().sfx.playRotate();
                 setGame((current) => rotate(current, 1));
               }}
               onClick={(event) => {
                 if (event.detail === 0) {
-                  setCountdown(0);
                   getSharedArcadeAudio().sfx.playRotate();
                   setGame((current) => rotate(current, 1));
                 }
@@ -1196,13 +1198,11 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
               disabled={paused || matchEnded || isReadyCheck}
               onPointerDown={(event) => {
                 event.preventDefault();
-                setCountdown(0);
                 getSharedArcadeAudio().sfx.playHardDrop();
                 setGame((current) => hardDrop(current, rngRef.current));
               }}
               onClick={(event) => {
                 if (event.detail === 0) {
-                  setCountdown(0);
                   getSharedArcadeAudio().sfx.playHardDrop();
                   setGame((current) => hardDrop(current, rngRef.current));
                 }

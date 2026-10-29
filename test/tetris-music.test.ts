@@ -9,9 +9,13 @@ import {
   shuffledTracks,
   type Track,
 } from '../src/shared/tetrisMusic';
-import { TetrisMusic } from '../src/client/audio/tetrisMusic';
+import { MUSIC_GAIN, TetrisMusic } from '../src/client/audio/tetrisMusic';
 
-describe('selector, tetris, and puzzle bobble playlists + Tone synth SFX (#232, #234)', () => {
+describe('selector, tetris, and puzzle bobble playlists + Tone synth SFX (#232, #234, #252)', () => {
+  it('reduces background music gain by 50% (0.5) so sound effects stand out clearly (#252)', () => {
+    expect(MUSIC_GAIN).toBe(0.5);
+  });
+
   it('offers distinct, game-specific playlists for Selector Screen, Tetris, and Puzzle Bobble', () => {
     expect(SELECTOR_PLAYLIST.length).toBeGreaterThanOrEqual(2);
     expect(TETRIS_PLAYLIST.length).toBeGreaterThanOrEqual(5);
@@ -149,6 +153,8 @@ describe('selector, tetris, and puzzle bobble playlists + Tone synth SFX (#232, 
       expect(PUZZLE_BOBBLE_PLAYLIST.some((t) => t.id === seen[seen.length - 1].id)).toBe(true);
 
       // Trigger real-time Tone.js-style SFX (FMSynth, PolySynth, MembraneSynth).
+      player.sfx.playCountdown(3);
+      player.sfx.playCountdown(0);
       player.sfx.playBubbleShoot();
       player.sfx.playBubblePop(4, 2);
       player.sfx.playGarbageRise(3);
@@ -161,6 +167,8 @@ describe('selector, tetris, and puzzle bobble playlists + Tone synth SFX (#232, 
       expect(metrics.rms).toBeGreaterThan(0.1);
       expect(metrics.crossfadeCount).toBeGreaterThanOrEqual(1);
       expect(metrics.sfxLog).toEqual([
+        'countdown-tick',
+        'countdown-go',
         'bubble-shoot',
         'bubble-pop',
         'bubble-avalanche',

@@ -252,6 +252,8 @@ export class ToneMembraneSynth {
 }
 
 export type SfxEventName =
+  | 'countdown-tick'
+  | 'countdown-go'
   | 'bubble-shoot'
   | 'bubble-pop'
   | 'bubble-avalanche'
@@ -298,6 +300,21 @@ export class ArcadeSfx {
       poly: new TonePolySynth(ctx, output),
       membrane: new ToneMembraneSynth(ctx, output),
     };
+  }
+
+  /** Arcade / car-race 3, 2, 1 countdown beep and green-light launch tone (#252). */
+  playCountdown(step: number): void {
+    if (step > 0) {
+      const synths = this.recordAndReady('countdown-tick');
+      if (!synths) return;
+      synths.fm.triggerAttackRelease('A4', 0.16, 0, 0.28);
+      synths.poly.triggerAttackRelease(['A4', 'E5'], 0.14, 0, 0.22);
+      return;
+    }
+    const synths = this.recordAndReady('countdown-go');
+    if (!synths) return;
+    synths.fm.triggerAttackRelease('A5', 0.28, 0, 0.34);
+    synths.poly.triggerAttackRelease(['A5', 'C#6', 'E6', 'A6'], 0.3, 0, 0.28);
   }
 
   /** Puzzle Bobble: crisp upward chirp + membrane pop when firing a bubble. */

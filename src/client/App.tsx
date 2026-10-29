@@ -560,7 +560,7 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    setSharedGamePaused(false);
+    setSharedGamePaused(Boolean(appId && !getSharedNetplay().getState().activeRoom));
     getSharedNetplay().setCurrentApp(appId);
   }, [appId]);
 
@@ -570,6 +570,7 @@ export function App() {
   const appRegionRef = useRef<HTMLElement>(null);
   const panelOpenerRef = useRef<PanelOpener | null>(null);
   const deckSwipeStartRef = useRef<{ x: number; y: number } | null>(null);
+  const deckDidSwipeRef = useRef(false);
 
   const activeApp = canvasAppById(appId);
   const [slideIndex, setSlideIndex] = useState<number>(() => {
@@ -705,6 +706,9 @@ export function App() {
     window.history.pushState(null, '', routeUrl(null, window.location.pathname, id));
     setPanelOpen(false);
     setView({ name: 'list' });
+    if (id && !getSharedNetplay().getState().activeRoom) {
+      setSharedGamePaused(true);
+    }
     setAppId(id);
   }, []);
 
@@ -1123,8 +1127,28 @@ export function App() {
               data-testid="deck-slide-card"
               data-slide-id={currentSlide.id}
               data-slide-dir={slideDirection ?? 'none'}
-              aria-label={`${currentSlide.title} slide`}
+              role="button"
+              tabIndex={0}
+              aria-label={`Play ${currentSlide.title}`}
+              onClick={(event) => {
+                if (deckDidSwipeRef.current) {
+                  deckDidSwipeRef.current = false;
+                  return;
+                }
+                if ((event.target as HTMLElement | null)?.closest('.deck-nav')) {
+                  return;
+                }
+                openApp(currentSlide.id);
+              }}
+              onKeyDown={(event) => {
+                if (event.target !== event.currentTarget) return;
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  openApp(currentSlide.id);
+                }
+              }}
               onPointerDown={(event) => {
+                deckDidSwipeRef.current = false;
                 deckSwipeStartRef.current = { x: event.clientX, y: event.clientY };
                 setDeckDragOffsetX(0);
               }}
@@ -1145,6 +1169,7 @@ export function App() {
                 const dx = event.clientX - start.x;
                 const dy = event.clientY - start.y;
                 if (Math.abs(dx) >= 36 && Math.abs(dx) > Math.abs(dy) * 1.1) {
+                  deckDidSwipeRef.current = true;
                   stepSlide(dx < 0 ? 1 : -1);
                 }
               }}
@@ -1155,6 +1180,7 @@ export function App() {
               onTouchStart={(event) => {
                 const t = event.touches[0];
                 if (!t) return;
+                deckDidSwipeRef.current = false;
                 deckSwipeStartRef.current = { x: t.clientX, y: t.clientY };
                 setDeckDragOffsetX(0);
               }}
@@ -1177,6 +1203,7 @@ export function App() {
                 const dx = t.clientX - start.x;
                 const dy = t.clientY - start.y;
                 if (Math.abs(dx) >= 36 && Math.abs(dx) > Math.abs(dy) * 1.1) {
+                  deckDidSwipeRef.current = true;
                   stepSlide(dx < 0 ? 1 : -1);
                 }
               }}
@@ -1250,13 +1277,6 @@ export function App() {
                 )}
 
                 <div className="deck-slide-actions">
-                  <button
-                    type="button"
-                    className="deck-play-button"
-                    onClick={() => openApp(currentSlide.id)}
-                  >
-                    Play {currentSlide.title}
-                  </button>
                   <nav className="canvas-gallery deck-nav" aria-label="Canvas gallery" ref={deckNavRef}>
                     <button
                       type="button"

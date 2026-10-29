@@ -4,6 +4,7 @@ import { ArcadeSfx, type SfxEventName } from './toneSynth';
 type AudioContextConstructor = typeof AudioContext;
 
 export const CROSSFADE_SEC = 1.2;
+export const MUSIC_GAIN = 0.5;
 
 export interface AudioOutputMetrics {
   rms: number;
@@ -153,6 +154,7 @@ export class TetrisMusic {
     if (!this.audio) {
       this.audio = new Audio();
       this.audio.preload = 'auto';
+      this.audio.volume = MUSIC_GAIN;
       this.audio.addEventListener('ended', () => this.advance(false));
       this.audio.addEventListener('error', () => this.advance(false));
       this.advance(false);
@@ -337,7 +339,8 @@ export class TetrisMusic {
 
     try {
       const now = this.ctx.currentTime || 0;
-      const currentVal = typeof voice.gain.gain.value === 'number' ? voice.gain.gain.value : 1;
+      const currentVal =
+        typeof voice.gain.gain.value === 'number' ? voice.gain.gain.value : MUSIC_GAIN;
       voice.gain.gain.setValueAtTime(Math.max(0.0001, currentVal), now);
       voice.gain.gain.linearRampToValueAtTime(0.0001, now + fadeSec);
       this.fadingVoices.add(voice);
@@ -414,10 +417,10 @@ export class TetrisMusic {
       if (crossfade && typeof gainNode.gain?.setValueAtTime === 'function') {
         gainNode.gain.setValueAtTime(0.0001, now);
         if (typeof gainNode.gain.linearRampToValueAtTime === 'function') {
-          gainNode.gain.linearRampToValueAtTime(1.0, now + CROSSFADE_SEC);
+          gainNode.gain.linearRampToValueAtTime(MUSIC_GAIN, now + CROSSFADE_SEC);
         }
       } else if (typeof gainNode.gain?.setValueAtTime === 'function') {
-        gainNode.gain.setValueAtTime(1.0, now);
+        gainNode.gain.setValueAtTime(MUSIC_GAIN, now);
       }
       source.connect(gainNode);
       gainNode.connect(dest);
