@@ -263,15 +263,16 @@
         "v0.21.0": "510a9202557419d60a9fb3181bd63da323e9d4f5",
         "v0.21.1": "28418c70b998611d38473a311e737555facf66c1",
         "v0.22.0": "4cfc7cdd965af4321db6c2bece9c9ff52ef7f3e3",
-        "v0.22.1": "0c2b0735c7b79dab49ebc8f80d5d5e6c2cdd5e59"
+        "v0.22.1": "0c2b0735c7b79dab49ebc8f80d5d5e6c2cdd5e59",
+        "v0.22.2": "550bd5b839c00d1589243dd01435164a42c6ef9c"
       },
       "published": {
-        "tag": "v0.22.2",
-        "commit": "550bd5b839c00d1589243dd01435164a42c6ef9c",
-        "source_commit": "083e7291ade88d1fbde5dc08b803839578be8674",
-        "published_at": "2026-10-29T03:45:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-10-27-v0222.json",
-        "note": "Patch release. Enters games on the Game Menu first, always plays a car-race-style 3-2-1 plain-text countdown with sound effects, renders HURRY UP! in the center of the board, launches games by clicking anywhere on the selection card, and reduces background music volume by 50% relative to sound effects (#252, PR #253); deployed live to https://demo.yolo-dev.ai (Version ID: dd5b3955-d288-48dc-8b0b-04568c5ba2ce). Acceptance before tagging: 162 unit, 45 stubbed e2e passed, tsc clean. Acceptance on the delivered artifact: 11 of 11. The tag points at 550bd5b after the assets commit 3f14363; both build-ID files record 083e729."
+        "tag": "v0.22.3",
+        "commit": "5e9dd8d8ca8c4a2268404428d51c0b5885e15019",
+        "source_commit": "eb6fb529f7de7e1e36fb84e2c69486e1b2d61eb9",
+        "published_at": "2026-10-29T05:50:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-10-27-v0223.json",
+        "note": "Patch release. Eliminates idle 60fps full-tree React re-renders in Puzzle Bobble, memoizes settled SVG boards and opponent radars, deduplicates NetplayClient state updates and radar broadcasts, and throttles Durable Object SQLite persistence on high-frequency polls (#254, PR #255); deployed live to https://demo.yolo-dev.ai (Version ID: 4ad54243-363c-4127-806b-92010242904b). Acceptance before tagging: 162 unit, 45 stubbed e2e passed, tsc clean. Acceptance on the delivered artifact: 11 of 11. The tag points at 5e9dd8d after the assets commit 170c4ba; both build-ID files record eb6fb52."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -315,7 +316,8 @@
         ".yolo/reports/releases-observed-2026-10-27-v0211.json",
         ".yolo/reports/releases-observed-2026-10-27-v0220.json",
         ".yolo/reports/releases-observed-2026-10-27-v0221.json",
-        ".yolo/reports/releases-observed-2026-10-27-v0222.json"
+        ".yolo/reports/releases-observed-2026-10-27-v0222.json",
+        ".yolo/reports/releases-observed-2026-10-27-v0223.json"
       ]
     }
   },

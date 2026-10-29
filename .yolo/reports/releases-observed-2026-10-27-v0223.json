@@ -1,0 +1,62 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-27",
+  "observed_at": "2026-10-27",
+  "published_at_utc": "2026-10-29T05:50:00Z",
+  "protocol": {
+    "revision": "99aa6881f344da6ca6005f5516fb1112ab4caa23",
+    "release": "v0.1.0-alpha.43"
+  },
+  "releases": [
+    {
+      "tag": "v0.22.3",
+      "commit": "5e9dd8d8ca8c4a2268404428d51c0b5885e15019"
+    }
+  ],
+  "release": {
+    "tag": "v0.22.3",
+    "tag_object": "743e7821d71ca14590f30f1d0bbb96dfa5cf93c5",
+    "release_commit": "5e9dd8d8ca8c4a2268404428d51c0b5885e15019",
+    "source_commit": "eb6fb529f7de7e1e36fb84e2c69486e1b2d61eb9",
+    "assets_commit": "170c4bae9fa0b272fde350c535b4b72f1837ad15",
+    "semver": "patch",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record eb6fb52, the source revision. The committed assets were built at that source in 170c4ba. 5e9dd8d is the merge of release-metadata commit 6ffa3c9 after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "162 passed across 23 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID eb6fb52" },
+    { "check": "npm run e2e (stubbed, deterministic)", "result": "pass", "detail": "45 passed (44.3s)" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #255 completed success" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "installed_from": "npx --yes github:normzhou/yolo-blank-canvas#v0.22.3 --no-open --port 4892",
+    "installed_into": "an empty directory, no source checkout present",
+    "served_build": "eb6fb529f7de7e1e36fb84e2c69486e1b2d61eb9",
+    "served_version": {
+      "package": "0.22.3",
+      "serverBuild": "eb6fb529f7de7e1e36fb84e2c69486e1b2d61eb9",
+      "clientBuild": "eb6fb529f7de7e1e36fb84e2c69486e1b2d61eb9"
+    },
+    "command": "YOLO_VERIFY_URL=http://127.0.0.1:4892 npm run e2e:verify-release",
+    "result": "pass",
+    "detail": "11 of 11 passed (15.5s). Also deployed live to yolo-demo-app (Version ID: 4ad54243-363c-4127-806b-92010242904b) and verified at https://demo.yolo-dev.ai/__yolo/version (200 {\"version\":\"v0.22.3\"}) and https://demo.yolo-dev.ai/.build-id (200 eb6fb529f7de7e1e36fb84e2c69486e1b2d61eb9)."
+  },
+  "what_this_release_delivers": [
+    "#254 Eliminate idle 60fps full-tree React re-renders in Puzzle Bobble, memoize settled SVG boards and opponent radars, deduplicate NetplayClient state updates and radar broadcasts, and throttle Durable Object SQLite persistence on high-frequency polls"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "Acceptance on the delivered artifact is eleven targeted read-only checks. The 162 unit tests and 45 stubbed e2e tests ran against the source revision, not the installed artifact.",
+    "The tag points at 5e9dd8d, the merge of the release-metadata commit 6ffa3c9 after the assets commit 170c4ba, not at the assets commit itself. Both build-ID files still record the source eb6fb52, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #254"
+}

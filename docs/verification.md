@@ -4,6 +4,29 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Game Loop React/SVG Rendering & 2P Netplay Stack Performance Optimizations (#254) — 2026-10-27
+
+Source revision `eb6fb52` (the game loop React/SVG rendering and 2P netplay performance optimization commit); build and review evidence `170c4ba`; release commit `5e9dd8d`; published as `v0.22.3` on 2026-10-27.
+
+- **Eliminated Idle 60fps Full-Tree React Re-renders in Puzzle Bobble (`src/client/views/PuzzleBobbleView.tsx`):**
+  - Previously, the 16ms interval unconditionally called `tickShotTimers` and returned a new `PuzzleBobbleMatch` reference 60 times/sec even when no bubble was in flight and the visible `HURRY UP!` integer second had not changed, forcing React to re-render 176+ multi-node SVG bubbles and recompute aim raycasts 60 times/sec.
+  - Now only allocates a new React state reference on 16ms ticks when a bubble is actually flying (`player.flying !== null`) or when `shotTimerMs` crosses a visible 1-second `HURRY UP!` boundary or auto-fire threshold (cutting idle React renders from 60/sec to 0–1/sec).
+- **Memoized Expensive SVG Subtrees & Aim Raycasting (`src/client/views/PuzzleBobbleView.tsx`, `src/client/views/TetrisView.tsx`):**
+  - Memoized `aimGuidePoints` and `displayBoard`/`ghostPiece` with `useMemo`, and wrapped `SettledBubbleGridSvg`, `OpponentBubbleRadar`, `NextPreview`, and `OpponentTetrisRadar` in `React.memo`.
+- **Deduplicated Netplay State Updates & Radar Broadcasts (`src/client/netplay.ts`, `src/client/views/TetrisView.tsx`, `src/client/views/PuzzleBobbleView.tsx`):**
+  - Skipped notifying React listeners in `NetplayClient.updateState` when the reconciled netplay snapshot is structurally unchanged, guarded against overlapping `heartbeat()` polls, and skipped duplicate `tetris_state` / `pb_state` POSTs when the board digest is unchanged.
+- **Throttled Durable Object SQLite Persistence (`hosting/cloudflare/worker.mjs`):**
+  - Throttled `storage.put` writes on high-frequency `heartbeat` / `poll` and `tetris_state` / `pb_state` ticks so polls return from in-memory `NetplayHub` state without synchronous SQLite I/O on every tick.
+- `npm test`: 23 files, 162 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 45 passed.
+
+### Installed artifact (`v0.22.3`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.22.3 --no-open --port 4892` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `eb6fb52…`; the tagged package version is `0.22.3`. The tag points at release commit `5e9dd8d`, after the assets commit `170c4ba`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4892 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: 4ad54243-363c-4127-806b-92010242904b`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.22.3"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 eb6fb529f7de7e1e36fb84e2c69486e1b2d61eb9`). The report is [`.yolo/reports/releases-observed-2026-10-27-v0223.json`](../.yolo/reports/releases-observed-2026-10-27-v0223.json).
+
 ## Menu-on-Entry Flow, Car-Race 3-2-1 Plain Text Countdown with SFX, Centered HURRY UP Text, Whole-Card Deck Launch, and 50% Music Rebalance (#252) — 2026-10-27
 
 Source revision `083e729` (the menu-on-entry, car-race `3-2-1` countdown with SFX, centered `HURRY UP!` text, whole-card deck launch, and 50% music rebalance commit); build and review evidence `3f14363`; release commit `550bd5b`; published as `v0.22.2` on 2026-10-27.
