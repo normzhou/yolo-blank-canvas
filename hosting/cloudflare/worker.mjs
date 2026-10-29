@@ -58,8 +58,13 @@ export class NetplayHub {
     }
   }
 
-  async persist() {
+  async persist(force = true) {
     if (!this.ctx || !this.ctx.storage) return;
+    const now = Date.now();
+    if (!force && this.lastPersistedAt && now - this.lastPersistedAt < 2_500) {
+      return;
+    }
+    this.lastPersistedAt = now;
     try {
       await this.ctx.storage.put('netplay_state', {
         seq: this.seq,
@@ -220,6 +225,7 @@ export class NetplayHub {
 
     if (action === 'heartbeat' || action === 'poll') {
       const afterSeq = typeof body.afterSeq === 'number' ? Math.max(0, body.afterSeq) : 0;
+      let roomDissolved = false;
       if (player.roomId && this.rooms.has(player.roomId)) {
         const currentRoom = this.rooms.get(player.roomId);
         if (appId && currentRoom.gameId !== appId) {
@@ -231,11 +237,12 @@ export class NetplayHub {
               if (p.status === 'playing_2p') p.status = 'idle';
             }
           }
+          roomDissolved = true;
         } else {
           currentRoom.updatedAt = now;
         }
       }
-      await this.persist();
+      await this.persist(roomDissolved);
       return Response.json(this.snapshot(clientId, afterSeq), {headers: {'cache-control': 'no-store'}});
     }
 
@@ -371,7 +378,8 @@ export class NetplayHub {
       const room = roomId ? this.rooms.get(roomId) : null;
       if (!room) return Response.json({error: {kind: 'room_not_found', message: 'Match room ended.'}}, {status: 404, headers: {'cache-control': 'no-store'}});
       const kind = typeof body.kind === 'string' ? body.kind.slice(0, 40) : 'state';
-      if (kind === 'tetris_state' || kind === 'pb_state') {
+      const isRadarTick = kind === 'tetris_state' || kind === 'pb_state';
+      if (isRadarTick) {
         room.events = room.events.filter(ev => !(ev.senderId === clientId && ev.kind === kind));
       }
       const seq = room.nextSeq++;
@@ -379,7 +387,7 @@ export class NetplayHub {
       if (room.events.length > MAX_ROOM_EVENTS) room.events.splice(0, room.events.length - MAX_ROOM_EVENTS);
       room.updatedAt = now;
       const afterSeq = typeof body.afterSeq === 'number' ? body.afterSeq : seq - 1;
-      await this.persist();
+      await this.persist(!isRadarTick);
       return Response.json(this.snapshot(clientId, afterSeq), {headers: {'cache-control': 'no-store'}});
     }
 

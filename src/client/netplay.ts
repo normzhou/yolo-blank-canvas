@@ -255,7 +255,7 @@ class NetplayClient {
 
   private schedulePoll(): void {
     if (this.pollTimer !== null) window.clearTimeout(this.pollTimer);
-    const interval = this.state.activeRoom ? 220 : 1200;
+    const interval = this.state.activeRoom ? 280 : 1200;
     this.pollTimer = window.setTimeout(async () => {
       await this.heartbeat();
       this.schedulePoll();
@@ -275,8 +275,42 @@ class NetplayClient {
     }
   }
 
+  private lastStateDigest = '';
+
+  private computeStateDigest(s: NetplayState): string {
+    const rm = s.activeRoom;
+    const syncBucket =
+      rm && rm.syncStatus === 'paused'
+        ? Math.ceil((rm.syncRemainingMs ?? SYNC_TIMEOUT_MS) / 1000)
+        : 0;
+    return JSON.stringify({
+      c: s.clientId,
+      n: s.clientName,
+      oc: s.onlineCount,
+      p: s.players,
+      oi: s.openInvites,
+      mi: s.myPendingInvite,
+      r: rm
+        ? {
+            id: rm.id,
+            g: rm.gameId,
+            s: rm.seed,
+            st: rm.status,
+            ss: rm.syncStatus ?? 'ok',
+            sb: syncBucket,
+            lg: rm.laggingPlayerNames ?? [],
+            pl: rm.players,
+          }
+        : null,
+    });
+  }
+
   private updateState(partial: Partial<NetplayState>): void {
-    this.state = { ...this.state, ...partial };
+    const next: NetplayState = { ...this.state, ...partial };
+    const digest = this.computeStateDigest(next);
+    this.state = next;
+    if (digest === this.lastStateDigest) return;
+    this.lastStateDigest = digest;
     for (const listener of this.stateListeners) {
       listener(this.state);
     }
@@ -589,47 +623,55 @@ class NetplayClient {
     }
   }
 
+  private heartbeatInFlight = false;
+
   async heartbeat(): Promise<void> {
-    const status: NetplayPlayerStatus = this.state.activeRoom
-      ? 'playing_2p'
-      : this.state.myPendingInvite
-        ? 'inviting'
-        : 'idle';
-    this.broadcastLocal({
-      type: 'presence',
-      status,
-      appId: this.currentAppId,
-    });
-    const data = await this.postAction({ action: 'heartbeat', status });
-    if (data) {
-      this.localOfflineSince = null;
-      this.reconcileLocalState(data as never);
-    } else {
-      if (this.state.activeRoom && this.state.activeRoom.status === 'playing') {
-        if (!this.localOfflineSince) {
-          this.localOfflineSince = Date.now();
-        }
-        const elapsed = Math.max(0, Date.now() - this.localOfflineSince);
-        const remaining = Math.max(0, SYNC_TIMEOUT_MS - elapsed);
-        this.updateState({
-          activeRoom: {
-            ...this.state.activeRoom,
-            syncStatus: remaining <= 0 ? 'timeout' : 'paused',
-            syncRemainingMs: remaining,
-            laggingPlayerNames: [this.identity.name],
-          },
-        });
-        if (remaining <= 0) {
-          this.emitRoomEvent({
-            seq: ++this.localSeq,
-            senderId: this.identity.id,
-            kind: 'sync_timeout',
-            payload: { laggingPlayerNames: [this.identity.name] },
-            at: Date.now(),
+    if (this.heartbeatInFlight) return;
+    this.heartbeatInFlight = true;
+    try {
+      const status: NetplayPlayerStatus = this.state.activeRoom
+        ? 'playing_2p'
+        : this.state.myPendingInvite
+          ? 'inviting'
+          : 'idle';
+      this.broadcastLocal({
+        type: 'presence',
+        status,
+        appId: this.currentAppId,
+      });
+      const data = await this.postAction({ action: 'heartbeat', status });
+      if (data) {
+        this.localOfflineSince = null;
+        this.reconcileLocalState(data as never);
+      } else {
+        if (this.state.activeRoom && this.state.activeRoom.status === 'playing') {
+          if (!this.localOfflineSince) {
+            this.localOfflineSince = Date.now();
+          }
+          const elapsed = Math.max(0, Date.now() - this.localOfflineSince);
+          const remaining = Math.max(0, SYNC_TIMEOUT_MS - elapsed);
+          this.updateState({
+            activeRoom: {
+              ...this.state.activeRoom,
+              syncStatus: remaining <= 0 ? 'timeout' : 'paused',
+              syncRemainingMs: remaining,
+              laggingPlayerNames: [this.identity.name],
+            },
           });
+          if (remaining <= 0) {
+            this.emitRoomEvent({
+              seq: ++this.localSeq,
+              senderId: this.identity.id,
+              kind: 'sync_timeout',
+              payload: { laggingPlayerNames: [this.identity.name] },
+              at: Date.now(),
+            });
+          }
         }
+        this.reconcileLocalState();
       }
-      this.reconcileLocalState();
+    } finally {
+      this.heartbeatInFlight = false;
     }
   }
 
