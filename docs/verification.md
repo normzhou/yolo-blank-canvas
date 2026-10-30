@@ -4,6 +4,24 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Excited 2-Kid Duet Voices & Famous Game/Children's Melodies (#266) — 2026-10-27
+
+Source revision `2764302` (the excited 2-kid duet countdown voices and famous game/children's melody arrangements commit); build and review evidence `5a0b048`; release commit `9086e1b`; published as `v0.25.0` on 2026-10-27.
+
+- **Excited 2-Kid Duet Countdown Voices (`public/tetris/countdown-voices.m4a`):**
+  - Synthesized via Google Neural TTS + secondary voice timbre across all 10 languages, WSOLA time-stretched and pitch/formant-shifted into child registers (**Kid 1 / Bub** at `+4.4/+5.0` semitones at `0ms` and **Kid 2 / Bob** at `+6.3/+6.9` semitones offset by `195ms`) with dynamic excitement pitch contours so it sounds like two excited kids shouting `Ready…` / `Go!` (`预备…` / `齐！`, etc.) together.
+- **Original Tetris Themes Restored & World-Famous Melodies Arranged (`public/tetris/*.m4a`, `src/shared/tetrisMusic.ts`):**
+  - Restored original `korobeiniki.m4a` (*Korobeiniki Type A*) and `kalinka-troika.m4a` (*Kalinka & Troika Type B*) from `76afac0`, and replaced all self-composed tracks with faithful note-for-note transcriptions of world-famous classic, folk, ragtime, and children's melodies (*Bach Minuet in G*, *In the Hall of the Mountain King*, *Ode to Joy*, *Greensleeves*, *Scarborough Fair*, *Twinkle Twinkle Little Star*, *Yankee Doodle*, *The Entertainer*, *La Cucaracha*, *Over the Waves*, *Brahms' Lullaby*, *London Bridge*, *Mary Had a Little Lamb*, *Skip to My Lou*, *Frère Jacques*, *Oh! Susanna*, *Für Elise*, *Rondo Alla Turca*, *Dance of the Sugar Plum Fairy*, *Swan Lake*).
+- `npm test`: 23 files, 163 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 45 passed.
+
+### Installed artifact (`v0.25.0`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.25.0 --no-open --port 4898` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `2764302…`; the tagged package version is `0.25.0`. The tag points at release commit `9086e1b`, after the assets commit `5a0b048`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4898 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: ad6f1cea-6941-4ea6-8a74-23f05c9c8c38`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.25.0"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 2764302733aa25a9f40514cb2522479832298008`). The report is [`.yolo/reports/releases-observed-2026-10-27-v0250.json`](../.yolo/reports/releases-observed-2026-10-27-v0250.json).
+
 ## Puzzle Bobble First & Horizontal Carousel Indicator Dots (#264) — 2026-10-27
 
 Source revision `0d45589` (the Puzzle Bobble first and horizontal carousel indicator dots commit); build and review evidence `fd6a29e`; release commit `6f0cdaf`; published as `v0.24.1` on 2026-10-27.
