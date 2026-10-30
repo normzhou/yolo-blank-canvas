@@ -29,9 +29,9 @@ describe('canvas app registry', () => {
     expect(canvasAppById('')).toBeNull();
   });
 
-  it('starts with Tetris as the first canvas app and includes Puzzle Bobble', () => {
-    expect(CANVAS_APPS[0]?.id).toBe('tetris');
-    expect(CANVAS_APPS.map((app) => app.id)).toEqual(['tetris', 'puzzle-bobble']);
+  it('starts with Puzzle Bobble as the first canvas app and includes Tetris (#264)', () => {
+    expect(CANVAS_APPS[0]?.id).toBe('puzzle-bobble');
+    expect(CANVAS_APPS.map((app) => app.id)).toEqual(['puzzle-bobble', 'tetris']);
   });
 
   it('keeps the static Cloudflare Worker config and local shared-identity preview aligned (#199)', () => {

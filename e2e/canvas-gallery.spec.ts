@@ -29,12 +29,13 @@ test('the home gallery opens Tetris and the Pause Menu exits to the canvas (#237
 
     const gallery = page.getByRole('navigation', { name: 'Canvas gallery' });
     await gallery.getByRole('button', { name: 'Tetris', exact: true }).click();
+    await page.getByTestId('deck-slide-card').click();
 
     await expect(page).toHaveURL(/\?app=tetris$/);
     await expect(page.getByRole('heading', { name: 'Tetris' })).toBeVisible();
     await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
 
-    // Entering the game opens on the Game Menu first (#252); clicking Continue starts the 3, 2, 1 countdown.
+    // Entering the game opens on the Game Menu first (#252); clicking Continue starts the countdown.
     await expect(page.getByTestId('game-pause-menu')).toBeVisible();
     await page.getByTestId('pause-menu-resume').click();
     await expect(page.getByTestId('arcade-countdown')).toBeVisible();
@@ -61,6 +62,7 @@ test('an app is a cold deep link, and back returns to the canvas', async ({ page
     // real navigation instead of asserting that history invents a canvas.
     await page.goto(stub.base);
     await page.getByRole('button', { name: 'Tetris', exact: true }).click();
+    await page.getByTestId('deck-slide-card').click();
     await expect(page).toHaveURL(/\?app=tetris$/);
 
     // Evaluate in a task so the page's execution context survives the history
@@ -133,13 +135,13 @@ test('mobile horizontal swipe gesture flips the game deck (#239) and selector ca
     await page.goto(stub.base);
 
     const card = page.getByTestId('deck-slide-card');
-    await expect(card).toHaveAttribute('data-slide-id', 'tetris');
+    await expect(card).toHaveAttribute('data-slide-id', 'puzzle-bobble');
     await expect(page.getByTestId('deck-live-preview')).toHaveAttribute(
       'data-preview-game',
-      'tetris',
+      'puzzle-bobble',
     );
 
-    // Swipe left across the deck card -> flips to Puzzle Bobble and updates live preview.
+    // Swipe left across the deck card -> flips to Tetris and updates live preview.
     const box = await card.boundingBox();
     expect(box).not.toBeNull();
     await page.mouse.move(box!.x + box!.width * 0.8, box!.y + box!.height * 0.5);
@@ -147,10 +149,10 @@ test('mobile horizontal swipe gesture flips the game deck (#239) and selector ca
     await page.mouse.move(box!.x + box!.width * 0.2, box!.y + box!.height * 0.5);
     await page.mouse.up();
 
-    await expect(card).toHaveAttribute('data-slide-id', 'puzzle-bobble');
+    await expect(card).toHaveAttribute('data-slide-id', 'tetris');
     await expect(page.getByTestId('deck-live-preview')).toHaveAttribute(
       'data-preview-game',
-      'puzzle-bobble',
+      'tetris',
     );
   } finally {
     await closeStub(stub);
@@ -191,28 +193,25 @@ test('the tilde is not stolen from a text field', async ({ page }) => {
   }
 });
 
-test('the game slide deck flips between slides and launches active games (#187)', async ({
+test('the game slide deck flips between slides via carousel dots and launches active games (#187, #264)', async ({
   page,
 }) => {
   const stub = await startStubApp();
   try {
     await page.goto(stub.base);
     const card = page.getByTestId('deck-slide-card');
-    await expect(card).toHaveAttribute('data-slide-id', 'tetris');
-    await expect(page.getByRole('button', { name: 'Play Tetris', exact: true })).toBeVisible();
-
-    // Flip to the next slide on the home deck.
-    await page.getByRole('button', { name: 'Next slide' }).click();
     await expect(card).toHaveAttribute('data-slide-id', 'puzzle-bobble');
     await expect(page.getByRole('button', { name: 'Play Puzzle Bobble', exact: true })).toBeVisible();
 
-    // Flip back to the previous slide on the home deck, then forward again.
-    await page.getByRole('button', { name: 'Previous slide' }).click();
+    // Flip to the next slide (Tetris) using the horizontal carousel indicator dots (#264).
+    await page.getByTestId('carousel-dot-tetris').click();
     await expect(card).toHaveAttribute('data-slide-id', 'tetris');
-    await page.getByRole('button', { name: 'Next slide' }).click();
+    await expect(page.getByRole('button', { name: 'Play Tetris', exact: true })).toBeVisible();
+
+    // Flip back to Puzzle Bobble via carousel dot, then launch it by clicking the card.
+    await page.getByTestId('carousel-dot-puzzle-bobble').click();
     await expect(card).toHaveAttribute('data-slide-id', 'puzzle-bobble');
 
-    // Launch Puzzle Bobble directly from the slide deck card.
     await page.getByRole('button', { name: 'Play Puzzle Bobble', exact: true }).click();
     await expect(page).toHaveURL(/\?app=puzzle-bobble$/);
     await expect(page.getByRole('heading', { name: 'Puzzle Bobble' })).toBeVisible();
@@ -221,7 +220,7 @@ test('the game slide deck flips between slides and launches active games (#187)'
   }
 });
 
-test('stacked preview cards, directional slide animations, ambient visual effects, and keyboard navigation work on the home deck (#198)', async ({
+test('carousel indicator dots, directional slide animations, ambient visual effects, and keyboard navigation work on the home deck (#198, #264)', async ({
   page,
 }) => {
   const stub = await startStubApp();
@@ -230,30 +229,28 @@ test('stacked preview cards, directional slide animations, ambient visual effect
     await expect(page.getByTestId('canvas-ambient')).toBeVisible();
 
     const card = page.getByTestId('deck-slide-card');
-    const nextPreview = page.getByTestId('deck-preview-card-next');
-    const prevPreview = page.getByTestId('deck-preview-card-prev');
+    const pbDot = page.getByTestId('carousel-dot-puzzle-bobble');
+    const tetrisDot = page.getByTestId('carousel-dot-tetris');
 
-    await expect(card).toHaveAttribute('data-slide-id', 'tetris');
-    await expect(nextPreview).toHaveAttribute('data-preview-id', 'puzzle-bobble');
-    await expect(prevPreview).toHaveAttribute('data-preview-id', 'puzzle-bobble');
-
-    // Clicking the stacked next-preview card flips to Puzzle Bobble with 'next' direction.
-    await nextPreview.click();
     await expect(card).toHaveAttribute('data-slide-id', 'puzzle-bobble');
+    await expect(pbDot).toHaveAttribute('aria-current', 'true');
+    await expect(page.locator('.deck-slide-actions')).toHaveCount(0);
+
+    // Clicking the second carousel dot flips to Tetris with 'next' direction.
+    await tetrisDot.click();
+    await expect(card).toHaveAttribute('data-slide-id', 'tetris');
     await expect(card).toHaveAttribute('data-slide-dir', 'next');
     await expect(card).toHaveClass(/is-sliding-next/);
-    await expect(nextPreview).toHaveAttribute('data-preview-id', 'tetris');
+    await expect(tetrisDot).toHaveAttribute('aria-current', 'true');
 
-    // ArrowLeft flips back to Tetris with 'prev' direction.
+    // ArrowLeft flips back to Puzzle Bobble with 'prev' direction.
     await page.keyboard.press('ArrowLeft');
-    await expect(card).toHaveAttribute('data-slide-id', 'tetris');
+    await expect(card).toHaveAttribute('data-slide-id', 'puzzle-bobble');
     await expect(card).toHaveAttribute('data-slide-dir', 'prev');
     await expect(card).toHaveClass(/is-sliding-prev/);
 
-    // ArrowRight flips to Puzzle Bobble, and Enter launches it when focus is on the body.
+    // Enter launches Puzzle Bobble when focus is on the body.
     await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
-    await page.keyboard.press('ArrowRight');
-    await expect(card).toHaveAttribute('data-slide-id', 'puzzle-bobble');
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL(/\?app=puzzle-bobble$/);
     await expect(page.getByRole('heading', { name: 'Puzzle Bobble' })).toBeVisible();
@@ -281,6 +278,7 @@ test('static preview mode runs games cleanly without a startup error banner and 
     await expect(page.getByRole('alert')).toHaveCount(0);
 
     // Games launch and play normally in static preview mode.
+    await page.getByTestId('carousel-dot-tetris').click();
     await page.getByRole('button', { name: 'Play Tetris', exact: true }).click();
     await expect(page).toHaveURL(/\?app=tetris$/);
     await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();

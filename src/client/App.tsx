@@ -1275,87 +1275,37 @@ export function App() {
                     </div>
                   </div>
                 )}
-
-                <div className="deck-slide-actions">
-                  <nav className="canvas-gallery deck-nav" aria-label="Canvas gallery" ref={deckNavRef}>
-                    <button
-                      type="button"
-                      className="deck-step-btn"
-                      aria-label="Previous slide"
-                      title="Previous game slide"
-                      onClick={() => stepSlide(-1)}
-                    >
-                      ‹
-                    </button>
-                    {CANVAS_APPS.map((app, index) => (
-                      <button
-                        key={app.id}
-                        type="button"
-                        className={slideIndex === index ? 'deck-pill is-active' : 'deck-pill'}
-                        onClick={() => {
-                          if (index !== slideIndex) {
-                            setSlideDirection(index > slideIndex ? 'next' : 'prev');
-                            setSlideTick((t) => t + 1);
-                          }
-                          setSlideIndex(index);
-                          openApp(app.id);
-                        }}
-                        title={app.summary}
-                      >
-                        {app.title}
-                      </button>
-                    ))}
-                    <button
-                      type="button"
-                      className="deck-step-btn"
-                      aria-label="Next slide"
-                      title="Next game slide"
-                      onClick={() => stepSlide(1)}
-                    >
-                      ›
-                    </button>
-                  </nav>
-                </div>
               </div>
             </section>
 
-            {/* #198: Stacked depth & preview cards peeking underneath the active slide card */}
-            <button
-              type="button"
-              className="deck-stack-card is-next"
-              data-testid="deck-preview-card-next"
-              data-preview-id={nextSlide.id}
-              aria-label={`Stacked preview: ${nextSlide.title}`}
-              onClick={() => stepSlide(1)}
+            {/* #264: Standard horizontal carousel indicator dots at the bottom for mouse-driven navigation */}
+            <nav
+              className="canvas-gallery carousel-dots"
+              aria-label="Canvas gallery"
+              data-testid="carousel-dots"
+              ref={deckNavRef}
             >
-              <span className="deck-stack-peek">
-                <span className="deck-stack-peek-left">
-                  <span className="deck-stack-pill">
-                    Up next · 0{nextSlideIndex + 1} / 0{deckLen}
-                  </span>
-                  <span className="deck-stack-name">{nextSlide.title}</span>
-                  <span className="deck-stack-summary">{nextSlide.summary}</span>
-                </span>
-                <span className="deck-stack-cta">Flip →</span>
-              </span>
-            </button>
-
-            <button
-              type="button"
-              className="deck-stack-card is-prev"
-              data-testid="deck-preview-card-prev"
-              data-preview-id={prevSlide.id}
-              aria-label={`Stacked prior card: ${prevSlide.title}`}
-              onClick={() => stepSlide(-1)}
-            >
-              <span className="deck-stack-peek">
-                <span className="deck-stack-peek-left">
-                  <span className="deck-stack-pill">← Prev</span>
-                  <span className="deck-stack-name">{prevSlide.title}</span>
-                </span>
-                <span className="deck-stack-cta">← Flip</span>
-              </span>
-            </button>
+              {CANVAS_APPS.map((app, index) => (
+                <button
+                  key={app.id}
+                  type="button"
+                  className={slideIndex === index ? 'carousel-dot is-active' : 'carousel-dot'}
+                  data-testid={`carousel-dot-${app.id}`}
+                  aria-label={app.title}
+                  aria-current={slideIndex === index ? 'true' : undefined}
+                  title={app.title}
+                  onClick={() => {
+                    if (index !== slideIndex) {
+                      setSlideDirection(index > slideIndex ? 'next' : 'prev');
+                      setSlideTick((t) => t + 1);
+                      setSlideIndex(index);
+                    }
+                  }}
+                >
+                  <span className="sr-only">{app.title}</span>
+                </button>
+              ))}
+            </nav>
           </div>
         )}
       </main>

@@ -196,6 +196,9 @@ test('the released canvas gallery opens an app and keeps it under the palette', 
   }
 
   await gallery.getByRole('button', { name: 'Tetris', exact: true }).click();
+  if (!page.url().includes('?app=tetris')) {
+    await page.getByTestId('deck-slide-card').click();
+  }
   await expect(page).toHaveURL(/\?app=tetris$/);
   await expect(page.getByRole('heading', { name: 'Tetris' })).toBeVisible();
 
@@ -224,6 +227,9 @@ test('the released app carries the viewed app into feedback', async ({ page }) =
     test.skip(true, 'this release predates the canvas gallery (#165)');
   }
   await gallery.getByRole('button', { name: 'Tetris', exact: true }).click();
+  if (!page.url().includes('?app=tetris')) {
+    await page.getByTestId('deck-slide-card').click();
+  }
   await expect(page).toHaveURL(/\?app=tetris$/);
 
   const feedback = page.getByRole('button', { name: 'Feedback on Tetris' });
@@ -319,6 +325,9 @@ test('the released canvas gallery includes 2-player Puzzle Bobble with ASDF and 
   }
 
   await pbButton.click();
+  if (!page.url().includes('?app=puzzle-bobble')) {
+    await page.getByTestId('deck-slide-card').click();
+  }
   await expect(page).toHaveURL(/\?app=puzzle-bobble$/);
   await expect(page.getByRole('heading', { name: 'Puzzle Bobble' })).toBeVisible();
   await expect(page.getByRole('img', { name: 'Player 1 bubble board' })).toBeVisible();
