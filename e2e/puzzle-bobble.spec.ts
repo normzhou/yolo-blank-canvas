@@ -32,6 +32,10 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
     await expect(page.getByTestId('game-pause-menu')).toBeVisible();
     await page.getByTestId('pause-menu-resume').click();
     await expect(page.getByTestId('arcade-countdown')).toBeVisible();
+    await expect(page.getByTestId('arcade-countdown')).toHaveAttribute(
+      'data-lang',
+      /^(en|zh|hi|es|fr|ar|bn|pt|ru|ur)$/,
+    );
     const countdownBorderStyle = await page
       .locator('.arcade-countdown-digit')
       .evaluate((el) => getComputedStyle(el).borderStyle);

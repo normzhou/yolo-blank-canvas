@@ -2177,8 +2177,9 @@ button.pb-touch-fire {
   font-size: var(--text-display);
   font-weight: var(--weight-semibold);
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.08em;
-  transform: scale(2.4);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  transform: scale(1.65);
   text-shadow:
     -2px -2px 0 var(--cabinet-well),
     2px -2px 0 var(--cabinet-well),

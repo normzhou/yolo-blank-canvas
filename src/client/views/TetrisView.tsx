@@ -24,6 +24,10 @@ import {
   type NetplayState,
   type TetrisRadarSnapshot,
 } from '../netplay';
+import {
+  pickCountdownLanguage,
+  type CountdownLanguage,
+} from '../../shared/countdownLanguages';
 import { TETRIS_PLAYLIST } from '../../shared/tetrisMusic';
 import {
   BACKGROUNDS,
@@ -364,7 +368,10 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
   );
   const [roundOutcome, setRoundOutcome] = useState<'playing' | 'won' | 'lost'>('playing');
   const [wins, setWins] = useState<[number, number]>([0, 0]);
-  const [countdown, setCountdown] = useState<number>(3);
+  const [countdown, setCountdown] = useState<number>(2);
+  const [countdownLang, setCountdownLang] = useState<CountdownLanguage>(() =>
+    pickCountdownLanguage(),
+  );
   const [inviteSecondsLeft, setInviteSecondsLeft] = useState<number>(20);
   const touchSeenRef = useRef<boolean>(detectTouchAvailable());
   const [touchAvailable, setTouchAvailable] = useState<boolean>(() => touchSeenRef.current);
@@ -467,7 +474,8 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     setOpponentRadar(createInitialTetrisRadar());
     setRoundOutcome('playing');
     setSharedGamePaused(false);
-    setCountdown(3);
+    setCountdownLang(pickCountdownLanguage(mulberry32((seed ^ 0x5a5a5a5a) >>> 0)));
+    setCountdown(2);
     getSharedArcadeAudio().startNewGameTrack();
     if (resetTally) {
       setWins([0, 0]);
@@ -494,21 +502,16 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     return () => window.clearInterval(id);
   }, [netplay.myPendingInvite]);
 
-  // 3, 2, 1 car-race start countdown with sound effects (#248, #252, #256, #258: 2s per beat).
+  // "Ready…" -> "Go!" speaker-weighted 10-language start countdown with spoken voice audio (#262).
   useEffect(() => {
     if (countdown <= 0 || paused || isReadyCheck || isInviting || isNetworkPaused) return;
-    getSharedArcadeAudio().sfx.playCountdown(countdown);
+    const phase = countdown >= 2 ? 'ready' : 'go';
+    getSharedArcadeAudio().playCountdownPhrase(countdownLang, phase);
     const id = window.setTimeout(() => {
-      setCountdown((c) => {
-        const next = Math.max(0, c - 1);
-        if (next === 0) {
-          getSharedArcadeAudio().sfx.playCountdown(0);
-        }
-        return next;
-      });
+      setCountdown((c) => Math.max(0, c - 1));
     }, COUNTDOWN_BEAT_MS);
     return () => window.clearTimeout(id);
-  }, [countdown, paused, isReadyCheck, isInviting, isNetworkPaused]);
+  }, [countdown, countdownLang, paused, isReadyCheck, isInviting, isNetworkPaused]);
 
   useEffect(() => {
     const client = getSharedNetplay();
@@ -555,7 +558,8 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
       }
 
       if (event.kind === 'sync_resumed') {
-        setCountdown(3);
+        setCountdownLang(pickCountdownLanguage());
+        setCountdown(2);
         return;
       }
 
@@ -912,7 +916,9 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
       setGame(createGame(rngRef.current));
       setRoundOutcome('playing');
       setSharedGamePaused(false);
-      setCountdown(3);
+      setCountdownLang(pickCountdownLanguage());
+      setCountdown(2);
+      getSharedArcadeAudio().ensureContext();
       getSharedArcadeAudio().startNewGameTrack();
     }
   };
@@ -968,10 +974,14 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
             <div
               className="arcade-countdown-backdrop"
               data-testid="arcade-countdown"
+              data-lang={countdownLang.id}
+              data-phase={countdown >= 2 ? 'ready' : 'go'}
               role="status"
               aria-live="polite"
             >
-              <span className="arcade-countdown-digit">{countdown}</span>
+              <span className="arcade-countdown-digit">
+                {countdown >= 2 ? countdownLang.readyText : countdownLang.goText}
+              </span>
             </div>
           ) : null}
         </div>
@@ -1198,7 +1208,10 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
                 className="primary"
                 data-testid="pause-menu-resume"
                 aria-label="Continue game"
-                onClick={() => setSharedGamePaused(false)}
+                onClick={() => {
+                  getSharedArcadeAudio().ensureContext();
+                  setSharedGamePaused(false);
+                }}
               >
                 Continue
               </button>

@@ -25,6 +25,10 @@ import {
   type NetplayState,
   type PuzzleBobbleRadarSnapshot,
 } from '../netplay';
+import {
+  pickCountdownLanguage,
+  type CountdownLanguage,
+} from '../../shared/countdownLanguages';
 import { PUZZLE_BOBBLE_PLAYLIST } from '../../shared/tetrisMusic';
 import { BACKGROUNDS, nextBackgroundIndex } from '../../shared/tetrisBackgrounds';
 import {
@@ -1849,7 +1853,10 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
   const [opponentRadar, setOpponentRadar] = useState<PuzzleBobbleRadarSnapshot>(() =>
     createRadarFromBoard(match.players[0]),
   );
-  const [countdown, setCountdown] = useState<number>(3);
+  const [countdown, setCountdown] = useState<number>(2);
+  const [countdownLang, setCountdownLang] = useState<CountdownLanguage>(() =>
+    pickCountdownLanguage(),
+  );
   const [inviteSecondsLeft, setInviteSecondsLeft] = useState<number>(20);
 
   useEffect(() => {
@@ -1960,7 +1967,8 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         wins: resetWins ? [0, 0] : current.wins,
       }));
       setSharedGamePaused(false);
-      setCountdown(3);
+      setCountdownLang(pickCountdownLanguage(mulberry32((seed ^ 0x5a5a5a5a) >>> 0)));
+      setCountdown(2);
       getSharedArcadeAudio().startNewGameTrack();
     },
     [stagePreset],
@@ -1986,21 +1994,16 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     return () => window.clearInterval(id);
   }, [netplay.myPendingInvite]);
 
-  // 3, 2, 1 car-race start countdown with sound effects (#248, #252, #256, #258: 2s per beat).
+  // "Ready…" -> "Go!" speaker-weighted 10-language start countdown with spoken voice audio (#262).
   useEffect(() => {
     if (countdown <= 0 || paused || isReadyCheck || isInviting || isNetworkPaused) return;
-    getSharedArcadeAudio().sfx.playCountdown(countdown);
+    const phase = countdown >= 2 ? 'ready' : 'go';
+    getSharedArcadeAudio().playCountdownPhrase(countdownLang, phase);
     const id = window.setTimeout(() => {
-      setCountdown((c) => {
-        const next = Math.max(0, c - 1);
-        if (next === 0) {
-          getSharedArcadeAudio().sfx.playCountdown(0);
-        }
-        return next;
-      });
+      setCountdown((c) => Math.max(0, c - 1));
     }, COUNTDOWN_BEAT_MS);
     return () => window.clearTimeout(id);
-  }, [countdown, paused, isReadyCheck, isInviting, isNetworkPaused]);
+  }, [countdown, countdownLang, paused, isReadyCheck, isInviting, isNetworkPaused]);
 
   useEffect(() => {
     const client = getSharedNetplay();
@@ -2045,7 +2048,8 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
       }
 
       if (event.kind === 'sync_resumed') {
-        setCountdown(3);
+        setCountdownLang(pickCountdownLanguage());
+        setCountdown(2);
         return;
       }
 
@@ -2381,9 +2385,11 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
       });
       if (unpause) {
         setSharedGamePaused(false);
+        setCountdownLang(pickCountdownLanguage());
+        getSharedArcadeAudio().ensureContext();
         getSharedArcadeAudio().startNewGameTrack();
       }
-      setCountdown(3);
+      setCountdown(2);
       setBackgroundIndex((index) => nextBackgroundIndex(index));
     },
     [stagePreset],
@@ -2731,10 +2737,14 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         <div
           className="arcade-countdown-backdrop"
           data-testid="arcade-countdown"
+          data-lang={countdownLang.id}
+          data-phase={countdown >= 2 ? 'ready' : 'go'}
           role="status"
           aria-live="polite"
         >
-          <span className="arcade-countdown-digit">{countdown}</span>
+          <span className="arcade-countdown-digit">
+            {countdown >= 2 ? countdownLang.readyText : countdownLang.goText}
+          </span>
         </div>
       ) : null}
 
@@ -2974,7 +2984,10 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
                 className="primary"
                 data-testid="pause-menu-resume"
                 aria-label="Continue game"
-                onClick={() => setSharedGamePaused(false)}
+                onClick={() => {
+                  getSharedArcadeAudio().ensureContext();
+                  setSharedGamePaused(false);
+                }}
               >
                 Continue
               </button>
