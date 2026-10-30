@@ -141,6 +141,7 @@ test('a timing quoted inside a code example is not read as a reported timing', a
 test('Tetris: board renders, music toggles with a stable track label, scenes cycle on four-line clears', async ({ page, errors, snap }) => {
   await page.goto(stub.base);
   await page.getByRole('button', { name: 'Tetris', exact: true }).click();
+  await page.getByTestId('deck-slide-card').click();
   await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
   await expect(page.getByTestId('game-pause-menu')).toBeVisible();
   await page.getByTestId('pause-menu-resume').click();

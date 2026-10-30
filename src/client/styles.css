@@ -728,6 +728,50 @@ button.canvas-brand-button:hover {
 .deck-stack > .canvas-gallery {
   margin-bottom: var(--space-3);
 }
+.deck-stack > .carousel-dots {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: var(--space-4);
+  margin-bottom: 0;
+  padding: 6px 12px;
+  background: transparent;
+  border: none;
+}
+.carousel-dots button.carousel-dot {
+  width: 10px;
+  height: 10px;
+  min-width: 10px;
+  min-height: 10px;
+  padding: 0;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--muted);
+  opacity: 0.45;
+  cursor: pointer;
+  transition:
+    width 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease;
+}
+.carousel-dots button.carousel-dot:hover {
+  opacity: 0.85;
+  background: var(--text);
+  border-color: var(--text);
+}
+.carousel-dots button.carousel-dot.is-active {
+  width: 26px;
+  opacity: 1;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+@media (hover: none) and (pointer: coarse) {
+  .deck-stack > .carousel-dots {
+    display: none;
+  }
+}
 button.deck-stack-card {
   position: relative;
   width: 100%;

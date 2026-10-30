@@ -30,16 +30,16 @@ export type CanvasApp = {
 
 export const CANVAS_APPS: readonly CanvasApp[] = [
   {
-    id: 'tetris',
-    title: 'Tetris',
-    summary: 'Clear lines. The board is local to this view.',
-    element: TetrisView,
-  },
-  {
     id: 'puzzle-bobble',
     title: 'Puzzle Bobble',
     summary: '2-player Bust-A-Move bubble battle (ASDF vs Arrows). Local to this view.',
     element: PuzzleBobbleView,
+  },
+  {
+    id: 'tetris',
+    title: 'Tetris',
+    summary: 'Clear lines. The board is local to this view.',
+    element: TetrisView,
   },
 ];
 

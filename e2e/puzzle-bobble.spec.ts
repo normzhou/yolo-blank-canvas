@@ -19,8 +19,7 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
   const stub = await startStubApp();
   try {
     await page.goto(stub.base);
-    const gallery = page.getByRole('navigation', { name: 'Canvas gallery' });
-    await gallery.getByRole('button', { name: 'Puzzle Bobble', exact: true }).click();
+    await page.getByTestId('deck-slide-card').click();
 
     await expect(page).toHaveURL(/\?app=puzzle-bobble$/);
     await expect(page.getByRole('heading', { name: 'Puzzle Bobble' })).toBeVisible();
@@ -194,7 +193,7 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
     await page.getByRole('button', { name: 'Close Puzzle Bobble' }).click();
     await expect(page).toHaveURL((url) => url.pathname === '/' && url.search === '');
     await expect(page.getByRole('heading', { name: 'Blank canvas' })).toBeVisible();
-    await page.getByRole('button', { name: 'Previous slide' }).click();
+    await page.getByTestId('carousel-dot-tetris').click();
     await expect
       .poll(async () =>
         page.evaluate(() => {
