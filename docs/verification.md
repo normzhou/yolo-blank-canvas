@@ -4,6 +4,25 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## 2-Second-Per-Beat 3-2-1 Start Countdown & 2Hz Animated Opponent Mini-Radars (#256) — 2026-10-27
+
+Source revision `dd522a8` (the 2s countdown beats and 2Hz animated Opponent Mini-Radars commit); build and review evidence `588ac22`; release commit `864a0e2`; published as `v0.22.4` on 2026-10-27.
+
+- **2-Second-Per-Beat `3, 2, 1` Start Countdown (`src/client/views/TetrisView.tsx`, `src/client/views/PuzzleBobbleView.tsx`):**
+  - Increased each beat of the `3 → 2 → 1` car-race countdown to `2000ms` (2 seconds per number).
+- **2Hz (`500ms`) Live Aim & Moving-Block Updates + Smooth Opponent Mini-Radar Animations (`src/client/netplay.ts`, `src/client/views/PuzzleBobbleView.tsx`, `src/client/views/TetrisView.tsx`, `src/client/styles.css`):**
+  - **Puzzle Bobble**: Broadcasts live `pb_state` snapshots twice per second (`500ms`) including `aimAngle`, `flying` projectile state, and `lastEvent` (`popped`, `dropped`, `risenGarbage`). On the receiving `OpponentBubbleRadar`, smoothly interpolates the launcher aim needle (`pb-opponent-aim`) via CSS transform transitions and animates popped bubble bursts (`.pb-radar-pop-fx`), falling avalanche bubbles (`.pb-radar-drop-fx`), and rising bottom garbage bubbles (`.pb-rise-bubble`).
+  - **Tetris**: Broadcasts live `tetris_state` snapshots twice per second (`500ms`) as blocks move/rotate/fall, including `activePiece` coordinates and `lastEvent`. On the receiving `OpponentTetrisRadar`, smoothly interpolates the active falling tetromino position (`tetris-opponent-active-piece`) and animates line-clear flashes (`.is-clearing`) and rising garbage rows (`.is-rising-garbage`).
+- `npm test`: 23 files, 162 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 45 passed.
+
+### Installed artifact (`v0.22.4`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.22.4 --no-open --port 4893` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `dd522a8…`; the tagged package version is `0.22.4`. The tag points at release commit `864a0e2`, after the assets commit `588ac22`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4893 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: 60b9ce3c-78a7-4a27-b1e2-fcea4bbb1338`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.22.4"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 dd522a8cd1bc12ee3fed0b2c55690e8a7818b494`). The report is [`.yolo/reports/releases-observed-2026-10-27-v0224.json`](../.yolo/reports/releases-observed-2026-10-27-v0224.json).
+
 ## Game Loop React/SVG Rendering & 2P Netplay Stack Performance Optimizations (#254) — 2026-10-27
 
 Source revision `eb6fb52` (the game loop React/SVG rendering and 2P netplay performance optimization commit); build and review evidence `170c4ba`; release commit `5e9dd8d`; published as `v0.22.3` on 2026-10-27.

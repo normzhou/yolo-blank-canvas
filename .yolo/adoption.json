@@ -264,15 +264,16 @@
         "v0.21.1": "28418c70b998611d38473a311e737555facf66c1",
         "v0.22.0": "4cfc7cdd965af4321db6c2bece9c9ff52ef7f3e3",
         "v0.22.1": "0c2b0735c7b79dab49ebc8f80d5d5e6c2cdd5e59",
-        "v0.22.2": "550bd5b839c00d1589243dd01435164a42c6ef9c"
+        "v0.22.2": "550bd5b839c00d1589243dd01435164a42c6ef9c",
+        "v0.22.3": "5e9dd8d8ca8c4a2268404428d51c0b5885e15019"
       },
       "published": {
-        "tag": "v0.22.3",
-        "commit": "5e9dd8d8ca8c4a2268404428d51c0b5885e15019",
-        "source_commit": "eb6fb529f7de7e1e36fb84e2c69486e1b2d61eb9",
-        "published_at": "2026-10-29T05:50:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-10-27-v0223.json",
-        "note": "Patch release. Eliminates idle 60fps full-tree React re-renders in Puzzle Bobble, memoizes settled SVG boards and opponent radars, deduplicates NetplayClient state updates and radar broadcasts, and throttles Durable Object SQLite persistence on high-frequency polls (#254, PR #255); deployed live to https://demo.yolo-dev.ai (Version ID: 4ad54243-363c-4127-806b-92010242904b). Acceptance before tagging: 162 unit, 45 stubbed e2e passed, tsc clean. Acceptance on the delivered artifact: 11 of 11. The tag points at 5e9dd8d after the assets commit 170c4ba; both build-ID files record eb6fb52."
+        "tag": "v0.22.4",
+        "commit": "864a0e26b4b116d7e6ac67734029def9bf92bb07",
+        "source_commit": "dd522a8cd1bc12ee3fed0b2c55690e8a7818b494",
+        "published_at": "2026-10-29T07:10:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-10-27-v0224.json",
+        "note": "Patch release. Slows the 3, 2, 1 car-race countdown to 2 seconds per beat and adds 2Hz (500ms) live 2P radar updates with smooth CSS transitions for opponent aiming, moving tetrominoes, popped/dropped bubbles, line clears, and rising garbage (#256, PR #257); deployed live to https://demo.yolo-dev.ai (Version ID: 60b9ce3c-78a7-4a27-b1e2-fcea4bbb1338). Acceptance before tagging: 162 unit, 45 stubbed e2e passed, tsc clean. Acceptance on the delivered artifact: 11 of 11. The tag points at 864a0e2 after the assets commit 588ac22; both build-ID files record dd522a8."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -317,7 +318,8 @@
         ".yolo/reports/releases-observed-2026-10-27-v0220.json",
         ".yolo/reports/releases-observed-2026-10-27-v0221.json",
         ".yolo/reports/releases-observed-2026-10-27-v0222.json",
-        ".yolo/reports/releases-observed-2026-10-27-v0223.json"
+        ".yolo/reports/releases-observed-2026-10-27-v0223.json",
+        ".yolo/reports/releases-observed-2026-10-27-v0224.json"
       ]
     }
   },

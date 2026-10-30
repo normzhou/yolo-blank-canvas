@@ -1,0 +1,62 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-27",
+  "observed_at": "2026-10-27",
+  "published_at_utc": "2026-10-29T07:10:00Z",
+  "protocol": {
+    "revision": "99aa6881f344da6ca6005f5516fb1112ab4caa23",
+    "release": "v0.1.0-alpha.43"
+  },
+  "releases": [
+    {
+      "tag": "v0.22.4",
+      "commit": "864a0e26b4b116d7e6ac67734029def9bf92bb07"
+    }
+  ],
+  "release": {
+    "tag": "v0.22.4",
+    "tag_object": "b92fc22b1bdaecf28914c431bed262cf51be437f",
+    "release_commit": "864a0e26b4b116d7e6ac67734029def9bf92bb07",
+    "source_commit": "dd522a8cd1bc12ee3fed0b2c55690e8a7818b494",
+    "assets_commit": "588ac22f53c01156d5d3dff9476178e4a56b3c20",
+    "semver": "patch",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record dd522a8, the source revision. The committed assets were built at that source in 588ac22. 864a0e2 is the merge of release-metadata commit 2261c4c after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "162 passed across 23 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID dd522a8" },
+    { "check": "npm run e2e (stubbed, deterministic)", "result": "pass", "detail": "45 passed (49.8s)" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #257 completed success" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "installed_from": "npx --yes github:normzhou/yolo-blank-canvas#v0.22.4 --no-open --port 4893",
+    "installed_into": "an empty directory, no source checkout present",
+    "served_build": "dd522a8cd1bc12ee3fed0b2c55690e8a7818b494",
+    "served_version": {
+      "package": "0.22.4",
+      "serverBuild": "dd522a8cd1bc12ee3fed0b2c55690e8a7818b494",
+      "clientBuild": "dd522a8cd1bc12ee3fed0b2c55690e8a7818b494"
+    },
+    "command": "YOLO_VERIFY_URL=http://127.0.0.1:4893 npm run e2e:verify-release",
+    "result": "pass",
+    "detail": "11 of 11 passed (26.0s). Also deployed live to yolo-demo-app (Version ID: 60b9ce3c-78a7-4a27-b1e2-fcea4bbb1338) and verified at https://demo.yolo-dev.ai/__yolo/version (200 {\"version\":\"v0.22.4\"}) and https://demo.yolo-dev.ai/.build-id (200 dd522a8cd1bc12ee3fed0b2c55690e8a7818b494)."
+  },
+  "what_this_release_delivers": [
+    "#256 2-second-per-beat 3-2-1 start countdown and 2Hz (500ms) live 2P radar updates with smooth aim, moving-block, bubble pop/drop, line-clear, and rising-garbage animations"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "Acceptance on the delivered artifact is eleven targeted read-only checks. The 162 unit tests and 45 stubbed e2e tests ran against the source revision, not the installed artifact.",
+    "The tag points at 864a0e2, the merge of the release-metadata commit 2261c4c after the assets commit 588ac22, not at the assets commit itself. Both build-ID files still record the source dd522a8, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #256"
+}
