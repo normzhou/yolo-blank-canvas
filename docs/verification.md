@@ -4,6 +4,25 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Pause Menu Keyboard Navigation & Every-Level Ready… Go! Countdowns (#268) — 2026-10-27
+
+Source revision `6078b33` (the Pause Menu keyboard navigation and every-level/round countdown commit); build and review evidence `78ce4e1`; release commit `d1fc909`; published as `v0.25.1` on 2026-10-27.
+
+- **Pause Menu Keyboard Navigation & Escape Pause (`src/client/views/TetrisView.tsx`, `src/client/views/PuzzleBobbleView.tsx`, `src/client/styles.css`):**
+  - Adds a keyboard-highlighted selection state (`data-menu-focused="true"`, `.is-menu-focused`) across all enabled buttons in `game-pause-menu` (defaults to **Continue** when opening), navigable with `ArrowUp`/`ArrowDown`/`ArrowLeft`/`ArrowRight` (and `W`/`A`/`S`/`D`), and activated with `Space` or `Enter`.
+  - Pressing `Escape` toggles game pause without exiting the game.
+- **Countdown on Every New Level / Round (`src/client/views/PuzzleBobbleView.tsx`, `src/client/views/TetrisView.tsx`):**
+  - Guarantees that clearing a solo level and advancing to the next stage, starting a new round in 1P / 2P Local / 2P Online, or clicking Next Round / Rematch / New Game always triggers a fresh speaker-weighted `"Ready…" → "Go!"` countdown with spoken voice audio and input lock.
+- `npm test`: 23 files, 163 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 45 passed.
+
+### Installed artifact (`v0.25.1`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.25.1 --no-open --port 4899` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `6078b33…`; the tagged package version is `0.25.1`. The tag points at release commit `d1fc909`, after the assets commit `78ce4e1`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4899 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: 3d20cdc5-6aa0-4c97-8dfc-1582de9b4af4`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.25.1"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 6078b33f3e999bb36266e1e7a8752b3e933bc9f9`). The report is [`.yolo/reports/releases-observed-2026-10-27-v0251.json`](../.yolo/reports/releases-observed-2026-10-27-v0251.json).
+
 ## Excited 2-Kid Duet Voices & Famous Game/Children's Melodies (#266) — 2026-10-27
 
 Source revision `2764302` (the excited 2-kid duet countdown voices and famous game/children's melody arrangements commit); build and review evidence `5a0b048`; release commit `9086e1b`; published as `v0.25.0` on 2026-10-27.

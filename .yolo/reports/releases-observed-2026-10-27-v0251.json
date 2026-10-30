@@ -1,0 +1,62 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-27",
+  "observed_at": "2026-10-27",
+  "published_at_utc": "2026-10-30T08:05:00Z",
+  "protocol": {
+    "revision": "99aa6881f344da6ca6005f5516fb1112ab4caa23",
+    "release": "v0.1.0-alpha.43"
+  },
+  "releases": [
+    {
+      "tag": "v0.25.1",
+      "commit": "d1fc9099b8024f8d8e24beae75e93f889954e521"
+    }
+  ],
+  "release": {
+    "tag": "v0.25.1",
+    "tag_object": "235d922321fa270b46f034ca51b2c7825d63dd68",
+    "release_commit": "d1fc9099b8024f8d8e24beae75e93f889954e521",
+    "source_commit": "6078b33f3e999bb36266e1e7a8752b3e933bc9f9",
+    "assets_commit": "78ce4e1cfbb9a85621cdc264b9bf48f505ef8b82",
+    "semver": "patch",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record 6078b33, the source revision. The committed assets were built at that source in 78ce4e1. d1fc909 is the merge of release-metadata commit eb61afe after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "163 passed across 23 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID 6078b33" },
+    { "check": "npm run e2e (stubbed, deterministic)", "result": "pass", "detail": "45 passed (53.3s)" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #269 completed success" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "installed_from": "npx --yes github:normzhou/yolo-blank-canvas#v0.25.1 --no-open --port 4899",
+    "installed_into": "an empty directory, no source checkout present",
+    "served_build": "6078b33f3e999bb36266e1e7a8752b3e933bc9f9",
+    "served_version": {
+      "package": "0.25.1",
+      "serverBuild": "6078b33f3e999bb36266e1e7a8752b3e933bc9f9",
+      "clientBuild": "6078b33f3e999bb36266e1e7a8752b3e933bc9f9"
+    },
+    "command": "YOLO_VERIFY_URL=http://127.0.0.1:4899 npm run e2e:verify-release",
+    "result": "pass",
+    "detail": "11 of 11 passed (20.6s). Also deployed live to yolo-demo-app (Version ID: 3d20cdc5-6aa0-4c97-8dfc-1582de9b4af4) and verified at https://demo.yolo-dev.ai/__yolo/version (200 {\"version\":\"v0.25.1\"}) and https://demo.yolo-dev.ai/.build-id (200 6078b33f3e999bb36266e1e7a8752b3e933bc9f9)."
+  },
+  "what_this_release_delivers": [
+    "#268 Keyboard-navigable Pause Menu (Arrow/WASD highlight + Space/Enter accept + Escape pause) and Ready/Go countdown on every new level/round"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "Acceptance on the delivered artifact is eleven targeted read-only checks. The 163 unit tests and 45 stubbed e2e tests ran against the source revision, not the installed artifact.",
+    "The tag points at d1fc909, the merge of the release-metadata commit eb61afe after the assets commit 78ce4e1, not at the assets commit itself. Both build-ID files still record the source 6078b33, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #268"
+}

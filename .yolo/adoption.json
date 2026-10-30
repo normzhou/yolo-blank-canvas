@@ -270,15 +270,16 @@
         "v0.23.0": "6a949b6a7e392aa14f745eebfa9ae8db37b5a6d6",
         "v0.23.1": "aecb8cba7ff3c6dcadf80acadd291d09b66bc298",
         "v0.24.0": "fa6be5791c3092aff7b0e451a2796d49d9826768",
-        "v0.24.1": "6f0cdaf06d0822ba86625c622cc14a0edb4a55b1"
+        "v0.24.1": "6f0cdaf06d0822ba86625c622cc14a0edb4a55b1",
+        "v0.25.0": "9086e1b2b670dd204f58a0e794acfd56ca44c4ec"
       },
       "published": {
-        "tag": "v0.25.0",
-        "commit": "9086e1b2b670dd204f58a0e794acfd56ca44c4ec",
-        "source_commit": "2764302733aa25a9f40514cb2522479832298008",
-        "published_at": "2026-10-30T07:10:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-10-27-v0250.json",
-        "note": "Minor release. Upgrades the 10-language countdown voices to an excited 2-kid duet (+4.4/+6.3 st pitched & 195ms offset), restores original Tetris themes, and replaces all self-composed tracks with faithful note-for-note arrangements of world-famous classic, folk, ragtime, and children's melodies (#266, PR #267); deployed live to https://demo.yolo-dev.ai (Version ID: ad6f1cea-6941-4ea6-8a74-23f05c9c8c38). Acceptance before tagging: 163 unit, 45 stubbed e2e passed, tsc clean. Acceptance on the delivered artifact: 11 of 11. The tag points at 9086e1b after the assets commit 5a0b048; both build-ID files record 2764302."
+        "tag": "v0.25.1",
+        "commit": "d1fc9099b8024f8d8e24beae75e93f889954e521",
+        "source_commit": "6078b33f3e999bb36266e1e7a8752b3e933bc9f9",
+        "published_at": "2026-10-30T08:05:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-10-27-v0251.json",
+        "note": "Patch release. Adds keyboard navigation (Arrow/WASD highlight + Space/Enter accept + Escape pause) on the Pause Menu and guarantees a fresh Ready… -> Go! countdown on every new level and round (#268, PR #269); deployed live to https://demo.yolo-dev.ai (Version ID: 3d20cdc5-6aa0-4c97-8dfc-1582de9b4af4). Acceptance before tagging: 163 unit, 45 stubbed e2e passed, tsc clean. Acceptance on the delivered artifact: 11 of 11. The tag points at d1fc909 after the assets commit 78ce4e1; both build-ID files record 6078b33."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -329,7 +330,8 @@
         ".yolo/reports/releases-observed-2026-10-27-v0231.json",
         ".yolo/reports/releases-observed-2026-10-27-v0240.json",
         ".yolo/reports/releases-observed-2026-10-27-v0241.json",
-        ".yolo/reports/releases-observed-2026-10-27-v0250.json"
+        ".yolo/reports/releases-observed-2026-10-27-v0250.json",
+        ".yolo/reports/releases-observed-2026-10-27-v0251.json"
       ]
     }
   },
