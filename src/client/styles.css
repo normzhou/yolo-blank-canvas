@@ -2348,6 +2348,13 @@ button.pb-touch-fire {
   font-size: var(--text-base);
   font-weight: var(--weight-semibold);
 }
+.game-pause-menu button.is-menu-focused,
+.game-pause-menu button[data-menu-focused='true'] {
+  outline: 2px solid var(--tetromino-o);
+  outline-offset: 2px;
+  border-color: var(--tetromino-o);
+  box-shadow: 0 0 0 3px var(--accent-weak);
+}
 .pb-side {
   width: var(--pb-side-w);
   min-width: var(--pb-side-w);

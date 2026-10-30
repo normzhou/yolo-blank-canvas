@@ -1854,9 +1854,11 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     createRadarFromBoard(match.players[0]),
   );
   const [countdown, setCountdown] = useState<number>(2);
+  const [countdownKey, setCountdownKey] = useState<number>(0);
   const [countdownLang, setCountdownLang] = useState<CountdownLanguage>(() =>
     pickCountdownLanguage(),
   );
+  const pauseMenuRef = useRef<HTMLDivElement | null>(null);
   const [inviteSecondsLeft, setInviteSecondsLeft] = useState<number>(20);
 
   useEffect(() => {
@@ -1941,6 +1943,16 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     return () => window.clearInterval(id);
   }, [isOnline2P, isReadyCheck, isNetworkPaused, match.status]);
 
+  const triggerFreshCountdown = useCallback(
+    (lang: CountdownLanguage = pickCountdownLanguage()) => {
+      countdownRef.current = 2;
+      setCountdownLang(lang);
+      setCountdown(2);
+      setCountdownKey((k) => k + 1);
+    },
+    [],
+  );
+
   const startOnlineRoundWithSeed = useCallback(
     (seed: number, resetWins = false, preset = stagePreset) => {
       const rng = mulberry32(seed);
@@ -1967,11 +1979,10 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         wins: resetWins ? [0, 0] : current.wins,
       }));
       setSharedGamePaused(false);
-      setCountdownLang(pickCountdownLanguage(mulberry32((seed ^ 0x5a5a5a5a) >>> 0)));
-      setCountdown(2);
+      triggerFreshCountdown(pickCountdownLanguage(mulberry32((seed ^ 0x5a5a5a5a) >>> 0)));
       getSharedArcadeAudio().startNewGameTrack();
     },
-    [stagePreset],
+    [stagePreset, triggerFreshCountdown],
   );
 
   // 20-second invite countdown timer (#248).
@@ -1994,7 +2005,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     return () => window.clearInterval(id);
   }, [netplay.myPendingInvite]);
 
-  // "Ready…" -> "Go!" speaker-weighted 10-language start countdown with spoken voice audio (#262).
+  // "Ready…" -> "Go!" speaker-weighted 10-language start countdown with spoken voice audio (#262, #268).
   useEffect(() => {
     if (countdown <= 0 || paused || isReadyCheck || isInviting || isNetworkPaused) return;
     const phase = countdown >= 2 ? 'ready' : 'go';
@@ -2003,7 +2014,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
       setCountdown((c) => Math.max(0, c - 1));
     }, COUNTDOWN_BEAT_MS);
     return () => window.clearTimeout(id);
-  }, [countdown, countdownLang, paused, isReadyCheck, isInviting, isNetworkPaused]);
+  }, [countdown, countdownKey, countdownLang, paused, isReadyCheck, isInviting, isNetworkPaused]);
 
   useEffect(() => {
     const client = getSharedNetplay();
@@ -2048,8 +2059,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
       }
 
       if (event.kind === 'sync_resumed') {
-        setCountdownLang(pickCountdownLanguage());
-        setCountdown(2);
+        triggerFreshCountdown();
         return;
       }
 
@@ -2200,6 +2210,12 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
             setMatch((cur) => (cur.status === 'round_over' ? cur : resolveMatchOutcome(cur, 0)));
           }
           void getSharedNetplay().sendRoomEvent('pb_state', createRadarFromBoard(p));
+        } else if (!isOnline2P && match.mode === '1p' && ev.clearBonus > 0) {
+          // Solo level cleared -> advancing to the next stage! Trigger a fresh Ready… -> Go! countdown (#268).
+          sfx.playRoundEnd(true);
+          triggerFreshCountdown();
+          setBackgroundIndex((idx) => nextBackgroundIndex(idx));
+          getSharedArcadeAudio().startNewGameTrack();
         }
       } else if (!ev) {
         prevEventIdsRef.current[i] = 0;
@@ -2272,10 +2288,32 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
   useEffect(() => {
     function onInstantResolve(event: Event) {
       const detail = (
-        event as CustomEvent<{ player?: 0 | 1; preventPop?: boolean; forceClusterPop?: boolean }>
+        event as CustomEvent<{
+          player?: 0 | 1;
+          preventPop?: boolean;
+          forceClusterPop?: boolean;
+          clearStage?: boolean;
+        }>
       ).detail;
       const idx: 0 | 1 = detail?.player === 1 ? 1 : 0;
       setMatch((current) => {
+        if (detail?.clearStage) {
+          const target = current.players[idx];
+          if (target) {
+            const emptyGrid = target.grid.map((r) => r.map(() => null as BubbleColor | null));
+            const color = target.currentBubble;
+            emptyGrid[0][3] = color;
+            emptyGrid[0][4] = color;
+            const updatedTarget: PlayerBoardState = { ...target, aimAngle: 0, grid: emptyGrid };
+            const nextPlayers =
+              current.players.length === 1
+                ? ([updatedTarget] as [PlayerBoardState])
+                : idx === 0
+                  ? ([updatedTarget, current.players[1]] as [PlayerBoardState, PlayerBoardState])
+                  : ([current.players[0], updatedTarget] as [PlayerBoardState, PlayerBoardState]);
+            return fireAndResolvePlayer({ ...current, players: nextPlayers }, idx);
+          }
+        }
         if (detail?.forceClusterPop) {
           const target = current.players[idx];
           if (target) {
@@ -2370,6 +2408,9 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
 
   const startNewRound = useCallback(
     (mode: '2p' | '1p', keepWins = true, preset = stagePreset, unpause = true) => {
+      prevShotsRef.current = [0, 0];
+      prevEventIdsRef.current = [0, 0];
+      prevMatchStatusRef.current = 'playing';
       setMatch((current) => {
         const wins: [number, number] = keepWins ? current.wins : [0, 0];
         if (preset > 0) {
@@ -2383,16 +2424,15 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         }
         return createMatch(mode, Math.random, wins);
       });
+      triggerFreshCountdown();
       if (unpause) {
         setSharedGamePaused(false);
-        setCountdownLang(pickCountdownLanguage());
         getSharedArcadeAudio().ensureContext();
         getSharedArcadeAudio().startNewGameTrack();
       }
-      setCountdown(2);
       setBackgroundIndex((index) => nextBackgroundIndex(index));
     },
-    [stagePreset],
+    [stagePreset, triggerFreshCountdown],
   );
 
   // #212, #222: Enforce 1-Player mode on phone viewports while allowing
@@ -2433,6 +2473,25 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     heldAimKeysRef.current.delete(keyId);
   }, []);
 
+  // Highlight Continue button when Pause Menu opens (#268).
+  useEffect(() => {
+    if (!paused || isReadyCheck || isInviting || isNetworkPaused) return;
+    const menu = pauseMenuRef.current;
+    if (!menu) return;
+    const buttons = Array.from(menu.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'));
+    const resumeIdx = buttons.findIndex((b) => b.dataset.testid === 'pause-menu-resume');
+    const targetIdx = resumeIdx >= 0 ? resumeIdx : 0;
+    buttons.forEach((btn, i) => {
+      if (i === targetIdx) {
+        btn.setAttribute('data-menu-focused', 'true');
+        btn.classList.add('is-menu-focused');
+      } else {
+        btn.removeAttribute('data-menu-focused');
+        btn.classList.remove('is-menu-focused');
+      }
+    });
+  }, [paused, isReadyCheck, isInviting, isNetworkPaused]);
+
   // Smooth 60fps aiming + keyboard controls:
   // - Single tap steps by `AIM_STEP_DEG = 0.5°` for high-precision bank shots.
   // - Holding an aim key glides smoothly every frame (`requestAnimationFrame`),
@@ -2446,7 +2505,73 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
       if (event.metaKey || event.ctrlKey || event.altKey) return;
       if (event.key === 'Escape') {
         event.preventDefault();
+        event.stopPropagation();
         toggleSharedGamePaused();
+        return;
+      }
+      if (paused && !isReadyCheck && !isInviting && !isNetworkPaused) {
+        const menu = pauseMenuRef.current;
+        if (!menu) return;
+        const buttons = Array.from(menu.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'));
+        if (buttons.length === 0) return;
+        const currentIdx = Math.max(
+          0,
+          buttons.findIndex((b) => b.getAttribute('data-menu-focused') === 'true'),
+        );
+        if (
+          event.key === 'ArrowDown' ||
+          event.key === 'ArrowRight' ||
+          event.key === 's' ||
+          event.key === 'S' ||
+          event.key === 'd' ||
+          event.key === 'D'
+        ) {
+          event.preventDefault();
+          event.stopPropagation();
+          const nextIdx = (currentIdx + 1) % buttons.length;
+          buttons.forEach((btn, i) => {
+            if (i === nextIdx) {
+              btn.setAttribute('data-menu-focused', 'true');
+              btn.classList.add('is-menu-focused');
+              btn.focus();
+            } else {
+              btn.removeAttribute('data-menu-focused');
+              btn.classList.remove('is-menu-focused');
+            }
+          });
+          getSharedArcadeAudio().sfx.playRotate();
+          return;
+        }
+        if (
+          event.key === 'ArrowUp' ||
+          event.key === 'ArrowLeft' ||
+          event.key === 'w' ||
+          event.key === 'W' ||
+          event.key === 'a' ||
+          event.key === 'A'
+        ) {
+          event.preventDefault();
+          event.stopPropagation();
+          const prevIdx = (currentIdx - 1 + buttons.length) % buttons.length;
+          buttons.forEach((btn, i) => {
+            if (i === prevIdx) {
+              btn.setAttribute('data-menu-focused', 'true');
+              btn.classList.add('is-menu-focused');
+              btn.focus();
+            } else {
+              btn.removeAttribute('data-menu-focused');
+              btn.classList.remove('is-menu-focused');
+            }
+          });
+          getSharedArcadeAudio().sfx.playRotate();
+          return;
+        }
+        if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+          event.preventDefault();
+          event.stopPropagation();
+          buttons[currentIdx]?.click();
+          return;
+        }
         return;
       }
       if (
@@ -2866,6 +2991,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
             aria-modal="true"
             aria-label="Game paused"
             data-testid="game-pause-menu"
+            ref={pauseMenuRef}
           >
             <span className="game-pause-kicker">Puzzle Bobble</span>
             <h3 className="game-pause-title">Paused</h3>

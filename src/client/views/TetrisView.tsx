@@ -369,9 +369,11 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
   const [roundOutcome, setRoundOutcome] = useState<'playing' | 'won' | 'lost'>('playing');
   const [wins, setWins] = useState<[number, number]>([0, 0]);
   const [countdown, setCountdown] = useState<number>(2);
+  const [countdownKey, setCountdownKey] = useState<number>(0);
   const [countdownLang, setCountdownLang] = useState<CountdownLanguage>(() =>
     pickCountdownLanguage(),
   );
+  const pauseMenuRef = useRef<HTMLDivElement | null>(null);
   const [inviteSecondsLeft, setInviteSecondsLeft] = useState<number>(20);
   const touchSeenRef = useRef<boolean>(detectTouchAvailable());
   const [touchAvailable, setTouchAvailable] = useState<boolean>(() => touchSeenRef.current);
@@ -464,23 +466,35 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     return () => window.clearInterval(id);
   }, [isOnline2P, isReadyCheck, isNetworkPaused, roundOutcome]);
 
-  const startOnlineRoundWithSeed = useCallback((seed: number, resetTally = false) => {
-    rngRef.current = mulberry32(seed);
-    const fresh = createGame(rngRef.current);
-    prevLinesRef.current = 0;
-    prevStatusRef.current = 'playing';
-    prevLockIdRef.current = 0;
-    setGame(fresh);
-    setOpponentRadar(createInitialTetrisRadar());
-    setRoundOutcome('playing');
-    setSharedGamePaused(false);
-    setCountdownLang(pickCountdownLanguage(mulberry32((seed ^ 0x5a5a5a5a) >>> 0)));
-    setCountdown(2);
-    getSharedArcadeAudio().startNewGameTrack();
-    if (resetTally) {
-      setWins([0, 0]);
-    }
-  }, []);
+  const triggerFreshCountdown = useCallback(
+    (lang: CountdownLanguage = pickCountdownLanguage()) => {
+      countdownRef.current = 2;
+      setCountdownLang(lang);
+      setCountdown(2);
+      setCountdownKey((k) => k + 1);
+    },
+    [],
+  );
+
+  const startOnlineRoundWithSeed = useCallback(
+    (seed: number, resetTally = false) => {
+      rngRef.current = mulberry32(seed);
+      const fresh = createGame(rngRef.current);
+      prevLinesRef.current = 0;
+      prevStatusRef.current = 'playing';
+      prevLockIdRef.current = 0;
+      setGame(fresh);
+      setOpponentRadar(createInitialTetrisRadar());
+      setRoundOutcome('playing');
+      setSharedGamePaused(false);
+      triggerFreshCountdown(pickCountdownLanguage(mulberry32((seed ^ 0x5a5a5a5a) >>> 0)));
+      getSharedArcadeAudio().startNewGameTrack();
+      if (resetTally) {
+        setWins([0, 0]);
+      }
+    },
+    [triggerFreshCountdown],
+  );
 
   // 20-second invite countdown timer (#248).
   useEffect(() => {
@@ -502,7 +516,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     return () => window.clearInterval(id);
   }, [netplay.myPendingInvite]);
 
-  // "Ready…" -> "Go!" speaker-weighted 10-language start countdown with spoken voice audio (#262).
+  // "Ready…" -> "Go!" speaker-weighted 10-language start countdown with spoken voice audio (#262, #268).
   useEffect(() => {
     if (countdown <= 0 || paused || isReadyCheck || isInviting || isNetworkPaused) return;
     const phase = countdown >= 2 ? 'ready' : 'go';
@@ -511,7 +525,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
       setCountdown((c) => Math.max(0, c - 1));
     }, COUNTDOWN_BEAT_MS);
     return () => window.clearTimeout(id);
-  }, [countdown, countdownLang, paused, isReadyCheck, isInviting, isNetworkPaused]);
+  }, [countdown, countdownKey, countdownLang, paused, isReadyCheck, isInviting, isNetworkPaused]);
 
   useEffect(() => {
     const client = getSharedNetplay();
@@ -558,8 +572,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
       }
 
       if (event.kind === 'sync_resumed') {
-        setCountdownLang(pickCountdownLanguage());
-        setCountdown(2);
+        triggerFreshCountdown();
         return;
       }
 
@@ -744,12 +757,98 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     return () => window.clearInterval(id);
   }, [paused, game.level, matchEnded, isReadyCheck, isInviting, isNetworkPaused, countdown]);
 
-  // Keyboard controls: arrows move/rotate/soft-drop, space hard-drops, Escape toggles Pause Menu (#237).
+  // Highlight Continue button when Pause Menu opens (#268).
+  useEffect(() => {
+    if (!paused || isReadyCheck || isInviting || isNetworkPaused) return;
+    const menu = pauseMenuRef.current;
+    if (!menu) return;
+    const buttons = Array.from(menu.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'));
+    const resumeIdx = buttons.findIndex((b) => b.dataset.testid === 'pause-menu-resume');
+    const targetIdx = resumeIdx >= 0 ? resumeIdx : 0;
+    buttons.forEach((btn, i) => {
+      if (i === targetIdx) {
+        btn.setAttribute('data-menu-focused', 'true');
+        btn.classList.add('is-menu-focused');
+      } else {
+        btn.removeAttribute('data-menu-focused');
+        btn.classList.remove('is-menu-focused');
+      }
+    });
+  }, [paused, isReadyCheck, isInviting, isNetworkPaused]);
+
+  // Keyboard controls: arrows move/rotate/soft-drop, space hard-drops, Escape toggles Pause Menu (#237, #268).
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
       if (event.key === 'Escape') {
         event.preventDefault();
+        event.stopPropagation();
         toggleSharedGamePaused();
+        return;
+      }
+      if (paused && !isReadyCheck && !isInviting && !isNetworkPaused) {
+        const menu = pauseMenuRef.current;
+        if (!menu) return;
+        const buttons = Array.from(menu.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'));
+        if (buttons.length === 0) return;
+        const currentIdx = Math.max(
+          0,
+          buttons.findIndex((b) => b.getAttribute('data-menu-focused') === 'true'),
+        );
+        if (
+          event.key === 'ArrowDown' ||
+          event.key === 'ArrowRight' ||
+          event.key === 's' ||
+          event.key === 'S' ||
+          event.key === 'd' ||
+          event.key === 'D'
+        ) {
+          event.preventDefault();
+          event.stopPropagation();
+          const nextIdx = (currentIdx + 1) % buttons.length;
+          buttons.forEach((btn, i) => {
+            if (i === nextIdx) {
+              btn.setAttribute('data-menu-focused', 'true');
+              btn.classList.add('is-menu-focused');
+              btn.focus();
+            } else {
+              btn.removeAttribute('data-menu-focused');
+              btn.classList.remove('is-menu-focused');
+            }
+          });
+          getSharedArcadeAudio().sfx.playRotate();
+          return;
+        }
+        if (
+          event.key === 'ArrowUp' ||
+          event.key === 'ArrowLeft' ||
+          event.key === 'w' ||
+          event.key === 'W' ||
+          event.key === 'a' ||
+          event.key === 'A'
+        ) {
+          event.preventDefault();
+          event.stopPropagation();
+          const prevIdx = (currentIdx - 1 + buttons.length) % buttons.length;
+          buttons.forEach((btn, i) => {
+            if (i === prevIdx) {
+              btn.setAttribute('data-menu-focused', 'true');
+              btn.classList.add('is-menu-focused');
+              btn.focus();
+            } else {
+              btn.removeAttribute('data-menu-focused');
+              btn.classList.remove('is-menu-focused');
+            }
+          });
+          getSharedArcadeAudio().sfx.playRotate();
+          return;
+        }
+        if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+          event.preventDefault();
+          event.stopPropagation();
+          buttons[currentIdx]?.click();
+          return;
+        }
         return;
       }
       if (
@@ -916,8 +1015,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
       setGame(createGame(rngRef.current));
       setRoundOutcome('playing');
       setSharedGamePaused(false);
-      setCountdownLang(pickCountdownLanguage());
-      setCountdown(2);
+      triggerFreshCountdown();
       getSharedArcadeAudio().ensureContext();
       getSharedArcadeAudio().startNewGameTrack();
     }
@@ -1156,6 +1254,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
             aria-modal="true"
             aria-label="Game paused"
             data-testid="game-pause-menu"
+            ref={pauseMenuRef}
           >
             <span className="game-pause-kicker">Tetris</span>
             <h3 className="game-pause-title">Paused</h3>
@@ -1168,7 +1267,16 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
                   onClick={() => {
                     if (isOnline2P) void getSharedNetplay().leaveRoom();
                     if (isInviting) void getSharedNetplay().cancelInvite();
+                    rngRef.current = Math.random;
+                    prevLinesRef.current = 0;
+                    prevStatusRef.current = 'playing';
+                    prevLockIdRef.current = 0;
+                    setGame(createGame(rngRef.current));
+                    setRoundOutcome('playing');
                     setSharedGamePaused(false);
+                    triggerFreshCountdown();
+                    getSharedArcadeAudio().ensureContext();
+                    getSharedArcadeAudio().startNewGameTrack();
                   }}
                 >
                   1 Player
