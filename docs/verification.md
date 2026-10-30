@@ -4,6 +4,30 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Touch-Only Puzzle Bobble Aiming, Strict Countdown Input Lock, Louder SFX / Softer Music, Stop Track on Game End + New Track on New Game, and Closed-Loop Multi-Genre/Meter Music Composition (#258) — 2026-10-27
+
+Source revision `dac2b99` (the touch-only Puzzle Bobble, strict countdown lock, audio balance/lifecycle, and closed-loop multi-genre/meter composition commit); build and review evidence `63e1a8d`; release commit `6a949b6`; published as `v0.23.0` on 2026-10-27.
+
+- **Touch-Only Direct Aim & Shoot in Puzzle Bobble (`src/client/views/PuzzleBobbleView.tsx`):**
+  - Removed the on-screen virtual touch button bar (`p1-touch-controls` / `p2-touch-controls`) so touch play is purely direct screen touch/drag-to-aim and release-to-shoot.
+- **Louder Sound Effects & Softer Background Music (`src/client/audio/tetrisMusic.ts`, `src/client/audio/toneSynth.ts`):**
+  - Lowered `MUSIC_GAIN` to `0.22` and boosted `ArcadeSfx` synth velocities (`0.55–0.85`).
+- **Strict Countdown Input Lock (`src/client/views/TetrisView.tsx`, `src/client/views/PuzzleBobbleView.tsx`):**
+  - Blocked all gameplay inputs (keyboard, pointer drag/tap, and touch buttons) while `countdown > 0` until the `3, 2, 1` countdown finishes.
+- **Stop Soundtrack on Game End + Start New Track on New Game:**
+  - Stops the background music track immediately and plays the game-over / round-end sound effect when a game or round ends; calls `startNewGameTrack()` when a new game or round starts.
+- **Closed-Loop Multi-Genre & Multi-Meter Music Composition (`public/tetris/*.m4a`):**
+  - Preserved `korobeiniki.m4a` (4/4 A Minor) and composed/verified 11 tracks across F Dorian Jazz Lounge (`5/4`), D Lydian Bossa (`4/4`), A Harmonic Minor / C Major Folk (`6/8`), B Harmonic Minor Baroque Counterpoint (`3/4`), E Phrygian Dominant Prog-FM (`7/8`), E Aeolian / C Lydian Space Waltz (`6/8`), F Major Compound March (`6/8`), G Mixolydian Calypso (`4/4`), Eb Major Music-Box Waltz (`3/4`), Bb Major Ragtime Bounce (`5/4`), and A Major Shibuya-Kei J-Pop (`4/4`).
+- `npm test`: 23 files, 162 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 45 passed.
+
+### Installed artifact (`v0.23.0`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.23.0 --no-open --port 4894` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `dac2b99…`; the tagged package version is `0.23.0`. The tag points at release commit `6a949b6`, after the assets commit `63e1a8d`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4894 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: dbd0a19e-8478-467f-aa7a-f921ba3d511a`) and verified at `https://demo.yolo-dev.ai/.build-id` (`200 dac2b99872f5eca887f5170db7fdf7bdd4a81f98`). The report is [`.yolo/reports/releases-observed-2026-10-27-v0230.json`](../.yolo/reports/releases-observed-2026-10-27-v0230.json).
+
 ## 2-Second-Per-Beat 3-2-1 Start Countdown & 2Hz Animated Opponent Mini-Radars (#256) — 2026-10-27
 
 Source revision `dd522a8` (the 2s countdown beats and 2Hz animated Opponent Mini-Radars commit); build and review evidence `588ac22`; release commit `864a0e2`; published as `v0.22.4` on 2026-10-27.
