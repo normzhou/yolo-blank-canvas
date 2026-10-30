@@ -1,3 +1,8 @@
+import {
+  COUNTDOWN_VOICE_SLOT_SEC,
+  COUNTDOWN_VOICE_SPRITE_SRC,
+  type CountdownLanguage,
+} from '../../shared/countdownLanguages';
 import { PLAYLIST, shuffledTracks, type Track } from '../../shared/tetrisMusic';
 import { ArcadeSfx, type SfxEventName } from './toneSynth';
 
@@ -50,7 +55,7 @@ export class TetrisMusic {
   private pendingLoads = new Map<string, Promise<AudioBuffer | null>>();
   private audio: HTMLAudioElement | null = null;
   private active = false;
-  private sfxEnabled = false;
+  private sfxEnabled = true;
   private queue: Track[] = [];
   private currentTrack: Track | null = null;
   private lastTrackId: string | null = null;
@@ -143,6 +148,11 @@ export class TetrisMusic {
         if (!this.currentTrack) {
           this.advance(false);
         }
+        void this.loadBuffer({
+          id: '__countdown_voices__',
+          title: 'Countdown Voices',
+          src: COUNTDOWN_VOICE_SPRITE_SRC,
+        });
         return true;
       } catch {
         this.ctx = null;
@@ -231,6 +241,74 @@ export class TetrisMusic {
     this.pauseOffset = 0;
     if (this.ctx || this.audio) {
       this.advance(this.active && this.currentVoice !== null);
+    }
+  }
+
+  /**
+   * Plays the spoken voice audio of the selected language's "Ready…" or "Go!"
+   * phrase from `public/tetris/countdown-voices.m4a` (with Web Speech API fallback)
+   * alongside the arcade countdown chime (#262).
+   */
+  playCountdownPhrase(lang: CountdownLanguage, phase: 'ready' | 'go'): void {
+    this.sfx.playCountdown(phase === 'ready' ? 2 : 0);
+    if (!this.sfxEnabled) return;
+
+    const spriteTrack: Track = {
+      id: '__countdown_voices__',
+      title: 'Countdown Voices',
+      src: COUNTDOWN_VOICE_SPRITE_SRC,
+    };
+    const slotIndex = lang.spriteIndex * 2 + (phase === 'go' ? 1 : 0);
+    const offsetSec = slotIndex * COUNTDOWN_VOICE_SLOT_SEC;
+    const durSec = COUNTDOWN_VOICE_SLOT_SEC - 0.08;
+
+    if (this.ctx) {
+      void this.loadBuffer(spriteTrack).then((buffer) => {
+        if (!buffer || !this.ctx || !this.sfxEnabled) return;
+        try {
+          if (this.ctx.state !== 'running' && typeof this.ctx.resume === 'function') {
+            void this.ctx.resume().catch(() => undefined);
+          }
+          const src = this.ctx.createBufferSource();
+          src.buffer = buffer;
+          const dest = this.analyser ?? this.ctx.destination;
+          if (typeof this.ctx.createGain === 'function') {
+            const g = this.ctx.createGain();
+            g.gain.setValueAtTime(0.95, this.ctx.currentTime || 0);
+            src.connect(g);
+            g.connect(dest);
+          } else {
+            src.connect(dest);
+          }
+          if (offsetSec < buffer.duration) {
+            src.start(0, offsetSec, Math.min(durSec, Math.max(0.05, buffer.duration - offsetSec)));
+          } else {
+            // Unit-test stubbed AudioBuffers may have duration < offsetSec
+            src.start(0);
+          }
+        } catch {
+          // Ignore playback error on closed context.
+        }
+      });
+      return;
+    }
+
+    if (
+      typeof window !== 'undefined' &&
+      'speechSynthesis' in window &&
+      typeof SpeechSynthesisUtterance !== 'undefined'
+    ) {
+      try {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(
+          (phase === 'ready' ? lang.readyText : lang.goText).replace(/[…!¡]/g, '').trim(),
+        );
+        u.lang = lang.bcp47;
+        u.rate = 1.05;
+        window.speechSynthesis.speak(u);
+      } catch {
+        // Ignore if speechSynthesis is unavailable.
+      }
     }
   }
 

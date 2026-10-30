@@ -2,6 +2,12 @@ import { describe, expect, it, vi } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import {
+  COUNTDOWN_LANGUAGES,
+  COUNTDOWN_VOICE_SPRITE_SRC,
+  TOTAL_COUNTDOWN_SPEAKERS_MILLIONS,
+  pickCountdownLanguage,
+} from '../src/shared/countdownLanguages';
+import {
   PLAYLIST,
   PUZZLE_BOBBLE_PLAYLIST,
   SELECTOR_PLAYLIST,
@@ -11,9 +17,36 @@ import {
 } from '../src/shared/tetrisMusic';
 import { MUSIC_GAIN, TetrisMusic } from '../src/client/audio/tetrisMusic';
 
-describe('selector, tetris, and puzzle bobble playlists + Tone synth SFX (#232, #234, #252, #258)', () => {
+describe('selector, tetris, and puzzle bobble playlists + Tone synth SFX (#232, #234, #252, #258, #262)', () => {
   it('reduces background music gain to 0.22 so sound effects stand out clearly (#252, #258)', () => {
     expect(MUSIC_GAIN).toBe(0.22);
+  });
+
+  it('samples Ready/Go countdown phrases across the 10 most spoken languages weighted by speaker count (#262)', () => {
+    expect(COUNTDOWN_LANGUAGES).toHaveLength(10);
+    expect(TOTAL_COUNTDOWN_SPEAKERS_MILLIONS).toBe(5433);
+    expect(COUNTDOWN_LANGUAGES[0]).toMatchObject({
+      id: 'en',
+      readyText: 'READY…',
+      goText: 'GO!',
+    });
+    expect(COUNTDOWN_LANGUAGES[1]).toMatchObject({
+      id: 'zh',
+      readyText: '预备…',
+      goText: '齐！',
+    });
+
+    // Verify exact speaker-ratio quantile boundaries
+    expect(pickCountdownLanguage(() => 0.0).id).toBe('en');
+    expect(pickCountdownLanguage(() => 1514 / 5433).id).toBe('en');
+    expect(pickCountdownLanguage(() => 1516 / 5433).id).toBe('zh');
+    expect(pickCountdownLanguage(() => (1515 + 1140 + 1) / 5433).id).toBe('hi');
+    expect(pickCountdownLanguage(() => 0.999).id).toBe('ur');
+
+    // Verify bundled 10-language spoken voice sprite exists under public/
+    const voiceFile = path.resolve(__dirname, '../public', COUNTDOWN_VOICE_SPRITE_SRC);
+    expect(fs.existsSync(voiceFile)).toBe(true);
+    expect(fs.statSync(voiceFile).size).toBeGreaterThan(50_000);
   });
 
   it('offers distinct, game-specific playlists for Selector Screen, Tetris, and Puzzle Bobble', () => {
