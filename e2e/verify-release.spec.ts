@@ -328,6 +328,7 @@ test('the released canvas gallery includes 2-player Puzzle Bobble with ASDF and 
   if ((await pauseResume.count()) > 0) {
     await pauseResume.click();
   }
+  await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 6000 });
 
   await page.keyboard.press('d');
   await expect(page.getByTestId('p1-aim')).toHaveText(/^\+(?:0\.5|3)°$/);

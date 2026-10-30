@@ -11,9 +11,9 @@ import {
 } from '../src/shared/tetrisMusic';
 import { MUSIC_GAIN, TetrisMusic } from '../src/client/audio/tetrisMusic';
 
-describe('selector, tetris, and puzzle bobble playlists + Tone synth SFX (#232, #234, #252)', () => {
-  it('reduces background music gain by 50% (0.5) so sound effects stand out clearly (#252)', () => {
-    expect(MUSIC_GAIN).toBe(0.5);
+describe('selector, tetris, and puzzle bobble playlists + Tone synth SFX (#232, #234, #252, #258)', () => {
+  it('reduces background music gain to 0.22 so sound effects stand out clearly (#252, #258)', () => {
+    expect(MUSIC_GAIN).toBe(0.22);
   });
 
   it('offers distinct, game-specific playlists for Selector Screen, Tetris, and Puzzle Bobble', () => {

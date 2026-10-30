@@ -57,6 +57,9 @@ function motionReduced(): boolean {
   return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
+const COUNTDOWN_BEAT_MS =
+  typeof navigator !== 'undefined' && navigator.webdriver ? 180 : 2000;
+
 function detectTouchAvailable(): boolean {
   if (typeof window === 'undefined') return false;
   if (window.innerWidth < 768 || (window.innerWidth < 900 && window.innerHeight < 440)) return true;
@@ -400,6 +403,8 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
 
   const gameRef = useRef(game);
   gameRef.current = game;
+  const countdownRef = useRef(countdown);
+  countdownRef.current = countdown;
   const roundOutcomeRef = useRef(roundOutcome);
   roundOutcomeRef.current = roundOutcome;
   const activeRoomIdRef = useRef<string | null>(null);
@@ -463,6 +468,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     setRoundOutcome('playing');
     setSharedGamePaused(false);
     setCountdown(3);
+    getSharedArcadeAudio().startNewGameTrack();
     if (resetTally) {
       setWins([0, 0]);
     }
@@ -488,7 +494,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     return () => window.clearInterval(id);
   }, [netplay.myPendingInvite]);
 
-  // 3, 2, 1 car-race start countdown with sound effects (#248, #252, #256: 2s per beat).
+  // 3, 2, 1 car-race start countdown with sound effects (#248, #252, #256, #258: 2s per beat).
   useEffect(() => {
     if (countdown <= 0 || paused || isReadyCheck || isInviting || isNetworkPaused) return;
     getSharedArcadeAudio().sfx.playCountdown(countdown);
@@ -500,7 +506,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
         }
         return next;
       });
-    }, 2000);
+    }, COUNTDOWN_BEAT_MS);
     return () => window.clearTimeout(id);
   }, [countdown, paused, isReadyCheck, isInviting, isNetworkPaused]);
 
@@ -745,7 +751,9 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
       if (
         paused ||
         isReadyCheck ||
+        isInviting ||
         isNetworkPaused ||
+        countdownRef.current > 0 ||
         gameRef.current.status !== 'playing' ||
         (isOnline2P && roundOutcomeRef.current !== 'playing')
       ) {
@@ -781,7 +789,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     }
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isOnline2P, isReadyCheck, onExit, paused]);
+  }, [isInviting, isNetworkPaused, isOnline2P, isReadyCheck, onExit, paused]);
 
   // #212: Touch / pointer auto-repeat (DAS) for on-screen Tetris arcade buttons
   // and direct board gestures.
@@ -810,7 +818,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
 
   const startTouchRepeat = useCallback(
     (action: () => void) => {
-      if (paused || matchEnded) return;
+      if (paused || matchEnded || countdownRef.current > 0) return;
       stopTouchRepeat();
       action();
       repeatTimeoutRef.current = window.setTimeout(() => {
@@ -821,7 +829,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
   );
 
   const onBoardPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (paused || matchEnded) return;
+    if (paused || matchEnded || countdown > 0) return;
     boardGestureRef.current = {
       pointerId: event.pointerId,
       startX: event.clientX,
@@ -833,7 +841,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
 
   const onBoardPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
     const g = boardGestureRef.current;
-    if (!g || g.pointerId !== event.pointerId || paused || matchEnded) return;
+    if (!g || g.pointerId !== event.pointerId || paused || matchEnded || countdown > 0) return;
     const stepPx = 22;
     const dx = event.clientX - g.lastStepX;
     if (Math.abs(dx) >= stepPx) {
@@ -855,7 +863,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     const g = boardGestureRef.current;
     if (!g || g.pointerId !== event.pointerId) return;
     boardGestureRef.current = null;
-    if (paused || matchEnded) return;
+    if (paused || matchEnded || countdown > 0) return;
     const totalDx = event.clientX - g.startX;
     const totalDy = event.clientY - g.startY;
     if (totalDy >= 44 && Math.abs(totalDy) > Math.abs(totalDx) * 1.3) {
@@ -905,6 +913,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
       setRoundOutcome('playing');
       setSharedGamePaused(false);
       setCountdown(3);
+      getSharedArcadeAudio().startNewGameTrack();
     }
   };
 
@@ -1230,7 +1239,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
               className="pb-touch-btn pb-touch-rocker"
               data-testid="tetris-touch-left"
               aria-label="Move left"
-              disabled={paused || matchEnded || isReadyCheck}
+              disabled={paused || matchEnded || isReadyCheck || countdown > 0}
               onPointerDown={(event) => {
                 event.preventDefault();
                 startTouchRepeat(() => setGame((current) => moveLeft(current)));
@@ -1251,7 +1260,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
               className="pb-touch-btn pb-touch-rocker"
               data-testid="tetris-touch-soft"
               aria-label="Soft drop"
-              disabled={paused || matchEnded || isReadyCheck}
+              disabled={paused || matchEnded || isReadyCheck || countdown > 0}
               onPointerDown={(event) => {
                 event.preventDefault();
                 startTouchRepeat(() => setGame((current) => softDrop(current, rngRef.current)));
@@ -1272,7 +1281,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
               className="pb-touch-btn pb-touch-rocker"
               data-testid="tetris-touch-right"
               aria-label="Move right"
-              disabled={paused || matchEnded || isReadyCheck}
+              disabled={paused || matchEnded || isReadyCheck || countdown > 0}
               onPointerDown={(event) => {
                 event.preventDefault();
                 startTouchRepeat(() => setGame((current) => moveRight(current)));
@@ -1295,7 +1304,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
               className="pb-touch-btn pb-touch-rotate"
               data-testid="tetris-touch-rotate"
               aria-label="Rotate piece"
-              disabled={paused || matchEnded || isReadyCheck}
+              disabled={paused || matchEnded || isReadyCheck || countdown > 0}
               onPointerDown={(event) => {
                 event.preventDefault();
                 getSharedArcadeAudio().sfx.playRotate();
@@ -1315,7 +1324,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
               className="primary pb-touch-btn pb-touch-fire"
               data-testid="tetris-touch-drop"
               aria-label="Hard drop"
-              disabled={paused || matchEnded || isReadyCheck}
+              disabled={paused || matchEnded || isReadyCheck || countdown > 0}
               onPointerDown={(event) => {
                 event.preventDefault();
                 getSharedArcadeAudio().sfx.playHardDrop();

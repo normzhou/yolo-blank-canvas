@@ -38,6 +38,11 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
     expect(countdownBorderStyle).toBe('none');
     await expect(page.getByTestId('p1-touch-controls')).toHaveCount(0);
 
+    // #258: Gameplay inputs are strictly locked while countdown > 0, and unlock once countdown completes.
+    await page.keyboard.press('d');
+    await expect(page.getByTestId('p1-aim')).toHaveText('0°');
+    await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 6000 });
+
     // Player 1 aims right with fine 0.5° taps on D and shoots with F.
     await expect(page.getByTestId('p1-aim')).toHaveText('0°');
     await page.keyboard.press('d');
@@ -253,22 +258,13 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
     await expect(page.getByTestId('game-pause-menu')).toBeVisible();
     await expect(page.getByRole('button', { name: '2 Players', exact: true })).toHaveCount(0);
     await page.getByTestId('pause-menu-resume').click();
+    await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 6000 });
 
-    // #248: Virtual circular buttons on Puzzle Bobble are spread out: left circle on left, shoot in middle, right circle on right.
-    const btnPositions = await page.evaluate(() => {
-      const left = document.querySelector('[data-testid="p1-touch-left"]')?.getBoundingClientRect();
-      const fire = document.querySelector('[data-testid="p1-touch-fire"]')?.getBoundingClientRect();
-      const right = document.querySelector('[data-testid="p1-touch-right"]')?.getBoundingClientRect();
-      return {
-        leftX: left ? Math.round(left.left) : 0,
-        fireX: fire ? Math.round(fire.left) : 0,
-        rightX: right ? Math.round(right.left) : 0,
-      };
-    });
-    expect(btnPositions.leftX).toBeLessThan(btnPositions.fireX);
-    expect(btnPositions.fireX).toBeLessThan(btnPositions.rightX);
+    // #258: Puzzle Bobble has no on-screen touch button bar (`p1-touch-controls` is removed);
+    // touch play is 100% direct screen touch/drag-to-aim and release-to-shoot!
+    await expect(page.getByTestId('p1-touch-controls')).toHaveCount(0);
 
-    // #248: Dragging on Player 1 board to aim and releasing (`mouse.up`) automatically fires the bubble!
+    // #248, #258: Dragging on Player 1 board to aim and releasing (`mouse.up`) automatically fires the bubble!
     const p1Board = page.getByRole('img', { name: 'Player 1 bubble board' });
     const box = await p1Board.boundingBox();
     expect(box).not.toBeNull();
@@ -278,10 +274,6 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
     await page.mouse.up();
     await expect(page.getByTestId('p1-aim')).toHaveText(/^\+\d+(\.5)?°$/);
     await expect(page.getByTestId('p1-shots')).toHaveText('1', { timeout: 5000 });
-
-    // Fine-tap touch button steps by 0.5°.
-    await page.getByTestId('p1-touch-left').dispatchEvent('pointerdown', { pointerId: 1, pointerType: 'touch' });
-    await page.getByTestId('p1-touch-left').dispatchEvent('pointerup', { pointerId: 1, pointerType: 'touch' });
 
     // No horizontal or vertical page scroll overflow on 390px phone screen (#217 full-screen game stage),
     // the bare wiggling YOLO mark sits in the top-right with a transparent background (#228),
@@ -300,8 +292,6 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
       const logoPaths = logo ? logo.querySelectorAll('path[d="M48 48v30"]').length : 0;
       const logoViewBox = logo ? logo.getAttribute('viewBox') : '';
       const logoColor = logo ? window.getComputedStyle(logo).color : '';
-      const touchBar = document.querySelector('.pb-touch-bar');
-      const touchBarBg = touchBar ? window.getComputedStyle(touchBar).backgroundColor : '';
       return {
         horizOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         vertOverflow: document.documentElement.scrollHeight - document.documentElement.clientHeight,
@@ -323,7 +313,6 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
         logoPaths,
         logoViewBox,
         logoColor,
-        touchBarBg,
       };
     });
     expect(phoneMetrics.horizOverflow).toBeLessThanOrEqual(0);
@@ -344,7 +333,6 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
     expect(phoneMetrics.sndRight).toBeLessThan(phoneMetrics.fsRight);
     expect(phoneMetrics.sndBottom).toBe(phoneMetrics.fsBottom);
     expect(phoneMetrics.sndBg).toBe('rgba(0, 0, 0, 0)');
-    expect(phoneMetrics.touchBarBg).toBe('rgba(0, 0, 0, 0)');
 
     // 2. Phone landscape viewport (844x390, short edge 390 < 560px): still a phone, so 1P mode is enforced.
     await page.setViewportSize({ width: 844, height: 390 });
@@ -381,17 +369,20 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
       expect(overflow, `Tablet ${w}x${h} horizontal overflow`).toBeLessThanOrEqual(0);
     }
 
-    // Simultaneous 4-finger multi-touch on 2P tablet (#224): Player 1 holds AIM ▶ (pointerId 11)
-    // while Player 2 holds ◀ AIM (pointerId 21), and both players tap ● FIRE with a second thumb
-    // (pointerId 12 and 22, isPrimary: false) while aim fingers remain held down.
-    await page.getByTestId('p1-touch-right').dispatchEvent('pointerdown', { pointerId: 11, isPrimary: true, pointerType: 'touch' });
-    await page.getByTestId('p2-touch-left').dispatchEvent('pointerdown', { pointerId: 21, isPrimary: false, pointerType: 'touch' });
-    await expect(page.getByTestId('p1-aim')).not.toHaveText('0°');
-    await expect(page.getByTestId('p2-aim')).not.toHaveText('0°');
-    await page.getByTestId('p1-touch-fire').dispatchEvent('pointerdown', { pointerId: 12, isPrimary: false, pointerType: 'touch' });
-    await page.getByTestId('p2-touch-fire').dispatchEvent('pointerdown', { pointerId: 22, isPrimary: false, pointerType: 'touch' });
-    await page.getByTestId('p1-touch-right').dispatchEvent('pointerup', { pointerId: 11, pointerType: 'touch' });
-    await page.getByTestId('p2-touch-left').dispatchEvent('pointerup', { pointerId: 21, pointerType: 'touch' });
+    await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 6000 });
+    // Direct screen drag-to-aim and release-to-shoot on both Player 1 and Player 2 boards on 2P tablet (#258).
+    const p1TabBox = await page.getByRole('img', { name: 'Player 1 bubble board' }).boundingBox();
+    const p2TabBox = await page.getByRole('img', { name: 'Player 2 bubble board' }).boundingBox();
+    expect(p1TabBox).not.toBeNull();
+    expect(p2TabBox).not.toBeNull();
+    await page.mouse.move(p1TabBox!.x + p1TabBox!.width * 0.5, p1TabBox!.y + p1TabBox!.height * 0.5);
+    await page.mouse.down();
+    await page.mouse.move(p1TabBox!.x + p1TabBox!.width * 0.78, p1TabBox!.y + p1TabBox!.height * 0.35);
+    await page.mouse.up();
+    await page.mouse.move(p2TabBox!.x + p2TabBox!.width * 0.5, p2TabBox!.y + p2TabBox!.height * 0.5);
+    await page.mouse.down();
+    await page.mouse.move(p2TabBox!.x + p2TabBox!.width * 0.22, p2TabBox!.y + p2TabBox!.height * 0.35);
+    await page.mouse.up();
     await expect(page.getByTestId('p1-shots')).toHaveText('1', { timeout: 5000 });
     await expect(page.getByTestId('p2-shots')).toHaveText('1', { timeout: 5000 });
 
@@ -416,11 +407,12 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
     });
     expect(smallPhoneClipped).toBe(false);
 
-    // 5. Tetris touch controls work on phone without a keyboard.
+    // 5. Tetris touch controls work on phone without a keyboard (after countdown finishes).
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`${stub.base}?app=tetris`);
     await expect(page.getByTestId('game-pause-menu')).toBeVisible();
     await page.getByTestId('pause-menu-resume').click();
+    await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 6000 });
     await expect(page.getByTestId('tetris-touch-controls')).toBeVisible();
     await page.getByTestId('tetris-touch-rotate').click();
     await page.getByTestId('tetris-touch-drop').click();
@@ -494,8 +486,10 @@ test('2P Online networking (#236): 2 independent browser sessions discover prese
     await expect(page1.getByRole('img', { name: 'Player 2 bubble board' })).toHaveCount(0);
     await expect(page2.getByRole('img', { name: 'Player 2 bubble board' })).toHaveCount(0);
 
-    // #256: Browser Session 1 aims right -> Browser Session 2's Opponent Mini-Radar aim needle (`pb-opponent-aim`)
+    // #256: Browser Session 1 aims right (after countdown completes) -> Browser Session 2's Opponent Mini-Radar aim needle (`pb-opponent-aim`)
     // smoothly rotates via ~2Hz (500ms) radar updates!
+    await expect(page1.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 6000 });
+    await expect(page2.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 6000 });
     await page1.keyboard.press('d');
     await expect(page2.getByTestId('pb-opponent-aim')).toHaveAttribute(
       'style',
@@ -565,6 +559,8 @@ test('2P Online networking (#236): 2 independent browser sessions discover prese
 
     // #256: Browser Session 1 moves the active falling tetromino right -> Browser Session 2's Opponent Mini-Radar
     // active piece overlay (`tetris-opponent-active-piece`) smoothly translates via ~2Hz (500ms) radar updates!
+    await expect(page1.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 6000 });
+    await expect(page2.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 6000 });
     const initialPieceStyle = await page2
       .getByTestId('tetris-opponent-active-piece')
       .getAttribute('style');

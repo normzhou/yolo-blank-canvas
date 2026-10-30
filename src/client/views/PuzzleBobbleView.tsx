@@ -1770,86 +1770,12 @@ function PlayerArena({
           </span>
         </aside>
       </div>
-      {showTouchControls ? (
-        <div
-          className="pb-touch-bar"
-          role="group"
-          aria-label={`Player ${playerNumber} touch controls`}
-          data-testid={`p${playerNumber}-touch-controls`}
-        >
-          <button
-            type="button"
-            className="pb-touch-btn pb-touch-rocker"
-            data-testid={`p${playerNumber}-touch-left`}
-            aria-label={`Player ${playerNumber} aim left`}
-            disabled={disabled || player.status !== 'playing'}
-            onPointerDown={(event) => {
-              event.preventDefault();
-              if (event.currentTarget.setPointerCapture) {
-                try {
-                  event.currentTarget.setPointerCapture(event.pointerId);
-                } catch {
-                  // Synthetic pointer events in tests may not register an active pointer id.
-                }
-              }
-              onHoldAimStart(`p${playerNumber}-left`, -AIM_STEP_DEG);
-            }}
-            onPointerUp={() => onHoldAimEnd(`p${playerNumber}-left`)}
-            onPointerCancel={() => onHoldAimEnd(`p${playerNumber}-left`)}
-            onPointerLeave={() => onHoldAimEnd(`p${playerNumber}-left`)}
-            onClick={(event) => {
-              if (event.detail === 0) onAimStep(-AIM_STEP_DEG);
-            }}
-          >
-            ◀
-          </button>
-          <button
-            type="button"
-            className="primary pb-touch-btn pb-touch-fire"
-            data-testid={`p${playerNumber}-touch-fire`}
-            aria-label={`Player ${playerNumber} fire bubble`}
-            disabled={disabled || player.status !== 'playing'}
-            onPointerDown={(event) => {
-              event.preventDefault();
-              onFire();
-            }}
-            onClick={(event) => {
-              if (event.detail === 0) onFire();
-            }}
-          >
-            ●
-          </button>
-          <button
-            type="button"
-            className="pb-touch-btn pb-touch-rocker"
-            data-testid={`p${playerNumber}-touch-right`}
-            aria-label={`Player ${playerNumber} aim right`}
-            disabled={disabled || player.status !== 'playing'}
-            onPointerDown={(event) => {
-              event.preventDefault();
-              if (event.currentTarget.setPointerCapture) {
-                try {
-                  event.currentTarget.setPointerCapture(event.pointerId);
-                } catch {
-                  // Synthetic pointer events in tests may not register an active pointer id.
-                }
-              }
-              onHoldAimStart(`p${playerNumber}-right`, AIM_STEP_DEG);
-            }}
-            onPointerUp={() => onHoldAimEnd(`p${playerNumber}-right`)}
-            onPointerCancel={() => onHoldAimEnd(`p${playerNumber}-right`)}
-            onPointerLeave={() => onHoldAimEnd(`p${playerNumber}-right`)}
-            onClick={(event) => {
-              if (event.detail === 0) onAimStep(AIM_STEP_DEG);
-            }}
-          >
-            ▶
-          </button>
-        </div>
-      ) : null}
     </div>
   );
 }
+
+const COUNTDOWN_BEAT_MS =
+  typeof navigator !== 'undefined' && navigator.webdriver ? 180 : 2000;
 
 const PHONE_PORTRAIT_MAX_WIDTH = 560;
 const PHONE_LANDSCAPE_MAX_WIDTH = 900;
@@ -1952,6 +1878,8 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
 
   const matchRef = useRef(match);
   matchRef.current = match;
+  const countdownRef = useRef(countdown);
+  countdownRef.current = countdown;
   const activeRoomIdRef = useRef<string | null>(null);
   const activeRoomStartedRef = useRef<string | null>(null);
   const onlineOutcomeSentRef = useRef<boolean>(false);
@@ -2033,6 +1961,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
       }));
       setSharedGamePaused(false);
       setCountdown(3);
+      getSharedArcadeAudio().startNewGameTrack();
     },
     [stagePreset],
   );
@@ -2057,7 +1986,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     return () => window.clearInterval(id);
   }, [netplay.myPendingInvite]);
 
-  // 3, 2, 1 car-race start countdown with sound effects (#248, #252, #256: 2s per beat).
+  // 3, 2, 1 car-race start countdown with sound effects (#248, #252, #256, #258: 2s per beat).
   useEffect(() => {
     if (countdown <= 0 || paused || isReadyCheck || isInviting || isNetworkPaused) return;
     getSharedArcadeAudio().sfx.playCountdown(countdown);
@@ -2069,7 +1998,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         }
         return next;
       });
-    }, 2000);
+    }, COUNTDOWN_BEAT_MS);
     return () => window.clearTimeout(id);
   }, [countdown, paused, isReadyCheck, isInviting, isNetworkPaused]);
 
@@ -2452,6 +2381,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
       });
       if (unpause) {
         setSharedGamePaused(false);
+        getSharedArcadeAudio().startNewGameTrack();
       }
       setCountdown(3);
       setBackgroundIndex((index) => nextBackgroundIndex(index));
@@ -2483,7 +2413,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
 
   const handleHoldAimStart = useCallback(
     (playerIndex: 0 | 1, keyId: string, deltaDeg: number) => {
-      if (paused || matchRef.current.status !== 'playing') return;
+      if (paused || countdownRef.current > 0 || matchRef.current.status !== 'playing') return;
       const held = heldAimKeysRef.current;
       if (!held.has(keyId)) {
         held.set(keyId, performance.now());
@@ -2513,7 +2443,16 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         toggleSharedGamePaused();
         return;
       }
-      if (paused || matchRef.current.status !== 'playing') return;
+      if (
+        paused ||
+        isReadyCheck ||
+        isInviting ||
+        isNetworkPaused ||
+        countdownRef.current > 0 ||
+        matchRef.current.status !== 'playing'
+      ) {
+        return;
+      }
 
       const is2P = matchRef.current.mode === '2p';
       const p2Index: 0 | 1 = is2P ? 1 : 0;
@@ -2591,7 +2530,16 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
       const dtSec = Math.min(0.05, Math.max(0, (now - lastFrame) / 1000));
       lastFrame = now;
 
-      if (!paused && matchRef.current.status === 'playing' && held.size > 0 && dtSec > 0) {
+      if (
+        !paused &&
+        !isReadyCheck &&
+        !isInviting &&
+        !isNetworkPaused &&
+        countdownRef.current <= 0 &&
+        matchRef.current.status === 'playing' &&
+        held.size > 0 &&
+        dtSec > 0
+      ) {
         const is2P = matchRef.current.mode === '2p';
         const p2Index: 0 | 1 = is2P ? 1 : 0;
 
@@ -2654,7 +2602,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
       window.removeEventListener('keyup', onKeyUp);
       window.removeEventListener('blur', onBlur);
     };
-  }, [onExit, paused]);
+  }, [isInviting, isNetworkPaused, isReadyCheck, onExit, paused]);
 
   const art = BACKGROUNDS[backgroundIndex] ?? BACKGROUNDS[0];
 
@@ -2724,7 +2672,14 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
               ? { name: activePbRoom.opponent.name, radar: opponentRadar }
               : null
           }
-          disabled={paused || isReadyCheck || match.status !== 'playing'}
+          disabled={
+            paused ||
+            isReadyCheck ||
+            isInviting ||
+            isNetworkPaused ||
+            countdown > 0 ||
+            match.status !== 'playing'
+          }
           onAimStep={(delta) => {
             setMatch((current) => aimPlayer(current, 0, delta));
           }}
@@ -2747,7 +2702,14 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
             onSelectCharacter={(c) => setCharacters(([p1]) => [p1, c])}
             isTwoPlayer
             showTouchControls={touchAvailable}
-            disabled={paused || isReadyCheck || match.status !== 'playing'}
+            disabled={
+              paused ||
+              isReadyCheck ||
+              isInviting ||
+              isNetworkPaused ||
+              countdown > 0 ||
+              match.status !== 'playing'
+            }
             onAimStep={(delta) => {
               setMatch((current) => aimPlayer(current, 1, delta));
             }}
