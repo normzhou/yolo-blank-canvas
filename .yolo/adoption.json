@@ -267,15 +267,16 @@
         "v0.22.2": "550bd5b839c00d1589243dd01435164a42c6ef9c",
         "v0.22.3": "5e9dd8d8ca8c4a2268404428d51c0b5885e15019",
         "v0.22.4": "864a0e26b4b116d7e6ac67734029def9bf92bb07",
-        "v0.23.0": "6a949b6a7e392aa14f745eebfa9ae8db37b5a6d6"
+        "v0.23.0": "6a949b6a7e392aa14f745eebfa9ae8db37b5a6d6",
+        "v0.23.1": "aecb8cba7ff3c6dcadf80acadd291d09b66bc298"
       },
       "published": {
-        "tag": "v0.23.1",
-        "commit": "aecb8cba7ff3c6dcadf80acadd291d09b66bc298",
-        "source_commit": "137594e9622d7981ce65cf25298d83d2bb395d0f",
-        "published_at": "2026-10-30T05:05:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-10-27-v0231.json",
-        "note": "Patch release. Re-composes the 11 non-Korobeiniki tracks with 48-bar multi-section forms, rolled 4- to 5-voice chords, voice-led secondary dominants, parallel 3rd/6th harmonies, and happy whimsical Puzzle Bobble arrangements, verified in a closed loop against korobeiniki.m4a (#260, PR #261); deployed live to https://demo.yolo-dev.ai (Version ID: 2a58b30f-28a6-4076-82be-722094d186b3). Acceptance before tagging: 162 unit, 45 stubbed e2e passed, tsc clean. Acceptance on the delivered artifact: 11 of 11. The tag points at aecb8cb after the assets commit 7dc9e36; both build-ID files record 137594e."
+        "tag": "v0.24.0",
+        "commit": "fa6be5791c3092aff7b0e451a2796d49d9826768",
+        "source_commit": "10de5f9f822942618ec1123489bf99e522db1201",
+        "published_at": "2026-10-30T05:30:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-10-27-v0240.json",
+        "note": "Minor release. Replaces the 3, 2, 1 countdown with Ready… -> Go! (预备… -> 齐！, etc.) in the 10 most spoken languages in the world, sampled with probability proportional to total speaker count and accompanied by native spoken voice audio (#262, PR #263); deployed live to https://demo.yolo-dev.ai (Version ID: ce23bb73-542c-40e4-b6a6-3fe382436632). Acceptance before tagging: 163 unit, 45 stubbed e2e passed, tsc clean. Acceptance on the delivered artifact: 11 of 11. The tag points at fa6be57 after the assets commit 4e1668b; both build-ID files record 10de5f9."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -323,7 +324,8 @@
         ".yolo/reports/releases-observed-2026-10-27-v0223.json",
         ".yolo/reports/releases-observed-2026-10-27-v0224.json",
         ".yolo/reports/releases-observed-2026-10-27-v0230.json",
-        ".yolo/reports/releases-observed-2026-10-27-v0231.json"
+        ".yolo/reports/releases-observed-2026-10-27-v0231.json",
+        ".yolo/reports/releases-observed-2026-10-27-v0240.json"
       ]
     }
   },

@@ -4,6 +4,24 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## 10-Language Speaker-Weighted Ready… Go! Countdown with Spoken Voice Audio (#262) — 2026-10-27
+
+Source revision `10de5f9` (the 10-language speaker-weighted `Ready… -> Go!` countdown and spoken voice audio commit); build and review evidence `4e1668b`; release commit `fa6be57`; published as `v0.24.0` on 2026-10-27.
+
+- **Top 10 Languages Weighted by Speaker Population (`src/shared/countdownLanguages.ts`):**
+  - Samples across the 10 most spoken languages in the world with probability proportional to total speaker count (`5,433M` total): English (`1,515M`: `READY…` → `GO!`), Mandarin Chinese (`1,140M`: `预备…` → `齐！`), Hindi (`609M`: `तैयार…` → `शुरू!`), Spanish (`560M`: `¡LISTOS…` → `¡YA!`), French (`312M`: `PRÊTS…` → `PARTEZ !`), Standard Arabic (`274M`: `استعد…` → `انطلق!`), Bengali (`272M`: `প্রস্তুত…` → `শুরু!`), Portuguese (`264M`: `PRONTOS…` → `JÁ!`), Russian (`255M`: `НА СТАРТ…` → `МАРШ!`), and Urdu (`232M`: `تیار…` → `چلو!`).
+- **Spoken Voice Audio + Arcade Cue (`public/tetris/countdown-voices.m4a`, `src/client/audio/tetrisMusic.ts`):**
+  - Bundled 20 native spoken voice clips (`10 languages × Ready + Go`) into `public/tetris/countdown-voices.m4a` (`140 KB`) and wired `playCountdownPhrase(lang, phase)` to play the spoken word alongside the arcade start chime.
+- `npm test`: 23 files, 163 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 45 passed.
+
+### Installed artifact (`v0.24.0`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.24.0 --no-open --port 4896` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `10de5f9…`; the tagged package version is `0.24.0`. The tag points at release commit `fa6be57`, after the assets commit `4e1668b`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4896 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: ce23bb73-542c-40e4-b6a6-3fe382436632`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.24.0"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 10de5f9f822942618ec1123489bf99e522db1201`). The report is [`.yolo/reports/releases-observed-2026-10-27-v0240.json`](../.yolo/reports/releases-observed-2026-10-27-v0240.json).
+
 ## Chord-Rich Music-Theory Soundtrack & Whimsical Puzzle Bobble Arrangements (#260) — 2026-10-27
 
 Source revision `137594e` (the 48-bar multi-section chord-rich music-theory and whimsical Puzzle Bobble composition commit); build and review evidence `7dc9e36`; release commit `aecb8cb`; published as `v0.23.1` on 2026-10-27.
