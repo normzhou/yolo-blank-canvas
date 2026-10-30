@@ -153,7 +153,7 @@ test('Tetris: board renders, music toggles with a stable track label, scenes cyc
   await page.getByRole('button', { name: /Music off/ }).click();
   const sceneLine = page.locator('.tetris-scene');
   await expect(sceneLine).toContainText(
-    /Music: (?:Korobeiniki|Kalinka & Troika|Baroque Invention|Technotris FM Drive|Cosmic Block Odyssey)/,
+    /Music: (?:Korobeiniki|Kalinka & Troika|Baroque Invention|Mountain King & Ode to Joy|Greensleeves & Scarborough Fair)/,
   );
   const first = await sceneLine.textContent();
   await expect

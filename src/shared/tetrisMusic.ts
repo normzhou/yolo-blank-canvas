@@ -34,36 +34,39 @@ export interface Track {
 }
 
 /**
- * The home selector screen playlist (~2 minutes per track).
+ * The home selector screen playlist (~2 minutes per track):
+ * Famous classical melodies arranged for celesta, harpsichord & flute (#266).
  */
 export const SELECTOR_PLAYLIST: ReadonlyArray<Track> = [
-  { id: 'selector-arcade-lobby', title: 'Arcade Neon Lobby', src: 'tetris/selector-arcade-lobby.m4a' },
-  { id: 'selector-pixel-lounge', title: 'Pixel Lounge Overworld', src: 'tetris/selector-pixel-lounge.m4a' },
+  { id: 'selector-arcade-lobby', title: 'Für Elise & Turkish March', src: 'tetris/selector-arcade-lobby.m4a' },
+  { id: 'selector-pixel-lounge', title: 'Sugar Plum Fairy & Swan Lake', src: 'tetris/selector-pixel-lounge.m4a' },
 ];
 
 /**
- * The Tetris background playlist (~2 minutes per track).
+ * The Tetris background playlist (~2 minutes per track):
+ * Original Tetris Russian folk themes & famous classical/folk melodies (#266).
  */
 export const TETRIS_PLAYLIST: ReadonlyArray<Track> = [
   { id: 'korobeiniki', title: 'Korobeiniki (Type A)', src: 'tetris/korobeiniki.m4a' },
   { id: 'kalinka-troika', title: 'Kalinka & Troika (Type B)', src: 'tetris/kalinka-troika.m4a' },
-  { id: 'baroque-invention', title: 'Baroque Invention (Type C)', src: 'tetris/baroque-invention.m4a' },
-  { id: 'technotris-fm', title: 'Technotris FM Drive', src: 'tetris/technotris-fm.m4a' },
-  { id: 'cosmic-odyssey', title: 'Cosmic Block Odyssey', src: 'tetris/cosmic-odyssey.m4a' },
+  { id: 'baroque-invention', title: 'Baroque Invention (Bach Minuet in G)', src: 'tetris/baroque-invention.m4a' },
+  { id: 'technotris-fm', title: 'Mountain King & Ode to Joy', src: 'tetris/technotris-fm.m4a' },
+  { id: 'cosmic-odyssey', title: 'Greensleeves & Scarborough Fair', src: 'tetris/cosmic-odyssey.m4a' },
 ];
 
 /** Default alias retained for existing callers and tests. */
 export const PLAYLIST: ReadonlyArray<Track> = TETRIS_PLAYLIST;
 
 /**
- * The Puzzle Bobble whimsical, light-hearted arcade playlist (~2 minutes per track).
+ * The Puzzle Bobble whimsical, light-hearted arcade playlist (~2 minutes per track):
+ * Famous children's songs, nursery rhymes, and ragtime classics (#266).
  */
 export const PUZZLE_BOBBLE_PLAYLIST: ReadonlyArray<Track> = [
-  { id: 'pb-bubble-march', title: 'Bubble Dragon March', src: 'tetris/pb-bubble-march.m4a' },
-  { id: 'pb-rainbow-carnival', title: 'Rainbow Island Carnival', src: 'tetris/pb-rainbow-carnival.m4a' },
-  { id: 'pb-starlight-carousel', title: 'Starlight Carousel', src: 'tetris/pb-starlight-carousel.m4a' },
-  { id: 'pb-candy-playground', title: 'Candy Cloud Playground', src: 'tetris/pb-candy-playground.m4a' },
-  { id: 'pb-soda-pop', title: 'Bubblegum Soda Pop', src: 'tetris/pb-soda-pop.m4a' },
+  { id: 'pb-bubble-march', title: 'Twinkle Twinkle & Yankee Doodle', src: 'tetris/pb-bubble-march.m4a' },
+  { id: 'pb-rainbow-carnival', title: 'The Entertainer & La Cucaracha', src: 'tetris/pb-rainbow-carnival.m4a' },
+  { id: 'pb-starlight-carousel', title: 'Over the Waves & Brahms Lullaby', src: 'tetris/pb-starlight-carousel.m4a' },
+  { id: 'pb-candy-playground', title: 'London Bridge & Mary Had a Little Lamb', src: 'tetris/pb-candy-playground.m4a' },
+  { id: 'pb-soda-pop', title: 'Frère Jacques & Oh! Susanna', src: 'tetris/pb-soda-pop.m4a' },
 ];
 
 /**
