@@ -26,10 +26,15 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
     await expect(page.getByRole('img', { name: 'Player 1 bubble board' })).toBeVisible();
     await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toBeVisible();
 
-    // #252: Game opens on the Game Menu first; clicking Continue starts the 3, 2, 1 car-race countdown
-    // rendered as plain arcade text (no circle border) with countdown sound effects.
+    // #252, #268: Game opens on the Game Menu first with Continue highlighted;
+    // ArrowDown / ArrowUp moves the highlighted button and Enter accepts it.
     await expect(page.getByTestId('game-pause-menu')).toBeVisible();
-    await page.getByTestId('pause-menu-resume').click();
+    await expect(page.getByTestId('pause-menu-resume')).toHaveAttribute('data-menu-focused', 'true');
+    await page.keyboard.press('ArrowDown');
+    await expect(page.getByTestId('pause-menu-restart')).toHaveAttribute('data-menu-focused', 'true');
+    await page.keyboard.press('ArrowUp');
+    await expect(page.getByTestId('pause-menu-resume')).toHaveAttribute('data-menu-focused', 'true');
+    await page.keyboard.press('Enter');
     await expect(page.getByTestId('arcade-countdown')).toBeVisible();
     await expect(page.getByTestId('arcade-countdown')).toHaveAttribute(
       'data-lang',
@@ -147,9 +152,20 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
     await expect(page.getByTestId('game-pause-menu')).toBeVisible();
     await expect(page.getByTestId('pb-2p-online-btn')).toBeDisabled();
 
-    // Switch to 1 Player mode and back to 2 Players via the Pause Menu.
+    // Switch to 1 Player mode, clear the solo level, and verify a fresh countdown starts on the new level (#268).
     await page.getByRole('button', { name: '1 Player', exact: true }).click();
     await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toHaveCount(0);
+    await expect(page.getByTestId('arcade-countdown')).toBeVisible();
+    await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 6000 });
+    await page.evaluate(() => {
+      window.dispatchEvent(
+        new CustomEvent('yolo:puzzle-bobble:fire-resolve', {
+          detail: { player: 0, clearStage: true },
+        }),
+      );
+    });
+    await expect(page.getByTestId('arcade-countdown')).toBeVisible();
+    await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 6000 });
     await page.getByTestId('pause-button').click();
     await page.getByRole('button', { name: '2 Players', exact: true }).click();
     await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toBeVisible();
