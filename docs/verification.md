@@ -4,6 +4,24 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Puzzle Bobble First & Horizontal Carousel Indicator Dots (#264) — 2026-10-27
+
+Source revision `0d45589` (the Puzzle Bobble first and horizontal carousel indicator dots commit); build and review evidence `fd6a29e`; release commit `6f0cdaf`; published as `v0.24.1` on 2026-10-27.
+
+- **Puzzle Bobble as First Game (`src/client/apps/registry.ts`):**
+  - Orders `CANVAS_APPS` with **Puzzle Bobble** (`puzzle-bobble`) first and **Tetris** (`tetris`) second so the home game carousel opens on Puzzle Bobble by default.
+- **Standard Horizontal Carousel Indicator Dots (`src/client/App.tsx`, `src/client/styles.css`):**
+  - Replaces the bottom pill-button navigation bar and stacked preview bars with clean horizontal carousel indicator dots (`.carousel-dots` / `.carousel-dot`) at the bottom for mouse-driven slide switching while hiding dots on touch-only surfaces where horizontal swipe gestures change cards.
+- `npm test`: 23 files, 163 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 45 passed.
+
+### Installed artifact (`v0.24.1`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.24.1 --no-open --port 4897` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `0d45589…`; the tagged package version is `0.24.1`. The tag points at release commit `6f0cdaf`, after the assets commit `fd6a29e`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4897 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: 39bb9cf9-8687-435e-ba38-06b854ad3250`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.24.1"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 0d45589ab013cb768ad06a11506a25142e89bed8`). The report is [`.yolo/reports/releases-observed-2026-10-27-v0241.json`](../.yolo/reports/releases-observed-2026-10-27-v0241.json).
+
 ## 10-Language Speaker-Weighted Ready… Go! Countdown with Spoken Voice Audio (#262) — 2026-10-27
 
 Source revision `10de5f9` (the 10-language speaker-weighted `Ready… -> Go!` countdown and spoken voice audio commit); build and review evidence `4e1668b`; release commit `fa6be57`; published as `v0.24.0` on 2026-10-27.

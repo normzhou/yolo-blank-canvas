@@ -54,6 +54,9 @@ async function openTetris(page: import('@playwright/test').Page) {
     const trigger = page.getByRole('button', { name, exact: true });
     if ((await trigger.count()) > 0) {
       await trigger.first().click();
+      if (!page.url().includes('?app=tetris')) {
+        await page.getByTestId('deck-slide-card').click();
+      }
       return;
     }
   }
