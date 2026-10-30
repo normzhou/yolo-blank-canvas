@@ -302,27 +302,27 @@ export class ArcadeSfx {
     };
   }
 
-  /** Arcade / car-race 3, 2, 1 countdown beep and green-light launch tone (#252). */
+  /** Arcade / car-race 3, 2, 1 countdown beep and green-light launch tone (#252, #258). */
   playCountdown(step: number): void {
     if (step > 0) {
       const synths = this.recordAndReady('countdown-tick');
       if (!synths) return;
-      synths.fm.triggerAttackRelease('A4', 0.16, 0, 0.28);
-      synths.poly.triggerAttackRelease(['A4', 'E5'], 0.14, 0, 0.22);
+      synths.fm.triggerAttackRelease('A4', 0.16, 0, 0.72);
+      synths.poly.triggerAttackRelease(['A4', 'E5'], 0.14, 0, 0.58);
       return;
     }
     const synths = this.recordAndReady('countdown-go');
     if (!synths) return;
-    synths.fm.triggerAttackRelease('A5', 0.28, 0, 0.34);
-    synths.poly.triggerAttackRelease(['A5', 'C#6', 'E6', 'A6'], 0.3, 0, 0.28);
+    synths.fm.triggerAttackRelease('A5', 0.28, 0, 0.85);
+    synths.poly.triggerAttackRelease(['A5', 'C#6', 'E6', 'A6'], 0.3, 0, 0.72);
   }
 
   /** Puzzle Bobble: crisp upward chirp + membrane pop when firing a bubble. */
   playBubbleShoot(): void {
     const synths = this.recordAndReady('bubble-shoot');
     if (!synths) return;
-    synths.membrane.triggerAttackRelease(150, 0.06, 0, { octaves: 2.0, pitchDecay: 0.025, velocity: 0.22 });
-    synths.fm.triggerAttackRelease(340, 0.075, 0, 0.18, 680);
+    synths.membrane.triggerAttackRelease(150, 0.06, 0, { octaves: 2.0, pitchDecay: 0.025, velocity: 0.65 });
+    synths.fm.triggerAttackRelease(340, 0.075, 0, 0.58, 680);
   }
 
   /** Puzzle Bobble: bubbly harmonic arpeggio when bubbles pop + avalanche cascade chime. */
@@ -332,14 +332,14 @@ export class ArcadeSfx {
     const notesToPlay = Math.min(popScale.length, Math.max(2, poppedCount));
     if (synths) {
       for (let i = 0; i < notesToPlay; i += 1) {
-        synths.fm.triggerAttackRelease(popScale[i], 0.07, i * 0.04, 0.2, noteToFreq(popScale[i]) * 1.12);
+        synths.fm.triggerAttackRelease(popScale[i], 0.07, i * 0.04, 0.62, noteToFreq(popScale[i]) * 1.12);
       }
     }
     if (droppedCount > 0) {
       const avSynths = this.recordAndReady('bubble-avalanche');
       if (avSynths) {
-        avSynths.poly.triggerAttackRelease(['C5', 'E5', 'G5', 'B5'], 0.22, notesToPlay * 0.035, 0.2);
-        avSynths.fm.triggerAttackRelease('C6', 0.18, notesToPlay * 0.035 + 0.06, 0.18, 'G6');
+        avSynths.poly.triggerAttackRelease(['C5', 'E5', 'G5', 'B5'], 0.22, notesToPlay * 0.035, 0.62);
+        avSynths.fm.triggerAttackRelease('C6', 0.18, notesToPlay * 0.035 + 0.06, 0.58, 'G6');
       }
     }
   }
@@ -348,17 +348,17 @@ export class ArcadeSfx {
   playGarbageSend(count: number): void {
     const synths = this.recordAndReady('garbage-send');
     if (!synths || count <= 0) return;
-    synths.fm.triggerAttackRelease(380, 0.14, 0, 0.2, 860);
+    synths.fm.triggerAttackRelease(380, 0.14, 0, 0.62, 860);
   }
 
   /** Puzzle Bobble: deep rumble + rising triad when attack bubbles shoot up from the bottom. */
   playGarbageRise(count: number): void {
     const synths = this.recordAndReady('garbage-rise');
     if (!synths || count <= 0) return;
-    synths.membrane.triggerAttackRelease(58, 0.16, 0, { octaves: 2.8, pitchDecay: 0.05, velocity: 0.3 });
+    synths.membrane.triggerAttackRelease(58, 0.16, 0, { octaves: 2.8, pitchDecay: 0.05, velocity: 0.78 });
     const triad = ['C4', 'Eb4', 'G4', 'C5'];
     for (let i = 0; i < Math.min(triad.length, Math.max(2, count)); i += 1) {
-      synths.fm.triggerAttackRelease(triad[i], 0.08, i * 0.045, 0.18);
+      synths.fm.triggerAttackRelease(triad[i], 0.08, i * 0.045, 0.58);
     }
   }
 
@@ -367,14 +367,14 @@ export class ArcadeSfx {
     const synths = this.recordAndReady(won ? 'round-win' : 'round-lose');
     if (!synths) return;
     if (won) {
-      synths.poly.triggerAttackRelease(['C5', 'E5', 'G5'], 0.14, 0, 0.2);
-      synths.poly.triggerAttackRelease(['F5', 'A5', 'C6'], 0.14, 0.14, 0.2);
-      synths.poly.triggerAttackRelease(['G5', 'B5', 'D6'], 0.14, 0.28, 0.2);
-      synths.poly.triggerAttackRelease(['C5', 'E5', 'G5', 'C6'], 0.36, 0.42, 0.24);
+      synths.poly.triggerAttackRelease(['C5', 'E5', 'G5'], 0.14, 0, 0.65);
+      synths.poly.triggerAttackRelease(['F5', 'A5', 'C6'], 0.14, 0.14, 0.65);
+      synths.poly.triggerAttackRelease(['G5', 'B5', 'D6'], 0.14, 0.28, 0.65);
+      synths.poly.triggerAttackRelease(['C5', 'E5', 'G5', 'C6'], 0.36, 0.42, 0.75);
     } else {
       const notes = ['E4', 'Eb4', 'D4', 'C#4'];
       notes.forEach((n, idx) => {
-        synths.fm.triggerAttackRelease(n, 0.16, idx * 0.14, 0.2, noteToFreq(n) * 0.94);
+        synths.fm.triggerAttackRelease(n, 0.16, idx * 0.14, 0.68, noteToFreq(n) * 0.94);
       });
     }
   }
@@ -383,15 +383,15 @@ export class ArcadeSfx {
   playRotate(): void {
     const synths = this.recordAndReady('tetris-rotate');
     if (!synths) return;
-    synths.fm.triggerAttackRelease('D5', 0.045, 0, 0.15, 'A5');
+    synths.fm.triggerAttackRelease('D5', 0.045, 0, 0.55, 'A5');
   }
 
   /** Tetris: punchy MembraneSynth thud when blocks drop/lock. */
   playHardDrop(): void {
     const synths = this.recordAndReady('tetris-drop');
     if (!synths) return;
-    synths.membrane.triggerAttackRelease(62, 0.11, 0, { octaves: 3.0, pitchDecay: 0.03, velocity: 0.28 });
-    synths.fm.triggerAttackRelease(180, 0.05, 0, 0.14, 90);
+    synths.membrane.triggerAttackRelease(62, 0.11, 0, { octaves: 3.0, pitchDecay: 0.03, velocity: 0.75 });
+    synths.fm.triggerAttackRelease(180, 0.05, 0, 0.52, 90);
   }
 
   /** Tetris: line clear chime (1–3 lines) or 4-line TETRIS fanfare! */
@@ -402,19 +402,19 @@ export class ArcadeSfx {
       if (!synths) return;
       const fanfare = ['E5', 'G#5', 'B5', 'E6'];
       fanfare.forEach((n, idx) => {
-        synths.fm.triggerAttackRelease(n, 0.1, idx * 0.065, 0.22);
+        synths.fm.triggerAttackRelease(n, 0.1, idx * 0.065, 0.68);
       });
-      synths.poly.triggerAttackRelease(['E5', 'G#5', 'B5', 'E6'], 0.38, 0.26, 0.24);
-      synths.membrane.triggerAttackRelease(68, 0.14, 0.26, { octaves: 2.6, velocity: 0.26 });
+      synths.poly.triggerAttackRelease(['E5', 'G#5', 'B5', 'E6'], 0.38, 0.26, 0.72);
+      synths.membrane.triggerAttackRelease(68, 0.14, 0.26, { octaves: 2.6, velocity: 0.75 });
       return;
     }
     const synths = this.recordAndReady('tetris-line-clear');
     if (!synths) return;
     const arp = ['G4', 'B4', 'D5', 'G5'].slice(0, lines + 1);
     arp.forEach((n, idx) => {
-      synths.fm.triggerAttackRelease(n, 0.08, idx * 0.055, 0.2);
+      synths.fm.triggerAttackRelease(n, 0.08, idx * 0.055, 0.62);
     });
-    synths.poly.triggerAttackRelease(['G4', 'B4', 'D5'], 0.2, arp.length * 0.05, 0.18);
+    synths.poly.triggerAttackRelease(['G4', 'B4', 'D5'], 0.2, arp.length * 0.05, 0.58);
   }
 
   /** Tetris: classic descending synth cadence on Game Over. */
@@ -422,7 +422,7 @@ export class ArcadeSfx {
     const synths = this.recordAndReady('tetris-over');
     if (!synths) return;
     ['A4', 'G4', 'F4', 'E4'].forEach((n, idx) => {
-      synths.fm.triggerAttackRelease(n, 0.18, idx * 0.15, 0.2);
+      synths.fm.triggerAttackRelease(n, 0.18, idx * 0.15, 0.68);
     });
   }
 }

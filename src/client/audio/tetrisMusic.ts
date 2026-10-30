@@ -4,7 +4,7 @@ import { ArcadeSfx, type SfxEventName } from './toneSynth';
 type AudioContextConstructor = typeof AudioContext;
 
 export const CROSSFADE_SEC = 1.2;
-export const MUSIC_GAIN = 0.5;
+export const MUSIC_GAIN = 0.22;
 
 export interface AudioOutputMetrics {
   rms: number;
@@ -224,9 +224,21 @@ export class TetrisMusic {
     this.sfxEnabled = enabled;
   }
 
+  /**
+   * Advances to a fresh track in the active playlist when a new game or round starts (#258).
+   */
+  startNewGameTrack(): void {
+    this.pauseOffset = 0;
+    if (this.ctx || this.audio) {
+      this.advance(this.active && this.currentVoice !== null);
+    }
+  }
+
   /** Start or stop playback. Safe to call both in `onClick` and `useEffect`. */
   setActive(active: boolean): void {
-    this.sfxEnabled = active;
+    if (active) {
+      this.sfxEnabled = true;
+    }
     if (this.active === active) {
       if (active && this.ctx && this.ctx.state !== 'running') {
         void this.ctx.resume().catch(() => undefined);
