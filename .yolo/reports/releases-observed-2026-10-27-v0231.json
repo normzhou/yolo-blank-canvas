@@ -1,0 +1,62 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-27",
+  "observed_at": "2026-10-27",
+  "published_at_utc": "2026-10-30T05:05:00Z",
+  "protocol": {
+    "revision": "99aa6881f344da6ca6005f5516fb1112ab4caa23",
+    "release": "v0.1.0-alpha.43"
+  },
+  "releases": [
+    {
+      "tag": "v0.23.1",
+      "commit": "aecb8cba7ff3c6dcadf80acadd291d09b66bc298"
+    }
+  ],
+  "release": {
+    "tag": "v0.23.1",
+    "tag_object": "02268db64f39301e52f0584d822be20ff0b70635",
+    "release_commit": "aecb8cba7ff3c6dcadf80acadd291d09b66bc298",
+    "source_commit": "137594e9622d7981ce65cf25298d83d2bb395d0f",
+    "assets_commit": "7dc9e36e15310ebe793b20312f9eb83e6cbcd1d0",
+    "semver": "patch",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record 137594e, the source revision. The committed assets were built at that source in 7dc9e36. aecb8cb is the merge of release-metadata commit 213f0d6 after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "162 passed across 23 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID 137594e" },
+    { "check": "npm run e2e (stubbed, deterministic)", "result": "pass", "detail": "45 passed (49.9s)" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #261 completed success" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "installed_from": "npx --yes github:normzhou/yolo-blank-canvas#v0.23.1 --no-open --port 4895",
+    "installed_into": "an empty directory, no source checkout present",
+    "served_build": "137594e9622d7981ce65cf25298d83d2bb395d0f",
+    "served_version": {
+      "package": "0.23.1",
+      "serverBuild": "137594e9622d7981ce65cf25298d83d2bb395d0f",
+      "clientBuild": "137594e9622d7981ce65cf25298d83d2bb395d0f"
+    },
+    "command": "YOLO_VERIFY_URL=http://127.0.0.1:4895 npm run e2e:verify-release",
+    "result": "pass",
+    "detail": "11 of 11 passed (20.3s). Also deployed live to yolo-demo-app (Version ID: 2a58b30f-28a6-4076-82be-722094d186b3) and verified at https://demo.yolo-dev.ai/__yolo/version (200 {\"version\":\"v0.23.1\"}) and https://demo.yolo-dev.ai/.build-id (200 137594e9622d7981ce65cf25298d83d2bb395d0f)."
+  },
+  "what_this_release_delivers": [
+    "#260 Re-compose the 11 non-Korobeiniki tracks with 48-bar multi-section forms, rolled 4- to 5-voice chords, voice-led secondary dominants, parallel 3rd/6th harmonies, and happy whimsical Puzzle Bobble arrangements, verified in a closed loop against korobeiniki.m4a"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "Acceptance on the delivered artifact is eleven targeted read-only checks. The 162 unit tests and 45 stubbed e2e tests ran against the source revision, not the installed artifact.",
+    "The tag points at aecb8cb, the merge of the release-metadata commit 213f0d6 after the assets commit 7dc9e36, not at the assets commit itself. Both build-ID files still record the source 137594e, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #260"
+}

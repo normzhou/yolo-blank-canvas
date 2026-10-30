@@ -4,6 +4,26 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Chord-Rich Music-Theory Soundtrack & Whimsical Puzzle Bobble Arrangements (#260) — 2026-10-27
+
+Source revision `137594e` (the 48-bar multi-section chord-rich music-theory and whimsical Puzzle Bobble composition commit); build and review evidence `7dc9e36`; release commit `aecb8cb`; published as `v0.23.1` on 2026-10-27.
+
+- **48-Bar Multi-Section Forms, Rolled 4–5 Voice Chords & Voice Leading (`public/tetris/*.m4a`):**
+  - Re-composed all 11 non-Korobeiniki tracks (`korobeiniki.m4a` preserved untouched) with 3 distinct 4-bar harmonic/melodic sections (`Section A -> Section B -> Section C`) × 4 developmental variation cycles (48 bars per cycle), rolled 4- to 5-voice chord voicings, voice-led inversions, secondary dominants (`V7/ii`, `V7/vi`, `V7/V`), circle-of-fifths progressions, and parallel 3rd/6th alto harmonies.
+- **Happy, Whimsical, Bouncy Puzzle Bobble Arrangements (`PUZZLE_BOBBLE_PLAYLIST`):**
+  - Voiced in bright major keys (`C Major`, `F Major`, `G Major`, `D Major`, `Bb Major`) with staccato marimba/celesta/flute articulations, playful grace-note pickups, bouncy oom-pah/stride accompaniment, and cheerful major-6th/7th chord voicings.
+- **Closed-Loop Acoustic & Spectral Verification:**
+  - Verified against `korobeiniki.m4a` (`RMS = 0.202`, `Bass(50–250Hz) = 26.7%`, `WarmChords(250–1200Hz) = 66.3%`, `High(>3.5kHz) = 2.2%`): all 11 tracks match `RMS = 0.202 ± 0.004`, `WarmChords = 62%–72%`, `Bass = 20%–32%`, and `High = 0.0%–0.7%`.
+- `npm test`: 23 files, 162 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 45 passed.
+
+### Installed artifact (`v0.23.1`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.23.1 --no-open --port 4895` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `137594e…`; the tagged package version is `0.23.1`. The tag points at release commit `aecb8cb`, after the assets commit `7dc9e36`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4895 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: 2a58b30f-28a6-4076-82be-722094d186b3`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.23.1"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 137594e9622d7981ce65cf25298d83d2bb395d0f`). The report is [`.yolo/reports/releases-observed-2026-10-27-v0231.json`](../.yolo/reports/releases-observed-2026-10-27-v0231.json).
+
 ## Touch-Only Puzzle Bobble Aiming, Strict Countdown Input Lock, Louder SFX / Softer Music, Stop Track on Game End + New Track on New Game, and Closed-Loop Multi-Genre/Meter Music Composition (#258) — 2026-10-27
 
 Source revision `dac2b99` (the touch-only Puzzle Bobble, strict countdown lock, audio balance/lifecycle, and closed-loop multi-genre/meter composition commit); build and review evidence `63e1a8d`; release commit `6a949b6`; published as `v0.23.0` on 2026-10-27.
