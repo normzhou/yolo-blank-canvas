@@ -928,9 +928,33 @@ function createRadarFromBoard(board: PlayerBoardState): PuzzleBobbleRadarSnapsho
     score: board.score,
     status: board.status,
     incomingGarbage: board.incomingGarbage,
-    aimAngle: board.aimAngle,
+    aimAngle: Math.round(board.aimAngle * 2) / 2,
     currentBubble: board.currentBubble,
+    flying: board.flying
+      ? {
+          x: Math.round(board.flying.x),
+          y: Math.round(board.flying.y),
+          color: board.flying.color,
+        }
+      : null,
+    lastEvent: board.lastEvent
+      ? {
+          id: board.lastEvent.id,
+          popped: board.lastEvent.popped,
+          dropped: board.lastEvent.dropped,
+          risenGarbage: board.lastEvent.risenGarbage,
+          sentGarbage: board.lastEvent.sentGarbage,
+        }
+      : null,
   };
+}
+
+interface RadarTransientFx {
+  key: string;
+  x: number;
+  y: number;
+  color: BubbleColor;
+  kind: 'pop' | 'drop' | 'rise';
 }
 
 const OpponentBubbleRadar = memo(function OpponentBubbleRadar({
@@ -941,11 +965,100 @@ const OpponentBubbleRadar = memo(function OpponentBubbleRadar({
   radar: PuzzleBobbleRadarSnapshot;
 }) {
   const ceilingY = radar.ceilingDrop * ROW_STEP;
-  const rad = ((radar.aimAngle - 90) * Math.PI) / 180;
-  const tipX = LAUNCHER_X + Math.cos(rad) * 32;
-  const tipY = LAUNCHER_Y + Math.sin(rad) * 32;
   const statusLabel =
     radar.status === 'ko' ? 'KO' : radar.status === 'won' ? 'WIN' : 'LIVE';
+
+  const prevGridRef = useRef<PlayerBoardState['grid'] | null>(null);
+  const prevCeilingRef = useRef<number>(radar.ceilingDrop);
+  const prevEventIdRef = useRef<number>(0);
+  const fxSeqRef = useRef<number>(0);
+  const [transientFx, setTransientFx] = useState<RadarTransientFx[]>([]);
+  const [risenCoordKeys, setRisenCoordKeys] = useState<Set<string>>(() => new Set());
+
+  useEffect(() => {
+    const prevGrid = prevGridRef.current;
+    const prevCeiling = prevCeilingRef.current;
+    prevGridRef.current = radar.grid;
+    prevCeilingRef.current = radar.ceilingDrop;
+
+    const addedFx: RadarTransientFx[] = [];
+    const nextRisen = new Set<string>();
+    const ev = radar.lastEvent;
+
+    if (ev && ev.id !== prevEventIdRef.current) {
+      prevEventIdRef.current = ev.id;
+      for (const cell of ev.popped ?? []) {
+        addedFx.push({
+          key: `pop-${++fxSeqRef.current}`,
+          x: cell.x,
+          y: cell.y,
+          color: cell.color,
+          kind: 'pop',
+        });
+      }
+      for (const cell of ev.dropped ?? []) {
+        addedFx.push({
+          key: `drop-${++fxSeqRef.current}`,
+          x: cell.x,
+          y: cell.y,
+          color: cell.color,
+          kind: 'drop',
+        });
+      }
+      for (const cell of ev.risenGarbage ?? []) {
+        nextRisen.add(`${cell.row},${cell.col}`);
+        addedFx.push({
+          key: `rise-${++fxSeqRef.current}`,
+          x: cell.x,
+          y: cell.y,
+          color: cell.color,
+          kind: 'rise',
+        });
+      }
+    } else if (prevGrid) {
+      // Also diff grids directly when a raw pb_state snapshot arrives without lastEvent (#256).
+      for (let r = 0; r < Math.max(prevGrid.length, radar.grid.length); r += 1) {
+        const cols = colsForRow(r);
+        for (let c = 0; c < cols; c += 1) {
+          const before = prevGrid[r]?.[c] ?? null;
+          const after = radar.grid[r]?.[c] ?? null;
+          if (before && !after) {
+            const center = bubbleCenter(r, c, prevCeiling);
+            addedFx.push({
+              key: `diff-pop-${++fxSeqRef.current}`,
+              x: center.x,
+              y: center.y,
+              color: before,
+              kind: 'pop',
+            });
+          } else if (!before && after) {
+            const center = bubbleCenter(r, c, radar.ceilingDrop);
+            nextRisen.add(`${r},${c}`);
+            addedFx.push({
+              key: `diff-rise-${++fxSeqRef.current}`,
+              x: center.x,
+              y: center.y,
+              color: after,
+              kind: 'rise',
+            });
+          }
+        }
+      }
+    }
+
+    if (addedFx.length > 0 || nextRisen.size > 0) {
+      setRisenCoordKeys(nextRisen);
+      setTransientFx((cur) => [...cur.slice(-24), ...addedFx]);
+      const id = window.setTimeout(() => {
+        setTransientFx([]);
+        setRisenCoordKeys(new Set());
+      }, 520);
+      return () => window.clearTimeout(id);
+    }
+    return undefined;
+  }, [radar.grid, radar.ceilingDrop, radar.lastEvent]);
+
+  const stagingY = DANGER_LINE_Y + 12;
 
   return (
     <div
@@ -992,13 +1105,37 @@ const OpponentBubbleRadar = memo(function OpponentBubbleRadar({
           strokeWidth="2"
           strokeDasharray="6 4"
         />
+        {/* Rising garbage trails on opponent mini-radar (#256) */}
+        {transientFx
+          .filter((fx) => fx.kind === 'rise')
+          .map((fx) => (
+            <line
+              key={`trail-${fx.key}`}
+              className="pb-rise-trail"
+              x1={fx.x}
+              y1={stagingY}
+              x2={fx.x}
+              y2={fx.y}
+              stroke={BUBBLE_TOKEN[fx.color]}
+              strokeWidth="4"
+              strokeLinecap="round"
+            />
+          ))}
         {radar.grid.map((row, r) =>
           row.slice(0, colsForRow(r)).map((color, c) => {
             if (!color) return null;
             const center = bubbleCenter(r, c, radar.ceilingDrop);
+            const coordKey = `${r},${c}`;
+            const justRose = risenCoordKeys.has(coordKey);
             return (
               <circle
-                key={`${r},${c}`}
+                key={justRose ? `${coordKey}-rise` : coordKey}
+                className={justRose ? 'pb-rise-bubble' : undefined}
+                style={
+                  justRose
+                    ? ({ '--pb-rise-from': `${stagingY - center.y}px` } as CSSProperties)
+                    : undefined
+                }
                 cx={center.x}
                 cy={center.y}
                 r={BUBBLE_RADIUS - 1}
@@ -1009,15 +1146,54 @@ const OpponentBubbleRadar = memo(function OpponentBubbleRadar({
             );
           }),
         )}
-        <line
-          x1={LAUNCHER_X}
-          y1={LAUNCHER_Y}
-          x2={tipX}
-          y2={tipY}
-          stroke="var(--tetromino-o)"
-          strokeWidth="3"
-          strokeLinecap="round"
-        />
+        {/* Popped & dropped (avalanche) bubble animations on opponent mini-radar (#256) */}
+        {transientFx
+          .filter((fx) => fx.kind === 'pop' || fx.kind === 'drop')
+          .map((fx) => (
+            <circle
+              key={fx.key}
+              className={fx.kind === 'pop' ? 'pb-radar-pop-fx' : 'pb-radar-drop-fx'}
+              cx={fx.x}
+              cy={fx.y}
+              r={BUBBLE_RADIUS - 1}
+              fill={BUBBLE_TOKEN[fx.color]}
+              stroke="var(--text)"
+              strokeWidth="1.2"
+            />
+          ))}
+        {/* Flying projectile bubble on opponent mini-radar (#256) */}
+        {radar.flying ? (
+          <circle
+            className="pb-radar-flying-bubble"
+            cx={radar.flying.x}
+            cy={radar.flying.y}
+            r={BUBBLE_RADIUS - 1}
+            fill={BUBBLE_TOKEN[radar.flying.color]}
+            stroke="var(--text)"
+            strokeWidth="1.2"
+          />
+        ) : null}
+        {/* Smoothly interpolated opponent aiming needle (#256) */}
+        <g
+          className="pb-radar-aim-group"
+          data-testid="pb-opponent-aim"
+          style={
+            {
+              transform: `rotate(${radar.aimAngle}deg)`,
+              transformOrigin: `${LAUNCHER_X}px ${LAUNCHER_Y}px`,
+            } as CSSProperties
+          }
+        >
+          <line
+            x1={LAUNCHER_X}
+            y1={LAUNCHER_Y}
+            x2={LAUNCHER_X}
+            y2={LAUNCHER_Y - 34}
+            stroke="var(--tetromino-o)"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+        </g>
         <circle
           cx={LAUNCHER_X}
           cy={LAUNCHER_Y}
@@ -1826,7 +2002,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
       void getSharedNetplay().sendRoomEvent('pb_state', snap);
     };
     pushRadar();
-    const id = window.setInterval(pushRadar, 600);
+    const id = window.setInterval(pushRadar, 500);
     return () => window.clearInterval(id);
   }, [isOnline2P, isReadyCheck, isNetworkPaused, match.status]);
 
@@ -1881,7 +2057,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     return () => window.clearInterval(id);
   }, [netplay.myPendingInvite]);
 
-  // 3, 2, 1 car-race start countdown with sound effects (#248, #252).
+  // 3, 2, 1 car-race start countdown with sound effects (#248, #252, #256: 2s per beat).
   useEffect(() => {
     if (countdown <= 0 || paused || isReadyCheck || isInviting || isNetworkPaused) return;
     getSharedArcadeAudio().sfx.playCountdown(countdown);
@@ -1893,7 +2069,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         }
         return next;
       });
-    }, 700);
+    }, 2000);
     return () => window.clearTimeout(id);
   }, [countdown, paused, isReadyCheck, isInviting, isNetworkPaused]);
 

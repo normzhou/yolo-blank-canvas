@@ -2712,6 +2712,8 @@ button.pb-touch-fire {
   color: var(--tetromino-z);
 }
 .tetris-radar-grid {
+  position: relative;
+  overflow: hidden;
   display: grid;
   grid-template-columns: repeat(10, 6px);
   grid-auto-rows: 5px;
@@ -2721,19 +2723,59 @@ button.pb-touch-fire {
   border: 1px solid var(--border);
   background: var(--cabinet-well);
   align-self: center;
+  transition: border-color 220ms ease;
+}
+.tetris-radar-grid.is-clearing {
+  border-color: var(--tetromino-o);
+  animation: tetris-radar-flash 420ms ease-out;
+}
+.tetris-radar-grid.is-rising-garbage {
+  animation: tetris-radar-rise 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes tetris-radar-flash {
+  0% { filter: brightness(1.85); }
+  100% { filter: brightness(1); }
+}
+@keyframes tetris-radar-rise {
+  0% { transform: translateY(8px); }
+  100% { transform: translateY(0); }
 }
 .tetris-radar-cell {
   background: var(--cell-empty);
   border-radius: 1px;
+  transition: background-color 180ms ease;
 }
-.tetris-radar-cell.tetromino-i { background: var(--tetromino-i); }
-.tetris-radar-cell.tetromino-j { background: var(--tetromino-j); }
-.tetris-radar-cell.tetromino-l { background: var(--tetromino-l); }
-.tetris-radar-cell.tetromino-o { background: var(--tetromino-o); }
-.tetris-radar-cell.tetromino-s { background: var(--tetromino-s); }
-.tetris-radar-cell.tetromino-t { background: var(--tetromino-t); }
-.tetris-radar-cell.tetromino-z { background: var(--tetromino-z); }
+.tetris-radar-cell.tetromino-i,
+.tetris-radar-active-cell.tetromino-i { background: var(--tetromino-i); }
+.tetris-radar-cell.tetromino-j,
+.tetris-radar-active-cell.tetromino-j { background: var(--tetromino-j); }
+.tetris-radar-cell.tetromino-l,
+.tetris-radar-active-cell.tetromino-l { background: var(--tetromino-l); }
+.tetris-radar-cell.tetromino-o,
+.tetris-radar-active-cell.tetromino-o { background: var(--tetromino-o); }
+.tetris-radar-cell.tetromino-s,
+.tetris-radar-active-cell.tetromino-s { background: var(--tetromino-s); }
+.tetris-radar-cell.tetromino-t,
+.tetris-radar-active-cell.tetromino-t { background: var(--tetromino-t); }
+.tetris-radar-cell.tetromino-z,
+.tetris-radar-active-cell.tetromino-z { background: var(--tetromino-z); }
 .tetris-radar-cell.tetromino-g { background: var(--muted); }
+.tetris-radar-active-piece {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 27px;
+  height: 23px;
+  display: grid;
+  grid-template-columns: repeat(4, 6px);
+  grid-auto-rows: 5px;
+  gap: 1px;
+  pointer-events: none;
+  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.tetris-radar-active-cell {
+  border-radius: 1px;
+}
 .pb-radar-card {
   padding: 3px;
   gap: 2px;
@@ -2745,6 +2787,29 @@ button.pb-touch-fire {
   border-radius: 2px;
   border: 1px solid var(--border);
   background: var(--cabinet-well);
+}
+.pb-radar-aim-group {
+  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pb-radar-flying-bubble {
+  transition: cx 240ms linear, cy 240ms linear;
+}
+.pb-radar-pop-fx {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pb-radar-pop 440ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.pb-radar-drop-fx {
+  animation: pb-radar-drop 480ms cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+@keyframes pb-radar-pop {
+  0% { transform: scale(1); opacity: 1; }
+  45% { transform: scale(1.65); opacity: 0.85; }
+  100% { transform: scale(0.1); opacity: 0; }
+}
+@keyframes pb-radar-drop {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(38px); opacity: 0; }
 }
 .netplay-radar-stats {
   display: flex;

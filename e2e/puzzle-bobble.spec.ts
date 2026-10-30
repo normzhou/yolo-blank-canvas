@@ -494,6 +494,15 @@ test('2P Online networking (#236): 2 independent browser sessions discover prese
     await expect(page1.getByRole('img', { name: 'Player 2 bubble board' })).toHaveCount(0);
     await expect(page2.getByRole('img', { name: 'Player 2 bubble board' })).toHaveCount(0);
 
+    // #256: Browser Session 1 aims right -> Browser Session 2's Opponent Mini-Radar aim needle (`pb-opponent-aim`)
+    // smoothly rotates via ~2Hz (500ms) radar updates!
+    await page1.keyboard.press('d');
+    await expect(page2.getByTestId('pb-opponent-aim')).toHaveAttribute(
+      'style',
+      /rotate\(0\.5deg\)/,
+      { timeout: 6000 },
+    );
+
     // Browser Session 1 pops a 5-bubble cluster (`forceClusterPop: true`) -> sends garbage attack + radar state
     // over `/api/netplay` to Browser Session 2!
     await page1.evaluate(() => {
@@ -553,6 +562,18 @@ test('2P Online networking (#236): 2 independent browser sessions discover prese
     await expect(page2.getByTestId('tetris-opponent-radar')).toBeVisible({ timeout: 6000 });
     await expect(page1.getByTestId('tetris-garbage-meter')).toBeVisible();
     await expect(page2.getByTestId('tetris-garbage-meter')).toBeVisible();
+
+    // #256: Browser Session 1 moves the active falling tetromino right -> Browser Session 2's Opponent Mini-Radar
+    // active piece overlay (`tetris-opponent-active-piece`) smoothly translates via ~2Hz (500ms) radar updates!
+    const initialPieceStyle = await page2
+      .getByTestId('tetris-opponent-active-piece')
+      .getAttribute('style');
+    await page1.keyboard.press('ArrowRight');
+    await expect(page2.getByTestId('tetris-opponent-active-piece')).not.toHaveAttribute(
+      'style',
+      initialPieceStyle ?? '',
+      { timeout: 6000 },
+    );
 
     // Browser Session 1 clears a 4-line Tetris -> sends 4 garbage lines (`tetris_attack`) + radar state
     // over `/api/netplay` to Browser Session 2!

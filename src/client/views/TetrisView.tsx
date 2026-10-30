@@ -78,11 +78,42 @@ function mulberry32(seed: number): () => number {
 function createInitialTetrisRadar(): TetrisRadarSnapshot {
   return {
     board: createEmptyBoard(),
+    settledBoard: createEmptyBoard(),
+    activePiece: null,
+    lastEvent: null,
     score: 0,
     lines: 0,
     level: 1,
     status: 'playing',
     pendingGarbage: 0,
+  };
+}
+
+function buildTetrisRadarSnapshot(cur: TetrisState): TetrisRadarSnapshot {
+  return {
+    board: displayBoard(cur),
+    settledBoard: cur.board,
+    activePiece: cur.piece
+      ? {
+          type: cur.piece.type,
+          x: cur.piece.x,
+          y: cur.piece.y,
+          rotation: cur.piece.rotation,
+        }
+      : null,
+    lastEvent: cur.lastLockEvent
+      ? {
+          id: cur.lastLockEvent.id,
+          clearedLines: cur.lastLockEvent.cleared,
+          sentGarbage: cur.lastLockEvent.sentGarbage,
+          risenGarbage: cur.lastLockEvent.risenGarbage,
+        }
+      : null,
+    score: cur.score,
+    lines: cur.lines,
+    level: cur.level,
+    status: cur.status,
+    pendingGarbage: pendingGarbageCount(cur),
   };
 }
 
@@ -177,6 +208,61 @@ const OpponentTetrisRadar = memo(function OpponentTetrisRadar({
       : roundOutcome === 'lost'
         ? 'WIN'
         : 'LIVE';
+
+  const prevLinesRef = useRef<number>(radar.lines);
+  const prevGarbageCellsRef = useRef<number>(0);
+  const prevEventIdRef = useRef<number>(0);
+  const [animMode, setAnimMode] = useState<'none' | 'clearing' | 'rising'>('none');
+
+  useEffect(() => {
+    let garbageCells = 0;
+    for (const row of radar.board) {
+      for (const cell of row) {
+        if (cell === 'G') garbageCells += 1;
+      }
+    }
+    const prevGarbage = prevGarbageCellsRef.current;
+    prevGarbageCellsRef.current = garbageCells;
+
+    const prevLines = prevLinesRef.current;
+    prevLinesRef.current = radar.lines;
+
+    const ev = radar.lastEvent;
+    let nextAnim: 'none' | 'clearing' | 'rising' = 'none';
+    if (ev && ev.id !== prevEventIdRef.current) {
+      prevEventIdRef.current = ev.id;
+      if (ev.risenGarbage > 0) nextAnim = 'rising';
+      else if (ev.clearedLines > 0) nextAnim = 'clearing';
+    } else if (garbageCells > prevGarbage) {
+      nextAnim = 'rising';
+    } else if (radar.lines > prevLines) {
+      nextAnim = 'clearing';
+    }
+
+    if (nextAnim !== 'none') {
+      setAnimMode(nextAnim);
+      const id = window.setTimeout(() => setAnimMode('none'), 450);
+      return () => window.clearTimeout(id);
+    }
+    return undefined;
+  }, [radar.board, radar.lines, radar.lastEvent]);
+
+  const activePieceCells = useMemo(() => {
+    if (!radar.activePiece) return null;
+    const coords = new Set<string>();
+    for (const [dx, dy] of rotationCells(radar.activePiece.type, radar.activePiece.rotation)) {
+      coords.add(`${dx},${dy}`);
+    }
+    return coords;
+  }, [radar.activePiece]);
+
+  const gridClass =
+    animMode === 'clearing'
+      ? 'tetris-radar-grid is-clearing'
+      : animMode === 'rising'
+        ? 'tetris-radar-grid is-rising-garbage'
+        : 'tetris-radar-grid';
+
   return (
     <div
       className="netplay-radar-card"
@@ -199,7 +285,7 @@ const OpponentTetrisRadar = memo(function OpponentTetrisRadar({
         </span>
       </div>
       <div
-        className="tetris-radar-grid"
+        className={gridClass}
         role="img"
         aria-label={`${opponentName} board radar, score ${radar.score}, lines ${radar.lines}`}
       >
@@ -211,6 +297,32 @@ const OpponentTetrisRadar = memo(function OpponentTetrisRadar({
             />
           )),
         )}
+        {radar.activePiece && activePieceCells ? (
+          <div
+            className="tetris-radar-active-piece"
+            data-testid="tetris-opponent-active-piece"
+            aria-hidden="true"
+            style={{
+              transform: `translate(${radar.activePiece.x * 7}px, ${radar.activePiece.y * 6}px)`,
+            }}
+          >
+            {Array.from({ length: 4 }, (_, py) =>
+              Array.from({ length: 4 }, (_, px) => {
+                const filled = activePieceCells.has(`${px},${py}`);
+                return (
+                  <div
+                    key={`${px},${py}`}
+                    className={
+                      filled
+                        ? `tetris-radar-active-cell ${CELL_CLASS[radar.activePiece!.type]}`
+                        : 'tetris-radar-active-cell'
+                    }
+                  />
+                );
+              }),
+            )}
+          </div>
+        ) : null}
       </div>
       <div className="netplay-radar-stats">
         <span data-testid="tetris-opponent-score">{radar.score} pts</span>
@@ -323,27 +435,20 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     }
   }, [activeTetrisRoom?.syncStatus, onExit]);
 
-  // Continuous 2P keep-alive and live board radar push (#250, #254: deduplicated).
+  // Continuous 2P keep-alive and live board radar push (#250, #254, #256: 500ms / 2Hz deduplicated).
   const lastRadarDigestRef = useRef<string>('');
   useEffect(() => {
     if (!isOnline2P || isReadyCheck || isNetworkPaused || roundOutcome !== 'playing') return;
     const pushRadar = () => {
       const cur = gameRef.current;
-      const snap: TetrisRadarSnapshot = {
-        board: displayBoard(cur),
-        score: cur.score,
-        lines: cur.lines,
-        level: cur.level,
-        status: cur.status,
-        pendingGarbage: pendingGarbageCount(cur),
-      };
+      const snap = buildTetrisRadarSnapshot(cur);
       const digest = JSON.stringify(snap);
       if (digest === lastRadarDigestRef.current) return;
       lastRadarDigestRef.current = digest;
       void getSharedNetplay().sendRoomEvent('tetris_state', snap);
     };
     pushRadar();
-    const id = window.setInterval(pushRadar, 600);
+    const id = window.setInterval(pushRadar, 500);
     return () => window.clearInterval(id);
   }, [isOnline2P, isReadyCheck, isNetworkPaused, roundOutcome]);
 
@@ -383,7 +488,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     return () => window.clearInterval(id);
   }, [netplay.myPendingInvite]);
 
-  // 3, 2, 1 car-race start countdown with sound effects (#248, #252).
+  // 3, 2, 1 car-race start countdown with sound effects (#248, #252, #256: 2s per beat).
   useEffect(() => {
     if (countdown <= 0 || paused || isReadyCheck || isInviting || isNetworkPaused) return;
     getSharedArcadeAudio().sfx.playCountdown(countdown);
@@ -395,7 +500,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
         }
         return next;
       });
-    }, 700);
+    }, 2000);
     return () => window.clearTimeout(id);
   }, [countdown, paused, isReadyCheck, isInviting, isNetworkPaused]);
 
@@ -562,14 +667,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
         sfx.playGarbageRise(lockEv.risenGarbage);
       }
       if (isOnline2P) {
-        void getSharedNetplay().sendRoomEvent('tetris_state', {
-          board: displayBoard(game),
-          score: game.score,
-          lines: game.lines,
-          level: game.level,
-          status: game.status,
-          pendingGarbage: pendingGarbageCount(game),
-        } satisfies TetrisRadarSnapshot);
+        void getSharedNetplay().sendRoomEvent('tetris_state', buildTetrisRadarSnapshot(game));
       }
     }
   }, [game, isOnline2P]);
