@@ -4,6 +4,26 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## High-Pitch 48kHz 10-Language Voices, Anti-Repeat Speaker Quota & No Start Beeps (#276) — 2026-10-27
+
+Source revision `b92d282` (the high-pitch 48kHz 10-language child/prosody neural voices, anti-repeat speaker-weighted sampling, and start beep removal commit); build and review evidence `6fce657`; release commit `c6ba66f`; published as `v0.25.5` on 2026-10-27.
+
+- **Top 10 Most Spoken Languages & Anti-Repeat Speaker-Weighted Quota (`src/shared/countdownLanguages.ts`):**
+  - Samples across the 10 most spoken languages in the world (English `1,515M`, Mandarin Chinese `1,140M`: `预备…` → `齐！`, Hindi `609M`, Spanish `560M`, French `312M`, Standard Arabic `274M`, Bengali `272M`, Portuguese `264M`, Russian `255M`, Urdu `232M`) using speaker-weighted quota sampling with back-to-back anti-repeat so Mandarin Chinese (`21.0%`) and all 10 languages appear reliably without random droughts.
+- **High-Pitch 48,000 Hz Neural Child/Prosody Voices (`public/tetris/countdown-voices.m4a`):**
+  - Synthesized via Hugging Face `innoai/Edge-TTS-Text-to-Speech` using dedicated child/cartoon neural voices (`zh-CN-XiaoyiNeural` for Mandarin Chinese, `en-US-AnaNeural` for English, `fr-FR-EloiseNeural` for French, `hi-IN-SwaraNeural`, `es-ES-XimenaNeural`, `ar-JO-SanaNeural`, `bn-BD-NabanitaNeural`, `pt-BR-ThalitaMultilingualNeural`, `ru-RU-SvetlanaNeural`, `ur-PK-UzmaNeural`) with native neural `pitch=+20 Hz` and `rate=+14%` inside the neural vocoder (`F0 = 315–520 Hz`), encoded at `48,000 Hz` (`192 kbps` AAC).
+- **Removed Countdown Beep Tones (`src/client/audio/tetrisMusic.ts`):**
+  - Removed `this.sfx.playCountdown(...)` from `playCountdownPhrase` so only the spoken words play during the start countdown.
+- `npm test`: 23 files, 163 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 45 passed.
+
+### Installed artifact (`v0.25.5`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.25.5 --no-open --port 4903` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `b92d282…`; the tagged package version is `0.25.5`. The tag points at release commit `c6ba66f`, after the assets commit `6fce657`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4903 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: d4aaf131-9b84-46d5-bdf9-75292a1bed90`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.25.5"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 b92d2828c6d5ffff1cc5737b0f15c5799ce9f3d3`). The report is [`.yolo/reports/releases-observed-2026-10-27-v0255.json`](../.yolo/reports/releases-observed-2026-10-27-v0255.json).
+
 ## Pure 48kHz Single-Voice Countdown Audio (#274) — 2026-10-27
 
 Source revision `7abbd08` (the pure 48,000 Hz single-voice countdown audio commit); build and review evidence `3540a90`; release commit `1bc9699`; published as `v0.25.4` on 2026-10-27.
