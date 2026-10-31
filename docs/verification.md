@@ -4,6 +4,24 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Hugging Face VoxCPM 2 Voice-Designed Excited 2-Kid Countdown Voices (#272) — 2026-10-27
+
+Source revision `f611549` (the Hugging Face `openbmb/VoxCPM2` voice-designed 10-language excited 2-kid duet countdown voices commit); build and review evidence `7707b07`; release commit `d4f4c0e`; published as `v0.25.3` on 2026-10-27.
+
+- **Hugging Face TTS Model Verification & Synthesis (`public/tetris/countdown-voices.m4a`):**
+  - **VoxCPM 2 (`openbmb/VoxCPM2`, `openbmb-voxcpm-demo.hf.space`):** Live, free 48kHz multilingual diffusion-autoregressive TTS supporting 30 languages and natural-language `control_instruction` Voice Design; synthesized all 40 child voice clips (`20 slots × 2 kids`).
+  - **Qwen3-TTS (`Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign`, `qwen-qwen3-tts.hf.space`):** Live ZeroGPU Space supporting `voice_description` across Chinese, English, Spanish, French, Portuguese, and Russian.
+  - **Fish Audio S2 Pro (`fishaudio/s2-pro`):** Supports `[excited] [shouting] [pitch up]` inline tags across 80+ languages, but the official Hugging Face checkpoint is gated (`inference: false`) and community ZeroGPU Spaces abort without reference audio.
+- `npm test`: 23 files, 163 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 45 passed.
+
+### Installed artifact (`v0.25.3`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.25.3 --no-open --port 4901` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `f611549…`; the tagged package version is `0.25.3`. The tag points at release commit `d4f4c0e`, after the assets commit `7707b07`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4901 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: 19d7b870-5c59-42be-99ad-39f20172e0a9`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.25.3"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 f6115492b85c464c8e8b30c996c8266412acc391`). The report is [`.yolo/reports/releases-observed-2026-10-27-v0253.json`](../.yolo/reports/releases-observed-2026-10-27-v0253.json).
+
 ## Unified Win/Loss Screen Across All Modes & Initial Mute Fix (#270) — 2026-10-27
 
 Source revision `625c29e` (the unified Win/Loss screen across all Puzzle Bobble modes and initial sound-off SFX mute fix commit); build and review evidence `3883444`; release commit `d9ee10e`; published as `v0.25.2` on 2026-10-27.

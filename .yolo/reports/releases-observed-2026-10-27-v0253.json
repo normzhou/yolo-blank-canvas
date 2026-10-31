@@ -1,0 +1,62 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-10-27",
+  "observed_at": "2026-10-27",
+  "published_at_utc": "2026-10-30T09:15:00Z",
+  "protocol": {
+    "revision": "99aa6881f344da6ca6005f5516fb1112ab4caa23",
+    "release": "v0.1.0-alpha.43"
+  },
+  "releases": [
+    {
+      "tag": "v0.25.3",
+      "commit": "d4f4c0e2994dab24dcaca5ceefbb67556ce13c9f"
+    }
+  ],
+  "release": {
+    "tag": "v0.25.3",
+    "tag_object": "86e50e39a27869cbd2254a4f0f2739fa2952c076",
+    "release_commit": "d4f4c0e2994dab24dcaca5ceefbb67556ce13c9f",
+    "source_commit": "f6115492b85c464c8e8b30c996c8266412acc391",
+    "assets_commit": "7707b07249ea3fa6751600dcfecb76480d5dff08",
+    "semver": "patch",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record f611549, the source revision. The committed assets were built at that source in 7707b07. d4f4c0e is the merge of release-metadata commit f53684f after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "163 passed across 23 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID f611549" },
+    { "check": "npm run e2e (stubbed, deterministic)", "result": "pass", "detail": "45 passed (54.8s)" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #273 completed success" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "installed_from": "npx --yes github:normzhou/yolo-blank-canvas#v0.25.3 --no-open --port 4901",
+    "installed_into": "an empty directory, no source checkout present",
+    "served_build": "f6115492b85c464c8e8b30c996c8266412acc391",
+    "served_version": {
+      "package": "0.25.3",
+      "serverBuild": "f6115492b85c464c8e8b30c996c8266412acc391",
+      "clientBuild": "f6115492b85c464c8e8b30c996c8266412acc391"
+    },
+    "command": "YOLO_VERIFY_URL=http://127.0.0.1:4901 npm run e2e:verify-release",
+    "result": "pass",
+    "detail": "11 of 11 passed (15.4s). Also deployed live to yolo-demo-app (Version ID: 19d7b870-5c59-42be-99ad-39f20172e0a9) and verified at https://demo.yolo-dev.ai/__yolo/version (200 {\"version\":\"v0.25.3\"}) and https://demo.yolo-dev.ai/.build-id (200 f6115492b85c464c8e8b30c996c8266412acc391)."
+  },
+  "what_this_release_delivers": [
+    "#272 Generate 10-language excited 2-kid countdown voices using Hugging Face VoxCPM 2 (openbmb/VoxCPM2) & Qwen3-TTS"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "Acceptance on the delivered artifact is eleven targeted read-only checks. The 163 unit tests and 45 stubbed e2e tests ran against the source revision, not the installed artifact.",
+    "The tag points at d4f4c0e, the merge of the release-metadata commit f53684f after the assets commit 7707b07, not at the assets commit itself. Both build-ID files still record the source f611549, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #272"
+}

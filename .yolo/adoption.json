@@ -272,15 +272,16 @@
         "v0.24.0": "fa6be5791c3092aff7b0e451a2796d49d9826768",
         "v0.24.1": "6f0cdaf06d0822ba86625c622cc14a0edb4a55b1",
         "v0.25.0": "9086e1b2b670dd204f58a0e794acfd56ca44c4ec",
-        "v0.25.1": "d1fc9099b8024f8d8e24beae75e93f889954e521"
+        "v0.25.1": "d1fc9099b8024f8d8e24beae75e93f889954e521",
+        "v0.25.2": "d9ee10e7ad0bb563dfc438ea67b0d8e439959eb9"
       },
       "published": {
-        "tag": "v0.25.2",
-        "commit": "d9ee10e7ad0bb563dfc438ea67b0d8e439959eb9",
-        "source_commit": "625c29e84d5f3f61e8cfb80a4d33e017a454535f",
-        "published_at": "2026-10-30T08:40:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-10-27-v0252.json",
-        "note": "Patch release. Ensures all Puzzle Bobble games (1P Solo, 2P Local, 2P Online) end on a Win/Lose screen before advancing (Win/Loss -> switch music -> Ready… Go!) and fixes initial sound-off SFX muting (#270, PR #271); deployed live to https://demo.yolo-dev.ai (Version ID: ad8d27b3-0b34-4ad4-9291-515fa14970b9). Acceptance before tagging: 163 unit, 45 stubbed e2e passed, tsc clean. Acceptance on the delivered artifact: 11 of 11. The tag points at d9ee10e after the assets commit 3883444; both build-ID files record 625c29e."
+        "tag": "v0.25.3",
+        "commit": "d4f4c0e2994dab24dcaca5ceefbb67556ce13c9f",
+        "source_commit": "f6115492b85c464c8e8b30c996c8266412acc391",
+        "published_at": "2026-10-30T09:15:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-10-27-v0253.json",
+        "note": "Patch release. Synthesizes all 10-language Ready… -> Go! 2-kid duet countdown voices using openbmb/VoxCPM2 on Hugging Face with natural-language excited child voice-design instructions and 195ms duet offset (#272, PR #273); deployed live to https://demo.yolo-dev.ai (Version ID: 19d7b870-5c59-42be-99ad-39f20172e0a9). Acceptance before tagging: 163 unit, 45 stubbed e2e passed, tsc clean. Acceptance on the delivered artifact: 11 of 11. The tag points at d4f4c0e after the assets commit 7707b07; both build-ID files record f611549."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -333,7 +334,8 @@
         ".yolo/reports/releases-observed-2026-10-27-v0241.json",
         ".yolo/reports/releases-observed-2026-10-27-v0250.json",
         ".yolo/reports/releases-observed-2026-10-27-v0251.json",
-        ".yolo/reports/releases-observed-2026-10-27-v0252.json"
+        ".yolo/reports/releases-observed-2026-10-27-v0252.json",
+        ".yolo/reports/releases-observed-2026-10-27-v0253.json"
       ]
     }
   },
