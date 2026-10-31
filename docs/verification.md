@@ -4,6 +4,22 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Pure 48kHz Single-Voice Countdown Audio (#274) — 2026-10-27
+
+Source revision `7abbd08` (the pure 48,000 Hz single-voice countdown audio commit); build and review evidence `3540a90`; release commit `1bc9699`; published as `v0.25.4` on 2026-10-27.
+
+- **Pure 48,000 Hz / 192 kbps AAC Single-Voice Countdown Sprite (`public/tetris/countdown-voices.m4a`):**
+  - Removed all pitch-shifting, WSOLA time-stretching, pre-emphasis filtering, `tanh` saturation, and 2-voice layering so the original single-voice neural audio is preserved cleanly at `48,000 Hz` (`192 kbps` AAC).
+- `npm test`: 23 files, 163 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 45 passed.
+
+### Installed artifact (`v0.25.4`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.25.4 --no-open --port 4902` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `7abbd08…`; the tagged package version is `0.25.4`. The tag points at release commit `1bc9699`, after the assets commit `3540a90`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4902 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: 2425a20d-ef41-41a5-a983-9afd840ed943`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.25.4"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 7abbd082e6aa5a8ea2bb213334a5a4e0781ca934`). The report is [`.yolo/reports/releases-observed-2026-10-27-v0254.json`](../.yolo/reports/releases-observed-2026-10-27-v0254.json).
+
 ## Hugging Face VoxCPM 2 Voice-Designed Excited 2-Kid Countdown Voices (#272) — 2026-10-27
 
 Source revision `f611549` (the Hugging Face `openbmb/VoxCPM2` voice-designed 10-language excited 2-kid duet countdown voices commit); build and review evidence `7707b07`; release commit `d4f4c0e`; published as `v0.25.3` on 2026-10-27.

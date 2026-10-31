@@ -273,15 +273,16 @@
         "v0.24.1": "6f0cdaf06d0822ba86625c622cc14a0edb4a55b1",
         "v0.25.0": "9086e1b2b670dd204f58a0e794acfd56ca44c4ec",
         "v0.25.1": "d1fc9099b8024f8d8e24beae75e93f889954e521",
-        "v0.25.2": "d9ee10e7ad0bb563dfc438ea67b0d8e439959eb9"
+        "v0.25.2": "d9ee10e7ad0bb563dfc438ea67b0d8e439959eb9",
+        "v0.25.3": "d4f4c0e2994dab24dcaca5ceefbb67556ce13c9f"
       },
       "published": {
-        "tag": "v0.25.3",
-        "commit": "d4f4c0e2994dab24dcaca5ceefbb67556ce13c9f",
-        "source_commit": "f6115492b85c464c8e8b30c996c8266412acc391",
-        "published_at": "2026-10-30T09:15:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-10-27-v0253.json",
-        "note": "Patch release. Synthesizes all 10-language Ready… -> Go! 2-kid duet countdown voices using openbmb/VoxCPM2 on Hugging Face with natural-language excited child voice-design instructions and 195ms duet offset (#272, PR #273); deployed live to https://demo.yolo-dev.ai (Version ID: 19d7b870-5c59-42be-99ad-39f20172e0a9). Acceptance before tagging: 163 unit, 45 stubbed e2e passed, tsc clean. Acceptance on the delivered artifact: 11 of 11. The tag points at d4f4c0e after the assets commit 7707b07; both build-ID files record f611549."
+        "tag": "v0.25.4",
+        "commit": "1bc96997164cd5dbdd909ef9d4e4c33502b7cf19",
+        "source_commit": "7abbd082e6aa5a8ea2bb213334a5a4e0781ca934",
+        "published_at": "2026-10-30T09:40:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-10-27-v0254.json",
+        "note": "Patch release. Keeps the pure, unmodified single-voice 48,000 Hz (192 kbps AAC) countdown audio across all 10 languages without pitch-shifting, time-stretching, or 2-voice layering (#274, PR #275); deployed live to https://demo.yolo-dev.ai (Version ID: 2425a20d-ef41-41a5-a983-9afd840ed943). Acceptance before tagging: 163 unit, 45 stubbed e2e passed, tsc clean. Acceptance on the delivered artifact: 11 of 11. The tag points at 1bc9699 after the assets commit 3540a90; both build-ID files record 7abbd08."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -335,7 +336,8 @@
         ".yolo/reports/releases-observed-2026-10-27-v0250.json",
         ".yolo/reports/releases-observed-2026-10-27-v0251.json",
         ".yolo/reports/releases-observed-2026-10-27-v0252.json",
-        ".yolo/reports/releases-observed-2026-10-27-v0253.json"
+        ".yolo/reports/releases-observed-2026-10-27-v0253.json",
+        ".yolo/reports/releases-observed-2026-10-27-v0254.json"
       ]
     }
   },
