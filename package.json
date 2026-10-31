@@ -1,6 +1,6 @@
 {
   "name": "yolo-blank-canvas",
-  "version": "0.25.3",
+  "version": "0.25.4",
   "private": false,
   "description": "Blank canvas with a Requests overlay over one GitHub repository",
   "license": "MIT",
