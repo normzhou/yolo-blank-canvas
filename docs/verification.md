@@ -4,6 +4,31 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Upbeat Whimsical Video-Game & Arcade Galop Puzzle Bobble Soundtrack (#278) — 2026-10-27
+
+Source revision `0c944ed` (the upbeat whimsical video-game & arcade galop Puzzle Bobble soundtrack commit); build and review evidence `e10e6f2`; release commit `335f220`; published as `v0.26.0` on 2026-10-27.
+
+- **Recognized Video-Game & Upbeat Arcade Showstopper Melodies (`public/tetris/pb-*.m4a`, `src/shared/tetrisMusic.ts`):**
+  - `pb-bubble-march`: **Bubble Bobble & Puzzle Bobble** (`160 BPM`, Taito *Bubble Bobble* & *Puzzle Bobble* themes with staccato arcade bell + xylophone)
+  - `pb-rainbow-carnival`: **Overworld Rag & The Entertainer** (`162 BPM`, syncopated video-game overworld bounce + Scott Joplin ragtime)
+  - `pb-starlight-carousel`: **Athletic Rag & Can-Can Galop** (`166 BPM`, joyful skipping athletic theme + Offenbach's *Galop Infernal*)
+  - `pb-candy-playground`: **Green Greens & William Tell Galop** (`164 BPM`, jaunty *Green Greens* polka + Rossini's *William Tell* galop)
+  - `pb-soda-pop`: **Csikós Post & Gladiators Galop** (`168 BPM`, Hermann Necke's *Csikós Post* + Fučík's *Entry of the Gladiators*)
+- **Closed-Loop Iterative Acoustic Improvement (`[BEFORE]` → `[AFTER]`):**
+  - **Onset Rate**: `1.8–3.8` notes/sec → **`4.8–5.4` notes/sec**
+  - **Staccato Bounce Ratio**: `2.34–2.56` → **`3.35–3.72`**
+  - **Bouncy Bass (`50–250 Hz`)**: `3.6%–7.6%` → **`20.3%–29.2%`**
+  - **Upper-Harmonic Sparkle (`1.2–3.8 kHz`)**: `1.2%–3.6%` → **`19.9%–28.0%`**
+- `npm test`: 23 files, 163 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 45 passed.
+
+### Installed artifact (`v0.26.0`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.26.0 --no-open --port 4904` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `0c944ed…`; the tagged package version is `0.26.0`. The tag points at release commit `335f220`, after the assets commit `e10e6f2`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4904 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: fcfbec3f-e3aa-4cfd-8c35-7fdb3b95fa11`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.26.0"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 0c944ede85f1ca8a8f58859ec8b53159d58aac87`). The report is [`.yolo/reports/releases-observed-2026-10-27-v0260.json`](../.yolo/reports/releases-observed-2026-10-27-v0260.json).
+
 ## High-Pitch 48kHz 10-Language Voices, Anti-Repeat Speaker Quota & No Start Beeps (#276) — 2026-10-27
 
 Source revision `b92d282` (the high-pitch 48kHz 10-language child/prosody neural voices, anti-repeat speaker-weighted sampling, and start beep removal commit); build and review evidence `6fce657`; release commit `c6ba66f`; published as `v0.25.5` on 2026-10-27.
