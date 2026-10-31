@@ -271,15 +271,16 @@
         "v0.23.1": "aecb8cba7ff3c6dcadf80acadd291d09b66bc298",
         "v0.24.0": "fa6be5791c3092aff7b0e451a2796d49d9826768",
         "v0.24.1": "6f0cdaf06d0822ba86625c622cc14a0edb4a55b1",
-        "v0.25.0": "9086e1b2b670dd204f58a0e794acfd56ca44c4ec"
+        "v0.25.0": "9086e1b2b670dd204f58a0e794acfd56ca44c4ec",
+        "v0.25.1": "d1fc9099b8024f8d8e24beae75e93f889954e521"
       },
       "published": {
-        "tag": "v0.25.1",
-        "commit": "d1fc9099b8024f8d8e24beae75e93f889954e521",
-        "source_commit": "6078b33f3e999bb36266e1e7a8752b3e933bc9f9",
-        "published_at": "2026-10-30T08:05:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-10-27-v0251.json",
-        "note": "Patch release. Adds keyboard navigation (Arrow/WASD highlight + Space/Enter accept + Escape pause) on the Pause Menu and guarantees a fresh Ready… -> Go! countdown on every new level and round (#268, PR #269); deployed live to https://demo.yolo-dev.ai (Version ID: 3d20cdc5-6aa0-4c97-8dfc-1582de9b4af4). Acceptance before tagging: 163 unit, 45 stubbed e2e passed, tsc clean. Acceptance on the delivered artifact: 11 of 11. The tag points at d1fc909 after the assets commit 78ce4e1; both build-ID files record 6078b33."
+        "tag": "v0.25.2",
+        "commit": "d9ee10e7ad0bb563dfc438ea67b0d8e439959eb9",
+        "source_commit": "625c29e84d5f3f61e8cfb80a4d33e017a454535f",
+        "published_at": "2026-10-30T08:40:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-10-27-v0252.json",
+        "note": "Patch release. Ensures all Puzzle Bobble games (1P Solo, 2P Local, 2P Online) end on a Win/Lose screen before advancing (Win/Loss -> switch music -> Ready… Go!) and fixes initial sound-off SFX muting (#270, PR #271); deployed live to https://demo.yolo-dev.ai (Version ID: ad8d27b3-0b34-4ad4-9291-515fa14970b9). Acceptance before tagging: 163 unit, 45 stubbed e2e passed, tsc clean. Acceptance on the delivered artifact: 11 of 11. The tag points at d9ee10e after the assets commit 3883444; both build-ID files record 625c29e."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -331,7 +332,8 @@
         ".yolo/reports/releases-observed-2026-10-27-v0240.json",
         ".yolo/reports/releases-observed-2026-10-27-v0241.json",
         ".yolo/reports/releases-observed-2026-10-27-v0250.json",
-        ".yolo/reports/releases-observed-2026-10-27-v0251.json"
+        ".yolo/reports/releases-observed-2026-10-27-v0251.json",
+        ".yolo/reports/releases-observed-2026-10-27-v0252.json"
       ]
     }
   },

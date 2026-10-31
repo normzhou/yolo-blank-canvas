@@ -4,6 +4,25 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Unified Win/Loss Screen Across All Modes & Initial Mute Fix (#270) — 2026-10-27
+
+Source revision `625c29e` (the unified Win/Loss screen across all Puzzle Bobble modes and initial sound-off SFX mute fix commit); build and review evidence `3883444`; release commit `d9ee10e`; published as `v0.25.2` on 2026-10-27.
+
+- **Unified Win/Lose End Screen Across All Modes (`src/shared/puzzleBobble.ts`, `src/client/views/PuzzleBobbleView.tsx`):**
+  - Clearing all bubbles in 1P Solo mode now transitions the board to `status: 'won'` and the match to `status: 'round_over', winner: 0` (with `wins[0] += 1`) instead of immediately overwriting the grid with the next stage.
+  - Every Puzzle Bobble game (1P Solo, 2P Local, 2P Online) follows the exact lifecycle: **Win/Loss screen → advance stage & switch music track → `"Ready…" → "Go!"` countdown**.
+- **Initial Sound-Off SFX Mute Fix (`src/client/audio/tetrisMusic.ts`, `src/client/views/TetrisView.tsx`, `src/client/views/PuzzleBobbleView.tsx`):**
+  - Initializes `sfxEnabled = false` in `TetrisMusic` to match `active = false` when sound is off at startup, and only unlocks `AudioContext` on game start when sound/music is enabled.
+- `npm test`: 23 files, 163 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 45 passed.
+
+### Installed artifact (`v0.25.2`) & Live `https://demo.yolo-dev.ai` Update
+
+Installed from `npx --yes github:normzhou/yolo-blank-canvas#v0.25.2 --no-open --port 4900` in an empty directory, with no source checkout. `GET /api/version` reported both `serverBuild` and `clientBuild` as `625c29e…`; the tagged package version is `0.25.2`. The tag points at release commit `d9ee10e`, after the assets commit `3883444`.
+
+`YOLO_VERIFY_URL=http://127.0.0.1:4900 npm run e2e:verify-release`: **11 passed, 0 failed**. Also deployed live to `yolo-demo-app` (`Version ID: ad8d27b3-0b34-4ad4-9291-515fa14970b9`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.25.2"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 625c29e84d5f3f61e8cfb80a4d33e017a454535f`). The report is [`.yolo/reports/releases-observed-2026-10-27-v0252.json`](../.yolo/reports/releases-observed-2026-10-27-v0252.json).
+
 ## Pause Menu Keyboard Navigation & Every-Level Ready… Go! Countdowns (#268) — 2026-10-27
 
 Source revision `6078b33` (the Pause Menu keyboard navigation and every-level/round countdown commit); build and review evidence `78ce4e1`; release commit `d1fc909`; published as `v0.25.1` on 2026-10-27.
