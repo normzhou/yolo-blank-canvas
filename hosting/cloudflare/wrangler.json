@@ -29,6 +29,6 @@
   "vars": {
     "PUBLIC_ORIGIN": "https://demo.yolo-dev.ai",
     "BACKEND_ORIGIN": "",
-    "APP_VERSION": "v0.25.5"
+    "APP_VERSION": "v0.26.0"
   }
 }
