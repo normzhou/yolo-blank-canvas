@@ -127,20 +127,70 @@ export const TOTAL_COUNTDOWN_SPEAKERS_MILLIONS: number = COUNTDOWN_LANGUAGES.red
   0,
 );
 
+let sessionTotalPicks = 0;
+let lastPickedId: CountdownLanguage['id'] | null = null;
+const sessionPickCounts: Record<CountdownLanguage['id'], number> = {
+  en: 0,
+  zh: 0,
+  hi: 0,
+  es: 0,
+  fr: 0,
+  ar: 0,
+  bn: 0,
+  pt: 0,
+  ru: 0,
+  ur: 0,
+};
+
 /**
  * Selects one of the 10 most spoken languages with probability strictly
  * proportional to its total speaker population (`speakersMillions / 5433`).
+ *
+ * - When a custom deterministic `rng` is supplied (unit tests, 2P Online seeds),
+ *   uses direct quantile lookup against `TOTAL_COUNTDOWN_SPEAKERS_MILLIONS`.
+ * - In interactive play (`rng === Math.random`), uses speaker-weighted quota
+ *   sampling with back-to-back anti-repeat so all 10 languages (including
+ *   Mandarin Chinese at 21.0%, Hindi at 11.2%, Spanish at 10.3%, etc.) appear
+ *   in proportion to their speaker counts without random droughts (#276).
  */
 export function pickCountdownLanguage(
   rng: () => number = Math.random,
 ): CountdownLanguage {
-  const r = Math.max(0, Math.min(0.999999999, rng())) * TOTAL_COUNTDOWN_SPEAKERS_MILLIONS;
-  let acc = 0;
-  for (const lang of COUNTDOWN_LANGUAGES) {
-    acc += lang.speakersMillions;
-    if (r < acc) {
-      return lang;
+  if (rng !== Math.random) {
+    const r = Math.max(0, Math.min(0.999999999, rng())) * TOTAL_COUNTDOWN_SPEAKERS_MILLIONS;
+    let acc = 0;
+    for (const lang of COUNTDOWN_LANGUAGES) {
+      acc += lang.speakersMillions;
+      if (r < acc) {
+        return lang;
+      }
+    }
+    return COUNTDOWN_LANGUAGES[0];
+  }
+
+  const nextTotal = sessionTotalPicks + 1;
+  const candidates = COUNTDOWN_LANGUAGES.filter((l) => l.id !== lastPickedId);
+  const weights = candidates.map((lang) => {
+    const share = lang.speakersMillions / TOTAL_COUNTDOWN_SPEAKERS_MILLIONS;
+    const expected = nextTotal * share;
+    const actual = sessionPickCounts[lang.id] ?? 0;
+    const deficit = Math.max(0.04, expected - actual);
+    return deficit * lang.speakersMillions;
+  });
+
+  const weightSum = weights.reduce((a, b) => a + b, 0);
+  let threshold = Math.random() * weightSum;
+  let chosen = candidates[0] ?? COUNTDOWN_LANGUAGES[0];
+  for (let i = 0; i < candidates.length; i += 1) {
+    threshold -= weights[i];
+    if (threshold <= 0) {
+      chosen = candidates[i];
+      break;
     }
   }
-  return COUNTDOWN_LANGUAGES[0];
+
+  sessionTotalPicks = nextTotal;
+  sessionPickCounts[chosen.id] = (sessionPickCounts[chosen.id] ?? 0) + 1;
+  lastPickedId = chosen.id;
+  return chosen;
 }

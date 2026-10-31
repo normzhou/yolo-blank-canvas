@@ -43,6 +43,16 @@ describe('selector, tetris, and puzzle bobble playlists + Tone synth SFX (#232, 
     expect(pickCountdownLanguage(() => (1515 + 1140 + 1) / 5433).id).toBe('hi');
     expect(pickCountdownLanguage(() => 0.999).id).toBe('ur');
 
+    // Verify interactive quota sampling never repeats back-to-back and includes Mandarin Chinese (#276)
+    const picks = Array.from({ length: 25 }, () => pickCountdownLanguage());
+    for (let i = 1; i < picks.length; i += 1) {
+      expect(picks[i].id).not.toBe(picks[i - 1].id);
+    }
+    expect(picks.some((p) => p.id === 'zh')).toBe(true);
+    expect(picks.some((p) => p.id === 'en')).toBe(true);
+    expect(picks.some((p) => p.id === 'hi')).toBe(true);
+    expect(picks.some((p) => p.id === 'es')).toBe(true);
+
     // Verify bundled 10-language spoken voice sprite exists under public/
     const voiceFile = path.resolve(__dirname, '../public', COUNTDOWN_VOICE_SPRITE_SRC);
     expect(fs.existsSync(voiceFile)).toBe(true);

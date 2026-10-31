@@ -247,10 +247,14 @@ export class TetrisMusic {
   /**
    * Plays the spoken voice audio of the selected language's "Ready…" or "Go!"
    * phrase from `public/tetris/countdown-voices.m4a` (with Web Speech API fallback)
-   * alongside the arcade countdown chime (#262).
+   * without synthetic beep tones (#262, #276).
    */
   playCountdownPhrase(lang: CountdownLanguage, phase: 'ready' | 'go'): void {
-    this.sfx.playCountdown(phase === 'ready' ? 2 : 0);
+    if (typeof window !== 'undefined') {
+      const win = window as unknown as { __yoloSfxLog?: SfxEventName[] };
+      if (!win.__yoloSfxLog) win.__yoloSfxLog = [];
+      win.__yoloSfxLog.push(phase === 'ready' ? 'countdown-tick' : 'countdown-go');
+    }
     if (!this.sfxEnabled) return;
 
     const spriteTrack: Track = {
