@@ -59,14 +59,14 @@ export const PLAYLIST: ReadonlyArray<Track> = TETRIS_PLAYLIST;
 
 /**
  * The Puzzle Bobble whimsical, light-hearted arcade playlist (~2 minutes per track):
- * Famous children's songs, nursery rhymes, and ragtime classics (#266).
+ * Upbeat, recognized video-game and classic arcade galop/ragtime melodies (#266, #278).
  */
 export const PUZZLE_BOBBLE_PLAYLIST: ReadonlyArray<Track> = [
-  { id: 'pb-bubble-march', title: 'Twinkle Twinkle & Yankee Doodle', src: 'tetris/pb-bubble-march.m4a' },
-  { id: 'pb-rainbow-carnival', title: 'The Entertainer & La Cucaracha', src: 'tetris/pb-rainbow-carnival.m4a' },
-  { id: 'pb-starlight-carousel', title: 'Over the Waves & Brahms Lullaby', src: 'tetris/pb-starlight-carousel.m4a' },
-  { id: 'pb-candy-playground', title: 'London Bridge & Mary Had a Little Lamb', src: 'tetris/pb-candy-playground.m4a' },
-  { id: 'pb-soda-pop', title: 'Frère Jacques & Oh! Susanna', src: 'tetris/pb-soda-pop.m4a' },
+  { id: 'pb-bubble-march', title: 'Bubble Bobble & Puzzle Bobble', src: 'tetris/pb-bubble-march.m4a' },
+  { id: 'pb-rainbow-carnival', title: 'Overworld Rag & The Entertainer', src: 'tetris/pb-rainbow-carnival.m4a' },
+  { id: 'pb-starlight-carousel', title: 'Athletic Rag & Can-Can Galop', src: 'tetris/pb-starlight-carousel.m4a' },
+  { id: 'pb-candy-playground', title: 'Green Greens & William Tell Galop', src: 'tetris/pb-candy-playground.m4a' },
+  { id: 'pb-soda-pop', title: 'Csikós Post & Gladiators Galop', src: 'tetris/pb-soda-pop.m4a' },
 ];
 
 /**

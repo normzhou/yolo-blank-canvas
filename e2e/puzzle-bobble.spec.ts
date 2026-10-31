@@ -192,7 +192,7 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
     // and Escape back to the Selector Screen crossfades smoothly into the selector soundtrack!
     await page.getByRole('button', { name: /Music off/ }).click();
     await expect(page.locator('.tetris-scene')).toContainText(
-      /Music: (?:Twinkle Twinkle & Yankee Doodle|The Entertainer & La Cucaracha|Over the Waves & Brahms Lullaby|London Bridge & Mary Had a Little Lamb|Frère Jacques & Oh! Susanna)/,
+      /Music: (?:Bubble Bobble & Puzzle Bobble|Overworld Rag & The Entertainer|Athletic Rag & Can-Can Galop|Green Greens & William Tell Galop|Csikós Post & Gladiators Galop)/,
     );
     await expect
       .poll(async () =>
