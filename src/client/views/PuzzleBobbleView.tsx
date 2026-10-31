@@ -2210,12 +2210,6 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
             setMatch((cur) => (cur.status === 'round_over' ? cur : resolveMatchOutcome(cur, 0)));
           }
           void getSharedNetplay().sendRoomEvent('pb_state', createRadarFromBoard(p));
-        } else if (!isOnline2P && match.mode === '1p' && ev.clearBonus > 0) {
-          // Solo level cleared -> advancing to the next stage! Trigger a fresh Ready… -> Go! countdown (#268).
-          sfx.playRoundEnd(true);
-          triggerFreshCountdown();
-          setBackgroundIndex((idx) => nextBackgroundIndex(idx));
-          getSharedArcadeAudio().startNewGameTrack();
         }
       } else if (!ev) {
         prevEventIdsRef.current[i] = 0;
@@ -2422,12 +2416,23 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
           const second: PlayerBoardState = { ...first, grid: grid.map((r) => r.slice()), lastEvent: null };
           return { mode: '2p', players: [first, second], status: 'playing', winner: null, wins };
         }
+        const nextStage =
+          mode === '1p' && keepWins && current.status === 'round_over' && current.winner === 0
+            ? ((current.players[0]?.stage ?? 1) % TOTAL_STAGES) + 1
+            : 1;
+        if (nextStage > 1) {
+          const grid = createStageGrid(nextStage, Math.random);
+          const first = createPlayerBoard(Math.random, grid, nextStage);
+          return { mode: '1p', players: [first], status: 'playing', winner: null, wins };
+        }
         return createMatch(mode, Math.random, wins);
       });
       triggerFreshCountdown();
       if (unpause) {
         setSharedGamePaused(false);
-        getSharedArcadeAudio().ensureContext();
+        if (getSharedMusicOn()) {
+          getSharedArcadeAudio().ensureContext();
+        }
         getSharedArcadeAudio().startNewGameTrack();
       }
       setBackgroundIndex((index) => nextBackgroundIndex(index));
@@ -3111,7 +3116,9 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
                 data-testid="pause-menu-resume"
                 aria-label="Continue game"
                 onClick={() => {
-                  getSharedArcadeAudio().ensureContext();
+                  if (getSharedMusicOn()) {
+                    getSharedArcadeAudio().ensureContext();
+                  }
                   setSharedGamePaused(false);
                 }}
               >
@@ -3147,9 +3154,13 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
             ? match.winner === 0
               ? `YOU WIN! Beat ${activePbRoom.opponent.name} (${match.wins[0]}–${match.wins[1]}). `
               : `${activePbRoom.opponent.name} wins the round! (${match.wins[0]}–${match.wins[1]}). `
-            : match.winner !== null
-              ? `Player ${match.winner + 1} wins the round! (${match.wins[0]}–${match.wins[1]}). `
-              : `Game over — score ${match.players[0].score.toLocaleString()}. `}
+            : match.mode === '1p'
+              ? match.winner === 0
+                ? `YOU WIN! Stage cleared — score ${match.players[0].score.toLocaleString()}. `
+                : `YOU LOSE — Game over — score ${match.players[0].score.toLocaleString()}. `
+              : match.winner !== null
+                ? `Player ${match.winner + 1} wins the round! (${match.wins[0]}–${match.wins[1]}). `
+                : `Game over — score ${match.players[0].score.toLocaleString()}. `}
           <button type="button" className="primary" onClick={handleNextOrNewRound}>
             Next round
           </button>

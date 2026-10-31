@@ -176,6 +176,12 @@ describe('selector, tetris, and puzzle bobble playlists + Tone synth SFX (#232, 
       expect(startedNodes.length).toBeGreaterThanOrEqual(1);
       expect(SELECTOR_PLAYLIST.some((t) => t.id === seen[0].id)).toBe(true);
 
+      // Before setActive(true), sound is off so SFX must not start any Web Audio synth nodes (#270).
+      const nodesBeforeMutedSfx = startedNodes.length;
+      player.sfx.playBubbleShoot();
+      expect(startedNodes.length).toBe(nodesBeforeMutedSfx);
+      (winObj as { __yoloSfxLog?: string[] }).__yoloSfxLog = [];
+
       player.setActive(true);
       await new Promise((r) => setTimeout(r, 15));
       expect(startedNodes.length).toBe(2);

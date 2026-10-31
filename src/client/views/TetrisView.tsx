@@ -852,6 +852,19 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
         return;
       }
       if (
+        !paused &&
+        !isReadyCheck &&
+        !isInviting &&
+        !isNetworkPaused &&
+        (gameRef.current.status !== 'playing' || (isOnline2P && roundOutcomeRef.current !== 'playing'))
+      ) {
+        if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+          event.preventDefault();
+          handleNewOrRematch();
+        }
+        return;
+      }
+      if (
         paused ||
         isReadyCheck ||
         isInviting ||
@@ -1016,7 +1029,9 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
       setRoundOutcome('playing');
       setSharedGamePaused(false);
       triggerFreshCountdown();
-      getSharedArcadeAudio().ensureContext();
+      if (getSharedMusicOn()) {
+        getSharedArcadeAudio().ensureContext();
+      }
       getSharedArcadeAudio().startNewGameTrack();
     }
   };
@@ -1275,7 +1290,9 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
                     setRoundOutcome('playing');
                     setSharedGamePaused(false);
                     triggerFreshCountdown();
-                    getSharedArcadeAudio().ensureContext();
+                    if (getSharedMusicOn()) {
+                      getSharedArcadeAudio().ensureContext();
+                    }
                     getSharedArcadeAudio().startNewGameTrack();
                   }}
                 >
@@ -1317,7 +1334,9 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
                 data-testid="pause-menu-resume"
                 aria-label="Continue game"
                 onClick={() => {
-                  getSharedArcadeAudio().ensureContext();
+                  if (getSharedMusicOn()) {
+                    getSharedArcadeAudio().ensureContext();
+                  }
                   setSharedGamePaused(false);
                 }}
               >
