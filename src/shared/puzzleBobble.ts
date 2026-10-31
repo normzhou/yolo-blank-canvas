@@ -1135,15 +1135,7 @@ export function settleBubbleAt(
   if (isBoardEmpty(grid)) {
     clearBonus = scoreForStageClearBonus(player.stageElapsedMs);
     score += clearBonus;
-    if (match.mode === '2p') {
-      playerStatus = 'won';
-    } else {
-      stage += 1;
-      ceilingDrop = 0;
-      shotsSinceDrop = 0;
-      stageElapsedMs = 0;
-      grid = createStageGrid(stage, rng);
-    }
+    playerStatus = 'won';
   } else if (hasCrossedDangerLine(grid, ceilingDrop)) {
     playerStatus = 'ko';
   }

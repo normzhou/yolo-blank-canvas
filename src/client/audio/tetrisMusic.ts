@@ -55,7 +55,7 @@ export class TetrisMusic {
   private pendingLoads = new Map<string, Promise<AudioBuffer | null>>();
   private audio: HTMLAudioElement | null = null;
   private active = false;
-  private sfxEnabled = true;
+  private sfxEnabled = false;
   private queue: Track[] = [];
   private currentTrack: Track | null = null;
   private lastTrackId: string | null = null;

@@ -152,7 +152,7 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
     await expect(page.getByTestId('game-pause-menu')).toBeVisible();
     await expect(page.getByTestId('pb-2p-online-btn')).toBeDisabled();
 
-    // Switch to 1 Player mode, clear the solo level, and verify a fresh countdown starts on the new level (#268).
+    // Switch to 1 Player mode, clear the solo level, and verify the Win screen -> Next round -> switch music -> Ready/Go countdown flow (#268, #270).
     await page.getByRole('button', { name: '1 Player', exact: true }).click();
     await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toHaveCount(0);
     await expect(page.getByTestId('arcade-countdown')).toBeVisible();
@@ -164,6 +164,9 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
         }),
       );
     });
+    await expect(page.getByTestId('pb-round-banner')).toContainText('YOU WIN! Stage cleared');
+    await page.getByTestId('pb-round-banner').getByRole('button', { name: 'Next round' }).click();
+    await expect(page.getByTestId('pb-round-banner')).toHaveCount(0);
     await expect(page.getByTestId('arcade-countdown')).toBeVisible();
     await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 6000 });
     await page.getByTestId('pause-button').click();

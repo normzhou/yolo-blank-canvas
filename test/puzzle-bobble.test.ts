@@ -294,6 +294,18 @@ describe('Puzzle Bobble (Bust-A-Move) arcade rules', () => {
     expect(clearMatch.status).toBe('round_over');
     expect(clearMatch.winner).toBe(0);
     expect(clearMatch.wins).toEqual([1, 1]);
+
+    // 1P solo mode also ends on the Win screen (status: 'round_over', winner: 0) rather than jumping straight to the next stage (#270).
+    let soloClearMatch = createMatch('1p', () => 0.2);
+    const soloNearlyClear = createEmptyGrid();
+    soloNearlyClear[0][1] = 'ruby';
+    soloNearlyClear[0][2] = 'ruby';
+    soloClearMatch.players[0].grid = soloNearlyClear;
+    soloClearMatch = settleBubbleAt(soloClearMatch, 0, 0, 3, 'ruby', () => 0.2);
+    expect(soloClearMatch.status).toBe('round_over');
+    expect(soloClearMatch.winner).toBe(0);
+    expect(soloClearMatch.players[0].status).toBe('won');
+    expect(soloClearMatch.wins).toEqual([1, 0]);
   });
 
   it('fires and resolves a live shot for both players independently', () => {
