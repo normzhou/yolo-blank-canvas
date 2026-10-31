@@ -3119,6 +3119,9 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
                   if (getSharedMusicOn()) {
                     getSharedArcadeAudio().ensureContext();
                   }
+                  if (countdown > 0) {
+                    triggerFreshCountdown();
+                  }
                   setSharedGamePaused(false);
                 }}
               >
