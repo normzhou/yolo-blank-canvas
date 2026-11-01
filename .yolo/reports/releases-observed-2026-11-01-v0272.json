@@ -1,0 +1,64 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-01",
+  "observed_at": "2026-11-01",
+  "published_at_utc": "2026-11-01T23:35:00Z",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "release": "v0.1.0-alpha.57"
+  },
+  "releases": [
+    {
+      "tag": "v0.27.1",
+      "commit": "4a24769b04ab56dfc1029b9d8664d487927c0b07"
+    },
+    {
+      "tag": "v0.27.2",
+      "commit": "05224248776a3ab5e36e1296532d9fff09750714"
+    }
+  ],
+  "release": {
+    "tag": "v0.27.2",
+    "tag_object": "dddc6a6ef91b2568bb67438b06811d4abbde2d19",
+    "release_commit": "05224248776a3ab5e36e1296532d9fff09750714",
+    "source_commit": "ce3c93b240a46188dcea44468984829eed9cf7ad",
+    "assets_commit": "921a5ff4624fa8c957965ae0f7b492efb85a747d",
+    "semver": "patch",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record ce3c93b, the source revision. The committed assets were built at that source in 921a5ff. 0522424 is the merge of release-metadata commit a791c66 after the assets commit; the tag points there. Note: v0.27.1 (tag object 586250bb37dc2da3e0802125b87a61ac03b9dcb6) was created at 4a24769 before PR #289 merged and is retained untouched per the recoverable-v1 policy and superseded by v0.27.2."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "172 passed across 25 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID ce3c93b" },
+    { "check": "workerd (Miniflare) Durable Object WebSocket verification", "result": "pass", "detail": "101 Switching Protocols + automatic initial snapshot via NetplayHub Durable Object" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #289 completed success" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "deployed_to": "https://demo.yolo-dev.ai (Cloudflare Worker yolo-demo-app, Version ID: ffc112a1-e1fe-4bda-982f-5e3ef49e05f1)",
+    "served_build": "ce3c93b240a46188dcea44468984829eed9cf7ad",
+    "served_version": {
+      "package": "0.27.2",
+      "appVersion": "v0.27.2",
+      "clientBuild": "ce3c93b240a46188dcea44468984829eed9cf7ad"
+    },
+    "result": "pass",
+    "detail": "Deployed live to yolo-demo-app (Version ID: ffc112a1-e1fe-4bda-982f-5e3ef49e05f1, uploading /.build-id ce3c93b240a46188dcea44468984829eed9cf7ad, /index.html, and /assets/index-D--e2vCJ.js with APP_VERSION=v0.27.2)."
+  },
+  "what_this_release_delivers": [
+    "#288 Close inactive netplay sessions on input timeout and ensure Cloudflare bridgeWebSocket initial snapshot delivery"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "The tag points at 0522424, the merge of the release-metadata commit a791c66 after the assets commit 921a5ff, not at the assets commit itself. Both build-ID files still record the source ce3c93b, and the tag was not moved after publication.",
+    "v0.27.1 was tagged at 4a24769 before PR #289 merged; because deleting or moving tags is reserved, v0.27.1 is retained untouched in legacy_tags and superseded by v0.27.2."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #288"
+}

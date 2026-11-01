@@ -6,7 +6,7 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Inactivity Session Closure & Cloudflare `bridgeWebSocket` Handshake (#288) — 2026-11-01
 
-Source revision `ce3c93b` (the inactivity session closure and Cloudflare `bridgeWebSocket` handshake commit); build evidence `921a5ff`; published as `v0.27.2` on 2026-11-01.
+Source revision `ce3c93b` (the inactivity session closure and Cloudflare `bridgeWebSocket` handshake commit); build evidence `921a5ff`; release commit `0522424`; published as `v0.27.2` on 2026-11-01.
 
 - **Inactivity Session Closure (`src/client/netplay.ts`, `hosting/cloudflare/worker.mjs`, `test/netplay.test.ts`):**
   - `IDLE_SLEEP_MS = 45_000`: Closes idle WebSockets after 45 seconds without user input—*before* the 60-second Gateway authorization window expires—so an untouched tab connects once on load and makes **zero** reconnects until the user interacts again.
@@ -16,6 +16,7 @@ Source revision `ce3c93b` (the inactivity session closure and Cloudflare `bridge
   - Verified in `workerd` (`Miniflare` with `NetplayHub` Durable Object binding) that deferring `NetplayHub.fetch`'s initial snapshot push via `setTimeout(..., 0)` and sending `{ action: 'heartbeat' }` on `socket.onopen` delivers the initial snapshot immediately after `withinDeadline`'s `bridgeWebSocket` attaches its listener.
 - `npm test`: 25 files, 172 tests passed.
 - `npx tsc --noEmit`: clean.
+- Deployed live to `yolo-demo-app` (`Version ID: ffc112a1-e1fe-4bda-982f-5e3ef49e05f1`, `APP_VERSION=v0.27.2`, build `ce3c93b240a46188dcea44468984829eed9cf7ad`). Report: [`.yolo/reports/releases-observed-2026-11-01-v0272.json`](../.yolo/reports/releases-observed-2026-11-01-v0272.json).
 
 ## Event-Driven WebSocket Netplay & Demand-Driven Client Lifecycle (#286) — 2026-11-01
 
