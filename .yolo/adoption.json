@@ -198,6 +198,12 @@
         "observed_at": "2026-11-01",
         "evidence": ".yolo/reports/upgrade-alpha53-proposal.json landed.loading_evidence",
         "note": "Reloaded the v0.1.0-alpha.53 skill from main after PR #281 landed (commit 3cd33c6da63c2d6c288958bc94900045efbc2fcb), verified the delivered setup with the alpha.53 executable, and applied the alpha.53 rules to the landing record."
+      },
+      {
+        "harness": "gemini-cli",
+        "observed_at": "2026-11-01",
+        "evidence": ".yolo/reports/upgrade-alpha57-proposal.json landed.loading_evidence",
+        "note": "Reloaded the v0.1.0-alpha.57 skill from main after PR #285 landed (commit ac30763667bceaba9d4a6f65252e9553ed44ec77), verified the delivered setup with the alpha.57 executable, and applied the alpha.57 rules to the landing record."
       }
     ],
     "original_selection": {
@@ -353,10 +359,11 @@
     }
   },
   "activation": {
-    "state": "proposed",
+    "state": "active",
     "evidence": [
-      "Candidate migration to v0.1.0-alpha.57 (publication 1c059ea019cb80d1c23769bd6a83a3ac81fb9192, bundle inputs f9ceb59e5bb6c5e38b01208ef68903b0ffc53664) prepared on issue #284 (.yolo/reports/upgrade-alpha57-proposal.json). Pending landing and observation on main.",
-      "Prior active pin v0.1.0-alpha.53 (publication 544c15fa81a6043794251b338b3d211f0334fe09, bundle inputs 415a846799c66081f7056d41c9ce4c92a24aa1c3) landed on main as 3cd33c6da63c2d6c288958bc94900045efbc2fcb via PR #281 and was observed on the default branch.",
+      "Maintainer direction in this authenticated harness session (2026-11-01): '/yolo upgrade preview' directed the v0.1.0-alpha.57 migration (PR #285) to land. No protected edit or authority-control change was involved.",
+      "v0.1.0-alpha.57 (publication 1c059ea019cb80d1c23769bd6a83a3ac81fb9192, bundle inputs f9ceb59e5bb6c5e38b01208ef68903b0ffc53664) landed on main as ac30763667bceaba9d4a6f65252e9553ed44ec77 via PR #285 and was observed on the default branch.",
+      "Delivered setup re-validated in this session with the alpha.57 executable: structure.status pass (exit 0, zero non-compliant findings, zero warnings); .yolo/protocol.md sha256 330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1; all 175 manifest files match manifest a2b22ea7cd985e287f720982efca0d1e7a785ef90a84beb6841698ddede7e6ad; all installed hook/plugin files present.",
       "Prior alpha.53 activation evidence is retained in Git and in .yolo/reports/upgrade-alpha53-proposal.json as history; qualification remains unverified."
     ]
   },
@@ -468,6 +475,18 @@
         ".yolo/reports/upgrade-alpha53-proposal.json",
         "Maintainer direction in this authenticated harness session (2026-11-01): '/yolo upgrade preview'.",
         "Delivered setup validated with the alpha.53 executable: structure.status pass; protocol f63dc0ecfe0333546d5799ad94358bc0f4d2c0b7b22acedcef03148b85373448; manifest 7eb60125c55236886dc61a835aba7f3caa6dd32003bb6709e8a365bebadadc80; 172/172 files."
+      ]
+    },
+    {
+      "from": "415a846799c66081f7056d41c9ce4c92a24aa1c3",
+      "to": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+      "effective_commit": "ac30763667bceaba9d4a6f65252e9553ed44ec77",
+      "evidence": [
+        "https://github.com/normzhou/yolo-blank-canvas/pull/285",
+        "https://github.com/normzhou/yolo-blank-canvas/issues/284",
+        ".yolo/reports/upgrade-alpha57-proposal.json",
+        "Maintainer direction in this authenticated harness session (2026-11-01): '/yolo upgrade preview'.",
+        "Delivered setup validated with the alpha.57 executable: structure.status pass; protocol 330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1; manifest a2b22ea7cd985e287f720982efca0d1e7a785ef90a84beb6841698ddede7e6ad; 175/175 files."
       ]
     }
   ],
