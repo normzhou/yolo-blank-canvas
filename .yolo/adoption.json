@@ -3,12 +3,12 @@
   "protocol": {
     "format": "github-v1",
     "repository": "https://github.com/normzhou/yolo-dev",
-    "revision": "99aa6881f344da6ca6005f5516fb1112ab4caa23",
+    "revision": "415a846799c66081f7056d41c9ce4c92a24aa1c3",
     "source": "skills/yolo/references/protocol.md",
     "inputs": [
       {
         "path": ".yolo/governance/ARCHITECTURE.md",
-        "sha256": "179d70c0e7171246e74f9c349e7f8dc9253a4ecfe91d24a12449f273e15796ce",
+        "sha256": "0940da210da49771405244ce26427598a85bddb11505bb5f1ed79fc9e8cb2464",
         "selection": "Adoption levels through Product source and applied adoption"
       },
       {
@@ -68,7 +68,7 @@
       },
       {
         "path": "specs/request-interface.md",
-        "sha256": "0f6eb83192bf88ad73b52b9ae9c553bd7f8b2808e4a4368455d84cad7e28aae0",
+        "sha256": "307e0702e28d17f354aa5d20a014d677dc7b918e282e4991c696e84da4e0d920",
         "selection": "whole document"
       },
       {
@@ -108,12 +108,12 @@
       },
       {
         "path": "VERSION",
-        "sha256": "a1045f141e7154d0b269d86ab878eedead7da55f10229f40179a7193dc271cd4",
+        "sha256": "11a58492a239945cc8c32acb9ddaa4881c724b2fb3fbde92dd0e036c62b3b2eb",
         "selection": "whole document"
       }
     ],
     "path": ".yolo/protocol.md",
-    "sha256": "55870cedc00c362248c8920580385de85bfbf0b7eb91cabcbbe2b41965810eb1"
+    "sha256": "f63dc0ecfe0333546d5799ad94358bc0f4d2c0b7b22acedcef03148b85373448"
   },
   "target": {
     "repository": "normzhou/yolo-blank-canvas",
@@ -152,9 +152,9 @@
     ],
     "skill": {
       "path": ".agents/skills/yolo",
-      "revision": "7a4fcd727429d7bc8903cb26e4efd14fa9ed6000",
-      "release": "v0.1.0-alpha.43",
-      "manifest_sha256": "50902b5b61937c1fee3e9e78b6a8e52301eb2480a91237fa15d09ca498232f1e"
+      "revision": "544c15fa81a6043794251b338b3d211f0334fe09",
+      "release": "v0.1.0-alpha.53",
+      "manifest_sha256": "7eb60125c55236886dc61a835aba7f3caa6dd32003bb6709e8a365bebadadc80"
     },
     "observed_sessions": [
       {
@@ -346,12 +346,11 @@
     }
   },
   "activation": {
-    "state": "active",
+    "state": "proposed",
     "evidence": [
-      "Maintainer direction in this authenticated harness session (2026-10-27): '/yolo upgrade preview' directed the v0.1.0-alpha.43 migration (PR #247) to land. No protected edit or authority-control change was involved.",
-      "v0.1.0-alpha.43 (publication 7a4fcd727429d7bc8903cb26e4efd14fa9ed6000, bundle inputs 99aa6881f344da6ca6005f5516fb1112ab4caa23) landed on main as a56b5349a37baa19268787a7ec4c69204a320db2 via PR #247 and was observed on the default branch.",
-      "Delivered setup re-validated in this session with the alpha.43 executable: structure.status pass (exit 0, zero non-compliant findings, zero warnings); .yolo/protocol.md sha256 55870cedc00c362248c8920580385de85bfbf0b7eb91cabcbbe2b41965810eb1; all manifest files match manifest 50902b5b61937c1fee3e9e78b6a8e52301eb2480a91237fa15d09ca498232f1e; all installed hook/plugin files present.",
-      "Prior alpha.33 activation evidence is retained in Git and in .yolo/reports/upgrade-alpha33-proposal.json as history; qualification remains unverified."
+      "Candidate migration to v0.1.0-alpha.53 (publication 544c15fa81a6043794251b338b3d211f0334fe09, bundle inputs 415a846799c66081f7056d41c9ce4c92a24aa1c3) prepared on issue #280 (.yolo/reports/upgrade-alpha53-proposal.json). Pending landing and observation on main.",
+      "Prior active pin v0.1.0-alpha.43 (publication 7a4fcd727429d7bc8903cb26e4efd14fa9ed6000, bundle inputs 99aa6881f344da6ca6005f5516fb1112ab4caa23) landed on main as a56b5349a37baa19268787a7ec4c69204a320db2 via PR #247 and was observed on the default branch.",
+      "Prior alpha.43 activation evidence is retained in Git and in .yolo/reports/upgrade-alpha43-proposal.json as history; qualification remains unverified."
     ]
   },
   "adopted_at": "520a81e8ec824b9ce31a7fbc8a8c08d152eb81ae",

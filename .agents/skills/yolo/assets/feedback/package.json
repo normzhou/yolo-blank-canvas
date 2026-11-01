@@ -4,13 +4,13 @@
   "type": "module",
   "scripts": {
     "check": "tsc --noEmit && node --check server.mjs",
-    "test": "node --test test.mjs work.test.mjs",
+    "test": "node --test test.mjs work.test.mjs tracking.test.mjs",
     "build": "node build.mjs"
   },
   "engines": {
     "node": ">=24"
   },
-  "version": "0.1.0-alpha.41",
+  "version": "0.1.0-alpha.53",
   "description": "Client-owned feedback UI and bounded L1 work bridge",
   "exports": {
     ".": {
@@ -28,6 +28,18 @@
     "./react": {
       "types": "./dist/src/react.d.ts",
       "import": "./dist/src/react.js"
+    },
+    "./managed-client": {
+      "types": "./dist/src/managed-client.d.ts",
+      "import": "./dist/src/managed-client.js"
+    },
+    "./managed-service": {
+      "types": "./dist/src/managed-service.d.ts",
+      "import": "./dist/src/managed-service.js"
+    },
+    "./hosted": {
+      "types": "./dist/src/hosted.d.ts",
+      "import": "./dist/src/hosted.js"
     }
   },
   "files": [
@@ -46,16 +58,20 @@
     "fixture.mjs",
     "test.mjs",
     "work.test.mjs",
+    "tracking.test.mjs",
     "build.mjs",
-    "tsconfig.json"
+    "tsconfig.json",
+    "managed-schema.sql"
   ],
   "bin": {
     "yolo-feedback": "./cli.mjs"
   },
   "devDependencies": {
-    "typescript": "7.0.2",
     "@types/react": "18.3.31",
-    "react": "18.3.1"
+    "happy-dom": "21.0.4",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "typescript": "7.0.2"
   },
   "peerDependencies": {
     "react": "^18.0.0"
