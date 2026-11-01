@@ -6,7 +6,7 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Inactivity Session Closure & Cloudflare `bridgeWebSocket` Handshake (#288) — 2026-11-01
 
-Source revision `ce3c93b` (the inactivity session closure and Cloudflare `bridgeWebSocket` handshake commit); build evidence `921a5ff`; published as `v0.27.1` on 2026-11-01.
+Source revision `ce3c93b` (the inactivity session closure and Cloudflare `bridgeWebSocket` handshake commit); build evidence `921a5ff`; published as `v0.27.2` on 2026-11-01.
 
 - **Inactivity Session Closure (`src/client/netplay.ts`, `hosting/cloudflare/worker.mjs`, `test/netplay.test.ts`):**
   - `IDLE_SLEEP_MS = 45_000`: Closes idle WebSockets after 45 seconds without user input—*before* the 60-second Gateway authorization window expires—so an untouched tab connects once on load and makes **zero** reconnects until the user interacts again.
