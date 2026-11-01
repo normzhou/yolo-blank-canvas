@@ -4,6 +4,7 @@ import {
   BACKOFF_MAX_MS,
   IDLE_SLEEP_MS,
   NetplayClient,
+  ROOM_INACTIVITY_TIMEOUT_MS,
   computeBackoffDelayMs,
 } from '../src/client/netplay';
 import { createNetplayHub } from '../server/netplay.js';
@@ -182,6 +183,42 @@ describe('Demand-driven WebSocket Netplay (#286)', () => {
     expect(ws3.readyState).toBe(MockWebSocket.CLOSED);
     vi.advanceTimersByTime(600_000);
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('closes an active 2P room session if there is no user input for ROOM_INACTIVITY_TIMEOUT_MS (90s)', () => {
+    const client = new NetplayClient();
+    const unsub = client.subscribe(() => undefined);
+    const ws = MockWebSocket.instances[0];
+    ws.open();
+    ws.receive({
+      type: 'snapshot',
+      onlineCount: 2,
+      players: [
+        { id: client.getState().clientId, name: client.getState().clientName, status: 'playing_2p', appId: 'tetris' },
+        { id: 'p_peer', name: 'Peer', status: 'playing_2p', appId: 'tetris' },
+      ],
+      openInvites: [],
+      myPendingInvites: [],
+      activeRoom: {
+        id: 'room_1',
+        gameId: 'tetris',
+        seed: 42,
+        status: 'playing',
+        players: [
+          { id: client.getState().clientId, name: client.getState().clientName, slot: 0, ready: true },
+          { id: 'p_peer', name: 'Peer', slot: 1, ready: true },
+        ],
+        events: [],
+        lastSeq: 1,
+      },
+    });
+    expect(client.getState().activeRoom?.id).toBe('room_1');
+
+    // Advance past ROOM_INACTIVITY_TIMEOUT_MS with no user input
+    vi.advanceTimersByTime(ROOM_INACTIVITY_TIMEOUT_MS + 5_000);
+    expect(client.getState().activeRoom).toBeNull();
+    expect(ws.readyState).toBe(MockWebSocket.CLOSED);
+    unsub();
   });
 
   it('auto-pairs 2P invites and relays room events in server/netplay.js', () => {

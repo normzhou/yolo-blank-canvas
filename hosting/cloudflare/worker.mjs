@@ -2,7 +2,8 @@ import {publicOrigin, originAuthorization, cleanRequestHeaders, cleanResponse, f
 
 const PLAYER_TTL_MS = 25_000;
 const INVITE_TTL_MS = 20_000;
-const ROOM_TTL_MS = 120_000;
+const ROOM_TTL_MS = 90_000;
+const SOCKET_INACTIVITY_TTL_MS = 90_000;
 const SYNC_LAG_THRESHOLD_MS = 2_500;
 const SYNC_TIMEOUT_MS = 15_000;
 const MAX_ROOM_EVENTS = 160;
@@ -279,9 +280,19 @@ export class NetplayHub {
     }
 
     if (sourceWs) {
-      const prev = this.socketMeta.get(sourceWs) || {clientId, lastSeq: 0};
+      const prev = this.socketMeta.get(sourceWs) || {clientId, lastSeq: 0, lastInputAt: now};
       prev.clientId = clientId;
       if (typeof body.afterSeq === 'number' && body.afterSeq > prev.lastSeq) prev.lastSeq = body.afterSeq;
+      const isUserInput =
+        action !== 'heartbeat' &&
+        action !== 'poll' &&
+        !(action === 'room_event' && (body.kind === 'tetris_state' || body.kind === 'pb_state'));
+      if (isUserInput || !prev.lastInputAt) {
+        prev.lastInputAt = now;
+      } else if (now - prev.lastInputAt > SOCKET_INACTIVITY_TTL_MS) {
+        await this.webSocketClose(sourceWs);
+        return {status: 200, payload: this.snapshot(clientId, 0)};
+      }
       this.setSocketMeta(sourceWs, prev);
     }
 
@@ -579,12 +590,14 @@ export class NetplayHub {
         });
       }
 
-      this.setSocketMeta(server, {clientId, lastSeq: 0});
+      this.setSocketMeta(server, {clientId, lastSeq: 0, lastInputAt: Date.now()});
       if (clientId) {
-        await this.processAction(
-          {action: 'heartbeat', clientId, name, appId, status: 'idle'},
-          server,
-        );
+        setTimeout(() => {
+          void this.processAction(
+            {action: 'heartbeat', clientId, name, appId, status: 'idle'},
+            server,
+          );
+        }, 0);
       }
       return new Response(null, {status: 101, webSocket: client});
     }
