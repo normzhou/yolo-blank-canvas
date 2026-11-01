@@ -4,6 +4,19 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Inactivity Session Closure & Cloudflare `bridgeWebSocket` Handshake (#288) — 2026-11-01
+
+Source revision `ce3c93b` (the inactivity session closure and Cloudflare `bridgeWebSocket` handshake commit); build evidence `921a5ff`; published as `v0.27.2` on 2026-11-01.
+
+- **Inactivity Session Closure (`src/client/netplay.ts`, `hosting/cloudflare/worker.mjs`, `test/netplay.test.ts`):**
+  - `IDLE_SLEEP_MS = 45_000`: Closes idle WebSockets after 45 seconds without user input—*before* the 60-second Gateway authorization window expires—so an untouched tab connects once on load and makes **zero** reconnects until the user interacts again.
+  - `ROOM_INACTIVITY_TIMEOUT_MS = 90_000`: Closes active 2P rooms or pending invites after 90 seconds with no user input (`leaveRoom()` / `cancelInvite()` + `pauseNetwork()`), preventing abandoned 2P sessions from staying open.
+  - `SOCKET_INACTIVITY_TTL_MS = 90_000`: Server-side `NetplayHub` closes sockets with no user/gameplay input after 90 seconds.
+- **Cloudflare Worker `bridgeWebSocket` Initial Snapshot Delivery (`hosting/cloudflare/worker.mjs`, `src/client/netplay.ts`):**
+  - Verified in `workerd` (`Miniflare` with `NetplayHub` Durable Object binding) that deferring `NetplayHub.fetch`'s initial snapshot push via `setTimeout(..., 0)` and sending `{ action: 'heartbeat' }` on `socket.onopen` delivers the initial snapshot immediately after `withinDeadline`'s `bridgeWebSocket` attaches its listener.
+- `npm test`: 25 files, 172 tests passed.
+- `npx tsc --noEmit`: clean.
+
 ## Event-Driven WebSocket Netplay & Demand-Driven Client Lifecycle (#286) — 2026-11-01
 
 Source revision `4979b74` (the event-driven WebSocket netplay and demand-driven lifecycle commit); build evidence `1662d8c`; release commit `39ff93d`; published as `v0.27.0` on 2026-11-01.

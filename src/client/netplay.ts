@@ -23,8 +23,9 @@ import type { BubbleColor, BubbleGrid } from '../shared/puzzleBobble';
 
 export const INVITE_TIMEOUT_MS = 20_000;
 export const SYNC_TIMEOUT_MS = 15_000;
-export const IDLE_SLEEP_MS = 60_000;
-export const WS_IDLE_KEEPALIVE_MS = 12_000;
+export const IDLE_SLEEP_MS = 45_000;
+export const ROOM_INACTIVITY_TIMEOUT_MS = 90_000;
+export const WS_IDLE_KEEPALIVE_MS = 15_000;
 export const WS_ROOM_KEEPALIVE_MS = 1_500;
 export const HTTP_FALLBACK_IDLE_MS = 15_000;
 export const HTTP_FALLBACK_ROOM_MS = 1_000;
@@ -472,9 +473,14 @@ export class NetplayClient {
           clearTimeout(this.pollTimer);
           this.pollTimer = null;
         }
+        const status = this.currentPlayerStatus();
+        this.sendWsFrame({
+          action: 'heartbeat',
+          status,
+        });
         this.broadcastLocal({
           type: 'presence',
-          status: this.currentPlayerStatus(),
+          status,
           appId: this.currentAppId,
         });
         this.scheduleWsKeepalive();
@@ -510,10 +516,7 @@ export class NetplayClient {
           this.pauseNetwork();
           return;
         }
-        const idleElapsed = Date.now() - this.lastUserActivityAt;
-        if (!this.state.activeRoom && !this.state.myPendingInvite && idleElapsed >= IDLE_SLEEP_MS) {
-          this.idleSleeping = true;
-          this.pauseNetwork();
+        if (this.checkInactivityTimeout()) {
           return;
         }
         // Gateway 60s auth rotation closes with code 1000; abnormal closes use backoff.
@@ -537,6 +540,35 @@ export class NetplayClient {
     }
   }
 
+  private checkInactivityTimeout(): boolean {
+    const idleElapsed = Date.now() - this.lastUserActivityAt;
+    if (!this.state.activeRoom && !this.state.myPendingInvite) {
+      if (idleElapsed >= IDLE_SLEEP_MS) {
+        this.idleSleeping = true;
+        this.pauseNetwork();
+        return true;
+      }
+      return false;
+    }
+    if (idleElapsed >= ROOM_INACTIVITY_TIMEOUT_MS) {
+      const room = this.state.activeRoom;
+      const invite = this.state.myPendingInvite;
+      this.lastServerSeq = 0;
+      this.updateState({ activeRoom: null, myPendingInvite: null });
+      if (room) {
+        this.broadcastLocal({ type: 'leave_room', roomId: room.id });
+        this.sendWsFrame({ action: 'leave_room', roomId: room.id });
+      } else if (invite) {
+        this.broadcastLocal({ type: 'cancel_invite', inviteId: invite.id });
+        this.sendWsFrame({ action: 'cancel_invite' });
+      }
+      this.idleSleeping = true;
+      this.pauseNetwork();
+      return true;
+    }
+    return false;
+  }
+
   private scheduleWsKeepalive(): void {
     if (this.wsKeepaliveTimer !== null) {
       clearTimeout(this.wsKeepaliveTimer);
@@ -547,16 +579,16 @@ export class NetplayClient {
       this.pauseNetwork();
       return;
     }
-    const idleElapsed = Date.now() - this.lastUserActivityAt;
-    if (!this.state.activeRoom && !this.state.myPendingInvite && idleElapsed >= IDLE_SLEEP_MS) {
-      this.idleSleeping = true;
-      this.pauseNetwork();
+    if (this.checkInactivityTimeout()) {
       return;
     }
     const interval = this.state.activeRoom ? WS_ROOM_KEEPALIVE_MS : WS_IDLE_KEEPALIVE_MS;
     this.wsKeepaliveTimer = setTimeout(() => {
       this.wsKeepaliveTimer = null;
       if (!this.isWsOpen()) return;
+      if (this.checkInactivityTimeout()) {
+        return;
+      }
       this.sendWsFrame({
         action: 'heartbeat',
         status: this.currentPlayerStatus(),
@@ -580,10 +612,7 @@ export class NetplayClient {
       this.pauseNetwork();
       return;
     }
-    const idleElapsed = Date.now() - this.lastUserActivityAt;
-    if (!this.state.activeRoom && !this.state.myPendingInvite && idleElapsed >= IDLE_SLEEP_MS) {
-      this.idleSleeping = true;
-      this.pauseNetwork();
+    if (this.checkInactivityTimeout()) {
       return;
     }
     // When WebSocket is connected, no HTTP polling runs at all.
