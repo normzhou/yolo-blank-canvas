@@ -355,8 +355,11 @@ button.yolo-launcher:active:not(:disabled) {
   transform: scale(0.94);
 }
 button.yolo-launcher .yolo-logo-mark {
+  display: block;
   width: 34px;
   height: 34px;
+  overflow: visible;
+  pointer-events: none;
   color: var(--yolo-brand);
 }
 button.pause-launcher,

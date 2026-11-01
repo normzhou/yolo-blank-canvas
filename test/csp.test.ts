@@ -59,4 +59,11 @@ describe('the policy does not get weakened', () => {
   it('authorises the inline script by hash', () => {
     expect(securitySource).toContain("'sha256-${INLINE_SCRIPT_SHA256}'");
   });
+
+  it('approves https://yolo-dev.ai in script-src and style-src for the hosted v1 channel (#282)', () => {
+    const scriptSrc = /script-src[^;]+/.exec(securitySource)?.[0] ?? '';
+    const styleSrc = /style-src[^;]+/.exec(securitySource)?.[0] ?? '';
+    expect(scriptSrc).toContain('https://yolo-dev.ai');
+    expect(styleSrc).toContain('https://yolo-dev.ai');
+  });
 });
