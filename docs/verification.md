@@ -4,6 +4,21 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## YOLO Mark `v0.1.0-alpha.53` Hover/Hold Density Disk & Hosted `v1` Channel (#282) — 2026-11-01
+
+Source revision `ac80935` (the `v0.1.0-alpha.53` YOLO mark hover/hold radial density-disk motion and live `https://yolo-dev.ai/feedback/v1.mjs` hosted channel commit); build evidence `9f81f70`; published as `v0.26.1` on 2026-11-01.
+
+- **`v0.1.0-alpha.53` YOLO Mark Motion & Gestures (`src/client/brand/yoloMark.ts`, `public/brand/yolo-mark.mjs`, `src/client/App.tsx`, `src/client/styles.css`):**
+  - Mouse-hover entry (`pointerenter` with `pointerType === 'mouse'`) triggers randomized spin/wiggle motion (`alpha.44`).
+  - Press-and-hold (`pointerdown`) accelerates rotation up to `7200 deg/s` and blends into a filled translucent radial density-gradient disk (`yolo-mark-density-*` computed from the angular coverage `3 * asin(4 / r) / π` of the three 8-unit square-capped arms) with `overflow: visible` (`alpha.47`, `alpha.49`, `alpha.50`).
+  - Releasing over the symbol invokes `onActivate` and coasts to the nearest 120° pose with a directional settle wiggle; releasing outside cancels activation and coasts to rest.
+- **Direct Remote Updates via `https://yolo-dev.ai/feedback/v1.mjs` with Local Fallback (`src/client/brand/yoloMark.ts`, `server/security.js`):**
+  - `mountHostedYoloMark` mounts the local `v0.1.0-alpha.53` `animateYoloMark` immediately (`data-yolo-mark-source="local"`) and dynamically imports `https://yolo-dev.ai/feedback/v1.mjs` in the browser (`data-yolo-mark-source="hosted-v1"`, `data-yolo-mark-version="0.1.0-alpha.53"`), picking up compatible future YOLO mark motion updates directly from `yolo-dev.ai` without waiting for a skill upgrade.
+  - `server/security.js` approves `https://yolo-dev.ai` in `script-src` and `style-src` while preserving hash-authorized inline theme script and all other CSP restrictions.
+- `npm test`: 24 files, 168 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 45 passed.
+
 ## Upbeat Whimsical Video-Game & Arcade Galop Puzzle Bobble Soundtrack (#278) — 2026-10-27
 
 Source revision `0c944ed` (the upbeat whimsical video-game & arcade galop Puzzle Bobble soundtrack commit); build and review evidence `e10e6f2`; release commit `335f220`; published as `v0.26.0` on 2026-10-27.

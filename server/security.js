@@ -75,9 +75,10 @@ export function securityHeaders(req, res, next) {
       "default-src 'none'",
       // The one inline script is the theme applied before first paint, hashed at
       // build time. Authorising it by hash keeps `unsafe-inline` out of a policy
-      // that has to hold on a page rendering untrusted Markdown.
-      `script-src 'self' 'sha256-${INLINE_SCRIPT_SHA256}'`,
-      "style-src 'self' 'unsafe-inline'",
+      // that has to hold on a page rendering untrusted Markdown. `https://yolo-dev.ai`
+      // is approved for the hosted v1 YOLO mark/feedback channel (#282).
+      `script-src 'self' 'sha256-${INLINE_SCRIPT_SHA256}' https://yolo-dev.ai`,
+      "style-src 'self' 'unsafe-inline' https://yolo-dev.ai",
       "img-src 'self' data:",
       "media-src 'self'",
       "connect-src 'self'",

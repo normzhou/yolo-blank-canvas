@@ -62,7 +62,9 @@ component; the first such content is the Tetris view (#4), now reached through t
 
 The main canvas centers on the **game slide deck** (`src/client/App.tsx`, `src/client/apps/registry.ts`),
 with no top header bar (#220, #228, #230): instead, the bare wiggling **YOLO Threefold symbol**
-(`button.yolo-launcher` at the top-right corner, `src/client/brand/yoloMark.ts`) opens the modal
+(`button.yolo-launcher` at the top-right corner, `src/client/brand/yoloMark.ts` and `public/brand/yolo-mark.mjs`,
+with `v0.1.0-alpha.53` hover motion, press-and-hold radial density-gradient disk, release/cancel coast,
+and live hosted `v1` channel upgrade from `https://yolo-dev.ai/feedback/v1.mjs` with local fallback, #282) opens the modal
 **Feedback & Requests** overlay (`<Panel>`), while a transparent YouTube-style corner-bracket icon
 (`button.fullscreen-launcher` at the bottom-right corner, `src/client/fullscreen.ts`) controls
 browser fullscreen mode (enabled by default). The theme switcher lives in the `<Panel>` footer so

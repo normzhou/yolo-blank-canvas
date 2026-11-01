@@ -12,7 +12,7 @@ import {
   subscribeSharedGamePause,
   toggleSharedGamePaused,
 } from './gamePause';
-import { animateYoloMark } from './brand/yoloMark';
+import { mountHostedYoloMark } from './brand/yoloMark';
 import { useFullscreen } from './fullscreen';
 import { Panel, type PanelView } from './components/Panel';
 import { ErrorNotice } from './components/ErrorNotice';
@@ -324,17 +324,26 @@ function PausePlayIcon({ isPaused }: { isPaused: boolean }) {
 
 /**
  * Official `yolo-dev` Threefold symbol (`viewBox="0 0 96 96"`, `#d84b27`, three
- * 120° square-capped arms `<path d="M48 48v30" />`) with `animateYoloMark`
- * randomized idle wiggles/120°-step rotations and click-triggered motion (#217).
+ * 120° square-capped arms `<path d="M48 48v30" />`) with `mountHostedYoloMark`
+ * hover/hold-to-spin radial density-disk motion and `https://yolo-dev.ai/feedback/v1.mjs`
+ * live channel upgrade (#217, #282).
  */
-function YoloRotatingLogo({ testId }: { testId?: string } = {}) {
+function YoloRotatingLogo({
+  testId,
+  onActivate,
+}: { testId?: string; onActivate?: () => void } = {}) {
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const onActivateRef = useRef(onActivate);
+  onActivateRef.current = onActivate;
 
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
     const trigger = svg.closest('button') ?? svg;
-    const controller = animateYoloMark(svg, { trigger });
+    const controller = mountHostedYoloMark(svg, {
+      trigger,
+      onActivate: () => onActivateRef.current?.(),
+    });
     return () => controller.destroy();
   }, []);
 
@@ -937,18 +946,20 @@ export function App() {
             ref={activeApp ? feedbackTriggerRef : triggerRef}
             aria-label={activeApp ? `Feedback on ${activeApp.title}` : 'Open requests'}
             title={activeApp ? `Give feedback on ${activeApp.title}` : 'YOLO feedback & requests'}
-            onClick={() => {
-              if (activeApp) {
-                panelOpenerRef.current = 'feedback';
-                openNewRequest('feedback');
-              } else {
-                panelOpenerRef.current = 'start';
-                openPanel();
-              }
-            }}
             disabled={connecting}
           >
-            <YoloRotatingLogo testId="yolo-rotating-logo" />
+            <YoloRotatingLogo
+              testId="yolo-rotating-logo"
+              onActivate={() => {
+                if (activeApp) {
+                  panelOpenerRef.current = 'feedback';
+                  openNewRequest('feedback');
+                } else {
+                  panelOpenerRef.current = 'start';
+                  openPanel();
+                }
+              }}
+            />
           </button>
           <div
             className="online-presence-pill"
