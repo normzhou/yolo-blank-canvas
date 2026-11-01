@@ -235,6 +235,14 @@ export function createApp({
 
   app.locals.store = store;
   app.locals.requestStore = requestStore;
+
+  const rawListen = app.listen.bind(app);
+  app.listen = (...args) => {
+    const server = rawListen(...args);
+    netplayHub.attachUpgrade?.(server);
+    return server;
+  };
+
   return app;
 }
 

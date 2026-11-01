@@ -27,6 +27,15 @@ GitHub CLI (credentials) ──► GitHub issues, comments, labels, PRs
 
 Boundary rules that are load-bearing rather than incidental:
 
+- **2-Player Online Netplay (`src/client/netplay.ts`, `server/netplay.js`, `hosting/cloudflare/worker.mjs`):**
+  Uses an event-driven WebSocket push transport (`Upgrade: websocket` on `/api/netplay` backed by
+  Cloudflare's Hibernatable Durable Object API on `NetplayHub` and a zero-dependency RFC 6455 upgrade
+  handler on the local Node HTTP server) with `BroadcastChannel('yolo:netplay:v1')` for `<1ms` same-browser
+  tab sync and `GET`/`POST /api/netplay` as fallback (#236, #244, #286). The client enforces demand-driven
+  lifecycle hygiene: zero HTTP polling while WebSocket is open, immediate disconnect on hidden tabs
+  (`document.hidden`) when not in an active 2P match, 60-second idle inactivity sleep (waking on user
+  interaction or 2P actions), full teardown when all subscribers unsubscribe, and exponential failure
+  backoff (`2s -> 120s`).
 - **`gh.js` is the only process-spawning path to GitHub.** User text is never a command, flag or
   shell string. This is what lets the backend accept arbitrary issue text safely.
 - **`app.js` exposes a fixed operation set through the `RequestStore` port.** Routes depend on the

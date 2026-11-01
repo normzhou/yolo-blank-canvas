@@ -1,6 +1,6 @@
 import {publicOrigin, originAuthorization, cleanRequestHeaders, cleanResponse, failure, withinDeadline} from './transport.mjs';
 
-const PLAYER_TTL_MS = 18_000;
+const PLAYER_TTL_MS = 25_000;
 const INVITE_TTL_MS = 20_000;
 const ROOM_TTL_MS = 120_000;
 const SYNC_LAG_THRESHOLD_MS = 2_500;
@@ -20,10 +20,9 @@ function cleanName(raw) {
 }
 
 /**
- * Strongly-consistent global Durable Object coordinator (#236, #244) so all
- * browsers, tabs, and devices hitting `https://demo.yolo-dev.ai/api/netplay`
- * share a single real-time room, invite, and presence state instead of landing
- * on separate per-request V8 isolates.
+ * Strongly-consistent global Durable Object coordinator (#236, #244, #286)
+ * supporting Hibernatable WebSocket push (`Upgrade: websocket` on `/api/netplay`)
+ * as primary transport and HTTP `GET`/`POST /api/netplay` as fallback.
  */
 export class NetplayHub {
   constructor(ctx, env) {
@@ -32,6 +31,7 @@ export class NetplayHub {
     this.players = new Map();
     this.invites = new Map();
     this.rooms = new Map();
+    this.socketMeta = new Map();
     this.seq = 1;
     if (ctx && typeof ctx.blockConcurrencyWhile === 'function' && ctx.storage) {
       ctx.blockConcurrencyWhile(async () => {
@@ -51,10 +51,95 @@ export class NetplayHub {
               for (const [k, v] of saved.rooms) this.rooms.set(k, v);
             }
           }
+          if (typeof ctx.getWebSockets === 'function') {
+            for (const ws of ctx.getWebSockets()) {
+              const att = ws.deserializeAttachment?.();
+              if (att && typeof att.clientId === 'string') {
+                this.socketMeta.set(ws, {clientId: att.clientId, lastSeq: Number(att.lastSeq) || 0});
+              }
+            }
+          }
         } catch {
           // Start fresh if storage read fails
         }
       });
+    }
+  }
+
+  getConnectedSockets() {
+    if (this.ctx && typeof this.ctx.getWebSockets === 'function') {
+      const list = this.ctx.getWebSockets();
+      for (const ws of list) {
+        if (!this.socketMeta.has(ws)) {
+          const att = ws.deserializeAttachment?.();
+          this.socketMeta.set(ws, {
+            clientId: cleanId(att?.clientId || ''),
+            lastSeq: Number(att?.lastSeq) || 0,
+          });
+        }
+      }
+      return list;
+    }
+    return Array.from(this.socketMeta.keys());
+  }
+
+  setSocketMeta(ws, meta) {
+    this.socketMeta.set(ws, meta);
+    try {
+      ws.serializeAttachment?.({clientId: meta.clientId, lastSeq: meta.lastSeq});
+    } catch {
+      // Ignore attachment serialization errors
+    }
+  }
+
+  sendSnapshotToWs(ws) {
+    const meta = this.socketMeta.get(ws);
+    if (!meta || !meta.clientId) return;
+    const snap = this.snapshot(meta.clientId, meta.lastSeq);
+    if (snap.activeRoom && typeof snap.activeRoom.lastSeq === 'number') {
+      meta.lastSeq = snap.activeRoom.lastSeq;
+    } else if (!snap.activeRoom) {
+      meta.lastSeq = 0;
+    }
+    this.setSocketMeta(ws, meta);
+    try {
+      ws.send(JSON.stringify({type: 'snapshot', ...snap}));
+    } catch {
+      this.socketMeta.delete(ws);
+    }
+  }
+
+  broadcastSnapshots(targetClientIds = null) {
+    for (const ws of this.getConnectedSockets()) {
+      const meta = this.socketMeta.get(ws);
+      if (!meta || !meta.clientId) continue;
+      if (targetClientIds && !targetClientIds.has(meta.clientId)) continue;
+      this.sendSnapshotToWs(ws);
+    }
+    void this.scheduleAlarmIfNeeded();
+  }
+
+  async scheduleAlarmIfNeeded() {
+    if (!this.ctx?.storage?.setAlarm) return;
+    const hasPlayingRoom = Array.from(this.rooms.values()).some(r => r.status === 'playing');
+    if (hasPlayingRoom && this.getConnectedSockets().length > 0) {
+      try {
+        await this.ctx.storage.setAlarm(Date.now() + 1_000);
+      } catch {
+        // Ignore alarm scheduling errors
+      }
+    }
+  }
+
+  async alarm() {
+    const roomMemberIds = new Set();
+    for (const r of this.rooms.values()) {
+      if (r.status === 'playing') {
+        for (const p of r.players) roomMemberIds.add(p.id);
+      }
+    }
+    if (roomMemberIds.size > 0) {
+      this.broadcastSnapshots(roomMemberIds);
     }
   }
 
@@ -142,14 +227,12 @@ export class NetplayHub {
             } else {
               syncStatus = 'paused';
             }
-          } else {
-            if (room.syncPausedSince) {
-              room.syncPausedSince = null;
-              room.events.push({
-                seq: room.nextSeq++, senderId: clientId,
-                kind: 'sync_resumed', payload: {resumedAt: now}, at: now,
-              });
-            }
+          } else if (room.syncPausedSince) {
+            room.syncPausedSince = null;
+            room.events.push({
+              seq: room.nextSeq++, senderId: clientId,
+              kind: 'sync_resumed', payload: {resumedAt: now}, at: now,
+            });
           }
         }
         const lastRoomSeq = room.nextSeq - 1;
@@ -166,39 +249,40 @@ export class NetplayHub {
     return {onlineCount: players.length, players, openInvites, myPendingInvites, activeRoom, serverTime: now};
   }
 
-  async fetch(request) {
-    const url = new URL(request.url);
-    if (request.method === 'GET') {
-      const clientId = cleanId(url.searchParams.get('clientId') || '');
-      const afterSeq = Number.parseInt(url.searchParams.get('afterSeq') || '0', 10) || 0;
-      return Response.json(this.snapshot(clientId, afterSeq), {headers: {'cache-control': 'no-store'}});
-    }
-    if (request.method !== 'POST') return failure(405, 'Method not allowed');
-    let body = {};
-    try {
-      body = await request.json();
-    } catch {
-      return failure(400, 'Invalid JSON');
-    }
+  async processAction(body = {}, sourceWs = null) {
     const now = Date.now();
     this.prune(now);
     const action = typeof body.action === 'string' ? body.action : 'poll';
     const clientId = cleanId(body.clientId);
-    if (!clientId) return Response.json({error: {kind: 'invalid_request', message: 'clientId is required.'}}, {status: 400, headers: {'cache-control': 'no-store'}});
+    if (!clientId) {
+      return {status: 400, payload: {error: {kind: 'invalid_request', message: 'clientId is required.'}}};
+    }
 
     const name = cleanName(body.name);
     const appId = typeof body.appId === 'string' && VALID_GAMES.has(body.appId) ? body.appId : null;
     const requestedStatus = typeof body.status === 'string' && VALID_STATUSES.has(body.status) ? body.status : null;
 
+    let isNewPlayer = false;
+    let statusChanged = false;
     let player = this.players.get(clientId);
     if (!player) {
+      isNewPlayer = true;
       player = {id: clientId, name, status: requestedStatus || 'idle', appId, roomId: null, updatedAt: now};
       this.players.set(clientId, player);
     } else {
-      player.name = name || player.name;
-      if (appId !== undefined) player.appId = appId;
-      if (requestedStatus && (!player.roomId || requestedStatus === 'idle')) player.status = requestedStatus;
+      if (name && player.name !== name) { player.name = name; statusChanged = true; }
+      if (appId !== undefined && player.appId !== appId) { player.appId = appId; statusChanged = true; }
+      if (requestedStatus && (!player.roomId || requestedStatus === 'idle')) {
+        if (player.status !== requestedStatus) { player.status = requestedStatus; statusChanged = true; }
+      }
       player.updatedAt = now;
+    }
+
+    if (sourceWs) {
+      const prev = this.socketMeta.get(sourceWs) || {clientId, lastSeq: 0};
+      prev.clientId = clientId;
+      if (typeof body.afterSeq === 'number' && body.afterSeq > prev.lastSeq) prev.lastSeq = body.afterSeq;
+      this.setSocketMeta(sourceWs, prev);
     }
 
     if (player.roomId && this.rooms.has(player.roomId)) {
@@ -210,8 +294,10 @@ export class NetplayHub {
     }
 
     if (action === 'simulate_lag') {
+      const affected = new Set([clientId]);
       if (player.roomId && this.rooms.has(player.roomId)) {
         const rm = this.rooms.get(player.roomId);
+        for (const p of rm.players) affected.add(p.id);
         const member = rm.players.find(p => p.id === clientId);
         if (member) {
           member.lagging = Boolean(body.lagging);
@@ -220,7 +306,9 @@ export class NetplayHub {
         }
       }
       await this.persist();
-      return Response.json(this.snapshot(clientId, 0), {headers: {'cache-control': 'no-store'}});
+      const snap = this.snapshot(clientId, 0);
+      this.broadcastSnapshots(affected);
+      return {status: 200, payload: snap};
     }
 
     if (action === 'heartbeat' || action === 'poll') {
@@ -243,7 +331,13 @@ export class NetplayHub {
         }
       }
       await this.persist(roomDissolved);
-      return Response.json(this.snapshot(clientId, afterSeq), {headers: {'cache-control': 'no-store'}});
+      const snap = this.snapshot(clientId, afterSeq);
+      if (isNewPlayer || statusChanged || roomDissolved) {
+        this.broadcastSnapshots();
+      } else if (sourceWs) {
+        this.sendSnapshotToWs(sourceWs);
+      }
+      return {status: 200, payload: snap};
     }
 
     if (action === 'invite') {
@@ -282,7 +376,9 @@ export class NetplayHub {
             host.roomId = roomId; host.status = 'playing_2p'; host.appId = gameId; host.updatedAt = now;
             player.roomId = roomId; player.status = 'playing_2p'; player.appId = gameId; player.updatedAt = now;
             await this.persist();
-            return Response.json(this.snapshot(clientId, 0), {headers: {'cache-control': 'no-store'}});
+            const snap = this.snapshot(clientId, 0);
+            this.broadcastSnapshots();
+            return {status: 200, payload: snap};
           }
         }
       }
@@ -295,7 +391,9 @@ export class NetplayHub {
       player.status = 'inviting';
       player.appId = gameId;
       await this.persist();
-      return Response.json({...this.snapshot(clientId, 0), inviteId}, {headers: {'cache-control': 'no-store'}});
+      const snap = {...this.snapshot(clientId, 0), inviteId};
+      this.broadcastSnapshots();
+      return {status: 200, payload: snap};
     }
 
     if (action === 'cancel_invite') {
@@ -304,27 +402,31 @@ export class NetplayHub {
       }
       if (player.status === 'inviting') player.status = 'idle';
       await this.persist();
-      return Response.json(this.snapshot(clientId, 0), {headers: {'cache-control': 'no-store'}});
+      const snap = this.snapshot(clientId, 0);
+      this.broadcastSnapshots();
+      return {status: 200, payload: snap};
     }
 
     if (action === 'dismiss_invite') {
       const inv = this.invites.get(cleanId(body.inviteId));
       if (inv) inv.dismissedBy.add(clientId);
       await this.persist();
-      return Response.json(this.snapshot(clientId, 0), {headers: {'cache-control': 'no-store'}});
+      const snap = this.snapshot(clientId, 0);
+      this.broadcastSnapshots(new Set([clientId]));
+      return {status: 200, payload: snap};
     }
 
     if (action === 'accept_invite') {
       const inviteId = cleanId(body.inviteId);
       const inv = this.invites.get(inviteId);
       if (!inv || inv.status !== 'open') {
-        return Response.json({error: {kind: 'invite_unavailable', message: 'Invite already accepted or expired.'}, ...this.snapshot(clientId, 0)}, {status: 409, headers: {'cache-control': 'no-store'}});
+        return {status: 409, payload: {error: {kind: 'invite_unavailable', message: 'Invite already accepted or expired.'}, ...this.snapshot(clientId, 0)}};
       }
       const host = this.players.get(inv.hostId);
       if (!host || host.id === clientId) {
         this.invites.delete(inviteId);
         await this.persist();
-        return Response.json({error: {kind: 'invite_unavailable', message: 'Host player unavailable.'}, ...this.snapshot(clientId, 0)}, {status: 409, headers: {'cache-control': 'no-store'}});
+        return {status: 409, payload: {error: {kind: 'invite_unavailable', message: 'Host player unavailable.'}, ...this.snapshot(clientId, 0)}};
       }
       const roomId = this.nextId('room');
       const seed = ((now & 0x7fffffff) ^ 0x5a5a5a5a) >>> 0 || 1337;
@@ -346,13 +448,15 @@ export class NetplayHub {
       host.roomId = roomId; host.status = 'playing_2p'; host.appId = inv.gameId; host.updatedAt = now;
       player.roomId = roomId; player.status = 'playing_2p'; player.appId = inv.gameId; player.updatedAt = now;
       await this.persist();
-      return Response.json(this.snapshot(clientId, 0), {headers: {'cache-control': 'no-store'}});
+      const snap = this.snapshot(clientId, 0);
+      this.broadcastSnapshots();
+      return {status: 200, payload: snap};
     }
 
     if (action === 'player_ready') {
       const roomId = cleanId(body.roomId) || player.roomId;
       const room = roomId ? this.rooms.get(roomId) : null;
-      if (!room) return Response.json({error: {kind: 'room_not_found', message: 'Match room ended.'}}, {status: 404, headers: {'cache-control': 'no-store'}});
+      if (!room) return {status: 404, payload: {error: {kind: 'room_not_found', message: 'Match room ended.'}}};
       const member = room.players.find(p => p.id === clientId);
       if (member) member.ready = true;
       const seq = room.nextSeq++;
@@ -370,13 +474,15 @@ export class NetplayHub {
       room.updatedAt = now;
       const afterSeq = typeof body.afterSeq === 'number' ? body.afterSeq : seq - 1;
       await this.persist();
-      return Response.json(this.snapshot(clientId, afterSeq), {headers: {'cache-control': 'no-store'}});
+      const snap = this.snapshot(clientId, afterSeq);
+      this.broadcastSnapshots(new Set(room.players.map(p => p.id)));
+      return {status: 200, payload: snap};
     }
 
     if (action === 'room_event') {
       const roomId = cleanId(body.roomId) || player.roomId;
       const room = roomId ? this.rooms.get(roomId) : null;
-      if (!room) return Response.json({error: {kind: 'room_not_found', message: 'Match room ended.'}}, {status: 404, headers: {'cache-control': 'no-store'}});
+      if (!room) return {status: 404, payload: {error: {kind: 'room_not_found', message: 'Match room ended.'}}};
       const kind = typeof body.kind === 'string' ? body.kind.slice(0, 40) : 'state';
       const isRadarTick = kind === 'tetris_state' || kind === 'pb_state';
       if (isRadarTick) {
@@ -388,7 +494,9 @@ export class NetplayHub {
       room.updatedAt = now;
       const afterSeq = typeof body.afterSeq === 'number' ? body.afterSeq : seq - 1;
       await this.persist(!isRadarTick);
-      return Response.json(this.snapshot(clientId, afterSeq), {headers: {'cache-control': 'no-store'}});
+      const snap = this.snapshot(clientId, afterSeq);
+      this.broadcastSnapshots(new Set(room.players.map(p => p.id)));
+      return {status: 200, payload: snap};
     }
 
     if (action === 'leave_room') {
@@ -401,10 +509,100 @@ export class NetplayHub {
       player.roomId = null;
       player.status = 'idle';
       await this.persist();
-      return Response.json(this.snapshot(clientId, 0), {headers: {'cache-control': 'no-store'}});
+      const snap = this.snapshot(clientId, 0);
+      this.broadcastSnapshots();
+      return {status: 200, payload: snap};
     }
 
-    return failure(400, 'Unknown netplay action');
+    return {status: 400, payload: {error: {kind: 'invalid_request', message: 'Unknown netplay action.'}}};
+  }
+
+  async webSocketMessage(ws, message) {
+    try {
+      const raw = typeof message === 'string' ? message : new TextDecoder().decode(message);
+      const body = JSON.parse(raw);
+      if (body && typeof body === 'object') {
+        await this.processAction(body, ws);
+      }
+    } catch {
+      // Ignore malformed WebSocket messages
+    }
+  }
+
+  async webSocketClose(ws) {
+    const meta = this.socketMeta.get(ws);
+    this.socketMeta.delete(ws);
+    try {
+      ws.close(1000, 'closed');
+    } catch {
+      // Already closed
+    }
+    if (meta?.clientId) {
+      const stillConnected = this.getConnectedSockets().some(
+        other => other !== ws && this.socketMeta.get(other)?.clientId === meta.clientId,
+      );
+      const p = this.players.get(meta.clientId);
+      if (!stillConnected && p && p.status === 'idle' && !p.roomId) {
+        this.players.delete(meta.clientId);
+        await this.persist(false);
+        this.broadcastSnapshots();
+      }
+    }
+  }
+
+  async webSocketError(ws) {
+    await this.webSocketClose(ws);
+  }
+
+  async fetch(request) {
+    const url = new URL(request.url);
+    if ((request.headers.get('upgrade') || '').toLowerCase() === 'websocket') {
+      const pair = new WebSocketPair();
+      const client = pair[0];
+      const server = pair[1];
+      const clientId = cleanId(url.searchParams.get('clientId') || '');
+      const name = cleanName(url.searchParams.get('name') || 'Player');
+      const appId = url.searchParams.get('appId') || null;
+
+      if (this.ctx && typeof this.ctx.acceptWebSocket === 'function') {
+        this.ctx.acceptWebSocket(server, clientId ? [clientId] : []);
+      } else {
+        server.accept();
+        server.addEventListener('message', event => {
+          void this.webSocketMessage(server, event.data);
+        });
+        server.addEventListener('close', () => {
+          void this.webSocketClose(server);
+        });
+        server.addEventListener('error', () => {
+          void this.webSocketError(server);
+        });
+      }
+
+      this.setSocketMeta(server, {clientId, lastSeq: 0});
+      if (clientId) {
+        await this.processAction(
+          {action: 'heartbeat', clientId, name, appId, status: 'idle'},
+          server,
+        );
+      }
+      return new Response(null, {status: 101, webSocket: client});
+    }
+
+    if (request.method === 'GET') {
+      const clientId = cleanId(url.searchParams.get('clientId') || '');
+      const afterSeq = Number.parseInt(url.searchParams.get('afterSeq') || '0', 10) || 0;
+      return Response.json(this.snapshot(clientId, afterSeq), {headers: {'cache-control': 'no-store'}});
+    }
+    if (request.method !== 'POST') return failure(405, 'Method not allowed');
+    let body = {};
+    try {
+      body = await request.json();
+    } catch {
+      return failure(400, 'Invalid JSON');
+    }
+    const result = await this.processAction(body, null);
+    return Response.json(result.payload, {status: result.status, headers: {'cache-control': 'no-store'}});
   }
 }
 
@@ -424,11 +622,13 @@ export default {
     if (['TRACE', 'CONNECT'].includes(request.method)) return failure(405, 'Method not allowed');
     if (url.pathname === '/__yolo/version') return Response.json({version: env.APP_VERSION}, {headers: {'cache-control': 'no-store'}});
     if (url.pathname === '/api/netplay') {
-      if (env.NETPLAY_HUB && typeof env.NETPLAY_HUB.idFromName === 'function') {
-        const id = env.NETPLAY_HUB.idFromName('global');
-        return env.NETPLAY_HUB.get(id).fetch(request);
-      }
-      return fallbackHub.fetch(request);
+      return withinDeadline(authorization.deadline, async () => {
+        if (env.NETPLAY_HUB && typeof env.NETPLAY_HUB.idFromName === 'function') {
+          const id = env.NETPLAY_HUB.idFromName('global');
+          return env.NETPLAY_HUB.get(id).fetch(request);
+        }
+        return fallbackHub.fetch(request);
+      });
     }
     if (url.pathname === '/api' || url.pathname.startsWith('/api/')) {
       if (!env.BACKEND_ORIGIN || !env.BACKEND_ACCESS_CLIENT_ID || !env.BACKEND_ACCESS_CLIENT_SECRET) return failure(503, 'Backend configuration unavailable');
