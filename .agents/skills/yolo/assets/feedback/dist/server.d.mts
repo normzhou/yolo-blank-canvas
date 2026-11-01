@@ -4,5 +4,6 @@ export declare function createFeedbackBridge({ repository, responders, authorize
     repository: any;
     responders: any;
 }): {
-    fetch(request: any, env: any, context?: {}): Promise<Response | null | undefined>;
+    invalidate: () => void;
+    fetch(request: any, env: any, context?: {}): Promise<any>;
 };

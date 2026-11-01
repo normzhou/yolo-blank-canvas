@@ -1,3 +1,4 @@
+import { boundedCache, conditionalReads, timings } from './read-cache.mjs';
 import { forms } from './forms.mjs';
 import { assets } from './ui-assets.mjs';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
@@ -69,14 +70,17 @@ function requestPayload(data) {
             input[key] = data.input[key];
     return { title: `[yolo-feedback:${data.id}] ${form.title}`, payload: JSON.stringify({ template: { id: form.id, version: form.version }, input }) };
 }
-const publicState = issue => ({ state: issue.state === 'closed' ? 'closed' : 'open', workflow: (issue.labels ?? []).map(l => typeof l === 'string' ? l : l.name).filter(n => /^yolo:state:[a-z-]+$/.test(n)) });
+const publicState = issue => { const labels = (issue.labels ?? []).map(l => typeof l === 'string' ? l : l.name); return { state: issue.state === 'closed' ? 'closed' : 'open', workflow: labels.filter(n => /^yolo:state:[a-z-]+$/.test(n)), managed: labels.includes('yolo:work') }; };
 const view = row => ({ id: row.id, preview: row.payload ? Object.values(JSON.parse(row.payload).input)[0]?.slice(0, 80) : '', title: row.title.replace(/^\[yolo-feedback:[^\]]+\] /, ''), phase: row.phase, created: row.created });
 /** Mount after the client's verified identity adapter. A browser field/header is never a principal. */
 export function createFeedbackBridge({ repository, responders, authorize }) {
     if (!/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(repository) || !Array.isArray(responders) || responders.some(x => !/^[a-zA-Z0-9_[\]-]+$/.test(x)) || typeof authorize !== 'function')
         throw new Error('Invalid trusted feedback configuration.');
-    const approved = new Set(responders);
-    return { async fetch(request, env, context = {}) {
+    const approved = new Set(responders), reads = conditionalReads(), discussions = boundedCache(20000), pending = new Map();
+    let generation = 0;
+    const invalidate = () => { generation++; discussions.clear(); pending.clear(); };
+    return { invalidate, async fetch(request, env, context = {}) {
+            const timing = timings('bridge'), respondJSON = (value, status = 200) => timing.finish(json(value, status));
             const path = new URL(request.url).pathname;
             if (path !== '/feedback' && !path.startsWith('/feedback/'))
                 return null;
@@ -99,7 +103,14 @@ export function createFeedbackBridge({ repository, responders, authorize }) {
                 if (request.headers.get('X-Feedback-Owner') && request.headers.get('X-Feedback-Owner') !== owner)
                     fail(409, 'Your signed-in account changed. Reload before continuing.');
                 const db = env.APP_DB;
-                const stmt = (sql, ...args) => db.prepare(sql).bind(...args);
+                if (reads.scope(db, env.PUBLIC_ORIGIN, env.FEEDBACK_GITHUB_TOKEN))
+                    invalidate();
+                const stmt = (sql, ...args) => {
+                    const bound = db.prepare(sql).bind(...args);
+                    return {
+                        first: () => timing.time('db', () => bound.first()), all: () => timing.time('db', () => bound.all()), run: () => timing.time('db', () => bound.run())
+                    };
+                };
                 if (request.method === 'POST') {
                     let origin;
                     try {
@@ -108,6 +119,7 @@ export function createFeedbackBridge({ repository, responders, authorize }) {
                     catch {
                         fail(503, 'Feedback is not configured.');
                     }
+                    invalidate();
                     if (request.headers.get('X-Feedback-Owner') !== owner)
                         fail(409, 'Reload feedback before sending.');
                     if (request.headers.get('Origin') !== origin || !/^application\/json(?:\s*;|$)/i.test(request.headers.get('Content-Type') ?? ''))
@@ -121,16 +133,10 @@ export function createFeedbackBridge({ repository, responders, authorize }) {
                     try {
                         if (context.signal?.aborted)
                             controller.abort();
-                        const response = await fetch(`https://api.github.com${resource}`, { ...init, redirect: 'manual', signal: controller.signal, headers: {
+                        return await timing.time('github', () => reads.read(resource, etag => fetch(`https://api.github.com${resource}`, { ...init, redirect: 'manual', signal: controller.signal, headers: {
                                 'Authorization': `Bearer ${env.FEEDBACK_GITHUB_TOKEN}`, 'Accept': 'application/vnd.github+json',
-                                'X-GitHub-Api-Version': '2026-03-10', 'User-Agent': 'yolo-client-feedback', 'Content-Type': 'application/json'
-                            } });
-                        if (!response.ok) {
-                            const error = new Error('GitHub unavailable');
-                            error.status = response.status;
-                            throw error;
-                        }
-                        return await boundedJSON(response.body, 1024 * 1024);
+                                'X-GitHub-Api-Version': '2026-03-10', 'User-Agent': 'yolo-client-feedback', 'Content-Type': 'application/json', ...(etag ? { 'If-None-Match': etag } : {})
+                            } }), body => boundedJSON(body, 1024 * 1024), init.method ?? 'GET'));
                     }
                     finally {
                         clearTimeout(timer);
@@ -160,7 +166,7 @@ export function createFeedbackBridge({ repository, responders, authorize }) {
                 async function owned(id) {
                     if (!UUID.test(id))
                         fail(404, 'Request not found.');
-                    const row = await stmt('SELECT * FROM yolo_feedback_requests WHERE id=? AND owner=?', id, owner).first();
+                    const row = await stmt("SELECT r.*,EXISTS(SELECT 1 FROM yolo_feedback_responses w WHERE w.request_id=r.id AND w.phase IN ('staged','writing')) AS worker_pending FROM yolo_feedback_requests r WHERE r.id=? AND r.owner=?", id, owner).first();
                     if (!row)
                         fail(404, 'Request not found.');
                     return row;
@@ -203,10 +209,45 @@ export function createFeedbackBridge({ repository, responders, authorize }) {
                     }
                 }
                 if (path === '/feedback/api/session' && request.method === 'GET')
-                    return json({ owner, forms });
+                    return respondJSON({ owner, forms });
                 if (path === '/feedback/api/requests' && request.method === 'GET') {
-                    const rows = await stmt('SELECT id,title,payload,phase,created FROM yolo_feedback_requests WHERE owner=? ORDER BY created DESC LIMIT 100', owner).all();
-                    return json({ requests: rows.results.map(view) });
+                    const rows = (await stmt('SELECT id,title,payload,phase,created,issue FROM yolo_feedback_requests WHERE owner=? ORDER BY created DESC LIMIT 100', owner).all()).results;
+                    const numbers = [...new Set(rows.filter(r => r.phase === 'sent' && Number.isSafeInteger(r.issue) && r.issue > 0 && r.issue <= 2147483647).map(r => r.issue))];
+                    const states = new Map();
+                    let checkedAt;
+                    if (numbers.length)
+                        try {
+                            // One fixed read-only query; no caller query, contents, comments or per-item fan-out.
+                            const query = 'query YoloFeedbackStates($owner:String!,$name:String!){repository(owner:$owner,name:$name){nameWithOwner ' + numbers.map((n, i) => `i${i}:issue(number:${n}){__typename number state locked labels(first:100){nodes{name} pageInfo{hasNextPage}}}`).join(' ') + '}}';
+                            const [repoOwner, name] = repository.split('/');
+                            const result = await github('/graphql', { method: 'POST', body: JSON.stringify({ query, variables: { owner: repoOwner, name } }) }), repo = result.data?.repository;
+                            if (repo?.nameWithOwner?.toLowerCase() !== repository.toLowerCase() || result.errors !== undefined && !Array.isArray(result.errors))
+                                throw new Error('Unverified status source');
+                            const failed = new Set();
+                            for (const error of result.errors ?? []) {
+                                const path = error?.path;
+                                if (!Array.isArray(path) || path[0] !== 'repository' || !/^i\d+$/.test(path[1]) || !Object.hasOwn(repo, path[1]))
+                                    throw new Error('Unverified partial result');
+                                failed.add(path[1]);
+                            }
+                            checkedAt = Date.now();
+                            for (const [i, n] of numbers.entries()) {
+                                const key = 'i' + i, issue = repo[key], labels = issue?.labels;
+                                if (failed.has(key) || issue?.__typename !== 'Issue' || issue.number !== n || !['OPEN', 'CLOSED'].includes(issue.state) || typeof issue.locked !== 'boolean' || labels?.pageInfo?.hasNextPage !== false || !Array.isArray(labels.nodes) || labels.nodes.length > 100 || labels.nodes.some(l => typeof l?.name !== 'string' || l.name.length > 256))
+                                    continue;
+                                const source = { number: n, state: issue.state.toLowerCase(), locked: issue.locked, labels: labels.nodes };
+                                try {
+                                    checkIssue(source, n);
+                                    states.set(n, publicState(source));
+                                }
+                                catch { }
+                            }
+                        }
+                        catch {
+                            invalidate();
+                            reads.clear();
+                        }
+                    return respondJSON({ requests: rows.map(row => ({ ...view(row), status: states.get(row.issue) ?? null, ...(states.has(row.issue) ? { checkedAt } : {}) })) });
                 }
                 if (path === '/feedback/api/requests' && request.method === 'POST') {
                     const data = await boundedJSON(request.body, 65536);
@@ -222,8 +263,9 @@ export function createFeedbackBridge({ repository, responders, authorize }) {
                     if (row.digest !== digest)
                         fail(409, 'This request ID already belongs to a different draft.');
                     await send('yolo_feedback_requests', row, base, { title, body: payload }, 'number');
+                    invalidate();
                     const saved = await owned(row.id);
-                    return json(view(saved), saved.phase === 'sent' ? 201 : 202);
+                    return respondJSON(view(saved), saved.phase === 'sent' ? 201 : 202);
                 }
                 const route = /^\/feedback\/api\/requests\/([^/]+)(\/replies)?$/.exec(path);
                 if (!route)
@@ -233,10 +275,32 @@ export function createFeedbackBridge({ repository, responders, authorize }) {
                     row = await reconcile(row);
                     const replyRows = (await stmt('SELECT * FROM yolo_feedback_replies WHERE request_id=? AND owner=? ORDER BY created', row.id, owner).all()).results;
                     if (!row.issue)
-                        return json({ ...view(row), input: JSON.parse(row.payload).input, replies: replyRows.map(r => ({ id: r.id, message: JSON.parse(r.payload).message, phase: r.phase, created: r.created })), responses: [], status: null });
+                        return respondJSON({ ...view(row), input: JSON.parse(row.payload).input, replies: replyRows.map(r => ({ id: r.id, message: JSON.parse(r.payload).message, phase: r.phase, created: r.created })), responses: [], status: null });
                     const issue = await github(`${base}/${row.issue}`);
                     checkIssue(issue, row.issue);
-                    const items = await comments(row.issue);
+                    const key = owner + ':' + row.id, sourceRevision = JSON.stringify([issue.comments ?? null, issue.updated_at ?? null]), force = request.headers.get('Cache-Control') === 'no-cache' || request.headers.get('X-Yolo-Read-Cache') !== 'v1';
+                    const uncertain = row.worker_pending || replyRows.some(r => r.phase === 'writing' || r.phase === 'staged');
+                    const cached = !force && !uncertain ? discussions.get(key) : undefined;
+                    if (cached && cached.sourceRevision === sourceRevision) {
+                        const response = respondJSON({ ...view(row), input: JSON.parse(row.payload).input, status: publicState(issue), replies: replyRows.map(r => ({ id: r.id, message: JSON.parse(r.payload).message, phase: r.phase, created: r.created })), responses: cached.responses, checkedAt: cached.checkedAt });
+                        response.headers.set('X-Yolo-Cache', 'hit');
+                        return response;
+                    }
+                    const version = generation, flight = key + ':' + sourceRevision + ':' + version;
+                    let loading = !force && !uncertain ? pending.get(flight) : undefined;
+                    if (!loading) {
+                        loading = comments(row.issue);
+                        if (!force && !uncertain && pending.size < 16)
+                            pending.set(flight, loading);
+                    }
+                    let items;
+                    try {
+                        items = await loading;
+                    }
+                    finally {
+                        if (pending.get(flight) === loading)
+                            pending.delete(flight);
+                    }
                     for (const reply of replyRows)
                         if (reply.phase === 'writing') {
                             const match = items.find(c => c.body === reply.payload && Number.isSafeInteger(c.id));
@@ -256,7 +320,12 @@ export function createFeedbackBridge({ repository, responders, authorize }) {
                         }
                         catch { /* Private comments stay private. */ }
                     }
-                    return json({ ...view(row), input: JSON.parse(row.payload).input, status: publicState(issue), replies: replyRows.map(r => ({ id: r.id, message: JSON.parse(r.payload).message, phase: r.phase, created: r.created })), responses });
+                    const checkedAt = Date.now();
+                    if (version === generation && !uncertain)
+                        discussions.set(key, { sourceRevision, responses, checkedAt });
+                    const response = respondJSON({ ...view(row), input: JSON.parse(row.payload).input, status: publicState(issue), replies: replyRows.map(r => ({ id: r.id, message: JSON.parse(r.payload).message, phase: r.phase, created: r.created })), responses, checkedAt });
+                    response.headers.set('X-Yolo-Cache', force || uncertain ? 'revalidated' : 'miss');
+                    return response;
                 }
                 if (route[2] && request.method === 'POST') {
                     if (row.phase !== 'sent' || !row.issue)
@@ -278,13 +347,16 @@ export function createFeedbackBridge({ repository, responders, authorize }) {
                     if (reply.digest !== digest)
                         fail(409, 'This reply ID already belongs to a different draft.');
                     await send('yolo_feedback_replies', reply, `${base}/${row.issue}/comments`, { body: payload }, 'id');
+                    invalidate();
                     const saved = await stmt('SELECT phase FROM yolo_feedback_replies WHERE id=? AND owner=?', data.id, owner).first();
-                    return json({ id: reply.id, phase: saved.phase }, saved.phase === 'sent' ? 201 : 202);
+                    return respondJSON({ id: reply.id, phase: saved.phase }, saved.phase === 'sent' ? 201 : 202);
                 }
                 fail(405, 'Method not allowed.');
             }
             catch (error) {
-                return json({ error: error instanceof Problem ? error.message : 'Feedback is temporarily unavailable. Keep your draft and refresh to check its status.', ...(error instanceof Problem && error.code ? { code: error.code } : {}) }, error instanceof Problem ? error.status : 503);
+                invalidate();
+                reads.clear();
+                return respondJSON({ error: error instanceof Problem ? error.message : 'Feedback is temporarily unavailable. Keep your draft and refresh to check its status.', ...(error instanceof Problem && error.code ? { code: error.code } : {}) }, error instanceof Problem ? error.status : 503);
             }
         } };
 }

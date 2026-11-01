@@ -8,12 +8,14 @@ export interface MountOptions {
 }
 interface Draft { id: string; template: string; input: Record<string, string>; sent?: boolean }
 interface Reply { id: string; message: string; sent?: boolean }
-interface Summary { id: string; title: string; phase: string; preview?: string; created?: number }
+interface RequestStatus {state:string;workflow:string[];managed?:boolean}
+interface Summary { id: string; title: string; phase: string; preview?: string; created?: number; status?:RequestStatus|null;checkedAt?:number }
 interface Thread extends Summary {
   input: Record<string, string>; created: number;
   replies: { id: string; message: string; phase: string; created?: number }[];
   responses: { message: string; created?: number }[];
-  status: { state: string; workflow: string[] } | null;
+  checkedAt?: number;
+  status: RequestStatus | null;
 }
 /** Mount only in the supplied root. No API access or write occurs before open(). */
 export function mountFeedback(root: HTMLElement, options: MountOptions) {
@@ -33,7 +35,7 @@ function createFeedback(root: HTMLElement, options: MountOptions, withLauncher: 
   if (!customElements.get(tag)) customElements.define(tag, class extends HTMLElement { constructor() { super(); this.attachShadow({ mode: 'open' }); } });
   const host = document.createElement(tag), shadow = host.shadowRoot!;
   root.append(host);
-  shadow.innerHTML = `<link rel="stylesheet"><dialog aria-labelledby="feedback-heading"><header><div><h2 id="feedback-heading">Feedback</h2></div><div class="header-actions"><button type="button" class="signout" data-logout hidden>Sign out</button><button type="button" data-close autofocus aria-label="Close feedback">✕</button></div></header><nav hidden aria-label="Feedback views"><div class="view-switch"><button type="button" data-compose>New request</button><button type="button" data-history>My requests</button></div><button type="button" class="refresh" data-refresh aria-label="Refresh" title="Check for new replies and status updates"></button></nav><p class="notice" role="status" aria-live="polite"></p><section class="signin" hidden aria-labelledby="signin-title">${renderMark({decorative:true})}<h3 id="signin-title">Good ideas start here.</h3><p data-signin-copy>Sign in to share an idea, report a problem, or pick up a conversation.</p><button class="signin-action" type="button" data-login hidden>Continue with Google</button><button type="button" data-retry hidden>Try again</button><p class="signin-note">A little feedback can set things in motion.</p></section><main></main></dialog>`;
+  shadow.innerHTML = `<link rel="stylesheet"><dialog aria-labelledby="feedback-heading"><header><div><h2 id="feedback-heading">Feedback</h2></div><div class="header-actions"><button type="button" class="refresh" data-refresh hidden aria-label="Refresh" title="Check for new replies and status updates"></button><button type="button" class="signout" data-logout hidden>Sign out</button><button type="button" data-close autofocus aria-label="Close feedback">✕</button></div></header><nav hidden aria-label="Feedback navigation"><button type="button" class="back" data-history aria-label="Back to My requests">← My requests</button></nav><p class="notice" role="status" aria-live="polite"></p><section class="signin" hidden aria-labelledby="signin-title">${renderMark({decorative:true})}<h3 id="signin-title">Good ideas start here.</h3><p data-signin-copy>Sign in to share an idea, report a problem, or pick up a conversation.</p><button class="signin-action" type="button" data-login hidden>Continue with Google</button><button type="button" data-retry hidden>Try again</button><p class="signin-note">A little feedback can set things in motion.</p></section><main></main></dialog>`;
   shadow.querySelector('link')!.href = stylesheet.href;
   if(stylesheet.origin!==location.origin||hostedStyle)shadow.querySelector('link')!.crossOrigin='anonymous';
   const dialog = shadow.querySelector('dialog')!, main = shadow.querySelector('main')!, status = shadow.querySelector('.notice')!;
@@ -62,14 +64,28 @@ function createFeedback(root: HTMLElement, options: MountOptions, withLauncher: 
   }
   shadow.querySelector('[data-refresh]')!.append(icon('refresh'));
   let screenRevision = 0;
+  let prefetchTimer:ReturnType<typeof setTimeout>|undefined,prefetching:object|undefined;
+  const prefetched=new Set<string>();
+  const cancelPrefetch=()=>{clearTimeout(prefetchTimer);prefetchTimer=undefined;};
   function setView(next: 'new' | 'requests' | 'thread') {
+    cancelPrefetch();main.removeAttribute('aria-busy');
     screenRevision++; if (next !== view) main.scrollTop = 0; view = next; main.dataset.view = next; notice('');
-    heading.textContent = next === 'new' ? 'Share feedback' : next === 'requests' ? 'Your requests' : 'Conversation';
+    heading.textContent = next === 'new' ? 'Share feedback' : next === 'requests' ? 'My requests' : 'Conversation';
     shadow.querySelector<HTMLButtonElement>('[data-refresh]')!.hidden = next === 'new';
-    shadow.querySelector('[data-compose]')!.setAttribute('aria-pressed',String(next === 'new'));
-    shadow.querySelector('[data-history]')!.setAttribute('aria-pressed',String(next !== 'new'));
+    navigation.hidden = next === 'requests';
   }
   const phaseLabel = (phase: string) => phase === 'sent' ? 'Submitted' : phase === 'rejected' ? 'Not submitted' : 'Awaiting confirmation';
+  function progress(item:Summary){
+    if(item.phase!=='sent')return{label:phaseLabel(item.phase),key:item.phase==='rejected'?'rejected':'pending'};
+    if(item.status===undefined)return{label:'Submitted',key:'submitted'}; // Older receipt-only backend.
+    if(!item.status)return{label:'Status unavailable',key:'unavailable'};
+    const {state,workflow,managed}=item.status;
+    const states:Record<string,string>={queued:'Planned',active:'In progress',waiting:'Waiting',deferred:'Postponed'};
+    if(!['open','closed'].includes(state)||!Array.isArray(workflow)||workflow.length>1||workflow.some(v=>typeof v!=='string'||!v.startsWith('yolo:state:')||!Object.hasOwn(states,v.slice(11)))||state==='closed'&&workflow.length||managed===true&&state==='open'&&workflow.length!==1||managed===false&&workflow.length)return{label:'Status needs reconciliation',key:'unavailable'};
+    if(state==='closed')return{label:'Closed',key:'closed'};
+    const key=workflow[0]?.slice(11);return key?{label:states[key]!,key}:{label:'Received',key:'received'};
+  }
+
   function stamp(created?: number) {
     if (!created || !Number.isFinite(new Date(created).getTime())) return document.createTextNode('');
     const t = document.createElement('time'); t.dateTime = new Date(created).toISOString();
@@ -111,7 +127,8 @@ function createFeedback(root: HTMLElement, options: MountOptions, withLauncher: 
   function save(name: string, value: unknown) { try { sessionStorage.setItem(storageKey(name), JSON.stringify(value)); } catch { notice('Draft storage is unavailable. Keep this page open until sending is confirmed.'); } }
   function showEntry(code?: string) {
     entry.hidden = false; navigation.hidden = heading.hidden = true;
-    main.replaceChildren(); notice('');
+    shadow.querySelector<HTMLButtonElement>('[data-refresh]')!.hidden = true;
+    main.replaceChildren();main.removeAttribute('aria-busy'); notice('');
     const denied = code === 'feedback_forbidden', unavailable = code === 'unavailable';
     logout.hidden = !endSession || !denied;
     entryTitle.textContent = unavailable ? 'A brief pause.' : denied ? 'Try another account.' : 'Good ideas start here.';
@@ -119,14 +136,14 @@ function createFeedback(root: HTMLElement, options: MountOptions, withLauncher: 
     login.hidden = !startLogin || unavailable; retry.hidden = !unavailable;
     login.textContent = denied ? 'Use another account' : options.onLogin ? 'Sign in' : 'Continue with Google';
   }
-  async function api(path: string, body?: unknown) {
+  async function api(path: string, body?: unknown, force=false) {
     const started = epoch;
     const response = await fetch(apiBase.href.replace(/\/$/, '') + '/' + path, { credentials: 'same-origin', redirect: 'error', signal: abort.signal,
-      headers: { ...(session ? { 'X-Feedback-Owner': session.owner, 'X-Feedback-Visibility': session.visibility } : {}), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
+      headers: { ...(body===undefined?{'X-Yolo-Read-Cache':'v1'}:{}), ...(force&&body===undefined?{'Cache-Control':'no-cache'}:{}), ...(session ? { 'X-Feedback-Owner': session.owner, 'X-Feedback-Visibility': session.visibility } : {}), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
       ...(body === undefined ? {} : { method: 'POST', body: JSON.stringify(body) }) });
     const value = await response.json();
     if (!response.ok) {
-      if (started === epoch && !destroyed && dialog.open && ([401, 403].includes(response.status) || (response.status === 409 && value.code !== 'visibility_changed'))) { main.replaceChildren(); for (const key of Object.keys(drafts)) delete drafts[key]; session = undefined; selected = undefined; view = 'new'; if (!destroyed && dialog.open) showEntry(value.code); }
+      if (started === epoch && !destroyed && dialog.open && ([401, 403].includes(response.status) || (response.status === 409 && value.code !== 'visibility_changed'))) { epoch++;screenRevision++;abort.abort();abort=new AbortController();main.replaceChildren();cancelPrefetch();prefetched.clear(); for (const key of Object.keys(drafts)) delete drafts[key]; session = undefined; selected = undefined; view = 'new'; if (!destroyed && dialog.open) showEntry(value.code); }
       throw Object.assign(new Error(value.error ?? 'Feedback unavailable. Keep your saved draft.'), {code: value.code, status: response.status});
     }
     return value;
@@ -173,35 +190,62 @@ function createFeedback(root: HTMLElement, options: MountOptions, withLauncher: 
         const result = await api('requests', { id: draft.id, template: draft.template, input: draft.input });
         if (started !== epoch) return;
         if (result.phase === 'sent') { delete drafts[draft.template]; save('draft:' + draft.template, fresh(draft.template)); }
-        await thread(result.id);
+        await thread(result.id,true);
       } catch (error) { if (started !== epoch) return;
         if ((error as {code?:string}).code === 'visibility_changed') { draft.sent = false; save('draft:' + draft.template, draft); await reviewVisibility(); }
         else notice((error as Error).message + ' Draft retained; refresh to reconcile before sending another request.'); }
     });
   }
-  async function history() {
-    const started = epoch, screen = ++screenRevision, data = await api('requests'); if (started !== epoch || screen !== screenRevision) return;
-    setView('requests'); selected = undefined; main.replaceChildren();
-    const intro=node('p','Follow the conversation, all in one place.'); intro.className='view-intro'; main.append(intro);
+  function loading(text:string,preview?:Summary){
+    main.replaceChildren();main.setAttribute('aria-busy','true');
+    if(preview)main.append(node('h3',preview.preview||preview.title));
+    const label=node('p',text);label.className='view-intro';main.append(label);
+  }
+  function prefetch(id:string){
+    cancelPrefetch();
+    if(!Array.isArray(session?.capabilities)||!session.capabilities.includes('threads:cache')||prefetched.size>=2||prefetched.has(id)||prefetching)return;
+    const started=epoch,screen=screenRevision;
+    prefetchTimer=setTimeout(()=>{
+      if(started!==epoch||screen!==screenRevision||view!=='requests'||!session||!dialog.open)return;
+      prefetched.add(id);const ticket={};prefetching=ticket;
+      void api('requests/'+id).catch(()=>{}).finally(()=>{if(prefetching===ticket)prefetching=undefined;});
+    },180);
+  }
+  function startConversation() {
+    const start=button('Start conversation',()=>{compose();main.querySelector('textarea')?.focus();});
+    start.className='primary-action start-conversation';start.dataset.start='';start.append(icon('arrow'));return start;
+  }
+  async function history(force=false) {
+    setView('requests');selected=undefined;loading('Loading requests…');main.prepend(startConversation());
+    const started=epoch,screen=screenRevision;let data;
+    try{data=await api('requests',undefined,force);}catch(error){if(started===epoch&&screen===screenRevision&&session){main.removeAttribute('aria-busy');main.replaceChildren(startConversation(),button('Try again',()=>history(true)));throw error;}return;}
+    if(started!==epoch||screen!==screenRevision)return;
+    main.removeAttribute('aria-busy');main.replaceChildren();
+    main.append(startConversation());
     if (!data.requests.length) {
-      const empty=node('section'); empty.className='empty'; empty.append(icon('feedback'),node('h3','Start a conversation.'),node('p','Your feedback will appear here.'),button('Share your first request',compose)); main.append(empty);
+      const empty=node('section'); empty.className='empty'; empty.append(icon('feedback'),node('h3','No requests yet.'),node('p','Your feedback will appear here.')); main.append(empty);
     }
     for (const item of data.requests as Summary[]) {
-      const b=button('',()=>thread(item.id)); b.className='request';
-      const meta=node('span'); meta.className='request-meta'; const phase=node('span',phaseLabel(item.phase)); phase.className='phase'; phase.dataset.phase=item.phase;
+      const b=button('',()=>thread(item.id,false,item)); b.className='request';
+      b.addEventListener('pointerenter',()=>prefetch(item.id));b.addEventListener('focus',()=>prefetch(item.id));
+      b.addEventListener('pointerleave',cancelPrefetch);b.addEventListener('blur',cancelPrefetch);
+      const meta=node('span'); meta.className='request-meta'; const state=progress(item),phase=node('span',state.label); phase.className='phase'; phase.dataset.phase=item.phase;phase.dataset.status=state.key;
       meta.append(node('span',item.title),phase);
       const title=node('strong',item.preview || item.title); title.className='request-title';
       const bottom=node('span'); bottom.className='request-bottom'; bottom.append(stamp(item.created),icon('arrow'));
       b.append(meta,title,bottom);main.append(b);
     }
   }
-  async function thread(id: string) {
+  async function thread(id: string,force=false,preview?:Summary) {
     if (!UUID.test(id)) throw new Error('Invalid request reference.');
-    const started = epoch, screen = ++screenRevision, data = await api('requests/' + id) as Thread; if (started !== epoch || screen !== screenRevision) return;
-    selected = id; setView('thread');
-    const back=button('All requests',history);back.className='back'; main.replaceChildren(back,node('h3', Object.values(data.input)[0]?.slice(0, 100) || data.title));
-    const progress=node('div');progress.className='progress';const states:Record<string,string>={queued:'Planned',active:'In progress',waiting:'Waiting',deferred:'Postponed'};const workflow=data.status?.workflow.find(s=>s.startsWith('yolo:state:'))?.slice(11);const recorded=data.status?.state==='closed'?'Closed':workflow&&states[workflow]||'Request open';const badge=node('span',data.status ? recorded : phaseLabel(data.phase));badge.className='phase';badge.dataset.phase=data.phase;
-    const explanation=node('p',data.status ? 'Recorded status · delivery is confirmed separately.' : 'Refresh checks the saved submission without sending it again.');progress.append(badge,explanation);main.append(progress);
+    selected=id;setView('thread');loading('Loading conversation…',preview);
+    const started=epoch,screen=screenRevision;let data:Thread;
+    try{data=await api('requests/'+id,undefined,force);}catch(error){if(started===epoch&&screen===screenRevision&&session){main.removeAttribute('aria-busy');main.replaceChildren(button('Try again',()=>thread(id,true,preview)));throw error;}return;}
+    if(started!==epoch||screen!==screenRevision)return;
+    main.removeAttribute('aria-busy');
+    main.replaceChildren(node('h3', Object.values(data.input)[0]?.slice(0, 100) || data.title));
+    const state=progress(data),progressBox=node('div');progressBox.className='progress';const badge=node('span',state.label);badge.className='phase';badge.dataset.phase=data.phase;badge.dataset.status=state.key;
+    const explanation=node('p',data.status ? 'Recorded status · delivery is confirmed separately.' : 'Refresh checks the saved submission without sending it again.');progressBox.append(badge,explanation);if(data.checkedAt){const checked=node('p');checked.className='checked';checked.append(document.createTextNode('Checked '),stamp(data.checkedAt));progressBox.append(checked);}main.append(progressBox);
     const messages = [
       { text: Object.values(data.input).join('\n\n'), label: 'Your request', created: data.created, own: true },
       ...data.replies.map(r => ({ text: r.message, label: r.phase === 'sent' ? 'You' : 'You · ' + phaseLabel(r.phase), created: r.created, own: true })),
@@ -225,41 +269,40 @@ function createFeedback(root: HTMLElement, options: MountOptions, withLauncher: 
     if (posted?.phase === 'rejected') main.append(button('Review rejected reply as a new operation', () => { reply = { id: crypto.randomUUID(), message: reply.message }; save('reply:' + id, reply); return thread(id); }));
     input.addEventListener('input', () => { reply.message = input.value; save('reply:' + id, reply); });
     form.addEventListener('submit', async event => { event.preventDefault(); if (reply.sent) return; reply.sent = true; save('reply:' + id, reply); input.disabled = send.disabled = true;
-      try { await api('requests/' + id + '/replies', { id: reply.id, message: reply.message }); if (started === epoch) await thread(id); }
+      try { await api('requests/' + id + '/replies', { id: reply.id, message: reply.message }); if (started === epoch) await thread(id,true); }
       catch (error) { if (started !== epoch) return;
         if ((error as {code?:string}).code === 'visibility_changed') { reply.sent = false; save('reply:' + id, reply); await reviewVisibility(); }
         else notice((error as Error).message + ' Reply retained; refresh to reconcile.'); }
     });
   }
-  async function refresh() {
-    const started = epoch, before = session?.owner, current = await api('session');
+  async function refresh(force=false) {
+    const started = epoch, before = session?.owner, current = await api('session',undefined,force);
     if (started !== epoch || destroyed || !dialog.open) return;
     if (current.api !== API || !['public','private'].includes(current.visibility) || !Array.isArray(current.forms) || !current.forms.length) throw new Error('Incompatible feedback API. Drafts retained.');
-    if (before && before !== current.owner) { for (const key of Object.keys(drafts)) delete drafts[key]; selected = undefined; formId = undefined; view = 'new'; main.replaceChildren(); }
+    if (before && before !== current.owner) { for (const key of Object.keys(drafts)) delete drafts[key]; selected = undefined; formId = undefined; view = 'requests'; prefetched.clear();cancelPrefetch();main.replaceChildren(); }
     session = current as Session; logout.hidden = !endSession; entry.hidden = true; navigation.hidden = heading.hidden = false; login.hidden = true; notice('');
-    if (view === 'thread' && selected) await thread(selected); else if (view === 'requests') await history(); else compose();
+    if (view === 'thread' && selected) await thread(selected,force); else if (view === 'requests') await history(force); else compose();
   }
   async function reviewVisibility() {
     try { await refresh(); notice('Repository visibility changed. Review the updated disclosure, then send explicitly.'); }
     catch { notice('Repository visibility changed. Your draft is retained; reopen feedback to review the current disclosure before sending.'); }
   }
-  const safeRefresh = () => {
+  const safeRefresh = (force=false) => {
     const started = epoch;
-    return refresh().catch(error => {
+    return refresh(force).catch(error => {
       if (abort.signal.aborted || destroyed || started !== epoch || !dialog.open) return;
       if (!session) showEntry([401,403,409].includes(error.status) ? error.code : 'unavailable');
       else notice(error.message);
     });
   };
   retry.addEventListener('click', () => { entry.hidden = true; notice('One moment…'); void safeRefresh(); });
-  shadow.querySelector('[data-compose]')!.addEventListener('click', () => { if (session) compose(); });
-  shadow.querySelector('[data-history]')!.addEventListener('click', () => { if (session) history().catch(error => notice(error.message)); });
-  shadow.querySelector('[data-refresh]')!.addEventListener('click', safeRefresh);
+  shadow.querySelector('[data-history]')!.addEventListener('click', () => { if (session) history().then(()=>{if(session&&view==='requests'){heading.tabIndex=-1;heading.focus();}}).catch(error => notice(error.message)); });
+  shadow.querySelector('[data-refresh]')!.addEventListener('click', ()=>void safeRefresh(true));
   shadow.querySelector('[data-close]')!.addEventListener('click', () => dialog.close());
   login.addEventListener('click', () => startLogin?.());
   logout.addEventListener('click', async () => {
     if (destroyed || signingOut || !endSession) return;
-    signingOut = true; epoch++; abort.abort(); abort = new AbortController();
+    signingOut = true;cancelPrefetch();prefetched.clear(); epoch++; abort.abort(); abort = new AbortController();
     // Keep saved owner-scoped drafts/intents for reconciliation after re-login.
     session = undefined; selected = formId = undefined; view = 'new';
     for (const key of Object.keys(drafts)) delete drafts[key];
@@ -274,7 +317,7 @@ function createFeedback(root: HTMLElement, options: MountOptions, withLauncher: 
       signingOut = false; logout.disabled = false; logout.textContent = 'Sign out';
     }
   });
-  dialog.addEventListener('close', () => { epoch++; abort.abort(); changeOpen(false); if (previousFocus instanceof HTMLElement && previousFocus.isConnected && previousFocus!==document.body && (!launcher || previousFocus.tabIndex>=0 || previousFocus.hasAttribute('tabindex'))) previousFocus.focus(); else launcher?.focus(); });
+  dialog.addEventListener('close', () => {cancelPrefetch();prefetched.clear(); epoch++; abort.abort(); changeOpen(false); if (previousFocus instanceof HTMLElement && previousFocus.isConnected && previousFocus!==document.body && (!launcher || previousFocus.tabIndex>=0 || previousFocus.hasAttribute('tabindex'))) previousFocus.focus(); else launcher?.focus(); });
   const containKeys = (event: Event) => { if (withLauncher && dialog.open) event.stopPropagation(); };
   for (const type of ['keydown', 'keypress', 'keyup']) shadow.addEventListener(type, containKeys);
   const control = {
@@ -284,15 +327,15 @@ function createFeedback(root: HTMLElement, options: MountOptions, withLauncher: 
         if (typeof next.context.page !== 'string' || next.context.page.length > 160) throw new Error('Use a short nonsecret page label for feedback context.');
         if (contextPage !== next.context.page) { contextPage = next.context.page; for (const key of Object.keys(drafts)) delete drafts[key]; }
       }
-      epoch++; abort.abort(); abort = new AbortController();
-      view = next.view ?? 'new'; selected = next.requestId; formId = next.template;
+      cancelPrefetch();prefetched.clear();epoch++; abort.abort(); abort = new AbortController();
+      view = next.view ?? (next.template ? 'new' : 'requests'); selected = next.requestId; formId = next.template;
       if (!dialog.open) { previousFocus = shadow.activeElement ?? document.activeElement; dialog.showModal(); changeOpen(true); }
       main.replaceChildren(); entry.hidden = true; navigation.hidden = heading.hidden = true; notice(signingOut ? 'Signing out…' : 'One moment…'); if (!signingOut) void safeRefresh();
     },
     close() { if (dialog.open) dialog.close(); },
     destroy() {
       if (destroyed) return;
-      destroyed = true; epoch++; abort.abort(); motion?.destroy(); entryMotion.destroy();
+      destroyed = true;cancelPrefetch();prefetched.clear(); epoch++; abort.abort(); motion?.destroy(); entryMotion.destroy();
       for (const type of ['keydown', 'keypress', 'keyup']) shadow.removeEventListener(type, containKeys);
       if (dialog.open) dialog.close();
       host.remove();

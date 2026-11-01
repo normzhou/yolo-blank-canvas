@@ -58,6 +58,12 @@ Follow **Assisted distribution → Release selection**; no release means stop, n
 
 Read the active old rules/grant and reconcile work/writers first; then read **Onboarding → Repeat init and upgrade** in the requested staged bundle. Resolve publication once and verify provenance. Compare rules/tooling and preserve accepted target purpose, instructions, original baseline, checkpoints, findings and history. Propose one issue/PR or an isolated dry-run diff; replace bundle/bindings, snapshot and mapping as one reviewed change, preserving local customizations. Include minimal implementation/tooling repairs required for conformity within the current grant; unrelated improvements or publisher-source changes are separate work. Installer conflicts require explicit reconciliation, never a blind overwrite.
 
+When the app uses shipped brand/feedback/identity components, include its actual
+consumers in the [integration upgrade review](references/hosted-feedback.md#upgrade-existing-integrations).
+Distinguish bundle, app mount, served UI and server versions; record/apply the
+appropriate migration within target authority instead of treating installation
+as app delivery.
+
 Preserve feedback choice/consent; a new bundle cannot enable reporting. Compare permissions and restrictions per affected action, including contrary evidence. Follow the protocol's finding classification: AI chooses authorized routine repairs, humans decide protected changes, evidence gaps require investigation. Keep only owner decisions in `authority.pending`. Prepare complete relevant protected corrections before asking for final-revision approval; continue independent authorized work while affected actions wait. Apply only within old authority. A pending candidate record is proposed/unverified; preserve old status as history. Notify significant changes and record actual effective revision. Recheck affected qualification; old loading evidence cannot attest a new pin. Reload the harness for fresh continuation. New skill files alone do not change an active pin. Older installations bootstrap selection from the current agent guide, then use the selected version and read the staged skill directly.
 
 ## Structural validation
@@ -101,7 +107,11 @@ For a maintainer-requested app-hosting route, read [optional hosting](references
 
 For requested shared-login/app-permission integration, read [the client identity preview](references/client-identity.md). It ships a complete local adapter/example/test package; production issuer activation and migration remain unavailable. Preserve existing Access/gateway/origin protection and client-owned private policy. Use this route before changing a deployed authentication flow; local synthetic success is not live login or a namespace grant.
 
-When a client wants the YOLO mark, use the [optional local brand assets](references/brand-assets.md). The bundle includes static/animated SVGs and the original interactive motion helper; copy only requested assets into the app's own asset pipeline.
+For webapps wanting compatible automatic logo/feedback updates, use the
+[hosted v1 profile](references/hosted-feedback.md) with its versioned local adapter
+and fallback under the app's accepted delivery choice. Standalone mark motion
+and the complete feedback launcher are separate mounts. Use the
+[local brand assets](references/brand-assets.md) for bundled/pinned or custom controls.
 
 Use **Agent activities** in the active snapshot (the [bundle](references/protocol.md#activities-agent-activities) for new init). Report missing activity support rather than silently upgrading.
 

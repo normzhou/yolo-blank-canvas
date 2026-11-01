@@ -1,0 +1,155 @@
+{
+  "schema_version": 2,
+  "target": "normzhou/yolo-blank-canvas",
+  "kind": "upgrade-proposal",
+  "status": "proposal pending",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "revision": "34fb149f968ca403b311fa7648441ba5ab726ff2",
+  "default_revision": "34fb149f968ca403b311fa7648441ba5ab726ff2",
+  "from": "34fb149f968ca403b311fa7648441ba5ab726ff2",
+  "previous_report": ".yolo/reports/upgrade-alpha53-proposal.json",
+  "reviewed_commits": {
+    "checkpoint": "c021e2e335e09859bfde27c40cd6cfa412e4c880",
+    "head_at_proposal": "34fb149f968ca403b311fa7648441ba5ab726ff2",
+    "note": "This is a migration proposal from v0.1.0-alpha.53 to v0.1.0-alpha.57, not a checkpoint review. Existing checkpoint c021e2e and all historical reports are preserved byte-unchanged."
+  },
+  "working_changes": [
+    "M .agents/skills/yolo/** (v0.1.0-alpha.57 bundle, verbatim from publication 1c059ea019cb80d1c23769bd6a83a3ac81fb9192)",
+    "A .agents/skills/yolo/assets/feedback/{read-cache.mjs,dist/read-cache.mjs,dist/read-cache.d.mts}",
+    "M .yolo/protocol.md (byte-identical to the publisher's declared output identity 330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1)",
+    "M .yolo/adoption.json (candidate mapping; activation.state proposed, prior evidence preserved)",
+    "M .claude/settings.json, .gemini/settings.json, .cursor/hooks.json, .codex/hooks.json (updated by installer with new protocol SHA-256 330c1c66...)"
+  ],
+  "revision_note": "Requested by the maintainer in this authenticated harness session: '/yolo upgrade preview'. Resolved once with the pinned alpha.53 executable to v0.1.0-alpha.57 at publication 1c059ea019cb80d1c23769bd6a83a3ac81fb9192.",
+  "upgrade": {
+    "channel": "preview (explicitly requested)",
+    "old_release": "v0.1.0-alpha.53",
+    "old_publication": "544c15fa81a6043794251b338b3d211f0334fe09",
+    "old_source_inputs": "415a846799c66081f7056d41c9ce4c92a24aa1c3",
+    "new_release": "v0.1.0-alpha.57",
+    "new_publication": "1c059ea019cb80d1c23769bd6a83a3ac81fb9192",
+    "new_source_inputs": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "releases_crossed": [
+      "v0.1.0-alpha.54",
+      "v0.1.0-alpha.55",
+      "v0.1.0-alpha.56",
+      "v0.1.0-alpha.57"
+    ],
+    "publisher_dates": "alpha.54 2026-11-01 ... alpha.57 2026-11-01"
+  },
+  "rule_tooling_delta": [
+    "feedback read performance and bounded 20-second discussion projection cache (specs/request-interface.md, assets/feedback/read-cache.mjs — alpha.54): optional negotiated server cache and hover/focus prefetch (up to 2 items per panel open) while preserving per-open ownership/live-issue checks",
+    "My requests / Start conversation navigation and bounded owner-scoped status projection (specs/request-interface.md, assets/feedback/src/{browser.ts,managed-service.ts,work.ts} — alpha.55, alpha.56): single Start conversation action from My requests and unified native status badges across list and conversation",
+    "integration upgrade review for shipped brand/feedback/identity components (SKILL.md -> Upgrade & Request/work, specs/onboarding.md -> Repeat init and upgrade, references/hosted-feedback.md#upgrade-existing-integrations, references/brand-assets.md — alpha.57, resolving normzhou/yolo-dev#350): requires upgrade reviews to inspect actual app consumers of shipped components, distinguish installed bundle vs. app mount vs. served UI vs. server capability, lead with hosted v1 for accepted automatic browser updates, and record concrete migrations or intentional retention"
+  ],
+  "integration_upgrade_review": {
+    "installed_skill_bundle": "v0.1.0-alpha.57 (publication 1c059ea019cb80d1c23769bd6a83a3ac81fb9192, 175 files)",
+    "standalone_mark_consumer": {
+      "paths": [
+        "src/client/brand/yoloMark.ts",
+        "public/brand/yolo-mark.mjs",
+        "public/brand/yolo-mark-static.svg",
+        "public/brand/yolo-mark.svg",
+        "src/client/App.tsx",
+        "server/security.js"
+      ],
+      "status": "migrated-and-compatible",
+      "detail": "public/brand/{yolo-mark-static.svg,yolo-mark.svg,yolo-mark.mjs} are byte-identical to v0.1.0-alpha.57 .agents/skills/yolo/assets/brand/. src/client/brand/yoloMark.ts (mountHostedYoloMark, delivered in #282 / v0.26.1 and deployed to https://demo.yolo-dev.ai) mounts the local v0.1.0-alpha.57-compatible fallback immediately and dynamically imports https://yolo-dev.ai/feedback/v1.mjs (which now resolves to 0.1.0-alpha.57 on yolo-dev.ai) with https://yolo-dev.ai approved in script-src and style-src."
+    },
+    "requests_panel_consumer": {
+      "paths": [
+        "src/client/components/Panel.tsx",
+        "src/client/App.tsx",
+        "server/app.js"
+      ],
+      "status": "intentionally-retained-custom-panel",
+      "detail": "The standalone mark's onActivate callback opens yolo-blank-canvas's custom <Panel> overlay (which provides local gh privileged mode, app-context lines for Tetris and Puzzle Bobble, custom drafts, and the theme switcher). Per references/hosted-feedback.md#upgrade-existing-integrations, a logo-only hosted import does not adopt the shared feedback UI and custom app features/drafts/privileged controls are intentionally preserved."
+    },
+    "client_identity_preview": {
+      "paths": [
+        "hosting/yolo-identity/**"
+      ],
+      "status": "byte-identical",
+      "detail": "All files in hosting/yolo-identity/ match v0.1.0-alpha.57 .agents/skills/yolo/assets/client-identity/ byte-for-byte."
+    }
+  },
+  "governing_clause_index": [
+    {
+      "action": "pin selection and staging",
+      "old": "Assisted distribution -> Release selection with the pinned alpha.53 executable and its read-only resolver",
+      "candidate": "same contract in alpha.57; newest published non-draft release selected once for 'preview'",
+      "compatibility": "compatible - same operation; resolved once to v0.1.0-alpha.57 @ 1c059ea019cb80d1c23769bd6a83a3ac81fb9192"
+    },
+    {
+      "action": "installing bundle and native bindings",
+      "old": "install --bundle with alpha.53 manifest inventory and native hook/plugin bindings",
+      "candidate": "install --bundle with full 175-file alpha.57 manifest inventory and the same native hook/plugin bindings updated to protocol SHA-256 330c1c66...",
+      "compatibility": "compatible - existing publisher-owned hook files were backed up to /Users/normzhou/.gemini/tmp/yolo-blank-canvas/backup-alpha53 and refreshed by the alpha.57 installer; no local customizations or owner settings were overwritten"
+    },
+    {
+      "action": "integration upgrade review of shipped brand/feedback/identity components",
+      "old": "alpha.53 did not require an explicit integration upgrade review of app-owned consumers during /yolo upgrade",
+      "candidate": "alpha.57 (specs/onboarding.md -> Repeat init and upgrade, references/hosted-feedback.md#upgrade-existing-integrations) requires reviewing app-owned imports/copies/ports alongside the bundle migration",
+      "compatibility": "compatible - reviewed in integration_upgrade_review above; standalone mark already uses mountHostedYoloMark -> https://yolo-dev.ai/feedback/v1.mjs with byte-identical local fallback (#282 / v0.26.1), custom <Panel> is intentionally retained, and hosting/yolo-identity/ is byte-identical"
+    }
+  ],
+  "action_permission_comparison": [
+    "agent authority unchanged: no Charter, AUTHORITY.md, ARCHITECTURE.md, status-presentation.md, or AGENTS.md edit is proposed or required",
+    "feedback.automatic remains true and observation.enabled remains true with their existing accepted consent records preserved verbatim",
+    "no new execution permission or automatic form/bridge/managed-feedback/tracking activation is introduced by the candidate bundle"
+  ],
+  "release_applicability": {
+    "profile": "both snapshots declare semver-v1 + recoverable-v1",
+    "recorded_published_release": "verification.release.effective_commit stays 6efd602c...; published v0.26.1 record and legacy_tags stay intact",
+    "repair": "none needed"
+  },
+  "restoration_steps": [
+    "revert this proposal's commit(s); the target reads .yolo/protocol.md, .yolo/adoption.json, .agents/skills/yolo/**, and hook files from Git and rolls back to the alpha.53 pin cleanly",
+    "backup of the exact pre-upgrade alpha.53 skill and hook files is also retained at /Users/normzhou/.gemini/tmp/yolo-blank-canvas/backup-alpha53 during this session",
+    "prior reports and checkpoint c021e2e remain byte-unchanged"
+  ],
+  "finding_classification": [
+    {
+      "rule": "structure_validation",
+      "status": "compliant",
+      "evidence": [
+        "yolo-check . --structure (0.1.0-alpha.57 executable, SHA-256 verified against SHA256SUMS): structure.status pass, 13/13 findings compliant, 0 warnings"
+      ],
+      "detail": "Strict structural validation of the staged candidate files passed with the verified alpha.57 executable."
+    },
+    {
+      "rule": "replica_scan",
+      "status": "compliant",
+      "evidence": [
+        "replica_candidates: .agents/skills/yolo/assets/architecture.md, .agents/skills/yolo/assets/authority.md, .agents/skills/yolo/assets/charter.md",
+        ".yolo/governance/{CHARTER,AUTHORITY,ARCHITECTURE}.md are target-owned and not byte-copies"
+      ],
+      "detail": "Same three publisher starter template files inside .agents/skills/yolo/assets/ as in alpha.53; preserved as intentional non-governing template artifacts."
+    }
+  ],
+  "factual_review": {
+    "selection": "yolo-check resolve preview (alpha.53 executable) returned v0.1.0-alpha.57 at 1c059ea019cb80d1c23769bd6a83a3ac81fb9192; pinned for the entire migration",
+    "downloads": "yolo-check_darwin_arm64 + SHA256SUMS for v0.1.0-alpha.57 downloaded from normzhou/yolo-dev, verified OK against SHA256SUMS, and --version confirmed publication 1c059ea019cb80d1c23769bd6a83a3ac81fb9192 and version 0.1.0-alpha.57",
+    "staging": "all 175 manifest-covered files installed via alpha.57 install --bundle and verified against manifest a2b22ea7cd985e287f720982efca0d1e7a785ef90a84beb6841698ddede7e6ad",
+    "snapshot": ".yolo/protocol.md verified byte-identical to publisher output 330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1",
+    "post_install_validation": "alpha.57 yolo-check . --structure: structure.status pass, 13/13 findings compliant"
+  },
+  "semantic_review": {
+    "diff_reading": "All diffs across SKILL.md, protocol.md, provenance.json, brand-assets.md, client-feedback-library.md, and hosted-feedback.md reviewed. Only specs/request-interface.md, .yolo/governance/specs/onboarding.md, and VERSION changed among protocol inputs; SKILL.md now links references/hosted-feedback.md#upgrade-existing-integrations directly under Upgrade and Request/work (resolving normzhou/yolo-dev#350).",
+    "authority_unchanged": "No protected document edited; candidate uses activation.state: proposed until landed and observed on main.",
+    "preserved_history": "Baseline, upgrades[], checkpoint c021e2e, unresolved[], qualification, feedback, observation, and release history preserved verbatim."
+  },
+  "pending_decisions": [
+    "none in authority.pending — no protected edit or authority-control change is involved"
+  ],
+  "planned_operations": [
+    "open proposal PR for #284, run CI and structural validation, merge to main under standing L1 delivery authority, observe landed commit on main, and activate the v0.1.0-alpha.57 pin"
+  ],
+  "limits": [
+    "This proposal is not qualification: qualification stays unverified.",
+    "The migration only touches .agents/skills/yolo/**, .yolo/protocol.md, .yolo/adoption.json, .yolo/reports/upgrade-alpha57-proposal.json, and the installer hook/plugin files; app code, tests and verification results are unchanged."
+  ]
+}

@@ -1,3 +1,4 @@
+import { conditionalReads, timings } from '../read-cache.mjs';
 import { createTracking, TRACKING } from './tracking.js';
 import { createFeedbackBridge } from '../server.mjs';
 import { libraryAssets } from '../library-assets.mjs';
@@ -57,7 +58,7 @@ async function readJSON(request) {
 }
 /** One app-owned bridge. Mount worker routes inside the existing transport guard, before interactive login. */
 export function createWorkBridge(config) {
-    const legacy = createFeedbackBridge(config);
+    const legacy = createFeedbackBridge(config), reads = conditionalReads();
     const tracking = config.tracking ? createTracking(config.tracking, config.repository, config.responders, e => e instanceof Failure && [401, 403, 404, 422].includes(e.status)) : undefined;
     if (config.worker?.trackingPublish !== undefined && typeof config.worker.trackingPublish !== 'boolean')
         throw new Error('Invalid tracking grant.');
@@ -66,6 +67,7 @@ export function createWorkBridge(config) {
     if (config.worker && (!text(config.worker.subject, 128) || !Number.isSafeInteger(config.worker.expiresAt)))
         throw new Error('Invalid worker configuration.');
     return { async fetch(request, env, context = {}) {
+            const timing = timings('work'), respondJSON = (value, status = 200) => timing.finish(json(value, status));
             const url = new URL(request.url), path = url.pathname;
             if (assets[path] && request.method === 'GET') {
                 const asset = assets[path];
@@ -80,6 +82,7 @@ export function createWorkBridge(config) {
                 const binding = await env.APP_DB.prepare('SELECT repository FROM yolo_feedback_bridge_identity WHERE singleton=1').bind().first();
                 if (binding?.repository.toLowerCase() !== config.repository.toLowerCase())
                     fail(503, 'Bridge repository binding requires client-owner reconciliation.');
+                reads.scope(env.APP_DB, env.PUBLIC_ORIGIN, env.FEEDBACK_GITHUB_TOKEN);
                 const github = async (resource, init = {}) => {
                     const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 8000);
                     const abort = () => controller.abort();
@@ -87,15 +90,17 @@ export function createWorkBridge(config) {
                     try {
                         if (context.signal?.aborted)
                             controller.abort();
-                        const response = await fetch('https://api.github.com' + resource, { ...init, signal: controller.signal, redirect: 'manual', headers: {
-                                Authorization: `Bearer ${env.FEEDBACK_GITHUB_TOKEN}`, Accept: 'application/vnd.github+json',
-                                'X-GitHub-Api-Version': '2026-03-10', 'User-Agent': 'yolo-work-bridge', 'Content-Type': 'application/json'
-                            } });
-                        if (!response.ok) {
-                            const e = new Failure(response.status, 'Repository unavailable.');
-                            throw e;
+                        try {
+                            return await timing.time('github', () => reads.read(resource, (etag) => fetch('https://api.github.com' + resource, { ...init, signal: controller.signal, redirect: 'manual', headers: {
+                                    Authorization: `Bearer ${env.FEEDBACK_GITHUB_TOKEN}`, Accept: 'application/vnd.github+json',
+                                    'X-GitHub-Api-Version': '2026-03-10', 'User-Agent': 'yolo-work-bridge', 'Content-Type': 'application/json', ...(etag ? { 'If-None-Match': etag } : {})
+                                } }), (body) => decode(body, 1024 * 1024), init.method ?? 'GET'));
                         }
-                        return await decode(response.body, 1024 * 1024);
+                        catch (error) {
+                            if (typeof error.status === 'number')
+                                throw new Failure(error.status, 'Repository unavailable.');
+                            throw error;
+                        }
                     }
                     finally {
                         clearTimeout(timer);
@@ -106,7 +111,7 @@ export function createWorkBridge(config) {
                     const workRead = !!config.tracking && context.workRead !== false && !!context.principal && await config.tracking.authorizeWork(context.principal) === true;
                     if (path.startsWith(PREFIX + '/tracking/')) {
                         if (!tracking)
-                            return json({ error: 'Tracking is unavailable.' }, 404);
+                            return respondJSON({ error: 'Tracking is unavailable.' }, 404);
                         const check = new URL(url);
                         check.pathname = '/feedback/api/session';
                         const permission = await legacy.fetch(new Request(check, { headers: request.headers }), env, context);
@@ -135,7 +140,7 @@ export function createWorkBridge(config) {
                         const repo = await github(`/repos/${config.repository}`);
                         if (typeof repo.private !== 'boolean' || repo.full_name?.toLowerCase() !== config.repository.toLowerCase())
                             fail(503, 'Repository visibility is unverified.');
-                        return json({ ...await old.json(), api: API, libraryVersion: LIBRARY_VERSION, visibility: repo.private ? 'private' : 'public', ...(tracking ? { tracking: TRACKING } : {}), capabilities: ['requests:own', 'replies:own', ...(tracking ? ['tracking:own'] : []), ...(workRead ? ['work:read'] : [])] });
+                        return respondJSON({ ...await old.json(), api: API, libraryVersion: LIBRARY_VERSION, visibility: repo.private ? 'private' : 'public', ...(tracking ? { tracking: TRACKING } : {}), capabilities: ['requests:own', 'replies:own', ...(request.headers.get('X-Yolo-Read-Cache') === 'v1' ? ['threads:cache'] : []), ...(tracking ? ['tracking:own'] : []), ...(workRead ? ['work:read'] : [])] });
                     }
                     return old ?? null;
                 }
@@ -154,19 +159,21 @@ export function createWorkBridge(config) {
                     fail(403, 'Invalid worker origin.');
                 if (!env.APP_DB || !env.FEEDBACK_GITHUB_TOKEN)
                     fail(503, 'Bridge is not configured.');
+                if (request.method === 'POST')
+                    legacy.invalidate();
                 const actor = config.worker.subject, db = env.APP_DB;
                 const stmt = (sql, ...args) => db.prepare(sql).bind(...args);
                 const base = `/repos/${config.repository}/issues`;
                 if (path === PREFIX + '/worker/session' && request.method === 'GET')
-                    return json({ api: API, libraryVersion: LIBRARY_VERSION, repository: config.repository, actor, expiresAt: config.worker.expiresAt, ...(tracking ? { tracking: TRACKING } : {}), capabilities: ['requests:read', 'responses:write', ...(config.worker.trackingPublish ? ['tracking:publish'] : [])] });
+                    return respondJSON({ api: API, libraryVersion: LIBRARY_VERSION, repository: config.repository, actor, expiresAt: config.worker.expiresAt, ...(tracking ? { tracking: TRACKING } : {}), capabilities: ['requests:read', 'responses:write', ...(config.worker.trackingPublish ? ['tracking:publish'] : [])] });
                 if (path.startsWith(PREFIX + '/worker/tracking/')) {
                     if (!tracking || config.worker.trackingPublish !== true)
-                        return json({ error: 'Tracking publication is not granted.' }, 403);
+                        return respondJSON({ error: 'Tracking publication is not granted.' }, 403);
                     return tracking.handle(request, env, github, { actor, workRead: false });
                 }
                 if (path === PREFIX + '/worker/requests' && request.method === 'GET') {
                     const rows = (await stmt('SELECT id,title,phase,created,issue FROM yolo_feedback_requests ORDER BY created DESC LIMIT 100').all()).results;
-                    return json({ api: API, requests: rows });
+                    return respondJSON({ api: API, requests: rows });
                 }
                 const route = /^\/yolo\/api\/v1\/worker\/requests\/([^/]+)(\/responses(?:\/([^/]+))?)?$/.exec(path);
                 if (!route || !UUID.test(route[1]))
@@ -192,7 +199,7 @@ export function createWorkBridge(config) {
                     return items;
                 };
                 if (!route[2] && request.method === 'GET')
-                    return json({ api: API, id: row.id, issue: row.issue, input: JSON.parse(row.payload), state: issue.state, labels: issue.labels, comments: await comments() });
+                    return respondJSON({ api: API, id: row.id, issue: row.issue, input: JSON.parse(row.payload), state: issue.state, labels: issue.labels, comments: await comments() });
                 const reconcile = async (operation) => {
                     if (operation.phase === 'writing') {
                         const matches = (await comments()).filter(c => c.body === operation.payload && config.responders.includes(c.user?.login ?? '') && Number.isSafeInteger(c.id) && c.id > 0);
@@ -200,7 +207,7 @@ export function createWorkBridge(config) {
                             await stmt("UPDATE yolo_feedback_responses SET phase='sent',comment=? WHERE id=? AND actor=? AND phase='writing'", matches[0].id, operation.id, actor).run();
                     }
                     const saved = await stmt('SELECT * FROM yolo_feedback_responses WHERE id=? AND actor=?', operation.id, actor).first();
-                    return json({ api: API, id: saved.id, requestId: saved.request_id, phase: saved.phase, comment: saved.comment }, saved.phase === 'sent' ? 201 : 202);
+                    return respondJSON({ api: API, id: saved.id, requestId: saved.request_id, phase: saved.phase, comment: saved.comment }, saved.phase === 'sent' ? 201 : 202);
                 };
                 if (route[3] && request.method === 'GET') {
                     const operation = await stmt('SELECT * FROM yolo_feedback_responses WHERE id=? AND actor=? AND request_id=?', route[3], actor, row.id).first();
@@ -234,10 +241,13 @@ export function createWorkBridge(config) {
                             await stmt("UPDATE yolo_feedback_responses SET phase='rejected' WHERE id=? AND actor=? AND phase='writing'", data.id, actor).run();
                     }
                 }
+                legacy.invalidate();
                 return reconcile(operation);
             }
             catch (error) {
-                return json({ error: error instanceof Failure ? error.message : 'Bridge unavailable; retain operation IDs and reconcile before retrying.', ...(error instanceof Failure && error.code ? { code: error.code } : {}) }, error instanceof Failure ? error.status : 503);
+                legacy.invalidate();
+                reads.clear();
+                return respondJSON({ error: error instanceof Failure ? error.message : 'Bridge unavailable; retain operation IDs and reconcile before retrying.', ...(error instanceof Failure && error.code ? { code: error.code } : {}) }, error instanceof Failure ? error.status : 503);
             }
         } };
 }

@@ -24,7 +24,7 @@ function createFeedback(root, options, withLauncher) {
         });
     const host = document.createElement(tag), shadow = host.shadowRoot;
     root.append(host);
-    shadow.innerHTML = `<link rel="stylesheet"><dialog aria-labelledby="feedback-heading"><header><div><h2 id="feedback-heading">Feedback</h2></div><div class="header-actions"><button type="button" class="signout" data-logout hidden>Sign out</button><button type="button" data-close autofocus aria-label="Close feedback">✕</button></div></header><nav hidden aria-label="Feedback views"><div class="view-switch"><button type="button" data-compose>New request</button><button type="button" data-history>My requests</button></div><button type="button" class="refresh" data-refresh aria-label="Refresh" title="Check for new replies and status updates"></button></nav><p class="notice" role="status" aria-live="polite"></p><section class="signin" hidden aria-labelledby="signin-title">${renderMark({ decorative: true })}<h3 id="signin-title">Good ideas start here.</h3><p data-signin-copy>Sign in to share an idea, report a problem, or pick up a conversation.</p><button class="signin-action" type="button" data-login hidden>Continue with Google</button><button type="button" data-retry hidden>Try again</button><p class="signin-note">A little feedback can set things in motion.</p></section><main></main></dialog>`;
+    shadow.innerHTML = `<link rel="stylesheet"><dialog aria-labelledby="feedback-heading"><header><div><h2 id="feedback-heading">Feedback</h2></div><div class="header-actions"><button type="button" class="refresh" data-refresh hidden aria-label="Refresh" title="Check for new replies and status updates"></button><button type="button" class="signout" data-logout hidden>Sign out</button><button type="button" data-close autofocus aria-label="Close feedback">✕</button></div></header><nav hidden aria-label="Feedback navigation"><button type="button" class="back" data-history aria-label="Back to My requests">← My requests</button></nav><p class="notice" role="status" aria-live="polite"></p><section class="signin" hidden aria-labelledby="signin-title">${renderMark({ decorative: true })}<h3 id="signin-title">Good ideas start here.</h3><p data-signin-copy>Sign in to share an idea, report a problem, or pick up a conversation.</p><button class="signin-action" type="button" data-login hidden>Continue with Google</button><button type="button" data-retry hidden>Try again</button><p class="signin-note">A little feedback can set things in motion.</p></section><main></main></dialog>`;
     shadow.querySelector('link').href = stylesheet.href;
     if (stylesheet.origin !== location.origin || hostedStyle)
         shadow.querySelector('link').crossOrigin = 'anonymous';
@@ -55,19 +55,39 @@ function createFeedback(root, options, withLauncher) {
     }
     shadow.querySelector('[data-refresh]').append(icon('refresh'));
     let screenRevision = 0;
+    let prefetchTimer, prefetching;
+    const prefetched = new Set();
+    const cancelPrefetch = () => { clearTimeout(prefetchTimer); prefetchTimer = undefined; };
     function setView(next) {
+        cancelPrefetch();
+        main.removeAttribute('aria-busy');
         screenRevision++;
         if (next !== view)
             main.scrollTop = 0;
         view = next;
         main.dataset.view = next;
         notice('');
-        heading.textContent = next === 'new' ? 'Share feedback' : next === 'requests' ? 'Your requests' : 'Conversation';
+        heading.textContent = next === 'new' ? 'Share feedback' : next === 'requests' ? 'My requests' : 'Conversation';
         shadow.querySelector('[data-refresh]').hidden = next === 'new';
-        shadow.querySelector('[data-compose]').setAttribute('aria-pressed', String(next === 'new'));
-        shadow.querySelector('[data-history]').setAttribute('aria-pressed', String(next !== 'new'));
+        navigation.hidden = next === 'requests';
     }
     const phaseLabel = (phase) => phase === 'sent' ? 'Submitted' : phase === 'rejected' ? 'Not submitted' : 'Awaiting confirmation';
+    function progress(item) {
+        if (item.phase !== 'sent')
+            return { label: phaseLabel(item.phase), key: item.phase === 'rejected' ? 'rejected' : 'pending' };
+        if (item.status === undefined)
+            return { label: 'Submitted', key: 'submitted' }; // Older receipt-only backend.
+        if (!item.status)
+            return { label: 'Status unavailable', key: 'unavailable' };
+        const { state, workflow, managed } = item.status;
+        const states = { queued: 'Planned', active: 'In progress', waiting: 'Waiting', deferred: 'Postponed' };
+        if (!['open', 'closed'].includes(state) || !Array.isArray(workflow) || workflow.length > 1 || workflow.some(v => typeof v !== 'string' || !v.startsWith('yolo:state:') || !Object.hasOwn(states, v.slice(11))) || state === 'closed' && workflow.length || managed === true && state === 'open' && workflow.length !== 1 || managed === false && workflow.length)
+            return { label: 'Status needs reconciliation', key: 'unavailable' };
+        if (state === 'closed')
+            return { label: 'Closed', key: 'closed' };
+        const key = workflow[0]?.slice(11);
+        return key ? { label: states[key], key } : { label: 'Received', key: 'received' };
+    }
     function stamp(created) {
         if (!created || !Number.isFinite(new Date(created).getTime()))
             return document.createTextNode('');
@@ -124,7 +144,9 @@ function createFeedback(root, options, withLauncher) {
     function showEntry(code) {
         entry.hidden = false;
         navigation.hidden = heading.hidden = true;
+        shadow.querySelector('[data-refresh]').hidden = true;
         main.replaceChildren();
+        main.removeAttribute('aria-busy');
         notice('');
         const denied = code === 'feedback_forbidden', unavailable = code === 'unavailable';
         logout.hidden = !endSession || !denied;
@@ -134,15 +156,21 @@ function createFeedback(root, options, withLauncher) {
         retry.hidden = !unavailable;
         login.textContent = denied ? 'Use another account' : options.onLogin ? 'Sign in' : 'Continue with Google';
     }
-    async function api(path, body) {
+    async function api(path, body, force = false) {
         const started = epoch;
         const response = await fetch(apiBase.href.replace(/\/$/, '') + '/' + path, { credentials: 'same-origin', redirect: 'error', signal: abort.signal,
-            headers: { ...(session ? { 'X-Feedback-Owner': session.owner, 'X-Feedback-Visibility': session.visibility } : {}), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
+            headers: { ...(body === undefined ? { 'X-Yolo-Read-Cache': 'v1' } : {}), ...(force && body === undefined ? { 'Cache-Control': 'no-cache' } : {}), ...(session ? { 'X-Feedback-Owner': session.owner, 'X-Feedback-Visibility': session.visibility } : {}), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
             ...(body === undefined ? {} : { method: 'POST', body: JSON.stringify(body) }) });
         const value = await response.json();
         if (!response.ok) {
             if (started === epoch && !destroyed && dialog.open && ([401, 403].includes(response.status) || (response.status === 409 && value.code !== 'visibility_changed'))) {
+                epoch++;
+                screenRevision++;
+                abort.abort();
+                abort = new AbortController();
                 main.replaceChildren();
+                cancelPrefetch();
+                prefetched.clear();
                 for (const key of Object.keys(drafts))
                     delete drafts[key];
                 session = undefined;
@@ -248,7 +276,7 @@ function createFeedback(root, options, withLauncher) {
                     delete drafts[draft.template];
                     save('draft:' + draft.template, fresh(draft.template));
                 }
-                await thread(result.id);
+                await thread(result.id, true);
             }
             catch (error) {
                 if (started !== epoch)
@@ -263,30 +291,79 @@ function createFeedback(root, options, withLauncher) {
             }
         });
     }
-    async function history() {
-        const started = epoch, screen = ++screenRevision, data = await api('requests');
-        if (started !== epoch || screen !== screenRevision)
+    function loading(text, preview) {
+        main.replaceChildren();
+        main.setAttribute('aria-busy', 'true');
+        if (preview)
+            main.append(node('h3', preview.preview || preview.title));
+        const label = node('p', text);
+        label.className = 'view-intro';
+        main.append(label);
+    }
+    function prefetch(id) {
+        cancelPrefetch();
+        if (!Array.isArray(session?.capabilities) || !session.capabilities.includes('threads:cache') || prefetched.size >= 2 || prefetched.has(id) || prefetching)
             return;
+        const started = epoch, screen = screenRevision;
+        prefetchTimer = setTimeout(() => {
+            if (started !== epoch || screen !== screenRevision || view !== 'requests' || !session || !dialog.open)
+                return;
+            prefetched.add(id);
+            const ticket = {};
+            prefetching = ticket;
+            void api('requests/' + id).catch(() => { }).finally(() => { if (prefetching === ticket)
+                prefetching = undefined; });
+        }, 180);
+    }
+    function startConversation() {
+        const start = button('Start conversation', () => { compose(); main.querySelector('textarea')?.focus(); });
+        start.className = 'primary-action start-conversation';
+        start.dataset.start = '';
+        start.append(icon('arrow'));
+        return start;
+    }
+    async function history(force = false) {
         setView('requests');
         selected = undefined;
+        loading('Loading requests…');
+        main.prepend(startConversation());
+        const started = epoch, screen = screenRevision;
+        let data;
+        try {
+            data = await api('requests', undefined, force);
+        }
+        catch (error) {
+            if (started === epoch && screen === screenRevision && session) {
+                main.removeAttribute('aria-busy');
+                main.replaceChildren(startConversation(), button('Try again', () => history(true)));
+                throw error;
+            }
+            return;
+        }
+        if (started !== epoch || screen !== screenRevision)
+            return;
+        main.removeAttribute('aria-busy');
         main.replaceChildren();
-        const intro = node('p', 'Follow the conversation, all in one place.');
-        intro.className = 'view-intro';
-        main.append(intro);
+        main.append(startConversation());
         if (!data.requests.length) {
             const empty = node('section');
             empty.className = 'empty';
-            empty.append(icon('feedback'), node('h3', 'Start a conversation.'), node('p', 'Your feedback will appear here.'), button('Share your first request', compose));
+            empty.append(icon('feedback'), node('h3', 'No requests yet.'), node('p', 'Your feedback will appear here.'));
             main.append(empty);
         }
         for (const item of data.requests) {
-            const b = button('', () => thread(item.id));
+            const b = button('', () => thread(item.id, false, item));
             b.className = 'request';
+            b.addEventListener('pointerenter', () => prefetch(item.id));
+            b.addEventListener('focus', () => prefetch(item.id));
+            b.addEventListener('pointerleave', cancelPrefetch);
+            b.addEventListener('blur', cancelPrefetch);
             const meta = node('span');
             meta.className = 'request-meta';
-            const phase = node('span', phaseLabel(item.phase));
+            const state = progress(item), phase = node('span', state.label);
             phase.className = 'phase';
             phase.dataset.phase = item.phase;
+            phase.dataset.status = state.key;
             meta.append(node('span', item.title), phase);
             const title = node('strong', item.preview || item.title);
             title.className = 'request-title';
@@ -297,28 +374,44 @@ function createFeedback(root, options, withLauncher) {
             main.append(b);
         }
     }
-    async function thread(id) {
+    async function thread(id, force = false, preview) {
         if (!UUID.test(id))
             throw new Error('Invalid request reference.');
-        const started = epoch, screen = ++screenRevision, data = await api('requests/' + id);
-        if (started !== epoch || screen !== screenRevision)
-            return;
         selected = id;
         setView('thread');
-        const back = button('All requests', history);
-        back.className = 'back';
-        main.replaceChildren(back, node('h3', Object.values(data.input)[0]?.slice(0, 100) || data.title));
-        const progress = node('div');
-        progress.className = 'progress';
-        const states = { queued: 'Planned', active: 'In progress', waiting: 'Waiting', deferred: 'Postponed' };
-        const workflow = data.status?.workflow.find(s => s.startsWith('yolo:state:'))?.slice(11);
-        const recorded = data.status?.state === 'closed' ? 'Closed' : workflow && states[workflow] || 'Request open';
-        const badge = node('span', data.status ? recorded : phaseLabel(data.phase));
+        loading('Loading conversation…', preview);
+        const started = epoch, screen = screenRevision;
+        let data;
+        try {
+            data = await api('requests/' + id, undefined, force);
+        }
+        catch (error) {
+            if (started === epoch && screen === screenRevision && session) {
+                main.removeAttribute('aria-busy');
+                main.replaceChildren(button('Try again', () => thread(id, true, preview)));
+                throw error;
+            }
+            return;
+        }
+        if (started !== epoch || screen !== screenRevision)
+            return;
+        main.removeAttribute('aria-busy');
+        main.replaceChildren(node('h3', Object.values(data.input)[0]?.slice(0, 100) || data.title));
+        const state = progress(data), progressBox = node('div');
+        progressBox.className = 'progress';
+        const badge = node('span', state.label);
         badge.className = 'phase';
         badge.dataset.phase = data.phase;
+        badge.dataset.status = state.key;
         const explanation = node('p', data.status ? 'Recorded status · delivery is confirmed separately.' : 'Refresh checks the saved submission without sending it again.');
-        progress.append(badge, explanation);
-        main.append(progress);
+        progressBox.append(badge, explanation);
+        if (data.checkedAt) {
+            const checked = node('p');
+            checked.className = 'checked';
+            checked.append(document.createTextNode('Checked '), stamp(data.checkedAt));
+            progressBox.append(checked);
+        }
+        main.append(progressBox);
         const messages = [
             { text: Object.values(data.input).join('\n\n'), label: 'Your request', created: data.created, own: true },
             ...data.replies.map(r => ({ text: r.message, label: r.phase === 'sent' ? 'You' : 'You · ' + phaseLabel(r.phase), created: r.created, own: true })),
@@ -385,7 +478,7 @@ function createFeedback(root, options, withLauncher) {
             try {
                 await api('requests/' + id + '/replies', { id: reply.id, message: reply.message });
                 if (started === epoch)
-                    await thread(id);
+                    await thread(id, true);
             }
             catch (error) {
                 if (started !== epoch)
@@ -400,8 +493,8 @@ function createFeedback(root, options, withLauncher) {
             }
         });
     }
-    async function refresh() {
-        const started = epoch, before = session?.owner, current = await api('session');
+    async function refresh(force = false) {
+        const started = epoch, before = session?.owner, current = await api('session', undefined, force);
         if (started !== epoch || destroyed || !dialog.open)
             return;
         if (current.api !== API || !['public', 'private'].includes(current.visibility) || !Array.isArray(current.forms) || !current.forms.length)
@@ -411,7 +504,9 @@ function createFeedback(root, options, withLauncher) {
                 delete drafts[key];
             selected = undefined;
             formId = undefined;
-            view = 'new';
+            view = 'requests';
+            prefetched.clear();
+            cancelPrefetch();
             main.replaceChildren();
         }
         session = current;
@@ -421,9 +516,9 @@ function createFeedback(root, options, withLauncher) {
         login.hidden = true;
         notice('');
         if (view === 'thread' && selected)
-            await thread(selected);
+            await thread(selected, force);
         else if (view === 'requests')
-            await history();
+            await history(force);
         else
             compose();
     }
@@ -436,9 +531,9 @@ function createFeedback(root, options, withLauncher) {
             notice('Repository visibility changed. Your draft is retained; reopen feedback to review the current disclosure before sending.');
         }
     }
-    const safeRefresh = () => {
+    const safeRefresh = (force = false) => {
         const started = epoch;
-        return refresh().catch(error => {
+        return refresh(force).catch(error => {
             if (abort.signal.aborted || destroyed || started !== epoch || !dialog.open)
                 return;
             if (!session)
@@ -448,17 +543,20 @@ function createFeedback(root, options, withLauncher) {
         });
     };
     retry.addEventListener('click', () => { entry.hidden = true; notice('One moment…'); void safeRefresh(); });
-    shadow.querySelector('[data-compose]').addEventListener('click', () => { if (session)
-        compose(); });
     shadow.querySelector('[data-history]').addEventListener('click', () => { if (session)
-        history().catch(error => notice(error.message)); });
-    shadow.querySelector('[data-refresh]').addEventListener('click', safeRefresh);
+        history().then(() => { if (session && view === 'requests') {
+            heading.tabIndex = -1;
+            heading.focus();
+        } }).catch(error => notice(error.message)); });
+    shadow.querySelector('[data-refresh]').addEventListener('click', () => void safeRefresh(true));
     shadow.querySelector('[data-close]').addEventListener('click', () => dialog.close());
     login.addEventListener('click', () => startLogin?.());
     logout.addEventListener('click', async () => {
         if (destroyed || signingOut || !endSession)
             return;
         signingOut = true;
+        cancelPrefetch();
+        prefetched.clear();
         epoch++;
         abort.abort();
         abort = new AbortController();
@@ -491,7 +589,7 @@ function createFeedback(root, options, withLauncher) {
             logout.textContent = 'Sign out';
         }
     });
-    dialog.addEventListener('close', () => { epoch++; abort.abort(); changeOpen(false); if (previousFocus instanceof HTMLElement && previousFocus.isConnected && previousFocus !== document.body && (!launcher || previousFocus.tabIndex >= 0 || previousFocus.hasAttribute('tabindex')))
+    dialog.addEventListener('close', () => { cancelPrefetch(); prefetched.clear(); epoch++; abort.abort(); changeOpen(false); if (previousFocus instanceof HTMLElement && previousFocus.isConnected && previousFocus !== document.body && (!launcher || previousFocus.tabIndex >= 0 || previousFocus.hasAttribute('tabindex')))
         previousFocus.focus();
     else
         launcher?.focus(); });
@@ -512,10 +610,12 @@ function createFeedback(root, options, withLauncher) {
                         delete drafts[key];
                 }
             }
+            cancelPrefetch();
+            prefetched.clear();
             epoch++;
             abort.abort();
             abort = new AbortController();
-            view = next.view ?? 'new';
+            view = next.view ?? (next.template ? 'new' : 'requests');
             selected = next.requestId;
             formId = next.template;
             if (!dialog.open) {
@@ -536,6 +636,8 @@ function createFeedback(root, options, withLauncher) {
             if (destroyed)
                 return;
             destroyed = true;
+            cancelPrefetch();
+            prefetched.clear();
             epoch++;
             abort.abort();
             motion?.destroy();

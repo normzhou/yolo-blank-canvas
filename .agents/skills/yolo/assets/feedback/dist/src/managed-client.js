@@ -91,7 +91,7 @@ export function createManagedWorkBridge(config) {
                 if (signal.aborted)
                     controller.abort();
                 const body = request.method === 'POST' ? await boundedText(request.body, 65536) : null;
-                const response = await fetch(config.serviceOrigin + '/v1/apps/' + config.appId + '/feedback', { method: 'POST', redirect: 'manual', signal: controller.signal, headers: { Authorization: 'Bearer ' + env.MANAGED_FEEDBACK_TOKEN, 'Content-Type': 'application/json', 'X-Yolo-Managed-API': MANAGED_API, ...(workRead ? { 'X-Yolo-Shared-Work': 'true' } : {}) }, body: JSON.stringify({ method: request.method, path: url.pathname, principal, body, headers: { owner: request.headers.get('X-Feedback-Owner'), visibility: request.headers.get('X-Feedback-Visibility'), authorization: worker ? request.headers.get('Authorization') : null } }) });
+                const response = await fetch(config.serviceOrigin + '/v1/apps/' + config.appId + '/feedback', { method: 'POST', redirect: 'manual', signal: controller.signal, headers: { Authorization: 'Bearer ' + env.MANAGED_FEEDBACK_TOKEN, 'Content-Type': 'application/json', 'X-Yolo-Managed-API': MANAGED_API, ...(workRead ? { 'X-Yolo-Shared-Work': 'true' } : {}), ...(request.headers.get('X-Yolo-Read-Cache') === 'v1' ? { 'X-Yolo-Read-Cache': 'v1' } : {}), ...(request.headers.get('Cache-Control') === 'no-cache' ? { 'Cache-Control': 'no-cache' } : {}) }, body: JSON.stringify({ method: request.method, path: url.pathname, principal, body, headers: { owner: request.headers.get('X-Feedback-Owner'), visibility: request.headers.get('X-Feedback-Visibility'), authorization: worker ? request.headers.get('Authorization') : null } }) });
                 if (!worker && response.status === 401)
                     return managedJSON('The app feedback connection needs maintainer attention. Keep your draft.', 503);
                 if (response.status < 200 || response.status >= 600 || response.status >= 300 && response.status < 400)
@@ -99,7 +99,10 @@ export function createManagedWorkBridge(config) {
                 if (!response.headers.get('Content-Type')?.startsWith('application/json'))
                     return managedJSON('Managed feedback is unavailable', 503);
                 const result = await boundedText(response.body, 1024 * 1024);
-                return new Response(result, { status: response.status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
+                const measured = response.headers.get('Server-Timing');
+                const timing = measured && measured.length <= 1024 && /^[a-z_]+;dur=[0-9.]+(?:, [a-z_]+;dur=[0-9.]+)*$/.test(measured) ? measured : null;
+                const cache = response.headers.get('X-Yolo-Cache');
+                return new Response(result, { status: response.status, headers: { ...(timing ? { 'Server-Timing': timing } : {}), ...(['hit', 'miss', 'revalidated'].includes(cache ?? '') ? { 'X-Yolo-Cache': cache } : {}), 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
             }
             catch {
                 return managedJSON('Feedback is temporarily unavailable. Keep your draft and check its status before sending again.', 503);

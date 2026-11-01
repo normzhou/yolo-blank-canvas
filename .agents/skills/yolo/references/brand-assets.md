@@ -4,10 +4,12 @@ Use these assets when the client wants YOLO branding. They are part of this
 versioned skill; copying them does not require a hosting account, shared login
 or requests to yolo-dev.ai. Keep the client's design and deployment choices.
 
-For the complete in-app feedback button, use the [prewired feedback launcher](client-feedback-library.md#install-and-mount-the-same-implementation).
-It bundles this mark with the panel and existing-login handoff; no manual click
-wiring or separate brand copy is needed. The assets below remain useful for
-decorative marks, sign-in pages and custom controls.
+For webapps wanting compatible automatic motion/feedback updates, prefer the
+[hosted v1 profile](hosted-feedback.md) with its versioned local adapter/fallback
+under the app's accepted delivery choice. Use its complete feedback launcher for
+the shared panel/login handoff; importing mark helpers alone supplies motion.
+Keep the local files below for bundled/offline/pinned delivery, decorative marks,
+sign-in pages and custom controls. Neither route changes the app's permissions.
 
 Resolve `assets/brand/` relative to the skill folder you actually loaded. For a
 repo-local installation this is `.agents/skills/yolo/assets/brand/`.
@@ -75,6 +77,4 @@ and `idleCss`. Initialize the inline SVG with the same helper for full gestures;
 pass no activation callback on decorative sign-in/consent marks. Place the CSS in the app's existing approved stylesheet or
 nonce-scoped style. Decorative marks should remain hidden from assistive
 technology when nearby text already names them. Images use the original red;
-inline SVG can override `color`. No tracking or external resources are included.
-
-For explicit remote motion/UI updates, the optional [hosted v1 profile](hosted-feedback.md) also exports the same mark helpers. Local images/modules remain supported; installing a skill does not enable remote code.
+inline SVG can override `color`. These local files include no tracking or external resources.

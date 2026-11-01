@@ -18,8 +18,10 @@ ledger/history until an explicit reviewed migration.
 The client-owned writer path below remains available for local/self-hosted use.
 No automatic credential/pin/profile migration occurs.
 
-For accepted automatic browser-only updates, use the optional
-[hosted v1 profile](hosted-feedback.md); the local package stays the default.
+For webapps accepting compatible automatic browser-only updates, prefer the
+[hosted v1 profile](hosted-feedback.md) with its versioned local adapter/fallback.
+Use the local mount for bundled/offline/pinned delivery. Review existing copied
+or custom integrations through its [upgrade route](hosted-feedback.md#upgrade-existing-integrations).
 
 ## One complete client integration
 
@@ -214,6 +216,17 @@ The optional [tracking foundation](feedback-tracking.md) adds explicitly granted
 coverage/safe-work annotations and projection reads. Without that profile the mapped
 feedback read/respond scope stays unchanged. Existing Git/PR/CI/release tools remain
 available within their grants; no generic GitHub proxy is implied.
+
+## Responsive discussion reads
+
+The shared UI loads immediately; a bounded20-second server cache reuses filtered
+discussion while app permission, ownership and the live GitHub issue remain checked
+on every open. Library-managed negotiation preserves older clients' fresh reads;
+hover/focus prefetch is limited to2 items per panel open on capable transports.
+Refresh revalidates discussion, never a write; known writes, pending effects,
+credential/binding changes and errors bypass/invalidate stale projections.
+`checkedAt`, `Server-Timing` and `X-Yolo-Cache` expose freshness/timing without
+user content. No model calls, polling or persistent browser/shared-CDN thread cache.
 
 ## Prove the deployed L1 loop
 

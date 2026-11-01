@@ -1,3 +1,4 @@
+import {timings} from '../read-cache.mjs';
 import { createWorkBridge } from './work.js';
 import { digest, exact, text, type Database, type Principal } from './contract.js';
 import { MANAGED_API, managedRoute, managedJSON, httpsOrigin, boundedText } from './managed-client.js';
@@ -73,6 +74,7 @@ export function createManagedFeedbackService(registrations: ManagedRegistration[
     const hash=await digest(bearer[1]!);let different=0;for(let i=0;i<64;i++)different|=hash.charCodeAt(i)^c.tokenSha256.charCodeAt(i);
     if (different)return managedJSON('Client authentication required',401);
     if (request.headers.get('X-Yolo-Managed-API')!==MANAGED_API || !/^application\/json(?:;|$)/i.test(request.headers.get('Content-Type')??'')) return managedJSON('Unsupported managed API',415);
+    const timing=timings('service');
     try {
       const e: unknown=JSON.parse(await boundedText(request.body,98304));
       if (!exact(e,['method','path','headers','principal','body']) || typeof e.method!=='string' || typeof e.path!=='string' || !managedRoute(e.path,e.method) || !exact(e.headers,['owner','visibility','authorization']) || Object.keys(e.headers).length!==3 || Object.values(e.headers).some(v=>v!==null&&!text(v,1024)) || (e.method==='POST'?!text(e.body,65536):e.body!==null)) return managedJSON('Invalid feedback operation',400);
@@ -99,17 +101,19 @@ export function createManagedFeedbackService(registrations: ManagedRegistration[
       const usage=await db.prepare('INSERT INTO yolo_feedback_service_budget(day,used) VALUES(?,1) ON CONFLICT(day) DO UPDATE SET used=used+1 WHERE used<?').bind(day,c.maxRequestsPerDay).run();
       if (usage.meta.changes!==1)return managedJSON('Feedback service daily budget reached',429);
       await db.prepare('DELETE FROM yolo_feedback_service_budget WHERE day<?').bind(day-7).run();
-      const auth=await credential(c,env);
+      const auth=await timing.time('setup',()=>credential(c,env));
       let cached=bridges.get(c.appId);
       if(!cached||cached.bot!==auth.bot){cached={bot:auth.bot,bridge:createWorkBridge({repository:c.repository,responders:[...new Set([...c.responders,auth.bot])],authorize:()=>true,...(c.worker?{worker:{subject:c.worker.subject,expiresAt:c.worker.expiresAt,trackingPublish:c.worker.trackingPublish}}:{}),...(c.tracking===true?{tracking:{appId:c.appId,authorizeWork:()=>true}}:{})})};bridges.set(c.appId,cached);}
       const bridge=cached.bridge;
       const headers=new Headers({'Origin':c.origin,'Content-Type':'application/json'});
+      if(request.headers.get('X-Yolo-Read-Cache')==='v1')headers.set('X-Yolo-Read-Cache','v1');
+      if(request.headers.get('Cache-Control')==='no-cache')headers.set('Cache-Control','no-cache');
       if(e.headers.owner!==null)headers.set('X-Feedback-Owner',String(e.headers.owner));
       if(e.headers.visibility!==null)headers.set('X-Feedback-Visibility',String(e.headers.visibility));
       if(e.headers.authorization!==null)headers.set('Authorization',String(e.headers.authorization));
       const response=await bridge.fetch(new Request(c.origin+e.path,{method:e.method,headers,signal:request.signal,...(e.method==='POST'?{body:e.body as string}:{})}),{APP_DB:db,PUBLIC_ORIGIN:c.origin,FEEDBACK_GITHUB_TOKEN:auth.token,...(c.worker?{WORK_BRIDGE_TOKEN_SHA256:c.worker.tokenSha256}:{})},{principal,signal:request.signal,workRead:request.headers.get('X-Yolo-Shared-Work')==='true'});
       if(response && response.status>=400)cache.delete(c.appId);
-      return response??managedJSON('Not found',404);
+      return timing.finish(response??managedJSON('Not found',404));
     } catch {cache.delete(c.appId);return managedJSON('Managed feedback is unavailable. Keep your draft and check its status.',503);}
   }};
 }
