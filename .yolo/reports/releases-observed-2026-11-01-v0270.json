@@ -1,0 +1,60 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-01",
+  "observed_at": "2026-11-01",
+  "published_at_utc": "2026-11-01T23:24:00Z",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "release": "v0.1.0-alpha.57"
+  },
+  "releases": [
+    {
+      "tag": "v0.27.0",
+      "commit": "39ff93d1a484d3a99ee6a1cc9b71cde206ef9090"
+    }
+  ],
+  "release": {
+    "tag": "v0.27.0",
+    "tag_object": "6cce84bc4fdc5063daf28c718b2fd8d542d643e0",
+    "release_commit": "39ff93d1a484d3a99ee6a1cc9b71cde206ef9090",
+    "source_commit": "4979b74ac9199f5bef387c1faf01889688d263f5",
+    "assets_commit": "1662d8ce42615587039a1a15626dbfad992ec599",
+    "semver": "minor",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record 4979b74, the source revision. The committed assets were built at that source in 1662d8c. 39ff93d is the merge of release-metadata commit a407565 after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "171 passed across 25 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID 4979b74" },
+    { "check": "npm run e2e (stubbed, deterministic, including 2-session WebSocket netplay)", "result": "pass", "detail": "45 passed (1.6m; 2P WebSocket netplay in 5.8s)" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #287 completed success" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "deployed_to": "https://demo.yolo-dev.ai (Cloudflare Worker yolo-demo-app, Version ID: 3577cb5f-1e66-4d6d-9aec-6f9e1f609a01)",
+    "served_build": "4979b74ac9199f5bef387c1faf01889688d263f5",
+    "served_version": {
+      "package": "0.27.0",
+      "appVersion": "v0.27.0",
+      "clientBuild": "4979b74ac9199f5bef387c1faf01889688d263f5"
+    },
+    "result": "pass",
+    "detail": "Deployed live to yolo-demo-app (Version ID: 3577cb5f-1e66-4d6d-9aec-6f9e1f609a01, uploading /.build-id 4979b74ac9199f5bef387c1faf01889688d263f5, /index.html, and /assets/index-CPetOwEd.js with APP_VERSION=v0.27.0). At 23:24 UTC, public requests through https://demo.yolo-dev.ai still returned Cloudflare HTTP 429 error code 1027 from the prior polling loop's daily Worker quota exhaustion, which resets at 00:00 UTC with the new WebSocket + demand-driven Worker already deployed."
+  },
+  "what_this_release_delivers": [
+    "#286 Rework netplay to event-driven WebSockets with hidden-tab pause, idle sleep, and failure backoff"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "The tag points at 39ff93d, the merge of the release-metadata commit a407565 after the assets commit 1662d8c, not at the assets commit itself. Both build-ID files still record the source 4979b74, and the tag was not moved after publication.",
+    "At deployment time (23:24 UTC on 2026-11-01), the public Cloudflare route https://demo.yolo-dev.ai was still rate-limited with Cloudflare 1027 until the 00:00 UTC daily Worker quota reset; Wrangler deployment succeeded with Version ID 3577cb5f-1e66-4d6d-9aec-6f9e1f609a01."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #286"
+}

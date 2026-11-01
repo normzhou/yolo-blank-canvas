@@ -6,7 +6,7 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Event-Driven WebSocket Netplay & Demand-Driven Client Lifecycle (#286) — 2026-11-01
 
-Source revision `4979b74` (the event-driven WebSocket netplay and demand-driven lifecycle commit); build evidence `1662d8c`; published as `v0.27.0` on 2026-11-01.
+Source revision `4979b74` (the event-driven WebSocket netplay and demand-driven lifecycle commit); build evidence `1662d8c`; release commit `39ff93d`; published as `v0.27.0` on 2026-11-01.
 
 - **WebSocket Push Transport (`hosting/cloudflare/worker.mjs`, `server/netplay.js`, `server/app.js`):**
   - `NetplayHub` on Cloudflare Workers accepts `Upgrade: websocket` on `/api/netplay` via the Hibernatable Durable Object API (`ctx.acceptWebSocket` / `webSocketMessage` / `webSocketClose` / `webSocketError`) and pushes presence, invite, ready-check, and 2P room events directly to connected peers—consuming **1 Worker invocation per connection** instead of thousands of sub-second HTTP `POST` requests.
@@ -20,6 +20,7 @@ Source revision `4979b74` (the event-driven WebSocket netplay and demand-driven 
 - `npm test`: 25 files, 171 tests passed.
 - `npx tsc --noEmit`: clean.
 - `npm run e2e`: 45 passed (including 2-browser-session online netplay over WebSockets in `5.8s`).
+- Deployed live to `yolo-demo-app` (`Version ID: 3577cb5f-1e66-4d6d-9aec-6f9e1f609a01`, `APP_VERSION=v0.27.0`, build `4979b74ac9199f5bef387c1faf01889688d263f5`). Report: [`.yolo/reports/releases-observed-2026-11-01-v0270.json`](../.yolo/reports/releases-observed-2026-11-01-v0270.json).
 
 ## YOLO Mark `v0.1.0-alpha.53` Hover/Hold Density Disk & Hosted `v1` Channel (#282) — 2026-11-01
 
