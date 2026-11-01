@@ -1,3 +1,4 @@
+import { createTracking, TRACKING } from './tracking.js';
 import { createFeedbackBridge } from '../server.mjs';
 import { libraryAssets } from '../library-assets.mjs';
 import { API, LIBRARY_VERSION, UUID, exact, text, digest } from './contract.js';
@@ -57,6 +58,11 @@ async function readJSON(request) {
 /** One app-owned bridge. Mount worker routes inside the existing transport guard, before interactive login. */
 export function createWorkBridge(config) {
     const legacy = createFeedbackBridge(config);
+    const tracking = config.tracking ? createTracking(config.tracking, config.repository, config.responders, e => e instanceof Failure && [401, 403, 404, 422].includes(e.status)) : undefined;
+    if (config.worker?.trackingPublish !== undefined && typeof config.worker.trackingPublish !== 'boolean')
+        throw new Error('Invalid tracking grant.');
+    if (config.worker?.trackingPublish && !tracking)
+        throw new Error('Tracking publication requires an explicit app profile.');
     if (config.worker && (!text(config.worker.subject, 128) || !Number.isSafeInteger(config.worker.expiresAt)))
         throw new Error('Invalid worker configuration.');
     return { async fetch(request, env, context = {}) {
@@ -97,6 +103,18 @@ export function createWorkBridge(config) {
                     }
                 };
                 if (!worker) {
+                    const workRead = !!config.tracking && context.workRead !== false && !!context.principal && await config.tracking.authorizeWork(context.principal) === true;
+                    if (path.startsWith(PREFIX + '/tracking/')) {
+                        if (!tracking)
+                            return json({ error: 'Tracking is unavailable.' }, 404);
+                        const check = new URL(url);
+                        check.pathname = '/feedback/api/session';
+                        const permission = await legacy.fetch(new Request(check, { headers: request.headers }), env, context);
+                        if (!permission?.ok)
+                            return permission ?? null;
+                        const session = await permission.json();
+                        return tracking.handle(request, env, github, { owner: session.owner, workRead });
+                    }
                     // Preserve the existing principal/origin/claim enforcement before metadata reads.
                     const mapped = new URL(url);
                     mapped.pathname = '/feedback/api' + path.slice(PREFIX.length);
@@ -117,7 +135,7 @@ export function createWorkBridge(config) {
                         const repo = await github(`/repos/${config.repository}`);
                         if (typeof repo.private !== 'boolean' || repo.full_name?.toLowerCase() !== config.repository.toLowerCase())
                             fail(503, 'Repository visibility is unverified.');
-                        return json({ ...await old.json(), api: API, libraryVersion: LIBRARY_VERSION, visibility: repo.private ? 'private' : 'public', capabilities: ['requests:own', 'replies:own'] });
+                        return json({ ...await old.json(), api: API, libraryVersion: LIBRARY_VERSION, visibility: repo.private ? 'private' : 'public', ...(tracking ? { tracking: TRACKING } : {}), capabilities: ['requests:own', 'replies:own', ...(tracking ? ['tracking:own'] : []), ...(workRead ? ['work:read'] : [])] });
                     }
                     return old ?? null;
                 }
@@ -140,7 +158,12 @@ export function createWorkBridge(config) {
                 const stmt = (sql, ...args) => db.prepare(sql).bind(...args);
                 const base = `/repos/${config.repository}/issues`;
                 if (path === PREFIX + '/worker/session' && request.method === 'GET')
-                    return json({ api: API, libraryVersion: LIBRARY_VERSION, repository: config.repository, actor, expiresAt: config.worker.expiresAt, capabilities: ['requests:read', 'responses:write'] });
+                    return json({ api: API, libraryVersion: LIBRARY_VERSION, repository: config.repository, actor, expiresAt: config.worker.expiresAt, ...(tracking ? { tracking: TRACKING } : {}), capabilities: ['requests:read', 'responses:write', ...(config.worker.trackingPublish ? ['tracking:publish'] : [])] });
+                if (path.startsWith(PREFIX + '/worker/tracking/')) {
+                    if (!tracking || config.worker.trackingPublish !== true)
+                        return json({ error: 'Tracking publication is not granted.' }, 403);
+                    return tracking.handle(request, env, github, { actor, workRead: false });
+                }
                 if (path === PREFIX + '/worker/requests' && request.method === 'GET') {
                     const rows = (await stmt('SELECT id,title,phase,created,issue FROM yolo_feedback_requests ORDER BY created DESC LIMIT 100').all()).results;
                     return json({ api: API, requests: rows });

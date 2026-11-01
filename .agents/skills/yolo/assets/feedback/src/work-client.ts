@@ -1,3 +1,4 @@
+import {TRACKING,type WorkPublication,type RequestPublication} from './tracking-contract.js';
 import { API, UUID } from './contract.js';
 export interface WorkConnection { baseURL: string; token: string; fetch?: typeof fetch }
 /** Headless L1 transport; IDs must be saved by the caller before respond(). No POST retry. */
@@ -15,10 +16,23 @@ export function createWorkClient(connection: WorkConnection) {
     });
     const value = await response.json();
     if (!response.ok) throw new Error(`Bridge ${response.status}: ${typeof value.error === 'string' ? value.error : 'Unavailable; retain operation IDs.'}`);
+    if(path.startsWith('tracking/')&&value.tracking!==TRACKING)throw new Error('Incompatible tracking API; preserve publication IDs.');
     if (value.api !== API) throw new Error('Incompatible bridge API; keep local operation records.');
     return value;
   }
+  async function publish(path:string, value:WorkPublication|RequestPublication){
+    id(value.id);
+    const session=await call('session');
+    if(!Array.isArray(session.capabilities)||!session.capabilities.includes('tracking:publish')||session.tracking!==TRACKING)throw new Error('Tracking publication capability is unavailable.');
+    return call('tracking/'+path,value);
+  }
   return {
+    work: (cursor?:string) => call('tracking/work'+(cursor?'/page/'+id(cursor):'')),
+    workRecord: (workId:string) => call('tracking/work/'+id(workId)),
+    trackingRequest: (requestId:string) => call('tracking/requests/'+id(requestId)),
+    publishWork: (value:WorkPublication) => publish('work',value),
+    publishTracking: (value:RequestPublication) => publish('requests',value),
+    publication: (operationId:string) => call('tracking/receipts/'+id(operationId)),
     session: () => call('session'),
     requests: () => call('requests'),
     request: (requestId: string) => call('requests/' + id(requestId)),

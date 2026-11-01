@@ -1,10 +1,25 @@
 # Shared feedback UI and L1 work bridge
 
 Use this guide for the client-owned shared UI and **manually initiated L1** harness.
-It supplies no automatic runner, publisher, central credential relay or client grant.
+It supplies no automatic runner, publisher, generic credential relay or client grant.
 The same fixed-repository bridge serves app users and an independently authenticated
 L1 worker. GitHub owns project state; the client DB owns durable ownership/intents.
 Existing [standalone page/API](client-feedback.md) remains compatible during migration.
+
+## Choose the credential owner once
+
+For a hosted client using the YOLO Dev GitHub App, follow [managed feedback](managed-feedback.md).
+It uses the same UI/API/L1 contract with a small same-origin client adapter and
+YOLO-owned service/ledger. The client receives no publisher GitHub credential.
+The managed service must be separately activated and verified; a skill upgrade
+or App installation alone is not readiness. Existing clients must retain their
+ledger/history until an explicit reviewed migration.
+
+The client-owned writer path below remains available for local/self-hosted use.
+No automatic credential/pin/profile migration occurs.
+
+For accepted automatic browser-only updates, use the optional
+[hosted v1 profile](hosted-feedback.md); the local package stays the default.
 
 ## One complete client integration
 
@@ -89,30 +104,79 @@ The bridge serves compiled browser modules/CSS at `/yolo/feedback/*`, with its A
 at `/yolo/api/v1` outside Oracle `/api/*` forwarding. Import from your own origin:
 
 ```js
-import {mountFeedback} from '/yolo/feedback/browser.js';
-const feedback = mountFeedback(document.querySelector('#feedback-root'), {
+import {mountFeedbackLauncher} from '/yolo/feedback/browser.js';
+const feedback = mountFeedbackLauncher(document.querySelector('#feedback-root'), {
   app: {id: 'YOUR_STABLE_APP_ID', name: 'YOUR_APP_NAME'},
-  onLogin: () => existingAppLogin(),
-  onOpenChange: open => setAppShortcutsEnabled(!open)
+  // Optional: getContext: () => ({page: currentSafePageLabel()}),
+  // Optional: onOpenChange: open => setAppShortcutsEnabled(!open)
 });
-const safePageLabel = 'Paper desk'; // use the actual nonsecret app/view label
-feedbackButton.addEventListener('click', () => feedback.open({context: {page: safePageLabel}}));
 // cleanup: feedback.destroy(); it leaves app sessions and streams alone.
 ```
 
-Supply an empty mount root and a real login helper; no hard-coded new login URL.
-The app owns launcher/context/routing. Optional `context.page` is a short nonsecret label (at most 160 characters), explicitly shown/editable in the form; no URL/query/log capture occurs. New-request drafts are separate per app/account/page/type; reply drafts remain per request. API/styles must be same-origin. External CSS
-and Shadow DOM preserve app CSP/style boundaries. Four forms share one renderer;
-text is never interpreted as HTML. Public GitHub visibility is disclosed for new requests and replies. Canonical requester writes include `X-Feedback-Visibility` from the last session disclosure; missing/changed visibility returns409 `visibility_changed` before a provider write. The UI preserves text, refreshes the disclosure and requires another explicit Send, never automatic resend or a new operation ID. Pair the corrected browser/server release; older browser code fails closed against this API. Visibility is observed, not locked: a repository owner can later publish existing records.
+Supply an empty mount root. The library supplies its animated Y control and panel:
+hover animates; press-and-hold accelerates into a blurred ring. Releasing over
+the mark opens feedback; releasing away/cancelling coasts to rest with a wiggle.
+The launcher is transparent except for the symbol and keyboard focus indication.
+Keyboard/assistive activation opens directly, and reduced motion suppresses
+animation. The shared mark helper owns all these gestures; the launcher supplies only its
+feedback-open callback. The sign-in mark uses the same helper with no app action.
+No separate logo import, asset copy, button or click handler is needed.
+Signed-out visitors get a focused sign-in view, which
+posts a native same-origin form to the app's existing `/auth/yolo/login` route.
+Keep that route's existing form-action/Origin/Referrer-Policy requirements. This
+does not register identity, create accounts or grant app membership. Other login
+flows use the existing optional `onLogin` callback; no Google credentials belong
+in the browser. Login is user-initiated, without an agent/model prompt or call.
 
-React18 consumes the same implementation through `yolo-feedback-bridge/react`:
-use `const root = useRef(null)`, stable `useMemo` options and
-`const feedback = useFeedback(root, options)`. Render `<div ref={root}/>` and open
-through `feedback.current?.open()`. The hook destroys only its mount on cleanup,
-including Strict Mode cleanup/remount. Preserve Demo's launcher, drafts/context,
-legacy links and local privileged mode until client parity is actually verified;
-never manufacture ownership of old GitHub issues. Trader retains its permission
-policy, dashboard and live streams. Client integrations do not fork the renderer.
+Signed-in (or verified-but-denied) viewers can use **Sign out** beside Close. The
+complete launcher POSTs `/auth/yolo/logout` with same-origin credentials, requires
+204 confirmation and reloads so the whole app observes its revoked session.
+Apps with custom identity flows pass `onLogout` alongside `onLogin` and perform
+their existing app-wide sign-out/update inside that callback. Saved owner-scoped
+drafts/intents remain for reconciliation after re-login; private in-memory views
+and pending reads clear immediately. This is app logout, using the existing
+interactive account chooser on the next login.
+
+`getContext`, when supplied, returns a short nonsecret `{page: string}` (at most
+160 characters), shown/editable in the form; no URL/query/log capture occurs.
+Keep callbacks and app options stable. New-request drafts are separate per
+app/account/page/type; reply drafts remain per request. The launcher owns focus,
+open state and motion cleanup; panel keystrokes do not bubble to ordinary app
+hotkeys. Use `onOpenChange` for app-specific capture/global input policies. Apps choose the mount location and keep their
+server permissions, streams and shortcut policy.
+
+For an existing custom button/menu, `mountFeedback` retains its panel-only API;
+connect that app control to `feedback.open({context: {page: safePageLabel}})`.
+When choosing the complete launcher, remove the old custom logo/click wiring
+through the client's normal reviewed change instead of showing two launchers.
+Plain decorative/brand marks remain available separately.
+
+API/styles/modules are served from the app's own origin. External CSS and Shadow
+DOM preserve app CSP/style boundaries. Four forms share one renderer; text is
+never interpreted as HTML. Public GitHub visibility is disclosed for new requests
+and replies. Canonical requester writes include `X-Feedback-Visibility` from the
+last session disclosure; missing/changed visibility returns409
+`visibility_changed` before a provider write. The UI preserves text, refreshes
+disclosure and requires another explicit Send, never automatic resend or a new
+operation ID. Pair the browser/server release; older browser code fails closed
+against this API. Visibility is observed, not locked: a repository owner can
+later publish existing records.
+
+React18 can render the same implementation directly:
+
+```jsx
+import {FeedbackLauncher} from 'yolo-feedback-bridge/react';
+<FeedbackLauncher app={{id: 'YOUR_STABLE_APP_ID', name: 'YOUR_APP_NAME'}} />
+```
+
+The component owns its root, keeps stable app values across parent rerenders and
+cleans up under Strict Mode. Keep custom callbacks stable. For an imperative
+reference/custom root, `useFeedbackLauncher(rootRef, stableOptions)` remains
+available; existing `useFeedback` retains the panel-only path. Preserve Demo's
+drafts, context, legacy links and local privileged mode until parity verifies;
+Trader retains permissions, dashboard and streams. Integrations do not fork the
+renderer or change deployed app/pin automatically. The synthetic
+`node fixture.mjs --work` preview includes the complete launcher.
 
 ## Let the current L1 harness use the bridge
 
@@ -146,8 +210,10 @@ requires deliberate review before a new operation. Missing records, search lag,
 transport failure or restored old state do not prove a write never occurred. Preserve
 IDs and exact text; do not reset the ledger or change IDs to force a retry. HTTP APIs
 can also be called without this helper; apply the same identity, IDs and recovery rules.
-Only mapped feedback read/respond operations are supplied now; existing Git/PR/CI/
-release tools remain available within their grants. No generic GitHub proxy is implied.
+The optional [tracking foundation](feedback-tracking.md) adds explicitly granted
+coverage/safe-work annotations and projection reads. Without that profile the mapped
+feedback read/respond scope stays unchanged. Existing Git/PR/CI/release tools remain
+available within their grants; no generic GitHub proxy is implied.
 
 ## Prove the deployed L1 loop
 

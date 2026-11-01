@@ -14,7 +14,7 @@ function files(dir){return readdirSync(dir,{withFileTypes:true}).flatMap(e=>e.is
 try {
  execFileSync(process.execPath,[root+'node_modules/typescript/lib/tsc.js','-p',root+'tsconfig.json','--outDir',output],{stdio:'inherit'});
  const assets={};
- for(const [file,path,type] of [['src/browser.js','/yolo/feedback/browser.js','text/javascript; charset=utf-8'],['src/contract.js','/yolo/feedback/contract.js','text/javascript; charset=utf-8'],['src/version.js','/yolo/feedback/version.js','text/javascript; charset=utf-8']])assets[path]={body:readFileSync(join(output,file),'utf8'),type};
+ for(const [file,path,type] of [['src/browser.js','/yolo/feedback/browser.js','text/javascript; charset=utf-8'],['src/hosted.js','/yolo/feedback/hosted.js','text/javascript; charset=utf-8'],['src/contract.js','/yolo/feedback/contract.js','text/javascript; charset=utf-8'],['src/version.js','/yolo/feedback/version.js','text/javascript; charset=utf-8'],['src/brand.mjs','/yolo/feedback/brand.mjs','text/javascript; charset=utf-8']])assets[path]={body:readFileSync(join(output,file),'utf8'),type};
  assets['/yolo/feedback/styles.css']={body:readFileSync(root+'styles-library.css','utf8'),type:'text/css; charset=utf-8'};
  const source=assetType+'export const libraryAssets = '+JSON.stringify(assets)+';\n';
  writeFileSync(join(output,'library-assets.mjs'),source);

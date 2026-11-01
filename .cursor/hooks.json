@@ -2,22 +2,22 @@
   "hooks": {
     "beforeSubmitPrompt": [
       {
-        "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/activity-observer.sh\" 55870cedc00c362248c8920580385de85bfbf0b7eb91cabcbbe2b41965810eb1 cursor"
+        "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/activity-observer.sh\" f63dc0ecfe0333546d5799ad94358bc0f4d2c0b7b22acedcef03148b85373448 cursor"
       }
     ],
     "sessionEnd": [
       {
-        "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/activity-observer.sh\" 55870cedc00c362248c8920580385de85bfbf0b7eb91cabcbbe2b41965810eb1 cursor"
+        "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/activity-observer.sh\" f63dc0ecfe0333546d5799ad94358bc0f4d2c0b7b22acedcef03148b85373448 cursor"
       }
     ],
     "sessionStart": [
       {
-        "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/activity-observer.sh\" 55870cedc00c362248c8920580385de85bfbf0b7eb91cabcbbe2b41965810eb1 cursor"
+        "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/activity-observer.sh\" f63dc0ecfe0333546d5799ad94358bc0f4d2c0b7b22acedcef03148b85373448 cursor"
       }
     ],
     "stop": [
       {
-        "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/activity-observer.sh\" 55870cedc00c362248c8920580385de85bfbf0b7eb91cabcbbe2b41965810eb1 cursor"
+        "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/activity-observer.sh\" f63dc0ecfe0333546d5799ad94358bc0f4d2c0b7b22acedcef03148b85373448 cursor"
       }
     ]
   },

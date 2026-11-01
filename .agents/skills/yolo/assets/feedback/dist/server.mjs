@@ -8,9 +8,9 @@ const headers = {
     'Content-Security-Policy': "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"
 };
 class Problem extends Error {
-    constructor(status, message) { super(message); this.status = status; }
+    constructor(status, message, code) { super(message); this.status = status; this.code = code; }
 }
-const fail = (status, message) => { throw new Problem(status, message); };
+const fail = (status, message, code) => { throw new Problem(status, message, code); };
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' } });
 const exact = (value, keys) => value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).every(k => keys.includes(k));
 const string = (value, max = 4000) => typeof value === 'string' && [...value].length >= 1 && [...value].length <= max;
@@ -86,10 +86,10 @@ export function createFeedbackBridge({ repository, responders, authorize }) {
                 const p = context.principal;
                 if (!p || !string(p.issuer, 2048) || !string(p.subject, 512) || p.emailVerified !== true || await authorize(p) !== true) {
                     if (p)
-                        fail(403, 'Feedback is unavailable for this account.');
+                        fail(403, 'Feedback is unavailable for this account.', 'feedback_forbidden');
                     if ((path === '/feedback' || path === '/feedback/') && request.method === 'GET')
                         return new Response('<!doctype html><title>Feedback</title><form method="post" action="/auth/yolo/login"><button>Sign in to share feedback</button></form>', { status: 401, headers: { ...headers, 'Content-Type': 'text/html; charset=utf-8' } });
-                    fail(403, 'Feedback is unavailable for this account.');
+                    fail(403, 'Sign in to share feedback.', 'login_required');
                 }
                 if ((path === '/feedback' || path === '/feedback/') && request.method === 'GET')
                     return new Response(assets['/feedback/'].body, { headers: { ...headers, 'Content-Type': 'text/html; charset=utf-8' } });
@@ -284,7 +284,7 @@ export function createFeedbackBridge({ repository, responders, authorize }) {
                 fail(405, 'Method not allowed.');
             }
             catch (error) {
-                return json({ error: error instanceof Problem ? error.message : 'Feedback is temporarily unavailable. Keep your draft and refresh to check its status.' }, error instanceof Problem ? error.status : 503);
+                return json({ error: error instanceof Problem ? error.message : 'Feedback is temporarily unavailable. Keep your draft and refresh to check its status.', ...(error instanceof Problem && error.code ? { code: error.code } : {}) }, error instanceof Problem ? error.status : 503);
             }
         } };
 }

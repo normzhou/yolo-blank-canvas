@@ -1,4 +1,5 @@
 import {test} from 'node:test';
+import metadata from './package.json' with {type:'json'};
 import assert from 'node:assert/strict';
 import {fixture,alice,bob} from './fixture.mjs';
 import {createWorkClient} from './dist/src/work-client.js';
@@ -10,8 +11,13 @@ async function run(action){const f=await fixture({work:true}),saved=globalThis.f
  const client=createWorkClient({baseURL:f.env.PUBLIC_ORIGIN+'/yolo/api/v1',token:f.workerToken,fetch:transport});
  try{await action({f,request,client,transport});}finally{globalThis.fetch=saved;f.close();}}
 test('versioned requester visibility and distinct worker authority fail closed before effects',()=>run(async({f,request,client,transport})=>{
- const session=await(await request('session')).json();assert.equal(session.api,'yolo-work-api-v1');assert.equal(session.libraryVersion,'0.1.0-alpha.41');assert.equal(session.visibility,'private');assert.equal(session.forms.length,4);
- assert.equal((await client.session()).actor,'fixture-l1');assert.equal((await client.session()).libraryVersion,'0.1.0-alpha.41');
+ for(const [path,mime] of [['browser.js','javascript'],['brand.mjs','javascript'],['styles.css','css']]){
+  const asset=await f.bridge.fetch(new Request(f.env.PUBLIC_ORIGIN+'/yolo/feedback/'+path),f.env,{});
+  assert.equal(asset.status,200);assert.ok(asset.headers.get('Content-Type').includes(mime));
+ }
+ assert.equal(f.calls.length,0,'static launcher assets must not access provider credentials/metadata');
+ const session=await(await request('session')).json();assert.equal(session.api,'yolo-work-api-v1');assert.equal(session.libraryVersion,metadata.version);assert.equal(session.visibility,'private');assert.equal(session.forms.length,4);
+ assert.equal((await client.session()).actor,'fixture-l1');assert.equal((await client.session()).libraryVersion,metadata.version);
  for(const token of ['wrong-worker-token-1234567890abcdefgh','']){const response=await transport(f.env.PUBLIC_ORIGIN+'/yolo/api/v1/worker/requests',{headers:{Authorization:'Bearer '+token}});assert.equal(response.status,401);}
  const before=f.calls.length;assert.equal((await transport(f.env.PUBLIC_ORIGIN+'/yolo/api/v1/worker/requests',{headers:{Authorization:'Bearer '+f.workerToken,Origin:'https://evil.example'}})).status,403);assert.equal(f.calls.length,before);
  f.state.unknownVisibility=true;assert.equal((await request('requests',{body:submission()})).status,503);assert.equal(f.issues.size,0);f.state.unknownVisibility=false;

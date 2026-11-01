@@ -4,8 +4,8 @@
       {
         "hooks": [
           {
-            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.sh\" 55870cedc00c362248c8920580385de85bfbf0b7eb91cabcbbe2b41965810eb1 hook",
-            "commandWindows": "powershell -NoProfile -File \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.ps1\" 55870cedc00c362248c8920580385de85bfbf0b7eb91cabcbbe2b41965810eb1 hook",
+            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.sh\" f63dc0ecfe0333546d5799ad94358bc0f4d2c0b7b22acedcef03148b85373448 hook",
+            "commandWindows": "powershell -NoProfile -File \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.ps1\" f63dc0ecfe0333546d5799ad94358bc0f4d2c0b7b22acedcef03148b85373448 hook",
             "timeout": 2,
             "type": "command"
           }
@@ -16,8 +16,8 @@
       {
         "hooks": [
           {
-            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.sh\" 55870cedc00c362248c8920580385de85bfbf0b7eb91cabcbbe2b41965810eb1 hook",
-            "commandWindows": "powershell -NoProfile -File \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.ps1\" 55870cedc00c362248c8920580385de85bfbf0b7eb91cabcbbe2b41965810eb1 hook",
+            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.sh\" f63dc0ecfe0333546d5799ad94358bc0f4d2c0b7b22acedcef03148b85373448 hook",
+            "commandWindows": "powershell -NoProfile -File \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.ps1\" f63dc0ecfe0333546d5799ad94358bc0f4d2c0b7b22acedcef03148b85373448 hook",
             "timeout": 8,
             "type": "command"
           }
@@ -28,8 +28,8 @@
       {
         "hooks": [
           {
-            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.sh\" 55870cedc00c362248c8920580385de85bfbf0b7eb91cabcbbe2b41965810eb1 hook",
-            "commandWindows": "powershell -NoProfile -File \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.ps1\" 55870cedc00c362248c8920580385de85bfbf0b7eb91cabcbbe2b41965810eb1 hook",
+            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.sh\" f63dc0ecfe0333546d5799ad94358bc0f4d2c0b7b22acedcef03148b85373448 hook",
+            "commandWindows": "powershell -NoProfile -File \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.ps1\" f63dc0ecfe0333546d5799ad94358bc0f4d2c0b7b22acedcef03148b85373448 hook",
             "timeout": 8,
             "type": "command"
           }
@@ -40,8 +40,8 @@
       {
         "hooks": [
           {
-            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.sh\" 55870cedc00c362248c8920580385de85bfbf0b7eb91cabcbbe2b41965810eb1 hook",
-            "commandWindows": "powershell -NoProfile -File \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.ps1\" 55870cedc00c362248c8920580385de85bfbf0b7eb91cabcbbe2b41965810eb1 hook",
+            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.sh\" f63dc0ecfe0333546d5799ad94358bc0f4d2c0b7b22acedcef03148b85373448 hook",
+            "commandWindows": "powershell -NoProfile -File \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.ps1\" f63dc0ecfe0333546d5799ad94358bc0f4d2c0b7b22acedcef03148b85373448 hook",
             "timeout": 2,
             "type": "command"
           }
@@ -52,8 +52,8 @@
       {
         "hooks": [
           {
-            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.sh\" 55870cedc00c362248c8920580385de85bfbf0b7eb91cabcbbe2b41965810eb1 hook",
-            "commandWindows": "powershell -NoProfile -File \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.ps1\" 55870cedc00c362248c8920580385de85bfbf0b7eb91cabcbbe2b41965810eb1 hook",
+            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.sh\" f63dc0ecfe0333546d5799ad94358bc0f4d2c0b7b22acedcef03148b85373448 hook",
+            "commandWindows": "powershell -NoProfile -File \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.ps1\" f63dc0ecfe0333546d5799ad94358bc0f4d2c0b7b22acedcef03148b85373448 hook",
             "timeout": 8,
             "type": "command"
           }
@@ -64,8 +64,8 @@
       {
         "hooks": [
           {
-            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.sh\" 55870cedc00c362248c8920580385de85bfbf0b7eb91cabcbbe2b41965810eb1 hook",
-            "commandWindows": "powershell -NoProfile -File \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.ps1\" 55870cedc00c362248c8920580385de85bfbf0b7eb91cabcbbe2b41965810eb1 hook",
+            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.sh\" f63dc0ecfe0333546d5799ad94358bc0f4d2c0b7b22acedcef03148b85373448 hook",
+            "commandWindows": "powershell -NoProfile -File \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.ps1\" f63dc0ecfe0333546d5799ad94358bc0f4d2c0b7b22acedcef03148b85373448 hook",
             "timeout": 8,
             "type": "command"
           }
@@ -76,8 +76,8 @@
       {
         "hooks": [
           {
-            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.sh\" 55870cedc00c362248c8920580385de85bfbf0b7eb91cabcbbe2b41965810eb1 hook",
-            "commandWindows": "powershell -NoProfile -File \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.ps1\" 55870cedc00c362248c8920580385de85bfbf0b7eb91cabcbbe2b41965810eb1 hook",
+            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.sh\" f63dc0ecfe0333546d5799ad94358bc0f4d2c0b7b22acedcef03148b85373448 hook",
+            "commandWindows": "powershell -NoProfile -File \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/codex-observer.ps1\" f63dc0ecfe0333546d5799ad94358bc0f4d2c0b7b22acedcef03148b85373448 hook",
             "timeout": 8,
             "type": "command"
           }
