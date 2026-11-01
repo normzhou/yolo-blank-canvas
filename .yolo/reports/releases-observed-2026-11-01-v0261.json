@@ -1,0 +1,59 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-01",
+  "observed_at": "2026-11-01",
+  "published_at_utc": "2026-11-01T08:03:00Z",
+  "protocol": {
+    "revision": "415a846799c66081f7056d41c9ce4c92a24aa1c3",
+    "release": "v0.1.0-alpha.53"
+  },
+  "releases": [
+    {
+      "tag": "v0.26.1",
+      "commit": "e1c26cdff763454e03fa848b2147b61da84638eb"
+    }
+  ],
+  "release": {
+    "tag": "v0.26.1",
+    "tag_object": "f91cb88b9a0041419517485f3632794348a5f3ef",
+    "release_commit": "e1c26cdff763454e03fa848b2147b61da84638eb",
+    "source_commit": "ac809355ef8d4920f8a5d8c27a510cf1a56934b4",
+    "assets_commit": "9f81f702b11891dfcadbdd7acbcc1722e13fb15c",
+    "semver": "patch",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record ac80935, the source revision. The committed assets were built at that source in 9f81f70. e1c26cd is the merge of release-metadata commit 9d3586e after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "168 passed across 24 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID ac80935" },
+    { "check": "npm run e2e (stubbed, deterministic)", "result": "pass", "detail": "45 passed (58.9s)" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #283 completed success" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "deployed_to": "https://demo.yolo-dev.ai (Cloudflare Worker yolo-demo-app, Version ID: 2b3b4352-688c-4761-9672-fe56a6f5ce34)",
+    "served_build": "ac809355ef8d4920f8a5d8c27a510cf1a56934b4",
+    "served_version": {
+      "package": "0.26.1",
+      "appVersion": "v0.26.1",
+      "clientBuild": "ac809355ef8d4920f8a5d8c27a510cf1a56934b4"
+    },
+    "result": "pass",
+    "detail": "Deployed live to yolo-demo-app (Version ID: 2b3b4352-688c-4761-9672-fe56a6f5ce34) and verified at https://demo.yolo-dev.ai/__yolo/version (200 {\"version\":\"v0.26.1\"}) and https://demo.yolo-dev.ai/.build-id (200 ac809355ef8d4920f8a5d8c27a510cf1a56934b4)."
+  },
+  "what_this_release_delivers": [
+    "#282 Update YOLO mark to v0.1.0-alpha.53 hover/hold density disk and hosted v1 channel"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "The tag points at e1c26cd, the merge of the release-metadata commit 9d3586e after the assets commit 9f81f70, not at the assets commit itself. Both build-ID files still record the source ac80935, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #282"
+}

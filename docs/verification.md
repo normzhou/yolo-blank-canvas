@@ -6,7 +6,7 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## YOLO Mark `v0.1.0-alpha.53` Hover/Hold Density Disk & Hosted `v1` Channel (#282) — 2026-11-01
 
-Source revision `ac80935` (the `v0.1.0-alpha.53` YOLO mark hover/hold radial density-disk motion and live `https://yolo-dev.ai/feedback/v1.mjs` hosted channel commit); build evidence `9f81f70`; published as `v0.26.1` on 2026-11-01.
+Source revision `ac80935` (the `v0.1.0-alpha.53` YOLO mark hover/hold radial density-disk motion and live `https://yolo-dev.ai/feedback/v1.mjs` hosted channel commit); build evidence `9f81f70`; release commit `e1c26cd`; published as `v0.26.1` on 2026-11-01.
 
 - **`v0.1.0-alpha.53` YOLO Mark Motion & Gestures (`src/client/brand/yoloMark.ts`, `public/brand/yolo-mark.mjs`, `src/client/App.tsx`, `src/client/styles.css`):**
   - Mouse-hover entry (`pointerenter` with `pointerType === 'mouse'`) triggers randomized spin/wiggle motion (`alpha.44`).
@@ -18,6 +18,7 @@ Source revision `ac80935` (the `v0.1.0-alpha.53` YOLO mark hover/hold radial den
 - `npm test`: 24 files, 168 tests passed.
 - `npx tsc --noEmit`: clean.
 - `npm run e2e`: 45 passed.
+- Deployed live to `yolo-demo-app` (`Version ID: 2b3b4352-688c-4761-9672-fe56a6f5ce34`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.26.1"}`) and `https://demo.yolo-dev.ai/.build-id` (`200 ac809355ef8d4920f8a5d8c27a510cf1a56934b4`). Report: [`.yolo/reports/releases-observed-2026-11-01-v0261.json`](../.yolo/reports/releases-observed-2026-11-01-v0261.json).
 
 ## Upbeat Whimsical Video-Game & Arcade Galop Puzzle Bobble Soundtrack (#278) — 2026-10-27
 
