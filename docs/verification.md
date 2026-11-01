@@ -4,6 +4,23 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Event-Driven WebSocket Netplay & Demand-Driven Client Lifecycle (#286) — 2026-11-01
+
+Source revision `4979b74` (the event-driven WebSocket netplay and demand-driven lifecycle commit); build evidence `1662d8c`; published as `v0.27.0` on 2026-11-01.
+
+- **WebSocket Push Transport (`hosting/cloudflare/worker.mjs`, `server/netplay.js`, `server/app.js`):**
+  - `NetplayHub` on Cloudflare Workers accepts `Upgrade: websocket` on `/api/netplay` via the Hibernatable Durable Object API (`ctx.acceptWebSocket` / `webSocketMessage` / `webSocketClose` / `webSocketError`) and pushes presence, invite, ready-check, and 2P room events directly to connected peers—consuming **1 Worker invocation per connection** instead of thousands of sub-second HTTP `POST` requests.
+  - `server/netplay.js` and `server/app.js` add a zero-dependency RFC 6455 WebSocket upgrade handler (`attachUpgrade`) automatically bound on `app.listen(...)` while preserving `GET`/`POST /api/netplay` for deterministic tests and HTTP fallback.
+- **Demand-Driven Client Lifecycle (`src/client/netplay.ts`, `test/netplay.test.ts`):**
+  - Zero HTTP polling while WebSocket is connected.
+  - Hidden-tab pause (`document.hidden` / `visibilitychange`): immediately closes the WebSocket and halts all timers when the tab is hidden and not in an active 2P match (`0` background requests/hour overnight).
+  - Idle inactivity sleep (`IDLE_SLEEP_MS = 60_000`): disconnects the WebSocket after 60 seconds without user interaction while idle, waking on user interaction (`pointerdown`, `keydown`, `focus`) or 2P actions.
+  - Listener-unsubscribe teardown: stops all networking and timers when all subscribers unsubscribe.
+  - Exponential failure backoff (`2s -> 4s -> 8s -> ... -> 120s` max) on connection or HTTP errors.
+- `npm test`: 25 files, 171 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 45 passed (including 2-browser-session online netplay over WebSockets in `5.8s`).
+
 ## YOLO Mark `v0.1.0-alpha.53` Hover/Hold Density Disk & Hosted `v1` Channel (#282) — 2026-11-01
 
 Source revision `ac80935` (the `v0.1.0-alpha.53` YOLO mark hover/hold radial density-disk motion and live `https://yolo-dev.ai/feedback/v1.mjs` hosted channel commit); build evidence `9f81f70`; release commit `e1c26cd`; published as `v0.26.1` on 2026-11-01.
