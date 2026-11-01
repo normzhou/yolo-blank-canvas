@@ -6,6 +6,39 @@ in. Existing packaged mounts remain supported. This changes browser delivery,
 not app identity, permissions, the same-origin bridge, repository, ledger or L1
 worker authority. Prepare managed/client-owned feedback normally before launch.
 
+## Upgrade existing integrations
+
+Review actual app entrypoints/imports, dependency locks and app-owned copies or
+ports outside the installed skill. Compare affected old/new bundle assets with
+those consumers; a filename or a clean skill-install check proves no runtime age.
+
+| Evidence | What it establishes |
+| --- | --- |
+| Installed skill / adopted pin | Operating instructions and available assets; no app rollout. |
+| `renderMark` / `animateYoloMark` | Brand appearance/motion. Its activation callback may still open a custom panel. |
+| `mountFeedbackLauncher` / `mountHostedFeedbackLauncher` / React launcher | Which complete shared panel is mounted, with local or hosted browser delivery. |
+| App dependency, served UI and bridge session/capabilities | Actual deployed behavior; compatible UI/server version text can differ. Identity/server code stays client-versioned. |
+
+For accepted automatic browser updates, prefer the hosted launcher below with
+its versioned local adapter/fallback. A logo-only hosted import does not adopt
+the shared feedback UI. Local/offline/pinned deployments remain supported.
+Preserve an established choice rather than asking for the same consent again.
+
+Record the actual gap and concrete work: chosen mount/API route, relevant package
+or copy update, CSP/fallback, compatibility and deploy/readback. Retain custom app
+features, drafts, legacy links and privileged maintainer controls; review their
+migration rather than replacing a product's whole Requests dashboard blindly.
+Use [shared integration](client-feedback-library.md), [managed setup](managed-feedback.md)
+and [identity](client-identity.md) only where needed; a UI update cannot activate a
+missing bridge, registration or permission. Gather missing setup once in the
+client's existing canonical request, preserving established accounts and credentials.
+
+Apply accepted changes through ordinary target work and delivery. When separate
+app work remains, distinguish completed YOLO upgrade from pending integration
+and link its next action. Do not claim the UI is updated because the skill, mark
+or source dependency changed. An app with no integration needs no opt-in or extra
+hosting reads. This review adds no model call, polling or automatic deployment.
+
 ## One initial integration
 
 Install/copy the complete released feedback package once, serving its local

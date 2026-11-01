@@ -27,6 +27,18 @@ export async function fixture(options={}) {
     if(state.failBefore) throw new Error('No connection');
     if(state.reject&&init.method==='POST')return Response.json({message:'private upstream secret'},{status:403});
     if(u.pathname==='/repos/fixture/client') return Response.json(state.unknownVisibility?{}:{full_name:'fixture/client',private:state.private!==false});
+    if(u.pathname==='/graphql'&&init.method==='POST'){
+      if(state.statusError)return Response.json({message:'private provider failure'},{status:503});
+      if(state.statusResponse)return Response.json(state.statusResponse);
+      const {query,variables}=JSON.parse(init.body);
+      if(!query.startsWith('query YoloFeedbackStates(')||variables.owner!=='fixture'||variables.name!=='client'||query.includes('mutation'))throw new Error('Fixture rejects an unbound metadata query');
+      const repository={nameWithOwner:'fixture/client'};
+      for(const match of query.matchAll(/(i\d+):issue\(number:(\d+)\)/g)){
+        const issue=issues.get(Number(match[2])),labels=(issue?.labels??[]).map(l=>typeof l==='string'?{name:l}:l);
+        repository[match[1]]=issue?{__typename:issue.pull_request?'PullRequest':'Issue',number:issue.number,state:issue.state.toUpperCase(),locked:issue.locked??false,labels:{nodes:labels.slice(0,100),pageInfo:{hasNextPage:labels.length>100}}}:null;
+      }
+      return Response.json({data:{repository}});
+    }
     if(u.pathname==='/search/issues')return Response.json({incomplete_results:state.searchIncomplete,items:[...issues.values()].filter(i=>u.searchParams.get('q').includes(/yolo-feedback:([^\]]+)/.exec(i.title)[1]))});
     if(u.pathname==='/repos/fixture/client/issues'&&init.method==='POST'){
       const n=issues.size+1, issue={...JSON.parse(init.body),number:n,state:'open',labels:[],locked:false,created_at:new Date().toISOString()}; issues.set(n,issue);comments.set(n,[]);

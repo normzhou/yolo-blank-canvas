@@ -4,7 +4,7 @@
       {
         "hooks": [
           {
-            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/activity-observer.sh\" f63dc0ecfe0333546d5799ad94358bc0f4d2c0b7b22acedcef03148b85373448 claude-code",
+            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/activity-observer.sh\" 330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1 claude-code",
             "timeout": 8,
             "type": "command"
           }
@@ -15,7 +15,7 @@
       {
         "hooks": [
           {
-            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/activity-observer.sh\" f63dc0ecfe0333546d5799ad94358bc0f4d2c0b7b22acedcef03148b85373448 claude-code",
+            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/activity-observer.sh\" 330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1 claude-code",
             "timeout": 8,
             "type": "command"
           }
@@ -26,7 +26,7 @@
       {
         "hooks": [
           {
-            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/activity-observer.sh\" f63dc0ecfe0333546d5799ad94358bc0f4d2c0b7b22acedcef03148b85373448 claude-code",
+            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/activity-observer.sh\" 330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1 claude-code",
             "timeout": 8,
             "type": "command"
           }
@@ -37,7 +37,7 @@
       {
         "hooks": [
           {
-            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/activity-observer.sh\" f63dc0ecfe0333546d5799ad94358bc0f4d2c0b7b22acedcef03148b85373448 claude-code",
+            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/activity-observer.sh\" 330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1 claude-code",
             "timeout": 8,
             "type": "command"
           }
@@ -48,7 +48,7 @@
       {
         "hooks": [
           {
-            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/activity-observer.sh\" f63dc0ecfe0333546d5799ad94358bc0f4d2c0b7b22acedcef03148b85373448 claude-code",
+            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/skills/yolo/assets/activity-observer.sh\" 330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1 claude-code",
             "timeout": 8,
             "type": "command"
           }

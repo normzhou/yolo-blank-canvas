@@ -2,7 +2,7 @@
 
 Protocol format: `github-v1` · Candidate L1 distribution
 
-Source: [415a846799c66081f7056d41c9ce4c92a24aa1c3](https://github.com/normzhou/yolo-dev/tree/415a846799c66081f7056d41c9ce4c92a24aa1c3). All required rules and procedures are below; upstream links are optional publisher context or tool documentation. The target supplies its own purpose and accepted authority, not YOLO Dev's Charter. Installing these rules does not qualify or authorize a target. L2 descriptions do not activate an unbuilt runner.
+Source: [f9ceb59e5bb6c5e38b01208ef68903b0ffc53664](https://github.com/normzhou/yolo-dev/tree/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664). All required rules and procedures are below; upstream links are optional publisher context or tool documentation. The target supplies its own purpose and accepted authority, not YOLO Dev's Charter. Installing these rules does not qualify or authorize a target. L2 descriptions do not activate an unbuilt runner.
 
 Source status notes describe the publisher at that revision, not this target's setup. This generated document preserves the design text; source links are rewritten to local sections wherever the referenced contract is included. The bundle's `provenance.json` records source digests and selections. Target adoption records retain this source identity and this file's digest.
 
@@ -50,7 +50,7 @@ Source status notes describe the publisher at that revision, not this target's s
 <a id="architecture-adoption-levels"></a>
 ### Adoption levels
 
-![L0 Baseline, L1 Assisted, L2 Autopilot, L3 Self-directed and L4 Living App progressively close the app's improvement loop.](https://github.com/normzhou/yolo-dev/blob/415a846799c66081f7056d41c9ce4c92a24aa1c3/assets/adoption-levels.svg)
+![L0 Baseline, L1 Assisted, L2 Autopilot, L3 Self-directed and L4 Living App progressively close the app's improvement loop.](https://github.com/normzhou/yolo-dev/blob/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664/assets/adoption-levels.svg)
 
 | Level | Capability |
 | --- | --- |
@@ -131,7 +131,7 @@ flowchart LR
 
 Repair the lowest sufficient layer. Target defects stay there; YOLO defects feed back here. Setup, active preparedness and qualification are distinct evidence claims.
 
-Keep product engineering separate from the reusable methodology. YOLO Dev validates its own tooling/bundle and harness behavior under [publisher acceptance](#assisted-development-acceptance); its concrete commands and CI status live in [development instructions](https://github.com/normzhou/yolo-dev/blob/415a846799c66081f7056d41c9ce4c92a24aa1c3/docs/development.md). Each adopted repo defines its own tests and delivery route under the shared [verification contract](#verification-delivery-verification-and-delivery). [Target qualification](#qualification-compliance-and-qualification-evidence) needs that target's actual delivery/continuation evidence; publisher tests cannot supply it.
+Keep product engineering separate from the reusable methodology. YOLO Dev validates its own tooling/bundle and harness behavior under [publisher acceptance](#assisted-development-acceptance); its concrete commands and CI status live in [development instructions](https://github.com/normzhou/yolo-dev/blob/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664/docs/development.md). Each adopted repo defines its own tests and delivery route under the shared [verification contract](#verification-delivery-verification-and-delivery). [Target qualification](#qualification-compliance-and-qualification-evidence) needs that target's actual delivery/continuation evidence; publisher tests cannot supply it.
 
 <a id="architecture-product-source-and-applied-adoption"></a>
 ### Product source and applied adoption
@@ -314,7 +314,7 @@ All three governing documents use the canonical slots above; durable governing s
 
 Questions belong in reports/issues, not extra governing files. Ownership follows meaning, including draft Charter/authority and proposed controls; location cannot grant permission.
 
-The adopted source revision identifies the layout contract. The [schema](https://github.com/normzhou/yolo-dev/blob/415a846799c66081f7056d41c9ce4c92a24aa1c3/specs/repo-layout.schema.json) supplies its reserved entries/types/role paths in the manifest. The strict validator reports missing canonical homes, unexpected entries, wrong types and invalid mappings without changing files. Init/upgrade propose the required repair; do not mark setup prepared while required structure fails. An incompatible/missing definition is a coverage gap; structural success does not prove meaning or approval.
+The adopted source revision identifies the layout contract. The [schema](https://github.com/normzhou/yolo-dev/blob/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664/specs/repo-layout.schema.json) supplies its reserved entries/types/role paths in the manifest. The strict validator reports missing canonical homes, unexpected entries, wrong types and invalid mappings without changing files. Init/upgrade propose the required repair; do not mark setup prepared while required structure fails. An incompatible/missing definition is a coverage gap; structural success does not prove meaning or approval.
 
 <a id="repo-layout-governing-file-review"></a>
 ### Governing-file review
@@ -593,7 +593,7 @@ Read-only check reviews default-branch setup, current release records and the in
 
 Preserve the first established applicability boundary; restoring it after erroneous intermediate records is a repair, not a new boundary. Compare retained mappings by immutable commit identity: an annotated tag object may be corrected to the commit it peels to, never to another commit. Keep every prior mapping/reference and the erroneous history, with the correction explained in a later report. Missing objects or an incorrect first establishment require investigation; current refs alone cannot validate a correction or authorize moving applicability.
 
-The [record encoding](https://github.com/normzhou/yolo-dev/blob/415a846799c66081f7056d41c9ce4c92a24aa1c3/skills/yolo/references/records.md) realizes these bindings. Target product versions and adopted YOLO releases are independent; upstream publication never upgrades a target automatically.
+The [record encoding](https://github.com/normzhou/yolo-dev/blob/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664/skills/yolo/references/records.md) realizes these bindings. Target product versions and adopted YOLO releases are independent; upstream publication never upgrades a target automatically.
 
 
 <a id="conformance-checks-conformance-checks"></a>
@@ -738,7 +738,7 @@ Status describes the record's identified pin. An upgrade proposal cannot inherit
 <a id="adoption-records-observation-setting"></a>
 ### Observation setting
 
-`observation` is a distinct optional consent from `feedback`. It records whether [activity observation](#observation-activity-observation) may capture and transmit, the stable opaque adoption identifier and the cited recognized-maintainer acceptance. It defaults off and is absent for repositories that never opted in; the field alone grants nothing. Preserve the identifier and decision across repeat init, upgrade and worktrees; revocation stops future transmission, and dry runs never transmit. The [bundle encoding](https://github.com/normzhou/yolo-dev/blob/415a846799c66081f7056d41c9ce4c92a24aa1c3/skills/yolo/references/records.md) implements its exact shape.
+`observation` is a distinct optional consent from `feedback`. It records whether [activity observation](#observation-activity-observation) may capture and transmit, the stable opaque adoption identifier and the cited recognized-maintainer acceptance. It defaults off and is absent for repositories that never opted in; the field alone grants nothing. Preserve the identifier and decision across repeat init, upgrade and worktrees; revocation stops future transmission, and dry runs never transmit. The [bundle encoding](https://github.com/normzhou/yolo-dev/blob/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664/skills/yolo/references/records.md) implements its exact shape.
 
 <a id="adoption-records-execution-profile"></a>
 ### Execution profile
@@ -835,13 +835,29 @@ Map open managed states: queued → **Planned**, active → **In progress**, wai
 
 Use existing labels and recorded explanations. Stages need native/summary evidence; passing checks or merge cannot imply delivered acceptance. Conflicting/missing state or required result data show **Status needs reconciliation**, with permitted source references; raw records require their own authorization. UI must not silently repair metadata.
 
+The request list and conversation use the same native status projection. Make
+progress prominent; **Submitted** describes a transport receipt, not planned or
+active work. Read current metadata in one bounded owner-scoped provider batch,
+without opening every conversation or fetching comments. Missing, incomplete or
+unverified source shows unavailable/reconciliation explicitly; closure alone says
+Closed, never Delivered. Older backends may supply receipt-only fallback. Refresh
+rechecks source; views add no model call or polling. Use the provider's current
+[query/auth guidance](https://docs.github.com/en/graphql/guides/forming-calls-with-graphql),
+[issue schema](https://docs.github.com/en/graphql/reference/issues#issue) and
+[query limits](https://docs.github.com/en/graphql/overview/rate-limits-and-query-limits-for-the-graphql-api),
+rather than freezing provider policy here.
+
 Display split outcomes individually, including delivered, remaining and declined scope. Partial delivery cannot claim full fulfillment; remaining promised scope stays open or receives an explicit disposition under the issue policy. Priority input follows its author's authority, not a UI bypass.
 
 <a id="request-interface-personal-feedback-and-shared-work"></a>
 ### Personal feedback and shared work
 
-Feedback-enabled apps offer **My requests** (the signed-in default), **Work**, and
-a persistent **New feedback** action using the existing forms and conversation.
+Feedback-enabled apps open on **My requests** for signed-in users, with one
+**Start conversation** action leading to the existing forms. Return from the
+composer or a conversation through **My requests**; do not duplicate this flow
+with New request/My requests tabs. Explicit programmatic composer/template opens
+remain supported. The capability-gated **Work** view uses the same navigation
+without creating a second submission path.
 Use the app's verified identity (Google in the shared-login profile); the app
 separately authorizes submission, own-thread reads and shared-work reads. Regular
 users need no GitHub account. Opening the sign-in panel establishes no permission.
@@ -942,6 +958,27 @@ verified delivery. Render as text, preserve drafts/operation IDs and report stal
 or unavailable reads honestly. Client installation and live qualification remain
 separate from publisher fixtures; no automatic app/pin/provider change is implied.
 
+
+<a id="request-interface-feedback-read-performance"></a>
+#### Feedback read performance
+
+Item navigation responds immediately with a loading state. A bounded, ephemeral
+server cache may reuse only the filtered discussion projection for up to20 seconds;
+each open still checks current app identity/permission, ownership and the live
+GitHub issue, including reserved/locked/source restrictions. Binding/credential
+changes and writes invalidate cached projections; older in-flight reads cannot
+refill them. Pending/uncertain effects and explicit Refresh revalidate discussion
+instead of serving the short cache. Conditional REST reads may reuse an ETag body
+only after current provider validation. No stale-on-error or shared-CDN/private
+browser-persistent cache is supplied. Show when discussion was checked.
+
+Prefetch only after authenticated history is opened, on deliberate hover/focus,
+with a small per-open budget and an advertised capable backend/transport.
+Without end-to-end cache negotiation, older clients retain fresh discussion reads. Selection still
+makes its own authorized read. Account/permission changes, close and newer views
+cancel/ignore obsolete work. Small sanitized timing headers measure the existing
+request path; no model call, background polling, new service or authoritative
+project store is added.
 
 <a id="request-interface-managed-feedback-using-the-publisher-github-app"></a>
 ### Managed feedback using the publisher GitHub App
@@ -1105,8 +1142,8 @@ Status: #144 implements the form compiler, local parser and opt-in form installa
 <a id="request-templates-two-product-layers-and-distribution"></a>
 ### Two product layers and distribution
 
-1. **Reusable framework:** schema/template language, form projections, resolution-protocol and response conventions, validation and adapter support. The skill's [starter catalog](https://github.com/normzhou/yolo-dev/blob/415a846799c66081f7056d41c9ce4c92a24aa1c3/requests/catalogs/skill.json) declares four general form/protocol pairs: feedback, feature, bug and question/help. Clients may adopt these or define their own pairs under their existing authority. No installation automatically activates a form or process.
-2. **Application-owned definitions:** a particular app uses the framework for its own needs. Yolo Dev is one such client: its [application catalog](https://github.com/normzhou/yolo-dev/blob/415a846799c66081f7056d41c9ce4c92a24aa1c3/requests/catalogs/yolo-dev.json) owns hosting registration/change and their service protocol/processes. These are not general starter forms/protocols shipped for clients to install into their own issue intake. The [independent client example](https://github.com/normzhou/yolo-dev/blob/415a846799c66081f7056d41c9ce4c92a24aa1c3/requests/catalogs/example-client.json) demonstrates the same ownership boundary.
+1. **Reusable framework:** schema/template language, form projections, resolution-protocol and response conventions, validation and adapter support. The skill's [starter catalog](https://github.com/normzhou/yolo-dev/blob/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664/requests/catalogs/skill.json) declares four general form/protocol pairs: feedback, feature, bug and question/help. Clients may adopt these or define their own pairs under their existing authority. No installation automatically activates a form or process.
+2. **Application-owned definitions:** a particular app uses the framework for its own needs. Yolo Dev is one such client: its [application catalog](https://github.com/normzhou/yolo-dev/blob/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664/requests/catalogs/yolo-dev.json) owns hosting registration/change and their service protocol/processes. These are not general starter forms/protocols shipped for clients to install into their own issue intake. The [independent client example](https://github.com/normzhou/yolo-dev/blob/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664/requests/catalogs/example-client.json) demonstrates the same ownership boundary.
 
 Every form has a required, versioned **resolution protocol**, including the four general forms. Protocols explain interpretation, clarification, disposition, resolution/evidence and follow-up, tailored to the form. A business milestone graph remains optional; ordinary feedback needs no custom service state machine. Protocols may share conventions or be reused across forms without losing an explicit binding.
 
@@ -1140,7 +1177,7 @@ The two layers above are the product boundary. Internally the framework represen
 3. **Optional business process:** service milestones, named actions and evidence-check references. Ordinary discussion/development feedback can omit this graph while retaining its resolution protocol.
 4. **Response:** shared envelope binding interpretation/disposition, covering outcomes, optional milestone, next actions, evidence and typed result to an identified request snapshot and protocol.
 
-The [protocol schema](https://github.com/normzhou/yolo-dev/blob/415a846799c66081f7056d41c9ce4c92a24aa1c3/requests/schemas/protocol.schema.json) describes bounded named stages and handling requirements; the [catalog schema](https://github.com/normzhou/yolo-dev/blob/415a846799c66081f7056d41c9ce4c92a24aa1c3/requests/schemas/catalog.schema.json) groups exact template/protocol/process versions for a starter or application pack. These are declarative procedures consumed under existing receiver authority, not executable workflow code. A role or policy binding still comes from the independently trusted target configuration.
+The [protocol schema](https://github.com/normzhou/yolo-dev/blob/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664/requests/schemas/protocol.schema.json) describes bounded named stages and handling requirements; the [catalog schema](https://github.com/normzhou/yolo-dev/blob/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664/requests/schemas/catalog.schema.json) groups exact template/protocol/process versions for a starter or application pack. These are declarative procedures consumed under existing receiver authority, not executable workflow code. A role or policy binding still comes from the independently trusted target configuration.
 
 JSON Schema Draft 2020-12 validates the definitions and payload shapes. The initial authoring files are JSON; a YAML spelling may be added by an adapter without changing the data model. No bespoke expression language, inheritance, scripts, loops, event triggers or template evaluation is required. Core extension points are namespaced templates, resolution protocols, optional processes, pack catalogs, check/action identifiers and result schemas, not arbitrary executable plugins.
 
@@ -1149,7 +1186,7 @@ These parts are independent of a particular UI. GitHub Issue Forms are one rende
 <a id="request-templates-template-language"></a>
 ### Template language
 
-[`template.schema.json`](https://github.com/normzhou/yolo-dev/blob/415a846799c66081f7056d41c9ce4c92a24aa1c3/requests/schemas/template.schema.json) defines the outer structure. Each definition has `format_version: 1`, a namespaced `id`, exact semantic `version`, `mode`, title/description, `input_schema`, `form.fields`, required `protocol` identity, optional `process` identity, and `result_schema`.
+[`template.schema.json`](https://github.com/normzhou/yolo-dev/blob/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664/requests/schemas/template.schema.json) defines the outer structure. Each definition has `format_version: 1`, a namespaced `id`, exact semantic `version`, `mode`, title/description, `input_schema`, `form.fields`, required `protocol` identity, optional `process` identity, and `result_schema`.
 
 For example, a client-owned template can declare:
 
@@ -1184,7 +1221,7 @@ For example, a client-owned template can declare:
 }
 ```
 
-The complete [client example](https://github.com/normzhou/yolo-dev/blob/415a846799c66081f7056d41c9ce4c92a24aa1c3/requests/templates/example.report.export.json), its [resolution protocol](https://github.com/normzhou/yolo-dev/blob/415a846799c66081f7056d41c9ce4c92a24aa1c3/requests/protocols/example.report.resolution.json) and its [process](https://github.com/normzhou/yolo-dev/blob/415a846799c66081f7056d41c9ce4c92a24aa1c3/requests/processes/example.report.export.json) require no core format change. They are illustrations, not installed app behavior or a new supported hosting product.
+The complete [client example](https://github.com/normzhou/yolo-dev/blob/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664/requests/templates/example.report.export.json), its [resolution protocol](https://github.com/normzhou/yolo-dev/blob/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664/requests/protocols/example.report.resolution.json) and its [process](https://github.com/normzhou/yolo-dev/blob/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664/requests/processes/example.report.export.json) require no core format change. They are illustrations, not installed app behavior or a new supported hosting product.
 
 V1 form input is a flat, closed object with bounded strings, string choices, arrays of string choices, booleans and bounded safe integers. Input keys are stable ASCII identifiers; each is rendered once. `required` comes from the input schema, not a separate UI rule. Optional fields may be omitted; optional empty native text answers normalize to absence, while required whitespace-only text is incomplete. Preserve nonempty user text verbatim; reject unsupported values rather than coerce strings into numbers/booleans. Native form choice labels equal their wire values in v1.
 
@@ -1195,7 +1232,7 @@ Definitions are adopted from trusted, identified source revisions. New namespace
 <a id="request-templates-processes-describe-fulfillment-not-execution-permission"></a>
 ### Processes describe fulfillment, not execution permission
 
-[`process.schema.json`](https://github.com/normzhou/yolo-dev/blob/415a846799c66081f7056d41c9ce4c92a24aa1c3/requests/schemas/process.schema.json) defines roles, initial state, named actions, states and explicit transitions. A state names useful next actions. A transition declares the acting role and required evidence-check IDs. Action prose explains a next step; it is data, never shell/agent instructions to execute automatically. Check IDs identify separately trusted implementations or recorded procedural review. They are not expressions supplied by the requester, and a checked box or schema-valid report cannot satisfy them by itself.
+[`process.schema.json`](https://github.com/normzhou/yolo-dev/blob/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664/requests/schemas/process.schema.json) defines roles, initial state, named actions, states and explicit transitions. A state names useful next actions. A transition declares the acting role and required evidence-check IDs. Action prose explains a next step; it is data, never shell/agent instructions to execute automatically. Check IDs identify separately trusted implementations or recorded procedural review. They are not expressions supplied by the requester, and a checked box or schema-valid report cannot satisfy them by itself.
 
 The receiver binds a role to its recognized identities/policy outside the template. Publishing a definition with an `operator` role does not make its author an operator. Unknown action/check implementations may be displayed as unsupported, but block affected fulfillment effects. No automatic role creation, permissions change or credential delegation is allowed.
 
@@ -1209,7 +1246,7 @@ requested -> approved -> awaiting_setup -> verified -> active
                                                      retired
 ```
 
-The [complete graph](https://github.com/normzhou/yolo-dev/blob/415a846799c66081f7056d41c9ce4c92a24aa1c3/requests/processes/yolo_dev.hosting.registration.json) also defines resumption and retirement before activation. Each move requires current authority and evidence; this picture is not an unattended workflow. `approved` means the name was admitted, `verified` means acceptance evidence was checked, and `active` requires actual protected routing. A historical activation is not proof the app remains healthy. Record observation time and verify again before consequential use.
+The [complete graph](https://github.com/normzhou/yolo-dev/blob/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664/requests/processes/yolo_dev.hosting.registration.json) also defines resumption and retirement before activation. Each move requires current authority and evidence; this picture is not an unattended workflow. `approved` means the name was admitted, `verified` means acceptance evidence was checked, and `active` requires actual protected routing. A historical activation is not proof the app remains healthy. Record observation time and verify again before consequential use.
 
 Every non-initial state is reachable, every action/check/role reference resolves, and terminal states have no outgoing transitions/actions. A hosting `active` state is intentionally nonterminal: it may later be suspended or retired. Administrative correction/reopening retains the previous record and explanation; no definition edit silently rewrites old process meaning. Additional transitions require a new exact definition version and explicit reconciliation, not a forged history.
 
@@ -1218,7 +1255,7 @@ Do not map these milestones onto `yolo:state:*`. A registration can be `awaiting
 <a id="request-templates-structured-response-and-resume"></a>
 ### Structured response and resume
 
-[`response.schema.json`](https://github.com/normzhou/yolo-dev/blob/415a846799c66081f7056d41c9ce4c92a24aa1c3/requests/schemas/response.schema.json) is the common envelope. It includes:
+[`response.schema.json`](https://github.com/normzhou/yolo-dev/blob/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664/requests/schemas/response.schema.json) is the common envelope. It includes:
 
 - Format version; issue repository, number and API node identity; normalized input digest and original source-body digest/observation time.
 - Exact template and required resolution-protocol IDs/versions/content digests; optional process ID/version/digest and current business state.
@@ -1250,14 +1287,14 @@ Serialize response updates per issue, re-read before writing and verify the save
 
 GitHub's form answers become Markdown, not typed REST properties. A chooser description, Markdown instruction block or native field ID alone is not submitted template metadata. The reserved prefilled input carries identity into the body and cannot collide with an app field; edits remain untrusted and must match an installed allowed definition. A later edit/API submission can bypass native form constraints. Human-friendly headings are not a reliable typed field-ID transport. The parser must pin the exact form version/heading map, reject duplicate/missing/ambiguous sections for structured actions and preserve raw source. Test headings/code fences/options/sentinels embedded in free text; never guess a privileged input. For ambiguity, retain feedback and request confirmed structured input. An app/harness can submit a schema-valid payload directly through an authorized issue body/comment; its marker remains untrusted data.
 
-The six [native form snapshots](https://github.com/normzhou/yolo-dev/blob/415a846799c66081f7056d41c9ce4c92a24aa1c3/requests/github-forms) illustrate the native projection; generated client forms are installed only on explicit selection, not by a skill upgrade. They warn that submissions are public and exclude secret fields. Private client ownership checks need an actual private channel before use; do not force disclosure of private repository names, account IDs, allowlist emails, tokens, plans/state or protected artifacts. Result URLs must not be bearer links. Public status can name a readiness check without disclosing its sensitive evidence.
+The six [native form snapshots](https://github.com/normzhou/yolo-dev/blob/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664/requests/github-forms) illustrate the native projection; generated client forms are installed only on explicit selection, not by a skill upgrade. They warn that submissions are public and exclude secret fields. Private client ownership checks need an actual private channel before use; do not force disclosure of private repository names, account IDs, allowlist emails, tokens, plans/state or protected artifacts. Result URLs must not be bearer links. Public status can name a readiness check without disclosing its sensitive evidence.
 
 Client apps can render their own definitions or use the generic feedback fallback. Adopting the skill alone does not expose a form, install a process, grant a role or contact a publisher. No arbitrary templates fetched from submitted URLs are loaded, and no client code/configuration/artifact executes with operator administration credentials. Common instructions arrive in identified skill releases; per-request responses arrive through the saved issue record.
 
 <a id="request-templates-portable-form-adapter--144"></a>
 ### Portable form adapter — #144
 
-The matching prebuilt `yolo-check requests` helper provides local `inspect`, `render`, `normalize`, `pack` and explicit `install` operations. These local operations need no Python/Go runtime, API call, workflow executor or credential selection. The separately configured authenticated operations below reuse existing authorized GitHub access. Ordinary skill installation carries only the immutable starter pack; it does not install issue intake. Adopt/commit native forms through a separately authorized client change. Authenticated responses/resume/monitoring have their separate #145 acceptance and [standalone procedure](https://github.com/normzhou/yolo-dev/blob/415a846799c66081f7056d41c9ce4c92a24aa1c3/skills/yolo/references/request-responses.md); input validation alone cannot establish them.
+The matching prebuilt `yolo-check requests` helper provides local `inspect`, `render`, `normalize`, `pack` and explicit `install` operations. These local operations need no Python/Go runtime, API call, workflow executor or credential selection. The separately configured authenticated operations below reuse existing authorized GitHub access. Ordinary skill installation carries only the immutable starter pack; it does not install issue intake. Adopt/commit native forms through a separately authorized client change. Authenticated responses/resume/monitoring have their separate #145 acceptance and [standalone procedure](https://github.com/normzhou/yolo-dev/blob/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664/skills/yolo/references/request-responses.md); input validation alone cannot establish them.
 
 A pack has `catalog.json`, `index.json` and selected `templates/`, `protocols/`, `processes/` JSON files named `id@version.json`. Index format 1 binds the catalog and every definition by relative path and SHA-256; its exact digest is supplied from independently trusted configuration or a verified release manifest. Reject missing/extra files, pack-root/member aliases, duplicate keys, unresolved/conflicting identities and unsupported versions before use. Packs never fetch definitions. The official starter catalog contains exactly four `yolo.*` pairs and no processes; client packs cannot redefine `yolo.*` or claim starter kind. The matching executable binds the exact official starter index digest; recomputing a modified pack's index cannot impersonate that release. `pack` prepares reviewed local definitions from one catalog and directory; same identity with different bytes is a conflict, identical repeats are harmless. This is authoring, not trusting a newly produced digest.
 
@@ -1436,6 +1473,18 @@ Select releases using [publisher channels](#assisted-development-release-selecti
 5. **Apply within current authority.** Protected edits/authority-control changes need the old policy's identified approval or override; significant design changes notify. Missing decisions leave the old default-branch adoption in force. Publish an authorized migration through its PR, observe the landed revision, append the upgrade's effective commit/evidence and retain historical applicability.
 6. **Check and resume.** Run strict structural validation before dependent activation and again on delivered setup. Verify delivered bundle/snapshot/context, reassess affected criteria and preserve unresolved findings. Loading evidence for the previous pin remains historical, not proof of the new rules being loaded. Reload/restart the harness, then use the [continuation recording route](#qualification-l1-acceptance) before restoring dependent claims.
 
+When the target consumes changed optional shipped assets/packages, review its
+app-owned imports, copies or ports alongside the bundle migration. Compare the
+installed skill, application dependency/mount, served browser code and server
+capability as separate facts; a structural pass does not attest app integration.
+Explain relevant local-versus-hosted update paths and record a concrete compatible
+migration or intentional retention, with client deployment/evidence and remaining
+work. Apply already-authorized repairs through ordinary target work; preserve
+custom app behavior and accepted delivery choices, and reserve only genuinely new
+trust/authority decisions. Installing a bundle supplies neither remote-code consent
+nor an app rollout. Apps without these integrations acquire no new requirement;
+filenames alone cannot prove a copy is stale.
+
 Follow layout with one active marker; competing markers select neither. Upgrade changes applied adoption and includes the smallest implementation/tooling repairs necessary for conformity, within the current grant. Unrelated product improvements or publisher-source changes are separate work. Self-use follows this same route. New publication, installed candidate and active target pin remain separate facts; rollback also records an explicit migration and cannot undo external effects or erase failures.
 
 Classify each finding by its resolution:
@@ -1468,7 +1517,7 @@ For dry run, observe source preservation/no GitHub writes, a complete retained d
 <a id="assisted-development-assisted-distribution"></a>
 ## Assisted distribution
 
-**Publisher artifact requirements.** Package the [protocol](#operating-protocol-operating-protocol) and [onboarding process](#onboarding-onboarding-and-check) so a target harness can operate without this checkout or prior chat. The [candidate skill](https://github.com/normzhou/yolo-dev/blob/415a846799c66081f7056d41c9ce4c92a24aa1c3/skills/yolo/SKILL.md) implements them; observed qualification remains separate.
+**Publisher artifact requirements.** Package the [protocol](#operating-protocol-operating-protocol) and [onboarding process](#onboarding-onboarding-and-check) so a target harness can operate without this checkout or prior chat. The [candidate skill](https://github.com/normzhou/yolo-dev/blob/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664/skills/yolo/SKILL.md) implements them; observed qualification remains separate.
 
 <a id="assisted-development-standalone-bundle"></a>
 ### Standalone bundle
@@ -1516,7 +1565,7 @@ Use `AGENTS.md` as the ordinary entrypoint. Install thin [Claude](https://code.c
 
 Apply [instruction provenance](#repo-layout-instruction-provenance) to entrypoint prose: link accepted purpose/authority, reconcile unsupported derived wording, and retain protected or unresolved decisions according to their evidence. Native discovery and `documents.instructions` identify a loading route, without authenticating the text's ownership or acceptance.
 
-Ordinary requests use [work](#activities-work-shared-development-procedure) without per-session manual invocation. YOLO self-use follows the same identified publication/adoption route; a mutable authoring link cannot upgrade or qualify it. Older [protocol](https://github.com/normzhou/yolo-dev/blob/415a846799c66081f7056d41c9ce4c92a24aa1c3/skills/yolo/references/assisted-protocol.md)/encoding remain compatibility material.
+Ordinary requests use [work](#activities-work-shared-development-procedure) without per-session manual invocation. YOLO self-use follows the same identified publication/adoption route; a mutable authoring link cannot upgrade or qualify it. Older [protocol](https://github.com/normzhou/yolo-dev/blob/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664/skills/yolo/references/assisted-protocol.md)/encoding remain compatibility material.
 
 <a id="assisted-development-release-selection"></a>
 ### Release selection
@@ -1812,7 +1861,7 @@ continued operation verified. Removing a stored value is not revocation.
 <a id="app-hosting-operator-and-adopter-boundary"></a>
 ### Operator and adopter boundary
 
-Two deployment profiles share one application contract: `cloudflare` for client-owned Worker/Static Assets and `cloudflare-oracle` for that same app plus the client-owned Oracle backend. Static/browser-only content and bounded request/scheduled handlers belong to the first; continuous feeds, long jobs and native/container dependencies belong to the second when compatible with verified capacity. D1, a durable queue or another provider is not supplied merely by selecting a profile. Shared login has a concrete D1 need: both profiles use a client-owned database for isolated browser login state/app sessions under the [identity contract](https://github.com/normzhou/yolo-dev/blob/415a846799c66081f7056d41c9ce4c92a24aa1c3/specs/shared-login.md). Other services remain deferred until needed. Local previews establish development behavior; each actual route still requires its selected live operator/client acceptance.
+Two deployment profiles share one application contract: `cloudflare` for client-owned Worker/Static Assets and `cloudflare-oracle` for that same app plus the client-owned Oracle backend. Static/browser-only content and bounded request/scheduled handlers belong to the first; continuous feeds, long jobs and native/container dependencies belong to the second when compatible with verified capacity. D1, a durable queue or another provider is not supplied merely by selecting a profile. Shared login has a concrete D1 need: both profiles use a client-owned database for isolated browser login state/app sessions under the [identity contract](https://github.com/normzhou/yolo-dev/blob/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664/specs/shared-login.md). Other services remain deferred until needed. Local previews establish development behavior; each actual route still requires its selected live operator/client acceptance.
 
 Clients own their Cloudflare app account, Worker, assets, data/secrets and release configuration in both profiles, and their OCI account in the second. Yolo Dev owns the domain/namespace and operator ingress resources. Each side retains its provider credentials and private state. OpenTofu manages infrastructure identity/lifecycle, Wrangler manages app versions/configuration/assets/deployments, and Kamal manages backend containers. One tool owns each resource/field; normal app releases do not apply infrastructure. Reconcile/import existing resources before changing ownership.
 
@@ -1827,11 +1876,11 @@ The client skill prepares a nonsecret request with app slug, repository/recogniz
 <a id="app-hosting-boundary-and-release-contract"></a>
 ### Boundary and release contract
 
-The operator reserves names in [`hosting/domains.json`](https://github.com/normzhou/yolo-dev/blob/415a846799c66081f7056d41c9ce4c92a24aa1c3/hosting/domains.json); the initial pilot remains `trader` from `normzhou/yolo-trader`. This record owns namespace/domain bindings, not client CPU/mount/deployment state. No arbitrary customer hosting, client access to our infrastructure, self-service registration or cross-repository automation is supplied. The maintainer initiates client work and returns artifacts manually.
+The operator reserves names in [`hosting/domains.json`](https://github.com/normzhou/yolo-dev/blob/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664/hosting/domains.json); the initial pilot remains `trader` from `normzhou/yolo-trader`. This record owns namespace/domain bindings, not client CPU/mount/deployment state. No arbitrary customer hosting, client access to our infrastructure, self-service registration or cross-repository automation is supplied. The maintainer initiates client work and returns artifacts manually.
 
 An app release supplies immutable frontend/backend identities, compiled static assets, and for the backend profile a `linux/arm64` image built from an identified clean revision, HTTP routes under `/api`, fast `/health` and `/ready` endpoints, declared secrets/resources/persistent paths and application-aware backup/migration instructions. Readiness must fail until required durable state is usable; market-feed freshness is separate application status, not a reason to erase paper state or continually restart a healthy process. Background ingestion/execution runs independently of browser sessions. Trader owns data rights, vendor costs, engine semantics, paper execution, persistence and UI accuracy. Real-money trading is outside this milestone.
 
-The browser uses HTTPS and same-origin `/api` (including streaming/WebSockets). The client Worker guards all asset/API paths with an app-scoped gateway credential; guards execute before asset serving. The target [shared-login contract](https://github.com/normzhou/yolo-dev/blob/415a846799c66081f7056d41c9ce4c92a24aa1c3/specs/shared-login.md) supplies optional verified identity while preserving authenticated origin transport; clients own anonymous/user/content authorization. Legacy Access-JWT gateways are migration predecessors. New routes use the qualified optional-identity/admission boundary; shared identity establishes a principal while the client applies its own content policy. Verify the actual selected runtime rather than restoring a central human allowlist by default. Neither path may forward a browser-supplied machine credential or unverified identity. The client Worker serves compiled assets and proxies `/api` unchanged to the separately protected backend origin. Only server-side runtime stores hold machine credentials. The OCI origin requires separate Access Service Auth and connector-side JWT audience validation. The earlier private Trader pilot centrally required Google sign-in and an exact-email allowlist. That behavior remains protected during migration but is superseded as target design by shared login and client-owned private allowlists; alternate/preview/direct paths must not bypass the guard. Unknown hosts fail closed. No wildcard routing, public backend/database ports or token-in-browser fallback. [#127](https://github.com/normzhou/yolo-dev/issues/127) owns actual operator authentication and live bypass tests; a local signing fixture is not Google authentication or live cross-account qualification.
+The browser uses HTTPS and same-origin `/api` (including streaming/WebSockets). The client Worker guards all asset/API paths with an app-scoped gateway credential; guards execute before asset serving. The target [shared-login contract](https://github.com/normzhou/yolo-dev/blob/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664/specs/shared-login.md) supplies optional verified identity while preserving authenticated origin transport; clients own anonymous/user/content authorization. Legacy Access-JWT gateways are migration predecessors. New routes use the qualified optional-identity/admission boundary; shared identity establishes a principal while the client applies its own content policy. Verify the actual selected runtime rather than restoring a central human allowlist by default. Neither path may forward a browser-supplied machine credential or unverified identity. The client Worker serves compiled assets and proxies `/api` unchanged to the separately protected backend origin. Only server-side runtime stores hold machine credentials. The OCI origin requires separate Access Service Auth and connector-side JWT audience validation. The earlier private Trader pilot centrally required Google sign-in and an exact-email allowlist. That behavior remains protected during migration but is superseded as target design by shared login and client-owned private allowlists; alternate/preview/direct paths must not bypass the guard. Unknown hosts fail closed. No wildcard routing, public backend/database ports or token-in-browser fallback. [#127](https://github.com/normzhou/yolo-dev/issues/127) owns actual operator authentication and live bypass tests; a local signing fixture is not Google authentication or live cross-account qualification.
 
 The client can build/test against this contract before accounts or DNS are ready. The versioned skill must supply a runnable guarded frontend/API bridge, a loopback-only development entrypoint, and explicit production setup/release gaps. Local synthetic events establish transport, not a live market feed or paper engine. Application cookies are host-only, infrastructure authentication is stripped across boundaries, redirects are not followed with machine credentials, and response streaming is not buffered. Existing application auth remains client-owned; no user identity is inferred from a caller-supplied header. Release/backend migrations and data recovery remain separate.
 
@@ -1844,7 +1893,7 @@ Both runtimes bound request headers/streams/WebSockets, with the client ceiling 
 
 Publication must explicitly supply every app-scoped runtime secret with the exact fixed code/assets, bound to a fresh operator-owned current credential policy for that app/account/Worker and any backend issuer generation. Reject suspended/changed policy and unexpected inherited capabilities; secret names alone do not establish values or scope. Persist uncertain version creation and reconcile read-only without replay. Immediately before deployment, recheck current policy/source and the exact staged version under the publication lock; a prior admission record is not a reusable permit. Rollback must restage earlier code with current authorized credentials rather than directly deploy a retired-policy version. Staging/API binding observations remain distinct from live secret-value, issuer-acceptance and old-capability-denial verification.
 
-Backend Service Auth maintenance uses a deliberate interruption: fence public admission, suspend the existing app token, rotate one generation while disabled with no previous-secret overlap, privately install the new runtime pair, then separately admit resume against current deployment evidence. Each issuer operation uses the operator's encrypted saved-plan/state workflow and preserves account, token identity/lifetime, policies and routing. Persist credential controls so ordinary preparation cannot reset them. Missing rotated-secret recovery stays fenced; a provider read or checked receipt cannot establish possession of a lost replacement. Verify new acceptance and old-secret denial before reopening admission. The private [session helper](https://github.com/normzhou/yolo-dev/blob/415a846799c66081f7056d41c9ce4c92a24aa1c3/hosting/operator/SESSIONS.md) may revoke sessions only for the exact applied public application under a pending validated fence: current whole-host/policy inventory and scoped authority review, original plan/state/recovery binding, mirrored intent before one provider POST, no replay after uncertainty, and read-only actual-effect reconciliation. An acknowledgement cannot complete admission or replace prior/new-session denial and connection drain. This does not supply automatic renewal, Tunnel revocation or live propagation qualification; use current authoritative provider references at operation time.
+Backend Service Auth maintenance uses a deliberate interruption: fence public admission, suspend the existing app token, rotate one generation while disabled with no previous-secret overlap, privately install the new runtime pair, then separately admit resume against current deployment evidence. Each issuer operation uses the operator's encrypted saved-plan/state workflow and preserves account, token identity/lifetime, policies and routing. Persist credential controls so ordinary preparation cannot reset them. Missing rotated-secret recovery stays fenced; a provider read or checked receipt cannot establish possession of a lost replacement. Verify new acceptance and old-secret denial before reopening admission. The private [session helper](https://github.com/normzhou/yolo-dev/blob/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664/hosting/operator/SESSIONS.md) may revoke sessions only for the exact applied public application under a pending validated fence: current whole-host/policy inventory and scoped authority review, original plan/state/recovery binding, mirrored intent before one provider POST, no replay after uncertainty, and read-only actual-effect reconciliation. An acknowledgement cannot complete admission or replace prior/new-session denial and connection drain. This does not supply automatic renewal, Tunnel revocation or live propagation qualification; use current authoritative provider references at operation time.
 
 <a id="app-hosting-host-and-cost-boundary"></a>
 ### Host and cost boundary
@@ -1866,4 +1915,4 @@ One owner-controlled workstation is the only infrastructure writer. Local state 
 
 VM and networking destruction/replacement are refused by lifecycle rules and the saved-plan reviewer. Bootstrap changes are maintenance candidates, not instructions to rebuild a live VM. Use explicit patch procedures; pin image and downloaded runtime identities, bound readiness waits, and keep secrets out of user-data. Pin updates are AI-owned source changes; owner account actions remain [#126](https://github.com/normzhou/yolo-dev/issues/126).
 
-Persist `/srv/yolo/<app>` across container restarts; keep backups outside the VM on the existing owner workstation with a separate encrypted copy. Quiesce the engine before filesystem backup; databases require their own consistent dump/snapshot. Restore into a separate directory and verify data/schema/integrity before selecting it. Infrastructure recovery, container rollback and database migration recovery are distinct. A failed migration cannot be repaired by assuming an old image understands new data. The [portable hosting guide](https://github.com/normzhou/yolo-dev/blob/415a846799c66081f7056d41c9ce4c92a24aa1c3/skills/yolo/references/app-hosting.md) and its linked operations define the procedures; local [publisher fixtures](https://github.com/normzhou/yolo-dev/blob/415a846799c66081f7056d41c9ce4c92a24aa1c3/hosting/OPERATIONS.md) record verification scope; live reboot, recovery, streaming and access acceptance remain pending owner setup and #127–#129.
+Persist `/srv/yolo/<app>` across container restarts; keep backups outside the VM on the existing owner workstation with a separate encrypted copy. Quiesce the engine before filesystem backup; databases require their own consistent dump/snapshot. Restore into a separate directory and verify data/schema/integrity before selecting it. Infrastructure recovery, container rollback and database migration recovery are distinct. A failed migration cannot be repaired by assuming an old image understands new data. The [portable hosting guide](https://github.com/normzhou/yolo-dev/blob/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664/skills/yolo/references/app-hosting.md) and its linked operations define the procedures; local [publisher fixtures](https://github.com/normzhou/yolo-dev/blob/f9ceb59e5bb6c5e38b01208ef68903b0ffc53664/hosting/OPERATIONS.md) record verification scope; live reboot, recovery, streaming and access acceptance remain pending owner setup and #127–#129.

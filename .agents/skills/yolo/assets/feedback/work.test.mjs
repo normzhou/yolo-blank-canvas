@@ -5,7 +5,7 @@ import {fixture,alice,bob} from './fixture.mjs';
 import {createWorkClient} from './dist/src/work-client.js';
 const submission=()=>({id:crypto.randomUUID(),template:'yolo.question',input:{question:'How can we improve this?'}});
 async function run(action){const f=await fixture({work:true}),saved=globalThis.fetch;globalThis.fetch=f.github;
- const requester=(path,options={})=>f.bridge.fetch(new Request(f.env.PUBLIC_ORIGIN+'/yolo/api/v1/'+path,{method:options.body?'POST':'GET',headers:{Origin:f.env.PUBLIC_ORIGIN,'Content-Type':'application/json','X-Feedback-Owner':options.owner??'','X-Feedback-Visibility':options.visibility??'private'},...(options.body?{body:JSON.stringify(options.body)}:{})}),f.env,{principal:options.principal??alice});
+ const requester=(path,options={})=>f.bridge.fetch(new Request(f.env.PUBLIC_ORIGIN+'/yolo/api/v1/'+path,{method:options.body?'POST':'GET',headers:{Origin:f.env.PUBLIC_ORIGIN,'Content-Type':'application/json','X-Feedback-Owner':options.owner??'','X-Feedback-Visibility':options.visibility??'private',...(options.cache?{'X-Yolo-Read-Cache':'v1'}:{})},...(options.body?{body:JSON.stringify(options.body)}:{})}),f.env,{principal:options.principal??alice});
  const owner=await f.owner(alice);const request=(path,options={})=>requester(path,{owner,...options});
  const transport=async(url,init)=>f.bridge.fetch(new Request(url,init),f.env,{});
  const client=createWorkClient({baseURL:f.env.PUBLIC_ORIGIN+'/yolo/api/v1',token:f.workerToken,fetch:transport});
@@ -36,6 +36,7 @@ test('versioned requester visibility and distinct worker authority fail closed b
 test('L1 client reads requester input and publishes one durable intentional response with read-only uncertain recovery',()=>run(async({f,request,client})=>{
  const input=submission();await request('requests',{body:input});
  assert.equal((await client.requests()).requests[0].id,input.id);assert.equal((await client.request(input.id)).input.input.question,input.input.question);
+ const cachedBefore=await request('requests/'+input.id,{cache:true});assert.equal((await cachedBefore.json()).responses.length,0);assert.equal((await request('requests/'+input.id,{cache:true})).headers.get('X-Yolo-Cache'),'hit');
  const operation=crypto.randomUUID();f.state.loseReply=true;
  const result=await client.respond(input.id,operation,'Please try this change.');assert.equal(result.phase,'writing');
  assert.equal((await client.receipt(input.id,operation)).phase,'sent');
@@ -44,7 +45,7 @@ test('L1 client reads requester input and publishes one durable intentional resp
  assert.equal(f.calls.filter(c=>c.method==='POST').length,2);
  f.state.private=false;const changedReply=await request('requests/'+input.id+'/replies',{body:{id:crypto.randomUUID(),message:'Do not post with stale disclosure'}});assert.equal(changedReply.status,409);assert.equal(f.calls.filter(c=>c.method==='POST').length,2);f.state.private=true;
  f.comments.get(1).push({id:50,body:'PRIVATE INTERNAL NOTE',user:{login:'writer'}});
- const userThread=await(await request('requests/'+input.id)).json();assert.equal(userThread.responses[0].message,'Please try this change.');assert.ok(!JSON.stringify(userThread).includes('PRIVATE INTERNAL'));
+ const updated=await request('requests/'+input.id,{cache:true});assert.equal(updated.headers.get('X-Yolo-Cache'),'miss');const userThread=await updated.json();assert.equal(userThread.responses[0].message,'Please try this change.');assert.ok(!JSON.stringify(userThread).includes('PRIVATE INTERNAL'));
  f.state.loseReply=false;const reply={id:crypto.randomUUID(),message:'That works, thanks.'};await request('requests/'+input.id+'/replies',{body:reply});
  assert.ok((await client.request(input.id)).comments.some(c=>c.body.includes('That works, thanks.')));
  const noAck=crypto.randomUUID();f.state.failBefore=true;await assert.rejects(client.respond(input.id,noAck,'Not posted'),/503/);f.state.failBefore=false;

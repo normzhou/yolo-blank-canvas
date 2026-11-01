@@ -10,7 +10,7 @@
   "engines": {
     "node": ">=24"
   },
-  "version": "0.1.0-alpha.53",
+  "version": "0.1.0-alpha.57",
   "description": "Client-owned feedback UI and bounded L1 work bridge",
   "exports": {
     ".": {
@@ -46,6 +46,7 @@
     "dist",
     "src",
     "server.mjs",
+    "read-cache.mjs",
     "forms.mjs",
     "ui-assets.mjs",
     "library-assets.mjs",
