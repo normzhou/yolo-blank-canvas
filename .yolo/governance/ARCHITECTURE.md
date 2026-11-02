@@ -27,6 +27,12 @@ GitHub CLI (credentials) ──► GitHub issues, comments, labels, PRs
 
 Boundary rules that are load-bearing rather than incidental:
 
+- **Hosted `v1` Shared Feedback & Managed Work Bridge (`src/client/hostedFeedback.ts`, `hosting/cloudflare/worker.mjs`, `server/app.js`):**
+  In hosted mode (`https://demo.yolo-dev.ai`), clicking the YOLO Threefold symbol opens the official
+  YOLO Dev `<yolo-feedback-v1>` dialog loaded from `https://yolo-dev.ai/feedback/v1.mjs` (with same-origin
+  `/yolo/feedback/browser.js` fallback), backed by `createManagedWorkBridge` (`appId: 'demo'`,
+  `serviceOrigin: 'https://feedback.yolo-dev.ai'`) serving `/yolo/feedback/*` and `/yolo/api/v1/*` (#290).
+  In local `gh` mode (`npm start` / `npm run e2e`), the privileged `<Panel>` overlay remains active.
 - **2-Player Online Netplay (`src/client/netplay.ts`, `server/netplay.js`, `hosting/cloudflare/worker.mjs`):**
   Uses an event-driven WebSocket push transport (`Upgrade: websocket` on `/api/netplay` backed by
   Cloudflare's Hibernatable Durable Object API on `NetplayHub` and a zero-dependency RFC 6455 upgrade

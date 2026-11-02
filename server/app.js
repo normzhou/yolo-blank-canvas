@@ -12,6 +12,7 @@ import { buildInfo, CLIENT_DIR } from './build.js';
 import { hostGuard, sameOriginGuard, securityHeaders } from './security.js';
 import { GhError, ValidationError, effectiveIdentity, checkRepoAccess } from './gh.js';
 import { createNetplayHub } from './netplay.js';
+import { libraryAssets } from '../.agents/skills/yolo/assets/feedback/dist/library-assets.mjs';
 
 export const LOGIN_COMMAND = 'gh auth login --hostname github.com --web --skip-ssh-key';
 const IDENTITY_TTL_MS = 20_000;
@@ -214,6 +215,18 @@ export function createApp({
 
   app.use('/api', (req, res) => {
     res.status(404).json({ error: { kind: 'not_found', message: 'Unknown endpoint.' } });
+  });
+
+  app.get('/yolo/feedback/*', (req, res) => {
+    const asset = libraryAssets[req.path];
+    if (!asset) {
+      res.status(404).send('Not found');
+      return;
+    }
+    res.setHeader('Content-Type', asset.type);
+    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.send(asset.body);
   });
 
   // The built UI. Committed to the repository so the one-command install needs no build.
