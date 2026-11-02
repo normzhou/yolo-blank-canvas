@@ -21,7 +21,7 @@ export async function startPreview({port = 4174, backend = 'http://127.0.0.1:300
     resourcePersistencePath: resolve(directory, '.wrangler/state'), resourceTmpPath: resolve(directory, '.wrangler/tmp'),
     workers: [{name: 'client',
     modulesRoot: directory,
-    modules: ['worker.mjs', 'transport.mjs', 'yolo-feedback/src/managed-client.js', 'yolo-feedback/src/contract.js', 'yolo-feedback/src/version.js', 'yolo-feedback/library-assets.mjs'].map(name => ({type: 'ESModule', path: resolve(directory, name)})),
+    modules: ['worker.mjs', 'transport.mjs', 'identity-client.mjs', 'oauth4webapi.mjs', 'yolo-feedback/src/managed-client.js', 'yolo-feedback/src/contract.js', 'yolo-feedback/src/version.js', 'yolo-feedback/library-assets.mjs'].map(name => ({type: 'ESModule', path: resolve(directory, name)})),
     compatibilityDate: config.compatibility_date,
     compatibilityFlags: config.compatibility_flags, bindings: env,
     durableObjects: {NETPLAY_HUB: 'NetplayHub'},

@@ -4,6 +4,16 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Shared Login Routes `/auth/yolo/*` Backed by `NetplayHub` Durable Object Storage (#292) — 2026-11-01
+
+Source revision `7b9ca2d` (with Worker `/auth/yolo/{login,callback,logout,session}` routes backed by `NetplayHub` Durable Object storage); published as `v0.28.1` on 2026-11-01.
+
+- **Durable Object-Backed `APP_DB` & `/auth/yolo/*` Routes (`hosting/cloudflare/worker.mjs`, `hosting/cloudflare/identity-client.mjs`, `hosting/cloudflare/wrangler.json`):**
+  - Stores `app_login` (5-minute single-use PKCE state) and `app_session` (1-hour `__Host-yolo-demo-session` cookie) inside `NetplayHub` Durable Object storage (`identity_state`) and enables `CLIENT_IDENTITY_ENABLED: "true"`.
+  - `POST https://demo.yolo-dev.ai/auth/yolo/login` sets `__Host-yolo-demo-login` and redirects `303` to `https://login.yolo-dev.ai/api/auth/oauth2/authorize?client_id=yolo-demo...`; `GET https://demo.yolo-dev.ai/auth/yolo/session` returns `200 {"identity":null,"expires":null}`.
+- `npm test`: 26 files, 174 tests passed.
+- `npx tsc --noEmit`: clean.
+
 ## Hosted `v1` Shared Feedback Dialog & `createManagedWorkBridge` (#290) — 2026-11-01
 
 Source revision `c634779` (the hosted `v1` shared feedback dialog and `createManagedWorkBridge` commit); build evidence `7b9ca2d`; release commit `c0e0b92`; published as `v0.28.0` on 2026-11-01.
