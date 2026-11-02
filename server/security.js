@@ -83,7 +83,7 @@ export function securityHeaders(req, res, next) {
       "media-src 'self'",
       "connect-src 'self'",
       "base-uri 'none'",
-      "form-action 'none'",
+      "form-action 'self' https://login.yolo-dev.ai https://accounts.google.com",
       "frame-ancestors 'none'",
     ].join('; '),
   );

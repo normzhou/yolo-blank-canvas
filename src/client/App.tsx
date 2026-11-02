@@ -13,6 +13,7 @@ import {
   toggleSharedGamePaused,
 } from './gamePause';
 import { mountHostedYoloMark } from './brand/yoloMark';
+import { openHostedFeedback } from './hostedFeedback';
 import { useFullscreen } from './fullscreen';
 import { Panel, type PanelView } from './components/Panel';
 import { ErrorNotice } from './components/ErrorNotice';
@@ -951,6 +952,22 @@ export function App() {
             <YoloRotatingLogo
               testId="yolo-rotating-logo"
               onActivate={() => {
+                if (isStaticDemo) {
+                  void openHostedFeedback({
+                    page: activeApp ? activeApp.title : 'Home',
+                  }).then((opened) => {
+                    if (!opened) {
+                      if (activeApp) {
+                        panelOpenerRef.current = 'feedback';
+                        openNewRequest('feedback');
+                      } else {
+                        panelOpenerRef.current = 'start';
+                        openPanel();
+                      }
+                    }
+                  });
+                  return;
+                }
                 if (activeApp) {
                   panelOpenerRef.current = 'feedback';
                   openNewRequest('feedback');

@@ -1,4 +1,11 @@
 import {publicOrigin, originAuthorization, cleanRequestHeaders, cleanResponse, failure, withinDeadline} from './transport.mjs';
+import {createManagedWorkBridge} from './yolo-feedback/src/managed-client.js';
+
+const managedFeedback = createManagedWorkBridge({
+  appId: 'demo',
+  serviceOrigin: 'https://feedback.yolo-dev.ai',
+  authorize: principal => Boolean(principal && principal.emailVerified === true),
+});
 
 const PLAYER_TTL_MS = 25_000;
 const INVITE_TTL_MS = 20_000;
@@ -634,6 +641,16 @@ export default {
     const url = new URL(request.url);
     if (['TRACE', 'CONNECT'].includes(request.method)) return failure(405, 'Method not allowed');
     if (url.pathname === '/__yolo/version') return Response.json({version: env.APP_VERSION}, {headers: {'cache-control': 'no-store'}});
+    if (url.pathname.startsWith('/yolo/feedback/') || url.pathname.startsWith('/yolo/api/v1')) {
+      return withinDeadline(authorization.deadline, async signal => {
+        const publicUrl = new URL(url.pathname + url.search, origin);
+        const headers = new Headers(request.headers);
+        if (headers.has('origin')) headers.set('origin', origin);
+        const normalizedReq = new Request(publicUrl.href, new Request(request, {headers}));
+        const res = await managedFeedback.fetch(normalizedReq, env, {principal: null, signal});
+        return res ?? failure(404, 'Not found');
+      });
+    }
     if (url.pathname === '/api/netplay') {
       return withinDeadline(authorization.deadline, async () => {
         if (env.NETPLAY_HUB && typeof env.NETPLAY_HUB.idFromName === 'function') {
