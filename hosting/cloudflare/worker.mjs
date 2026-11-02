@@ -1,5 +1,6 @@
 import {publicOrigin, originAuthorization, cleanRequestHeaders, cleanResponse, failure, withinDeadline} from './transport.mjs';
 import {createManagedWorkBridge} from './yolo-feedback/src/managed-client.js';
+import {identify} from './identity-client.mjs';
 
 const managedFeedback = createManagedWorkBridge({
   appId: 'demo',
@@ -40,6 +41,8 @@ export class NetplayHub {
     this.invites = new Map();
     this.rooms = new Map();
     this.socketMeta = new Map();
+    this.appLogins = new Map();
+    this.appSessions = new Map();
     this.seq = 1;
     if (ctx && typeof ctx.blockConcurrencyWhile === 'function' && ctx.storage) {
       ctx.blockConcurrencyWhile(async () => {
@@ -59,6 +62,15 @@ export class NetplayHub {
               for (const [k, v] of saved.rooms) this.rooms.set(k, v);
             }
           }
+          const savedIdentity = await ctx.storage.get('identity_state');
+          if (savedIdentity && typeof savedIdentity === 'object') {
+            if (Array.isArray(savedIdentity.logins)) {
+              for (const [k, v] of savedIdentity.logins) this.appLogins.set(k, v);
+            }
+            if (Array.isArray(savedIdentity.sessions)) {
+              for (const [k, v] of savedIdentity.sessions) this.appSessions.set(k, v);
+            }
+          }
           if (typeof ctx.getWebSockets === 'function') {
             for (const ws of ctx.getWebSockets()) {
               const att = ws.deserializeAttachment?.();
@@ -72,6 +84,70 @@ export class NetplayHub {
         }
       });
     }
+  }
+
+  async executeIdentityStatements(statements = []) {
+    const now = Date.now();
+    let mutated = false;
+    for (const [k, row] of this.appLogins.entries()) {
+      if (!row || row.expires <= now) {
+        this.appLogins.delete(k);
+        mutated = true;
+      }
+    }
+    const results = [];
+    for (const stmt of statements) {
+      const sql = String(stmt?.sql || '').trim();
+      const params = Array.isArray(stmt?.params) ? stmt.params : [];
+      if (sql.startsWith('SELECT * FROM app_session')) {
+        const [handle_hash, app] = params;
+        const row = this.appSessions.get(`${app}:${handle_hash}`) || null;
+        results.push(row);
+      } else if (sql.startsWith('DELETE FROM app_session')) {
+        const [handle_hash, app] = params;
+        const deleted = this.appSessions.delete(`${app}:${handle_hash}`);
+        if (deleted) mutated = true;
+        results.push({success: true});
+      } else if (sql.startsWith('INSERT INTO app_session')) {
+        const [handle_hash, app, subject, email, issued, expires] = params;
+        this.appSessions.set(`${app}:${handle_hash}`, {
+          handle_hash, app, subject, email, issued, expires,
+        });
+        mutated = true;
+        results.push({success: true});
+      } else if (sql.startsWith('INSERT INTO app_login')) {
+        const [state_hash, browser_hash, app, verifier, nonce, expires] = params;
+        this.appLogins.set(`${app}:${state_hash}`, {
+          state_hash, browser_hash, app, verifier, nonce, expires,
+        });
+        mutated = true;
+        results.push({success: true});
+      } else if (sql.startsWith('DELETE FROM app_login')) {
+        const [state_hash, browser_hash, app, minExpires] = params;
+        const key = `${app}:${state_hash}`;
+        const row = this.appLogins.get(key);
+        if (row && row.browser_hash === browser_hash && row.app === app && row.expires > minExpires) {
+          this.appLogins.delete(key);
+          mutated = true;
+          results.push(row);
+        } else {
+          results.push(null);
+        }
+      } else {
+        results.push(null);
+      }
+    }
+    if (mutated && this.ctx?.storage) {
+      try {
+        await this.ctx.storage.put('identity_state', {
+          logins: Array.from(this.appLogins.entries()),
+          sessions: Array.from(this.appSessions.entries()),
+        });
+      } catch {
+        // Ignore storage write errors
+      }
+    }
+    return results;
   }
 
   getConnectedSockets() {
@@ -574,6 +650,11 @@ export class NetplayHub {
 
   async fetch(request) {
     const url = new URL(request.url);
+    if (url.pathname === '/__internal/identity-db' && request.method === 'POST') {
+      const body = await request.json();
+      const results = await this.executeIdentityStatements(body?.statements || []);
+      return Response.json({results});
+    }
     if ((request.headers.get('upgrade') || '').toLowerCase() === 'websocket') {
       const pair = new WebSocketPair();
       const client = pair[0];
@@ -628,6 +709,48 @@ export class NetplayHub {
 
 const fallbackHub = new NetplayHub(null, null);
 
+function createDurableObjectAppDb(env) {
+  async function execStatements(statements) {
+    const req = new Request('https://internal/__internal/identity-db', {
+      method: 'POST',
+      headers: {'content-type': 'application/json'},
+      body: JSON.stringify({statements}),
+    });
+    const res =
+      env.NETPLAY_HUB && typeof env.NETPLAY_HUB.idFromName === 'function'
+        ? await env.NETPLAY_HUB.get(env.NETPLAY_HUB.idFromName('global')).fetch(req)
+        : await fallbackHub.fetch(req);
+    const data = await res.json();
+    return Array.isArray(data?.results) ? data.results : [];
+  }
+  return {
+    prepare(sql) {
+      return {
+        sql,
+        params: [],
+        bind(...params) {
+          return {
+            sql,
+            params,
+            async first() {
+              const res = await execStatements([{sql, params}]);
+              return res[0] ?? null;
+            },
+            async run() {
+              await execStatements([{sql, params}]);
+              return {success: true};
+            },
+          };
+        },
+      };
+    },
+    async batch(boundStatements) {
+      const statements = boundStatements.map(s => ({sql: s.sql, params: s.params || []}));
+      return execStatements(statements);
+    },
+  };
+}
+
 export default {
   async fetch(request, env) {
     let origin, authorization;
@@ -641,13 +764,31 @@ export default {
     const url = new URL(request.url);
     if (['TRACE', 'CONNECT'].includes(request.method)) return failure(405, 'Method not allowed');
     if (url.pathname === '/__yolo/version') return Response.json({version: env.APP_VERSION}, {headers: {'cache-control': 'no-store'}});
-    if (url.pathname.startsWith('/yolo/feedback/') || url.pathname.startsWith('/yolo/api/v1')) {
+    if (
+      url.pathname.startsWith('/auth/yolo/') ||
+      url.pathname.startsWith('/yolo/feedback/') ||
+      url.pathname.startsWith('/yolo/api/v1')
+    ) {
       return withinDeadline(authorization.deadline, async signal => {
         const publicUrl = new URL(url.pathname + url.search, origin);
         const headers = new Headers(request.headers);
         if (headers.has('origin')) headers.set('origin', origin);
         const normalizedReq = new Request(publicUrl.href, new Request(request, {headers}));
-        const res = await managedFeedback.fetch(normalizedReq, env, {principal: null, signal});
+        const envWithDb = {
+          ...env,
+          CLIENT_IDENTITY_ENABLED: env.CLIENT_IDENTITY_ENABLED ?? 'true',
+          APP_DB: env.APP_DB || createDurableObjectAppDb(env),
+        };
+        let principal = null;
+        if (
+          url.pathname.startsWith('/auth/yolo/') ||
+          (url.pathname.startsWith('/yolo/api/v1') && !url.pathname.startsWith('/yolo/api/v1/worker/'))
+        ) {
+          const authState = await identify(normalizedReq, envWithDb);
+          if (authState.response) return authState.response;
+          principal = authState.identity ?? null;
+        }
+        const res = await managedFeedback.fetch(normalizedReq, envWithDb, {principal, signal});
         return res ?? failure(404, 'Not found');
       });
     }
