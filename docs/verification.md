@@ -6,13 +6,14 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Shared Login Routes `/auth/yolo/*` Backed by `NetplayHub` Durable Object Storage (#292) — 2026-11-01
 
-Source revision `7b9ca2d` (with Worker `/auth/yolo/{login,callback,logout,session}` routes backed by `NetplayHub` Durable Object storage); published as `v0.28.1` on 2026-11-01.
+Source revision `7b9ca2d` (with Worker `/auth/yolo/{login,callback,logout,session}` routes backed by `NetplayHub` Durable Object storage); release commit `f56bc64`; published as `v0.28.1` on 2026-11-01.
 
 - **Durable Object-Backed `APP_DB` & `/auth/yolo/*` Routes (`hosting/cloudflare/worker.mjs`, `hosting/cloudflare/identity-client.mjs`, `hosting/cloudflare/wrangler.json`):**
   - Stores `app_login` (5-minute single-use PKCE state) and `app_session` (1-hour `__Host-yolo-demo-session` cookie) inside `NetplayHub` Durable Object storage (`identity_state`) and enables `CLIENT_IDENTITY_ENABLED: "true"`.
   - `POST https://demo.yolo-dev.ai/auth/yolo/login` sets `__Host-yolo-demo-login` and redirects `303` to `https://login.yolo-dev.ai/api/auth/oauth2/authorize?client_id=yolo-demo...`; `GET https://demo.yolo-dev.ai/auth/yolo/session` returns `200 {"identity":null,"expires":null}`.
 - `npm test`: 26 files, 174 tests passed.
 - `npx tsc --noEmit`: clean.
+- Deployed live to `yolo-demo-app` (`Version ID: 1d860302-54c9-4438-9647-275fb4bb4388`) and verified live at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.28.1"}`), `GET https://demo.yolo-dev.ai/auth/yolo/session` (`200 {"identity":null,"expires":null}`), and `POST https://demo.yolo-dev.ai/auth/yolo/login` (`303 Location: https://login.yolo-dev.ai/api/auth/oauth2/authorize?client_id=yolo-demo...`). Report: [`.yolo/reports/releases-observed-2026-11-01-v0281.json`](../.yolo/reports/releases-observed-2026-11-01-v0281.json).
 
 ## Hosted `v1` Shared Feedback Dialog & `createManagedWorkBridge` (#290) — 2026-11-01
 

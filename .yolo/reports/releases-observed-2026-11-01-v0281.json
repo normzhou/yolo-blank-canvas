@@ -1,0 +1,57 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-01",
+  "observed_at": "2026-11-01",
+  "published_at_utc": "2026-11-02T21:49:00Z",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "release": "v0.1.0-alpha.57"
+  },
+  "releases": [
+    {
+      "tag": "v0.28.1",
+      "commit": "f56bc642802729e8f234e410e3eb60510ed90b7e"
+    }
+  ],
+  "release": {
+    "tag": "v0.28.1",
+    "tag_object": "540502d9ee73744e82077c561b5861e2655d8ab5",
+    "release_commit": "f56bc642802729e8f234e410e3eb60510ed90b7e",
+    "source_commit": "c634779087cf1351a8b1fc2f2ffebd7c10972943",
+    "assets_commit": "7b9ca2dd569b05de9bec94eeaea3c18d96d6eb57",
+    "semver": "patch",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record c634779, the client source revision. f56bc64 merges the Worker /auth/yolo/* login routes (#292) and release metadata; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "174 passed across 26 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "workerd (Miniflare) /auth/yolo/* verification", "result": "pass", "detail": "GET /auth/yolo/session 200 and POST /auth/yolo/login 303 to https://login.yolo-dev.ai/api/auth/oauth2/authorize" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "deployed_to": "https://demo.yolo-dev.ai (Cloudflare Worker yolo-demo-app, Version ID: 1d860302-54c9-4438-9647-275fb4bb4388)",
+    "served_build": "c634779087cf1351a8b1fc2f2ffebd7c10972943",
+    "served_version": {
+      "package": "0.28.1",
+      "appVersion": "v0.28.1",
+      "clientBuild": "c634779087cf1351a8b1fc2f2ffebd7c10972943"
+    },
+    "result": "pass",
+    "detail": "Deployed live to yolo-demo-app (Version ID: 1d860302-54c9-4438-9647-275fb4bb4388) and verified live at https://demo.yolo-dev.ai/__yolo/version (200 {\"version\":\"v0.28.1\"}), https://demo.yolo-dev.ai/auth/yolo/session (200 {\"identity\":null,\"expires\":null}), and POST https://demo.yolo-dev.ai/auth/yolo/login (303 Location: https://login.yolo-dev.ai/api/auth/oauth2/authorize?client_id=yolo-demo... + Set-Cookie: __Host-yolo-demo-login)."
+  },
+  "what_this_release_delivers": [
+    "#292 Wire /auth/yolo/* shared login routes on demo.yolo-dev.ai backed by NetplayHub Durable Object storage"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "The tag points at f56bc64, the merge of the Worker /auth/yolo/* routes and release metadata after the client assets commit 7b9ca2d. Both build-ID files record the client source c634779, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #292"
+}
