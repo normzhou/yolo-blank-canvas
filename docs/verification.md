@@ -6,7 +6,7 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Hosted `v1` Shared Feedback Dialog & `createManagedWorkBridge` (#290) — 2026-11-01
 
-Source revision `c634779` (the hosted `v1` shared feedback dialog and `createManagedWorkBridge` commit); build evidence `7b9ca2d`; published as `v0.28.0` on 2026-11-01.
+Source revision `c634779` (the hosted `v1` shared feedback dialog and `createManagedWorkBridge` commit); build evidence `7b9ca2d`; release commit `c0e0b92`; published as `v0.28.0` on 2026-11-01.
 
 - **Hosted `v1` Shared Feedback Dialog (`src/client/hostedFeedback.ts`, `src/client/App.tsx`, `test/hosted-feedback.test.ts`):**
   - On `https://demo.yolo-dev.ai` (`isStaticDemo === true`), clicking the top-right YOLO Threefold symbol opens the `<yolo-feedback-v1>` dialog loaded from `https://yolo-dev.ai/feedback/v1.mjs` (with same-origin `/yolo/feedback/browser.js` fallback), passing `app: { id: 'demo', name: 'Blank Canvas' }` and `getContext: () => ({ page: activeApp ? activeApp.title : 'Home' })`.
@@ -16,6 +16,7 @@ Source revision `c634779` (the hosted `v1` shared feedback dialog and `createMan
   - `server/app.js` serves `/yolo/feedback/*` and `server/security.js` permits `form-action 'self' https://login.yolo-dev.ai https://accounts.google.com`.
 - `npm test`: 26 files, 174 tests passed.
 - `npx tsc --noEmit`: clean.
+- Deployed live to `yolo-demo-app` (`Version ID: d01e88a3-3579-4199-82e2-a8dd0b0a06f4`) and verified at `https://demo.yolo-dev.ai/__yolo/version` (`200 {"version":"v0.28.0"}`), `https://demo.yolo-dev.ai/.build-id` (`200 c634779087cf1351a8b1fc2f2ffebd7c10972943`), `https://demo.yolo-dev.ai/yolo/feedback/styles.css` (`200`), and `https://demo.yolo-dev.ai/yolo/api/v1/session` (`403 {"error":"Sign in to share feedback.","code":"login_required"}`). Report: [`.yolo/reports/releases-observed-2026-11-01-v0280.json`](../.yolo/reports/releases-observed-2026-11-01-v0280.json).
 
 ## Inactivity Session Closure & Cloudflare `bridgeWebSocket` Handshake (#288) — 2026-11-01
 

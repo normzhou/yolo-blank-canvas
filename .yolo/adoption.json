@@ -292,15 +292,16 @@
         "v0.26.0": "335f220957fd8e3f6dd358d122acd09be78337a0",
         "v0.26.1": "e1c26cdff763454e03fa848b2147b61da84638eb",
         "v0.27.0": "39ff93d1a484d3a99ee6a1cc9b71cde206ef9090",
-        "v0.27.1": "4a24769b04ab56dfc1029b9d8664d487927c0b07"
+        "v0.27.1": "4a24769b04ab56dfc1029b9d8664d487927c0b07",
+        "v0.27.2": "05224248776a3ab5e36e1296532d9fff09750714"
       },
       "published": {
-        "tag": "v0.27.2",
-        "commit": "05224248776a3ab5e36e1296532d9fff09750714",
-        "source_commit": "ce3c93b240a46188dcea44468984829eed9cf7ad",
-        "published_at": "2026-11-01T23:35:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-01-v0272.json",
-        "note": "Patch release (#288, PR #289). Closes inactive netplay sessions on input timeout (45s idle / 90s in-room) and ensures Cloudflare bridgeWebSocket initial snapshot delivery; deployed to yolo-demo-app (Version ID: ffc112a1-e1fe-4bda-982f-5e3ef49e05f1). Acceptance before tagging: 172 unit, workerd Durable Object WS verification, tsc clean."
+        "tag": "v0.28.0",
+        "commit": "c0e0b92121ec7f8f393f9296eeef020b0136ba10",
+        "source_commit": "c634779087cf1351a8b1fc2f2ffebd7c10972943",
+        "published_at": "2026-11-02T16:28:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-01-v0280.json",
+        "note": "Minor release (#290, PR #291). Integrates the hosted v1 shared feedback dialog (<yolo-feedback-v1> via https://yolo-dev.ai/feedback/v1.mjs with /yolo/feedback/browser.js fallback) and createManagedWorkBridge (/yolo/api/v1/* and /yolo/feedback/*) for https://demo.yolo-dev.ai; deployed live to yolo-demo-app (Version ID: d01e88a3-3579-4199-82e2-a8dd0b0a06f4)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -360,7 +361,8 @@
         ".yolo/reports/releases-observed-2026-10-27-v0260.json",
         ".yolo/reports/releases-observed-2026-11-01-v0261.json",
         ".yolo/reports/releases-observed-2026-11-01-v0270.json",
-        ".yolo/reports/releases-observed-2026-11-01-v0272.json"
+        ".yolo/reports/releases-observed-2026-11-01-v0272.json",
+        ".yolo/reports/releases-observed-2026-11-01-v0280.json"
       ]
     }
   },
