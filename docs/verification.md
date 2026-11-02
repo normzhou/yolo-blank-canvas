@@ -4,6 +4,19 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Hosted `v1` Shared Feedback Dialog & `createManagedWorkBridge` (#290) — 2026-11-01
+
+Source revision `c634779` (the hosted `v1` shared feedback dialog and `createManagedWorkBridge` commit); build evidence `7b9ca2d`; published as `v0.28.0` on 2026-11-01.
+
+- **Hosted `v1` Shared Feedback Dialog (`src/client/hostedFeedback.ts`, `src/client/App.tsx`, `test/hosted-feedback.test.ts`):**
+  - On `https://demo.yolo-dev.ai` (`isStaticDemo === true`), clicking the top-right YOLO Threefold symbol opens the `<yolo-feedback-v1>` dialog loaded from `https://yolo-dev.ai/feedback/v1.mjs` (with same-origin `/yolo/feedback/browser.js` fallback), passing `app: { id: 'demo', name: 'Blank Canvas' }` and `getContext: () => ({ page: activeApp ? activeApp.title : 'Home' })`.
+  - In local privileged `gh` mode (`isStaticDemo === false`), the existing `<Panel>` overlay remains active.
+- **Cloudflare Worker Managed Feedback Bridge (`hosting/cloudflare/worker.mjs`, `hosting/cloudflare/yolo-feedback/`, `server/app.js`, `server/security.js`):**
+  - Mounts `createManagedWorkBridge({ appId: 'demo', serviceOrigin: 'https://feedback.yolo-dev.ai', authorize })` in `hosting/cloudflare/worker.mjs` to serve `/yolo/feedback/*` (`200`) and `/yolo/api/v1/*` (`403 login_required` when signed out, forwarding authenticated user/L1 worker requests with `env.MANAGED_FEEDBACK_TOKEN`).
+  - `server/app.js` serves `/yolo/feedback/*` and `server/security.js` permits `form-action 'self' https://login.yolo-dev.ai https://accounts.google.com`.
+- `npm test`: 26 files, 174 tests passed.
+- `npx tsc --noEmit`: clean.
+
 ## Inactivity Session Closure & Cloudflare `bridgeWebSocket` Handshake (#288) — 2026-11-01
 
 Source revision `ce3c93b` (the inactivity session closure and Cloudflare `bridgeWebSocket` handshake commit); build evidence `921a5ff`; release commit `0522424`; published as `v0.27.2` on 2026-11-01.
