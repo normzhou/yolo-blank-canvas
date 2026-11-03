@@ -6,12 +6,13 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## YOLO Feedback Post-Login Menu Return & Game Pause / Keyboard Isolation (#296) — 2026-11-02
 
-Source revision `725d431` (post-login feedback menu reopen and game pause/input isolation); build evidence `96352bb`; published as `v0.28.3` on 2026-11-02.
+Source revision `5858636` (post-login feedback menu reopen, game pause/input isolation, and initial dialog primary control focus); build evidence `c7de65c`; published as `v0.28.4` on 2026-11-02 (`v0.28.3` at `1e5c190` retained untouched as a legacy tag).
 
 - **Post-Login Menu Return (`src/client/hostedFeedback.ts`, `src/client/App.tsx`):**
   - Persists `yolo:hosted-feedback-login-return:v1` (`{ search, page, ts }`) when `onLogin` submits `POST /auth/yolo/login` and consumes it on return from `/auth/yolo/callback` to restore `?app=...` and automatically re-open the logged-in YOLO feedback menu.
 - **Game Pause & Keyboard Input Isolation (`src/client/gamePause.ts`, `src/client/hostedFeedback.ts`, `src/client/App.tsx`, `src/client/views/TetrisView.tsx`, `src/client/views/PuzzleBobbleView.tsx`):**
-  - Opening the YOLO feedback overlay (`<yolo-feedback-v1>` or `<Panel>`) sets `setSharedOverlayOpen(true)` and pauses any active game (`setSharedGamePaused(true)`).
+  - Opening the YOLO feedback overlay (`<yolo-feedback-v1>` or `<Panel>`) sets `setSharedOverlayOpen(true)` and pauses any active game (`setSharedGamePaused(true)`), syncing `gamePaused` on mount.
+  - Moves initial focus inside `<yolo-feedback-v1>` from the `[data-close]` `✕` button to the primary visible control (`[data-login]`, `[data-new]`, `textarea`, or `input`) so pressing `Space` or `Enter` does not accidentally close the dialog.
   - While the YOLO overlay is open, bubble-phase keyboard listeners stop propagation to `window`, and `TetrisView`, `PuzzleBobbleView`, and `App.tsx` ignore all game/pause-menu shortcuts and do not steal focus away from the YOLO panel until it is closed.
 - `npm test`: 26 files, 174 tests passed.
 - `npx tsc --noEmit`: clean.
