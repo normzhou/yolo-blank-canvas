@@ -295,15 +295,17 @@
         "v0.27.1": "4a24769b04ab56dfc1029b9d8664d487927c0b07",
         "v0.27.2": "05224248776a3ab5e36e1296532d9fff09750714",
         "v0.28.0": "c0e0b92121ec7f8f393f9296eeef020b0136ba10",
-        "v0.28.1": "f56bc642802729e8f234e410e3eb60510ed90b7e"
+        "v0.28.1": "f56bc642802729e8f234e410e3eb60510ed90b7e",
+        "v0.28.2": "3df3cabc7b23152df0cc661c26d8071de5de0f9c",
+        "v0.28.3": "1e5c190c7e2ed408d424ae8f63c06280fd3d0854"
       },
       "published": {
-        "tag": "v0.28.2",
-        "commit": "3df3cabc7b23152df0cc661c26d8071de5de0f9c",
-        "source_commit": "e70e930640defe57a8c7d815eb60a62c091be5fc",
-        "published_at": "2026-11-03T02:05:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-02-v0282.json",
-        "note": "Patch release (#294, PR #295). Adds onLogin and onLogout callbacks to mountOptions in src/client/hostedFeedback.ts per normzhou/yolo-dev#208 rev 11; deployed live to https://demo.yolo-dev.ai (Version ID: 5a9f3ee9-8755-4b7f-b8e7-0a50a269dffa) and verified in headless Chrome that clicking the YOLO mark opens <yolo-feedback-v1> with a visible 'Sign in' button that navigates through login.yolo-dev.ai to Google Sign-In."
+        "tag": "v0.28.4",
+        "commit": "8d2c1337b0e8d3f23740065765c82730b349b73e",
+        "source_commit": "5858636c0c3215b61b64b29c25dd339a0611595e",
+        "published_at": "2026-11-03T03:50:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-02-v0284.json",
+        "note": "Patch release (#296, PR #297 & PR #298). Automatically re-opens the logged-in YOLO feedback panel after OAuth sign-in and pauses/isolates game keyboard input while the panel is open; deployed live to https://demo.yolo-dev.ai (Version ID: 05a4ebdc-564f-443f-97f7-9b13cdd9247b)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -366,7 +368,8 @@
         ".yolo/reports/releases-observed-2026-11-01-v0272.json",
         ".yolo/reports/releases-observed-2026-11-01-v0280.json",
         ".yolo/reports/releases-observed-2026-11-01-v0281.json",
-        ".yolo/reports/releases-observed-2026-11-02-v0282.json"
+        ".yolo/reports/releases-observed-2026-11-02-v0282.json",
+        ".yolo/reports/releases-observed-2026-11-02-v0284.json"
       ]
     }
   },

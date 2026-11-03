@@ -6,7 +6,7 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## YOLO Feedback Post-Login Menu Return & Game Pause / Keyboard Isolation (#296) — 2026-11-02
 
-Source revision `5858636` (post-login feedback menu reopen, game pause/input isolation, and initial dialog primary control focus); build evidence `c7de65c`; published as `v0.28.4` on 2026-11-02 (`v0.28.3` at `1e5c190` retained untouched as a legacy tag).
+Source revision `5858636` (post-login feedback menu reopen, game pause/input isolation, and initial dialog primary control focus); build evidence `c7de65c`; release commit `8d2c133`; published as `v0.28.4` on 2026-11-02 (`v0.28.3` at `1e5c190` retained untouched as a legacy tag).
 
 - **Post-Login Menu Return (`src/client/hostedFeedback.ts`, `src/client/App.tsx`):**
   - Persists `yolo:hosted-feedback-login-return:v1` (`{ search, page, ts }`) when `onLogin` submits `POST /auth/yolo/login` and consumes it on return from `/auth/yolo/callback` to restore `?app=...` and automatically re-open the logged-in YOLO feedback menu.
@@ -16,6 +16,7 @@ Source revision `5858636` (post-login feedback menu reopen, game pause/input iso
   - While the YOLO overlay is open, bubble-phase keyboard listeners stop propagation to `window`, and `TetrisView`, `PuzzleBobbleView`, and `App.tsx` ignore all game/pause-menu shortcuts and do not steal focus away from the YOLO panel until it is closed.
 - `npm test`: 26 files, 174 tests passed.
 - `npx tsc --noEmit`: clean.
+- Deployed live to `yolo-demo-app` (`Version ID: 05a4ebdc-564f-443f-97f7-9b13cdd9247b`) and verified in headless Google Chrome at `https://demo.yolo-dev.ai/`. Report: [`.yolo/reports/releases-observed-2026-11-02-v0284.json`](../.yolo/reports/releases-observed-2026-11-02-v0284.json).
 
 ## Hosted Feedback Panel `onLogin` & `onLogout` Auth Callbacks (#294) — 2026-11-02
 

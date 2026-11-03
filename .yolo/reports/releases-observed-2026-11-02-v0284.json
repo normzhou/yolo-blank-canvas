@@ -1,0 +1,58 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-02",
+  "observed_at": "2026-11-02",
+  "published_at_utc": "2026-11-03T03:50:00Z",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "release": "v0.1.0-alpha.57"
+  },
+  "releases": [
+    {
+      "tag": "v0.28.4",
+      "commit": "8d2c1337b0e8d3f23740065765c82730b349b73e"
+    }
+  ],
+  "release": {
+    "tag": "v0.28.4",
+    "tag_object": "9454fc97897968004bcf9093837880b748f37b6f",
+    "release_commit": "8d2c1337b0e8d3f23740065765c82730b349b73e",
+    "source_commit": "5858636c0c3215b61b64b29c25dd339a0611595e",
+    "assets_commit": "c7de65c69cb0e9b2da34acab60509699c6349c52",
+    "semver": "patch",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record 5858636, the source revision. The committed assets were built at that source in c7de65c. 8d2c133 is the merge of release-metadata commit 34b5bd1 after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "174 passed across 26 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID 5858636" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #297 and PR #298 completed success" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "deployed_to": "https://demo.yolo-dev.ai (Cloudflare Worker yolo-demo-app, Version ID: 05a4ebdc-564f-443f-97f7-9b13cdd9247b)",
+    "served_build": "5858636c0c3215b61b64b29c25dd339a0611595e",
+    "served_version": {
+      "package": "0.28.4",
+      "appVersion": "v0.28.4",
+      "clientBuild": "5858636c0c3215b61b64b29c25dd339a0611595e"
+    },
+    "result": "pass",
+    "detail": "Deployed live to yolo-demo-app (Version ID: 05a4ebdc-564f-443f-97f7-9b13cdd9247b) and verified in headless Google Chrome at https://demo.yolo-dev.ai/: (1) returning from sign-in restores ?app=tetris, pauses the game (pausePressed: 'true'), and automatically re-opens <yolo-feedback-v1> (dialogOpen: true) with primary control focused; and (2) pressing ArrowDown, s, w, a, d while the panel is open leaves the panel open and the game paused without forwarding keystrokes to the game."
+  },
+  "what_this_release_delivers": [
+    "#296 Keep YOLO feedback menu open after sign-in and pause/isolate game input while panel is open"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "The tag points at 8d2c133, the merge of the release-metadata commit 34b5bd1 after the assets commit c7de65c, not at the assets commit itself. Both build-ID files still record the source 5858636, and the tag was not moved after publication. v0.28.3 (1e5c190) was retained untouched as a legacy tag."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #296"
+}
