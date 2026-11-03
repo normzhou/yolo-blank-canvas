@@ -83,12 +83,37 @@ async function ensureFeedbackControl(
     root.replaceChildren();
     retryCount += 1;
 
+    let loginForm: HTMLFormElement | undefined;
     const mountOptions = {
       app: { id: 'demo', name: 'Blank Canvas' },
       apiBase: '/yolo/api/v1',
       getContext: () => ({ page: currentPageLabel.slice(0, 160) }),
       onOpenChange: (open: boolean) => {
         openChangeHandler?.(open);
+      },
+      onLogin: () => {
+        if (!loginForm || !loginForm.isConnected) {
+          loginForm = document.createElement('form');
+          loginForm.method = 'post';
+          loginForm.action = new URL('/auth/yolo/login', window.location.origin).href;
+          loginForm.target = '_self';
+          loginForm.hidden = true;
+          root.append(loginForm);
+        }
+        loginForm.submit();
+      },
+      onLogout: async () => {
+        const response = await fetch(new URL('/auth/yolo/logout', window.location.origin), {
+          method: 'POST',
+          credentials: 'same-origin',
+          redirect: 'error',
+          headers: { Origin: window.location.origin },
+          signal: AbortSignal.timeout(15000),
+        });
+        if (response.status !== 204) {
+          throw new Error('Sign-out could not be confirmed.');
+        }
+        window.location.reload();
       },
     };
 
