@@ -6,12 +6,13 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Hosted Feedback Panel `onLogin` & `onLogout` Auth Callbacks (#294) — 2026-11-02
 
-Source revision `e70e930` (the `onLogin` and `onLogout` callbacks for panel-only `mountFeedback` in `src/client/hostedFeedback.ts`); build evidence `d4e4f42`; published as `v0.28.2` on 2026-11-02.
+Source revision `e70e930` (the `onLogin` and `onLogout` callbacks for panel-only `mountFeedback` in `src/client/hostedFeedback.ts`); build evidence `d4e4f42`; release commit `3df3cab`; published as `v0.28.2` on 2026-11-02.
 
 - **Auth Callbacks on `mountOptions` (`src/client/hostedFeedback.ts`, `test/hosted-feedback.test.ts`):**
   - Adds `onLogin` (submitting a hidden same-origin `<form method="post" action="/auth/yolo/login" target="_self">`) and `onLogout` (`POST /auth/yolo/logout` with `Origin: window.location.origin` + `window.location.reload()`) to the single shared `mountOptions` object used by both hosted `https://yolo-dev.ai/feedback/v1.mjs` and fallback `/yolo/feedback/browser.js` panel mounts, so `[data-login]` and `[data-logout]` are visible and functional.
 - `npm test`: 26 files, 174 tests passed.
 - `npx tsc --noEmit`: clean.
+- Deployed live to `yolo-demo-app` (`Version ID: 5a9f3ee9-8755-4b7f-b8e7-0a50a269dffa`) and verified in headless Google Chrome at `https://demo.yolo-dev.ai/`: clicking `[data-testid="yolo-feedback-fab"]` opens `<yolo-feedback-v1>` (`source: "hosted-v1"`, `version: "0.1.0-alpha.58"`) with a visible `[data-login]` (`"Sign in"`) button, and clicking `[data-login]` navigates through `POST /auth/yolo/login` → `https://login.yolo-dev.ai` → `https://accounts.google.com/v3/signin/identifier`. Report: [`.yolo/reports/releases-observed-2026-11-02-v0282.json`](../.yolo/reports/releases-observed-2026-11-02-v0282.json).
 
 ## Shared Login Routes `/auth/yolo/*` Backed by `NetplayHub` Durable Object Storage (#292) — 2026-11-01
 
