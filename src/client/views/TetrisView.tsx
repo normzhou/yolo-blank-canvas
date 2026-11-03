@@ -14,8 +14,10 @@ import {
 } from '../audio/tetrisMusic';
 import {
   getSharedGamePaused,
+  getSharedOverlayOpen,
   setSharedGamePaused,
   subscribeSharedGamePause,
+  subscribeSharedOverlayOpen,
   toggleSharedGamePaused,
 } from '../gamePause';
 import {
@@ -377,16 +379,21 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
   const [inviteSecondsLeft, setInviteSecondsLeft] = useState<number>(20);
   const touchSeenRef = useRef<boolean>(detectTouchAvailable());
   const [touchAvailable, setTouchAvailable] = useState<boolean>(() => touchSeenRef.current);
+  const [overlayOpen, setOverlayOpen] = useState<boolean>(() => getSharedOverlayOpen());
 
   useEffect(() => {
     if (!getSharedNetplay().getState().activeRoom) {
       setSharedGamePaused(true);
     }
-    const unsub = subscribeSharedGamePause((nextPaused) => {
+    const unsubPause = subscribeSharedGamePause((nextPaused) => {
       setPaused(nextPaused);
     });
+    const unsubOverlay = subscribeSharedOverlayOpen((nextOpen) => {
+      setOverlayOpen(nextOpen);
+    });
     return () => {
-      unsub();
+      unsubPause();
+      unsubOverlay();
       setSharedGamePaused(false);
     };
   }, []);
@@ -759,7 +766,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
 
   // Highlight Continue button when Pause Menu opens (#268).
   useEffect(() => {
-    if (!paused || isReadyCheck || isInviting || isNetworkPaused) return;
+    if (!paused || overlayOpen || isReadyCheck || isInviting || isNetworkPaused) return;
     const menu = pauseMenuRef.current;
     if (!menu) return;
     const buttons = Array.from(menu.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'));
@@ -774,11 +781,12 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
         btn.classList.remove('is-menu-focused');
       }
     });
-  }, [paused, isReadyCheck, isInviting, isNetworkPaused]);
+  }, [paused, overlayOpen, isReadyCheck, isInviting, isNetworkPaused]);
 
   // Keyboard controls: arrows move/rotate/soft-drop, space hard-drops, Escape toggles Pause Menu (#237, #268).
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
+      if (getSharedOverlayOpen()) return;
       if (event.metaKey || event.ctrlKey || event.altKey) return;
       if (event.key === 'Escape') {
         event.preventDefault();

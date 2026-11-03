@@ -8,12 +8,18 @@ import {
 } from './audio/tetrisMusic';
 import {
   getSharedGamePaused,
+  getSharedOverlayOpen,
   setSharedGamePaused,
+  setSharedOverlayOpen,
   subscribeSharedGamePause,
   toggleSharedGamePaused,
 } from './gamePause';
 import { mountHostedYoloMark } from './brand/yoloMark';
-import { openHostedFeedback } from './hostedFeedback';
+import {
+  consumePendingFeedbackLoginReturn,
+  isHostedFeedbackOpen,
+  openHostedFeedback,
+} from './hostedFeedback';
 import { useFullscreen } from './fullscreen';
 import { Panel, type PanelView } from './components/Panel';
 import { ErrorNotice } from './components/ErrorNotice';
@@ -524,10 +530,24 @@ export function App() {
   if (storeRef.current === null) storeRef.current = browserStore();
   const store = storeRef.current;
 
+  const pendingLoginReturnRef = useRef<{ search: string; page: string } | null | undefined>(undefined);
+  if (pendingLoginReturnRef.current === undefined) {
+    const pending = consumePendingFeedbackLoginReturn();
+    pendingLoginReturnRef.current = pending;
+    if (pending && pending.search && !window.location.search) {
+      try {
+        window.history.replaceState(null, '', window.location.pathname + pending.search);
+      } catch {
+        // Ignore history errors
+      }
+    }
+  }
+
   const [session, setSession] = useState<SessionInfo | null>(null);
   const [sessionError, setSessionError] = useState<ApiError | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [panelOpen, setPanelOpen] = useState(() => readRoute(window.location.search).open);
+  const [hostedFeedbackOpen, setHostedFeedbackOpen] = useState<boolean>(() => isHostedFeedbackOpen());
   const [appId, setAppId] = useState<string | null>(() => readRoute(window.location.search).app);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [view, setView] = useState<PanelView>(() => toPanelView(readRoute(window.location.search).target));
@@ -844,8 +864,19 @@ export function App() {
   );
 
   useEffect(() => {
+    const pending = pendingLoginReturnRef.current;
+    if (!pending) return;
+    pendingLoginReturnRef.current = null;
+    void openHostedFeedback({
+      page: pending.page || (activeApp ? activeApp.title : 'Home'),
+      onOpenChange: setHostedFeedbackOpen,
+    });
+  }, [activeApp]);
+
+  useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      const target = event.target as HTMLElement | null;
+      if (getSharedOverlayOpen() || isHostedFeedbackOpen()) return;
+      const target = (event.composedPath?.()[0] ?? event.target) as HTMLElement | null;
       const editing = Boolean(
         target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable),
       );
@@ -866,10 +897,11 @@ export function App() {
   // active slide's game when focus is not inside a text field, overlay, or
   // another action button.
   useEffect(() => {
-    if (activeApp !== null || panelOpen || paletteOpen) return;
+    if (activeApp !== null || panelOpen || hostedFeedbackOpen || paletteOpen) return;
     function onDeckKeyDown(event: KeyboardEvent) {
+      if (getSharedOverlayOpen() || isHostedFeedbackOpen()) return;
       if (event.metaKey || event.ctrlKey || event.altKey) return;
-      const target = event.target as HTMLElement | null;
+      const target = (event.composedPath?.()[0] ?? event.target) as HTMLElement | null;
       const editing = Boolean(
         target &&
           (target.tagName === 'INPUT' ||
@@ -890,7 +922,7 @@ export function App() {
         return;
       }
       if (event.key === 'Enter' || event.key === ' ') {
-        const interactive = target?.closest('button, a, [role="button"]');
+        const interactive = target?.closest?.('button, a, [role="button"]');
         if (interactive && !interactive.classList.contains('deck-play-button')) {
           return;
         }
@@ -900,7 +932,7 @@ export function App() {
     }
     window.addEventListener('keydown', onDeckKeyDown);
     return () => window.removeEventListener('keydown', onDeckKeyDown);
-  }, [activeApp, currentSlide.id, openApp, paletteOpen, panelOpen, stepSlide]);
+  }, [activeApp, currentSlide.id, hostedFeedbackOpen, openApp, paletteOpen, panelOpen, stepSlide]);
 
   async function disconnect() {
     try {
@@ -922,6 +954,11 @@ export function App() {
   const isStaticDemo = sessionError?.kind === 'static_demo';
   const showSessionError = Boolean(sessionError && !isStaticDemo);
   const showPanel = panelOpen && Boolean(session || isStaticDemo);
+
+  useEffect(() => {
+    setSharedOverlayOpen(showPanel || hostedFeedbackOpen);
+  }, [hostedFeedbackOpen, showPanel]);
+
   const canvasClass = [
     'canvas',
     showPanel ? 'panel-open' : '',
@@ -955,6 +992,7 @@ export function App() {
                 if (isStaticDemo) {
                   void openHostedFeedback({
                     page: activeApp ? activeApp.title : 'Home',
+                    onOpenChange: setHostedFeedbackOpen,
                   }).then((opened) => {
                     if (!opened) {
                       if (activeApp) {
