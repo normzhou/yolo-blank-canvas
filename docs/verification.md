@@ -4,6 +4,18 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## YOLO Feedback Post-Login Menu Return & Game Pause / Keyboard Isolation (#296) — 2026-11-02
+
+Source revision `725d431` (post-login feedback menu reopen and game pause/input isolation); build evidence `96352bb`; published as `v0.28.3` on 2026-11-02.
+
+- **Post-Login Menu Return (`src/client/hostedFeedback.ts`, `src/client/App.tsx`):**
+  - Persists `yolo:hosted-feedback-login-return:v1` (`{ search, page, ts }`) when `onLogin` submits `POST /auth/yolo/login` and consumes it on return from `/auth/yolo/callback` to restore `?app=...` and automatically re-open the logged-in YOLO feedback menu.
+- **Game Pause & Keyboard Input Isolation (`src/client/gamePause.ts`, `src/client/hostedFeedback.ts`, `src/client/App.tsx`, `src/client/views/TetrisView.tsx`, `src/client/views/PuzzleBobbleView.tsx`):**
+  - Opening the YOLO feedback overlay (`<yolo-feedback-v1>` or `<Panel>`) sets `setSharedOverlayOpen(true)` and pauses any active game (`setSharedGamePaused(true)`).
+  - While the YOLO overlay is open, bubble-phase keyboard listeners stop propagation to `window`, and `TetrisView`, `PuzzleBobbleView`, and `App.tsx` ignore all game/pause-menu shortcuts and do not steal focus away from the YOLO panel until it is closed.
+- `npm test`: 26 files, 174 tests passed.
+- `npx tsc --noEmit`: clean.
+
 ## Hosted Feedback Panel `onLogin` & `onLogout` Auth Callbacks (#294) — 2026-11-02
 
 Source revision `e70e930` (the `onLogin` and `onLogout` callbacks for panel-only `mountFeedback` in `src/client/hostedFeedback.ts`); build evidence `d4e4f42`; release commit `3df3cab`; published as `v0.28.2` on 2026-11-02.

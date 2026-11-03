@@ -15,8 +15,10 @@ import {
 } from '../audio/tetrisMusic';
 import {
   getSharedGamePaused,
+  getSharedOverlayOpen,
   setSharedGamePaused,
   subscribeSharedGamePause,
+  subscribeSharedOverlayOpen,
   toggleSharedGamePaused,
 } from '../gamePause';
 import {
@@ -1860,16 +1862,24 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
   );
   const pauseMenuRef = useRef<HTMLDivElement | null>(null);
   const [inviteSecondsLeft, setInviteSecondsLeft] = useState<number>(20);
+  const [overlayOpen, setOverlayOpen] = useState<boolean>(() => getSharedOverlayOpen());
 
   useEffect(() => {
     if (!getSharedNetplay().getState().activeRoom) {
       setSharedGamePaused(true);
     }
-    const unsub = subscribeSharedGamePause((nextPaused) => {
+    const unsubPause = subscribeSharedGamePause((nextPaused) => {
       setPaused(nextPaused);
     });
+    const unsubOverlay = subscribeSharedOverlayOpen((nextOpen) => {
+      setOverlayOpen(nextOpen);
+      if (nextOpen) {
+        heldAimKeysRef.current.clear();
+      }
+    });
     return () => {
-      unsub();
+      unsubPause();
+      unsubOverlay();
       setSharedGamePaused(false);
     };
   }, []);
@@ -2495,7 +2505,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         btn.classList.remove('is-menu-focused');
       }
     });
-  }, [paused, isReadyCheck, isInviting, isNetworkPaused]);
+  }, [paused, overlayOpen, isReadyCheck, isInviting, isNetworkPaused]);
 
   // Smooth 60fps aiming + keyboard controls:
   // - Single tap steps by `AIM_STEP_DEG = 0.5°` for high-precision bank shots.
@@ -2507,6 +2517,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     const held = heldAimKeysRef.current;
 
     function onKeyDown(event: KeyboardEvent) {
+      if (getSharedOverlayOpen()) return;
       if (event.metaKey || event.ctrlKey || event.altKey) return;
       if (event.key === 'Escape') {
         event.preventDefault();
