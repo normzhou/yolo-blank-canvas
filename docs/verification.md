@@ -4,6 +4,15 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Hosted Feedback Panel `onLogin` & `onLogout` Auth Callbacks (#294) — 2026-11-02
+
+Source revision `e70e930` (the `onLogin` and `onLogout` callbacks for panel-only `mountFeedback` in `src/client/hostedFeedback.ts`); build evidence `d4e4f42`; published as `v0.28.2` on 2026-11-02.
+
+- **Auth Callbacks on `mountOptions` (`src/client/hostedFeedback.ts`, `test/hosted-feedback.test.ts`):**
+  - Adds `onLogin` (submitting a hidden same-origin `<form method="post" action="/auth/yolo/login" target="_self">`) and `onLogout` (`POST /auth/yolo/logout` with `Origin: window.location.origin` + `window.location.reload()`) to the single shared `mountOptions` object used by both hosted `https://yolo-dev.ai/feedback/v1.mjs` and fallback `/yolo/feedback/browser.js` panel mounts, so `[data-login]` and `[data-logout]` are visible and functional.
+- `npm test`: 26 files, 174 tests passed.
+- `npx tsc --noEmit`: clean.
+
 ## Shared Login Routes `/auth/yolo/*` Backed by `NetplayHub` Durable Object Storage (#292) — 2026-11-01
 
 Source revision `7b9ca2d` (with Worker `/auth/yolo/{login,callback,logout,session}` routes backed by `NetplayHub` Durable Object storage); release commit `f56bc64`; published as `v0.28.1` on 2026-11-01.
