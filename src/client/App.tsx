@@ -577,6 +577,7 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    setGamePaused(getSharedGamePaused());
     return subscribeSharedGamePause((nextPaused) => {
       setGamePaused(nextPaused);
     });

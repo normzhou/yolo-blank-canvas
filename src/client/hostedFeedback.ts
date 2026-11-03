@@ -75,6 +75,23 @@ function stopGameKeyBubble(event: Event): void {
   event.stopPropagation();
 }
 
+function focusDialogPrimaryControl(): void {
+  if (!hostedFeedbackOpen || !activeRoot) return;
+  const host = activeRoot.querySelector?.('yolo-feedback-v1') as
+    | (HTMLElement & { shadowRoot?: ShadowRoot | null })
+    | null;
+  const sr = host?.shadowRoot;
+  if (!sr) return;
+  const active = sr.activeElement as HTMLElement | null;
+  if (active && !active.hasAttribute('data-close')) return;
+  const candidate = sr.querySelector<HTMLElement>(
+    'textarea:not([disabled]):not([hidden]), input:not([disabled]):not([hidden]), button[data-login]:not([disabled]):not([hidden]), button[data-new]:not([disabled]):not([hidden])',
+  );
+  if (candidate && !candidate.hidden) {
+    candidate.focus();
+  }
+}
+
 function syncHostedFeedbackOpen(next: boolean): void {
   hostedFeedbackOpen = next;
   setSharedOverlayOpen(next);
@@ -91,6 +108,11 @@ function syncHostedFeedbackOpen(next: boolean): void {
         }
         removeDocKeyIsolation = null;
       };
+    }
+    if (typeof window?.setTimeout === 'function') {
+      for (const delay of [0, 60, 180, 400]) {
+        window.setTimeout(focusDialogPrimaryControl, delay);
+      }
     }
   } else if (removeDocKeyIsolation) {
     removeDocKeyIsolation();
