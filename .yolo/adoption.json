@@ -298,15 +298,16 @@
         "v0.28.1": "f56bc642802729e8f234e410e3eb60510ed90b7e",
         "v0.28.2": "3df3cabc7b23152df0cc661c26d8071de5de0f9c",
         "v0.28.3": "1e5c190c7e2ed408d424ae8f63c06280fd3d0854",
-        "v0.28.4": "8d2c1337b0e8d3f23740065765c82730b349b73e"
+        "v0.28.4": "8d2c1337b0e8d3f23740065765c82730b349b73e",
+        "v0.29.0": "a758f35bf0a661f3e883868d73469a8fd66df6c4"
       },
       "published": {
-        "tag": "v0.29.0",
-        "commit": "a758f35bf0a661f3e883868d73469a8fd66df6c4",
-        "source_commit": "431ee961f9501294da525b15d887fa8f33138837",
-        "published_at": "2026-11-03T04:15:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-02-v0290.json",
-        "note": "Minor release (#299, PR #300). Animates the Puzzle Bobble dinosaur/mascot so it actively cranks the launcher gears when aiming and adds real-time tactical dialogue and aiming advice via an on-board comic speech bubble and HUD coach card; deployed live to https://demo.yolo-dev.ai (Version ID: 202921ed-00b1-4586-83c7-830b0e7781f7)."
+        "tag": "v0.30.0",
+        "commit": "0fa0e54e02e9d035912f4a3dc5eda9664df40862",
+        "source_commit": "3d4a448da3de7efa8a69ea8d3dc6db87a83da8d2",
+        "published_at": "2026-11-04T03:50:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-02-v0300.json",
+        "note": "Minor release (#301, PR #302). Adds Local 2-Player Side-by-Side Versus Tetris ('2 Players' mode in Pause Menu, dual 10x20 boards, split WASD+F vs Arrows+Space/Enter controls, live garbage attacks, and 1UP–2UP tally); deployed live to https://demo.yolo-dev.ai (Version ID: 9b2ef523-a8c8-433c-9eeb-9d9203485d97)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -371,7 +372,8 @@
         ".yolo/reports/releases-observed-2026-11-01-v0281.json",
         ".yolo/reports/releases-observed-2026-11-02-v0282.json",
         ".yolo/reports/releases-observed-2026-11-02-v0284.json",
-        ".yolo/reports/releases-observed-2026-11-02-v0290.json"
+        ".yolo/reports/releases-observed-2026-11-02-v0290.json",
+        ".yolo/reports/releases-observed-2026-11-02-v0300.json"
       ]
     }
   },

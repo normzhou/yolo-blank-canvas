@@ -6,7 +6,7 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Local 2-Player Side-by-Side Versus Tetris (#301) — 2026-11-02
 
-Source revision `3d4a448` (the Local 2-Player Side-by-Side Versus Tetris commit); build evidence `44e18b6`; published as `v0.30.0` on 2026-11-02.
+Source revision `3d4a448` (the Local 2-Player Side-by-Side Versus Tetris commit); build evidence `44e18b6`; release commit `0fa0e54`; published as `v0.30.0` on 2026-11-02.
 
 - **Local 2-Player Versus Mode (`src/client/views/TetrisView.tsx`, `src/client/styles.css`):**
   - Adds a **2 Players** button (`data-testid="tetris-2p-local-btn"`) to the Tetris Pause Menu alongside `1 Player` and `2P Online`.
@@ -15,6 +15,7 @@ Source revision `3d4a448` (the Local 2-Player Side-by-Side Versus Tetris commit)
   - Live garbage line attacks (`queueTetrisGarbage`) and `1UP X – Y 2UP` win tally (`data-testid="tetris-2p-tally"`).
 - `npm test`: 26 files, 175 tests passed.
 - `npx tsc --noEmit`: clean.
+- Deployed live to `yolo-demo-app` (`Version ID: 9b2ef523-a8c8-433c-9eeb-9d9203485d97`) and verified in headless Google Chrome at `https://demo.yolo-dev.ai/?app=tetris`. Report: [`.yolo/reports/releases-observed-2026-11-02-v0300.json`](../.yolo/reports/releases-observed-2026-11-02-v0300.json).
 
 ## Puzzle Bobble Dinosaur Gear-Cranking Animation & Real-Time Tactical Dialogue (#299) — 2026-11-02
 
