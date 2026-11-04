@@ -6,7 +6,7 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Puzzle Bobble Dinosaur Gear-Cranking Animation & Real-Time Tactical Dialogue (#299) — 2026-11-02
 
-Source revision `431ee96` (the dinosaur gear-cranking animation and real-time tactical dialogue/advice commit); build evidence `5b2c41f`; published as `v0.29.0` on 2026-11-02.
+Source revision `431ee96` (the dinosaur gear-cranking animation and real-time tactical dialogue/advice commit); build evidence `5b2c41f`; release commit `a758f35`; published as `v0.29.0` on 2026-11-02.
 
 - **Dinosaur Gear-Cranking Animation (`src/client/views/PuzzleBobbleView.tsx`):**
   - High-ratio main (`aimAngle * 6`) and hand-crank (`-aimAngle * 18`) gear train with `data-testid="p1-main-gear"` and `data-testid="p1-crank-gear"`.
@@ -17,6 +17,7 @@ Source revision `431ee96` (the dinosaur gear-cranking animation and real-time ta
 - `npm test`: 26 files, 175 tests passed.
 - `npx tsc --noEmit`: clean.
 - `npx playwright test e2e/puzzle-bobble.spec.ts`: 4 passed.
+- Deployed live to `yolo-demo-app` (`Version ID: 202921ed-00b1-4586-83c7-830b0e7781f7`) and verified in headless Google Chrome at `https://demo.yolo-dev.ai/?app=puzzle-bobble`. Report: [`.yolo/reports/releases-observed-2026-11-02-v0290.json`](../.yolo/reports/releases-observed-2026-11-02-v0290.json).
 
 ## YOLO Feedback Post-Login Menu Return & Game Pause / Keyboard Isolation (#296) — 2026-11-02
 
