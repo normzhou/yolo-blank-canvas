@@ -4,6 +4,20 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Puzzle Bobble Dinosaur Gear-Cranking Animation & Real-Time Tactical Dialogue (#299) — 2026-11-02
+
+Source revision `431ee96` (the dinosaur gear-cranking animation and real-time tactical dialogue/advice commit); build evidence `5b2c41f`; published as `v0.29.0` on 2026-11-02.
+
+- **Dinosaur Gear-Cranking Animation (`src/client/views/PuzzleBobbleView.tsx`):**
+  - High-ratio main (`aimAngle * 6`) and hand-crank (`-aimAngle * 18`) gear train with `data-testid="p1-main-gear"` and `data-testid="p1-crank-gear"`.
+  - Connects the dinosaur mascot's cranking forearm and paw directly to the orbiting crank handle pin (`crankPinX`, `crankPinY`), with synchronized body bobbing/tilting and alternating pedaling feet as the player aims.
+- **Real-Time Tactical Dialogue & Aiming Advice (`src/shared/puzzleBobble.ts`, `src/client/views/PuzzleBobbleView.tsx`, `src/client/styles.css`, `test/puzzle-bobble.test.ts`):**
+  - Pure `deriveMascotAdvice(player)` analyzes the live bubble grid and aiming sight line (`aimGuidePoints`) to advise when to crank left/right toward a matching cluster, when a shot is locked on, when a wall bank shot lines up, when ceiling/hurry danger is active, and when combos/avalanches land.
+  - Renders an on-board comic speech bubble (`data-testid="p1-mascot-speech"`) above the dinosaur and a Dinosaur Coach advice card (`data-testid="p1-dino-advice"`) in the side HUD.
+- `npm test`: 26 files, 175 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npx playwright test e2e/puzzle-bobble.spec.ts`: 4 passed.
+
 ## YOLO Feedback Post-Login Menu Return & Game Pause / Keyboard Isolation (#296) — 2026-11-02
 
 Source revision `5858636` (post-login feedback menu reopen, game pause/input isolation, and initial dialog primary control focus); build evidence `c7de65c`; release commit `8d2c133`; published as `v0.28.4` on 2026-11-02 (`v0.28.3` at `1e5c190` retained untouched as a legacy tag).
