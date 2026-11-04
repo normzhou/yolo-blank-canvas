@@ -2385,6 +2385,27 @@ button.pb-touch-fire {
   align-items: center;
   padding: 2px 4px;
 }
+.pb-dino-coach {
+  align-items: flex-start;
+  gap: 2px;
+  padding: 4px 6px;
+}
+.pb-dino-coach-text {
+  font-size: var(--text-xs);
+  line-height: 1.35;
+  color: var(--muted);
+  word-break: break-word;
+}
+.pb-dino-coach-match .pb-dino-coach-text,
+.pb-dino-coach-combo .pb-dino-coach-text,
+.pb-dino-coach-win .pb-dino-coach-text {
+  color: var(--accent-weak-text);
+  font-weight: var(--weight-semibold);
+}
+.pb-dino-coach-danger .pb-dino-coach-text {
+  color: var(--problem);
+  font-weight: var(--weight-semibold);
+}
 .pb-next-orb-well {
   display: flex;
   align-items: center;
@@ -3004,6 +3025,7 @@ button.pb-touch-fire {
     padding: 4px 6px;
   }
   .tetris.pb-game[data-mode='1p'] .pb-next-dome,
+  .tetris.pb-game[data-mode='1p'] .pb-dino-coach,
   .tetris.pb-game[data-mode='1p'] .pb-combo-bar {
     display: none;
   }

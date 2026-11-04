@@ -25,6 +25,7 @@ import {
   createMatch,
   createStageGrid,
   decomposeGarbageOrbs,
+  deriveMascotAdvice,
   deriveMascotMood,
   findConnectedColorCluster,
   findFloatingBubbles,
@@ -353,5 +354,53 @@ describe('Puzzle Bobble (Bust-A-Move) arcade rules', () => {
     expect(p2Win.winner).toBe(1);
     expect(deriveMascotMood(p2Win.players[0])).toBe('cry');
     expect(deriveMascotMood(p2Win.players[1]!)).toBe('celebrate');
+  });
+
+  it('derives real-time dinosaur tactical dialogue and aiming advice across board states (#299)', () => {
+    let match = createMatch('2p', () => 0.2);
+    const grid = createEmptyGrid();
+    // Place a ruby cluster on the left side (row 2, col 1 & 2)
+    grid[0][1] = 'azure';
+    grid[1][1] = 'azure';
+    grid[2][1] = 'ruby';
+    grid[2][2] = 'ruby';
+    match.players[0] = {
+      ...match.players[0],
+      grid,
+      currentBubble: 'ruby',
+      nextBubble: 'emerald',
+      aimAngle: 20, // aiming right while ruby cluster is on the left
+    };
+
+    // 1. Advises cranking left toward the ruby cluster
+    const crankLeft = deriveMascotAdvice(match.players[0]);
+    expect(crankLeft.kind).toBe('tip');
+    expect(crankLeft.bubbleText).toContain('CRANK LEFT FOR RED');
+    expect(crankLeft.coachText).toContain('Crank the gears left');
+
+    // 2. When aimed directly at the ruby cluster, advises locked-on fire
+    const center = bubbleCenter(2, 1, 0);
+    const lockedAngle = aimAngleFromBoardPoint(center.x, center.y);
+    match = setPlayerAimAngle(match, 0, lockedAngle);
+    const locked = deriveMascotAdvice(match.players[0]);
+    expect(locked.kind).toBe('match');
+    expect(locked.bubbleText).toContain('LOCKED ON RED! FIRE!');
+
+    // 3. Steep wall angle triggers bank-shot advice
+    match = setPlayerAimAngle(match, 0, 62);
+    const bank = deriveMascotAdvice(match.players[0]);
+    expect(bank.kind).toBe('bank');
+    expect(bank.bubbleText).toMatch(/BANK/);
+
+    // 4. Hurry countdown triggers danger advice
+    const hurryMatch = tickShotTimers(match, 6_500, () => 0.2);
+    const danger = deriveMascotAdvice(hurryMatch.players[0]);
+    expect(danger.kind).toBe('danger');
+    expect(danger.bubbleText).toMatch(/HURRY/);
+
+    // 5. Win / Lose states
+    const won = resolveMatchOutcome(match, 0);
+    expect(deriveMascotAdvice(won.players[0]).kind).toBe('win');
+    expect(deriveMascotAdvice(won.players[1]!).kind).toBe('lose');
   });
 });

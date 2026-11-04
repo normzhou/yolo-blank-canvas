@@ -760,6 +760,164 @@ export function hurryCountdownSeconds(player: PlayerBoardState): number | null {
   return Math.max(1, Math.ceil(player.shotTimerMs / 1000));
 }
 
+export type MascotAdviceKind = 'tip' | 'bank' | 'match' | 'danger' | 'combo' | 'win' | 'lose';
+
+export interface MascotAdvice {
+  kind: MascotAdviceKind;
+  /** Short 1-line callout for the on-board speech bubble above the mascot. */
+  bubbleText: string;
+  /** Full tactical coaching line for the side HUD and accessibility readout. */
+  coachText: string;
+}
+
+export const BUBBLE_COLOR_LABELS: Readonly<Record<BubbleColor, string>> = {
+  ruby: 'RED',
+  amber: 'YELLOW',
+  emerald: 'GREEN',
+  azure: 'BLUE',
+  amethyst: 'PURPLE',
+  coral: 'ORANGE',
+};
+
+/**
+ * Derives real-time tactical dialogue and aiming advice from the player's board
+ * state, active/next bubble colors, and multi-bounce sight line (#299).
+ */
+export function deriveMascotAdvice(player: PlayerBoardState): MascotAdvice {
+  const curLabel = BUBBLE_COLOR_LABELS[player.currentBubble] ?? player.currentBubble.toUpperCase();
+  const nextLabel = BUBBLE_COLOR_LABELS[player.nextBubble] ?? player.nextBubble.toUpperCase();
+
+  if (player.status === 'won') {
+    return {
+      kind: 'win',
+      bubbleText: 'STAGE CLEAR! YAY!',
+      coachText: 'Stage cleared! Awesome gear-cranking and bubble popping!',
+    };
+  }
+  if (player.status === 'ko') {
+    return {
+      kind: 'lose',
+      bubbleText: 'OOF! WATCH THE LINE!',
+      coachText: 'The bubbles crossed the line—clear the lowest clusters first next round!',
+    };
+  }
+
+  const hurrySecs = hurryCountdownSeconds(player);
+  if (hurrySecs !== null) {
+    return {
+      kind: 'danger',
+      bubbleText: `HURRY ${hurrySecs}S! FIRE ${curLabel}!`,
+      coachText: `Hurry! Auto-fire in ${hurrySecs}s—shoot ${curLabel} toward the nearest match!`,
+    };
+  }
+  if (player.ceilingWarning) {
+    return {
+      kind: 'danger',
+      bubbleText: 'CEILING DROPPING!',
+      coachText: 'Ceiling drops after this shot—pop a top anchor to drop hanging bubbles!',
+    };
+  }
+
+  if (
+    player.lastEvent !== null &&
+    (player.lastEvent.dropped.length > 0 || player.lastEvent.popped.length >= 4)
+  ) {
+    if (player.lastEvent.dropped.length > 0) {
+      const n = player.lastEvent.dropped.length;
+      return {
+        kind: 'combo',
+        bubbleText: `${n} DROPPED! BONUS!`,
+        coachText: `Awesome avalanche! Dropping ${n} hanging bubble${n === 1 ? '' : 's'} scores huge bonus points!`,
+      };
+    }
+    const poppedCount = player.lastEvent.popped.length;
+    return {
+      kind: 'combo',
+      bubbleText: `${poppedCount}X POP COMBO!`,
+      coachText: `Great ${poppedCount}-bubble combo! Keep spinning the gears for the next cluster!`,
+    };
+  }
+
+  const guide = aimGuidePoints(player.aimAngle, player.ceilingDrop);
+  const exposedTargets: Array<{ row: number; col: number; x: number; y: number; score: number }> = [];
+
+  for (let r = 0; r < player.grid.length; r += 1) {
+    const cols = colsForRow(r);
+    for (let c = 0; c < cols; c += 1) {
+      if (player.grid[r]?.[c] !== player.currentBubble) continue;
+      // Check if exposed (bottom of column or has at least one empty lower/side neighbor)
+      const neighbors = hexNeighbors(r, c, player.grid.length);
+      const hasOpenBelowOrSide =
+        r === player.grid.length - 1 ||
+        neighbors.some(
+          (nb) => nb.row >= r && (player.grid[nb.row]?.[nb.col] ?? null) === null,
+        );
+      if (!hasOpenBelowOrSide) continue;
+      const sameColorNeighbors = neighbors.filter(
+        (nb) => player.grid[nb.row]?.[nb.col] === player.currentBubble,
+      ).length;
+      const center = bubbleCenter(r, c, player.ceilingDrop);
+      const score = (sameColorNeighbors >= 1 ? 100 : 0) + sameColorNeighbors * 25 + r * 12;
+      exposedTargets.push({ row: r, col: c, x: center.x, y: center.y, score });
+    }
+  }
+
+  // Bank-shot trajectory (bounces off left or right wall)
+  if (guide.length >= 3) {
+    const endPt = guide[guide.length - 1]!;
+    const hitsMatchingCluster = exposedTargets.some((t) => {
+      const dx = t.x - endPt.x;
+      const dy = t.y - endPt.y;
+      return dx * dx + dy * dy <= (BUBBLE_DIAMETER * 1.75) ** 2;
+    });
+    if (hitsMatchingCluster) {
+      return {
+        kind: 'bank',
+        bubbleText: `BANK SHOT ON ${curLabel}!`,
+        coachText: `Sweet bank shot! That wall bounce lines right up with ${curLabel}!`,
+      };
+    }
+    return {
+      kind: 'bank',
+      bubbleText: 'WALL BANK ANGLE!',
+      coachText: `Bank shot angle! Bounce ${curLabel} off the wall to reach tight upper corners.`,
+    };
+  }
+
+  if (exposedTargets.length > 0) {
+    exposedTargets.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      const aAngleDiff = Math.abs(aimAngleFromBoardPoint(a.x, a.y) - player.aimAngle);
+      const bAngleDiff = Math.abs(aimAngleFromBoardPoint(b.x, b.y) - player.aimAngle);
+      return aAngleDiff - bAngleDiff;
+    });
+    const best = exposedTargets[0]!;
+    const targetAngle = aimAngleFromBoardPoint(best.x, best.y);
+    const diff = targetAngle - player.aimAngle;
+    if (Math.abs(diff) <= 6.5) {
+      return {
+        kind: 'match',
+        bubbleText: `LOCKED ON ${curLabel}! FIRE!`,
+        coachText: `Locked on ${curLabel}! Fire now to connect the match (next: ${nextLabel})!`,
+      };
+    }
+    const dir = diff < 0 ? 'LEFT' : 'RIGHT';
+    const dirLower = diff < 0 ? 'left' : 'right';
+    const zone = targetAngle < -12 ? 'left' : targetAngle > 12 ? 'right' : 'center';
+    return {
+      kind: 'tip',
+      bubbleText: `CRANK ${dir} FOR ${curLabel}!`,
+      coachText: `Crank the gears ${dirLower} toward the ${zone} ${curLabel} cluster (next: ${nextLabel})!`,
+    };
+  }
+
+  return {
+    kind: 'tip',
+    bubbleText: `SET UP ${nextLabel} NEXT!`,
+    coachText: `No open ${curLabel} targets—park this shot on the side to set up ${nextLabel} next!`,
+  };
+}
+
 /**
  * Derives the character mascot's animation mood from the player's board state (#204):
  * - `'celebrate'` when the player wins the round (`status === 'won'`)

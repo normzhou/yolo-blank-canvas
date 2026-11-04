@@ -54,6 +54,7 @@ import {
   createPlayerBoard,
   createStageGrid,
   decomposeGarbageOrbs,
+  deriveMascotAdvice,
   deriveMascotMood,
   fireAndResolvePlayer,
   firePlayerBubble,
@@ -70,6 +71,7 @@ import {
   TOTAL_STAGES,
   type BubbleColor,
   type CharacterId,
+  type MascotAdvice,
   type MascotMood,
   type PlayerBoardState,
   type PuzzleBobbleMatch,
@@ -279,9 +281,17 @@ function CharacterMascotSvg({
   aimAngle: number;
 }) {
   const { body: bodyFill, accent: accentFill } = mascotPalette(character, playerNumber);
-  const crankRad = (aimAngle * Math.PI) / 45;
-  const crankDx = mood === 'normal' || mood === 'hurry' ? Math.sin(crankRad) * 1.8 : 0;
-  const crankDy = mood === 'normal' || mood === 'hurry' ? Math.cos(crankRad) * 1.8 : 0;
+  const isCranking = mood === 'normal' || mood === 'hurry';
+  // High-ratio hand-crank rotation (-18° per 1° of aim) so every micro-nudge or sweep visibly spins the crank
+  const crankDeg = Math.round(-aimAngle * 18);
+  const crankRad = (-aimAngle * 18 * Math.PI) / 180;
+  // The secondary crank wheel center is at (-17, +2) in mascot-local coordinates, with handle pin at radius 5.2
+  const crankPinX = -17 + Math.cos(crankRad) * 5.2;
+  const crankPinY = 2 + Math.sin(crankRad) * 5.2;
+  const bodyBobY = isCranking ? Math.sin(crankRad) * 1.6 : 0;
+  const bodyTiltDeg = isCranking ? Math.cos(crankRad) * 5.5 : 0;
+  const leftFootY = isCranking ? 11 + Math.sin(crankRad) * 1.4 : 11;
+  const rightFootY = isCranking ? 11 - Math.sin(crankRad) * 1.4 : 11;
   const leftArmY =
     mood === 'celebrate'
       ? -11.5
@@ -289,7 +299,7 @@ function CharacterMascotSvg({
         ? -8.5
         : mood === 'cry'
           ? -4.2
-          : -2 + crankDy;
+          : crankPinY;
   const leftArmX =
     mood === 'celebrate'
       ? -7.6
@@ -297,7 +307,7 @@ function CharacterMascotSvg({
         ? -7.2
         : mood === 'cry'
           ? -7.2
-          : -6 + crankDx;
+          : crankPinX;
   const rightArmY =
     mood === 'celebrate'
       ? -11.5
@@ -305,7 +315,7 @@ function CharacterMascotSvg({
         ? -8.5
         : mood === 'cry'
           ? -4.2
-          : -1;
+          : -1.5 - Math.sin(crankRad) * 2.2;
   const rightArmX =
     mood === 'celebrate'
       ? 11.2
@@ -313,7 +323,7 @@ function CharacterMascotSvg({
         ? 10.6
         : mood === 'cry'
           ? 9.8
-          : 10;
+          : 9.8 + Math.cos(crankRad) * 1.8;
   const topStarY = character === 'bunny' ? -30 : character === 'cat' ? -27 : -24;
 
   return (
@@ -323,6 +333,14 @@ function CharacterMascotSvg({
         data-testid={`p${playerNumber}-mascot`}
         data-character={character}
         data-mood={mood}
+        data-crank-angle={crankDeg}
+        data-crank-x={leftArmX.toFixed(1)}
+        data-crank-y={leftArmY.toFixed(1)}
+        transform={
+          isCranking
+            ? `translate(0, ${bodyBobY.toFixed(2)}) rotate(${bodyTiltDeg.toFixed(2)})`
+            : undefined
+        }
       >
         {/* Character-specific tail / dorsal crests behind the body */}
         {character === 'dragon' ? (
@@ -624,6 +642,19 @@ function CharacterMascotSvg({
           </g>
         )}
 
+        {/* Connecting cranking forearm from shoulder to the gear handle pin (#299) */}
+        {isCranking ? (
+          <line
+            x1={-4.5}
+            y1={-1.5}
+            x2={leftArmX}
+            y2={leftArmY}
+            stroke={bodyFill}
+            strokeWidth="3.8"
+            strokeLinecap="round"
+          />
+        ) : null}
+
         {/* Left & right paws (drawn in front so raised celebration/cheer/cry poses read clearly) */}
         <circle
           cx={leftArmX}
@@ -642,9 +673,9 @@ function CharacterMascotSvg({
           strokeWidth="1"
         />
 
-        {/* Feet */}
-        <ellipse cx="-2" cy="11" rx="4.5" ry="2.2" fill={accentFill} stroke="var(--text)" strokeWidth="1" />
-        <ellipse cx="6" cy="11" rx="4.5" ry="2.2" fill={accentFill} stroke="var(--text)" strokeWidth="1" />
+        {/* Feet (alternate pedaling while cranking the gears) */}
+        <ellipse cx="-2" cy={leftFootY} rx="4.5" ry="2.2" fill={accentFill} stroke="var(--text)" strokeWidth="1" />
+        <ellipse cx="6" cy={rightFootY} rx="4.5" ry="2.2" fill={accentFill} stroke="var(--text)" strokeWidth="1" />
 
         {/* Celebratory 4-point stars & sparkles on round win (`celebrate`) or combo (`cheer`) */}
         {mood === 'celebrate' ? (
@@ -701,13 +732,15 @@ function LauncherMechanismSvg({
   player,
   playerNumber,
   character,
+  advice,
 }: {
   player: PlayerBoardState;
   playerNumber: 1 | 2;
   character: CharacterId;
+  advice: MascotAdvice;
 }) {
-  const gearRotation = player.aimAngle * 2.2;
-  const crankRotation = -player.aimAngle * 3.6;
+  const gearRotation = Math.round(player.aimAngle * 6 * 10) / 10;
+  const crankRotation = Math.round(-player.aimAngle * 18 * 10) / 10;
   const mood = deriveMascotMood(player);
 
   return (
@@ -724,8 +757,12 @@ function LauncherMechanismSvg({
         strokeWidth="1.2"
       />
 
-      {/* Main toothed gear wheel (rotates with aimAngle) */}
-      <g transform={`translate(${LAUNCHER_X}, ${LAUNCHER_Y}) rotate(${gearRotation})`}>
+      {/* Main toothed gear wheel (rotates briskly with aimAngle) */}
+      <g
+        data-testid={`p${playerNumber}-main-gear`}
+        data-gear-angle={Math.round(gearRotation)}
+        transform={`translate(${LAUNCHER_X}, ${LAUNCHER_Y}) rotate(${gearRotation})`}
+      >
         {Array.from({ length: 12 }, (_, i) => (
           <rect
             key={i}
@@ -759,8 +796,12 @@ function LauncherMechanismSvg({
         />
       </g>
 
-      {/* Secondary hand-crank gear wheel on the right */}
-      <g transform={`translate(${LAUNCHER_X + 27}, ${LAUNCHER_Y + 6}) rotate(${crankRotation})`}>
+      {/* Secondary hand-crank gear wheel on the right (meshed with the mascot's cranking paw) */}
+      <g
+        data-testid={`p${playerNumber}-crank-gear`}
+        data-crank-angle={Math.round(crankRotation)}
+        transform={`translate(${LAUNCHER_X + 27}, ${LAUNCHER_Y + 6}) rotate(${crankRotation})`}
+      >
         {Array.from({ length: 8 }, (_, i) => (
           <rect
             key={i}
@@ -778,7 +819,7 @@ function LauncherMechanismSvg({
         <line x1={-7.5} y1={0} x2={7.5} y2={0} stroke="var(--border-hover)" strokeWidth="1.2" />
         <line x1={0} y1={-7.5} x2={0} y2={7.5} stroke="var(--border-hover)" strokeWidth="1.2" />
         <circle cx={0} cy={0} r={3.2} fill="var(--surface)" stroke="var(--text)" strokeWidth="1" />
-        <circle cx={5.2} cy={0} r={2} fill="var(--accent)" stroke="var(--text)" strokeWidth="0.9" />
+        <circle cx={5.2} cy={0} r={2.2} fill="var(--accent)" stroke="var(--text)" strokeWidth="0.9" />
       </g>
 
       {/* Rotating ornate pointer arrow */}
@@ -838,15 +879,57 @@ function LauncherMechanismSvg({
         <BubbleSvg cx={0} cy={-1} color={player.nextBubble} radius={BUBBLE_RADIUS - 3} />
       </g>
 
-      {/* Selectable cute mascot turning the crank on the right (#204) */}
+      {/* Selectable cute mascot turning the crank on the right (#204, #299) */}
       <CharacterMascotSvg
-        x={LAUNCHER_X + 52}
+        x={LAUNCHER_X + 44}
         y={LAUNCHER_Y + 4}
         playerNumber={playerNumber}
         character={character}
         mood={mood}
         aimAngle={player.aimAngle}
       />
+
+      {/* Comic speech bubble above the mascot with real-time aiming & tactical advice (#299) */}
+      <g
+        className={`pb-mascot-speech pb-mascot-speech-${advice.kind}`}
+        data-testid={`p${playerNumber}-mascot-speech`}
+        data-advice-kind={advice.kind}
+        aria-hidden="true"
+      >
+        <rect
+          x={116}
+          y={232}
+          width={104}
+          height={15}
+          rx={4.5}
+          fill="var(--surface)"
+          stroke={
+            advice.kind === 'danger'
+              ? 'var(--problem)'
+              : advice.kind === 'match' || advice.kind === 'combo' || advice.kind === 'win'
+                ? 'var(--accent)'
+                : 'var(--text)'
+          }
+          strokeWidth="1.1"
+        />
+        <polygon
+          points="152,247 158,247 155,252"
+          fill="var(--surface)"
+          stroke="var(--text)"
+          strokeWidth="0.9"
+        />
+        <text
+          x={168}
+          y={242}
+          textAnchor="middle"
+          fontSize="6.1"
+          fontWeight="800"
+          fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+          fill="var(--text)"
+        >
+          {advice.bubbleText}
+        </text>
+      </g>
     </g>
   );
 }
@@ -1310,6 +1393,7 @@ function PlayerArena({
   const hurrySeconds = hurryCountdownSeconds(player);
   const charName = characterDisplayName(character, playerNumber);
   const mood = deriveMascotMood(player);
+  const advice = useMemo(() => deriveMascotAdvice(player), [player]);
 
   const lastEv = player.lastEvent;
   const incomingPreview = player.incomingQueue.slice(0, 6);
@@ -1657,6 +1741,7 @@ function PlayerArena({
             player={player}
             playerNumber={playerNumber}
             character={character}
+            advice={advice}
           />
 
           {/* In-board arcade win/lose marquee plaque (#215) */}
@@ -1768,6 +1853,15 @@ function PlayerArena({
               </span>
             </div>
           ) : null}
+
+          <div
+            className={`tetris-stat pb-dino-coach pb-dino-coach-${advice.kind}`}
+            data-testid={`p${playerNumber}-dino-advice`}
+            data-advice-kind={advice.kind}
+          >
+            <span className="tetris-label">{charName} Says</span>
+            <span className="pb-dino-coach-text">{advice.coachText}</span>
+          </div>
 
           <span className="sr-only" role={statusLine || hurrySeconds !== null ? 'status' : undefined}>
             {hurrySeconds !== null
