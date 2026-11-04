@@ -63,8 +63,10 @@ function motionReduced(): boolean {
   return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-const COUNTDOWN_BEAT_MS =
-  typeof navigator !== 'undefined' && navigator.webdriver ? 180 : 2000;
+const COUNTDOWN_READY_MS =
+  typeof navigator !== 'undefined' && navigator.webdriver ? 180 : 950;
+const COUNTDOWN_GO_MS =
+  typeof navigator !== 'undefined' && navigator.webdriver ? 140 : 600;
 
 function detectTouchAvailable(): boolean {
   if (typeof window === 'undefined') return false;
@@ -532,16 +534,26 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     return () => window.clearInterval(id);
   }, [netplay.myPendingInvite]);
 
-  // "Ready…" -> "Go!" speaker-weighted 10-language start countdown with spoken voice audio (#262, #268).
+  // "Ready…" -> "Go!" speaker-weighted 10-language start countdown with spoken voice audio (#262, #268, #303).
   useEffect(() => {
     if (countdown <= 0 || paused || isReadyCheck || isInviting || isNetworkPaused) return;
     const phase = countdown >= 2 ? 'ready' : 'go';
     getSharedArcadeAudio().playCountdownPhrase(countdownLang, phase);
+    const beatMs = phase === 'ready' ? COUNTDOWN_READY_MS : COUNTDOWN_GO_MS;
     const id = window.setTimeout(() => {
-      setCountdown((c) => Math.max(0, c - 1));
-    }, COUNTDOWN_BEAT_MS);
+      setCountdown((c) => {
+        const next = Math.max(0, c - 1);
+        if (next === 0) {
+          setGame((cur) => tick(cur, rngRef.current));
+          if (isLocal2P) {
+            setGame2((cur) => tick(cur, rngRef.current));
+          }
+        }
+        return next;
+      });
+    }, beatMs);
     return () => window.clearTimeout(id);
-  }, [countdown, countdownKey, countdownLang, paused, isReadyCheck, isInviting, isNetworkPaused]);
+  }, [countdown, countdownKey, countdownLang, isLocal2P, paused, isReadyCheck, isInviting, isNetworkPaused]);
 
   useEffect(() => {
     const client = getSharedNetplay();

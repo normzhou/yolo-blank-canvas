@@ -2391,9 +2391,12 @@ button.pb-touch-fire {
   padding: 2px 4px;
 }
 .pb-dino-coach {
+  display: flex;
   align-items: flex-start;
-  gap: 2px;
-  padding: 4px 6px;
+  padding: 2px 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
 }
 .pb-dino-coach-text {
   font-size: var(--text-xs);
