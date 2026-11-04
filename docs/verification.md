@@ -4,6 +4,18 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Local 2-Player Side-by-Side Versus Tetris (#301) — 2026-11-02
+
+Source revision `3d4a448` (the Local 2-Player Side-by-Side Versus Tetris commit); build evidence `44e18b6`; published as `v0.30.0` on 2026-11-02.
+
+- **Local 2-Player Versus Mode (`src/client/views/TetrisView.tsx`, `src/client/styles.css`):**
+  - Adds a **2 Players** button (`data-testid="tetris-2p-local-btn"`) to the Tetris Pause Menu alongside `1 Player` and `2P Online`.
+  - Renders two full `10 × 20` Tetris boards side-by-side (`data-testid="tetris-p1-board"` and `data-testid="tetris-p2-board"`), each with its own ghost piece, incoming garbage meter, `Score`, `Lines`, `Level`, and `Next` preview.
+  - Split keyboard controls: Player 1 (`1UP`, left) uses `W` (rotate), `A` / `D` (left/right), `S` (soft drop), `F` / `Q` / `E` (hard drop); Player 2 (`2UP`, right) uses `ArrowUp` (rotate), `ArrowLeft` / `ArrowRight` (left/right), `ArrowDown` (soft drop), `Space` / `Enter` (hard drop).
+  - Live garbage line attacks (`queueTetrisGarbage`) and `1UP X – Y 2UP` win tally (`data-testid="tetris-2p-tally"`).
+- `npm test`: 26 files, 175 tests passed.
+- `npx tsc --noEmit`: clean.
+
 ## Puzzle Bobble Dinosaur Gear-Cranking Animation & Real-Time Tactical Dialogue (#299) — 2026-11-02
 
 Source revision `431ee96` (the dinosaur gear-cranking animation and real-time tactical dialogue/advice commit); build evidence `5b2c41f`; release commit `a758f35`; published as `v0.29.0` on 2026-11-02.

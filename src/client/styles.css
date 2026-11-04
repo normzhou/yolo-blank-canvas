@@ -1749,6 +1749,11 @@ a:visited { color: var(--accent-weak-text); }
   border-radius: var(--radius-sm);
 }
 .tetris-body { flex: 1; display: flex; gap: 12px; align-items: center; justify-content: center; min-height: 0; }
+.tetris-body.is-local-2p { gap: 16px; }
+.tetris-player-lane { display: flex; gap: 10px; align-items: center; justify-content: center; min-height: 0; }
+.tetris[data-mode='2p'] {
+  --tetris-cell-size: clamp(12px, min(calc((100dvh - 156px) / 20), calc((50vw - 148px) / 10)), 32px);
+}
 .tetris-board {
   display: grid;
   grid-template-columns: repeat(10, var(--tetris-cell-size));
