@@ -6,7 +6,7 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Periodic Plain-Text Character Advice & Immediate Post-Countdown Start (#303) — 2026-11-02
 
-Source revision `47a80ab` (periodic plain-text character advice and tightened Ready/Go countdown); build evidence `83a478b`; published as `v0.30.1` on 2026-11-02.
+Source revision `47a80ab` (periodic plain-text character advice and tightened Ready/Go countdown); build evidence `83a478b`; release commit `48d1b8a`; published as `v0.30.1` on 2026-11-02.
 
 - **Periodic, Plain-Text Character Advice (`src/client/views/PuzzleBobbleView.tsx`, `src/client/styles.css`):**
   - Throttles character advice updates in `PlayerArena` so new advice is selected only once in a while (at least 10 seconds apart on shot resolution, or on round start/end) rather than on every aim angle step.
@@ -15,6 +15,7 @@ Source revision `47a80ab` (periodic plain-text character advice and tightened Re
   - Tightens `"Ready…"` (`950ms`) and `"Go!"` (`600ms`) countdown beats to match the spoken voice clips and triggers the initial Tetris piece step immediately when `countdown` hits `0`.
 - `npm test`: 26 files, 175 tests passed.
 - `npx tsc --noEmit`: clean.
+- Deployed live to `yolo-demo-app` (`Version ID: 13f502f0-8422-4c0a-9ebb-a452c6e3c3bd`) and verified in headless Google Chrome at `https://demo.yolo-dev.ai/?app=puzzle-bobble`. Report: [`.yolo/reports/releases-observed-2026-11-02-v0301.json`](../.yolo/reports/releases-observed-2026-11-02-v0301.json).
 
 ## Local 2-Player Side-by-Side Versus Tetris (#301) — 2026-11-02
 
