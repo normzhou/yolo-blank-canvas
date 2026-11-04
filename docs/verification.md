@@ -4,6 +4,18 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Periodic Plain-Text Character Advice & Immediate Post-Countdown Start (#303) — 2026-11-02
+
+Source revision `47a80ab` (periodic plain-text character advice and tightened Ready/Go countdown); build evidence `83a478b`; published as `v0.30.1` on 2026-11-02.
+
+- **Periodic, Plain-Text Character Advice (`src/client/views/PuzzleBobbleView.tsx`, `src/client/styles.css`):**
+  - Throttles character advice updates in `PlayerArena` so new advice is selected only once in a while (at least 10 seconds apart on shot resolution, or on round start/end) rather than on every aim angle step.
+  - Removes all bounding boxes, borders, speech-bubble polygons, and backgrounds from `data-testid="p1-mascot-speech"` and `.pb-dino-coach` so the advice renders as plain text.
+- **Immediate Start After Countdown (`src/client/views/TetrisView.tsx`, `src/client/views/PuzzleBobbleView.tsx`):**
+  - Tightens `"Ready…"` (`950ms`) and `"Go!"` (`600ms`) countdown beats to match the spoken voice clips and triggers the initial Tetris piece step immediately when `countdown` hits `0`.
+- `npm test`: 26 files, 175 tests passed.
+- `npx tsc --noEmit`: clean.
+
 ## Local 2-Player Side-by-Side Versus Tetris (#301) — 2026-11-02
 
 Source revision `3d4a448` (the Local 2-Player Side-by-Side Versus Tetris commit); build evidence `44e18b6`; release commit `0fa0e54`; published as `v0.30.0` on 2026-11-02.
