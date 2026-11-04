@@ -889,43 +889,33 @@ function LauncherMechanismSvg({
         aimAngle={player.aimAngle}
       />
 
-      {/* Comic speech bubble above the mascot with real-time aiming & tactical advice (#299) */}
+      {/* Plain-text character dialogue above the mascot without borders or background (#299, #303) */}
       <g
         className={`pb-mascot-speech pb-mascot-speech-${advice.kind}`}
         data-testid={`p${playerNumber}-mascot-speech`}
         data-advice-kind={advice.kind}
         aria-hidden="true"
       >
-        <rect
-          x={116}
-          y={232}
-          width={104}
-          height={15}
-          rx={4.5}
-          fill="var(--surface)"
-          stroke={
-            advice.kind === 'danger'
-              ? 'var(--problem)'
-              : advice.kind === 'match' || advice.kind === 'combo' || advice.kind === 'win'
-                ? 'var(--accent)'
-                : 'var(--text)'
-          }
-          strokeWidth="1.1"
-        />
-        <polygon
-          points="152,247 158,247 155,252"
-          fill="var(--surface)"
-          stroke="var(--text)"
-          strokeWidth="0.9"
-        />
         <text
           x={168}
           y={242}
           textAnchor="middle"
-          fontSize="6.1"
+          fontSize="6.4"
           fontWeight="800"
           fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
-          fill="var(--text)"
+          fill={
+            advice.kind === 'danger'
+              ? 'var(--problem)'
+              : advice.kind === 'match' || advice.kind === 'combo' || advice.kind === 'win'
+                ? 'var(--tetromino-o)'
+                : 'var(--text)'
+          }
+          style={{
+            paintOrder: 'stroke',
+            stroke: 'var(--cabinet-well)',
+            strokeWidth: '2.2px',
+            strokeLinejoin: 'round',
+          }}
         >
           {advice.bubbleText}
         </text>
@@ -1393,7 +1383,29 @@ function PlayerArena({
   const hurrySeconds = hurryCountdownSeconds(player);
   const charName = characterDisplayName(character, playerNumber);
   const mood = deriveMascotMood(player);
-  const advice = useMemo(() => deriveMascotAdvice(player), [player]);
+  const adviceStateRef = useRef<{
+    advice: MascotAdvice;
+    updatedAt: number;
+    shotsFired: number;
+    status: PlayerBoardState['status'];
+  } | null>(null);
+  const nowMs = Date.now();
+  if (
+    adviceStateRef.current === null ||
+    adviceStateRef.current.status !== player.status ||
+    (player.shotsFired === 0 && adviceStateRef.current.shotsFired > 0) ||
+    (player.flying === null &&
+      player.shotsFired !== adviceStateRef.current.shotsFired &&
+      nowMs - adviceStateRef.current.updatedAt >= 10_000)
+  ) {
+    adviceStateRef.current = {
+      advice: deriveMascotAdvice(player),
+      updatedAt: nowMs,
+      shotsFired: player.shotsFired,
+      status: player.status,
+    };
+  }
+  const advice = adviceStateRef.current.advice;
 
   const lastEv = player.lastEvent;
   const incomingPreview = player.incomingQueue.slice(0, 6);
@@ -1855,11 +1867,10 @@ function PlayerArena({
           ) : null}
 
           <div
-            className={`tetris-stat pb-dino-coach pb-dino-coach-${advice.kind}`}
+            className={`pb-dino-coach pb-dino-coach-${advice.kind}`}
             data-testid={`p${playerNumber}-dino-advice`}
             data-advice-kind={advice.kind}
           >
-            <span className="tetris-label">{charName} Says</span>
             <span className="pb-dino-coach-text">{advice.coachText}</span>
           </div>
 
@@ -1874,8 +1885,10 @@ function PlayerArena({
   );
 }
 
-const COUNTDOWN_BEAT_MS =
-  typeof navigator !== 'undefined' && navigator.webdriver ? 180 : 2000;
+const COUNTDOWN_READY_MS =
+  typeof navigator !== 'undefined' && navigator.webdriver ? 180 : 950;
+const COUNTDOWN_GO_MS =
+  typeof navigator !== 'undefined' && navigator.webdriver ? 140 : 600;
 
 const PHONE_PORTRAIT_MAX_WIDTH = 560;
 const PHONE_LANDSCAPE_MAX_WIDTH = 900;
@@ -2109,14 +2122,15 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     return () => window.clearInterval(id);
   }, [netplay.myPendingInvite]);
 
-  // "Ready…" -> "Go!" speaker-weighted 10-language start countdown with spoken voice audio (#262, #268).
+  // "Ready…" -> "Go!" speaker-weighted 10-language start countdown with spoken voice audio (#262, #268, #303).
   useEffect(() => {
     if (countdown <= 0 || paused || isReadyCheck || isInviting || isNetworkPaused) return;
     const phase = countdown >= 2 ? 'ready' : 'go';
     getSharedArcadeAudio().playCountdownPhrase(countdownLang, phase);
+    const beatMs = phase === 'ready' ? COUNTDOWN_READY_MS : COUNTDOWN_GO_MS;
     const id = window.setTimeout(() => {
       setCountdown((c) => Math.max(0, c - 1));
-    }, COUNTDOWN_BEAT_MS);
+    }, beatMs);
     return () => window.clearTimeout(id);
   }, [countdown, countdownKey, countdownLang, paused, isReadyCheck, isInviting, isNetworkPaused]);
 
