@@ -4,6 +4,19 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Slim Native Tauri Installers, On-Demand Music Streaming & Persistent macOS Helper (#323, #324) — 2026-11-02
+
+Source revision `f3ba18d` (slim native Tauri installers excluding 23 MB of `.m4a` music tracks, persistent `localStorage` macOS helper card, `target="_blank"` download, and `publish-latest` CI promotion); published as `v0.35.1` on 2026-11-02.
+
+- **Slim Native Installers & On-Demand Music Streaming (`src-tauri/tauri.conf.json`, `src-tauri/dist/index.html`, `.github/workflows/release-arcade.yml`):**
+  - Points `frontendDist` to `./dist` instead of `../dist/client` (which contained 23 MB of `.m4a` files duplicated twice in the macOS universal binary), shrinking the macOS `.dmg` from 48.4 MB to ~4.5 MB, Windows `.exe` from 22.8 MB to ~2.5 MB, and Android `.apk` from 33.6 MB to ~11 MB while streaming music tracks on demand from `https://demo.yolo-dev.ai/tetris/*.m4a`.
+- **Persistent Helper Card & `_blank` Download (`src/client/App.tsx`, `src/client/arcadeDownload.ts`, `test/arcade-download.test.ts`):**
+  - Persists `macosHelperOpen` in `localStorage` (`yolo:macos-install-helper:v1`) until explicitly dismissed with `×`, and sets `target="_blank" rel="noopener noreferrer"` on `[data-testid="arcade-download-link"]` so the main `demo.yolo-dev.ai` tab never navigates away.
+- **Release `latest` Promotion After Installer Upload (`.github/workflows/release-arcade.yml`):**
+  - Adds a `publish-latest` job (`needs: [build-desktop, build-android]`) so `/releases/latest/download/yolo-arcade-macos.dmg` always resolves to a release whose installers are already uploaded.
+- `npm test`: 27 files, 181 tests passed.
+- `npx tsc --noEmit`: clean.
+
 ## Zero-Friction macOS Gatekeeper Install Guide & Privacy/Security Deep Link (#321) — 2026-11-02
 
 Source revision `7087d67` (custom macOS DMG installer guide background + post-download helper card with `x-apple.systempreferences:com.apple.preference.security?General` deep link); build evidence `ffa9d69`; release commit `efd1011`; published as `v0.35.0` on 2026-11-02.
