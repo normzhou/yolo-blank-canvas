@@ -1,0 +1,19 @@
+[package]
+name = "yolo-arcade"
+version = "0.31.0"
+description = "YOLO Arcade — installable desktop (macOS/Windows) and Android wrapper for demo.yolo-dev.ai"
+authors = ["normzhou"]
+license = "MIT"
+repository = "https://github.com/normzhou/yolo-blank-canvas"
+edition = "2021"
+rust-version = "1.77.2"
+
+[lib]
+name = "yolo_arcade_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }

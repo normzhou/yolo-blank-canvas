@@ -14,3 +14,5 @@ hosting/.bundle/
 hosting/vendor/
 hosting/.kamal/
 __pycache__/
+src-tauri/target/
+src-tauri/gen/
