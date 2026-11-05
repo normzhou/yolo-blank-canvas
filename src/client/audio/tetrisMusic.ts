@@ -10,6 +10,7 @@ type AudioContextConstructor = typeof AudioContext;
 
 export const CROSSFADE_SEC = 1.2;
 export const MUSIC_GAIN = 0.22;
+export const AUDIO_DISK_CACHE_NAME = 'yolo-arcade-audio-v1';
 
 export interface AudioOutputMetrics {
   rms: number;
@@ -461,9 +462,43 @@ export class TetrisMusic {
     const task = (async () => {
       if (!this.ctx || typeof fetch !== 'function') return null;
       try {
-        const response = await fetch(track.src);
-        if (!response.ok) return null;
-        const raw = await response.arrayBuffer();
+        let raw: ArrayBuffer | null = null;
+        const cacheStorage =
+          typeof globalThis !== 'undefined' && 'caches' in globalThis
+            ? (globalThis as unknown as { caches?: CacheStorage }).caches
+            : undefined;
+        let diskCache: Cache | null = null;
+
+        if (cacheStorage && typeof cacheStorage.open === 'function') {
+          try {
+            diskCache = await cacheStorage.open(AUDIO_DISK_CACHE_NAME);
+            const cachedResp = await diskCache.match(track.src);
+            if (cachedResp && cachedResp.ok) {
+              raw = await cachedResp.arrayBuffer();
+            }
+          } catch {
+            // Ignore Cache Storage read errors and fall back to network fetch.
+          }
+        }
+
+        if (!raw) {
+          const response = await fetch(track.src);
+          if (!response.ok) return null;
+          raw = await response.arrayBuffer();
+          if (diskCache && typeof Response === 'function') {
+            try {
+              await diskCache.put(
+                track.src,
+                new Response(raw.slice(0), {
+                  headers: { 'Content-Type': 'audio/mp4' },
+                }),
+              );
+            } catch {
+              // Ignore Cache Storage quota/write errors.
+            }
+          }
+        }
+
         if (!this.ctx) return null;
         const decoded = await this.ctx.decodeAudioData(raw.slice(0));
         this.bufferCache.set(track.id, decoded);

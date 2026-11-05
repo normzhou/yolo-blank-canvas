@@ -16,7 +16,8 @@ import {
   type Track,
 } from '../src/shared/tetrisMusic';
 import {
-  getSharedArcadeAudio,
+  AUDIO_DISK_CACHE_NAME,
+   getSharedArcadeAudio,
   getSharedMusicOn,
   getSharedSfxOn,
   MUSIC_GAIN,
@@ -265,5 +266,100 @@ describe('selector, tetris, and puzzle bobble playlists + Tone synth SFX (#232, 
     // Restore both on
     setSharedSfxOn(true);
     expect(getSharedSfxOn()).toBe(true);
+  });
+
+  it('persists fetched .m4a tracks in Cache Storage (window.caches) on first play and serves subsequent sessions from disk cache without re-fetching (#326)', async () => {
+    const diskEntries = new Map<string, Response>();
+    let openedBucket = '';
+    const fakeCaches = {
+      open: vi.fn(async (name: string) => {
+        openedBucket = name;
+        return {
+          match: vi.fn(async (key: string) => {
+            const hit = diskEntries.get(key);
+            return hit ? hit.clone() : undefined;
+          }),
+          put: vi.fn(async (key: string, resp: Response) => {
+            diskEntries.set(key, resp.clone());
+          }),
+        };
+      }),
+    };
+
+    const fakeFetch = vi.fn(async () => ({
+      ok: true,
+      arrayBuffer: async () => new ArrayBuffer(32),
+    }));
+
+    class FakeAudioContext {
+      state = 'running';
+      currentTime = 0;
+      destination = {};
+      createGain() {
+        return {
+          gain: {
+            value: 1,
+            setValueAtTime: vi.fn(),
+            linearRampToValueAtTime: vi.fn(),
+            exponentialRampToValueAtTime: vi.fn(),
+          },
+          connect: vi.fn(),
+          disconnect: vi.fn(),
+        };
+      }
+      createBuffer = vi.fn(() => ({ duration: 0.001 } as unknown as AudioBuffer));
+      createBufferSource() {
+        return {
+          buffer: null,
+          loop: false,
+          onended: null,
+          connect: vi.fn(),
+          disconnect: vi.fn(),
+          start: vi.fn(),
+          stop: vi.fn(),
+        };
+      }
+      decodeAudioData = vi.fn(async () => ({ duration: 60 }));
+      resume = vi.fn(async () => undefined);
+      close = vi.fn(async () => undefined);
+    }
+
+    vi.stubGlobal('window', {
+      AudioContext: FakeAudioContext,
+      caches: fakeCaches,
+    });
+    vi.stubGlobal('AudioContext', FakeAudioContext);
+    vi.stubGlobal('fetch', fakeFetch);
+    vi.stubGlobal('caches', fakeCaches);
+
+    try {
+      // Session 1: fetches from network and populates persistent Cache Storage
+      const session1 = new TetrisMusic();
+      session1.ensureContext();
+      session1.setActive(true);
+      await new Promise((r) => setTimeout(r, 20));
+      expect(openedBucket).toBe(AUDIO_DISK_CACHE_NAME);
+      expect(diskEntries.size).toBeGreaterThanOrEqual(1);
+      const callsAfterSession1 = fakeFetch.mock.calls.length;
+      expect(callsAfterSession1).toBeGreaterThanOrEqual(1);
+      session1.dispose();
+
+      // Pre-populate all playlist tracks in diskEntries so Session 2 is 100% cache hit
+      for (const t of PLAYLIST) {
+        diskEntries.set(t.src, new Response(new ArrayBuffer(32)));
+      }
+      diskEntries.set(COUNTDOWN_VOICE_SPRITE_SRC, new Response(new ArrayBuffer(32)));
+
+      // Session 2 (simulating app restart): serves from diskEntries without any new fetch() call
+      fakeFetch.mockClear();
+      const session2 = new TetrisMusic();
+      session2.ensureContext();
+      session2.setActive(true);
+      await new Promise((r) => setTimeout(r, 20));
+      expect(fakeFetch).not.toHaveBeenCalled();
+      session2.dispose();
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });
