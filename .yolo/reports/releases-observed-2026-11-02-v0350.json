@@ -1,0 +1,58 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-02",
+  "observed_at": "2026-11-02",
+  "published_at_utc": "2026-11-05T21:15:00Z",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "release": "v0.1.0-alpha.57"
+  },
+  "releases": [
+    {
+      "tag": "v0.35.0",
+      "commit": "efd101170259d82165c765afee23c5a9f48f1617"
+    }
+  ],
+  "release": {
+    "tag": "v0.35.0",
+    "tag_object": "6ebdc038849a520ab41c35d39bf403917a72aad5",
+    "release_commit": "efd101170259d82165c765afee23c5a9f48f1617",
+    "source_commit": "7087d67f926e97839f9cf02465bdf1e58df32ddc",
+    "assets_commit": "ffa9d698da4638cb8a2f1d40e7f8db6d085f3c31",
+    "semver": "minor",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record 7087d67, the source revision. The committed assets were built at that source in ffa9d69. efd1011 is the merge of release-metadata commit 00b7964 after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "181 passed across 27 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID 7087d67" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #322 completed success" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "deployed_to": "https://demo.yolo-dev.ai (Cloudflare Worker yolo-demo-app, Version ID: ac54e44f-1284-4d48-9c06-2b531c6d3aea)",
+    "served_build": "7087d67f926e97839f9cf02465bdf1e58df32ddc",
+    "served_version": {
+      "package": "0.35.0",
+      "appVersion": "v0.35.0",
+      "clientBuild": "7087d67f926e97839f9cf02465bdf1e58df32ddc"
+    },
+    "result": "pass",
+    "detail": "Deployed live to yolo-demo-app (Version ID: ac54e44f-1284-4d48-9c06-2b531c6d3aea); clicking Download for macOS displays the post-download helper card with a 1-click Open Privacy & Security deep link (x-apple.systempreferences:com.apple.preference.security?General) and copyable xattr -cr /Applications/yolo-arcade.app bypass, and bundle.macOS.dmg embeds src-tauri/icons/dmg-background.png."
+  },
+  "what_this_release_delivers": [
+    "#321 Custom macOS DMG installer guide background + post-download helper card with Privacy & Security deep link and xattr bypass"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "The tag points at efd1011, the merge of the release-metadata commit 00b7964 after the assets commit ffa9d69, not at the assets commit itself. Both build-ID files still record the source 7087d67, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #321"
+}
