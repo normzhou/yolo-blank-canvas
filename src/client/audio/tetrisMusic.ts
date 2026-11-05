@@ -56,6 +56,7 @@ export class TetrisMusic {
   private audio: HTMLAudioElement | null = null;
   private active = false;
   private sfxEnabled = false;
+  private sfxExplicitlyManaged = false;
   private queue: Track[] = [];
   private currentTrack: Track | null = null;
   private lastTrackId: string | null = null;
@@ -147,6 +148,8 @@ export class TetrisMusic {
 
         if (!this.currentTrack) {
           this.advance(false);
+        } else if (this.active && !this.currentVoice) {
+          void this.playDecodedTrack(this.currentTrack, this.pauseOffset, false);
         }
         void this.loadBuffer({
           id: '__countdown_voices__',
@@ -231,6 +234,7 @@ export class TetrisMusic {
   }
 
   setSfxEnabled(enabled: boolean): void {
+    this.sfxExplicitlyManaged = true;
     this.sfxEnabled = enabled;
   }
 
@@ -318,7 +322,7 @@ export class TetrisMusic {
 
   /** Start or stop playback. Safe to call both in `onClick` and `useEffect`. */
   setActive(active: boolean): void {
-    if (active) {
+    if (active && !this.sfxExplicitlyManaged) {
       this.sfxEnabled = true;
     }
     if (this.active === active) {
@@ -592,14 +596,14 @@ export class TetrisMusic {
 
 /**
  * Shared singleton audio controller so the global sound effects (`sfx-button`)
- * and music (`sound-button`) controls in `App.tsx` can drive music crossfades
- * and real-time SFX independently across the Selector Screen, Tetris, and
- * Puzzle Bobble (#234, #313).
+ * and music (`sound-button`) controls in `App.tsx` and the in-game Pause Menu
+ * drive music crossfades and real-time SFX independently across the Selector
+ * Screen, Tetris, and Puzzle Bobble (#234, #313, #317).
+ * Both Sound Effects and Music start ON by default and are 100% decoupled.
  */
 let sharedController: TetrisMusic | null = null;
-let sharedMusicOn = false;
-let sharedSfxOn = false;
-let sfxExplicitlyToggled = false;
+let sharedMusicOn = true;
+let sharedSfxOn = true;
 const stateListeners = new Set<(musicOn: boolean, nowPlaying: string | null, sfxOn: boolean) => void>();
 
 function notifySharedAudioListeners(): void {
@@ -616,6 +620,7 @@ export function getSharedArcadeAudio(): TetrisMusic {
         listener(sharedMusicOn, track.title, sharedSfxOn);
       }
     });
+    sharedController.setSfxEnabled(sharedSfxOn);
   }
   return sharedController;
 }
@@ -630,8 +635,9 @@ export function getSharedSfxOn(): boolean {
 
 export function setSharedSfxOn(next: boolean): boolean {
   const audio = getSharedArcadeAudio();
-  if (next && !audio.ensureContext()) return false;
-  sfxExplicitlyToggled = true;
+  if (next) {
+    audio.ensureContext();
+  }
   sharedSfxOn = next;
   audio.setSfxEnabled(next);
   notifySharedAudioListeners();
@@ -640,15 +646,11 @@ export function setSharedSfxOn(next: boolean): boolean {
 
 export function setSharedMusicOn(next: boolean, activePlayable = true): boolean {
   const audio = getSharedArcadeAudio();
-  if (next && !audio.ensureContext()) return false;
+  if (next) {
+    audio.ensureContext();
+  }
   sharedMusicOn = next;
   audio.setActive(next && activePlayable);
-  if (!sfxExplicitlyToggled) {
-    sharedSfxOn = next;
-    audio.setSfxEnabled(next);
-  } else {
-    audio.setSfxEnabled(sharedSfxOn);
-  }
   notifySharedAudioListeners();
   return true;
 }

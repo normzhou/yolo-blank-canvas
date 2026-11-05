@@ -608,6 +608,29 @@ export function App() {
     });
   }, []);
 
+  // #317: Both Sound Effects and Music start ON by default; unlock Web Audio on
+  // the first user gesture so browser autoplay policies start playback seamlessly.
+  useEffect(() => {
+    function unlockDefaultAudioOnGesture(event: Event) {
+      const target = event.target as Element | null;
+      if (target?.closest?.('[data-testid="sfx-button"], [data-testid="sound-button"]')) {
+        return;
+      }
+      if (!getSharedMusicOn() && !getSharedSfxOn()) return;
+      const audio = getSharedArcadeAudio();
+      audio.ensureContext();
+      if (getSharedMusicOn()) {
+        audio.setActive(true);
+      }
+    }
+    window.addEventListener('pointerdown', unlockDefaultAudioOnGesture, { passive: true });
+    window.addEventListener('keydown', unlockDefaultAudioOnGesture);
+    return () => {
+      window.removeEventListener('pointerdown', unlockDefaultAudioOnGesture);
+      window.removeEventListener('keydown', unlockDefaultAudioOnGesture);
+    };
+  }, []);
+
   useEffect(() => {
     setGamePaused(getSharedGamePaused());
     return subscribeSharedGamePause((nextPaused) => {

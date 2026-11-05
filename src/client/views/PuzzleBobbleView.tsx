@@ -11,6 +11,9 @@ import {
 import {
   getSharedArcadeAudio,
   getSharedMusicOn,
+  getSharedSfxOn,
+  setSharedMusicOn,
+  setSharedSfxOn,
   subscribeSharedAudio,
 } from '../audio/tetrisMusic';
 import {
@@ -1981,6 +1984,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
   const [stagePreset, setStagePreset] = useState<number>(0); // 0 = random wave, 1..5 = classic Taito stages
   const [paused, setPaused] = useState<boolean>(() => getSharedGamePaused());
   const [musicOn, setMusicOn] = useState<boolean>(() => getSharedMusicOn());
+  const [sfxOn, setSfxOn] = useState<boolean>(() => getSharedSfxOn());
   const [backgroundIndex, setBackgroundIndex] = useState(1);
   const [nowPlaying, setNowPlaying] = useState<string | null>(
     () => getSharedArcadeAudio().getCurrentTrack()?.title ?? null,
@@ -2285,9 +2289,10 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     const audio = getSharedArcadeAudio();
     audio.setPlaylist(PUZZLE_BOBBLE_PLAYLIST);
     setNowPlaying(audio.getCurrentTrack()?.title ?? null);
-    return subscribeSharedAudio((nextOn, nextTitle) => {
+    return subscribeSharedAudio((nextOn, nextTitle, nextSfxOn) => {
       setMusicOn(nextOn);
       setNowPlaying(nextTitle);
+      setSfxOn(nextSfxOn);
     });
   }, []);
 
@@ -3249,6 +3254,32 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
                   }}
                 >
                   ›
+                </button>
+              </div>
+            </div>
+            <div className="game-pause-section">
+              <span className="tetris-label">Audio</span>
+              <div className="filter-group" role="group" aria-label="Audio controls">
+                <button
+                  type="button"
+                  data-testid="pause-menu-sfx-btn"
+                  aria-pressed={sfxOn}
+                  onClick={() => {
+                    setSharedSfxOn(!sfxOn);
+                  }}
+                >
+                  {sfxOn ? 'Sound: On' : 'Sound: Off'}
+                </button>
+                <button
+                  type="button"
+                  data-testid="pause-menu-music-btn"
+                  aria-pressed={musicOn}
+                  onClick={() => {
+                    getSharedArcadeAudio().setPlaylist(PUZZLE_BOBBLE_PLAYLIST);
+                    setSharedMusicOn(!musicOn, true);
+                  }}
+                >
+                  {musicOn ? 'Music: On' : 'Music: Off'}
                 </button>
               </div>
             </div>
