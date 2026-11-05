@@ -15,12 +15,92 @@
  *   to the `<yolo-feedback-v1>` dialog while it is open.
  */
 
-import { setSharedOverlayOpen } from './gamePause';
+import { setSharedGamePaused, setSharedOverlayOpen } from './gamePause';
+import { isInstalledArcadeApp } from './arcadeDownload';
 
 export const HOSTED_FEEDBACK_V1_URL = 'https://yolo-dev.ai/feedback/v1.mjs';
 export const LOCAL_FEEDBACK_FALLBACK_URL = '/yolo/feedback/browser.js';
 export const PENDING_LOGIN_RETURN_KEY = 'yolo:hosted-feedback-login-return:v1';
-export const PENDING_LOGIN_RETURN_TTL_MS = 10 * 60 * 1000;
+export const PASSKEY_HANDOFF_STORAGE_KEY = 'yolo:hosted-feedback-handoff:v1';
+const PENDING_LOGIN_RETURN_TTL_MS = 10 * 60 * 1000;
+
+/**
+ * Generates a 43-character URL-safe base64 token (256 bits of entropy) for
+ * System Browser Passkey Login Handoff (#328).
+ */
+export function generatePasskeyHandoffToken(): string {
+  const bytes = new Uint8Array(32);
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    crypto.getRandomValues(bytes);
+  } else {
+    for (let i = 0; i < 32; i += 1) {
+      bytes[i] = Math.floor(Math.random() * 256);
+    }
+  }
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+  let out = '';
+  for (let i = 0; i < 43; i += 1) {
+    const byteIdx = Math.floor((i * 6) / 8);
+    const bitOffset = (i * 6) % 8;
+    const b0 = bytes[byteIdx] ?? 0;
+    const b1 = bytes[byteIdx + 1] ?? 0;
+    const combined = ((b0 << 8) | b1) >> (10 - bitOffset);
+    out += alphabet[combined & 0x3f];
+  }
+  return out;
+}
+
+export function savePendingPasskeyHandoff(handoff: string): void {
+  if (typeof window === 'undefined' || !/^[A-Za-z0-9_-]{43}$/.test(handoff)) return;
+  try {
+    window.sessionStorage?.setItem(PASSKEY_HANDOFF_STORAGE_KEY, handoff);
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+export function getPendingPasskeyHandoff(): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const val = window.sessionStorage?.getItem(PASSKEY_HANDOFF_STORAGE_KEY) ?? null;
+    return val && /^[A-Za-z0-9_-]{43}$/.test(val) ? val : null;
+  } catch {
+    return null;
+  }
+}
+
+export function clearPendingPasskeyHandoff(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.sessionStorage?.removeItem(PASSKEY_HANDOFF_STORAGE_KEY);
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+export async function pollPasskeyHandoffOnce(
+  handoff: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<boolean> {
+  if (!/^[A-Za-z0-9_-]{43}$/.test(handoff)) return false;
+  try {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://demo.yolo-dev.ai';
+    const res = await fetchImpl(new URL('/auth/yolo/handoff/poll', origin).href, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: origin,
+      },
+      body: JSON.stringify({ handoff }),
+    });
+    if (!res.ok) return false;
+    const data = (await res.json()) as { status?: string };
+    return data?.status === 'completed';
+  } catch {
+    return false;
+  }
+}
 
 export interface PendingFeedbackLoginReturn {
   search: string;
@@ -239,6 +319,18 @@ async function ensureFeedbackControl(
           search: window.location?.search ?? '',
           page: currentPageLabel,
         });
+        // #328: When running inside the native Tauri app (?shell=tauri), use
+        // System Browser Login Handoff so macOS/Windows/Android Passkeys (Touch ID)
+        // work in the user's default browser without embedded-WebView restrictions.
+        if (isInstalledArcadeApp()) {
+          const handoff = generatePasskeyHandoffToken();
+          savePendingPasskeyHandoff(handoff);
+          const handoffUrl = new URL('/auth/yolo/browser-start', window.location.origin);
+          handoffUrl.searchParams.set('handoff', handoff);
+          handoffUrl.searchParams.set('launch', 'os');
+          window.location.assign(handoffUrl.href);
+          return;
+        }
         if (!loginForm || !loginForm.isConnected) {
           loginForm = document.createElement('form');
           loginForm.method = 'post';

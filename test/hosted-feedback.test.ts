@@ -6,12 +6,16 @@ import {
   setSharedOverlayOpen,
 } from '../src/client/gamePause';
 import {
+  clearPendingPasskeyHandoff,
   closeHostedFeedback,
   consumePendingFeedbackLoginReturn,
+  generatePasskeyHandoffToken,
+  getPendingPasskeyHandoff,
   HOSTED_FEEDBACK_V1_URL,
   isHostedFeedbackOpen,
   LOCAL_FEEDBACK_FALLBACK_URL,
   openHostedFeedback,
+  pollPasskeyHandoffOnce,
   resetHostedFeedbackForTests,
 } from '../src/client/hostedFeedback';
 
@@ -252,5 +256,57 @@ describe('Hosted v1 shared feedback integration (#290, #294, #296)', () => {
     expect(openSpy).toHaveBeenCalledWith({ context: { page: 'Tetris' } });
     const root = roots.get('yolo-hosted-feedback-root');
     expect(root?.dataset.yoloFeedbackSource).toBe('local-fallback');
+  });
+
+  it('initiates System Browser Passkey Login Handoff (/auth/yolo/browser-start?handoff=...&launch=os) when running inside the installed Tauri app (#328)', async () => {
+    setupMockDom();
+    let assignedUrl = '';
+    const win = window as unknown as {
+      location: { search: string; origin: string; assign: (u: string) => void; reload: () => void };
+    };
+    win.location.search = '?shell=tauri&app=puzzle-bobble';
+    win.location.assign = (u: string) => {
+      assignedUrl = u;
+    };
+
+    let capturedOnLogin: (() => void) | undefined;
+    await openHostedFeedback({
+      page: 'Puzzle Bobble',
+      importer: async () => ({
+        HOSTED_FEEDBACK_API: 'yolo-feedback-ui-v1',
+        LIBRARY_VERSION: '0.1.0-alpha.58',
+        mountFeedback: (_root, opts) => {
+          capturedOnLogin = opts.onLogin;
+          return {
+            open: () => undefined,
+            close: () => undefined,
+            destroy: () => undefined,
+          };
+        },
+      }),
+    });
+
+    capturedOnLogin?.();
+    const pendingToken = getPendingPasskeyHandoff();
+    expect(pendingToken).toMatch(/^[A-Za-z0-9_-]{43}$/);
+    expect(assignedUrl).toBe(
+      `https://demo.yolo-dev.ai/auth/yolo/browser-start?handoff=${pendingToken}&launch=os`,
+    );
+
+    const pollPending = await pollPasskeyHandoffOnce(
+      pendingToken!,
+      vi.fn(async () => new Response(JSON.stringify({ status: 'pending' }), { status: 200 })),
+    );
+    expect(pollPending).toBe(false);
+
+    const pollCompleted = await pollPasskeyHandoffOnce(
+      pendingToken!,
+      vi.fn(async () => new Response(JSON.stringify({ status: 'completed' }), { status: 200 })),
+    );
+    expect(pollCompleted).toBe(true);
+
+    clearPendingPasskeyHandoff();
+    expect(getPendingPasskeyHandoff()).toBeNull();
+    expect(generatePasskeyHandoffToken()).toMatch(/^[A-Za-z0-9_-]{43}$/);
   });
 });

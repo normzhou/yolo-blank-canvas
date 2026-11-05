@@ -2763,6 +2763,37 @@ button.macos-copy-xattr-btn {
 button.macos-copy-xattr-btn:hover {
   color: var(--text);
 }
+.passkey-handoff-banner {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  border: none;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--elevation-card);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+}
+button.passkey-handoff-copy-btn {
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--accent-weak);
+  color: var(--accent-weak-text);
+  padding: 3px 10px;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+}
+button.passkey-handoff-copy-btn:hover {
+  background: var(--accent);
+  color: var(--on-accent);
+}
 .online-presence-pill {
   position: fixed;
   bottom: 12px;
