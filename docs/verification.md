@@ -4,6 +4,17 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Default-On Decoupled Sound & Music Controls + In-Game Menu Audio Section (#317) — 2026-11-02
+
+Source revision `95ca5a8` (default-on decoupled Sound and Music controls + in-game menu Audio section); build evidence `7795805`; published as `v0.34.0` on 2026-11-02.
+
+- **Default-On & Decoupled Sound + Music (`src/client/audio/tetrisMusic.ts`, `src/client/App.tsx`, `test/tetris-music.test.ts`):**
+  - Initializes both `sharedMusicOn = true` and `sharedSfxOn = true` by default, unlocks Web Audio on the first user gesture, and keeps `setSharedMusicOn` and `setSharedSfxOn` 100% decoupled from the start.
+- **In-Game Menu Audio Controls (`src/client/views/TetrisView.tsx`, `src/client/views/PuzzleBobbleView.tsx`):**
+  - Adds an **Audio** section inside `data-testid="game-pause-menu"` in both Tetris and Puzzle Bobble with independent **Sound: On/Off** (`data-testid="pause-menu-sfx-btn"`) and **Music: On/Off** (`data-testid="pause-menu-music-btn"`) buttons.
+- `npm test`: 27 files, 180 tests passed.
+- `npx tsc --noEmit`: clean.
+
 ## Borderless Text, 2-Line Stacked Character Speech, Cute Bubbly Font & Whimsical Colors (#315) — 2026-11-02
 
 Source revision `bc41316` (borderless text, 2-line stacked speech, cute bubbly font, and whimsical candy colors); build evidence `378c313`; release commit `bf9b713`; published as `v0.33.1` on 2026-11-02.
