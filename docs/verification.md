@@ -6,12 +6,13 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## System Browser Passkey Login Handoff for `yolo-arcade` (#328) — 2026-11-02
 
-Source revision `826aa95` (System Browser Passkey Login Handoff via `/auth/yolo/browser-start`, `/auth/yolo/handoff/poll`, and Tauri `on_page_load` hook); build evidence `091db28`; published as `v0.36.0` on 2026-11-02.
+Source revision `826aa95` (System Browser Passkey Login Handoff via `/auth/yolo/browser-start`, `/auth/yolo/handoff/poll`, and Tauri `on_page_load` hook); build evidence `091db28`; release commit `15e5cfd`; published as `v0.36.0` on 2026-11-02.
 
 - **Tauri System Browser Hook + Worker Handoff Endpoints (`src-tauri/src/lib.rs`, `hosting/cloudflare/worker.mjs`, `src/client/hostedFeedback.ts`, `test/hosted-feedback.test.ts`):**
   - Clicking **Sign in** inside `yolo-arcade` (`?shell=tauri`) generates a 256-bit one-time `handoff` token, opens `/auth/yolo/browser-start?handoff=...` in the user's default system browser (Chrome/Safari) via Tauri's `on_page_load` hook (with a copy-link fallback banner for older builds), completes Passkey (Touch ID / Windows Hello / Android Biometrics) sign-in in the system browser, and transfers the authenticated `__Host-yolo-demo-session` cookie back to `yolo-arcade` via `POST /auth/yolo/handoff/poll`.
 - `npm test`: 27 files, 183 tests passed.
 - `npx tsc --noEmit`: clean.
+- Deployed live to `yolo-demo-app` (`Version ID: 46d5b03e-1c0a-4175-b3df-427fa9401149`). Report: [`.yolo/reports/releases-observed-2026-11-02-v0360.json`](../.yolo/reports/releases-observed-2026-11-02-v0360.json).
 
 ## Persistent Disk Cache Storage for On-Demand `.m4a` Music Tracks (#326) — 2026-11-02
 
