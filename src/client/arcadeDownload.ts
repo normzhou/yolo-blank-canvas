@@ -23,6 +23,18 @@ export const ARCADE_RELEASE_DOWNLOAD_BASE =
 
 export const TAURI_SHELL_STORAGE_KEY = 'yolo:arcade-shell:v1';
 
+/**
+ * macOS System Settings deep link that opens Privacy & Security directly so
+ * users can click "Open Anyway" after launching the unsigned .dmg app once (#321).
+ */
+export const MACOS_PRIVACY_SECURITY_DEEP_LINK =
+  'x-apple.systempreferences:com.apple.preference.security?General';
+
+/**
+ * 1-command macOS Terminal quarantine bypass for `/Applications/yolo-arcade.app` (#321).
+ */
+export const MACOS_XATTR_BYPASS_COMMAND = 'xattr -cr /Applications/yolo-arcade.app';
+
 export interface NavigatorLike {
   userAgent?: string;
   platform?: string;
