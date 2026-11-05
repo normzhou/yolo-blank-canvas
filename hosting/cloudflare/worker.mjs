@@ -1,6 +1,32 @@
 import {publicOrigin, originAuthorization, cleanRequestHeaders, cleanResponse, failure, withinDeadline} from './transport.mjs';
 import {createManagedWorkBridge} from './yolo-feedback/src/managed-client.js';
-import {identify} from './identity-client.mjs';
+import {identify, hash as sha256Hex, secured} from './identity-client.mjs';
+
+const VALID_HANDOFF_RE = /^[A-Za-z0-9_-]{43}$/;
+
+function parseCookieHandle(request, name) {
+  const raw = request.headers.get('cookie') || '';
+  for (const part of raw.split(';')) {
+    const trimmed = part.trim();
+    if (trimmed.startsWith(`${name}=`)) {
+      const val = trimmed.slice(name.length + 1);
+      return VALID_HANDOFF_RE.test(val) ? val : null;
+    }
+  }
+  return null;
+}
+
+function extractSessionCookieHandle(headers, cookieName) {
+  const list = typeof headers.getSetCookie === 'function' ? headers.getSetCookie() : [headers.get('set-cookie') || ''];
+  for (const entry of list) {
+    const first = String(entry || '').split(';')[0]?.trim() || '';
+    if (first.startsWith(`${cookieName}=`)) {
+      const val = first.slice(cookieName.length + 1);
+      if (VALID_HANDOFF_RE.test(val)) return val;
+    }
+  }
+  return null;
+}
 
 const managedFeedback = createManagedWorkBridge({
   appId: 'demo',
@@ -43,6 +69,7 @@ export class NetplayHub {
     this.socketMeta = new Map();
     this.appLogins = new Map();
     this.appSessions = new Map();
+    this.appHandoffs = new Map();
     this.seq = 1;
     if (ctx && typeof ctx.blockConcurrencyWhile === 'function' && ctx.storage) {
       ctx.blockConcurrencyWhile(async () => {
@@ -70,6 +97,9 @@ export class NetplayHub {
             if (Array.isArray(savedIdentity.sessions)) {
               for (const [k, v] of savedIdentity.sessions) this.appSessions.set(k, v);
             }
+            if (Array.isArray(savedIdentity.handoffs)) {
+              for (const [k, v] of savedIdentity.handoffs) this.appHandoffs.set(k, v);
+            }
           }
           if (typeof ctx.getWebSockets === 'function') {
             for (const ws of ctx.getWebSockets()) {
@@ -92,6 +122,12 @@ export class NetplayHub {
     for (const [k, row] of this.appLogins.entries()) {
       if (!row || row.expires <= now) {
         this.appLogins.delete(k);
+        mutated = true;
+      }
+    }
+    for (const [k, row] of this.appHandoffs.entries()) {
+      if (!row || row.expires <= now) {
+        this.appHandoffs.delete(k);
         mutated = true;
       }
     }
@@ -133,6 +169,24 @@ export class NetplayHub {
         } else {
           results.push(null);
         }
+      } else if (sql.startsWith('INSERT INTO app_handoff')) {
+        const [handoff_hash, app, session_token, expires] = params;
+        this.appHandoffs.set(`${app}:${handoff_hash}`, {
+          handoff_hash, app, session_token, expires,
+        });
+        mutated = true;
+        results.push({success: true});
+      } else if (sql.startsWith('DELETE FROM app_handoff')) {
+        const [handoff_hash, app, minExpires] = params;
+        const key = `${app}:${handoff_hash}`;
+        const row = this.appHandoffs.get(key);
+        if (row && row.app === app && row.expires > minExpires) {
+          this.appHandoffs.delete(key);
+          mutated = true;
+          results.push(row);
+        } else {
+          results.push(null);
+        }
       } else {
         results.push(null);
       }
@@ -142,6 +196,7 @@ export class NetplayHub {
         await this.ctx.storage.put('identity_state', {
           logins: Array.from(this.appLogins.entries()),
           sessions: Array.from(this.appSessions.entries()),
+          handoffs: Array.from(this.appHandoffs.entries()),
         });
       } catch {
         // Ignore storage write errors
@@ -779,13 +834,125 @@ export default {
           CLIENT_IDENTITY_ENABLED: env.CLIENT_IDENTITY_ENABLED ?? 'true',
           APP_DB: env.APP_DB || createDurableObjectAppDb(env),
         };
+        const appName = new URL(origin).hostname.split('.')[0];
+        const sessionCookieName = `__Host-yolo-${appName}-session`;
+        const handoffCookieName = `__Host-yolo-${appName}-handoff`;
+
+        // #328: System Browser Passkey Login Handoff for yolo-arcade native app
+        if (url.pathname === '/auth/yolo/browser-start') {
+          if (request.method !== 'GET') return failure(405, 'Method not allowed');
+          const handoff = url.searchParams.get('handoff') || '';
+          if (!VALID_HANDOFF_RE.test(handoff)) return failure(400, 'Invalid handoff token');
+          if (url.searchParams.get('launch') === 'os') {
+            return secured(
+              new Response(null, {
+                status: 303,
+                headers: {location: `${origin}/?shell=tauri&handoff_wait=${handoff}`},
+              }),
+            );
+          }
+          // Running in the user's System Browser (Chrome/Safari):
+          // If already authenticated in this browser, complete the handoff immediately!
+          const existingSessionToken = parseCookieHandle(normalizedReq, sessionCookieName);
+          if (existingSessionToken) {
+            const checkState = await identify(
+              new Request(`${origin}/yolo/api/v1/session`, {headers: normalizedReq.headers}),
+              envWithDb,
+            );
+            if (checkState.identity) {
+              await envWithDb.APP_DB.prepare(
+                'INSERT INTO app_handoff(handoff_hash,app,session_token,expires) VALUES(?,?,?,?)',
+              )
+                .bind(await sha256Hex(handoff), appName, existingSessionToken, Date.now() + 300_000)
+                .run();
+              return secured(
+                new Response(null, {
+                  status: 303,
+                  headers: {location: `${origin}/?handoff=complete`},
+                }),
+              );
+            }
+          }
+          // Otherwise, start the OAuth PKCE flow in the system browser and attach the handoff cookie
+          const loginReq = new Request(`${origin}/auth/yolo/login`, {
+            method: 'POST',
+            headers: {origin},
+          });
+          const loginState = await identify(loginReq, envWithDb);
+          if (!loginState.response) return failure(503, 'Login unavailable');
+          const outHeaders = new Headers(loginState.response.headers);
+          outHeaders.append(
+            'set-cookie',
+            `${handoffCookieName}=${handoff}; Max-Age=300; Path=/; Secure; HttpOnly; SameSite=Lax`,
+          );
+          return new Response(loginState.response.body, {
+            status: loginState.response.status,
+            headers: outHeaders,
+          });
+        }
+
+        if (url.pathname === '/auth/yolo/handoff/poll') {
+          if (request.method !== 'POST' || normalizedReq.headers.get('origin') !== origin) {
+            return failure(403, 'Forbidden');
+          }
+          let body = {};
+          try {
+            body = await request.json();
+          } catch {
+            return failure(400, 'Invalid JSON');
+          }
+          const handoff = typeof body?.handoff === 'string' ? body.handoff : '';
+          if (!VALID_HANDOFF_RE.test(handoff)) return failure(400, 'Invalid handoff token');
+          const row = await envWithDb.APP_DB.prepare(
+            'DELETE FROM app_handoff WHERE handoff_hash=? AND app=? AND expires>? RETURNING *',
+          )
+            .bind(await sha256Hex(handoff), appName, Date.now())
+            .first();
+          if (row && VALID_HANDOFF_RE.test(row.session_token)) {
+            return secured(
+              Response.json(
+                {status: 'completed'},
+                {
+                  headers: {
+                    'set-cookie': `${sessionCookieName}=${row.session_token}; Max-Age=3600; Path=/; Secure; HttpOnly; SameSite=Lax`,
+                  },
+                },
+              ),
+            );
+          }
+          return secured(Response.json({status: 'pending'}));
+        }
+
         let principal = null;
         if (
           url.pathname.startsWith('/auth/yolo/') ||
           (url.pathname.startsWith('/yolo/api/v1') && !url.pathname.startsWith('/yolo/api/v1/worker/'))
         ) {
           const authState = await identify(normalizedReq, envWithDb);
-          if (authState.response) return authState.response;
+          if (authState.response) {
+            if (url.pathname === '/auth/yolo/callback' && authState.response.status === 303) {
+              const handoff = parseCookieHandle(normalizedReq, handoffCookieName);
+              const newSessionToken = extractSessionCookieHandle(
+                authState.response.headers,
+                sessionCookieName,
+              );
+              if (handoff && newSessionToken) {
+                await envWithDb.APP_DB.prepare(
+                  'INSERT INTO app_handoff(handoff_hash,app,session_token,expires) VALUES(?,?,?,?)',
+                )
+                  .bind(await sha256Hex(handoff), appName, newSessionToken, Date.now() + 300_000)
+                  .run();
+                const outHeaders = new Headers(authState.response.headers);
+                outHeaders.set('location', `${origin}/?handoff=complete`);
+                outHeaders.append(
+                  'set-cookie',
+                  `${handoffCookieName}=; Max-Age=0; Path=/; Secure; HttpOnly; SameSite=Lax`,
+                );
+                return new Response(null, {status: 303, headers: outHeaders});
+              }
+            }
+            return authState.response;
+          }
           principal = authState.identity ?? null;
         }
         const res = await managedFeedback.fetch(normalizedReq, envWithDb, {principal, signal});

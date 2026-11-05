@@ -18,9 +18,13 @@ import {
 } from './gamePause';
 import { mountHostedYoloMark } from './brand/yoloMark';
 import {
+  clearPendingPasskeyHandoff,
   consumePendingFeedbackLoginReturn,
+  getPendingPasskeyHandoff,
   isHostedFeedbackOpen,
   openHostedFeedback,
+  pollPasskeyHandoffOnce,
+  savePendingPasskeyHandoff,
 } from './hostedFeedback';
 import {
   detectArcadeDownload,
@@ -566,15 +570,37 @@ export function App() {
   if (storeRef.current === null) storeRef.current = browserStore();
   const store = storeRef.current;
 
+  const initialParams =
+    typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const initialHandoffWait = initialParams?.get('handoff_wait') ?? null;
+  const initialHandoffComplete = initialParams?.get('handoff') === 'complete';
+
   const pendingLoginReturnRef = useRef<{ search: string; page: string } | null | undefined>(undefined);
   if (pendingLoginReturnRef.current === undefined) {
-    const pending = consumePendingFeedbackLoginReturn();
-    pendingLoginReturnRef.current = pending;
-    if (pending && pending.search && !window.location.search) {
+    if (initialHandoffWait && /^[A-Za-z0-9_-]{43}$/.test(initialHandoffWait)) {
+      savePendingPasskeyHandoff(initialHandoffWait);
+      pendingLoginReturnRef.current = null;
       try {
-        window.history.replaceState(null, '', window.location.pathname + pending.search);
+        const cleanParams = new URLSearchParams(window.location.search);
+        cleanParams.delete('handoff_wait');
+        const nextSearch = cleanParams.toString();
+        window.history.replaceState(
+          null,
+          '',
+          window.location.pathname + (nextSearch ? `?${nextSearch}` : ''),
+        );
       } catch {
         // Ignore history errors
+      }
+    } else {
+      const pending = consumePendingFeedbackLoginReturn();
+      pendingLoginReturnRef.current = pending;
+      if (pending && pending.search && !window.location.search) {
+        try {
+          window.history.replaceState(null, '', window.location.pathname + pending.search);
+        } catch {
+          // Ignore history errors
+        }
       }
     }
   }
@@ -605,8 +631,56 @@ export function App() {
   const [gamePaused, setGamePaused] = useState<boolean>(() => getSharedGamePaused());
   const [netplay, setNetplay] = useState<NetplayState>(() => getSharedNetplay().getState());
   const [deckDragOffsetX, setDeckDragOffsetX] = useState<number>(0);
-  const [macosHelperOpen, setMacosHelperOpen] = useState<boolean>(() => isMacosInstallHelperOpen());
+  const [macosHelperOpen, setMacosHelperOpen] = useState<boolean>(() =>
+    isMacosInstallHelperOpen(),
+  );
   const [xattrCopied, setXattrCopied] = useState<boolean>(false);
+  const [pendingHandoff, setPendingHandoff] = useState<string | null>(() =>
+    getPendingPasskeyHandoff(),
+  );
+  const [handoffLinkCopied, setHandoffLinkCopied] = useState<boolean>(false);
+  const [handoffCompleteBanner, setHandoffCompleteBanner] = useState<boolean>(
+    () => initialHandoffComplete,
+  );
+
+  useEffect(() => {
+    if (!initialHandoffComplete) return;
+    try {
+      const cleanParams = new URLSearchParams(window.location.search);
+      cleanParams.delete('handoff');
+      const nextSearch = cleanParams.toString();
+      window.history.replaceState(
+        null,
+        '',
+        window.location.pathname + (nextSearch ? `?${nextSearch}` : ''),
+      );
+    } catch {
+      // Ignore history errors
+    }
+  }, [initialHandoffComplete]);
+
+  useEffect(() => {
+    if (!pendingHandoff) return;
+    let cancelled = false;
+    const startedAt = Date.now();
+    const timer = window.setInterval(() => {
+      if (Date.now() - startedAt > 5 * 60 * 1000) {
+        clearPendingPasskeyHandoff();
+        setPendingHandoff(null);
+        return;
+      }
+      void pollPasskeyHandoffOnce(pendingHandoff).then((completed) => {
+        if (cancelled || !completed) return;
+        clearPendingPasskeyHandoff();
+        setPendingHandoff(null);
+        window.location.reload();
+      });
+    }, 1500);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [pendingHandoff]);
 
   useEffect(() => {
     return subscribeSharedAudio((nextOn, nextTitle, nextSfxOn) => {
@@ -1033,6 +1107,59 @@ export function App() {
   return (
     <div className={canvasClass}>
       {!activeApp ? <h1 className="sr-only canvas-title">Blank canvas</h1> : null}
+
+      {pendingHandoff ? (
+        <div
+          className="passkey-handoff-banner"
+          data-testid="passkey-handoff-banner"
+          role="status"
+        >
+          <span>Waiting for Passkey sign-in in your browser…</span>
+          <button
+            type="button"
+            className="passkey-handoff-copy-btn"
+            data-testid="passkey-handoff-copy-btn"
+            onClick={() => {
+              const url = new URL('/auth/yolo/browser-start', window.location.origin);
+              url.searchParams.set('handoff', pendingHandoff);
+              void navigator.clipboard?.writeText?.(url.href);
+              setHandoffLinkCopied(true);
+              window.setTimeout(() => setHandoffLinkCopied(false), 2500);
+            }}
+          >
+            {handoffLinkCopied ? '✓ Link copied (paste in Chrome/Safari)' : 'Copy sign-in link'}
+          </button>
+          <button
+            type="button"
+            className="macos-install-helper-close"
+            aria-label="Cancel Passkey sign-in"
+            onClick={() => {
+              clearPendingPasskeyHandoff();
+              setPendingHandoff(null);
+            }}
+          >
+            ×
+          </button>
+        </div>
+      ) : null}
+
+      {handoffCompleteBanner ? (
+        <div
+          className="passkey-handoff-banner"
+          data-testid="passkey-handoff-complete"
+          role="status"
+        >
+          <span>✓ Passkey sign-in complete! You can return to the YOLO Arcade app.</span>
+          <button
+            type="button"
+            className="macos-install-helper-close"
+            aria-label="Dismiss sign-in confirmation"
+            onClick={() => setHandoffCompleteBanner(false)}
+          >
+            ×
+          </button>
+        </div>
+      ) : null}
 
       {/* #311, #321: Environment-aware YOLO Arcade download pill on the top-level Home page
           (macOS .dmg, Windows .exe, Android .apk), hidden when running inside the installed app. */}
