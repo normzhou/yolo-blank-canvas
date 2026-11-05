@@ -6,12 +6,13 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## 1990s Arcade App Icon Redesign (`yolo-arcade`) (#319) — 2026-11-02
 
-Source revision `addee90` (5-iteration closed-loop 90s arcade app icon redesign); build evidence `483a8e5`; published as `v0.34.1` on 2026-11-02.
+Source revision `addee90` (5-iteration closed-loop 90s arcade app icon redesign); build evidence `483a8e5`; release commit `6a5c1f5`; published as `v0.34.1` on 2026-11-02.
 
 - **1990s Arcade Joystick + Candy Buttons + Tetromino & Bubble Icon (`public/brand/yolo-arcade-icon.svg`, `src-tauri/icons/*`):**
   - Replaced the industrial brass gear icon through 5 visual iterations (tested at 512px, 320px, 64px, and 32px) with a 1990s arcade aesthetic featuring a glossy cherry-red ball-top joystick bearing the golden YOLO Threefold `Y` emblem, a neon-striped control deck with green & yellow candy push-buttons, a 3D Golden T-Tetromino, and a glossy cyan Puzzle Bobble orb over a royal-purple starburst sky.
 - `npm test`: 27 files, 180 tests passed.
 - `npx tsc --noEmit`: clean.
+- Deployed live to `yolo-demo-app` (`Version ID: cb25ab58-0a78-456a-af76-da5c83137c3d`). Report: [`.yolo/reports/releases-observed-2026-11-02-v0341.json`](../.yolo/reports/releases-observed-2026-11-02-v0341.json).
 
 ## Default-On Decoupled Sound & Music Controls + In-Game Menu Audio Section (#317) — 2026-11-02
 
