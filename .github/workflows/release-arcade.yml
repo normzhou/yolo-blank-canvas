@@ -41,9 +41,6 @@ jobs:
         with:
           workspaces: './src-tauri -> target'
 
-      - name: Install frontend dependencies
-        run: npm ci
-
       - name: Build Tauri desktop bundles (macOS .dmg/.app & Windows .exe/.msi)
         uses: tauri-apps/tauri-action@v0
         env:
@@ -110,9 +107,13 @@ jobs:
         with:
           targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
 
-      - name: Install frontend dependencies & Tauri CLI
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install Tauri CLI
         run: |
-          npm ci
           npm install --no-save @tauri-apps/cli@^2.0.0
 
       - name: Initialize & build Android APK
@@ -145,3 +146,15 @@ jobs:
             gh release upload "${{ github.ref_name }}" yolo-arcade-android.apk --clobber && break
             sleep 10
           done
+
+  publish-latest:
+    name: Promote Release to Latest After Installers Upload
+    needs: [build-desktop, build-android]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Mark release as latest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release edit "${{ github.ref_name }}" --repo "${{ github.repository }}" --latest

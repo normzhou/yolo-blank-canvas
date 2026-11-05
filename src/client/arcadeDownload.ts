@@ -35,6 +35,43 @@ export const MACOS_PRIVACY_SECURITY_DEEP_LINK =
  */
 export const MACOS_XATTR_BYPASS_COMMAND = 'xattr -cr /Applications/yolo-arcade.app';
 
+/**
+ * Storage key that keeps the post-download macOS helper card open across
+ * reloads/navigation until the user explicitly dismisses it (#323).
+ */
+export const MACOS_HELPER_OPEN_STORAGE_KEY = 'yolo:macos-install-helper:v1';
+
+export function isMacosInstallHelperOpen(
+  win: WindowLike | undefined = typeof window !== 'undefined' ? (window as unknown as WindowLike) : undefined,
+): boolean {
+  if (!win) return false;
+  try {
+    if (win.localStorage?.getItem?.(MACOS_HELPER_OPEN_STORAGE_KEY) === '1') return true;
+    if (win.sessionStorage?.getItem?.(MACOS_HELPER_OPEN_STORAGE_KEY) === '1') return true;
+  } catch {
+    // Ignore storage read errors
+  }
+  return false;
+}
+
+export function setMacosInstallHelperOpen(
+  open: boolean,
+  win: WindowLike | undefined = typeof window !== 'undefined' ? (window as unknown as WindowLike) : undefined,
+): void {
+  if (!win) return;
+  try {
+    if (open) {
+      win.localStorage?.setItem?.(MACOS_HELPER_OPEN_STORAGE_KEY, '1');
+      win.sessionStorage?.setItem?.(MACOS_HELPER_OPEN_STORAGE_KEY, '1');
+    } else {
+      win.localStorage?.setItem?.(MACOS_HELPER_OPEN_STORAGE_KEY, '0');
+      win.sessionStorage?.setItem?.(MACOS_HELPER_OPEN_STORAGE_KEY, '0');
+    }
+  } catch {
+    // Ignore storage write errors
+  }
+}
+
 export interface NavigatorLike {
   userAgent?: string;
   platform?: string;

@@ -1,13 +1,13 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "yolo-arcade",
-  "version": "0.35.0",
+  "version": "0.35.1",
   "identifier": "ai.yolodev.arcade",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:5173",
-    "beforeBuildCommand": "npm run build",
-    "frontendDist": "../dist/client"
+    "beforeBuildCommand": "",
+    "frontendDist": "./dist"
   },
   "app": {
     "windows": [

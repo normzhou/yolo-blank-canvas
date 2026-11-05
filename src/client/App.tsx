@@ -24,8 +24,10 @@ import {
 } from './hostedFeedback';
 import {
   detectArcadeDownload,
+  isMacosInstallHelperOpen,
   MACOS_PRIVACY_SECURITY_DEEP_LINK,
   MACOS_XATTR_BYPASS_COMMAND,
+  setMacosInstallHelperOpen,
 } from './arcadeDownload';
 import { useFullscreen } from './fullscreen';
 import { Panel, type PanelView } from './components/Panel';
@@ -603,7 +605,7 @@ export function App() {
   const [gamePaused, setGamePaused] = useState<boolean>(() => getSharedGamePaused());
   const [netplay, setNetplay] = useState<NetplayState>(() => getSharedNetplay().getState());
   const [deckDragOffsetX, setDeckDragOffsetX] = useState<number>(0);
-  const [macosHelperOpen, setMacosHelperOpen] = useState<boolean>(false);
+  const [macosHelperOpen, setMacosHelperOpen] = useState<boolean>(() => isMacosInstallHelperOpen());
   const [xattrCopied, setXattrCopied] = useState<boolean>(false);
 
   useEffect(() => {
@@ -1042,10 +1044,13 @@ export function App() {
             data-platform={arcadeDownload.platform}
             href={arcadeDownload.href}
             download={arcadeDownload.fileName}
+            target="_blank"
+            rel="noopener noreferrer"
             aria-label={arcadeDownload.label}
             title={arcadeDownload.label}
             onClick={() => {
               if (arcadeDownload.platform === 'macos') {
+                setMacosInstallHelperOpen(true);
                 setMacosHelperOpen(true);
               }
             }}
@@ -1090,7 +1095,10 @@ export function App() {
                   type="button"
                   className="macos-install-helper-close"
                   aria-label="Dismiss macOS install steps"
-                  onClick={() => setMacosHelperOpen(false)}
+                  onClick={() => {
+                    setMacosInstallHelperOpen(false);
+                    setMacosHelperOpen(false);
+                  }}
                 >
                   ×
                 </button>
