@@ -118,8 +118,8 @@
   --text-display: clamp(18px, 5vw, 22px); /* canvas prompt, Tetris stat value */
   --weight-regular: 400;
   --weight-semibold: 600;
-  --font-arcade-display: 'Arial Black', 'Impact', 'Avenir Next Heavy', 'Trebuchet MS', system-ui, sans-serif;
-  --font-arcade-callout: 'Trebuchet MS', 'Avenir Next', 'Gill Sans', 'Segoe UI', system-ui, sans-serif;
+  --font-arcade-display: ui-rounded, 'SF Pro Rounded', 'Arial Rounded MT Bold', 'Chalkboard SE', 'Marker Felt', 'Comic Sans MS', system-ui, sans-serif;
+  --font-arcade-callout: ui-rounded, 'SF Pro Rounded', 'Arial Rounded MT Bold', 'Chalkboard SE', 'Comic Sans MS', system-ui, sans-serif;
 
   /* Spacing steps; the measured values were 4-24px plus viewport units. */
   --space-1: 4px;
@@ -2239,22 +2239,15 @@ button.pb-touch-fire {
   font-family: var(--font-arcade-display);
   font-size: var(--text-display);
   font-weight: var(--weight-semibold);
-  font-style: italic;
+  font-style: normal;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.06em;
   white-space: nowrap;
-  transform: scale(1.75) skewX(-6deg);
-  text-shadow:
-    -2px -2px 0 var(--cabinet-well),
-    2px -2px 0 var(--cabinet-well),
-    -2px 2px 0 var(--cabinet-well),
-    2px 2px 0 var(--cabinet-well),
-    0 4px 0 var(--cabinet-well);
+  transform: scale(1.85);
 }
 .arcade-countdown-backdrop[data-phase='go'] .arcade-countdown-digit {
   color: var(--tetromino-s);
-  transform: scale(1.95) skewX(-6deg);
+  transform: scale(2.05);
 }
 .arcade-center-text {
   position: absolute;
@@ -2270,12 +2263,7 @@ button.pb-touch-fire {
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.06em;
   color: var(--tetromino-z);
-  transform: scale(1.2);
-  text-shadow:
-    -2px -2px 0 var(--cabinet-well),
-    2px -2px 0 var(--cabinet-well),
-    -2px 2px 0 var(--cabinet-well),
-    2px 2px 0 var(--cabinet-well);
+  transform: scale(1.25);
 }
 /* #237, #248: In-game arcade Pause / Mode / Ready Menu modal overlay. */
 .game-pause-backdrop {

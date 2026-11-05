@@ -923,39 +923,59 @@ function LauncherMechanismSvg({
         onCycleCharacter={onCycleCharacter}
       />
 
-      {/* Plain-text character dialogue above the mascot without borders or background (#299, #303, #313) */}
-      <g
-        className={`pb-mascot-speech pb-mascot-speech-${advice.kind}`}
-        data-testid={`p${playerNumber}-mascot-speech`}
-        data-advice-kind={advice.kind}
-        aria-hidden="true"
-      >
-        <text
-          x={218}
-          y={239}
-          textAnchor="end"
-          fontSize="6.0"
-          fontWeight="900"
-          fontStyle="italic"
-          fontFamily="var(--font-arcade-callout)"
-          letterSpacing="0.02em"
-          fill={
-            advice.kind === 'danger'
-              ? 'var(--problem)'
-              : advice.kind === 'match' || advice.kind === 'combo' || advice.kind === 'win'
-                ? 'var(--tetromino-o)'
-                : 'var(--text)'
-          }
-          style={{
-            paintOrder: 'stroke',
-            stroke: 'var(--cabinet-well)',
-            strokeWidth: '2.8px',
-            strokeLinejoin: 'round',
-          }}
-        >
-          {advice.bubbleText}
-        </text>
-      </g>
+      {/* Plain-text character dialogue above the mascot without borders or background (#299, #303, #313, #315) */}
+      {(() => {
+        const bangIdx = advice.bubbleText.indexOf('! ');
+        const line1 =
+          bangIdx > 0 && bangIdx < 18
+            ? advice.bubbleText.slice(0, bangIdx + 1)
+            : advice.bubbleText;
+        const line2 =
+          bangIdx > 0 && bangIdx < 18 ? advice.bubbleText.slice(bangIdx + 2) : '';
+        const textFill =
+          advice.kind === 'danger' || advice.kind === 'lose'
+            ? 'var(--tetromino-z)'
+            : advice.kind === 'match' || advice.kind === 'combo' || advice.kind === 'win'
+              ? 'var(--tetromino-o)'
+              : advice.kind === 'bank'
+                ? 'var(--tetromino-t)'
+                : character === 'cat'
+                  ? 'var(--tetromino-o)'
+                  : character === 'dog'
+                    ? 'var(--tetromino-i)'
+                    : character === 'bunny'
+                      ? 'var(--tetromino-t)'
+                      : 'var(--tetromino-s)';
+        return (
+          <g
+            className={`pb-mascot-speech pb-mascot-speech-${advice.kind}`}
+            data-testid={`p${playerNumber}-mascot-speech`}
+            data-advice-kind={advice.kind}
+            aria-hidden="true"
+          >
+            <text
+              x={170}
+              y={line2 ? 216 : 222}
+              textAnchor="middle"
+              fontSize="6.6"
+              fontWeight="700"
+              fontFamily="var(--font-arcade-callout)"
+              letterSpacing="0.04em"
+              fill={textFill}
+            >
+              <tspan x={170} dy={0}>
+                {line1}
+              </tspan>
+              {line2 ? (
+                <tspan x={170} dy={8.2} fontSize="5.8">
+                  {' '}
+                  {line2}
+                </tspan>
+              ) : null}
+            </text>
+          </g>
+        );
+      })()}
     </g>
   );
 }
@@ -1821,12 +1841,10 @@ function PlayerArena({
               textAnchor="middle"
               dominantBaseline="middle"
               fontSize="20"
-              fontWeight="800"
-              fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+              fontWeight="700"
+              fontFamily="var(--font-arcade-display)"
+              letterSpacing="0.05em"
               fill="var(--tetromino-z)"
-              stroke="var(--cabinet-well)"
-              strokeWidth="4"
-              paintOrder="stroke fill"
               role="status"
               data-testid={`p${playerNumber}-hurry-overlay`}
             >
