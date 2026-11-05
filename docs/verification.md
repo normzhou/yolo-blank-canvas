@@ -4,6 +4,18 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Borderless Text, 2-Line Stacked Character Speech, Cute Bubbly Font & Whimsical Colors (#315) — 2026-11-02
+
+Source revision `bc41316` (borderless text, 2-line stacked speech, cute bubbly font, and whimsical candy colors); build evidence `378c313`; published as `v0.33.1` on 2026-11-02.
+
+- **Borderless Text & Stacked Speech (`src/client/views/PuzzleBobbleView.tsx`, `src/client/styles.css`):**
+  - Removes `stroke: var(--cabinet-well)` and `text-shadow` outlines so glyphs never have black borders or cover adjacent characters.
+  - Stacks character speech into two compact lines (`<tspan x={170}>`) directly above the animal mascot, well clear of the center launcher arrow and orange danger line.
+- **Cute Rounded Bubbly Font & Whimsical Candy Palette (`src/client/styles.css`, `src/client/views/PuzzleBobbleView.tsx`):**
+  - Uses `ui-rounded, 'SF Pro Rounded', 'Arial Rounded MT Bold', 'Chalkboard SE', 'Comic Sans MS', sans-serif` and bright candy colors matched to each animal (`--tetromino-s` mint green for Bub, `--tetromino-o` sunny yellow for Mochi, `--tetromino-i` sky cyan for Koro, `--tetromino-t` lavender for Mimi).
+- `npm test`: 27 files, 179 tests passed.
+- `npx tsc --noEmit`: clean.
+
 ## Normal Start, Split Sound/Music Controls, Bottom-Right YOLO Bar, Click-to-Switch Mascot & Animal-Specific Arcade Dialogue (#313) — 2026-11-02
 
 Source revision `d4db85c` (normal start, split SFX/Music controls, bottom-right YOLO bar, borderless online count, click-to-switch mascot, animal-specific phonetic advice, and arcade typography); build evidence `d805947`; release commit `d25683e`; published as `v0.33.0` on 2026-11-02.
