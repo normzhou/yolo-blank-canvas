@@ -303,15 +303,16 @@
         "v0.30.0": "0fa0e54e02e9d035912f4a3dc5eda9664df40862",
         "v0.30.1": "48d1b8af4227b1acb90f389967a8ddf90117bc9e",
         "v0.31.0": "1caced0fc85c0a486c3032894824c411a428a205",
-        "v0.31.1": "e2d1faeee49a21f38bef501e56228d2d9b277acf"
+        "v0.31.1": "e2d1faeee49a21f38bef501e56228d2d9b277acf",
+        "v0.32.0": "645c05188f1c8c95f16d5ac9d421a2dccb8d7eb4"
       },
       "published": {
-        "tag": "v0.32.0",
-        "commit": "645c05188f1c8c95f16d5ac9d421a2dccb8d7eb4",
-        "source_commit": "a78135c3d7fbeae08f7548948394d162c648a013",
-        "published_at": "2026-11-05T15:20:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-02-v0320.json",
-        "note": "Minor release (#311, PR #312). Adds the environment-aware YOLO Arcade download link on the top-level Home page for macOS (.dmg), Windows (.exe), and Android (.apk), hidden when running inside the installed app; deployed live to https://demo.yolo-dev.ai (Version ID: f7c26900-7148-461f-9d90-db215d2c6902)."
+        "tag": "v0.33.0",
+        "commit": "d25683e2b8d4fbf504619fb167ba9e4fb2200565",
+        "source_commit": "d4db85c4390b587d706f5e2dbbb33d2a87dc2ba2",
+        "published_at": "2026-11-05T17:50:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-02-v0330.json",
+        "note": "Minor release (#313, PR #314). Starts games normally without auto-fullscreen or an initial pause gate, splits Sound Effects and Music controls, moves YOLO to the bottom-right control bar (Play/Pause -> Sound -> Music -> Fullscreen -> YOLO), makes online count borderless, adds click-to-switch animal mascots with animal-specific phonetic advice, and upgrades arcade typography; deployed live to https://demo.yolo-dev.ai (Version ID: f536b353-4ef6-47c5-b625-6d0f694cc5f8)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -381,7 +382,8 @@
         ".yolo/reports/releases-observed-2026-11-02-v0301.json",
         ".yolo/reports/releases-observed-2026-11-02-v0310.json",
         ".yolo/reports/releases-observed-2026-11-02-v0311.json",
-        ".yolo/reports/releases-observed-2026-11-02-v0320.json"
+        ".yolo/reports/releases-observed-2026-11-02-v0320.json",
+        ".yolo/reports/releases-observed-2026-11-02-v0330.json"
       ]
     }
   },
