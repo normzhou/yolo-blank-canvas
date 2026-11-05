@@ -6,13 +6,14 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Environment-Aware `yolo-arcade` Download Link on Home Page (#311) — 2026-11-02
 
-Source revision `a78135c` (environment-aware `yolo-arcade` download link and installed-app detection commit); build evidence `55f8e8a`; published as `v0.32.0` on 2026-11-02.
+Source revision `a78135c` (environment-aware `yolo-arcade` download link and installed-app detection commit); build evidence `55f8e8a`; release commit `645c051`; published as `v0.32.0` on 2026-11-02.
 
 - **Environment-Aware Download Pill (`src/client/arcadeDownload.ts`, `src/client/App.tsx`, `src/client/styles.css`, `test/arcade-download.test.ts`):**
   - Detects **macOS** (`yolo-arcade-macos.dmg`), **Windows** (`yolo-arcade-windows-setup.exe`), or **Android** (`yolo-arcade-android.apk`) and renders `data-testid="arcade-download-link"` in the top-left corner of the top-level Home page (`!activeApp && !showPanel`).
   - Automatically hides the download link when running inside the installed Tauri app (`__TAURI_INTERNALS__`, `__TAURI__`, `?shell=tauri`, or stored shell marker) or as an installed standalone PWA (`display-mode: standalone` / `navigator.standalone`).
 - `npm test`: 27 files, 179 tests passed.
 - `npx tsc --noEmit`: clean.
+- Deployed live to `yolo-demo-app` (`Version ID: f7c26900-7148-461f-9d90-db215d2c6902`) and verified in headless Google Chrome at `https://demo.yolo-dev.ai/`. Report: [`.yolo/reports/releases-observed-2026-11-02-v0320.json`](../.yolo/reports/releases-observed-2026-11-02-v0320.json).
 
 ## Arcade-Styled YOLO Threefold Symbol Icon for `yolo-arcade` (#309) — 2026-11-02
 
