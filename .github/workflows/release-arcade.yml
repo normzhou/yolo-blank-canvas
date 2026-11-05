@@ -58,7 +58,7 @@ jobs:
 
   build-android:
     name: Build Android APK
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -70,18 +70,17 @@ jobs:
           cache: npm
 
       - name: Setup Java 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK & NDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android NDK
+      - name: Configure Android SDK & NDK
         run: |
-          sdkmanager --install "ndk;27.0.12077973" "platforms;android-34" "build-tools;34.0.0"
-          echo "NDK_HOME=${ANDROID_HOME}/ndk/27.0.12077973" >> "$GITHUB_ENV"
+          SDK_ROOT="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          echo "ANDROID_HOME=${SDK_ROOT}" >> "$GITHUB_ENV"
+          "${SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" --install "ndk;27.0.12077973" "platforms;android-34" "build-tools;34.0.0"
+          echo "NDK_HOME=${SDK_ROOT}/ndk/27.0.12077973" >> "$GITHUB_ENV"
 
       - name: Install Rust stable + Android targets
         uses: dtolnay/rust-toolchain@stable
@@ -100,10 +99,11 @@ jobs:
 
       - name: Sign Android APK for direct sideloading
         run: |
+          SDK_ROOT="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
           keytool -genkeypair -v -keystore /tmp/yolo-arcade.keystore -alias yolo-arcade -keyalg RSA -keysize 2048 -validity 10000 -storepass yoloarcade -keypass yoloarcade -dname "CN=YOLO Arcade, O=YOLO Dev, C=US"
           for apk in src-tauri/gen/android/app/build/outputs/apk/*/*/*.apk; do
-            "${ANDROID_HOME}/build-tools/34.0.0/zipalign" -v -p 4 "$apk" /tmp/yolo-arcade-aligned.apk
-            "${ANDROID_HOME}/build-tools/34.0.0/apksigner" sign --ks /tmp/yolo-arcade.keystore --ks-pass pass:yoloarcade --key-pass pass:yoloarcade --out yolo-arcade-android.apk /tmp/yolo-arcade-aligned.apk
+            "${SDK_ROOT}/build-tools/34.0.0/zipalign" -v -p 4 "$apk" /tmp/yolo-arcade-aligned.apk
+            "${SDK_ROOT}/build-tools/34.0.0/apksigner" sign --ks /tmp/yolo-arcade.keystore --ks-pass pass:yoloarcade --key-pass pass:yoloarcade --out yolo-arcade-android.apk /tmp/yolo-arcade-aligned.apk
             break
           done
 
