@@ -305,15 +305,16 @@
         "v0.31.0": "1caced0fc85c0a486c3032894824c411a428a205",
         "v0.31.1": "e2d1faeee49a21f38bef501e56228d2d9b277acf",
         "v0.32.0": "645c05188f1c8c95f16d5ac9d421a2dccb8d7eb4",
-        "v0.33.0": "d25683e2b8d4fbf504619fb167ba9e4fb2200565"
+        "v0.33.0": "d25683e2b8d4fbf504619fb167ba9e4fb2200565",
+        "v0.33.1": "bf9b7130e24ff328e67ef521d0141f5520f6b1b5"
       },
       "published": {
-        "tag": "v0.33.1",
-        "commit": "bf9b7130e24ff328e67ef521d0141f5520f6b1b5",
-        "source_commit": "bc4131660b4ca371eb55d7ff9ed182df31613481",
-        "published_at": "2026-11-05T18:45:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-02-v0331.json",
-        "note": "Patch release (#315, PR #316). Removes all black text strokes/outlines, stacks character speech into two compact lines above the animal mascot, and switches to a cute rounded bubbly font with whimsical candy colors matched to each animal; deployed live to https://demo.yolo-dev.ai (Version ID: 82910f13-c5ae-4add-8a01-1ad346fcbe0c)."
+        "tag": "v0.34.0",
+        "commit": "066f07c6fb3c8691aac99fb8095d14dfbed9aa36",
+        "source_commit": "95ca5a8cf3499e8f4e5e50c535cb7898e07b1311",
+        "published_at": "2026-11-05T19:20:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-02-v0340.json",
+        "note": "Minor release (#317, PR #318). Starts both Sound Effects and Music ON by default, keeps them 100% decoupled from the start, and adds Sound & Music controls inside the in-game menu in both Tetris and Puzzle Bobble; deployed live to https://demo.yolo-dev.ai (Version ID: ae7da22e-9db2-4a94-9f11-82c9328d0245)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -385,7 +386,8 @@
         ".yolo/reports/releases-observed-2026-11-02-v0311.json",
         ".yolo/reports/releases-observed-2026-11-02-v0320.json",
         ".yolo/reports/releases-observed-2026-11-02-v0330.json",
-        ".yolo/reports/releases-observed-2026-11-02-v0331.json"
+        ".yolo/reports/releases-observed-2026-11-02-v0331.json",
+        ".yolo/reports/releases-observed-2026-11-02-v0340.json"
       ]
     }
   },
