@@ -4,6 +4,16 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Environment-Aware `yolo-arcade` Download Link on Home Page (#311) — 2026-11-02
+
+Source revision `a78135c` (environment-aware `yolo-arcade` download link and installed-app detection commit); build evidence `55f8e8a`; published as `v0.32.0` on 2026-11-02.
+
+- **Environment-Aware Download Pill (`src/client/arcadeDownload.ts`, `src/client/App.tsx`, `src/client/styles.css`, `test/arcade-download.test.ts`):**
+  - Detects **macOS** (`yolo-arcade-macos.dmg`), **Windows** (`yolo-arcade-windows-setup.exe`), or **Android** (`yolo-arcade-android.apk`) and renders `data-testid="arcade-download-link"` in the top-left corner of the top-level Home page (`!activeApp && !showPanel`).
+  - Automatically hides the download link when running inside the installed Tauri app (`__TAURI_INTERNALS__`, `__TAURI__`, `?shell=tauri`, or stored shell marker) or as an installed standalone PWA (`display-mode: standalone` / `navigator.standalone`).
+- `npm test`: 27 files, 179 tests passed.
+- `npx tsc --noEmit`: clean.
+
 ## Arcade-Styled YOLO Threefold Symbol Icon for `yolo-arcade` (#309) — 2026-11-02
 
 Source revision `6397585` (the arcade-styled YOLO Threefold symbol icon and Android CI runner fix commit); build evidence `162ce31`; release commit `e2d1fae`; published as `v0.31.1` on 2026-11-02.

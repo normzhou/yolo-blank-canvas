@@ -241,7 +241,7 @@ describe('YOLO mark v0.1.0-alpha.53 motion and hosted v1 channel (#282)', () => 
     expect(tauriConf.productName).toBe('yolo-arcade');
     expect(tauriConf.identifier).toBe('ai.yolodev.arcade');
     expect(tauriConf.app.windows[0].title).toBe('YOLO Arcade');
-    expect(tauriConf.app.windows[0].url).toBe('https://demo.yolo-dev.ai');
+    expect(tauriConf.app.windows[0].url).toBe('https://demo.yolo-dev.ai/?shell=tauri');
     expect(existsSync('src-tauri/icons/icon.icns')).toBe(true);
     expect(existsSync('src-tauri/icons/icon.ico')).toBe(true);
     expect(existsSync('src-tauri/icons/128x128@2x.png')).toBe(true);

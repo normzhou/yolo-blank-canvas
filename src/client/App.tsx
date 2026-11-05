@@ -20,6 +20,7 @@ import {
   isHostedFeedbackOpen,
   openHostedFeedback,
 } from './hostedFeedback';
+import { detectArcadeDownload } from './arcadeDownload';
 import { useFullscreen } from './fullscreen';
 import { Panel, type PanelView } from './components/Panel';
 import { ErrorNotice } from './components/ErrorNotice';
@@ -955,6 +956,7 @@ export function App() {
   const isStaticDemo = sessionError?.kind === 'static_demo';
   const showSessionError = Boolean(sessionError && !isStaticDemo);
   const showPanel = panelOpen && Boolean(session || isStaticDemo);
+  const [arcadeDownload] = useState(() => detectArcadeDownload());
 
   useEffect(() => {
     setSharedOverlayOpen(showPanel || hostedFeedbackOpen);
@@ -971,6 +973,46 @@ export function App() {
   return (
     <div className={canvasClass}>
       {!activeApp ? <h1 className="sr-only canvas-title">Blank canvas</h1> : null}
+
+      {/* #311: Environment-aware YOLO Arcade download pill on the top-level Home page
+          (macOS .dmg, Windows .exe, Android .apk), hidden when running inside the installed app. */}
+      {!activeApp && !showPanel && arcadeDownload ? (
+        <a
+          className="arcade-download-pill"
+          data-testid="arcade-download-link"
+          data-platform={arcadeDownload.platform}
+          href={arcadeDownload.href}
+          download={arcadeDownload.fileName}
+          aria-label={arcadeDownload.label}
+          title={arcadeDownload.label}
+        >
+          <img
+            className="arcade-download-icon"
+            src="/brand/yolo-arcade-icon.svg"
+             width="20"
+            height="20"
+            alt=""
+            aria-hidden="true"
+          />
+          <span className="arcade-download-text">{arcadeDownload.shortLabel}</span>
+          <svg
+            className="arcade-download-arrow"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 4v12" />
+            <path d="m7 11 5 5 5-5" />
+            <path d="M5 20h14" />
+          </svg>
+        </a>
+      ) : null}
 
       {/* #220, #228, #230, #234: No top bar — bare wiggling YOLO Threefold symbol
           in the top-right corner to open the full YOLO feedback & requests overlay,
