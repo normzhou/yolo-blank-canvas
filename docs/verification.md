@@ -4,6 +4,15 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## System Browser Passkey Login Handoff for `yolo-arcade` (#328) — 2026-11-02
+
+Source revision `826aa95` (System Browser Passkey Login Handoff via `/auth/yolo/browser-start`, `/auth/yolo/handoff/poll`, and Tauri `on_page_load` hook); build evidence `091db28`; published as `v0.36.0` on 2026-11-02.
+
+- **Tauri System Browser Hook + Worker Handoff Endpoints (`src-tauri/src/lib.rs`, `hosting/cloudflare/worker.mjs`, `src/client/hostedFeedback.ts`, `test/hosted-feedback.test.ts`):**
+  - Clicking **Sign in** inside `yolo-arcade` (`?shell=tauri`) generates a 256-bit one-time `handoff` token, opens `/auth/yolo/browser-start?handoff=...` in the user's default system browser (Chrome/Safari) via Tauri's `on_page_load` hook (with a copy-link fallback banner for older builds), completes Passkey (Touch ID / Windows Hello / Android Biometrics) sign-in in the system browser, and transfers the authenticated `__Host-yolo-demo-session` cookie back to `yolo-arcade` via `POST /auth/yolo/handoff/poll`.
+- `npm test`: 27 files, 183 tests passed.
+- `npx tsc --noEmit`: clean.
+
 ## Persistent Disk Cache Storage for On-Demand `.m4a` Music Tracks (#326) — 2026-11-02
 
 Source revision `db3efd9` (persistent `window.caches` Cache Storage for on-demand `.m4a` music and countdown voice tracks); build evidence `b3c39bf`; release commit `bb31531`; published as `v0.35.2` on 2026-11-02.
