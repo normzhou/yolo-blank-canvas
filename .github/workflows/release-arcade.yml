@@ -51,10 +51,33 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: '[yolo] ${{ github.ref_name }} — YOLO Arcade'
-          releaseBody: 'Download **yolo-arcade** for macOS (`.dmg`), Windows (`-setup.exe` / `.msi`), or Android (`.apk`), or play instantly at https://demo.yolo-dev.ai.'
+          releaseBody: 'Download **yolo-arcade** for macOS (`yolo-arcade-macos.dmg`), Windows (`yolo-arcade-windows-setup.exe`), or Android (`yolo-arcade-android.apk`), or play instantly at https://demo.yolo-dev.ai.'
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
+
+      - name: Attach stable macOS filename alias (yolo-arcade-macos.dmg)
+        if: matrix.os == 'macos-latest' && startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for dmg in src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg; do
+            cp "$dmg" yolo-arcade-macos.dmg
+            gh release upload "${{ github.ref_name }}" yolo-arcade-macos.dmg --clobber
+            break
+          done
+
+      - name: Attach stable Windows filename alias (yolo-arcade-windows-setup.exe)
+        if: matrix.os == 'windows-latest' && startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for exe in src-tauri/target/release/bundle/nsis/*-setup.exe; do
+            cp "$exe" yolo-arcade-windows-setup.exe
+            gh release upload "${{ github.ref_name }}" yolo-arcade-windows-setup.exe --clobber
+            break
+          done
 
   build-android:
     name: Build Android APK

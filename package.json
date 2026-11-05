@@ -29,6 +29,7 @@
     "e2e:measure": "YOLO_INCLUDE_REVIEW_CAPTURES=1 playwright test --config playwright.config.ts measure",
     "e2e:variants": "playwright test --config playwright.variants.config.ts",
     "e2e:verify-release": "playwright test --config playwright.verify.config.ts",
+    "tauri": "tauri",
     "tauri:dev": "npx @tauri-apps/cli dev",
     "tauri:build": "npx @tauri-apps/cli build",
     "tauri:android:init": "npx @tauri-apps/cli android init",
