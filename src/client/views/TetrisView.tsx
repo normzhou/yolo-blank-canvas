@@ -356,13 +356,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
   const [game, setGame] = useState<TetrisState>(() => createGame());
   const [game2, setGame2] = useState<TetrisState>(() => createGame());
   const [localMode, setLocalMode] = useState<'1p' | '2p'>('1p');
-  const [paused, setPaused] = useState<boolean>(() => {
-    if (!getSharedNetplay().getState().activeRoom) {
-      setSharedGamePaused(true);
-      return true;
-    }
-    return getSharedGamePaused();
-  });
+  const [paused, setPaused] = useState<boolean>(() => getSharedGamePaused());
   const [musicOn, setMusicOn] = useState<boolean>(() => getSharedMusicOn());
   const [backgroundIndex, setBackgroundIndex] = useState(0);
   const [nowPlaying, setNowPlaying] = useState<string | null>(
@@ -386,9 +380,6 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
   const [overlayOpen, setOverlayOpen] = useState<boolean>(() => getSharedOverlayOpen());
 
   useEffect(() => {
-    if (!getSharedNetplay().getState().activeRoom) {
-      setSharedGamePaused(true);
-    }
     const unsubPause = subscribeSharedGamePause((nextPaused) => {
       setPaused(nextPaused);
     });
@@ -1554,7 +1545,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
                   aria-pressed={isLocal2P}
                   onClick={() => startLocalRound('2p', true)}
                 >
-                  2 Players
+                  2 Player
                 </button>
                 <button
                   type="button"
@@ -1579,10 +1570,10 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
                   }}
                 >
                   {isOnline2P
-                    ? `2P Online (${activeTetrisRoom.opponent.name})`
+                    ? `2P online (${activeTetrisRoom.opponent.name})`
                     : isInviting
                       ? `Waiting 2P… (${inviteSecondsLeft}s)`
-                      : '2P Online'}
+                      : '2P online'}
                 </button>
               </div>
             </div>

@@ -272,6 +272,7 @@ function CharacterMascotSvg({
   character,
   mood,
   aimAngle,
+  onCycleCharacter,
 }: {
   x: number;
   y: number;
@@ -279,6 +280,7 @@ function CharacterMascotSvg({
   character: CharacterId;
   mood: MascotMood;
   aimAngle: number;
+  onCycleCharacter?: () => void;
 }) {
   const { body: bodyFill, accent: accentFill } = mascotPalette(character, playerNumber);
   const isCranking = mood === 'normal' || mood === 'hurry';
@@ -327,15 +329,44 @@ function CharacterMascotSvg({
   const topStarY = character === 'bunny' ? -30 : character === 'cat' ? -27 : -24;
 
   return (
-    <g transform={`translate(${x}, ${y})`} aria-hidden="true">
+    <g
+      transform={`translate(${x}, ${y})`}
+      data-testid={`p${playerNumber}-mascot`}
+      data-character={character}
+      data-mood={mood}
+      data-crank-angle={crankDeg}
+      data-crank-x={leftArmX.toFixed(1)}
+      data-crank-y={leftArmY.toFixed(1)}
+      role="button"
+      tabIndex={0}
+      aria-label={`Switch Player ${playerNumber} character (${characterDisplayName(character, playerNumber)})`}
+      style={{ cursor: 'pointer', outline: 'none' }}
+      onMouseDown={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+      }}
+      onPointerDown={(event) => {
+        event.stopPropagation();
+      }}
+      onPointerUp={(event) => {
+        event.stopPropagation();
+      }}
+      onClick={(event) => {
+        event.stopPropagation();
+        onCycleCharacter?.();
+      }}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          event.stopPropagation();
+          onCycleCharacter?.();
+        }
+      }}
+    >
+      {/* Stationary click hit-box so clicking the animal works reliably while it bobs/cranks */}
+      <rect x={-22} y={-34} width={44} height={50} fill="transparent" />
       <g
         className={`pb-mascot pb-mascot-${mood}`}
-        data-testid={`p${playerNumber}-mascot`}
-        data-character={character}
-        data-mood={mood}
-        data-crank-angle={crankDeg}
-        data-crank-x={leftArmX.toFixed(1)}
-        data-crank-y={leftArmY.toFixed(1)}
         transform={
           isCranking
             ? `translate(0, ${bodyBobY.toFixed(2)}) rotate(${bodyTiltDeg.toFixed(2)})`
@@ -733,11 +764,13 @@ function LauncherMechanismSvg({
   playerNumber,
   character,
   advice,
+  onCycleCharacter,
 }: {
   player: PlayerBoardState;
   playerNumber: 1 | 2;
   character: CharacterId;
   advice: MascotAdvice;
+  onCycleCharacter?: () => void;
 }) {
   const gearRotation = Math.round(player.aimAngle * 6 * 10) / 10;
   const crankRotation = Math.round(-player.aimAngle * 18 * 10) / 10;
@@ -879,7 +912,7 @@ function LauncherMechanismSvg({
         <BubbleSvg cx={0} cy={-1} color={player.nextBubble} radius={BUBBLE_RADIUS - 3} />
       </g>
 
-      {/* Selectable cute mascot turning the crank on the right (#204, #299) */}
+      {/* Selectable cute mascot turning the crank on the right — click to cycle animal (#204, #299, #313) */}
       <CharacterMascotSvg
         x={LAUNCHER_X + 44}
         y={LAUNCHER_Y + 4}
@@ -887,9 +920,10 @@ function LauncherMechanismSvg({
         character={character}
         mood={mood}
         aimAngle={player.aimAngle}
+        onCycleCharacter={onCycleCharacter}
       />
 
-      {/* Plain-text character dialogue above the mascot without borders or background (#299, #303) */}
+      {/* Plain-text character dialogue above the mascot without borders or background (#299, #303, #313) */}
       <g
         className={`pb-mascot-speech pb-mascot-speech-${advice.kind}`}
         data-testid={`p${playerNumber}-mascot-speech`}
@@ -897,12 +931,14 @@ function LauncherMechanismSvg({
         aria-hidden="true"
       >
         <text
-          x={168}
-          y={242}
-          textAnchor="middle"
-          fontSize="6.4"
-          fontWeight="800"
-          fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+          x={218}
+          y={239}
+          textAnchor="end"
+          fontSize="6.0"
+          fontWeight="900"
+          fontStyle="italic"
+          fontFamily="var(--font-arcade-callout)"
+          letterSpacing="0.02em"
           fill={
             advice.kind === 'danger'
               ? 'var(--problem)'
@@ -913,7 +949,7 @@ function LauncherMechanismSvg({
           style={{
             paintOrder: 'stroke',
             stroke: 'var(--cabinet-well)',
-            strokeWidth: '2.2px',
+            strokeWidth: '2.8px',
             strokeLinejoin: 'round',
           }}
         >
@@ -1388,10 +1424,12 @@ function PlayerArena({
     updatedAt: number;
     shotsFired: number;
     status: PlayerBoardState['status'];
+    character: CharacterId;
   } | null>(null);
   const nowMs = Date.now();
   if (
     adviceStateRef.current === null ||
+    adviceStateRef.current.character !== character ||
     adviceStateRef.current.status !== player.status ||
     (player.shotsFired === 0 && adviceStateRef.current.shotsFired > 0) ||
     (player.flying === null &&
@@ -1399,13 +1437,20 @@ function PlayerArena({
       nowMs - adviceStateRef.current.updatedAt >= 10_000)
   ) {
     adviceStateRef.current = {
-      advice: deriveMascotAdvice(player),
+      advice: deriveMascotAdvice(player, character),
       updatedAt: nowMs,
       shotsFired: player.shotsFired,
       status: player.status,
+      character,
     };
   }
   const advice = adviceStateRef.current.advice;
+
+  const cycleCharacter = useCallback(() => {
+    const idx = CHARACTER_OPTIONS.findIndex((opt) => opt.id === character);
+    const next = CHARACTER_OPTIONS[(idx + 1) % CHARACTER_OPTIONS.length]!;
+    onSelectCharacter(next.id);
+  }, [character, onSelectCharacter]);
 
   const lastEv = player.lastEvent;
   const incomingPreview = player.incomingQueue.slice(0, 6);
@@ -1422,7 +1467,7 @@ function PlayerArena({
 
   return (
     <div className="pb-player-card" data-player={playerNumber}>
-      {/* Compact single-line arcade marquee + character picker (#215, #226) */}
+      {/* Compact single-line arcade marquee (#215, #226, #313 — click mascot to switch animal) */}
       <div className="pb-player-header">
         <div className="pb-player-id">
           <span className={`pb-up-badge pb-up-${playerNumber}`} aria-hidden="true">
@@ -1431,29 +1476,6 @@ function PlayerArena({
           <span className="pb-player-title" data-testid={`p${playerNumber}-title`}>
             {`${playerNumber}P · ${charName}`}
           </span>
-        </div>
-        <div
-          className="pb-char-options"
-          role="group"
-          aria-label={`Player ${playerNumber} character`}
-          data-testid={`p${playerNumber}-character-picker`}
-        >
-          {CHARACTER_OPTIONS.map((opt) => (
-            <button
-              key={opt.id}
-              type="button"
-              className={character === opt.id ? 'pb-char-btn is-selected' : 'pb-char-btn'}
-              aria-pressed={character === opt.id}
-              title={`Play as ${opt.label}`}
-              onClick={(event) => {
-                onSelectCharacter(opt.id);
-                event.currentTarget.blur();
-              }}
-            >
-              <CharacterTokenIcon id={opt.id} />
-              <span className="sr-only">{opt.label}</span>
-            </button>
-          ))}
         </div>
         <div className="pb-status-pills">
           {player.incomingGarbage > 0 ? (
@@ -1754,6 +1776,7 @@ function PlayerArena({
             playerNumber={playerNumber}
             character={character}
             advice={advice}
+            onCycleCharacter={cycleCharacter}
           />
 
           {/* In-board arcade win/lose marquee plaque (#215) */}
@@ -1866,14 +1889,6 @@ function PlayerArena({
             </div>
           ) : null}
 
-          <div
-            className={`pb-dino-coach pb-dino-coach-${advice.kind}`}
-            data-testid={`p${playerNumber}-dino-advice`}
-            data-advice-kind={advice.kind}
-          >
-            <span className="pb-dino-coach-text">{advice.coachText}</span>
-          </div>
-
           <span className="sr-only" role={statusLine || hurrySeconds !== null ? 'status' : undefined}>
             {hurrySeconds !== null
               ? `HURRY! ${hurrySeconds}s`
@@ -1946,13 +1961,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
   );
   const [characters, setCharacters] = useState<[CharacterId, CharacterId]>(['dragon', 'dragon']);
   const [stagePreset, setStagePreset] = useState<number>(0); // 0 = random wave, 1..5 = classic Taito stages
-  const [paused, setPaused] = useState<boolean>(() => {
-    if (!getSharedNetplay().getState().activeRoom) {
-      setSharedGamePaused(true);
-      return true;
-    }
-    return getSharedGamePaused();
-  });
+  const [paused, setPaused] = useState<boolean>(() => getSharedGamePaused());
   const [musicOn, setMusicOn] = useState<boolean>(() => getSharedMusicOn());
   const [backgroundIndex, setBackgroundIndex] = useState(1);
   const [nowPlaying, setNowPlaying] = useState<string | null>(
@@ -1972,9 +1981,6 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
   const [overlayOpen, setOverlayOpen] = useState<boolean>(() => getSharedOverlayOpen());
 
   useEffect(() => {
-    if (!getSharedNetplay().getState().activeRoom) {
-      setSharedGamePaused(true);
-    }
     const unsubPause = subscribeSharedGamePause((nextPaused) => {
       setPaused(nextPaused);
     });
@@ -3122,19 +3128,6 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
             <div className="game-pause-section">
               <span className="tetris-label">Game Mode</span>
               <div className="filter-group" role="group" aria-label="Player mode">
-                {canSelectLocal2P ? (
-                  <button
-                    type="button"
-                    aria-pressed={!isOnline2P && !isInviting && match.mode === '2p'}
-                    onClick={() => {
-                      if (isOnline2P) void getSharedNetplay().leaveRoom();
-                      if (isInviting) void getSharedNetplay().cancelInvite();
-                      startNewRound('2p', false);
-                    }}
-                  >
-                    2 Players
-                  </button>
-                ) : null}
                 <button
                   type="button"
                   aria-pressed={!isOnline2P && !isInviting && match.mode === '1p'}
@@ -3146,6 +3139,19 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
                 >
                   1 Player
                 </button>
+                {canSelectLocal2P ? (
+                  <button
+                    type="button"
+                    aria-pressed={!isOnline2P && !isInviting && match.mode === '2p'}
+                    onClick={() => {
+                      if (isOnline2P) void getSharedNetplay().leaveRoom();
+                      if (isInviting) void getSharedNetplay().cancelInvite();
+                      startNewRound('2p', false);
+                    }}
+                  >
+                    2 Player
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   data-testid="pb-2p-online-btn"
@@ -3172,10 +3178,10 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
                   }}
                 >
                   {isOnline2P
-                    ? `2P Online (${activePbRoom.opponent.name})`
+                    ? `2P online (${activePbRoom.opponent.name})`
                     : isInviting
                       ? `Waiting 2P… (${inviteSecondsLeft}s)`
-                      : '2P Online'}
+                      : '2P online'}
                 </button>
               </div>
             </div>

@@ -591,19 +591,29 @@ export class TetrisMusic {
 }
 
 /**
- * Shared singleton audio controller so the global YouTube-style sound button
- * in `App.tsx` can drive music crossfades and real-time SFX across the
- * Selector Screen, Tetris, and Puzzle Bobble (#234).
+ * Shared singleton audio controller so the global sound effects (`sfx-button`)
+ * and music (`sound-button`) controls in `App.tsx` can drive music crossfades
+ * and real-time SFX independently across the Selector Screen, Tetris, and
+ * Puzzle Bobble (#234, #313).
  */
 let sharedController: TetrisMusic | null = null;
 let sharedMusicOn = false;
-const stateListeners = new Set<(musicOn: boolean, nowPlaying: string | null) => void>();
+let sharedSfxOn = false;
+let sfxExplicitlyToggled = false;
+const stateListeners = new Set<(musicOn: boolean, nowPlaying: string | null, sfxOn: boolean) => void>();
+
+function notifySharedAudioListeners(): void {
+  const title = sharedController?.getCurrentTrack()?.title ?? null;
+  for (const listener of stateListeners) {
+    listener(sharedMusicOn, title, sharedSfxOn);
+  }
+}
 
 export function getSharedArcadeAudio(): TetrisMusic {
   if (!sharedController) {
     sharedController = new TetrisMusic((track) => {
       for (const listener of stateListeners) {
-        listener(sharedMusicOn, track.title);
+        listener(sharedMusicOn, track.title, sharedSfxOn);
       }
     });
   }
@@ -614,21 +624,37 @@ export function getSharedMusicOn(): boolean {
   return sharedMusicOn;
 }
 
+export function getSharedSfxOn(): boolean {
+  return sharedSfxOn;
+}
+
+export function setSharedSfxOn(next: boolean): boolean {
+  const audio = getSharedArcadeAudio();
+  if (next && !audio.ensureContext()) return false;
+  sfxExplicitlyToggled = true;
+  sharedSfxOn = next;
+  audio.setSfxEnabled(next);
+  notifySharedAudioListeners();
+  return true;
+}
+
 export function setSharedMusicOn(next: boolean, activePlayable = true): boolean {
   const audio = getSharedArcadeAudio();
   if (next && !audio.ensureContext()) return false;
   sharedMusicOn = next;
   audio.setActive(next && activePlayable);
-  audio.setSfxEnabled(next);
-  const title = audio.getCurrentTrack()?.title ?? null;
-  for (const listener of stateListeners) {
-    listener(sharedMusicOn, title);
+  if (!sfxExplicitlyToggled) {
+    sharedSfxOn = next;
+    audio.setSfxEnabled(next);
+  } else {
+    audio.setSfxEnabled(sharedSfxOn);
   }
+  notifySharedAudioListeners();
   return true;
 }
 
 export function subscribeSharedAudio(
-  listener: (musicOn: boolean, nowPlaying: string | null) => void,
+  listener: (musicOn: boolean, nowPlaying: string | null, sfxOn: boolean) => void,
 ): () => void {
   stateListeners.add(listener);
   return () => {
