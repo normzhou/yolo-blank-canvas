@@ -4,16 +4,31 @@ import {
   detectArcadeDownload,
   detectArcadePlatform,
   isInstalledArcadeApp,
+  isMacosInstallHelperOpen,
   MACOS_PRIVACY_SECURITY_DEEP_LINK,
   MACOS_XATTR_BYPASS_COMMAND,
+  setMacosInstallHelperOpen,
 } from '../src/client/arcadeDownload';
 
-describe('Environment-aware YOLO Arcade download detection (#311, #321)', () => {
-  it('exposes the macOS Privacy & Security System Settings deep link and xattr quarantine bypass command (#321)', () => {
+describe('Environment-aware YOLO Arcade download detection (#311, #321, #323)', () => {
+  it('exposes the macOS Privacy & Security System Settings deep link, xattr bypass command, and persistent helper state (#321, #323)', () => {
     expect(MACOS_PRIVACY_SECURITY_DEEP_LINK).toBe(
       'x-apple.systempreferences:com.apple.preference.security?General',
     );
     expect(MACOS_XATTR_BYPASS_COMMAND).toBe('xattr -cr /Applications/yolo-arcade.app');
+
+    const store = new Map<string, string>();
+    const fakeWin = {
+      localStorage: {
+        getItem: (k: string) => store.get(k) ?? null,
+        setItem: (k: string, v: string) => store.set(k, v),
+      },
+    };
+    expect(isMacosInstallHelperOpen(fakeWin)).toBe(false);
+    setMacosInstallHelperOpen(true, fakeWin);
+    expect(isMacosInstallHelperOpen(fakeWin)).toBe(true);
+    setMacosInstallHelperOpen(false, fakeWin);
+    expect(isMacosInstallHelperOpen(fakeWin)).toBe(false);
   });
   it('detects macOS, Windows, and Android platforms from user-agent / platform', () => {
     expect(
