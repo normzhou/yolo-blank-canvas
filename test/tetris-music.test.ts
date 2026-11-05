@@ -15,7 +15,15 @@ import {
   shuffledTracks,
   type Track,
 } from '../src/shared/tetrisMusic';
-import { MUSIC_GAIN, TetrisMusic } from '../src/client/audio/tetrisMusic';
+import {
+  getSharedArcadeAudio,
+  getSharedMusicOn,
+  getSharedSfxOn,
+  MUSIC_GAIN,
+  setSharedMusicOn,
+  setSharedSfxOn,
+  TetrisMusic,
+} from '../src/client/audio/tetrisMusic';
 
 describe('selector, tetris, and puzzle bobble playlists + Tone synth SFX (#232, #234, #252, #258, #262)', () => {
   it('reduces background music gain to 0.22 so sound effects stand out clearly (#252, #258)', () => {
@@ -231,5 +239,31 @@ describe('selector, tetris, and puzzle bobble playlists + Tone synth SFX (#232, 
     } finally {
       vi.unstubAllGlobals();
     }
+  });
+
+  it('starts shared Music and Sound Effects ON by default and keeps them 100% decoupled (#317)', () => {
+    expect(getSharedMusicOn()).toBe(true);
+    expect(getSharedSfxOn()).toBe(true);
+
+    // Toggling Music off does not turn Sound Effects off
+    setSharedMusicOn(false);
+    expect(getSharedMusicOn()).toBe(false);
+    expect(getSharedSfxOn()).toBe(true);
+
+    // Toggling Music back on does not alter Sound Effects
+    setSharedMusicOn(true);
+    expect(getSharedMusicOn()).toBe(true);
+    expect(getSharedSfxOn()).toBe(true);
+
+    // Toggling Sound Effects off leaves Music on, and setActive(true) does not re-enable SFX
+    setSharedSfxOn(false);
+    expect(getSharedSfxOn()).toBe(false);
+    expect(getSharedMusicOn()).toBe(true);
+    getSharedArcadeAudio().setActive(true);
+    expect(getSharedSfxOn()).toBe(false);
+
+    // Restore both on
+    setSharedSfxOn(true);
+    expect(getSharedSfxOn()).toBe(true);
   });
 });

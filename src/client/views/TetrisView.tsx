@@ -10,6 +10,9 @@ import {
 import {
   getSharedArcadeAudio,
   getSharedMusicOn,
+  getSharedSfxOn,
+  setSharedMusicOn,
+  setSharedSfxOn,
   subscribeSharedAudio,
 } from '../audio/tetrisMusic';
 import {
@@ -358,6 +361,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
   const [localMode, setLocalMode] = useState<'1p' | '2p'>('1p');
   const [paused, setPaused] = useState<boolean>(() => getSharedGamePaused());
   const [musicOn, setMusicOn] = useState<boolean>(() => getSharedMusicOn());
+  const [sfxOn, setSfxOn] = useState<boolean>(() => getSharedSfxOn());
   const [backgroundIndex, setBackgroundIndex] = useState(0);
   const [nowPlaying, setNowPlaying] = useState<string | null>(
     () => getSharedArcadeAudio().getCurrentTrack()?.title ?? null,
@@ -654,9 +658,10 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     const audio = getSharedArcadeAudio();
     audio.setPlaylist(TETRIS_PLAYLIST);
     setNowPlaying(audio.getCurrentTrack()?.title ?? null);
-    return subscribeSharedAudio((nextOn, nextTitle) => {
+    return subscribeSharedAudio((nextOn, nextTitle, nextSfxOn) => {
       setMusicOn(nextOn);
       setNowPlaying(nextTitle);
+      setSfxOn(nextSfxOn);
     });
   }, []);
 
@@ -1574,6 +1579,32 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
                     : isInviting
                       ? `Waiting 2P… (${inviteSecondsLeft}s)`
                       : '2P online'}
+                </button>
+              </div>
+            </div>
+            <div className="game-pause-section">
+              <span className="tetris-label">Audio</span>
+              <div className="filter-group" role="group" aria-label="Audio controls">
+                <button
+                  type="button"
+                  data-testid="pause-menu-sfx-btn"
+                  aria-pressed={sfxOn}
+                  onClick={() => {
+                    setSharedSfxOn(!sfxOn);
+                  }}
+                >
+                  {sfxOn ? 'Sound: On' : 'Sound: Off'}
+                </button>
+                <button
+                  type="button"
+                  data-testid="pause-menu-music-btn"
+                  aria-pressed={musicOn}
+                  onClick={() => {
+                    getSharedArcadeAudio().setPlaylist(TETRIS_PLAYLIST);
+                    setSharedMusicOn(!musicOn, true);
+                  }}
+                >
+                  {musicOn ? 'Music: On' : 'Music: Off'}
                 </button>
               </div>
             </div>
