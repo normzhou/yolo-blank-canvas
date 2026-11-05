@@ -781,40 +781,76 @@ export const BUBBLE_COLOR_LABELS: Readonly<Record<BubbleColor, string>> = {
 
 /**
  * Derives real-time tactical dialogue and aiming advice from the player's board
- * state, active/next bubble colors, and multi-bounce sight line (#299).
+ * state, active/next bubble colors, multi-bounce sight line, and selected animal
+ * mascot (`dragon`, `cat`, `dog`, `bunny`, #299, #313).
  */
-export function deriveMascotAdvice(player: PlayerBoardState): MascotAdvice {
+export function deriveMascotAdvice(
+  player: PlayerBoardState,
+  character: CharacterId = 'dragon',
+): MascotAdvice {
   const curLabel = BUBBLE_COLOR_LABELS[player.currentBubble] ?? player.currentBubble.toUpperCase();
   const nextLabel = BUBBLE_COLOR_LABELS[player.nextBubble] ?? player.nextBubble.toUpperCase();
 
   if (player.status === 'won') {
+    const winBubble =
+      character === 'cat'
+        ? 'PURR-FECT! STAGE CLEAR, MEOW!'
+        : character === 'dog'
+          ? 'WOOF! PAW-SOME STAGE CLEAR!'
+          : character === 'bunny'
+            ? 'YIPPEE! SOME-BUNNY CLEARED IT!'
+            : 'RAWR! STAGE CLEAR! DINO-MITE!';
     return {
       kind: 'win',
-      bubbleText: 'STAGE CLEAR! YAY!',
-      coachText: 'Stage cleared! Awesome gear-cranking and bubble popping!',
+      bubbleText: winBubble,
+      coachText: winBubble,
     };
   }
   if (player.status === 'ko') {
+    const loseBubble =
+      character === 'cat'
+        ? 'HISS! WATCH THE LINE, MEW!'
+        : character === 'dog'
+          ? 'WHINE… RUFF BREAK ON THE LINE!'
+          : character === 'bunny'
+            ? 'EEK! HARE-RAISING LINE DROP!'
+            : 'GASP! SCALES ON THE LINE!';
     return {
       kind: 'lose',
-      bubbleText: 'OOF! WATCH THE LINE!',
-      coachText: 'The bubbles crossed the line—clear the lowest clusters first next round!',
+      bubbleText: loseBubble,
+      coachText: loseBubble,
     };
   }
 
   const hurrySecs = hurryCountdownSeconds(player);
   if (hurrySecs !== null) {
+    const hurryBubble =
+      character === 'cat'
+        ? `MEOW! ${hurrySecs}S—POUNCE ON ${curLabel}!`
+        : character === 'dog'
+          ? `ARF! ${hurrySecs}S—FETCH ${curLabel}!`
+          : character === 'bunny'
+            ? `HOP TO IT! ${hurrySecs}S FOR ${curLabel}!`
+            : `ROAR! ${hurrySecs}S—FIRE ${curLabel}!`;
     return {
       kind: 'danger',
-      bubbleText: `HURRY ${hurrySecs}S! FIRE ${curLabel}!`,
-      coachText: `Hurry! Auto-fire in ${hurrySecs}s—shoot ${curLabel} toward the nearest match!`,
+      bubbleText: hurryBubble,
+      coachText: hurryBubble,
     };
   }
   if (player.ceilingWarning) {
+    const warnBubble =
+      character === 'cat'
+        ? 'HISS! CEILING DROPPING, MEW!'
+        : character === 'dog'
+          ? 'GRRR-UFF! CEILING DROPPING!'
+          : character === 'bunny'
+            ? 'THUMP! CEILING DROPPING!'
+            : 'GRRR! CEILING DROPPING!';
     return {
       kind: 'danger',
-      bubbleText: 'CEILING DROPPING!',
-      coachText: 'Ceiling drops after this shot—pop a top anchor to drop hanging bubbles!',
+      bubbleText: warnBubble,
+      coachText: warnBubble,
     };
   }
 
@@ -824,17 +860,33 @@ export function deriveMascotAdvice(player: PlayerBoardState): MascotAdvice {
   ) {
     if (player.lastEvent.dropped.length > 0) {
       const n = player.lastEvent.dropped.length;
+      const dropBubble =
+        character === 'cat'
+          ? `CAT-ASTROPHE! ${n} DROPPED, MEOW!`
+          : character === 'dog'
+            ? `PAW-SOME! ${n} DROPPED, WOOF!`
+            : character === 'bunny'
+              ? `BUN-BELIEVABLE! ${n} DROPPED!`
+              : `DINO-MITE! ${n} DROPPED!`;
       return {
         kind: 'combo',
-        bubbleText: `${n} DROPPED! BONUS!`,
-        coachText: `Awesome avalanche! Dropping ${n} hanging bubble${n === 1 ? '' : 's'} scores huge bonus points!`,
+        bubbleText: dropBubble,
+        coachText: dropBubble,
       };
     }
     const poppedCount = player.lastEvent.popped.length;
+    const popBubble =
+      character === 'cat'
+        ? `MEOW-VELOUS ${poppedCount}X COMBO!`
+        : character === 'dog'
+          ? `WOOF! ${poppedCount}X BARK-TACULAR!`
+          : character === 'bunny'
+            ? `BOING! ${poppedCount}X CARROT COMBO!`
+            : `ROAR! ${poppedCount}X POP COMBO!`;
     return {
       kind: 'combo',
-      bubbleText: `${poppedCount}X POP COMBO!`,
-      coachText: `Great ${poppedCount}-bubble combo! Keep spinning the gears for the next cluster!`,
+      bubbleText: popBubble,
+      coachText: popBubble,
     };
   }
 
@@ -871,16 +923,32 @@ export function deriveMascotAdvice(player: PlayerBoardState): MascotAdvice {
       return dx * dx + dy * dy <= (BUBBLE_DIAMETER * 1.75) ** 2;
     });
     if (hitsMatchingCluster) {
+      const bankMatch =
+        character === 'cat'
+          ? `PURR! CLAW-SOME ${curLabel} BANK!`
+          : character === 'dog'
+            ? `ARF! FETCH ${curLabel} OFF WALL!`
+            : character === 'bunny'
+              ? `BOING! HOP-SHOT ON ${curLabel}!`
+              : `CHOMP! BANK SHOT ON ${curLabel}!`;
       return {
         kind: 'bank',
-        bubbleText: `BANK SHOT ON ${curLabel}!`,
-        coachText: `Sweet bank shot! That wall bounce lines right up with ${curLabel}!`,
+        bubbleText: bankMatch,
+        coachText: bankMatch,
       };
     }
+    const bankAngle =
+      character === 'cat'
+        ? 'MEW! BOUNCE OFF THE WALL!'
+        : character === 'dog'
+          ? 'RUFF ANGLE! BANK IT, WOOF!'
+          : character === 'bunny'
+            ? 'BOING! BOUNCE OFF THE WALL!'
+            : 'RAWR! WALL BANK ANGLE!';
     return {
       kind: 'bank',
-      bubbleText: 'WALL BANK ANGLE!',
-      coachText: `Bank shot angle! Bounce ${curLabel} off the wall to reach tight upper corners.`,
+      bubbleText: bankAngle,
+      coachText: bankAngle,
     };
   }
 
@@ -895,26 +963,50 @@ export function deriveMascotAdvice(player: PlayerBoardState): MascotAdvice {
     const targetAngle = aimAngleFromBoardPoint(best.x, best.y);
     const diff = targetAngle - player.aimAngle;
     if (Math.abs(diff) <= 6.5) {
+      const lockedText =
+        character === 'cat'
+          ? `PURR-FECT! FIRE AT ${curLabel}!`
+          : character === 'dog'
+            ? `WOOF! BARKING UP ${curLabel}—FIRE!`
+            : character === 'bunny'
+              ? `SOME-BUNNY LOCKED ON ${curLabel}!`
+              : `DINO-MITE! LOCKED ON ${curLabel}! FIRE!`;
       return {
         kind: 'match',
-        bubbleText: `LOCKED ON ${curLabel}! FIRE!`,
-        coachText: `Locked on ${curLabel}! Fire now to connect the match (next: ${nextLabel})!`,
+        bubbleText: lockedText,
+        coachText: lockedText,
       };
     }
     const dir = diff < 0 ? 'LEFT' : 'RIGHT';
     const dirLower = diff < 0 ? 'left' : 'right';
     const zone = targetAngle < -12 ? 'left' : targetAngle > 12 ? 'right' : 'center';
+    const tipBubble =
+      character === 'cat'
+        ? `MEOW! PAW ${dir} FOR ${curLabel}!`
+        : character === 'dog'
+          ? `WOOF! FETCH ${curLabel} ${dir}!`
+          : character === 'bunny'
+            ? `HOP ${dir} FOR ${curLabel}, BUN!`
+            : `RAWR! CRANK ${dir} FOR ${curLabel}!`;
     return {
       kind: 'tip',
-      bubbleText: `CRANK ${dir} FOR ${curLabel}!`,
+      bubbleText: tipBubble,
       coachText: `Crank the gears ${dirLower} toward the ${zone} ${curLabel} cluster (next: ${nextLabel})!`,
     };
   }
 
+  const setupBubble =
+    character === 'cat'
+      ? `MEW! TEE UP ${nextLabel} NEXT!`
+      : character === 'dog'
+        ? `ARF! DIG UP ${nextLabel} NEXT!`
+        : character === 'bunny'
+          ? `BOING! LINE UP ${nextLabel} NEXT!`
+          : `RAWR! SET UP ${nextLabel} NEXT!`;
   return {
     kind: 'tip',
-    bubbleText: `SET UP ${nextLabel} NEXT!`,
-    coachText: `No open ${curLabel} targets—park this shot on the side to set up ${nextLabel} next!`,
+    bubbleText: setupBubble,
+    coachText: setupBubble,
   };
 }
 

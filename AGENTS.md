@@ -67,3 +67,5 @@ security boundaries and verification record.
 - Significant architecture changes notify the maintainer; Charter and authority edits require
   their approval.
 - Change what this project *is for* only through a Charter edit; it is not a refactor.
+- Do not add borders to UI elements unless a border adds clear functional value; default to
+  borderless treatments.

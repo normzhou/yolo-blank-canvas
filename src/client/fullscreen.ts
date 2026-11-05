@@ -10,16 +10,17 @@ type WebkitElement = HTMLElement & {
 };
 
 /**
- * Returns true when the browser is in native Fullscreen API mode or the
- * document's default `data-fullscreen="true"` mode (#222, #228).
- * By default, the site starts in fullscreen mode (`data-fullscreen` is treated
- * as `'true'` unless explicitly set to `'false'`).
+ * Returns true when the browser is in native Fullscreen API mode or when the
+ * user has explicitly toggled fullscreen on (`data-fullscreen="true" | "native"`, #313).
+ * By default, the app starts normally (`data-fullscreen="false"`) and only
+ * enters fullscreen when the user clicks the Fullscreen button.
  */
 export function isBrowserFullscreen(): boolean {
-  if (typeof document === 'undefined') return true;
+  if (typeof document === 'undefined') return false;
   const doc = document as WebkitDocument;
   if (doc.fullscreenElement || doc.webkitFullscreenElement) return true;
-  return document.documentElement.getAttribute('data-fullscreen') !== 'false';
+  const attr = document.documentElement.getAttribute('data-fullscreen');
+  return attr === 'true' || attr === 'native';
 }
 
 async function requestNativeFullscreen(): Promise<boolean> {
@@ -83,7 +84,7 @@ export function useFullscreen(): {
 } {
   const [isFullscreen, setIsFullscreen] = useState<boolean>(() => {
     if (typeof document !== 'undefined' && !document.documentElement.hasAttribute('data-fullscreen')) {
-      document.documentElement.setAttribute('data-fullscreen', 'true');
+      document.documentElement.setAttribute('data-fullscreen', 'false');
     }
     return isBrowserFullscreen();
   });
@@ -91,12 +92,7 @@ export function useFullscreen(): {
   useEffect(() => {
     const root = document.documentElement;
     if (!root.hasAttribute('data-fullscreen')) {
-      root.setAttribute('data-fullscreen', 'true');
-    }
-    if (isBrowserFullscreen()) {
-      void requestNativeFullscreen().then((entered) => {
-        if (entered) root.setAttribute('data-fullscreen', 'native');
-      });
+      root.setAttribute('data-fullscreen', 'false');
     }
 
     function sync() {
@@ -114,28 +110,13 @@ export function useFullscreen(): {
       setIsFullscreen(isBrowserFullscreen());
     }
 
-    // Upgrade to native browser fullscreen on the first user gesture while
-    // default fullscreen is active (unless the gesture is on the fullscreen toggle itself).
-    function onFirstGesture(event: Event) {
-      if (!isBrowserFullscreen()) return;
-      const target = event.target as Element | null;
-      if (target?.closest?.('[data-testid="fullscreen-button"]')) return;
-      const doc = document as WebkitDocument;
-      if (doc.fullscreenElement || doc.webkitFullscreenElement) return;
-      void requestNativeFullscreen().then((entered) => {
-        if (entered) root.setAttribute('data-fullscreen', 'native');
-      });
-    }
-
     document.addEventListener('fullscreenchange', onNativeChange);
     document.addEventListener('webkitfullscreenchange', onNativeChange);
     window.addEventListener('yolo:fullscreenchange', sync);
-    window.addEventListener('pointerdown', onFirstGesture, { passive: true });
     return () => {
       document.removeEventListener('fullscreenchange', onNativeChange);
       document.removeEventListener('webkitfullscreenchange', onNativeChange);
       window.removeEventListener('yolo:fullscreenchange', sync);
-      window.removeEventListener('pointerdown', onFirstGesture);
     };
   }, []);
 

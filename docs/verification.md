@@ -4,6 +4,19 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Normal Start, Split Sound/Music Controls, Bottom-Right YOLO Bar, Click-to-Switch Mascot & Animal-Specific Arcade Dialogue (#313) — 2026-11-02
+
+Source revision `d4db85c` (normal start, split SFX/Music controls, bottom-right YOLO bar, borderless online count, click-to-switch mascot, animal-specific phonetic advice, and arcade typography); build evidence `d805947`; published as `v0.33.0` on 2026-11-02.
+
+- **Normal Start & Opt-In Fullscreen (`src/client/fullscreen.ts`, `src/client/App.tsx`, `src/client/views/TetrisView.tsx`, `src/client/views/PuzzleBobbleView.tsx`):**
+  - Starts with `isFullscreen = false` and launches games directly into the `"Ready… Go!"` countdown without opening on the Pause menu first.
+- **Separate Sound Effects & Music Controls + Bottom-Right Control Strip (`src/client/audio/tetrisMusic.ts`, `src/client/App.tsx`, `src/client/styles.css`):**
+  - Splits audio into `data-testid="sfx-button"` (speaker icon) and `data-testid="sound-button"` (music note icon) and positions the bottom-right control bar in left-to-right order: **Play/Pause → Sound (SFX) → Music → Fullscreen → YOLO**.
+- **Click-to-Switch Mascot, Animal-Specific Phonetic Advice & Arcade Typography (`src/shared/puzzleBobble.ts`, `src/client/views/PuzzleBobbleView.tsx`, `src/client/styles.css`):**
+  - Clicking directly on `data-testid="p1-mascot"` / `p2-mascot` cycles animals (`dragon` → `cat` → `dog` → `bunny`), updating on-board advice with animal-specific sounds and puns (`RAWR!` / `DINO-MITE!`, `MEOW!` / `PURR-FECT!`, `WOOF!` / `PAW-SOME!`, `BOING!` / `SOME-BUNNY!`), rendered in `--font-arcade-callout` and `--font-arcade-display`.
+- `npm test`: 27 files, 179 tests passed.
+- `npx tsc --noEmit`: clean.
+
 ## Environment-Aware `yolo-arcade` Download Link on Home Page (#311) — 2026-11-02
 
 Source revision `a78135c` (environment-aware `yolo-arcade` download link and installed-app detection commit); build evidence `55f8e8a`; release commit `645c051`; published as `v0.32.0` on 2026-11-02.

@@ -372,19 +372,24 @@ describe('Puzzle Bobble (Bust-A-Move) arcade rules', () => {
       aimAngle: 20, // aiming right while ruby cluster is on the left
     };
 
-    // 1. Advises cranking left toward the ruby cluster
-    const crankLeft = deriveMascotAdvice(match.players[0]);
+    // 1. Advises cranking left toward the ruby cluster with animal-specific voice
+    const crankLeft = deriveMascotAdvice(match.players[0], 'dragon');
     expect(crankLeft.kind).toBe('tip');
-    expect(crankLeft.bubbleText).toContain('CRANK LEFT FOR RED');
-    expect(crankLeft.coachText).toContain('Crank the gears left');
+    expect(crankLeft.bubbleText).toContain('RAWR! CRANK LEFT FOR RED');
+    expect(deriveMascotAdvice(match.players[0], 'cat').bubbleText).toContain('MEOW! PAW LEFT FOR RED');
+    expect(deriveMascotAdvice(match.players[0], 'dog').bubbleText).toContain('WOOF! FETCH RED LEFT');
+    expect(deriveMascotAdvice(match.players[0], 'bunny').bubbleText).toContain('HOP LEFT FOR RED, BUN');
 
-    // 2. When aimed directly at the ruby cluster, advises locked-on fire
+    // 2. When aimed directly at the ruby cluster, advises locked-on fire with phonetic puns
     const center = bubbleCenter(2, 1, 0);
     const lockedAngle = aimAngleFromBoardPoint(center.x, center.y);
     match = setPlayerAimAngle(match, 0, lockedAngle);
-    const locked = deriveMascotAdvice(match.players[0]);
+    const locked = deriveMascotAdvice(match.players[0], 'dragon');
     expect(locked.kind).toBe('match');
-    expect(locked.bubbleText).toContain('LOCKED ON RED! FIRE!');
+    expect(locked.bubbleText).toContain('DINO-MITE! LOCKED ON RED! FIRE!');
+    expect(deriveMascotAdvice(match.players[0], 'cat').bubbleText).toContain('PURR-FECT! FIRE AT RED!');
+    expect(deriveMascotAdvice(match.players[0], 'dog').bubbleText).toContain('WOOF! BARKING UP RED—FIRE!');
+    expect(deriveMascotAdvice(match.players[0], 'bunny').bubbleText).toContain('SOME-BUNNY LOCKED ON RED!');
 
     // 3. Steep wall angle triggers bank-shot advice
     match = setPlayerAimAngle(match, 0, 62);
@@ -394,9 +399,9 @@ describe('Puzzle Bobble (Bust-A-Move) arcade rules', () => {
 
     // 4. Hurry countdown triggers danger advice
     const hurryMatch = tickShotTimers(match, 6_500, () => 0.2);
-    const danger = deriveMascotAdvice(hurryMatch.players[0]);
+    const danger = deriveMascotAdvice(hurryMatch.players[0], 'dragon');
     expect(danger.kind).toBe('danger');
-    expect(danger.bubbleText).toMatch(/HURRY/);
+    expect(danger.bubbleText).toMatch(/ROAR! .*FIRE RED!/);
 
     // 5. Win / Lose states
     const won = resolveMatchOutcome(match, 0);

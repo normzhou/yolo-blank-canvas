@@ -118,6 +118,8 @@
   --text-display: clamp(18px, 5vw, 22px); /* canvas prompt, Tetris stat value */
   --weight-regular: 400;
   --weight-semibold: 600;
+  --font-arcade-display: 'Arial Black', 'Impact', 'Avenir Next Heavy', 'Trebuchet MS', system-ui, sans-serif;
+  --font-arcade-callout: 'Trebuchet MS', 'Avenir Next', 'Gill Sans', 'Segoe UI', system-ui, sans-serif;
 
   /* Spacing steps; the measured values were 4-24px plus viewport units. */
   --space-1: 4px;
@@ -332,7 +334,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 }
 button.yolo-launcher {
   position: fixed;
-  top: 10px;
+  bottom: 10px;
   right: 12px;
   z-index: 9;
   width: 38px;
@@ -363,6 +365,7 @@ button.yolo-launcher .yolo-logo-mark {
   color: var(--yolo-brand);
 }
 button.pause-launcher,
+button.sfx-launcher,
 button.sound-launcher,
 button.fullscreen-launcher {
   position: fixed;
@@ -382,26 +385,32 @@ button.fullscreen-launcher {
   opacity: 0.78;
 }
 button.fullscreen-launcher {
-  right: 12px;
-}
-button.sound-launcher {
   right: 52px;
 }
-button.pause-launcher {
+button.sound-launcher {
   right: 92px;
 }
+button.sfx-launcher {
+  right: 132px;
+}
+button.pause-launcher {
+  right: 172px;
+}
 .canvas.is-playing button.pause-launcher,
+.canvas.is-playing button.sfx-launcher,
 .canvas.is-playing button.sound-launcher,
 .canvas.is-playing button.fullscreen-launcher {
   color: var(--touch-overlay-text);
   opacity: 0.76;
 }
 button.pause-launcher[aria-pressed='true'],
+button.sfx-launcher[aria-pressed='true'],
 button.sound-launcher[aria-pressed='true'] {
   color: var(--tetromino-o);
   opacity: 0.95;
 }
 button.pause-launcher:hover:not(:disabled),
+button.sfx-launcher:hover:not(:disabled),
 button.sound-launcher:hover:not(:disabled),
 button.fullscreen-launcher:hover:not(:disabled) {
   border-color: transparent;
@@ -409,12 +418,14 @@ button.fullscreen-launcher:hover:not(:disabled) {
   transform: scale(1.1);
 }
 button.pause-launcher:active:not(:disabled),
+button.sfx-launcher:active:not(:disabled),
 button.sound-launcher:active:not(:disabled),
 button.fullscreen-launcher:active:not(:disabled) {
   transform: scale(0.94);
 }
 .pause-play-icon,
 .sound-speaker-icon,
+.music-note-icon,
 .fullscreen-corner-icon {
   display: block;
   width: 22px;
@@ -2225,18 +2236,25 @@ button.pb-touch-fire {
   border: none;
   background: transparent;
   color: var(--tetromino-o);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: var(--font-arcade-display);
   font-size: var(--text-display);
   font-weight: var(--weight-semibold);
+  font-style: italic;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   white-space: nowrap;
-  transform: scale(1.65);
+  transform: scale(1.75) skewX(-6deg);
   text-shadow:
     -2px -2px 0 var(--cabinet-well),
     2px -2px 0 var(--cabinet-well),
     -2px 2px 0 var(--cabinet-well),
-    2px 2px 0 var(--cabinet-well);
+    2px 2px 0 var(--cabinet-well),
+    0 4px 0 var(--cabinet-well);
+}
+.arcade-countdown-backdrop[data-phase='go'] .arcade-countdown-digit {
+  color: var(--tetromino-s);
+  transform: scale(1.95) skewX(-6deg);
 }
 .arcade-center-text {
   position: absolute;
@@ -2246,7 +2264,7 @@ button.pb-touch-fire {
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: var(--font-arcade-display);
   font-size: var(--text-display);
   font-weight: var(--weight-semibold);
   font-variant-numeric: tabular-nums;
@@ -2652,21 +2670,21 @@ button.pb-touch-fire {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 5px 11px 5px 7px;
+  padding: 4px 6px;
   border-radius: var(--radius-pill);
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border: none;
+  background: transparent;
   color: var(--text);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
   text-decoration: none;
-  transition: border-color 140ms ease, transform 140ms ease, background 140ms ease;
+  transition: color 140ms ease, transform 140ms ease;
 }
 .arcade-download-pill:hover,
 .arcade-download-pill:focus-visible {
-  border-color: var(--accent);
-  background: var(--accent-weak);
+  border-color: transparent;
+  background: transparent;
   color: var(--accent-weak-text);
   transform: translateY(-1px);
 }
@@ -2688,10 +2706,10 @@ button.pb-touch-fire {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
+  padding: 2px 4px;
   border-radius: var(--radius-pill);
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border: none;
+  background: transparent;
   color: var(--text);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--text-xs);
@@ -2700,8 +2718,8 @@ button.pb-touch-fire {
   pointer-events: none;
 }
 .canvas.is-playing .online-presence-pill {
-  background: var(--cabinet-surface);
-  border-color: var(--cabinet-border);
+  background: transparent;
+  border-color: transparent;
   color: var(--cabinet-text);
 }
 .netplay-online-dot {

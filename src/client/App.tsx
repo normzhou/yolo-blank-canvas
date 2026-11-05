@@ -3,7 +3,9 @@ import { api, ApiError, type IssueSummary, type SessionInfo } from './api';
 import {
   getSharedArcadeAudio,
   getSharedMusicOn,
+  getSharedSfxOn,
   setSharedMusicOn,
+  setSharedSfxOn,
   subscribeSharedAudio,
 } from './audio/tetrisMusic';
 import {
@@ -415,6 +417,33 @@ function SoundSpeakerIcon({ isMuted }: { isMuted: boolean }) {
 }
 
 /**
+ * Beamed eighth-note music icon (#313) in the same stroke style as SoundSpeakerIcon:
+ * - When `isMuted` is true, renders a diagonal mute slash across the note.
+ * - When `isMuted` is false, renders clean beamed eighth notes.
+ */
+function MusicNoteIcon({ isMuted }: { isMuted: boolean }) {
+  return (
+    <svg
+      className="music-note-icon"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.1"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M 9 18 V 6 L 20 4 V 16" />
+      <circle cx="6.5" cy="18" r="2.5" fill="currentColor" stroke="currentColor" />
+      <circle cx="17.5" cy="16" r="2.5" fill="currentColor" stroke="currentColor" />
+      {isMuted ? <line x1="3" y1="3" x2="21" y2="21" /> : null}
+    </svg>
+  );
+}
+
+/**
  * YouTube-video style 4-corner bracket fullscreen icon (#228):
  * - When `isFullscreen` is true, renders 4 inward-pointing corner brackets (exit full screen).
  * - When `isFullscreen` is false, renders 4 outward-pointing corner brackets (enter full screen).
@@ -563,6 +592,7 @@ export function App() {
   const [reloadPromptDismissed, setReloadPromptDismissed] = useState(false);
   const { isFullscreen, toggleFullscreen } = useFullscreen();
   const [musicOn, setMusicOn] = useState<boolean>(() => getSharedMusicOn());
+  const [sfxOn, setSfxOn] = useState<boolean>(() => getSharedSfxOn());
   const [nowPlaying, setNowPlaying] = useState<string | null>(
     () => getSharedArcadeAudio().getCurrentTrack()?.title ?? null,
   );
@@ -571,9 +601,10 @@ export function App() {
   const [deckDragOffsetX, setDeckDragOffsetX] = useState<number>(0);
 
   useEffect(() => {
-    return subscribeSharedAudio((nextOn, nextTitle) => {
+    return subscribeSharedAudio((nextOn, nextTitle, nextSfxOn) => {
       setMusicOn(nextOn);
       setNowPlaying(nextTitle);
+      setSfxOn(nextSfxOn);
     });
   }, []);
 
@@ -592,7 +623,7 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    setSharedGamePaused(Boolean(appId && !getSharedNetplay().getState().activeRoom));
+    setSharedGamePaused(Boolean(appId && getSharedOverlayOpen()));
     getSharedNetplay().setCurrentApp(appId);
   }, [appId]);
 
@@ -738,9 +769,7 @@ export function App() {
     window.history.pushState(null, '', routeUrl(null, window.location.pathname, id));
     setPanelOpen(false);
     setView({ name: 'list' });
-    if (id && !getSharedNetplay().getState().activeRoom) {
-      setSharedGamePaused(true);
-    }
+    setSharedGamePaused(Boolean(id && getSharedOverlayOpen()));
     setAppId(id);
   }, []);
 
@@ -1014,12 +1043,87 @@ export function App() {
         </a>
       ) : null}
 
-      {/* #220, #228, #230, #234: No top bar — bare wiggling YOLO Threefold symbol
-          in the top-right corner to open the full YOLO feedback & requests overlay,
-          plus YouTube-style transparent sound on/off and fullscreen icons in the
-          bottom-right corner. */}
+      {/* #220, #228, #230, #234, #313: Bottom-right control strip in order:
+          Play/Pause -> Sound (SFX) -> Music -> Fullscreen -> YOLO. */}
       {!showPanel ? (
         <>
+          <div
+            className="online-presence-pill"
+            data-testid="online-presence-pill"
+            role="status"
+            aria-label={`${netplay.onlineCount} ${netplay.onlineCount === 1 ? 'player' : 'players'} online`}
+            title={`Online players (${netplay.onlineCount}): ${netplay.players.map((p) => p.name).join(', ')}`}
+          >
+            <span className="netplay-online-dot" aria-hidden="true" />
+            <span className="online-presence-count">{netplay.onlineCount} online</span>
+          </div>
+          {activeApp ? (
+            <button
+              type="button"
+              className="pause-launcher"
+              data-testid="pause-button"
+              aria-pressed={gamePaused}
+              aria-label={gamePaused ? 'Resume' : 'Pause'}
+              title={gamePaused ? 'Resume game (Esc)' : 'Pause game (Esc)'}
+              onClick={() => {
+                toggleSharedGamePaused();
+              }}
+            >
+              <PausePlayIcon isPaused={gamePaused} />
+              <span className="sr-only">{gamePaused ? 'Resume' : 'Pause'}</span>
+            </button>
+          ) : null}
+          <button
+            type="button"
+            className="sfx-launcher"
+            data-testid="sfx-button"
+            aria-pressed={sfxOn}
+            aria-label={sfxOn ? 'Sound effects on' : 'Sound effects off'}
+            title={sfxOn ? 'Sound effects on (click to mute)' : 'Sound effects off (click to unmute)'}
+            onClick={() => {
+              setSharedSfxOn(!sfxOn);
+            }}
+          >
+            <SoundSpeakerIcon isMuted={!sfxOn} />
+            <span className="sr-only">{sfxOn ? 'Sound effects on' : 'Sound effects off'}</span>
+          </button>
+          <button
+            type="button"
+            className="sound-launcher"
+            data-testid="sound-button"
+            aria-pressed={musicOn}
+            aria-label={musicOn ? 'Music on' : 'Music off'}
+            title={
+              musicOn
+                ? `Music on${nowPlaying ? ` · ${nowPlaying}` : ''} (click to mute)`
+                : 'Music off (click to unmute)'
+            }
+            onClick={() => {
+              const targetPlaylist =
+                activeMusicGameId === 'puzzle-bobble'
+                  ? PUZZLE_BOBBLE_PLAYLIST
+                  : activeMusicGameId === 'tetris'
+                    ? TETRIS_PLAYLIST
+                    : SELECTOR_PLAYLIST;
+              getSharedArcadeAudio().setPlaylist(targetPlaylist);
+              setSharedMusicOn(!musicOn, true);
+            }}
+          >
+            <MusicNoteIcon isMuted={!musicOn} />
+            <span className="sr-only">{musicOn ? 'Music on' : 'Music off'}</span>
+          </button>
+          <button
+            type="button"
+            className="fullscreen-launcher"
+            data-testid="fullscreen-button"
+            aria-pressed={isFullscreen}
+            aria-label={isFullscreen ? 'Exit full screen' : 'Full screen'}
+            title={isFullscreen ? 'Exit full screen' : 'Full screen'}
+            onClick={toggleFullscreen}
+          >
+            <FullscreenCornerIcon isFullscreen={isFullscreen} />
+            <span className="sr-only">{isFullscreen ? 'Exit full screen' : 'Full screen'}</span>
+          </button>
           <button
             type="button"
             className="yolo-launcher yolo-fab-button"
@@ -1058,69 +1162,6 @@ export function App() {
                 }
               }}
             />
-          </button>
-          <div
-            className="online-presence-pill"
-            data-testid="online-presence-pill"
-            role="status"
-            aria-label={`${netplay.onlineCount} ${netplay.onlineCount === 1 ? 'player' : 'players'} online`}
-            title={`Online players (${netplay.onlineCount}): ${netplay.players.map((p) => p.name).join(', ')}`}
-          >
-            <span className="netplay-online-dot" aria-hidden="true" />
-            <span className="online-presence-count">{netplay.onlineCount} online</span>
-          </div>
-          {activeApp ? (
-            <button
-              type="button"
-              className="pause-launcher"
-              data-testid="pause-button"
-              aria-pressed={gamePaused}
-              aria-label={gamePaused ? 'Resume' : 'Pause'}
-              title={gamePaused ? 'Resume game (Esc)' : 'Pause game (Esc)'}
-              onClick={() => {
-                toggleSharedGamePaused();
-              }}
-            >
-              <PausePlayIcon isPaused={gamePaused} />
-              <span className="sr-only">{gamePaused ? 'Resume' : 'Pause'}</span>
-            </button>
-          ) : null}
-          <button
-            type="button"
-            className="sound-launcher"
-            data-testid="sound-button"
-            aria-pressed={musicOn}
-            aria-label={musicOn ? 'Music on' : 'Music off'}
-            title={
-              musicOn
-                ? `Sound on${nowPlaying ? ` · ${nowPlaying}` : ''} (click to mute)`
-                : 'Sound off (click to unmute)'
-            }
-            onClick={() => {
-              const targetPlaylist =
-                activeMusicGameId === 'puzzle-bobble'
-                  ? PUZZLE_BOBBLE_PLAYLIST
-                  : activeMusicGameId === 'tetris'
-                    ? TETRIS_PLAYLIST
-                    : SELECTOR_PLAYLIST;
-              getSharedArcadeAudio().setPlaylist(targetPlaylist);
-              setSharedMusicOn(!musicOn, true);
-            }}
-          >
-            <SoundSpeakerIcon isMuted={!musicOn} />
-            <span className="sr-only">{musicOn ? 'Music on' : 'Music off'}</span>
-          </button>
-          <button
-            type="button"
-            className="fullscreen-launcher"
-            data-testid="fullscreen-button"
-            aria-pressed={isFullscreen}
-            aria-label={isFullscreen ? 'Exit full screen' : 'Full screen'}
-            title={isFullscreen ? 'Exit full screen' : 'Full screen'}
-            onClick={toggleFullscreen}
-          >
-            <FullscreenCornerIcon isFullscreen={isFullscreen} />
-            <span className="sr-only">{isFullscreen ? 'Exit full screen' : 'Full screen'}</span>
           </button>
         </>
       ) : null}
