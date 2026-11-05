@@ -4,6 +4,16 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Arcade-Styled YOLO Threefold Symbol Icon for `yolo-arcade` (#309) — 2026-11-02
+
+Source revision `6397585` (the arcade-styled YOLO Threefold symbol icon and Android CI runner fix commit); build evidence `162ce31`; published as `v0.31.1` on 2026-11-02.
+
+- **Arcade-Styled YOLO Threefold Symbol Icon (`public/brand/yolo-arcade-icon.svg`, `public/brand/yolo-arcade-512.png`, `src-tauri/icons/*`):**
+  - Designs `public/brand/yolo-arcade-icon.svg` combining the 3D beveled Tetromino-segmented YOLO Threefold Y (`0°`, `120°`, `240°`), a 12-tooth brass launcher gear ring, three glossy Puzzle Bobble orbs with top-left specular highlights, and a CRT cabinet bezel.
+  - Regenerates all macOS (`icon.icns`), Windows (`icon.ico`), Android (`mipmap-*`), iOS (`AppIcon-*`), and PWA (`yolo-arcade-512.png`) icons.
+- `npm test`: 26 files, 176 tests passed.
+- `npx tsc --noEmit`: clean.
+
 ## `yolo-arcade` Tauri v2 Desktop/Android Wrapper & PWA Manifest (#307) — 2026-11-02
 
 Source revision `2d2de47` (the `yolo-arcade` Tauri v2 wrapper, PWA manifest, and GitHub Actions release builder commit); build evidence `c710c65`; release commit `1caced0`; published as `v0.31.0` on 2026-11-02.
