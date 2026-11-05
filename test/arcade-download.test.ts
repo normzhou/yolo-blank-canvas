@@ -4,9 +4,17 @@ import {
   detectArcadeDownload,
   detectArcadePlatform,
   isInstalledArcadeApp,
+  MACOS_PRIVACY_SECURITY_DEEP_LINK,
+  MACOS_XATTR_BYPASS_COMMAND,
 } from '../src/client/arcadeDownload';
 
-describe('Environment-aware YOLO Arcade download detection (#311)', () => {
+describe('Environment-aware YOLO Arcade download detection (#311, #321)', () => {
+  it('exposes the macOS Privacy & Security System Settings deep link and xattr quarantine bypass command (#321)', () => {
+    expect(MACOS_PRIVACY_SECURITY_DEEP_LINK).toBe(
+      'x-apple.systempreferences:com.apple.preference.security?General',
+    );
+    expect(MACOS_XATTR_BYPASS_COMMAND).toBe('xattr -cr /Applications/yolo-arcade.app');
+  });
   it('detects macOS, Windows, and Android platforms from user-agent / platform', () => {
     expect(
       detectArcadePlatform({

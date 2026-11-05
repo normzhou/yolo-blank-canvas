@@ -2650,11 +2650,17 @@ button.pb-touch-fire {
 
 /* #236: 2-Player Online Presence Pill, Corner Invite Toast, Tetris Garbage
    Meter, and Opponent Mini-Radar. */
-.arcade-download-pill {
+.arcade-download-dock {
   position: fixed;
   top: 14px;
   left: 14px;
   z-index: 9;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.arcade-download-pill {
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -2685,6 +2691,77 @@ button.pb-touch-fire {
 .arcade-download-arrow {
   opacity: 0.8;
   flex-shrink: 0;
+}
+.macos-install-helper {
+  width: min(320px, calc(100vw - 28px));
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: none;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--elevation-card);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.macos-install-helper-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.macos-install-helper-title {
+  font-weight: var(--weight-semibold);
+  color: var(--text);
+}
+button.macos-install-helper-close {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  padding: 0 4px;
+  font-size: var(--text-base);
+  line-height: 1;
+}
+.macos-install-helper-steps {
+  margin: 0;
+  padding-left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.macos-privacy-deep-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-weak);
+  color: var(--accent-weak-text);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+.macos-privacy-deep-link:hover {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.macos-install-helper-terminal {
+  display: flex;
+}
+button.macos-copy-xattr-btn {
+  width: 100%;
+  text-align: left;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--field);
+  color: var(--muted);
+  padding: 6px 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-regular);
+}
+button.macos-copy-xattr-btn:hover {
+  color: var(--text);
 }
 .online-presence-pill {
   position: fixed;

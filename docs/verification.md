@@ -4,6 +4,17 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Zero-Friction macOS Gatekeeper Install Guide & Privacy/Security Deep Link (#321) — 2026-11-02
+
+Source revision `7087d67` (custom macOS DMG installer guide background + post-download helper card with `x-apple.systempreferences:com.apple.preference.security?General` deep link); build evidence `ffa9d69`; published as `v0.35.0` on 2026-11-02.
+
+- **Custom `.dmg` Installer Background Guide (`src-tauri/icons/dmg-background.png`, `src-tauri/tauri.conf.json`):**
+  - Configures `bundle.macOS.dmg` (`660×420` window) with a borderless 90s-arcade-styled DMG background showing the drag arrow and the 3-step first-launch guide right inside Finder.
+- **Post-Download Helper Card with 1-Click `Open Privacy & Security` Deep Link (`src/client/App.tsx`, `src/client/arcadeDownload.ts`, `test/arcade-download.test.ts`):**
+  - Clicking **Download for macOS** displays `data-testid="macos-install-helper"` with a 1-click **`Open Privacy & Security →`** deep link (`x-apple.systempreferences:com.apple.preference.security?General`) and a copyable `xattr -cr /Applications/yolo-arcade.app` button.
+- `npm test`: 27 files, 181 tests passed.
+- `npx tsc --noEmit`: clean.
+
 ## 1990s Arcade App Icon Redesign (`yolo-arcade`) (#319) — 2026-11-02
 
 Source revision `addee90` (5-iteration closed-loop 90s arcade app icon redesign); build evidence `483a8e5`; release commit `6a5c1f5`; published as `v0.34.1` on 2026-11-02.
