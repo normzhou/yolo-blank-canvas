@@ -1,0 +1,58 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-02",
+  "observed_at": "2026-11-02",
+  "published_at_utc": "2026-11-05T22:20:00Z",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "release": "v0.1.0-alpha.57"
+  },
+  "releases": [
+    {
+      "tag": "v0.35.2",
+      "commit": "bb31531b6a70e0751bdf4aad0c7cd54fe8cece9e"
+    }
+  ],
+  "release": {
+    "tag": "v0.35.2",
+    "tag_object": "3d1edcb6984d0566cf30d051a42dd170f8c9d4b5",
+    "release_commit": "bb31531b6a70e0751bdf4aad0c7cd54fe8cece9e",
+    "source_commit": "db3efd98e484512b2c284e4fc55d7016f0c128d3",
+    "assets_commit": "b3c39bf2f25e94644495e929f0fb8d0e550be48a",
+    "semver": "patch",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record db3efd9, the source revision. The committed assets were built at that source in b3c39bf. bb31531 is the merge of release-metadata commit e26f92a after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "182 passed across 27 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID db3efd9" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #327 completed success" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "deployed_to": "https://demo.yolo-dev.ai (Cloudflare Worker yolo-demo-app, Version ID: 58447fc4-0bfe-4d96-babb-99e49ec9cd5d)",
+    "served_build": "db3efd98e484512b2c284e4fc55d7016f0c128d3",
+    "served_version": {
+      "package": "0.35.2",
+      "appVersion": "v0.35.2",
+      "clientBuild": "db3efd98e484512b2c284e4fc55d7016f0c128d3"
+    },
+    "result": "pass",
+    "detail": "Deployed live to yolo-demo-app (Version ID: 58447fc4-0bfe-4d96-babb-99e49ec9cd5d); on-demand .m4a music and countdown voice tracks are cached both in memory (bufferCache) and persistently on disk via window.caches.open('yolo-arcade-audio-v1') across app restarts."
+  },
+  "what_this_release_delivers": [
+    "#326 Persistent disk Cache Storage (window.caches) for on-demand .m4a music tracks across app restarts"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "The tag points at bb31531, the merge of the release-metadata commit e26f92a after the assets commit b3c39bf, not at the assets commit itself. Both build-ID files still record the source db3efd9, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #326"
+}

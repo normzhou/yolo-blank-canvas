@@ -6,12 +6,13 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Persistent Disk Cache Storage for On-Demand `.m4a` Music Tracks (#326) — 2026-11-02
 
-Source revision `db3efd9` (persistent `window.caches` Cache Storage for on-demand `.m4a` music and countdown voice tracks); build evidence `b3c39bf`; published as `v0.35.2` on 2026-11-02.
+Source revision `db3efd9` (persistent `window.caches` Cache Storage for on-demand `.m4a` music and countdown voice tracks); build evidence `b3c39bf`; release commit `bb31531`; published as `v0.35.2` on 2026-11-02.
 
 - **Two-Tier In-Memory + Persistent Disk Cache (`src/client/audio/tetrisMusic.ts`, `test/tetris-music.test.ts`):**
   - Checks `window.caches.open('yolo-arcade-audio-v1')` before fetching `.m4a` tracks over the network and stores a clean `Response` (`Content-Type: audio/mp4`) in Cache Storage after the first download, so tracks downloaded once during play remain cached on disk across app restarts and page reloads despite the gateway's `Cache-Control: private, no-store` header.
 - `npm test`: 27 files, 182 tests passed.
 - `npx tsc --noEmit`: clean.
+- Deployed live to `yolo-demo-app` (`Version ID: 58447fc4-0bfe-4d96-babb-99e49ec9cd5d`). Report: [`.yolo/reports/releases-observed-2026-11-02-v0352.json`](../.yolo/reports/releases-observed-2026-11-02-v0352.json).
 
 ## Slim Native Tauri Installers, On-Demand Music Streaming & Persistent macOS Helper (#323, #324) — 2026-11-02
 

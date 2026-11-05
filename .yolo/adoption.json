@@ -309,15 +309,16 @@
         "v0.33.1": "bf9b7130e24ff328e67ef521d0141f5520f6b1b5",
         "v0.34.0": "066f07c6fb3c8691aac99fb8095d14dfbed9aa36",
         "v0.34.1": "6a5c1f53071a34009ffe4ce969a4d44e211cbcc7",
-        "v0.35.0": "efd101170259d82165c765afee23c5a9f48f1617"
+        "v0.35.0": "efd101170259d82165c765afee23c5a9f48f1617",
+        "v0.35.1": "afed52bc3d3f0891b6676926d27e6ed8aeae8b69"
       },
       "published": {
-        "tag": "v0.35.1",
-        "commit": "afed52bc3d3f0891b6676926d27e6ed8aeae8b69",
-        "source_commit": "f3ba18d4e5719bf087ffbcdc3b5ab39545b9380b",
-        "published_at": "2026-11-05T22:02:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-02-v0351.json",
-        "note": "Patch release (#323, #324, PR #325). Excludes 23 MB of .m4a music tracks from Tauri's embedded frontendDist so music streams on demand during gameplay, shrinking native installers by ~80-90%, persists the macOS first-launch helper card in localStorage, and promotes releases to latest only after installer upload; deployed live to https://demo.yolo-dev.ai (Version ID: f6694303-f57f-468e-84db-3803bf1a6f96)."
+        "tag": "v0.35.2",
+        "commit": "bb31531b6a70e0751bdf4aad0c7cd54fe8cece9e",
+        "source_commit": "db3efd98e484512b2c284e4fc55d7016f0c128d3",
+        "published_at": "2026-11-05T22:20:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-02-v0352.json",
+        "note": "Patch release (#326, PR #327). Persists on-demand .m4a music tracks in local disk Cache Storage (window.caches.open('yolo-arcade-audio-v1')) so tracks downloaded once during play are cached across app restarts; deployed live to https://demo.yolo-dev.ai (Version ID: 58447fc4-0bfe-4d96-babb-99e49ec9cd5d)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -393,7 +394,8 @@
         ".yolo/reports/releases-observed-2026-11-02-v0340.json",
         ".yolo/reports/releases-observed-2026-11-02-v0341.json",
         ".yolo/reports/releases-observed-2026-11-02-v0350.json",
-        ".yolo/reports/releases-observed-2026-11-02-v0351.json"
+        ".yolo/reports/releases-observed-2026-11-02-v0351.json",
+        ".yolo/reports/releases-observed-2026-11-02-v0352.json"
       ]
     }
   },
