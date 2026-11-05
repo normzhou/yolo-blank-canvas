@@ -50,7 +50,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: ${{ github.ref_name }}
-          releaseName: 'YOLO Arcade ${{ github.ref_name }}'
+          releaseName: '[yolo] ${{ github.ref_name }} — YOLO Arcade'
           releaseBody: 'Download **yolo-arcade** for macOS (`.dmg`), Windows (`-setup.exe` / `.msi`), or Android (`.apk`), or play instantly at https://demo.yolo-dev.ai.'
           releaseDraft: false
           prerelease: false
@@ -100,10 +100,12 @@ jobs:
 
       - name: Sign Android APK for direct sideloading
         run: |
-          UNSIGNED_APK=$(find src-tauri/gen/android/app/build/outputs/apk -name "*.apk" | head -n 1)
           keytool -genkeypair -v -keystore /tmp/yolo-arcade.keystore -alias yolo-arcade -keyalg RSA -keysize 2048 -validity 10000 -storepass yoloarcade -keypass yoloarcade -dname "CN=YOLO Arcade, O=YOLO Dev, C=US"
-          "${ANDROID_HOME}/build-tools/34.0.0/zipalign" -v -p 4 "$UNSIGNED_APK" /tmp/yolo-arcade-aligned.apk
-          "${ANDROID_HOME}/build-tools/34.0.0/apksigner" sign --ks /tmp/yolo-arcade.keystore --ks-pass pass:yoloarcade --key-pass pass:yoloarcade --out yolo-arcade-android.apk /tmp/yolo-arcade-aligned.apk
+          for apk in src-tauri/gen/android/app/build/outputs/apk/*/*/*.apk; do
+            "${ANDROID_HOME}/build-tools/34.0.0/zipalign" -v -p 4 "$apk" /tmp/yolo-arcade-aligned.apk
+            "${ANDROID_HOME}/build-tools/34.0.0/apksigner" sign --ks /tmp/yolo-arcade.keystore --ks-pass pass:yoloarcade --key-pass pass:yoloarcade --out yolo-arcade-android.apk /tmp/yolo-arcade-aligned.apk
+            break
+          done
 
       - name: Upload Android APK artifact
         uses: actions/upload-artifact@v4
@@ -115,4 +117,8 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "${{ github.ref_name }}" yolo-arcade-android.apk --clobber
+        run: |
+          for i in 1 2 3 4 5; do
+            gh release upload "${{ github.ref_name }}" yolo-arcade-android.apk --clobber && break
+            sleep 10
+          done

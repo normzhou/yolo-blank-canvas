@@ -4,6 +4,18 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## `yolo-arcade` Tauri v2 Desktop/Android Wrapper & PWA Manifest (#307) — 2026-11-02
+
+Source revision `2d2de47` (the `yolo-arcade` Tauri v2 wrapper, PWA manifest, and GitHub Actions release builder commit); build evidence `c710c65`; published as `v0.31.0` on 2026-11-02.
+
+- **Tauri v2 Desktop & Android Wrapper (`src-tauri/tauri.conf.json`, `src-tauri/src/lib.rs`, `src-tauri/Cargo.toml`, `src-tauri/icons/*`, `.github/workflows/release-arcade.yml`):**
+  - Configures `productName: "yolo-arcade"` (`identifier: "ai.yolodev.arcade"`, window title `"YOLO Arcade"`) in Hosted Live URL mode (`https://demo.yolo-dev.ai`) with `../dist/client` fallback and mobile entry point (`#[cfg_attr(mobile, tauri::mobile_entry_point)]`).
+  - Adds `.github/workflows/release-arcade.yml` to build and attach macOS (`.dmg`/`.app`), Windows (`-setup.exe`/`.msi`), and signed Android (`.apk`) installers to GitHub Releases on `v*` tags.
+- **PWA Manifest (`public/manifest.webmanifest`, `index.html`, `public/brand/yolo-arcade-512.png`):**
+  - Adds standalone web app manifest (`name: "YOLO Arcade"`, `short_name: "yolo-arcade"`, `display: "standalone"`) and Apple touch icon for zero-install iOS/Android/Desktop PWA installation.
+- `npm test`: 26 files, 176 tests passed.
+- `npx tsc --noEmit`: clean.
+
 ## Periodic Plain-Text Character Advice & Immediate Post-Countdown Start (#303) — 2026-11-02
 
 Source revision `47a80ab` (periodic plain-text character advice and tightened Ready/Go countdown); build evidence `83a478b`; release commit `48d1b8a`; published as `v0.30.1` on 2026-11-02.
