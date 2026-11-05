@@ -308,15 +308,16 @@
         "v0.33.0": "d25683e2b8d4fbf504619fb167ba9e4fb2200565",
         "v0.33.1": "bf9b7130e24ff328e67ef521d0141f5520f6b1b5",
         "v0.34.0": "066f07c6fb3c8691aac99fb8095d14dfbed9aa36",
-        "v0.34.1": "6a5c1f53071a34009ffe4ce969a4d44e211cbcc7"
+        "v0.34.1": "6a5c1f53071a34009ffe4ce969a4d44e211cbcc7",
+        "v0.35.0": "efd101170259d82165c765afee23c5a9f48f1617"
       },
       "published": {
-        "tag": "v0.35.0",
-        "commit": "efd101170259d82165c765afee23c5a9f48f1617",
-        "source_commit": "7087d67f926e97839f9cf02465bdf1e58df32ddc",
-        "published_at": "2026-11-05T21:15:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-02-v0350.json",
-        "note": "Minor release (#321, PR #322). Adds custom macOS DMG installer guide background (src-tauri/icons/dmg-background.png) and post-download helper card with 1-click Open Privacy & Security deep link (x-apple.systempreferences:com.apple.preference.security?General) and copyable xattr bypass; deployed live to https://demo.yolo-dev.ai (Version ID: ac54e44f-1284-4d48-9c06-2b531c6d3aea)."
+        "tag": "v0.35.1",
+        "commit": "afed52bc3d3f0891b6676926d27e6ed8aeae8b69",
+        "source_commit": "f3ba18d4e5719bf087ffbcdc3b5ab39545b9380b",
+        "published_at": "2026-11-05T22:02:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-02-v0351.json",
+        "note": "Patch release (#323, #324, PR #325). Excludes 23 MB of .m4a music tracks from Tauri's embedded frontendDist so music streams on demand during gameplay, shrinking native installers by ~80-90%, persists the macOS first-launch helper card in localStorage, and promotes releases to latest only after installer upload; deployed live to https://demo.yolo-dev.ai (Version ID: f6694303-f57f-468e-84db-3803bf1a6f96)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -391,7 +392,8 @@
         ".yolo/reports/releases-observed-2026-11-02-v0331.json",
         ".yolo/reports/releases-observed-2026-11-02-v0340.json",
         ".yolo/reports/releases-observed-2026-11-02-v0341.json",
-        ".yolo/reports/releases-observed-2026-11-02-v0350.json"
+        ".yolo/reports/releases-observed-2026-11-02-v0350.json",
+        ".yolo/reports/releases-observed-2026-11-02-v0351.json"
       ]
     }
   },

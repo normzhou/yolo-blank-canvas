@@ -6,7 +6,7 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Slim Native Tauri Installers, On-Demand Music Streaming & Persistent macOS Helper (#323, #324) — 2026-11-02
 
-Source revision `f3ba18d` (slim native Tauri installers excluding 23 MB of `.m4a` music tracks, persistent `localStorage` macOS helper card, `target="_blank"` download, and `publish-latest` CI promotion); published as `v0.35.1` on 2026-11-02.
+Source revision `f3ba18d` (slim native Tauri installers excluding 23 MB of `.m4a` music tracks, persistent `localStorage` macOS helper card, `target="_blank"` download, and `publish-latest` CI promotion); build evidence `948f48e`; release commit `afed52b`; published as `v0.35.1` on 2026-11-02.
 
 - **Slim Native Installers & On-Demand Music Streaming (`src-tauri/tauri.conf.json`, `src-tauri/dist/index.html`, `.github/workflows/release-arcade.yml`):**
   - Points `frontendDist` to `./dist` instead of `../dist/client` (which contained 23 MB of `.m4a` files duplicated twice in the macOS universal binary), shrinking the macOS `.dmg` from 48.4 MB to ~4.5 MB, Windows `.exe` from 22.8 MB to ~2.5 MB, and Android `.apk` from 33.6 MB to ~11 MB while streaming music tracks on demand from `https://demo.yolo-dev.ai/tetris/*.m4a`.
@@ -16,6 +16,7 @@ Source revision `f3ba18d` (slim native Tauri installers excluding 23 MB of `.m4a
   - Adds a `publish-latest` job (`needs: [build-desktop, build-android]`) so `/releases/latest/download/yolo-arcade-macos.dmg` always resolves to a release whose installers are already uploaded.
 - `npm test`: 27 files, 181 tests passed.
 - `npx tsc --noEmit`: clean.
+- Deployed live to `yolo-demo-app` (`Version ID: f6694303-f57f-468e-84db-3803bf1a6f96`). Report: [`.yolo/reports/releases-observed-2026-11-02-v0351.json`](../.yolo/reports/releases-observed-2026-11-02-v0351.json).
 
 ## Zero-Friction macOS Gatekeeper Install Guide & Privacy/Security Deep Link (#321) — 2026-11-02
 

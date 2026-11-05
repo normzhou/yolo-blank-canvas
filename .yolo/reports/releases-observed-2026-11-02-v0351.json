@@ -1,0 +1,59 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-02",
+  "observed_at": "2026-11-02",
+  "published_at_utc": "2026-11-05T22:02:00Z",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "release": "v0.1.0-alpha.57"
+  },
+  "releases": [
+    {
+      "tag": "v0.35.1",
+      "commit": "afed52bc3d3f0891b6676926d27e6ed8aeae8b69"
+    }
+  ],
+  "release": {
+    "tag": "v0.35.1",
+    "tag_object": "b17175fb344962a0020101936960a8f2ef7c8117",
+    "release_commit": "afed52bc3d3f0891b6676926d27e6ed8aeae8b69",
+    "source_commit": "f3ba18d4e5719bf087ffbcdc3b5ab39545b9380b",
+    "assets_commit": "948f48e4a74819500e51746f140696f0a17c2df3",
+    "semver": "patch",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record f3ba18d, the source revision. The committed assets were built at that source in 948f48e. afed52b is the merge of release-metadata commit 24555da after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "181 passed across 27 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID f3ba18d" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #325 completed success" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "deployed_to": "https://demo.yolo-dev.ai (Cloudflare Worker yolo-demo-app, Version ID: f6694303-f57f-468e-84db-3803bf1a6f96)",
+    "served_build": "f3ba18d4e5719bf087ffbcdc3b5ab39545b9380b",
+    "served_version": {
+      "package": "0.35.1",
+      "appVersion": "v0.35.1",
+      "clientBuild": "f3ba18d4e5719bf087ffbcdc3b5ab39545b9380b"
+    },
+    "result": "pass",
+    "detail": "Deployed live to yolo-demo-app (Version ID: f6694303-f57f-468e-84db-3803bf1a6f96); excludes 23 MB of .m4a music tracks from Tauri's embedded frontendDist so music streams on demand from https://demo.yolo-dev.ai/tetris/*.m4a during gameplay, persists the macOS first-launch helper card in localStorage, and keeps /releases/latest on v0.35.0 until v0.35.1's slim installers finish uploading."
+  },
+  "what_this_release_delivers": [
+    "#323 Persistent macOS post-download helper card and zero-downtime release latest promotion",
+    "#324 Slim native Tauri installers excluding 23 MB of static .m4a music tracks so music streams on demand"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "The tag points at afed52b, the merge of the release-metadata commit 24555da after the assets commit 948f48e, not at the assets commit itself. Both build-ID files still record the source f3ba18d, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcomes #323, #324"
+}
