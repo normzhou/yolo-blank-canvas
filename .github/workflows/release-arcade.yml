@@ -1,0 +1,118 @@
+name: Build YOLO Arcade Installers
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-desktop:
+    name: Build Desktop (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            args: '--target universal-apple-darwin'
+          - os: windows-latest
+            args: ''
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.os == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build Tauri desktop bundles (macOS .dmg/.app & Windows .exe/.msi)
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'YOLO Arcade ${{ github.ref_name }}'
+          releaseBody: 'Download **yolo-arcade** for macOS (`.dmg`), Windows (`-setup.exe` / `.msi`), or Android (`.apk`), or play instantly at https://demo.yolo-dev.ai.'
+          releaseDraft: false
+          prerelease: false
+          args: ${{ matrix.args }}
+
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK & NDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android NDK
+        run: |
+          sdkmanager --install "ndk;27.0.12077973" "platforms;android-34" "build-tools;34.0.0"
+          echo "NDK_HOME=${ANDROID_HOME}/ndk/27.0.12077973" >> "$GITHUB_ENV"
+
+      - name: Install Rust stable + Android targets
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - name: Install frontend dependencies & Tauri CLI
+        run: |
+          npm ci
+          npm install --no-save @tauri-apps/cli@^2.0.0
+
+      - name: Initialize & build Android APK
+        run: |
+          npx tauri android init
+          npx tauri android build --apk --target aarch64
+
+      - name: Sign Android APK for direct sideloading
+        run: |
+          UNSIGNED_APK=$(find src-tauri/gen/android/app/build/outputs/apk -name "*.apk" | head -n 1)
+          keytool -genkeypair -v -keystore /tmp/yolo-arcade.keystore -alias yolo-arcade -keyalg RSA -keysize 2048 -validity 10000 -storepass yoloarcade -keypass yoloarcade -dname "CN=YOLO Arcade, O=YOLO Dev, C=US"
+          "${ANDROID_HOME}/build-tools/34.0.0/zipalign" -v -p 4 "$UNSIGNED_APK" /tmp/yolo-arcade-aligned.apk
+          "${ANDROID_HOME}/build-tools/34.0.0/apksigner" sign --ks /tmp/yolo-arcade.keystore --ks-pass pass:yoloarcade --key-pass pass:yoloarcade --out yolo-arcade-android.apk /tmp/yolo-arcade-aligned.apk
+
+      - name: Upload Android APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: yolo-arcade-android-apk
+          path: yolo-arcade-android.apk
+
+      - name: Attach Android APK to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.ref_name }}" yolo-arcade-android.apk --clobber

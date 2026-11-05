@@ -1,3 +1,4 @@
+import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 import {
   HOSTED_YOLO_MARK_URL,
@@ -233,5 +234,24 @@ describe('YOLO mark v0.1.0-alpha.53 motion and hosted v1 channel (#282)', () => 
     await Promise.resolve();
     expect(env.mark.dataset.yoloMarkSource).toBe('local');
     ctrl.destroy();
+  });
+
+  it('configures yolo-arcade Tauri v2 desktop/Android wrapper and PWA manifest (#307)', () => {
+    const tauriConf = JSON.parse(readFileSync('src-tauri/tauri.conf.json', 'utf8'));
+    expect(tauriConf.productName).toBe('yolo-arcade');
+    expect(tauriConf.identifier).toBe('ai.yolodev.arcade');
+    expect(tauriConf.app.windows[0].title).toBe('YOLO Arcade');
+    expect(tauriConf.app.windows[0].url).toBe('https://demo.yolo-dev.ai');
+    expect(existsSync('src-tauri/icons/icon.icns')).toBe(true);
+    expect(existsSync('src-tauri/icons/icon.ico')).toBe(true);
+    expect(existsSync('src-tauri/icons/128x128@2x.png')).toBe(true);
+
+    const rustLib = readFileSync('src-tauri/src/lib.rs', 'utf8');
+    expect(rustLib).toContain('#[cfg_attr(mobile, tauri::mobile_entry_point)]');
+
+    const manifest = JSON.parse(readFileSync('public/manifest.webmanifest', 'utf8'));
+    expect(manifest.name).toBe('YOLO Arcade');
+    expect(manifest.short_name).toBe('yolo-arcade');
+    expect(manifest.display).toBe('standalone');
   });
 });

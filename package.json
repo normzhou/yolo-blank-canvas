@@ -28,7 +28,11 @@
     "e2e:visual": "YOLO_INCLUDE_REVIEW_CAPTURES=1 playwright test --config playwright.config.ts visual motion",
     "e2e:measure": "YOLO_INCLUDE_REVIEW_CAPTURES=1 playwright test --config playwright.config.ts measure",
     "e2e:variants": "playwright test --config playwright.variants.config.ts",
-    "e2e:verify-release": "playwright test --config playwright.verify.config.ts"
+    "e2e:verify-release": "playwright test --config playwright.verify.config.ts",
+    "tauri:dev": "npx @tauri-apps/cli dev",
+    "tauri:build": "npx @tauri-apps/cli build",
+    "tauri:android:init": "npx @tauri-apps/cli android init",
+    "tauri:android:build": "npx @tauri-apps/cli android build --apk"
   },
   "dependencies": {
     "express": "^4.19.2",
