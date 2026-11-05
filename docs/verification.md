@@ -6,7 +6,7 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Borderless Text, 2-Line Stacked Character Speech, Cute Bubbly Font & Whimsical Colors (#315) — 2026-11-02
 
-Source revision `bc41316` (borderless text, 2-line stacked speech, cute bubbly font, and whimsical candy colors); build evidence `378c313`; published as `v0.33.1` on 2026-11-02.
+Source revision `bc41316` (borderless text, 2-line stacked speech, cute bubbly font, and whimsical candy colors); build evidence `378c313`; release commit `bf9b713`; published as `v0.33.1` on 2026-11-02.
 
 - **Borderless Text & Stacked Speech (`src/client/views/PuzzleBobbleView.tsx`, `src/client/styles.css`):**
   - Removes `stroke: var(--cabinet-well)` and `text-shadow` outlines so glyphs never have black borders or cover adjacent characters.
@@ -15,6 +15,7 @@ Source revision `bc41316` (borderless text, 2-line stacked speech, cute bubbly f
   - Uses `ui-rounded, 'SF Pro Rounded', 'Arial Rounded MT Bold', 'Chalkboard SE', 'Comic Sans MS', sans-serif` and bright candy colors matched to each animal (`--tetromino-s` mint green for Bub, `--tetromino-o` sunny yellow for Mochi, `--tetromino-i` sky cyan for Koro, `--tetromino-t` lavender for Mimi).
 - `npm test`: 27 files, 179 tests passed.
 - `npx tsc --noEmit`: clean.
+- Deployed live to `yolo-demo-app` (`Version ID: 82910f13-c5ae-4add-8a01-1ad346fcbe0c`) and verified via 2x retina close-up screenshots. Report: [`.yolo/reports/releases-observed-2026-11-02-v0331.json`](../.yolo/reports/releases-observed-2026-11-02-v0331.json).
 
 ## Normal Start, Split Sound/Music Controls, Bottom-Right YOLO Bar, Click-to-Switch Mascot & Animal-Specific Arcade Dialogue (#313) — 2026-11-02
 
