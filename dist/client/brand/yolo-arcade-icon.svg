@@ -1,0 +1,203 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024" role="img" aria-label="YOLO Arcade icon">
+  <defs>
+    <!-- Deep CRT arcade screen radial gradient -->
+    <radialGradient id="crtBg" cx="50%" cy="42%" r="62%">
+      <stop offset="0%" stop-color="#1e2742" />
+      <stop offset="55%" stop-color="#0f1322" />
+      <stop offset="100%" stop-color="#070910" />
+    </radialGradient>
+
+    <!-- Warm neon aura behind the YOLO Threefold symbol -->
+    <radialGradient id="yoloAura" cx="50%" cy="50%" r="44%">
+      <stop offset="0%" stop-color="#ff5722" stop-opacity="0.48" />
+      <stop offset="55%" stop-color="#f5c542" stop-opacity="0.16" />
+      <stop offset="100%" stop-color="#ff5722" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Metallic cabinet bezel gradient -->
+    <linearGradient id="bezelGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#384466" />
+      <stop offset="50%" stop-color="#1c2235" />
+      <stop offset="100%" stop-color="#0d101b" />
+    </linearGradient>
+
+    <!-- Golden brass gear rim gradient -->
+    <linearGradient id="brassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffe082" />
+      <stop offset="50%" stop-color="#f5b727" />
+      <stop offset="100%" stop-color="#b27409" />
+    </linearGradient>
+
+    <!-- YOLO Vermilion 3D block face gradient -->
+    <linearGradient id="yoloFace" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff6d3a" />
+      <stop offset="55%" stop-color="#e64a19" />
+      <stop offset="100%" stop-color="#bf360c" />
+    </linearGradient>
+
+    <!-- Glossy orb gradients (Emerald, Azure, Amber) -->
+    <radialGradient id="orbGreen" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#80ffdb" />
+      <stop offset="45%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#065f46" />
+    </radialGradient>
+    <radialGradient id="orbBlue" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#90e0ef" />
+      <stop offset="45%" stop-color="#00b4d8" />
+      <stop offset="100%" stop-color="#03045e" />
+    </radialGradient>
+    <radialGradient id="orbGold" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#fff3b0" />
+      <stop offset="45%" stop-color="#ffbe0b" />
+      <stop offset="100%" stop-color="#9a5b00" />
+    </radialGradient>
+
+    <!-- CRT scanline pattern -->
+    <pattern id="scanlines" width="16" height="16" patternUnits="userSpaceOnUse">
+      <rect x="0" y="0" width="16" height="8" fill="#000000" fill-opacity="0.18" />
+    </pattern>
+
+    <!-- Subtle background pixel grid -->
+    <pattern id="pixelGrid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M 48 0 L 0 0 0 48" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-opacity="0.04" />
+    </pattern>
+
+    <!-- Drop shadow for 3D depth -->
+    <filter id="arcadeShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#000000" flood-opacity="0.65" />
+    </filter>
+
+    <!-- Soft neon glow filter behind the YOLO Threefold arms -->
+    <filter id="neonBlur" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="20" />
+    </filter>
+
+    <!-- Reusable 3D Beveled Tetromino Block (92x92 centered at X=0) -->
+    <g id="arcadeBlock">
+      <!-- Outer dark pixel border -->
+      <rect x="-48" y="0" width="96" height="82" rx="10" fill="#120704" />
+      <!-- Main vermilion face -->
+      <rect x="-44" y="4" width="88" height="74" rx="7" fill="url(#yoloFace)" />
+      <!-- Top & left bright 3D arcade bevel -->
+      <path d="M -44 11 A 7 7 0 0 1 -37 4 L 37 4 A 7 7 0 0 1 44 11 L 32 18 L -32 18 L -32 66 L -44 74 Z" fill="#ffab73" fill-opacity="0.65" />
+      <!-- Bottom & right deep 3D shadow bevel -->
+      <path d="M 44 11 L 44 71 A 7 7 0 0 1 37 78 L -37 78 A 7 7 0 0 1 -44 71 L -32 64 L 32 64 L 32 18 Z" fill="#6b1700" fill-opacity="0.7" />
+      <!-- Inner recessed tetromino stud -->
+      <rect x="-26" y="18" width="52" height="46" rx="5" fill="url(#yoloFace)" stroke="#ff8a50" stroke-width="2" stroke-opacity="0.55" />
+      <!-- Specular pixel glint -->
+      <rect x="-18" y="24" width="16" height="8" rx="2" fill="#fff3e0" fill-opacity="0.75" />
+    </g>
+
+    <!-- One complete 3-block + cap arm of the YOLO Threefold Symbol pointing straight down (+Y) -->
+    <g id="yoloArcadeSpoke">
+      <use href="#arcadeBlock" x="0" y="34" />
+      <use href="#arcadeBlock" x="0" y="114" />
+      <use href="#arcadeBlock" x="0" y="194" />
+      <!-- Glowing square tip cap -->
+      <rect x="-48" y="274" width="96" height="58" rx="12" fill="#120704" />
+      <rect x="-44" y="278" width="88" height="50" rx="9" fill="url(#brassGrad)" />
+      <rect x="-30" y="286" width="60" height="14" rx="4" fill="#fff8e1" fill-opacity="0.85" />
+    </g>
+  </defs>
+
+  <!-- 1. Outer Metallic Arcade Cabinet Squircle -->
+  <rect x="28" y="28" width="968" height="968" rx="220" fill="url(#bezelGrad)" />
+  <rect x="44" y="44" width="936" height="936" rx="206" fill="none" stroke="#5c6b9c" stroke-width="4" stroke-opacity="0.45" />
+
+  <!-- 2. Inner CRT Screen Well -->
+  <rect x="64" y="64" width="896" height="896" rx="188" fill="url(#crtBg)" stroke="url(#brassGrad)" stroke-width="10" />
+  <rect x="64" y="64" width="896" height="896" rx="188" fill="url(#pixelGrid)" />
+
+  <!-- 3. Corner Arcade Marquee Rivets / Player LEDs -->
+  <circle cx="148" cy="148" r="14" fill="#00e5ff" stroke="#090b12" stroke-width="5" />
+  <circle cx="876" cy="148" r="14" fill="#ff4081" stroke="#090b12" stroke-width="5" />
+  <circle cx="148" cy="876" r="14" fill="#f5b727" stroke="#090b12" stroke-width="5" />
+  <circle cx="876" cy="876" r="14" fill="#10b981" stroke="#090b12" stroke-width="5" />
+
+  <!-- 4. Ambient Neon Glow -->
+  <circle cx="512" cy="512" r="410" fill="url(#yoloAura)" />
+
+  <!-- 5. Mechanical Launcher Gear Ring (12 teeth) -->
+  <g transform="translate(512, 512)" filter="url(#arcadeShadow)">
+    <g fill="url(#brassGrad)" stroke="#120704" stroke-width="6">
+      <rect x="-34" y="-338" width="68" height="56" rx="10" />
+      <rect x="-34" y="-338" width="68" height="56" rx="10" transform="rotate(30)" />
+      <rect x="-34" y="-338" width="68" height="56" rx="10" transform="rotate(60)" />
+      <rect x="-34" y="-338" width="68" height="56" rx="10" transform="rotate(90)" />
+      <rect x="-34" y="-338" width="68" height="56" rx="10" transform="rotate(120)" />
+      <rect x="-34" y="-338" width="68" height="56" rx="10" transform="rotate(150)" />
+      <rect x="-34" y="-338" width="68" height="56" rx="10" transform="rotate(180)" />
+      <rect x="-34" y="-338" width="68" height="56" rx="10" transform="rotate(210)" />
+      <rect x="-34" y="-338" width="68" height="56" rx="10" transform="rotate(240)" />
+      <rect x="-34" y="-338" width="68" height="56" rx="10" transform="rotate(270)" />
+      <rect x="-34" y="-338" width="68" height="56" rx="10" transform="rotate(300)" />
+      <rect x="-34" y="-338" width="68" height="56" rx="10" transform="rotate(330)" />
+    </g>
+    <circle cx="0" cy="0" r="298" fill="#141a2e" stroke="url(#brassGrad)" stroke-width="16" />
+    <circle cx="0" cy="0" r="256" fill="#0b0e1a" stroke="#2d3759" stroke-width="8" stroke-dasharray="28 18" />
+  </g>
+
+  <!-- 6. Three Glossy Puzzle Bobble Orbs Nestled in the Y Valleys (top, bottom-left, bottom-right) -->
+  <g transform="translate(512, 512)" filter="url(#arcadeShadow)">
+    <!-- Top valley — Golden Amber Orb -->
+    <g transform="translate(0, -195)">
+      <circle cx="0" cy="0" r="52" fill="url(#orbGold)" stroke="#120704" stroke-width="7" />
+      <ellipse cx="-16" cy="-18" rx="16" ry="10" transform="rotate(-25 -16 -18)" fill="#ffffff" fill-opacity="0.85" />
+      <circle cx="-6" cy="-4" r="5" fill="#ffffff" fill-opacity="0.6" />
+    </g>
+    <!-- Bottom-right valley — Azure Blue Orb -->
+    <g transform="translate(169, 98)">
+      <circle cx="0" cy="0" r="52" fill="url(#orbBlue)" stroke="#120704" stroke-width="7" />
+      <ellipse cx="-16" cy="-18" rx="16" ry="10" transform="rotate(-25 -16 -18)" fill="#ffffff" fill-opacity="0.85" />
+      <circle cx="-6" cy="-4" r="5" fill="#ffffff" fill-opacity="0.6" />
+    </g>
+    <!-- Bottom-left valley — Emerald Green Orb -->
+    <g transform="translate(-169, 98)">
+      <circle cx="0" cy="0" r="52" fill="url(#orbGreen)" stroke="#120704" stroke-width="7" />
+      <ellipse cx="-16" cy="-18" rx="16" ry="10" transform="rotate(-25 -16 -18)" fill="#ffffff" fill-opacity="0.85" />
+      <circle cx="-6" cy="-4" r="5" fill="#ffffff" fill-opacity="0.6" />
+    </g>
+  </g>
+
+  <!-- 7. THE HERO: Arcade-Styled YOLO Threefold Symbol (0°, 120°, 240°) -->
+  <g transform="translate(512, 512)" filter="url(#arcadeShadow)">
+    <!-- Soft neon glow behind the 3 arms -->
+    <g fill="none" stroke="#ff6d3a" stroke-width="96" stroke-linecap="round" stroke-opacity="0.42" filter="url(#neonBlur)">
+      <path d="M 0 0 L 0 295" />
+      <path d="M 0 0 L 0 295" transform="rotate(120)" />
+      <path d="M 0 0 L 0 295" transform="rotate(240)" />
+    </g>
+
+    <!-- Three 3D Tetromino-segmented arms at 0°, 120°, 240° -->
+    <use href="#yoloArcadeSpoke" />
+    <use href="#yoloArcadeSpoke" transform="rotate(120)" />
+    <use href="#yoloArcadeSpoke" transform="rotate(240)" />
+
+    <!-- Center Hexagonal Arcade Power Core where the 3 arms meet -->
+    <polygon
+      points="0,-68 59,-34 59,34 0,68 -59,34 -59,-34"
+      fill="#120704"
+    />
+    <polygon
+      points="0,-60 52,-30 52,30 0,60 -52,30 -52,-30"
+      fill="url(#brassGrad)"
+    />
+    <polygon
+      points="0,-42 36,-21 36,21 0,42 -36,21 -36,-21"
+      fill="url(#yoloFace)"
+      stroke="#fff8e1"
+      stroke-width="3"
+    />
+    <!-- Center core specular highlight -->
+    <circle cx="-10" cy="-10" r="10" fill="#ffffff" fill-opacity="0.85" />
+  </g>
+
+  <!-- 8. CRT Scanline & Glass Curvature Sheen Overlay -->
+  <rect x="64" y="64" width="896" height="896" rx="188" fill="url(#scanlines)" pointer-events="none" />
+  <path
+    d="M 140 96 L 884 96 A 160 160 0 0 1 940 220 Q 512 320 84 220 A 160 160 0 0 1 140 96 Z"
+    fill="#ffffff"
+    fill-opacity="0.06"
+    pointer-events="none"
+  />
+</svg>
