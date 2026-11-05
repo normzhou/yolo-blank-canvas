@@ -4,6 +4,15 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Persistent Disk Cache Storage for On-Demand `.m4a` Music Tracks (#326) — 2026-11-02
+
+Source revision `db3efd9` (persistent `window.caches` Cache Storage for on-demand `.m4a` music and countdown voice tracks); build evidence `b3c39bf`; published as `v0.35.2` on 2026-11-02.
+
+- **Two-Tier In-Memory + Persistent Disk Cache (`src/client/audio/tetrisMusic.ts`, `test/tetris-music.test.ts`):**
+  - Checks `window.caches.open('yolo-arcade-audio-v1')` before fetching `.m4a` tracks over the network and stores a clean `Response` (`Content-Type: audio/mp4`) in Cache Storage after the first download, so tracks downloaded once during play remain cached on disk across app restarts and page reloads despite the gateway's `Cache-Control: private, no-store` header.
+- `npm test`: 27 files, 182 tests passed.
+- `npx tsc --noEmit`: clean.
+
 ## Slim Native Tauri Installers, On-Demand Music Streaming & Persistent macOS Helper (#323, #324) — 2026-11-02
 
 Source revision `f3ba18d` (slim native Tauri installers excluding 23 MB of `.m4a` music tracks, persistent `localStorage` macOS helper card, `target="_blank"` download, and `publish-latest` CI promotion); build evidence `948f48e`; release commit `afed52b`; published as `v0.35.1` on 2026-11-02.
