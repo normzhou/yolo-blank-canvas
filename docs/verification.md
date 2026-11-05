@@ -4,6 +4,15 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## 1990s Arcade App Icon Redesign (`yolo-arcade`) (#319) — 2026-11-02
+
+Source revision `addee90` (5-iteration closed-loop 90s arcade app icon redesign); build evidence `483a8e5`; published as `v0.34.1` on 2026-11-02.
+
+- **1990s Arcade Joystick + Candy Buttons + Tetromino & Bubble Icon (`public/brand/yolo-arcade-icon.svg`, `src-tauri/icons/*`):**
+  - Replaced the industrial brass gear icon through 5 visual iterations (tested at 512px, 320px, 64px, and 32px) with a 1990s arcade aesthetic featuring a glossy cherry-red ball-top joystick bearing the golden YOLO Threefold `Y` emblem, a neon-striped control deck with green & yellow candy push-buttons, a 3D Golden T-Tetromino, and a glossy cyan Puzzle Bobble orb over a royal-purple starburst sky.
+- `npm test`: 27 files, 180 tests passed.
+- `npx tsc --noEmit`: clean.
+
 ## Default-On Decoupled Sound & Music Controls + In-Game Menu Audio Section (#317) — 2026-11-02
 
 Source revision `95ca5a8` (default-on decoupled Sound and Music controls + in-game menu Audio section); build evidence `7795805`; release commit `066f07c`; published as `v0.34.0` on 2026-11-02.
