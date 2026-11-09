@@ -1273,6 +1273,13 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
                 role="status"
                 aria-live="polite"
               >
+                <span
+                  className="arcade-countdown-flags"
+                  data-testid="arcade-countdown-flags"
+                  aria-hidden="true"
+                >
+                  {countdownLang.flags}
+                </span>
                 <span className="arcade-countdown-digit">
                   {countdown >= 2 ? countdownLang.readyText : countdownLang.goText}
                 </span>
