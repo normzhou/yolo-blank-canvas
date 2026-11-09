@@ -313,15 +313,16 @@
         "v0.35.1": "afed52bc3d3f0891b6676926d27e6ed8aeae8b69",
         "v0.35.2": "bb31531b6a70e0751bdf4aad0c7cd54fe8cece9e",
         "v0.36.0": "15e5cfd4553895c35ec69fcc289e6e37a8e86d49",
-        "v0.36.1": "d8467af9dd70f8a6e9d616335c47dbf01236172c"
+        "v0.36.1": "d8467af9dd70f8a6e9d616335c47dbf01236172c",
+        "v0.37.0": "b9c9f47f9e0dfea5253d5268140330ccb50568c1"
       },
       "published": {
-        "tag": "v0.37.0",
-        "commit": "b9c9f47f9e0dfea5253d5268140330ccb50568c1",
-        "source_commit": "7963ff343bad414f2c3a70a80a7fecdd694c7a4f",
-        "published_at": "2026-11-06T06:40:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-06-v0370.json",
-        "note": "Minor release (#333, PR #334). Expands the Ready/Go start countdown roster from 10 to 22 world languages (adding Indonesian, German, Japanese, Nigerian Pidgin, Swahili, Marathi, Telugu, Turkish, Tamil, Yue Chinese/Cantonese, Vietnamese, and Korean) with spoken audio sprites in public/tetris/countdown-voices.m4a and major-country flag emojis; deployed live to https://demo.yolo-dev.ai (Version ID: 2fc22951-4b63-4b2c-b93e-2d5b5262a4ae)."
+        "tag": "v0.37.1",
+        "commit": "75eaf744596578ba3fb0d93dedb056b7247bd54f",
+        "source_commit": "5fd4047b9e543fefacdb416ffe6967d68fb37139",
+        "published_at": "2026-11-06T21:30:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-06-v0371.json",
+        "note": "Patch release (#335, PR #336). Re-synthesizes the 12 new countdown language voices with Microsoft Edge Neural TTS (--pitch=+20Hz --rate=+14%) matching #276, updates Japanese to native 用意…/始め！ and Nigerian Pidgin to OYA SET…/OYA MOVE!, and bumps AUDIO_DISK_CACHE_NAME to yolo-arcade-audio-v2 so stale 30s cached buffers never fall back to playing English; deployed live to https://demo.yolo-dev.ai (Version ID: ab34f196-3ebf-4524-8bc2-d131bac9e02a)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -401,7 +402,8 @@
         ".yolo/reports/releases-observed-2026-11-02-v0352.json",
         ".yolo/reports/releases-observed-2026-11-02-v0360.json",
         ".yolo/reports/releases-observed-2026-11-06-v0361.json",
-        ".yolo/reports/releases-observed-2026-11-06-v0370.json"
+        ".yolo/reports/releases-observed-2026-11-06-v0370.json",
+        ".yolo/reports/releases-observed-2026-11-06-v0371.json"
       ]
     }
   },
