@@ -182,8 +182,8 @@ export const COUNTDOWN_LANGUAGES: ReadonlyArray<CountdownLanguage> = [
     bcp47: 'ja-JP',
     speakersMillions: 123,
     flags: '🇯🇵',
-    readyText: 'レディ…',
-    goText: 'ゴー！',
+    readyText: '用意…',
+    goText: '始め！',
     spriteIndex: 12,
   },
   {
@@ -192,8 +192,8 @@ export const COUNTDOWN_LANGUAGES: ReadonlyArray<CountdownLanguage> = [
     bcp47: 'en-NG',
     speakersMillions: 121,
     flags: '🇳🇬',
-    readyText: 'READY…',
-    goText: 'OYA GO!',
+    readyText: 'OYA SET…',
+    goText: 'OYA MOVE!',
     spriteIndex: 13,
   },
   {
