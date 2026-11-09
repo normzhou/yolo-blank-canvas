@@ -31,11 +31,15 @@ describe('selector, tetris, and puzzle bobble playlists + Tone synth SFX (#232, 
     expect(MUSIC_GAIN).toBe(0.22);
   });
 
-  it('samples Ready/Go countdown phrases across the 10 most spoken languages weighted by speaker count (#262)', () => {
+  it('samples Ready/Go countdown phrases across the 10 most spoken languages weighted linearly by speaker count with major-country flag emojis (#262, #331)', () => {
     expect(COUNTDOWN_LANGUAGES).toHaveLength(10);
     expect(TOTAL_COUNTDOWN_SPEAKERS_MILLIONS).toBe(5433);
+    for (const lang of COUNTDOWN_LANGUAGES) {
+      expect(lang.flags.trim().length).toBeGreaterThan(0);
+    }
     expect(COUNTDOWN_LANGUAGES[0]).toMatchObject({
       id: 'en',
+      flags: '🇺🇸 🇬🇧 🇨🇦 🇦🇺',
       readyText: 'READY…',
       goText: 'GO!',
     });

@@ -4,6 +4,17 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Linear Countdown Language Weighting & Major-Country Flag Emojis (#331) — 2026-11-02
+
+Source revision `dbe1393` (linear speaker-count weighting + major-country flag emojis on the top line of the Ready/Go countdown overlay); build evidence `c1c49d4`; published as `v0.36.1` on 2026-11-02.
+
+- **Strictly Linear Speaker-Count Weighting (`src/shared/countdownLanguages.ts`, `test/tetris-music.test.ts`):**
+  - Fixes `pickCountdownLanguage` so each language is sampled with probability strictly linear in `speakersMillions` (with back-to-back anti-repeat).
+- **Major-Country Flag Emojis (`src/shared/countdownLanguages.ts`, `src/client/views/TetrisView.tsx`, `src/client/views/PuzzleBobbleView.tsx`, `src/client/styles.css`):**
+  - Renders `data-testid="arcade-countdown-flags"` (`🇺🇸 🇬🇧 🇨🇦 🇦🇺`, `🇨🇳 🇸🇬`, `🇮🇳`, `🇪🇸 🇲🇽 🇦🇷 🇨🇴`, `🇫🇷 🇨🇦 🇧🇪 🇨🇭`, `🇸🇦 🇪🇬 🇦🇪 🇲🇦`, `🇧🇩 🇮🇳`, `🇧🇷 🇵🇹`, `🇷🇺 🇰🇿`, `🇵🇰 🇮🇳`) on the top line above `.arcade-countdown-digit`.
+- `npm test`: 27 files, 183 tests passed.
+- `npx tsc --noEmit`: clean.
+
 ## System Browser Passkey Login Handoff for `yolo-arcade` (#328) — 2026-11-02
 
 Source revision `826aa95` (System Browser Passkey Login Handoff via `/auth/yolo/browser-start`, `/auth/yolo/handoff/poll`, and Tauri `on_page_load` hook); build evidence `091db28`; release commit `15e5cfd`; published as `v0.36.0` on 2026-11-02.
