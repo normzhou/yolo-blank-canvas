@@ -4,6 +4,16 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Native Edge Neural TTS Voices (`--pitch=+20Hz --rate=+14%`) & Audio Cache Invalidation for 22 Countdown Languages (#335) — 2026-11-06
+
+Source revision `5fd4047` (Edge Neural TTS voices + `yolo-arcade-audio-v2` cache bucket); build evidence `f46e0fb`; published as `v0.37.1` on 2026-11-06.
+
+- **Root Cause & Fix (`public/tetris/countdown-voices.m4a`, `src/client/audio/tetrisMusic.ts`, `src/shared/countdownLanguages.ts`):**
+  - Replaced the `/usr/bin/say` fallback clips for slots `10..21` with Microsoft Edge Neural TTS (`uvx edge-tts --pitch=+20Hz --rate=+14%`) using native female neural voices (`id-ID-GadisNeural`, `de-DE-AmalaNeural`, `ja-JP-NanamiNeural` speaking `用意！`/`始め！`, `en-NG-EzinneNeural` speaking `Oya set!`/`Oya move!`, `sw-TZ-RehemaNeural`, `mr-IN-AarohiNeural`, `te-IN-ShrutiNeural`, `tr-TR-EmelNeural`, `ta-IN-PallaviNeural`, `zh-HK-HiuGaaiNeural`, `vi-VN-HoaiMyNeural`, `ko-KR-SunHiNeural`) and verified the audio directly via `read_file`.
+  - Bumped `AUDIO_DISK_CACHE_NAME` to `'yolo-arcade-audio-v2'` and guarded `src.start(0)` so a cached 30s buffer never falls back to playing English at `0.0s`.
+- `npm test`: 27 files, 183 tests passed.
+- `npx tsc --noEmit`: clean.
+
 ## 22-Language Ready/Go Countdown Roster with Spoken Audio Sprites & Flag Emojis (#333) — 2026-11-06
 
 Source revision `7963ff3` (22-language countdown roster + 66s `public/tetris/countdown-voices.m4a` sprite); build evidence `62c5407`; release commit `b9c9f47`; published as `v0.37.0` on 2026-11-06.
