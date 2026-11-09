@@ -6,12 +6,13 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## 22-Language Ready/Go Countdown Roster with Spoken Audio Sprites & Flag Emojis (#333) — 2026-11-06
 
-Source revision `7963ff3` (22-language countdown roster + 66s `public/tetris/countdown-voices.m4a` sprite); build evidence `62c5407`; published as `v0.37.0` on 2026-11-06.
+Source revision `7963ff3` (22-language countdown roster + 66s `public/tetris/countdown-voices.m4a` sprite); build evidence `62c5407`; release commit `b9c9f47`; published as `v0.37.0` on 2026-11-06.
 
 - **22 World Languages (`src/shared/countdownLanguages.ts`, `public/tetris/countdown-voices.m4a`, `test/tetris-music.test.ts`):**
   - Adds Indonesian (`id`), German (`de`), Japanese (`ja`), Nigerian Pidgin (`pcm`), Swahili (`sw`), Marathi (`mr`), Telugu (`te`), Turkish (`tr`), Tamil (`ta`), Yue Chinese / Cantonese (`yue`), Vietnamese (`vi`), and Korean (`ko`) with spoken audio sprite slots (`spriteIndex: 10..21`), major-country flag emojis, and linear speaker-count weights (`TOTAL_COUNTDOWN_SPEAKERS_MILLIONS = 6758`).
 - `npm test`: 27 files, 183 tests passed.
 - `npx tsc --noEmit`: clean.
+- Deployed live to `yolo-demo-app` (`Version ID: 2fc22951-4b63-4b2c-b93e-2d5b5262a4ae`). Report: [`.yolo/reports/releases-observed-2026-11-06-v0370.json`](../.yolo/reports/releases-observed-2026-11-06-v0370.json).
 
 ## Linear Countdown Language Weighting & Major-Country Flag Emojis (#331) — 2026-11-06
 
