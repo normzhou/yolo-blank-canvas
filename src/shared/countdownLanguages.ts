@@ -1,6 +1,6 @@
 /**
- * Top 10 most spoken languages in the world (by total speakers, Ethnologue ~2025/2026)
- * for the arcade "Ready…" -> "Go!" ("预备…" -> "齐！", etc.) start countdown (#262, #331).
+ * Top 22 most spoken languages in the world (by total speakers, Ethnologue ~2025/2026)
+ * for the arcade "Ready…" -> "Go!" ("预备…" -> "齐！", etc.) start countdown (#262, #331, #333).
  *
  * Each language's selection probability is strictly linear in its total speaker count
  * (`speakersMillions / TOTAL_COUNTDOWN_SPEAKERS_MILLIONS`), and its spoken audio
@@ -9,16 +9,40 @@
  * - Go! clip:   `(spriteIndex * 2 + 1) * 1.5s` (duration 1.4s)
  */
 
+export type CountdownLanguageId =
+  | 'en'
+  | 'zh'
+  | 'hi'
+  | 'es'
+  | 'fr'
+  | 'ar'
+  | 'bn'
+  | 'pt'
+  | 'ru'
+  | 'ur'
+  | 'id'
+  | 'de'
+  | 'ja'
+  | 'pcm'
+  | 'sw'
+  | 'mr'
+  | 'te'
+  | 'tr'
+  | 'ta'
+  | 'yue'
+  | 'vi'
+  | 'ko';
+
 export interface CountdownLanguage {
-  /** ISO 639-1 language code. */
-  id: 'en' | 'zh' | 'hi' | 'es' | 'fr' | 'ar' | 'bn' | 'pt' | 'ru' | 'ur';
+  /** ISO 639-1 / 639-3 language code. */
+  id: CountdownLanguageId;
   /** English name of the language. */
   name: string;
   /** BCP-47 locale tag for Web Speech API fallback. */
   bcp47: string;
   /** Total speakers in millions (used as linear sampling probability weight). */
   speakersMillions: number;
-  /** Flag emojis of the major countries where the language is spoken (#331). */
+  /** Flag emojis of the major countries where the language is spoken (#331, #333). */
   flags: string;
   /** On-screen text for the "Ready" phase. */
   readyText: string;
@@ -132,6 +156,126 @@ export const COUNTDOWN_LANGUAGES: ReadonlyArray<CountdownLanguage> = [
     goText: 'چلو!',
     spriteIndex: 9,
   },
+  {
+    id: 'id',
+    name: 'Indonesian',
+    bcp47: 'id-ID',
+    speakersMillions: 200,
+    flags: '🇮🇩',
+    readyText: 'SIAP…',
+    goText: 'MULAI!',
+    spriteIndex: 10,
+  },
+  {
+    id: 'de',
+    name: 'German',
+    bcp47: 'de-DE',
+    speakersMillions: 134,
+    flags: '🇩🇪 🇦🇹 🇨🇭',
+    readyText: 'BEREIT…',
+    goText: 'LOS!',
+    spriteIndex: 11,
+  },
+  {
+    id: 'ja',
+    name: 'Japanese',
+    bcp47: 'ja-JP',
+    speakersMillions: 123,
+    flags: '🇯🇵',
+    readyText: 'レディ…',
+    goText: 'ゴー！',
+    spriteIndex: 12,
+  },
+  {
+    id: 'pcm',
+    name: 'Nigerian Pidgin',
+    bcp47: 'en-NG',
+    speakersMillions: 121,
+    flags: '🇳🇬',
+    readyText: 'READY…',
+    goText: 'OYA GO!',
+    spriteIndex: 13,
+  },
+  {
+    id: 'sw',
+    name: 'Swahili',
+    bcp47: 'sw-TZ',
+    speakersMillions: 121,
+    flags: '🇹🇿 🇰🇪',
+    readyText: 'TAYARI…',
+    goText: 'TWENDE!',
+    spriteIndex: 14,
+  },
+  {
+    id: 'mr',
+    name: 'Marathi',
+    bcp47: 'mr-IN',
+    speakersMillions: 99,
+    flags: '🇮🇳',
+    readyText: 'तयार…',
+    goText: 'सुरू!',
+    spriteIndex: 15,
+  },
+  {
+    id: 'te',
+    name: 'Telugu',
+    bcp47: 'te-IN',
+    speakersMillions: 96,
+    flags: '🇮🇳',
+    readyText: 'సిద్ధం…',
+    goText: 'పద!',
+    spriteIndex: 16,
+  },
+  {
+    id: 'tr',
+    name: 'Turkish',
+    bcp47: 'tr-TR',
+    speakersMillions: 90,
+    flags: '🇹🇷',
+    readyText: 'HAZIR…',
+    goText: 'BAŞLA!',
+    spriteIndex: 17,
+  },
+  {
+    id: 'ta',
+    name: 'Tamil',
+    bcp47: 'ta-IN',
+    speakersMillions: 87,
+    flags: '🇮🇳 🇱🇰 🇸🇬',
+    readyText: 'தயார்…',
+    goText: 'போ!',
+    spriteIndex: 18,
+  },
+  {
+    id: 'yue',
+    name: 'Yue Chinese (Cantonese)',
+    bcp47: 'zh-HK',
+    speakersMillions: 86,
+    flags: '🇭🇰 🇲🇴 🇨🇳',
+    readyText: '準備…',
+    goText: '去啦！',
+    spriteIndex: 19,
+  },
+  {
+    id: 'vi',
+    name: 'Vietnamese',
+    bcp47: 'vi-VN',
+    speakersMillions: 86,
+    flags: '🇻🇳',
+    readyText: 'SẴN SÀNG…',
+    goText: 'BẮT ĐẦU!',
+    spriteIndex: 20,
+  },
+  {
+    id: 'ko',
+    name: 'Korean',
+    bcp47: 'ko-KR',
+    speakersMillions: 82,
+    flags: '🇰🇷',
+    readyText: '준비…',
+    goText: '시작!',
+    spriteIndex: 21,
+  },
 ];
 
 export const TOTAL_COUNTDOWN_SPEAKERS_MILLIONS: number = COUNTDOWN_LANGUAGES.reduce(
@@ -142,8 +286,8 @@ export const TOTAL_COUNTDOWN_SPEAKERS_MILLIONS: number = COUNTDOWN_LANGUAGES.red
 let lastPickedId: CountdownLanguage['id'] | null = null;
 
 /**
- * Selects one of the 10 most spoken languages with probability strictly
- * linear in its total speaker population (`speakersMillions / 5433`, #262, #331).
+ * Selects one of the 22 most spoken languages with probability strictly
+ * linear in its total speaker population (`speakersMillions / 6758`, #262, #331, #333).
  *
  * - When a custom deterministic `rng` is supplied (unit tests, 2P Online seeds),
  *   uses direct linear quantile lookup against `TOTAL_COUNTDOWN_SPEAKERS_MILLIONS`.
