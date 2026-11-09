@@ -31,11 +31,13 @@ describe('selector, tetris, and puzzle bobble playlists + Tone synth SFX (#232, 
     expect(MUSIC_GAIN).toBe(0.22);
   });
 
-  it('samples Ready/Go countdown phrases across the 10 most spoken languages weighted linearly by speaker count with major-country flag emojis (#262, #331)', () => {
-    expect(COUNTDOWN_LANGUAGES).toHaveLength(10);
-    expect(TOTAL_COUNTDOWN_SPEAKERS_MILLIONS).toBe(5433);
-    for (const lang of COUNTDOWN_LANGUAGES) {
+  it('samples Ready/Go countdown phrases across the 22 most spoken languages weighted linearly by speaker count with major-country flag emojis (#262, #331, #333)', () => {
+    expect(COUNTDOWN_LANGUAGES).toHaveLength(22);
+    expect(TOTAL_COUNTDOWN_SPEAKERS_MILLIONS).toBe(6758);
+    for (let i = 0; i < COUNTDOWN_LANGUAGES.length; i += 1) {
+      const lang = COUNTDOWN_LANGUAGES[i]!;
       expect(lang.flags.trim().length).toBeGreaterThan(0);
+      expect(lang.spriteIndex).toBe(i);
     }
     expect(COUNTDOWN_LANGUAGES[0]).toMatchObject({
       id: 'en',
@@ -48,28 +50,30 @@ describe('selector, tetris, and puzzle bobble playlists + Tone synth SFX (#232, 
       readyText: '预备…',
       goText: '齐！',
     });
+    expect(COUNTDOWN_LANGUAGES[21]).toMatchObject({
+      id: 'ko',
+      flags: '🇰🇷',
+      readyText: '준비…',
+      goText: '시작!',
+    });
 
     // Verify exact speaker-ratio quantile boundaries
     expect(pickCountdownLanguage(() => 0.0).id).toBe('en');
-    expect(pickCountdownLanguage(() => 1514 / 5433).id).toBe('en');
-    expect(pickCountdownLanguage(() => 1516 / 5433).id).toBe('zh');
-    expect(pickCountdownLanguage(() => (1515 + 1140 + 1) / 5433).id).toBe('hi');
-    expect(pickCountdownLanguage(() => 0.999).id).toBe('ur');
+    expect(pickCountdownLanguage(() => 1514 / 6758).id).toBe('en');
+    expect(pickCountdownLanguage(() => 1516 / 6758).id).toBe('zh');
+    expect(pickCountdownLanguage(() => (1515 + 1140 + 1) / 6758).id).toBe('hi');
+    expect(pickCountdownLanguage(() => 0.999).id).toBe('ko');
 
-    // Verify interactive quota sampling never repeats back-to-back and includes Mandarin Chinese (#276)
-    const picks = Array.from({ length: 25 }, () => pickCountdownLanguage());
+    // Verify interactive linear sampling never repeats back-to-back (#276, #331, #333)
+    const picks = Array.from({ length: 40 }, () => pickCountdownLanguage());
     for (let i = 1; i < picks.length; i += 1) {
       expect(picks[i].id).not.toBe(picks[i - 1].id);
     }
-    expect(picks.some((p) => p.id === 'zh')).toBe(true);
-    expect(picks.some((p) => p.id === 'en')).toBe(true);
-    expect(picks.some((p) => p.id === 'hi')).toBe(true);
-    expect(picks.some((p) => p.id === 'es')).toBe(true);
 
-    // Verify bundled 10-language spoken voice sprite exists under public/
+    // Verify bundled 22-language spoken voice sprite exists under public/
     const voiceFile = path.resolve(__dirname, '../public', COUNTDOWN_VOICE_SPRITE_SRC);
     expect(fs.existsSync(voiceFile)).toBe(true);
-    expect(fs.statSync(voiceFile).size).toBeGreaterThan(50_000);
+    expect(fs.statSync(voiceFile).size).toBeGreaterThan(150_000);
   });
 
   it('offers distinct, game-specific playlists for Selector Screen, Tetris, and Puzzle Bobble', () => {
