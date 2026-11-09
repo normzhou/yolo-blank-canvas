@@ -1,0 +1,58 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-06",
+  "observed_at": "2026-11-06",
+  "published_at_utc": "2026-11-06T05:30:00Z",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "release": "v0.1.0-alpha.57"
+  },
+  "releases": [
+    {
+      "tag": "v0.36.1",
+      "commit": "d8467af9dd70f8a6e9d616335c47dbf01236172c"
+    }
+  ],
+  "release": {
+    "tag": "v0.36.1",
+    "tag_object": "5a1bc56f4b13452fc52a220e6e628e43ffdc71cc",
+    "release_commit": "d8467af9dd70f8a6e9d616335c47dbf01236172c",
+    "source_commit": "dbe1393a3c888e9fd35c17f109676d60eb9f522d",
+    "assets_commit": "c1c49d4fa9acb5fd1bcbc3d6abc8ffdabf4fdd0f",
+    "semver": "patch",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record dbe1393, the source revision. The committed assets were built at that source in c1c49d4. d8467af is the merge of release-metadata commit 3fc07f8 after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "183 passed across 27 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID dbe1393" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #332 completed success" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "deployed_to": "https://demo.yolo-dev.ai (Cloudflare Worker yolo-demo-app, Version ID: c5d1a48b-d600-4d5e-9df7-740d2e7cf5ec)",
+    "served_build": "dbe1393a3c888e9fd35c17f109676d60eb9f522d",
+    "served_version": {
+      "package": "0.36.1",
+      "appVersion": "v0.36.1",
+      "clientBuild": "dbe1393a3c888e9fd35c17f109676d60eb9f522d"
+    },
+    "result": "pass",
+    "detail": "Deployed live to yolo-demo-app (Version ID: c5d1a48b-d600-4d5e-9df7-740d2e7cf5ec); pickCountdownLanguage uses strictly linear speaker-count weighting and displays major-country flag emojis above the Ready/Go text."
+  },
+  "what_this_release_delivers": [
+    "#331 Linear countdown language weighting and major-country flag emojis on the top line of the Ready/Go overlay"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "The tag points at d8467af, the merge of the release-metadata commit 3fc07f8 after the assets commit c1c49d4, not at the assets commit itself. Both build-ID files still record the source dbe1393, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #331"
+}

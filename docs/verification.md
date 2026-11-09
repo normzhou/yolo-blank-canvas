@@ -4,9 +4,9 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
-## Linear Countdown Language Weighting & Major-Country Flag Emojis (#331) — 2026-11-02
+## Linear Countdown Language Weighting & Major-Country Flag Emojis (#331) — 2026-11-06
 
-Source revision `dbe1393` (linear speaker-count weighting + major-country flag emojis on the top line of the Ready/Go countdown overlay); build evidence `c1c49d4`; published as `v0.36.1` on 2026-11-02.
+Source revision `dbe1393` (linear speaker-count weighting + major-country flag emojis on the top line of the Ready/Go countdown overlay); build evidence `c1c49d4`; release commit `d8467af`; published as `v0.36.1` on 2026-11-06.
 
 - **Strictly Linear Speaker-Count Weighting (`src/shared/countdownLanguages.ts`, `test/tetris-music.test.ts`):**
   - Fixes `pickCountdownLanguage` so each language is sampled with probability strictly linear in `speakersMillions` (with back-to-back anti-repeat).
@@ -14,6 +14,7 @@ Source revision `dbe1393` (linear speaker-count weighting + major-country flag e
   - Renders `data-testid="arcade-countdown-flags"` (`🇺🇸 🇬🇧 🇨🇦 🇦🇺`, `🇨🇳 🇸🇬`, `🇮🇳`, `🇪🇸 🇲🇽 🇦🇷 🇨🇴`, `🇫🇷 🇨🇦 🇧🇪 🇨🇭`, `🇸🇦 🇪🇬 🇦🇪 🇲🇦`, `🇧🇩 🇮🇳`, `🇧🇷 🇵🇹`, `🇷🇺 🇰🇿`, `🇵🇰 🇮🇳`) on the top line above `.arcade-countdown-digit`.
 - `npm test`: 27 files, 183 tests passed.
 - `npx tsc --noEmit`: clean.
+- Deployed live to `yolo-demo-app` (`Version ID: c5d1a48b-d600-4d5e-9df7-740d2e7cf5ec`). Report: [`.yolo/reports/releases-observed-2026-11-06-v0361.json`](../.yolo/reports/releases-observed-2026-11-06-v0361.json).
 
 ## System Browser Passkey Login Handoff for `yolo-arcade` (#328) — 2026-11-02
 
