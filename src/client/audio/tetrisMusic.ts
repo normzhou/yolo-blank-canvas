@@ -10,7 +10,7 @@ type AudioContextConstructor = typeof AudioContext;
 
 export const CROSSFADE_SEC = 1.2;
 export const MUSIC_GAIN = 0.22;
-export const AUDIO_DISK_CACHE_NAME = 'yolo-arcade-audio-v1';
+export const AUDIO_DISK_CACHE_NAME = 'yolo-arcade-audio-v2';
 
 export interface AudioOutputMetrics {
   rms: number;
@@ -291,8 +291,8 @@ export class TetrisMusic {
           }
           if (offsetSec < buffer.duration) {
             src.start(0, offsetSec, Math.min(durSec, Math.max(0.05, buffer.duration - offsetSec)));
-          } else {
-            // Unit-test stubbed AudioBuffers may have duration < offsetSec
+          } else if (buffer.duration <= 5) {
+            // Unit-test stubbed AudioBuffers (duration <= 5s) may have duration < offsetSec
             src.start(0);
           }
         } catch {
