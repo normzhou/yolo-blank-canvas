@@ -4,6 +4,15 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## 22-Language Ready/Go Countdown Roster with Spoken Audio Sprites & Flag Emojis (#333) — 2026-11-06
+
+Source revision `7963ff3` (22-language countdown roster + 66s `public/tetris/countdown-voices.m4a` sprite); build evidence `62c5407`; published as `v0.37.0` on 2026-11-06.
+
+- **22 World Languages (`src/shared/countdownLanguages.ts`, `public/tetris/countdown-voices.m4a`, `test/tetris-music.test.ts`):**
+  - Adds Indonesian (`id`), German (`de`), Japanese (`ja`), Nigerian Pidgin (`pcm`), Swahili (`sw`), Marathi (`mr`), Telugu (`te`), Turkish (`tr`), Tamil (`ta`), Yue Chinese / Cantonese (`yue`), Vietnamese (`vi`), and Korean (`ko`) with spoken audio sprite slots (`spriteIndex: 10..21`), major-country flag emojis, and linear speaker-count weights (`TOTAL_COUNTDOWN_SPEAKERS_MILLIONS = 6758`).
+- `npm test`: 27 files, 183 tests passed.
+- `npx tsc --noEmit`: clean.
+
 ## Linear Countdown Language Weighting & Major-Country Flag Emojis (#331) — 2026-11-06
 
 Source revision `dbe1393` (linear speaker-count weighting + major-country flag emojis on the top line of the Ready/Go countdown overlay); build evidence `c1c49d4`; release commit `d8467af`; published as `v0.36.1` on 2026-11-06.
