@@ -1,0 +1,59 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-09",
+  "observed_at": "2026-11-09",
+  "published_at_utc": "2026-11-09T23:06:00Z",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "release": "v0.1.0-alpha.57"
+  },
+  "releases": [
+    {
+      "tag": "v0.37.2",
+      "commit": "f5889ffaffb961fd6321924e5e1f2649a77a9293"
+    }
+  ],
+  "release": {
+    "tag": "v0.37.2",
+    "tag_object": "587b6bc059f697142355c1df0a077ac505df7f6b",
+    "release_commit": "f5889ffaffb961fd6321924e5e1f2649a77a9293",
+    "source_commit": "0484f3f76c3c5a638bbf84ac8a5144c32c8ca134",
+    "assets_commit": "58750e91bf86f1a39a3514ed9d9ac98ee71c67d1",
+    "semver": "patch",
+    "authority": "ARCHITECTURE.md versioning policy as amended 2026-10-14 (c1daf3e) and confirmed by the maintainer on 2026-10-20 (issue #141). The policy grants the agent any semver level without per-release approval, conditioned on acceptance on the delivered artifact. Deleting, unpublishing or otherwise withdrawing a tag or release, and changing the policy, remain reserved and were not exercised.",
+    "build_id_ordering": "server/build-id.generated.js and dist/client/.build-id both record 0484f3f, the source revision. The committed assets were built at that source in 58750e9. f5889ff is the merge of release-metadata commit fa3fa09 after the assets commit; the tag points there. The tag was not moved after publication."
+  },
+  "acceptance_before_tagging": [
+    { "check": "npm test", "result": "pass", "detail": "183 passed across 27 files" },
+    { "check": "npx tsc --noEmit", "result": "pass", "detail": "clean" },
+    { "check": "npm run build", "result": "pass", "detail": "clean; build ID 0484f3f" },
+    { "check": "npm run e2e -- e2e/puzzle-bobble.spec.ts", "result": "pass", "detail": "4 passed (15.0s)" },
+    { "check": "GitHub Actions / Test and type check", "result": "pass", "detail": "PR #338 completed success" }
+  ],
+  "acceptance_on_the_delivered_artifact": {
+    "deployed_to": "https://demo.yolo-dev.ai (Cloudflare Worker yolo-demo-app, Version ID: 5dbf2ab2-1777-415d-b380-58bdc1ee4746)",
+    "served_build": "0484f3f76c3c5a638bbf84ac8a5144c32c8ca134",
+    "served_version": {
+      "package": "0.37.2",
+      "appVersion": "v0.37.2",
+      "clientBuild": "0484f3f76c3c5a638bbf84ac8a5144c32c8ca134"
+    },
+    "result": "pass",
+    "detail": "Deployed live to yolo-demo-app (Version ID: 5dbf2ab2-1777-415d-b380-58bdc1ee4746); .tetris-over / pb-round-banner renders centered in the viewport with a full-width primary action button, and pressing Space or Enter on the round-over screen in Puzzle Bobble advances to the next round."
+  },
+  "what_this_release_delivers": [
+    "#337 Centered end-of-round Next round / New game overlay card and Space/Enter keyboard shortcut in Puzzle Bobble"
+  ],
+  "carried_known_gaps": [
+    "Richer in-app evidence (element targeting, screenshots, annotation) remains deferred as #170.",
+    "12 of 75 visual captures can differ back-to-back because motion frames are captured with the animation live; 3 more differ at glyph rasterization (#145).",
+    "The first-login path (gh auth login --web) remains unverified live."
+  ],
+  "limits": [
+    "The tag points at f5889ff, the merge of the release-metadata commit fa3fa09 after the assets commit 58750e9, not at the assets commit itself. Both build-ID files still record the source 0484f3f, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #337"
+}

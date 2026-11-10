@@ -314,15 +314,16 @@
         "v0.35.2": "bb31531b6a70e0751bdf4aad0c7cd54fe8cece9e",
         "v0.36.0": "15e5cfd4553895c35ec69fcc289e6e37a8e86d49",
         "v0.36.1": "d8467af9dd70f8a6e9d616335c47dbf01236172c",
-        "v0.37.0": "b9c9f47f9e0dfea5253d5268140330ccb50568c1"
+        "v0.37.0": "b9c9f47f9e0dfea5253d5268140330ccb50568c1",
+        "v0.37.1": "75eaf744596578ba3fb0d93dedb056b7247bd54f"
       },
       "published": {
-        "tag": "v0.37.1",
-        "commit": "75eaf744596578ba3fb0d93dedb056b7247bd54f",
-        "source_commit": "5fd4047b9e543fefacdb416ffe6967d68fb37139",
-        "published_at": "2026-11-06T21:30:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-06-v0371.json",
-        "note": "Patch release (#335, PR #336). Re-synthesizes the 12 new countdown language voices with Microsoft Edge Neural TTS (--pitch=+20Hz --rate=+14%) matching #276, updates Japanese to native 用意…/始め！ and Nigerian Pidgin to OYA SET…/OYA MOVE!, and bumps AUDIO_DISK_CACHE_NAME to yolo-arcade-audio-v2 so stale 30s cached buffers never fall back to playing English; deployed live to https://demo.yolo-dev.ai (Version ID: ab34f196-3ebf-4524-8bc2-d131bac9e02a)."
+        "tag": "v0.37.2",
+        "commit": "f5889ffaffb961fd6321924e5e1f2649a77a9293",
+        "source_commit": "0484f3f76c3c5a638bbf84ac8a5144c32c8ca134",
+        "published_at": "2026-11-09T23:06:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-09-v0372.json",
+        "note": "Patch release (#337, PR #338). Centers the end-of-round Next round / New game overlay card (.tetris-over / pb-round-banner) in the middle of the screen and adds Space/Enter keyboard support to advance to the next round when a game ends in Puzzle Bobble; deployed live to https://demo.yolo-dev.ai (Version ID: 5dbf2ab2-1777-415d-b380-58bdc1ee4746)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -403,7 +404,8 @@
         ".yolo/reports/releases-observed-2026-11-02-v0360.json",
         ".yolo/reports/releases-observed-2026-11-06-v0361.json",
         ".yolo/reports/releases-observed-2026-11-06-v0370.json",
-        ".yolo/reports/releases-observed-2026-11-06-v0371.json"
+        ".yolo/reports/releases-observed-2026-11-06-v0371.json",
+        ".yolo/reports/releases-observed-2026-11-09-v0372.json"
       ]
     }
   },

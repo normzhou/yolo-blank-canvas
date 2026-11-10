@@ -6,7 +6,7 @@ Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own r
 
 ## Centered End-of-Round `Next round` / `New game` Overlay & `Space`/`Enter` Keyboard Shortcut (#337) — 2026-11-09
 
-Source revision `0484f3f` (centered `.tetris-over` / `pb-round-banner` card + `Space`/`Enter` round-over keyboard shortcut in Puzzle Bobble); build evidence `58750e9`; published as `v0.37.2` on 2026-11-09.
+Source revision `0484f3f` (centered `.tetris-over` / `pb-round-banner` card + `Space`/`Enter` round-over keyboard shortcut in Puzzle Bobble); build evidence `58750e9`; release commit `f5889ff`; published as `v0.37.2` on 2026-11-09.
 
 - **Centered Next-Round Card & Keyboard Shortcut (`src/client/styles.css`, `src/client/views/PuzzleBobbleView.tsx`, `src/client/views/TetrisView.tsx`, `e2e/puzzle-bobble.spec.ts`):**
   - Styled `.tetris-over` / `.pb-banner` (`data-testid="pb-round-banner"`) as a centered viewport overlay card (`position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%)`) with a full-width primary action button (`Next round` / `New game`), and hid it while the Pause Menu is open so the two centered modals never overlap.
@@ -14,6 +14,7 @@ Source revision `0484f3f` (centered `.tetris-over` / `pb-round-banner` card + `S
 - `npm test`: 27 files, 183 tests passed.
 - `npx tsc --noEmit`: clean.
 - `npm run e2e -- e2e/puzzle-bobble.spec.ts`: 4 passed (15.0s).
+- Deployed live to `yolo-demo-app` (`Version ID: 5dbf2ab2-1777-415d-b380-58bdc1ee4746`). Report: [`.yolo/reports/releases-observed-2026-11-09-v0372.json`](../.yolo/reports/releases-observed-2026-11-09-v0372.json).
 
 ## Native Edge Neural TTS Voices (`--pitch=+20Hz --rate=+14%`) & Audio Cache Invalidation for 22 Countdown Languages (#335) — 2026-11-06
 
