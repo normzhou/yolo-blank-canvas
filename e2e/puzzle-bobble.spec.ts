@@ -26,8 +26,10 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
     await expect(page.getByRole('img', { name: 'Player 1 bubble board' })).toBeVisible();
     await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toBeVisible();
 
-    // #252, #268: Game opens on the Game Menu first with Continue highlighted;
-    // ArrowDown / ArrowUp moves the highlighted button and Enter accepts it.
+    // #252, #268, #313: Game starts directly into the Ready/Go countdown;
+    // clicking Pause opens the Game Menu with Continue highlighted, and ArrowDown / ArrowUp / Enter navigates it.
+    await expect(page.getByTestId('arcade-countdown')).toBeVisible();
+    await page.getByTestId('pause-button').click();
     await expect(page.getByTestId('game-pause-menu')).toBeVisible();
     await expect(page.getByTestId('pause-menu-resume')).toHaveAttribute('data-menu-focused', 'true');
     await page.keyboard.press('ArrowDown');
@@ -102,7 +104,7 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
     const p2Board = page.getByRole('img', { name: 'Player 2 bubble board' });
     await expect(p2Board.locator('.pb-rise-bubble')).toHaveCount(3);
 
-    // #204: Players can select cute characters (Dragon, Cat, Dog, Bunny) independently.
+    // #204, #313: Players can cycle cute characters (Dragon -> Cat -> Dog -> Bunny) by clicking the mascot directly.
     const p1Mascot = page.getByTestId('p1-mascot');
     const p2Mascot = page.getByTestId('p2-mascot');
     await expect(p1Mascot).toHaveAttribute('data-character', 'dragon');
@@ -110,8 +112,9 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
     await expect(p1Mascot).toHaveAttribute('data-mood', /^(?:normal|cheer)$/);
     await expect(p2Mascot).toHaveAttribute('data-mood', 'normal');
 
-    await page.getByTestId('p1-character-picker').getByRole('button', { name: 'Cat', exact: true }).click();
-    await page.getByTestId('p2-character-picker').getByRole('button', { name: 'Dog', exact: true }).click();
+    await p1Mascot.click();
+    await p2Mascot.click();
+    await p2Mascot.click();
     await expect(p1Mascot).toHaveAttribute('data-character', 'cat');
     await expect(p2Mascot).toHaveAttribute('data-character', 'dog');
     await expect(page.getByTestId('p1-title')).toHaveText('1P · Mochi');
@@ -165,12 +168,34 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
       );
     });
     await expect(page.getByTestId('pb-round-banner')).toContainText('YOU WIN! Stage cleared');
+    const bannerCenterDelta = await page.getByTestId('pb-round-banner').evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      return {
+        dx: Math.abs(r.left + r.width / 2 - window.innerWidth / 2),
+        dy: Math.abs(r.top + r.height / 2 - window.innerHeight / 2),
+      };
+    });
+    expect(bannerCenterDelta.dx).toBeLessThanOrEqual(24);
+    expect(bannerCenterDelta.dy).toBeLessThanOrEqual(24);
+    // #337: Pressing Space or Enter on the round-over screen starts the next round.
+    await page.keyboard.press('Space');
+    await expect(page.getByTestId('pb-round-banner')).toHaveCount(0);
+    await expect(page.getByTestId('arcade-countdown')).toBeVisible();
+    await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 6000 });
+    await page.evaluate(() => {
+      window.dispatchEvent(
+        new CustomEvent('yolo:puzzle-bobble:fire-resolve', {
+          detail: { player: 0, clearStage: true },
+        }),
+      );
+    });
+    await expect(page.getByTestId('pb-round-banner')).toContainText('YOU WIN! Stage cleared');
     await page.getByTestId('pb-round-banner').getByRole('button', { name: 'Next round' }).click();
     await expect(page.getByTestId('pb-round-banner')).toHaveCount(0);
     await expect(page.getByTestId('arcade-countdown')).toBeVisible();
     await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 6000 });
     await page.getByTestId('pause-button').click();
-    await page.getByRole('button', { name: '2 Players', exact: true }).click();
+    await page.getByRole('button', { name: '2 Player', exact: true }).click();
     await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toBeVisible();
 
     // #210: Step through the 15 classic levels with Next stage / Previous stage inside the Pause Menu.
@@ -188,9 +213,8 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
     await expect(stageBtn).toHaveText("Stage 15: Emperor's Citadel");
     await page.getByTestId('pause-menu-resume').click();
 
-    // #232, #234, #266: Puzzle Bobble plays its own whimsical ~2-minute soundtrack verified via closed-loop Web Audio AnalyserNode,
-    // and Escape back to the Selector Screen crossfades smoothly into the selector soundtrack!
-    await page.getByRole('button', { name: /Music off/ }).click();
+    // #232, #234, #266, #317: Puzzle Bobble starts with Music on by default and plays its whimsical ~2-minute soundtrack
+    // verified via closed-loop Web Audio AnalyserNode, and Escape back to the Selector Screen crossfades smoothly into the selector soundtrack!
     await expect(page.locator('.tetris-scene')).toContainText(
       /Music: (?:Bubble Bobble & Puzzle Bobble|Overworld Rag & The Entertainer|Athletic Rag & Can-Can Galop|Green Greens & William Tell Galop|Csikós Post & Gladiators Galop)/,
     );
@@ -272,13 +296,14 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
 }) => {
   const stub = await startStubApp();
   try {
-    // 1. Phone viewport (390x844 < 768px): Puzzle Bobble opens in 1P mode on the Game Menu and hides 2P Local.
+    // 1. Phone viewport (390x844 < 768px): Puzzle Bobble opens in 1P mode and hides 2 Player in the Pause Menu.
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`${stub.base}?app=puzzle-bobble`);
     await expect(page.getByRole('img', { name: 'Player 1 bubble board' })).toBeVisible();
     await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toHaveCount(0);
+    await page.getByTestId('pause-button').click();
     await expect(page.getByTestId('game-pause-menu')).toBeVisible();
-    await expect(page.getByRole('button', { name: '2 Players', exact: true })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: '2 Player', exact: true })).toHaveCount(0);
     await page.getByTestId('pause-menu-resume').click();
     await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 6000 });
 
@@ -298,8 +323,8 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
     await expect(page.getByTestId('p1-shots')).toHaveText('1', { timeout: 5000 });
 
     // No horizontal or vertical page scroll overflow on 390px phone screen (#217 full-screen game stage),
-    // the bare wiggling YOLO mark sits in the top-right with a transparent background (#228),
-    // and the YouTube-style fullscreen icon sits in the bottom-right with a transparent background (#228, #230).
+    // the bare wiggling YOLO mark sits in the bottom-right with a transparent background (#228, #313),
+    // and the YouTube-style fullscreen and sound icons sit in the bottom-left with a transparent background (#228, #230, #313).
     const phoneMetrics = await page.evaluate(() => {
       const fabEl = document.querySelector('[data-testid="yolo-feedback-fab"]');
       const fab = fabEl?.getBoundingClientRect();
@@ -320,7 +345,7 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
         scrollY: window.scrollY,
         fabWidth: fab ? Math.round(fab.width) : 0,
         fabHeight: fab ? Math.round(fab.height) : 0,
-        fabTop: fab ? Math.round(fab.top) : 999,
+        fabBottom: fab ? Math.round(fab.bottom) : 0,
         fabRight: fab ? Math.round(fab.right) : 0,
         fabBg,
         fsRight: fs ? Math.round(fs.right) : 0,
@@ -346,10 +371,10 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
     expect(phoneMetrics.logoColor).toBe('rgb(216, 75, 39)');
     expect(phoneMetrics.fabWidth).toBeLessThanOrEqual(48);
     expect(phoneMetrics.fabHeight).toBeLessThanOrEqual(48);
-    expect(phoneMetrics.fabTop).toBeLessThanOrEqual(24);
+    expect(phoneMetrics.fabBottom).toBeGreaterThanOrEqual(phoneMetrics.viewportHeight - 24);
     expect(phoneMetrics.fabRight).toBeGreaterThanOrEqual(phoneMetrics.viewportWidth - 24);
     expect(phoneMetrics.fabBg).toBe('rgba(0, 0, 0, 0)');
-    expect(phoneMetrics.fsRight).toBeGreaterThanOrEqual(phoneMetrics.viewportWidth - 24);
+    expect(phoneMetrics.fsRight).toBeLessThan(phoneMetrics.fabRight);
     expect(phoneMetrics.fsBottom).toBeGreaterThanOrEqual(phoneMetrics.viewportHeight - 24);
     expect(phoneMetrics.fsBg).toBe('rgba(0, 0, 0, 0)');
     expect(phoneMetrics.sndRight).toBeLessThan(phoneMetrics.fsRight);
@@ -359,11 +384,11 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
     // 2. Phone landscape viewport (844x390, short edge 390 < 560px): still a phone, so 1P mode is enforced.
     await page.setViewportSize({ width: 844, height: 390 });
     await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toHaveCount(0);
-    await expect(page.getByRole('button', { name: '2 Players', exact: true })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: '2 Player', exact: true })).toHaveCount(0);
 
     // 3. Tablets across MS Edge / Safari / Chrome (600x960 Android portrait, 744x1133 iPad Mini 6 portrait,
     // 768x1024 iPad portrait, 960x480 landscape with MS Edge toolbars, 1024x768 landscape):
-    // 2 Players side-by-side is available in the Pause Menu and fits side-by-side without wrapping (#212, #222, #248).
+    // 2 Player side-by-side is available in the Pause Menu and fits side-by-side without wrapping (#212, #222, #248).
     for (const [w, h] of [
       [600, 960],
       [744, 1133],
@@ -373,7 +398,7 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
     ] as const) {
       await page.setViewportSize({ width: w, height: h });
       await page.getByTestId('pause-button').click();
-      await page.getByRole('button', { name: '2 Players', exact: true }).click();
+      await page.getByRole('button', { name: '2 Player', exact: true }).click();
       await expect(page.getByRole('img', { name: 'Player 1 bubble board' })).toBeVisible();
       await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toBeVisible();
       const cardTops = await page.evaluate(() =>
@@ -408,16 +433,16 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
     await expect(page.getByTestId('p1-shots')).toHaveText('1', { timeout: 5000 });
     await expect(page.getByTestId('p2-shots')).toHaveText('1', { timeout: 5000 });
 
-    // Site starts in fullscreen mode by default, controlled by the bottom-left YouTube-style icon (#222, #228).
+    // Site starts in normal mode by default, controlled by the bottom-right YouTube-style icon (#222, #228, #313).
     const fsBtn = page.getByTestId('fullscreen-button');
-    await expect(fsBtn).toHaveAttribute('aria-pressed', 'true');
-    await expect(fsBtn).toHaveText('Exit full screen');
-    await fsBtn.click();
     await expect(fsBtn).toHaveAttribute('aria-pressed', 'false');
     await expect(fsBtn).toHaveText('Full screen');
     await fsBtn.click();
     await expect(fsBtn).toHaveAttribute('aria-pressed', 'true');
     await expect(fsBtn).toHaveText('Exit full screen');
+    await fsBtn.click();
+    await expect(fsBtn).toHaveAttribute('aria-pressed', 'false');
+    await expect(fsBtn).toHaveText('Full screen');
 
     // 4. Small Phone (360x640): 1P card and side panel are never clipped horizontally.
     await page.setViewportSize({ width: 360, height: 640 });
@@ -432,8 +457,6 @@ test('mobile and tablet touch support: phone (< 768px) enforces 1P mode, tablet 
     // 5. Tetris touch controls work on phone without a keyboard (after countdown finishes).
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`${stub.base}?app=tetris`);
-    await expect(page.getByTestId('game-pause-menu')).toBeVisible();
-    await page.getByTestId('pause-menu-resume').click();
     await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 6000 });
     await expect(page.getByTestId('tetris-touch-controls')).toBeVisible();
     await page.getByTestId('tetris-touch-rotate').click();
@@ -478,9 +501,10 @@ test('2P Online networking (#236): 2 independent browser sessions discover prese
     });
     await expect(page2.getByTestId('deck-online-count')).toContainText('2 Online');
 
-    // 2. Browser Session 1 opens Puzzle Bobble (entering directly on the Game Menu) and broadcasts an open 2P Online invite.
+    // 2. Browser Session 1 opens Puzzle Bobble, opens the Game Menu, and broadcasts an open 2P Online invite.
     await page1.goto(`${stub.base}?app=puzzle-bobble`);
     await expect(page1.getByRole('heading', { name: 'Puzzle Bobble' })).toBeVisible();
+    await page1.getByTestId('pause-button').click();
     await expect(page1.getByTestId('game-pause-menu')).toBeVisible();
     await expect(page1.getByTestId('pb-2p-online-btn')).toBeEnabled({ timeout: 6000 });
     await page1.getByTestId('pb-2p-online-btn').click();
@@ -556,6 +580,7 @@ test('2P Online networking (#236): 2 independent browser sessions discover prese
     // 3. Now test 2P Online Tetris end-to-end across the two browser sessions.
     await page1.goto(`${stub.base}?app=tetris`);
     await expect(page1.getByRole('heading', { name: 'Tetris' })).toBeVisible();
+    await page1.getByTestId('pause-button').click();
     await expect(page1.getByTestId('game-pause-menu')).toBeVisible();
     await expect(page1.getByTestId('tetris-2p-online-btn')).toBeEnabled({ timeout: 6000 });
     await page1.getByTestId('tetris-2p-online-btn').click();

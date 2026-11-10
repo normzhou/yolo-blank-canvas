@@ -2034,6 +2034,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
   matchRef.current = match;
   const countdownRef = useRef(countdown);
   countdownRef.current = countdown;
+  const handleNextOrNewRoundRef = useRef<() => void>(() => {});
   const activeRoomIdRef = useRef<string | null>(null);
   const activeRoomStartedRef = useRef<string | null>(null);
   const onlineOutcomeSentRef = useRef<boolean>(false);
@@ -2728,6 +2729,23 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         return;
       }
       if (
+        !paused &&
+        !isReadyCheck &&
+        !isInviting &&
+        !isNetworkPaused &&
+        matchRef.current.status === 'round_over'
+      ) {
+        if (
+          !event.repeat &&
+          (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar')
+        ) {
+          event.preventDefault();
+          event.stopPropagation();
+          handleNextOrNewRoundRef.current();
+        }
+        return;
+      }
+      if (
         paused ||
         isReadyCheck ||
         isInviting ||
@@ -2909,6 +2927,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
       startNewRound(match.mode, true, nextPreset);
     }
   };
+  handleNextOrNewRoundRef.current = handleNextOrNewRound;
 
   const canSelectLocal2P = !phoneViewport && keyboardAvailable;
   const canSelectOnline2P = netplay.onlineCount > 1 || isOnline2P || isInviting;
@@ -3332,7 +3351,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         </div>
       ) : null}
 
-      {match.status === 'round_over' ? (
+      {!paused && match.status === 'round_over' ? (
         <p className="tetris-over pb-banner" role="status" data-testid="pb-round-banner">
           {isOnline2P && activePbRoom
             ? match.winner === 0
