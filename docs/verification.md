@@ -4,6 +4,17 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Centered End-of-Round `Next round` / `New game` Overlay & `Space`/`Enter` Keyboard Shortcut (#337) — 2026-11-09
+
+Source revision `0484f3f` (centered `.tetris-over` / `pb-round-banner` card + `Space`/`Enter` round-over keyboard shortcut in Puzzle Bobble); build evidence `58750e9`; published as `v0.37.2` on 2026-11-09.
+
+- **Centered Next-Round Card & Keyboard Shortcut (`src/client/styles.css`, `src/client/views/PuzzleBobbleView.tsx`, `src/client/views/TetrisView.tsx`, `e2e/puzzle-bobble.spec.ts`):**
+  - Styled `.tetris-over` / `.pb-banner` (`data-testid="pb-round-banner"`) as a centered viewport overlay card (`position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%)`) with a full-width primary action button (`Next round` / `New game`), and hid it while the Pause Menu is open so the two centered modals never overlap.
+  - Added non-repeat `Space` and `Enter` keyboard handling when `match.status === 'round_over'` in `PuzzleBobbleView.tsx` (matching `TetrisView.tsx`) so pressing `Space` or `Enter` immediately starts the next round and triggers the `Ready… / Go!` countdown.
+- `npm test`: 27 files, 183 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e -- e2e/puzzle-bobble.spec.ts`: 4 passed (15.0s).
+
 ## Native Edge Neural TTS Voices (`--pitch=+20Hz --rate=+14%`) & Audio Cache Invalidation for 22 Countdown Languages (#335) — 2026-11-06
 
 Source revision `5fd4047` (Edge Neural TTS voices + `yolo-arcade-audio-v2` cache bucket); build evidence `f46e0fb`; release commit `75eaf74`; published as `v0.37.1` on 2026-11-06.
