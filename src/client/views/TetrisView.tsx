@@ -950,7 +950,10 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
           (isLocal2P && (game2Ref.current.status !== 'playing' || roundOutcomeRef.current !== 'playing')) ||
           (isOnline2P && roundOutcomeRef.current !== 'playing'))
       ) {
-        if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+        if (
+          !event.repeat &&
+          (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar')
+        ) {
           event.preventDefault();
           handleNewOrRematch();
         }
@@ -1774,21 +1777,21 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
         </div>
       ) : null}
 
-      {isOnline2P && roundOutcome === 'won' && activeTetrisRoom ? (
+      {!paused && isOnline2P && roundOutcome === 'won' && activeTetrisRoom ? (
         <p className="tetris-over" role="status" data-testid="tetris-online-banner">
           YOU WIN! {activeTetrisRoom.opponent.name} topped out ({wins[0]}–{wins[1]}).{' '}
           <button type="button" className="primary" onClick={handleNewOrRematch}>
             Next round
           </button>
         </p>
-      ) : isOnline2P && roundOutcome === 'lost' && activeTetrisRoom ? (
+      ) : !paused && isOnline2P && roundOutcome === 'lost' && activeTetrisRoom ? (
         <p className="tetris-over" role="status" data-testid="tetris-online-banner">
           KO! {activeTetrisRoom.opponent.name} wins the round ({wins[0]}–{wins[1]}).{' '}
           <button type="button" className="primary" onClick={handleNewOrRematch}>
             Next round
           </button>
         </p>
-      ) : isLocal2P && (roundOutcome !== 'playing' || game.status === 'over' || game2.status === 'over') ? (
+      ) : !paused && isLocal2P && (roundOutcome !== 'playing' || game.status === 'over' || game2.status === 'over') ? (
         <p className="tetris-over" role="status" data-testid="tetris-local-2p-banner">
           {roundOutcome === 'won' || game2.status === 'over'
             ? `1UP WINS! (${wins[0]}–${wins[1]}) · Score ${game.score} vs ${game2.score}. `
@@ -1797,7 +1800,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
             Next round
           </button>
         </p>
-      ) : game.status === 'over' ? (
+      ) : !paused && game.status === 'over' ? (
         <p className="tetris-over" role="status">
           Game over — score {game.score}.{' '}
           <button type="button" className="primary" onClick={handleNewOrRematch}>
