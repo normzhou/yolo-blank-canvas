@@ -4,6 +4,22 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Modular Lazy-Loaded Per-Game Packages with Menu Version/Hash Manifest & Local `CacheStorage` (#306) — 2026-11-10
+
+Source revision `b28bb2b` (modular `src/games/{puzzle-bobble,tetris}/` packages, Rollup multi-entry `/games/<id>-<hash>.js` chunk isolation + `/games/manifest.json` generator, SHA-256 `CacheStorage` bundle manager `src/client/gameBundles.ts`, and `/game-cache-sw.js`); build evidence `b724007`; published as `v0.38.0` on 2026-11-10.
+
+- **Per-Game Packages & Independent Content-Hash Isolation (`src/games/puzzle-bobble/`, `src/games/tetris/`, `src/client/apps/registry.ts`, `vite.config.ts`):**
+  - Splits Home shell (`dist/client/assets/index-*.js`: **89.56 kB**, down from **541.24 kB**, zero `>500 kB` Vite chunk warnings) from standalone game bundles (`/games/puzzle-bobble-1l5URvI2.js`: **70.86 kB**, SHA-256 `a2c833e7...`; `/games/tetris-BQl6pEES.js`: **35.59 kB**, SHA-256 `47d30e6c...`).
+  - Game bundles do not reference `__CLIENT_BUILD__`, so shell or sibling-game changes leave unchanged game bundle filenames and SHA-256 hashes byte-identical.
+- **Menu Version/Hash Manifest & SHA-256 Local `CacheStorage` (`src/client/gameBundles.ts`, `public/game-cache-sw.js`, `server/app.js`, `server/security.js`, `hosting/cloudflare/worker.mjs`):**
+  - Home menu loads `/games/manifest.json` (`Cache-Control: no-cache`) to track each game's `{ version, hash, entry, chunks, sizeBytes }` and local cache state (`data-game-version`, `data-game-hash`, `data-bundle-cached`) while downloading **zero** `/games/*.js` bundles on `/`.
+  - Entering `?app=<id>` verifies SHA-256 integrity (`crypto.subtle.digest`), persists chunks in `CacheStorage` (`yolo-arcade-games-v1`, selectively evicting only outdated prior hashes for that game), and serves subsequent/offline launches locally via `/game-cache-sw.js` (`worker-src 'self'`).
+- `npm test`: 28 files, 190 tests passed (`test/game-bundles.test.ts`).
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 46 passed (46.4s, including `e2e/game-bundles.spec.ts` verifying zero upfront game downloads and offline local-cache launch).
+- `npm run e2e:live`: 5 passed (13.4s, read-only).
+- `npm run e2e:verify-release`: 11 passed against standalone empty-directory `npx` install.
+
 ## Conformity Reconciliation, Palette Shortcut, Markdown Link Stability, Standalone `npx` Tarball Fix, and Architecture Sync (#339) — 2026-11-10
 
 Source revision `5dca6f0` (ships `server/feedback-library-assets.js` inside `package.json#files` with a tarball-boundary unit test, following `7371dea` client/E2E/architecture fixes); build evidence `acdb688`; published as `v0.37.4` on 2026-11-10 (retaining `v0.37.3` at `587ed6e` as failed standalone-`npx` acceptance that exposed the `#290` `library-assets.mjs` exclusion).
@@ -2124,19 +2140,17 @@ agent, so these were taken under the standing grant rather than left waiting.
 
 ## Tested revision
 
-Release tag `v0.37.4` builds from source `5dca6f0` (`dist/client/.build-id` and
-`server/build-id.generated.js` both report `5dca6f0…`) with assets committed in `acdb688`; native
-versions across `package.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, and
-`hosting/cloudflare/wrangler.json` (`APP_VERSION`) match `0.37.4` / `v0.37.4`. `npm test` passes
-185 tests across 27 files, `npx tsc --noEmit` is clean, `npm run e2e` passes 45 of 45,
-`npm run e2e:live` passes 5 of 5 (read-only), and empty-directory `npx` `e2e:verify-release` passes
-11 of 11 alongside live `https://demo.yolo-dev.ai` verification, as recorded in
-[`.yolo/reports/releases-observed-2026-11-10-v0374.json`](../.yolo/reports/releases-observed-2026-11-10-v0374.json)
-(with `v0.37.3` at `587ed6e` retained in
-[`.yolo/reports/releases-observed-2026-11-10-v0373.json`](../.yolo/reports/releases-observed-2026-11-10-v0373.json)
-as the failed standalone-`npx` acceptance observation that exposed `#290`'s tarball omission).
-Intermediate releases `v0.15.0` through `v0.37.2` (including `v0.37.2` at `f5889ff` / source
-`0484f3f` / assets `58750e9`, `yolo-demo-app` Version ID `5dbf2ab2-1777-415d-b380-58bdc1ee4746`)
+Release tag `v0.38.0` builds from source `b28bb2b` (`dist/client/.build-id` and
+`server/build-id.generated.js` both report `b28bb2b…`) with modular per-game bundles and
+`dist/client/games/manifest.json` committed in `b724007`; native versions across `package.json`,
+`src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, and `hosting/cloudflare/wrangler.json`
+(`APP_VERSION`) match `0.38.0` / `v0.38.0`. `npm test` passes 190 tests across 28 files,
+`npx tsc --noEmit` is clean, `npm run e2e` passes 46 of 46, `npm run e2e:live` passes 5 of 5
+(read-only), and empty-directory `npx` `e2e:verify-release` passes 11 of 11 alongside live
+`https://demo.yolo-dev.ai` verification, as recorded in
+[`.yolo/reports/releases-observed-2026-11-10-v0380.json`](../.yolo/reports/releases-observed-2026-11-10-v0380.json).
+Intermediate releases `v0.15.0` through `v0.37.4` (including `v0.37.4` at `85af2eb` / source
+`5dca6f0` / assets `acdb688`, and `v0.37.3` retained in `releases-observed-2026-11-10-v0373.json`)
 are documented chronologically in the per-release sections at the top of this file and in
 `.yolo/reports/releases-observed-2026-*.json`.
 
