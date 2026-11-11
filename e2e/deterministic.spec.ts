@@ -143,13 +143,12 @@ test('Tetris: board renders, music toggles with a stable track label, scenes cyc
   await page.getByRole('button', { name: 'Tetris', exact: true }).click();
   await page.getByTestId('deck-slide-card').click();
   await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
-  await expect(page.getByTestId('game-pause-menu')).toBeVisible();
-  await page.getByTestId('pause-menu-resume').click();
   await expect(page.getByText(/Scene 1\/\d+:/)).toBeVisible();
   await snap('09-tetris-board');
 
-  // Music on: the track label appears and must not spin (the #67 CSP regression),
+  // Music starts on by default (#317) and toggles cleanly; the track label appears and must not spin (the #67 CSP regression),
   // and closed-loop Web Audio AnalyserNode confirms a full-length (~2-min) Tetris track is actively playing (#232).
+  await page.getByRole('button', { name: /Music on/ }).click();
   await page.getByRole('button', { name: /Music off/ }).click();
   const sceneLine = page.locator('.tetris-scene');
   await expect(sceneLine).toContainText(
@@ -169,6 +168,9 @@ test('Tetris: board renders, music toggles with a stable track label, scenes cyc
   await page.waitForTimeout(3000);
   expect(await sceneLine.textContent()).toBe(first);
   await snap('10-tetris-music');
+
+  // Wait for the initial Ready/Go countdown input lock (#331/#333) to finish before testing Space hard-drop.
+  await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 6000 });
 
   // A four-line clear advances the scene and triggers the 4-line TETRIS SFX fanfare (#234).
   await page.evaluate(() => window.dispatchEvent(new Event('yolo:tetris:four-line-clear')));

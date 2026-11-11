@@ -1011,7 +1011,7 @@ export function App() {
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      if (getSharedOverlayOpen() || isHostedFeedbackOpen()) return;
+      if (isHostedFeedbackOpen()) return;
       const target = (event.composedPath?.()[0] ?? event.target) as HTMLElement | null;
       const editing = Boolean(
         target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable),

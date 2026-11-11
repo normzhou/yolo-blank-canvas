@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import ReactMarkdown from 'react-markdown';
+import { useMemo, useRef, type ReactNode } from 'react';
+import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 /**
@@ -38,44 +38,49 @@ export function Markdown({
   repo?: string | null;
   onSelectIssue?: (issueNumber: number) => void;
 }) {
+  const callbacksRef = useRef({ repo, onSelectIssue });
+  callbacksRef.current = { repo, onSelectIssue };
+
+  const components = useMemo<Components>(
+    () => ({
+      a: ({ href, children: linkChildren }) => {
+        const { repo: currentRepo, onSelectIssue: currentSelect } = callbacksRef.current;
+        const targetIssue = currentSelect ? parseSameRepoIssueUrl(href, currentRepo) : null;
+        return (
+          <a
+            href={href}
+            target="_blank"
+            rel="noreferrer noopener"
+            onClick={
+              targetIssue !== null
+                ? (event) => {
+                    if (
+                      event.button === 0 &&
+                      !event.metaKey &&
+                      !event.ctrlKey &&
+                      !event.shiftKey &&
+                      !event.altKey
+                    ) {
+                      event.preventDefault();
+                      currentSelect?.(targetIssue);
+                    }
+                  }
+                : undefined
+            }
+          >
+            {linkChildren as ReactNode}
+          </a>
+        );
+      },
+      img: ({ src, alt }) => <img src={src} alt={alt ?? ''} loading="lazy" />,
+    }),
+    [],
+  );
+
   if (!children) return null;
   return (
     <div className="comment-body">
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        skipHtml
-        components={{
-          a: ({ href, children: linkChildren }) => {
-            const targetIssue = onSelectIssue ? parseSameRepoIssueUrl(href, repo) : null;
-            return (
-              <a
-                href={href}
-                target="_blank"
-                rel="noreferrer noopener"
-                onClick={
-                  targetIssue !== null
-                    ? (event) => {
-                        if (
-                          event.button === 0 &&
-                          !event.metaKey &&
-                          !event.ctrlKey &&
-                          !event.shiftKey &&
-                          !event.altKey
-                        ) {
-                          event.preventDefault();
-                          onSelectIssue!(targetIssue);
-                        }
-                      }
-                    : undefined
-                }
-              >
-                {linkChildren as ReactNode}
-              </a>
-            );
-          },
-          img: ({ src, alt }) => <img src={src} alt={alt ?? ''} loading="lazy" />,
-        }}
-      >
+      <ReactMarkdown remarkPlugins={[remarkGfm]} skipHtml components={components}>
         {children}
       </ReactMarkdown>
     </div>

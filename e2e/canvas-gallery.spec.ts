@@ -35,12 +35,11 @@ test('the home gallery opens Tetris and the Pause Menu exits to the canvas (#237
     await expect(page.getByRole('heading', { name: 'Tetris' })).toBeVisible();
     await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
 
-    // Entering the game opens on the Game Menu first (#252); clicking Continue starts the countdown.
-    await expect(page.getByTestId('game-pause-menu')).toBeVisible();
-    await page.getByTestId('pause-menu-resume').click();
+    // Entering the game starts directly into the Ready/Go countdown (#313).
     await expect(page.getByTestId('arcade-countdown')).toBeVisible();
+    await expect(page.getByTestId('game-pause-menu')).toHaveCount(0);
 
-    // Clicking the universal bottom-right YouTube-style Pause icon re-opens the Pause Menu (#237).
+    // Clicking the universal bottom-right YouTube-style Pause icon opens the Pause Menu (#237).
     await page.getByTestId('pause-button').click();
     await expect(page.getByTestId('game-pause-menu')).toBeVisible();
     await page.getByRole('button', { name: 'Close Tetris' }).click();
@@ -103,8 +102,7 @@ test('Escape closes the palette before the app, and the tilde alias opens it', a
   try {
     await page.goto(`${stub.base}?app=tetris`);
     await expect(page.getByRole('heading', { name: 'Tetris' })).toBeVisible();
-    await expect(page.getByTestId('game-pause-menu')).toBeVisible();
-    await page.getByTestId('pause-menu-resume').click();
+    await expect(page.getByTestId('game-pause-menu')).toHaveCount(0);
 
     await page.keyboard.press('Shift+Backquote');
     const palette = page.getByRole('dialog', { name: 'Canvas apps' });
@@ -284,8 +282,12 @@ test('static preview mode runs games cleanly without a startup error banner and 
     await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
     await expect(page.getByRole('alert')).toHaveCount(0);
 
-    // Clicking the wiggling YOLO icon opens the feedback overlay with the clean public-version unavailable notice (#230).
+    // Clicking the wiggling YOLO icon mounts the shared <yolo-feedback-v1> modal (#290),
+    // and direct ?panel navigation still renders the truthful static-preview fallback notice (#199).
     await page.getByRole('button', { name: 'Feedback on Tetris' }).click();
+    await expect(page.locator('yolo-feedback-v1')).toHaveCount(1);
+
+    await page.goto(`${stub.base}?panel`);
     await expect(page.getByRole('dialog', { name: 'Requests' })).toBeVisible();
     const alert = page.getByRole('alert');
     await expect(alert).toBeVisible();

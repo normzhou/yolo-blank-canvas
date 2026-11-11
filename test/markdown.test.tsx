@@ -60,4 +60,14 @@ describe('Markdown safety', () => {
     expect(parseSameRepoIssueUrl(undefined, repo)).toBeNull();
     expect(parseSameRepoIssueUrl('https://github.com/normzhou/yolo-blank-canvas/issues/175', null)).toBeNull();
   });
+
+  it('renders same-repo issue anchors consistently when repo and onSelectIssue are supplied', () => {
+    const html = renderToStaticMarkup(
+      <Markdown repo="normzhou/yolo-blank-canvas" onSelectIssue={() => undefined}>
+        {'Covering outcome [#7](https://github.com/normzhou/yolo-blank-canvas/issues/7).'}
+      </Markdown>,
+    );
+    expect(html).toContain('href="https://github.com/normzhou/yolo-blank-canvas/issues/7"');
+    expect(html).toContain('>#7</a>');
+  });
 });
