@@ -27,21 +27,33 @@ GitHub CLI (credentials) ──► GitHub issues, comments, labels, PRs
 
 Boundary rules that are load-bearing rather than incidental:
 
-- **Hosted `v1` Shared Feedback & Managed Work Bridge (`src/client/hostedFeedback.ts`, `hosting/cloudflare/worker.mjs`, `server/app.js`):**
+- **Hosted `v1` Shared Feedback, Shared Login & Managed Work Bridge (`src/client/hostedFeedback.ts`, `hosting/cloudflare/worker.mjs`, `hosting/cloudflare/identity-client.mjs`, `server/app.js`):**
   In hosted mode (`https://demo.yolo-dev.ai`), clicking the YOLO Threefold symbol opens the official
   YOLO Dev `<yolo-feedback-v1>` dialog loaded from `https://yolo-dev.ai/feedback/v1.mjs` (with same-origin
   `/yolo/feedback/browser.js` fallback), backed by `createManagedWorkBridge` (`appId: 'demo'`,
   `serviceOrigin: 'https://feedback.yolo-dev.ai'`) serving `/yolo/feedback/*` and `/yolo/api/v1/*` (#290).
-  In local `gh` mode (`npm start` / `npm run e2e`), the privileged `<Panel>` overlay remains active.
+  Shared login routes `/auth/yolo/{login,callback,logout,session}` (`CLIENT_IDENTITY_ENABLED: "true"`,
+  backed by `NetplayHub` Durable Object storage, #292, #294, #296) and system-browser Passkey login
+  handoff `/auth/yolo/{browser-start,handoff/poll}` for the `yolo-arcade` Tauri shell (#328) authenticate
+  end users without exposing `gh` or Worker secrets. Opening `<yolo-feedback-v1>` or `<Panel>` pauses
+  active gameplay and isolates keyboard input (#296). In local `gh` mode (`npm start` / `npm run e2e`),
+  the privileged `<Panel>` overlay remains active.
 - **2-Player Online Netplay (`src/client/netplay.ts`, `server/netplay.js`, `hosting/cloudflare/worker.mjs`):**
   Uses an event-driven WebSocket push transport (`Upgrade: websocket` on `/api/netplay` backed by
   Cloudflare's Hibernatable Durable Object API on `NetplayHub` and a zero-dependency RFC 6455 upgrade
   handler on the local Node HTTP server) with `BroadcastChannel('yolo:netplay:v1')` for `<1ms` same-browser
-  tab sync and `GET`/`POST /api/netplay` as fallback (#236, #244, #286). The client enforces demand-driven
+  tab sync and `GET`/`POST /api/netplay` as fallback (#236, #244, #286, #288). The client enforces demand-driven
   lifecycle hygiene: zero HTTP polling while WebSocket is open, immediate disconnect on hidden tabs
-  (`document.hidden`) when not in an active 2P match, 60-second idle inactivity sleep (waking on user
+  (`document.hidden`) when not in an active 2P match, 45-second idle inactivity sleep (`IDLE_SLEEP_MS = 45_000`)
+  and 90-second room/socket inactivity closure (`ROOM_INACTIVITY_TIMEOUT_MS = 90_000`, waking on user
   interaction or 2P actions), full teardown when all subscribers unsubscribe, and exponential failure
   backoff (`2s -> 120s`).
+- **Native Shell (`src-tauri/`) & PWA Manifest (`public/manifest.webmanifest`):**
+  `yolo-arcade` wraps the hosted web app (`https://demo.yolo-dev.ai?shell=tauri`, with `./dist` slim
+  fallback excluding the 23 MB `.m4a` tracks so native installers stay ~2.5–11 MB, #307, #323) for
+  macOS, Windows, and Android, intercepting `/auth/yolo/browser-start` in `src-tauri/src/lib.rs` to
+  complete WebAuthn Passkey sign-in in the system browser (#328). Audio tracks and the 22-language
+  Ready/Go voice sprite stream on demand and persist in `window.caches` (`yolo-arcade-audio-v2`, #326, #335).
 - **`gh.js` is the only process-spawning path to GitHub.** User text is never a command, flag or
   shell string. This is what lets the backend accept arbitrary issue text safely.
 - **`app.js` exposes a fixed operation set through the `RequestStore` port.** Routes depend on the
@@ -75,33 +87,35 @@ back or presented as a repository record, and is lost when the view closes. Addi
 content is an architecture and data-model change recorded here, not a quiet addition to a
 component; the first such content is the Tetris view (#4), now reached through the canvas gallery.
 
-The main canvas centers on the **game slide deck** (`src/client/App.tsx`, `src/client/apps/registry.ts`),
-with no top header bar (#220, #228, #230): instead, the bare wiggling **YOLO Threefold symbol**
-(`button.yolo-launcher` at the top-right corner, `src/client/brand/yoloMark.ts` and `public/brand/yolo-mark.mjs`,
-with `v0.1.0-alpha.53` hover motion, press-and-hold radial density-gradient disk, release/cancel coast,
-and live hosted `v1` channel upgrade from `https://yolo-dev.ai/feedback/v1.mjs` with local fallback, #282) opens the modal
-**Feedback & Requests** overlay (`<Panel>`), while a transparent YouTube-style corner-bracket icon
-(`button.fullscreen-launcher` at the bottom-right corner, `src/client/fullscreen.ts`) controls
-browser fullscreen mode (enabled by default). The theme switcher lives in the `<Panel>` footer so
-the overlay stays out of the way until opened. Each registry entry has an id, a title, a summary and one element, and the
-shell owns navigation through the slide deck (`‹` / `›` and slide pills on the home deck, stacked
-next/previous preview cards beneath the hero card, `ArrowLeft` / `ArrowRight` to flip and `Enter` /
-`Space` to launch on the home deck, directional slide animations, and subtle ambient background
-effects, #198) as well as the Ctrl/⌘K (`~`) palette.
+The main canvas centers on the **game slide deck** (`src/client/App.tsx`, `src/client/apps/registry.ts`,
+with **Puzzle Bobble** first and **Tetris** second, #264), with no top header bar (#220, #228, #230).
+A unified bottom-right control strip (#313, #317) orders **Play/Pause** (`data-testid="pause-button"`, when a game is active) →
+**Sound (SFX)** (`data-testid="sfx-button"`, default on) → **Music** (`data-testid="sound-button"`, default on) →
+**Fullscreen** (`button.fullscreen-launcher`, opt-in with `isFullscreen = false` by default, `src/client/fullscreen.ts`) →
+the bare wiggling **YOLO Threefold symbol** (`button.yolo-launcher`, `src/client/brand/yoloMark.ts` and `public/brand/yolo-mark.mjs`,
+with `v0.1.0-alpha.53`+ hover motion, press-and-hold radial density-gradient disk, release/cancel coast,
+and live hosted `v1` channel upgrade from `https://yolo-dev.ai/feedback/v1.mjs` with local fallback, #282), which opens
+`<yolo-feedback-v1>` in hosted mode or `<Panel>` in local `gh` mode. On the top-level Home view in standard browsers,
+an environment-aware `yolo-arcade` download pill (`src/client/arcadeDownload.ts`, hidden inside Tauri or standalone PWA,
+with a persistent macOS Gatekeeper Privacy & Security helper card, #311, #321, #323) sits at the top-left corner.
+The theme switcher lives in the `<Panel>` footer so the overlay stays out of the way until opened. Each registry entry has an id, a title, a summary and one element, and the
+shell owns navigation through the slide deck (`‹` / `›` and horizontal carousel indicator dots `.carousel-dots` on the home deck,
+`ArrowLeft` / `ArrowRight` and natural touch swipe to flip, `Enter` / `Space` to launch directly into the 22-language `"Ready… / Go!"`
+countdown without opening on the Pause menu, #198, #239, #264, #313, #333) as well as the Ctrl/⌘K (`~`) palette.
 `?app=<id>` is the app's location, and `?app=<id>&panel=<n>` composes the Requests overlay over it.
-The registry is a compile-time list, not a plugin surface: there is no manifest, remote loading,
-install step, iframe, third-party app, marketplace or per-app persistence. The Tetris entry (#4)
-and the 2-player Puzzle Bobble / Bust-A-Move entry (#181) are compiled into the registry.
+The registry is a compile-time list, not a plugin surface: there is no remote game loading,
+iframe, third-party app, marketplace or per-app persistence. The Puzzle Bobble / Bust-A-Move entry (#181)
+and the Tetris entry (#4, including 1P, 2P Local side-by-side #301, and 2P Online #236) are compiled into the registry.
 
-For optional static hosting at `demo.yolo-dev.ai` (#199), `hosting/cloudflare/` is instantiated
+For live public hosting at `https://demo.yolo-dev.ai` (#199, #290, #292, #328), `hosting/cloudflare/` is instantiated
 under the adopted `cloudflare` profile (`yolo-demo-app`), serving `../../dist/client` behind the
 guarded Worker (`run_worker_first: true`, `APP_VERSION` set to the released semver tag rather than
-`development`), and `hosting/yolo-identity/` instantiates the local shared-identity preview package
-(`CLIENT_IDENTITY_ENABLED: "false"` by default). When `/api/session` returns the static Worker's `503
-Backend configuration unavailable` response, the client enters `static_demo` mode: the home slide
-deck, Tetris, and Puzzle Bobble run with no startup error banner (`normzhou/yolo-blank-canvas ·
-static preview`), and opening **Requests** or **Feedback** displays a truthful static-preview
-notice with a direct link to GitHub Issues and the local `npx` launch command. Contextual feedback capture is deliberately text-only: a request composed over an app
+`development`), mounting `createManagedWorkBridge` (`/yolo/feedback/*`, `/yolo/api/v1/*`) and shared
+login + Tauri browser-handoff routes (`/auth/yolo/*`, `CLIENT_IDENTITY_ENABLED: "true"`, backed by
+`NetplayHub` Durable Object storage), while `hosting/yolo-identity/` retains the standalone local
+shared-identity preview package. When `/api/session` returns `503 Backend configuration unavailable`,
+the client enters `static_demo` mode (`isStaticDemo === true`), running the home slide deck, Puzzle Bobble,
+and Tetris with online netplay and `<yolo-feedback-v1>` shared feedback. Contextual feedback capture in local `<Panel>` mode is deliberately text-only: a request composed over an app
 starts with `App: <title> (?app=<id>)` in its body, and new-request drafts are scoped by app. The
 composer offers three direct intent lenses at the top of the form (**Share feedback**, **Build or
 change**, **Report a problem**) with a shared primary answer, the adopted `v0.1.0-alpha.33` YOLO
@@ -130,11 +144,12 @@ The durable observable contracts, verified by the test suite:
 | Draft preservation and v1→v2 migration across panel/refresh/reload | `src/client/drafts.ts` | `test/drafts.test.ts` |
 | Guided three-intent request templates, body rendering, app-context feedback line and app-scoped drafts | `src/client/requestTemplates.ts`, `src/client/feedback.ts`, `src/client/drafts.ts`, `src/client/views/NewRequestView.tsx` | `test/request-templates.test.ts`, `test/feedback.test.ts`, `test/drafts.test.ts`, `e2e/app-feedback.spec.ts` |
 | Canvas app registry and addressable `?app=` locations | `src/client/apps/registry.ts`, `src/client/route.ts` | `test/apps.test.ts`, `test/route.test.ts`, `e2e/canvas-gallery.spec.ts` |
-| Tetris rules, Versus garbage mechanics, and board state (local to the view or ephemeral 2P room, not a GitHub record) | `src/shared/tetris.ts`, `src/client/views/TetrisView.tsx` | `test/tetris.test.ts`, `e2e/puzzle-bobble.spec.ts` |
-| Puzzle Bobble (Bust-A-Move) hex-grid, 2P versus rules, selectable cute characters and win/lose animations (local to the view or ephemeral 2P room, not a GitHub record) | `src/shared/puzzleBobble.ts`, `src/client/views/PuzzleBobbleView.tsx` | `test/puzzle-bobble.test.ts`, `e2e/puzzle-bobble.spec.ts` |
-| Multi-user 2P Online presence pill, open corner invite toast, room event relay, and single-screen Opponent Mini-Radar (#236) | `server/netplay.js`, `hosting/cloudflare/worker.mjs`, `src/client/netplay.ts` | `test/app-api.test.ts`, `e2e/puzzle-bobble.spec.ts` |
-| Universal YouTube-style pause icon, unified in-game Pause/Mode/Stage menu (`Escape`/Continue/Restart/Exit, smart `2P Online` & `2P Local` availability), 20s invite timeout + both-players-ready gate, `3-2-1` start countdown, touch-only spread virtual controls, drag-release auto-shoot, natural mobile deck swipe, and animated selector game previews with per-game music (#242, #248) | `src/client/gamePause.ts`, `src/client/App.tsx`, `src/client/views/TetrisView.tsx`, `src/client/views/PuzzleBobbleView.tsx` | `e2e/canvas-gallery.spec.ts`, `e2e/deterministic.spec.ts`, `e2e/puzzle-bobble.spec.ts` |
-| Tetris track list, selector/Puzzle Bobble playlists, crossfading, and Tone.js-style FMSynth/PolySynth/MembraneSynth SFX | `src/shared/tetrisMusic.ts`, `src/client/audio/tetrisMusic.ts`, `src/client/audio/toneSynth.ts` | `test/tetris-music.test.ts`, `e2e/deterministic.spec.ts`, `e2e/puzzle-bobble.spec.ts` |
+| Tetris rules, 1P / 2P Local side-by-side / 2P Online Versus garbage mechanics, centered end-of-round card, and board state (local to the view or ephemeral 2P room, not a GitHub record) | `src/shared/tetris.ts`, `src/client/views/TetrisView.tsx` | `test/tetris.test.ts`, `e2e/puzzle-bobble.spec.ts` |
+| Puzzle Bobble (Bust-A-Move) hex-grid, 1P / 2P Local / 2P Online versus rules, click-to-switch animal mascots (`dragon`, `cat`, `dog`, `bunny`) with gear-cranking animation & periodic plain-text tactical dialogue, and centered end-of-round `Next round` card with `Space`/`Enter` shortcut (#299, #313, #315, #337) | `src/shared/puzzleBobble.ts`, `src/client/views/PuzzleBobbleView.tsx` | `test/puzzle-bobble.test.ts`, `e2e/puzzle-bobble.spec.ts` |
+| Multi-user 2P Online WebSocket push relay, presence pill, open corner invite toast, demand-driven idle/room sleep, and single-screen Opponent Mini-Radar (#236, #286, #288) | `server/netplay.js`, `hosting/cloudflare/worker.mjs`, `src/client/netplay.ts` | `test/netplay.test.ts`, `test/app-api.test.ts`, `e2e/puzzle-bobble.spec.ts` |
+| Bottom-right control strip (Pause, decoupled default-on SFX & Music, opt-in Fullscreen, YOLO mark), keyboard-navigable Pause/Mode/Stage/Audio menu, direct-start 22-language speaker-weighted neural TTS `"Ready… / Go!"` countdown with flag emojis & input lock, touch drag-release aiming, natural mobile deck swipe, and animated selector game previews (#242, #258, #268, #313, #317, #331, #333, #335) | `src/client/gamePause.ts`, `src/shared/countdownLanguages.ts`, `src/client/App.tsx`, `src/client/views/TetrisView.tsx`, `src/client/views/PuzzleBobbleView.tsx` | `test/tetris-music.test.ts`, `e2e/canvas-gallery.spec.ts`, `e2e/deterministic.spec.ts`, `e2e/puzzle-bobble.spec.ts` |
+| Tetris & whimsical Puzzle Bobble soundtracks, persistent `window.caches` (`yolo-arcade-audio-v2`) disk cache, crossfading, and Tone.js-style synth SFX (#260, #278, #326, #335) | `src/shared/tetrisMusic.ts`, `src/client/audio/tetrisMusic.ts`, `src/client/audio/toneSynth.ts` | `test/tetris-music.test.ts`, `e2e/deterministic.spec.ts`, `e2e/puzzle-bobble.spec.ts` |
+| Hosted `<yolo-feedback-v1>` dialog, `/auth/yolo/*` shared login & Tauri system-browser Passkey handoff, and environment-aware `yolo-arcade` download helper (#290, #292, #294, #296, #311, #321, #328) | `src/client/hostedFeedback.ts`, `src/client/arcadeDownload.ts`, `hosting/cloudflare/worker.mjs`, `src-tauri/src/lib.rs` | `test/hosted-feedback.test.ts`, `test/arcade-download.test.ts`, `test/yolo-mark.test.ts` |
 | Tetris backdrop scenes (bundled sourced art) and the four-line cycle | `src/shared/tetrisBackgrounds.ts` | `test/tetris-backgrounds.test.ts` |
 
 The app also presents the shared YOLO request-to-result vocabulary, and its behavior is
@@ -150,10 +165,14 @@ contractual where it is in scope. Its observed gaps are listed under Decisions a
   system Google Chrome and capture per-step screenshots for agent review. They are harness-run
   evidence cited in [docs/verification.md](../../docs/verification.md); they are not CI gates.
 - **CI:** GitHub Actions runs `npm test` and `npx tsc --noEmit` on pull requests and pushes to
-  `main` ([.github/workflows/ci.yml](../../.github/workflows/ci.yml)); harness-run evidence is
-  cited from [docs/verification.md](../../docs/verification.md).
-- **Delivery route:** one-command `npx` install of a tagged revision
-  (`github:normzhou/yolo-blank-canvas#<tag>`).
+  `main` ([.github/workflows/ci.yml](../../.github/workflows/ci.yml)) and builds native `yolo-arcade`
+  macOS (`.dmg`/`.app`), Windows (`-setup.exe`/`.msi`), and Android (`.apk`) installers on `v*`
+  release tags ([.github/workflows/release-arcade.yml](../../.github/workflows/release-arcade.yml));
+  harness-run evidence is cited from [docs/verification.md](../../docs/verification.md).
+- **Delivery routes:** (1) one-command `npx` install of a tagged revision
+  (`github:normzhou/yolo-blank-canvas#<tag>`), (2) live Cloudflare Worker deployment at
+  `https://demo.yolo-dev.ai` (`yolo-demo-app`), and (3) GitHub Release native `yolo-arcade`
+  installers built from the tagged revision.
 - **Versioning policy:** semantic versioning on the delivered artifact. **The agent cuts releases at
   any semver level — patch, minor or major — without seeking per-release approval**, on the condition
   that acceptance passes on the version users actually receive. Choosing the version and cutting it is
