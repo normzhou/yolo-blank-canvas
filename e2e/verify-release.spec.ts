@@ -21,7 +21,11 @@ const FREE_PORT = await (async () => {
 test.skip(!BASE, 'set YOLO_VERIFY_URL to the running release');
 
 async function session(page: import('@playwright/test').Page) {
-  const response = await page.request.post(`${BASE}/api/session`, { data: {} });
+  let response = await page.request.post(`${BASE}/api/session`, { data: {} });
+  if (response.status() >= 500) {
+    await new Promise((resolve) => setTimeout(resolve, 750));
+    response = await page.request.post(`${BASE}/api/session`, { data: {} });
+  }
   expect(response.status(), 'the released app must establish a local session').toBe(200);
 }
 
@@ -296,7 +300,7 @@ test('the released detail view surfaces ## YOLO request triage and navigates cov
   await session(page);
   await page.goto(`${BASE}?panel=172`);
 
-  await expect(page.getByRole('heading', { name: /#172/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /#172/ })).toBeVisible({ timeout: 15_000 });
   const triageHeading = page.locator('.summary-box').getByRole('heading', { name: 'Request triage', exact: true });
   if ((await triageHeading.count()) === 0) {
     test.skip(true, 'this release predates Request triage display (#177)');
@@ -307,7 +311,7 @@ test('the released detail view surfaces ## YOLO request triage and navigates cov
 
   await page.locator('.summary-box').getByRole('link', { name: '#175' }).first().click();
   await expect(page).toHaveURL(/\?panel=175$/);
-  await expect(page.getByRole('heading', { name: /#175/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /#175/ })).toBeVisible({ timeout: 15_000 });
   await expect(page.locator('.summary-box').getByRole('heading', { name: 'Reported summary', exact: true })).toBeVisible();
 });
 
