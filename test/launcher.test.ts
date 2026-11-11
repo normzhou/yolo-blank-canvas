@@ -1,7 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
 import net from 'node:net';
+import { fileURLToPath } from 'node:url';
 import { connectWithCli, findPort, requireGh, confirmRepoAccess, LOGIN_COMMAND } from '../server/launch.js';
 import { GhError } from '../server/gh.js';
+
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 function authRequired() {
   return new GhError('GitHub CLI is not authenticated.', 'auth_required', 401);
@@ -129,5 +134,34 @@ describe('port selection', () => {
     const { canListen } = await import('../server/launch.js');
     await expect(canListen(port)).resolves.toBe(false);
     await new Promise<void>((resolve) => server.close(() => resolve()));
+  });
+});
+
+describe('standalone npx tarball boundary', () => {
+  it('keeps every relative import in server/*.js inside package.json#files and synced with the adopted feedback bundle', () => {
+    const pkg = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, 'package.json'), 'utf8')) as { files: string[] };
+    const allowedRoots = pkg.files.map((entry) => path.resolve(REPO_ROOT, entry));
+    const serverDir = path.join(REPO_ROOT, 'server');
+    for (const file of fs.readdirSync(serverDir).filter((name) => name.endsWith('.js'))) {
+      const fullPath = path.join(serverDir, file);
+      const source = fs.readFileSync(fullPath, 'utf8');
+      for (const match of source.matchAll(/^\s*(?:import|export)\s+[^"'\n;]*?\bfrom\s+['"](\.[^'"]+)['"]/gm)) {
+        const resolved = path.resolve(serverDir, match[1]);
+        expect(fs.existsSync(resolved), `${file} imports missing ${match[1]}`).toBe(true);
+        const inShippedFiles = allowedRoots.some(
+          (root) => resolved === root || resolved.startsWith(`${root}${path.sep}`),
+        );
+        expect(
+          inShippedFiles,
+          `${file} imports ${match[1]} outside package.json#files (${pkg.files.join(', ')})`,
+        ).toBe(true);
+      }
+    }
+    const shippedFeedback = fs.readFileSync(path.join(serverDir, 'feedback-library-assets.js'), 'utf8');
+    const skillFeedback = fs.readFileSync(
+      path.join(REPO_ROOT, '.agents/skills/yolo/assets/feedback/dist/library-assets.mjs'),
+      'utf8',
+    );
+    expect(shippedFeedback).toBe(skillFeedback);
   });
 });

@@ -12,7 +12,7 @@ import { buildInfo, CLIENT_DIR } from './build.js';
 import { hostGuard, sameOriginGuard, securityHeaders } from './security.js';
 import { GhError, ValidationError, effectiveIdentity, checkRepoAccess } from './gh.js';
 import { createNetplayHub } from './netplay.js';
-import { libraryAssets } from '../.agents/skills/yolo/assets/feedback/dist/library-assets.mjs';
+import { libraryAssets } from './feedback-library-assets.js';
 
 export const LOGIN_COMMAND = 'gh auth login --hostname github.com --web --skip-ssh-key';
 const IDENTITY_TTL_MS = 20_000;
