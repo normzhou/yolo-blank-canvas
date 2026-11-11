@@ -315,15 +315,17 @@
         "v0.36.0": "15e5cfd4553895c35ec69fcc289e6e37a8e86d49",
         "v0.36.1": "d8467af9dd70f8a6e9d616335c47dbf01236172c",
         "v0.37.0": "b9c9f47f9e0dfea5253d5268140330ccb50568c1",
-        "v0.37.1": "75eaf744596578ba3fb0d93dedb056b7247bd54f"
+        "v0.37.1": "75eaf744596578ba3fb0d93dedb056b7247bd54f",
+        "v0.37.2": "f5889ffaffb961fd6321924e5e1f2649a77a9293",
+        "v0.37.3": "587ed6ea56f1a5a090f97a4d3dc39f7be4cf4ffb"
       },
       "published": {
-        "tag": "v0.37.2",
-        "commit": "f5889ffaffb961fd6321924e5e1f2649a77a9293",
-        "source_commit": "0484f3f76c3c5a638bbf84ac8a5144c32c8ca134",
-        "published_at": "2026-11-09T23:06:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-09-v0372.json",
-        "note": "Patch release (#337, PR #338). Centers the end-of-round Next round / New game overlay card (.tetris-over / pb-round-banner) in the middle of the screen and adds Space/Enter keyboard support to advance to the next round when a game ends in Puzzle Bobble; deployed live to https://demo.yolo-dev.ai (Version ID: 5dbf2ab2-1777-415d-b380-58bdc1ee4746)."
+        "tag": "v0.37.4",
+        "commit": "85af2ebab501abc157ab290a8d480ef311ceafe0",
+        "source_commit": "5dca6f065aa9802106e5ebea320fff1de0d964c4",
+        "published_at": "2026-11-10T23:12:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-10-v0374.json",
+        "note": "Patch release (#339, PR #340 & PR #341). Ships server/feedback-library-assets.js inside package.json#files so standalone npx installs pass 11/11 e2e:verify-release (superseding v0.37.3's failed npx acceptance retained in releases-observed-2026-11-10-v0373.json), restores Ctrl/Cmd+K & ~ palette invocation over <Panel>, stabilizes ReactMarkdown anchor clicks across pointerdown audio unlock, and syncs ARCHITECTURE.md & docs/verification.md; deployed live to https://demo.yolo-dev.ai (Version ID: 6106d624-a54c-433d-8b72-ceca4850f045)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -405,7 +407,9 @@
         ".yolo/reports/releases-observed-2026-11-06-v0361.json",
         ".yolo/reports/releases-observed-2026-11-06-v0370.json",
         ".yolo/reports/releases-observed-2026-11-06-v0371.json",
-        ".yolo/reports/releases-observed-2026-11-09-v0372.json"
+        ".yolo/reports/releases-observed-2026-11-09-v0372.json",
+        ".yolo/reports/releases-observed-2026-11-10-v0373.json",
+        ".yolo/reports/releases-observed-2026-11-10-v0374.json"
       ]
     }
   },

@@ -1,0 +1,64 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-10",
+  "observed_at": "2026-11-10",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#339",
+  "releases": [
+    {
+      "tag": "v0.37.4",
+      "commit": "85af2ebab501abc157ab290a8d480ef311ceafe0"
+    }
+  ],
+  "release": {
+    "tag": "v0.37.4",
+    "commit": "85af2ebab501abc157ab290a8d480ef311ceafe0",
+    "source_commit": "5dca6f065aa9802106e5ebea320fff1de0d964c4",
+    "assets_commit": "acdb6889ac861168ebd7b46f2d07e314dba0c74a",
+    "native_version": "0.37.4",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-10T23:12:00Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.37.4",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/341"
+  },
+  "build_identity": {
+    "server_build_id": "5dca6f065aa9802106e5ebea320fff1de0d964c4",
+    "client_build_id": "5dca6f065aa9802106e5ebea320fff1de0d964c4",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "27 files, 185 tests passed",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 45 passed (46.6s)",
+      "e2e_live": "npm run e2e:live — 5 passed (13.2s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.37.4 --no-open --port 4475 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (29.5s)",
+      "ci": "GitHub Actions CI/Test and type check green on PR #340 and PR #341"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "6106d624-a54c-433d-8b72-ceca4850f045",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.37.4",
+      "observed_build_id": "5dca6f065aa9802106e5ebea320fff1de0d964c4"
+    }
+  },
+  "what_this_release_delivers": [
+    "Standalone npx tarball packaging fix (server/feedback-library-assets.js, server/app.js, test/launcher.test.ts) resolving ERR_MODULE_NOT_FOUND when installed outside the repository checkout.",
+    "Client fixes for Ctrl/Cmd+K and ~ palette invocation over <Panel> (src/client/App.tsx) and stable ReactMarkdown anchor identity across pointerdown state updates (src/client/components/Markdown.tsx).",
+    "Synchronized Playwright E2E suite (45/45 deterministic, 5/5 live, 11/11 verify-release) and updated .yolo/governance/ARCHITECTURE.md and docs/verification.md."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub.",
+    "Tag v0.37.4 points at merge commit 85af2eb following version-bump commit be3f4e3 and assets commit acdb688; both build-ID files record source 5dca6f0, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #339"
+}

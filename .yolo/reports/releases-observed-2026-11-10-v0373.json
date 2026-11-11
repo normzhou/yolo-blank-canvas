@@ -1,0 +1,54 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-failed-superseded",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-10",
+  "observed_at": "2026-11-10",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#339",
+  "releases": [
+    {
+      "tag": "v0.37.3",
+      "commit": "587ed6ea56f1a5a090f97a4d3dc39f7be4cf4ffb"
+    }
+  ],
+  "release": {
+    "tag": "v0.37.3",
+    "commit": "587ed6ea56f1a5a090f97a4d3dc39f7be4cf4ffb",
+    "source_commit": "7371dea5792be2aa443cfac505dcb3beeeb1e0cd",
+    "assets_commit": "c1200c173f3ceb8fd178c9822d2099374b8bb031",
+    "native_version": "0.37.3",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-10T22:55:00Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.37.3",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/340"
+  },
+  "build_identity": {
+    "server_build_id": "7371dea5792be2aa443cfac505dcb3beeeb1e0cd",
+    "client_build_id": "7371dea5792be2aa443cfac505dcb3beeeb1e0cd",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "3701ad02-4037-4664-9db6-e65ef8d61866",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.37.3",
+      "observed_build_id": "7371dea5792be2aa443cfac505dcb3beeeb1e0cd",
+      "passed": true
+    },
+    "standalone_npx_verify_release": {
+      "command": "npx --yes github:normzhou/yolo-blank-canvas#v0.37.3 --no-open --port 4473 (from an empty temporary directory)",
+      "passed": false,
+      "error": "ERR_MODULE_NOT_FOUND: Cannot find module '.../node_modules/yolo-blank-canvas/.agents/skills/yolo/assets/feedback/dist/library-assets.mjs' imported from .../server/app.js",
+      "diagnosis": "PR #290 (v0.29.0) imported ../.agents/skills/yolo/assets/feedback/dist/library-assets.mjs outside package.json#files ([\"server\", \"dist\", \"README.md\"]). Fixed immediately in PR #341 / v0.37.4 by shipping server/feedback-library-assets.js inside server/ with a tarball-boundary unit test."
+    }
+  },
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #339"
+}
