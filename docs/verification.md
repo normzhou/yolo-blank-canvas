@@ -4,6 +4,21 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Conformity Reconciliation, Palette Shortcut & Markdown Link Stability Fixes, and Architecture Sync (#339) — 2026-11-10
+
+Source revision `7371dea` (`Ctrl/⌘+K` palette over `<Panel>`, stable `ReactMarkdown` anchor identity across `pointerdown` audio unlock, E2E sync, and `ARCHITECTURE.md` update); build evidence `c1200c1`; published as `v0.37.3` on 2026-11-10.
+
+- **Client Fixes (`src/client/App.tsx`, `src/client/components/Markdown.tsx`, `test/markdown.test.tsx`):**
+  - Restored `Ctrl/⌘+K` and non-editing `~` palette invocation while `<Panel>` is open by limiting the early overlay guard in `App.tsx` to the shadow-DOM `<yolo-feedback-v1>` dialog (`isHostedFeedbackOpen()`), preserving `openPalette()`'s documented panel-close transition.
+  - Memoized `ReactMarkdown` custom `a` and `img` components in `Markdown.tsx` via `useMemo` + a latest-props ref so `pointerdown` state updates (such as default-on audio unlock on first interaction) never unmount and remount anchor nodes before `pointerup`/`click`, keeping in-panel same-repo issue navigation reliable on cold `?panel=<n>` loads.
+- **E2E & Documentation Sync (`e2e/canvas-gallery.spec.ts`, `e2e/deterministic.spec.ts`, `.yolo/governance/ARCHITECTURE.md`, `docs/verification.md`):**
+  - Updated stale Playwright expectations to match shipped `#290` (`<yolo-feedback-v1>` mount in static preview mode with `?panel` fallback notice), `#313` (direct-into-countdown game launch), `#317` (default-on music/SFX), and `#333` (countdown input lock).
+  - Synchronized `.yolo/governance/ARCHITECTURE.md` and `docs/verification.md` (`## Tested revision`) with `v0.15.0`–`v0.37.3` shipped capabilities, and repaired GitHub issue metadata on `#330` (`yolo:manual` assigned to `@normzhou`), `#236`, and `#242` (single `## YOLO status` summary per closed outcome).
+- `npm test`: 27 files, 184 tests passed.
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 45 passed (46.6s).
+- `npm run e2e:live`: 5 passed (13.2s, read-only against `normzhou/yolo-blank-canvas` and `normzhou/yolo-dev`).
+
 ## Centered End-of-Round `Next round` / `New game` Overlay & `Space`/`Enter` Keyboard Shortcut (#337) — 2026-11-09
 
 Source revision `0484f3f` (centered `.tetris-over` / `pb-round-banner` card + `Space`/`Enter` round-over keyboard shortcut in Puzzle Bobble); build evidence `58750e9`; release commit `f5889ff`; published as `v0.37.2` on 2026-11-09.
@@ -2106,12 +2121,26 @@ agent, so these were taken under the standing grant rather than left waiting.
 
 ## Tested revision
 
-Release tag `v0.14.2` points at release commit `db571a4`. Assets were built from source
-`a38b872` (`dist/client/.build-id` and `server/build-id.generated.js` both report `a38b872…`)
-and committed in `42a72e6`; the release commit itself adds only the `0.14.2` version and install
-references, with no source changes. The native version at the tagged revision (`package.json`) is
-`0.14.2`. The published artifact was installed from the release into an empty directory and accepted
-11 of 11 on `e2e:verify-release`, as recorded in
+Release tag `v0.37.3` builds from source `7371dea` (`dist/client/.build-id` and
+`server/build-id.generated.js` both report `7371dea…`) with assets committed in `c1200c1`; native
+versions across `package.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, and
+`hosting/cloudflare/wrangler.json` (`APP_VERSION`) match `0.37.3` / `v0.37.3`. `npm test` passes
+184 tests across 27 files, `npx tsc --noEmit` is clean, `npm run e2e` passes 45 of 45, and
+`npm run e2e:live` passes 5 of 5 (read-only), with release-installed `e2e:verify-release` and live
+`https://demo.yolo-dev.ai` verification recorded in
+[`.yolo/reports/releases-observed-2026-11-10-v0373.json`](../.yolo/reports/releases-observed-2026-11-10-v0373.json).
+Intermediate releases `v0.15.0` through `v0.37.2` (including `v0.37.2` at `f5889ff` / source
+`0484f3f` / assets `58750e9`, `yolo-demo-app` Version ID `5dbf2ab2-1777-415d-b380-58bdc1ee4746`)
+are documented chronologically in the per-release sections at the top of this file and in
+`.yolo/reports/releases-observed-2026-*.json`.
+
+Previously named here (`v0.14.2`, retained as history rather than replaced silently): release tag
+`v0.14.2` points at release commit `db571a4`. Assets were built from source `a38b872`
+(`dist/client/.build-id` and `server/build-id.generated.js` both report `a38b872…`) and committed
+in `42a72e6`; the release commit itself adds only the `0.14.2` version and install references, with
+no source changes. The native version at the tagged revision (`package.json`) is `0.14.2`. The
+published artifact was installed from the release into an empty directory and accepted 11 of 11 on
+`e2e:verify-release`, as recorded in
 [`.yolo/reports/releases-observed-2026-10-22-v0142.json`](../.yolo/reports/releases-observed-2026-10-22-v0142.json).
 Its limits travel with it: eleven targeted read-only checks rather than the full suite; the composer
 and feedback checks do not submit a live issue; and the tag points at the release commit after the
