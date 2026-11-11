@@ -38,6 +38,7 @@ import { Panel, type PanelView } from './components/Panel';
 import { ErrorNotice } from './components/ErrorNotice';
 import { CanvasPalette } from './components/CanvasPalette';
 import { CANVAS_APPS, canvasAppById } from './apps/registry';
+import { useGameBundleSnapshot } from './gameBundles';
 import { getSharedNetplay, type NetplayState } from './netplay';
 import { BACKGROUNDS } from '../shared/tetrisBackgrounds';
 import {
@@ -630,6 +631,7 @@ export function App() {
   );
   const [gamePaused, setGamePaused] = useState<boolean>(() => getSharedGamePaused());
   const [netplay, setNetplay] = useState<NetplayState>(() => getSharedNetplay().getState());
+  const gameBundles = useGameBundleSnapshot();
   const [deckDragOffsetX, setDeckDragOffsetX] = useState<number>(0);
   const [macosHelperOpen, setMacosHelperOpen] = useState<boolean>(() =>
     isMacosInstallHelperOpen(),
@@ -1500,6 +1502,9 @@ export function App() {
               data-testid="deck-slide-card"
               data-slide-id={currentSlide.id}
               data-slide-dir={slideDirection ?? 'none'}
+              data-game-version={gameBundles.games[currentSlide.id]?.version ?? currentSlide.version}
+              data-game-hash={gameBundles.games[currentSlide.id]?.hash ?? ''}
+              data-bundle-cached={gameBundles.games[currentSlide.id]?.cached ? 'true' : 'false'}
               role="button"
               tabIndex={0}
               aria-label={`Play ${currentSlide.title}`}
@@ -1586,8 +1591,7 @@ export function App() {
               <div className="deck-slide-info">
                 <div className="deck-slide-meta">
                   <span className="deck-slide-badge">
-                    0{slideIndex + 1} / 0{CANVAS_APPS.length} ·{' '}
-                    {currentSlide.id === 'tetris' ? '1P & 2P Online' : '2P Online, Versus & Solo'}
+                    0{slideIndex + 1} / 0{CANVAS_APPS.length} · {currentSlide.modeBadge}
                   </span>
                   <span className="deck-slide-tag" data-testid="deck-online-count">
                     <span className="netplay-online-dot" aria-hidden="true" />
@@ -1598,56 +1602,18 @@ export function App() {
                 <div className="deck-slide-title">{currentSlide.title}</div>
                 <p className="deck-slide-summary">{currentSlide.summary}</p>
 
-                {currentSlide.id === 'tetris' ? (
-                  <div className="deck-controls-grid" aria-label="Tetris controls">
-                    <div className="deck-control-item">
+                <div className="deck-controls-grid" aria-label={currentSlide.controlsLabel}>
+                  {currentSlide.controls.map((control) => (
+                    <div key={control.label} className="deck-control-item">
                       <span className="deck-key-group">
-                        <kbd>←</kbd>
-                        <kbd>→</kbd>
+                        {control.keys.map((key) => (
+                          <kbd key={key}>{key}</kbd>
+                        ))}
                       </span>
-                      <span className="deck-control-label">Move</span>
+                      <span className="deck-control-label">{control.label}</span>
                     </div>
-                    <div className="deck-control-item">
-                      <span className="deck-key-group">
-                        <kbd>↑</kbd>
-                      </span>
-                      <span className="deck-control-label">Rotate</span>
-                    </div>
-                    <div className="deck-control-item">
-                      <span className="deck-key-group">
-                        <kbd>↓</kbd>
-                      </span>
-                      <span className="deck-control-label">Soft drop</span>
-                    </div>
-                    <div className="deck-control-item">
-                      <span className="deck-key-group">
-                        <kbd>Space</kbd>
-                      </span>
-                      <span className="deck-control-label">Hard drop</span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="deck-controls-grid" aria-label="Puzzle Bobble controls">
-                    <div className="deck-control-item">
-                      <span className="deck-key-group">
-                        <kbd>A</kbd>
-                        <kbd>D</kbd>
-                        <kbd>S</kbd>
-                        <kbd>F</kbd>
-                      </span>
-                      <span className="deck-control-label">1P Bub · Aim & Shoot</span>
-                    </div>
-                    <div className="deck-control-item">
-                      <span className="deck-key-group">
-                        <kbd>←</kbd>
-                        <kbd>→</kbd>
-                        <kbd>↑</kbd>
-                        <kbd>↓</kbd>
-                      </span>
-                      <span className="deck-control-label">2P Bob · Aim & Shoot</span>
-                    </div>
-                  </div>
-                )}
+                  ))}
+                </div>
               </div>
             </section>
 

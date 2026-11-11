@@ -17,6 +17,17 @@ import { libraryAssets } from './feedback-library-assets.js';
 export const LOGIN_COMMAND = 'gh auth login --hostname github.com --web --skip-ssh-key';
 const IDENTITY_TTL_MS = 20_000;
 
+/**
+ * @param {{
+ *   target?: { owner: string; name?: string; repo?: string; slug: string };
+ *   requestStore?: Record<string, any>;
+ *   identity?: (...args: any[]) => Promise<any>;
+ *   repoAccess?: (...args: any[]) => Promise<any>;
+ *   store?: any;
+ *   now?: () => number;
+ *   netplayHub?: any;
+ * }} [options]
+ */
 export function createApp({
   target,
   requestStore,
@@ -230,7 +241,24 @@ export function createApp({
   });
 
   // The built UI. Committed to the repository so the one-command install needs no build.
-  app.use(express.static(CLIENT_DIR, { index: 'index.html', etag: true, maxAge: '1h' }));
+  app.use(
+    express.static(CLIENT_DIR, {
+      index: 'index.html',
+      etag: true,
+      maxAge: '1h',
+      setHeaders(res, filePath) {
+        const normalized = filePath.replace(/\\/g, '/');
+        if (normalized.endsWith('/games/manifest.json') || normalized.endsWith('/game-cache-sw.js')) {
+          res.setHeader('Cache-Control', 'no-cache');
+        } else if (normalized.includes('/games/') && normalized.endsWith('.js')) {
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        }
+      },
+    }),
+  );
+  app.use('/games', (_req, res) => {
+    res.status(404).json({ error: { kind: 'not_found', message: 'Game bundle not found.' } });
+  });
   app.get('*', (req, res, next) => {
     if (req.method !== 'GET') return next();
     res.sendFile('index.html', { root: CLIENT_DIR }, (error) => {

@@ -78,6 +78,7 @@ export function securityHeaders(req, res, next) {
       // that has to hold on a page rendering untrusted Markdown. `https://yolo-dev.ai`
       // is approved for the hosted v1 YOLO mark/feedback channel (#282).
       `script-src 'self' 'sha256-${INLINE_SCRIPT_SHA256}' https://yolo-dev.ai`,
+      "worker-src 'self'",
       "style-src 'self' 'unsafe-inline' https://yolo-dev.ai",
       "img-src 'self' data:",
       "media-src 'self'",
