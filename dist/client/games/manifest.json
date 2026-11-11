@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "games": {
+    "puzzle-bobble": {
+      "id": "puzzle-bobble",
+      "packageName": "@yolo-arcade/game-puzzle-bobble",
+      "version": "1.0.0",
+      "hash": "a2c833e744db421379e9b4a0a0504bb846cd0c86ef18fb7d2acab46952424d80",
+      "entry": "/games/puzzle-bobble-1l5URvI2.js",
+      "chunks": [
+        "/assets/vendor-react-W1izUqcL.js",
+        "/assets/arcade-runtime-DCN9D7fI.js",
+        "/assets/tetrisBackgrounds-BOeC-She.js",
+        "/games/puzzle-bobble-1l5URvI2.js"
+      ],
+      "sizeBytes": 70921
+    },
+    "tetris": {
+      "id": "tetris",
+      "packageName": "@yolo-arcade/game-tetris",
+      "version": "1.0.0",
+      "hash": "47d30e6c9db89d24ade29150c7c9735a1577504600e78cff4018dd4530d29017",
+      "entry": "/games/tetris-BQl6pEES.js",
+      "chunks": [
+        "/assets/vendor-react-W1izUqcL.js",
+        "/assets/arcade-runtime-DCN9D7fI.js",
+        "/assets/tetrisBackgrounds-BOeC-She.js",
+        "/games/tetris-BQl6pEES.js"
+      ],
+      "sizeBytes": 35628
+    }
+  }
+}
