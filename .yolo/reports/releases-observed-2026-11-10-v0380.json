@@ -1,0 +1,78 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-10",
+  "observed_at": "2026-11-10",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#306",
+  "releases": [
+    {
+      "tag": "v0.38.0",
+      "commit": "ff888647effa8decc04c6dd6a71c39ceb798510c"
+    }
+  ],
+  "release": {
+    "tag": "v0.38.0",
+    "commit": "ff888647effa8decc04c6dd6a71c39ceb798510c",
+    "source_commit": "b28bb2bc60ae8b3ce573e33571a157e2fa9a8ded",
+    "assets_commit": "b724007ae481f50b504eedab5dc23f8327a79d22",
+    "native_version": "0.38.0",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-10T23:39:00Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.38.0",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/343"
+  },
+  "build_identity": {
+    "server_build_id": "b28bb2bc60ae8b3ce573e33571a157e2fa9a8ded",
+    "client_build_id": "b28bb2bc60ae8b3ce573e33571a157e2fa9a8ded",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "28 files, 190 tests passed",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 46 passed (46.4s, including e2e/game-bundles.spec.ts)",
+      "e2e_live": "npm run e2e:live — 5 passed (13.4s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.38.0 --no-open --port 4480 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (20.8s)",
+      "ci": "GitHub Actions CI/Test and type check green"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "1eca9d69-af7e-4aac-a98b-3329e4d6b73f",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.38.0",
+      "observed_build_id": "b28bb2bc60ae8b3ce573e33571a157e2fa9a8ded",
+      "game_manifest": {
+        "puzzle-bobble": {
+          "version": "1.0.0",
+          "entry": "/games/puzzle-bobble-1l5URvI2.js",
+          "hash": "a2c833e744db421379e9b4a0a0504bb846cd0c86ef18fb7d2acab46952424d80",
+          "sizeBytes": 70921
+        },
+        "tetris": {
+          "version": "1.0.0",
+          "entry": "/games/tetris-BQl6pEES.js",
+          "hash": "47d30e6c9db89d24ade29150c7c9735a1577504600e78cff4018dd4530d29017",
+          "sizeBytes": 35628
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Modular per-game packages (src/games/puzzle-bobble/, src/games/tetris/) with independent package.json versions, lightweight menu descriptors, and standalone content-hashed ESM bundles (/games/puzzle-bobble-1l5URvI2.js 70.9 kB, /games/tetris-BQl6pEES.js 35.6 kB), shrinking the Home shell index-*.js from 541.2 kB to 89.6 kB.",
+    "Menu-loaded /games/manifest.json tracking each game's required version, 64-char SHA-256 hash, entry URL, chunk graph, and byte size with zero upfront game bundle downloads on /.",
+    "SHA-256 verified local CacheStorage (yolo-arcade-games-v1) + same-origin /game-cache-sw.js (worker-src 'self') persisting game bundles locally across sessions (even behind gateway cache-control: private, no-store) and selectively evicting only outdated prior hashes per game."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub.",
+    "Tag v0.38.0 points at merge commit ff88864 following version-bump commit aee6519 and assets commit b724007; both build-ID files record source b28bb2b, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #306"
+}

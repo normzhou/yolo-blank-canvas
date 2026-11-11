@@ -323,15 +323,16 @@
         "v0.37.0": "b9c9f47f9e0dfea5253d5268140330ccb50568c1",
         "v0.37.1": "75eaf744596578ba3fb0d93dedb056b7247bd54f",
         "v0.37.2": "f5889ffaffb961fd6321924e5e1f2649a77a9293",
-        "v0.37.3": "587ed6ea56f1a5a090f97a4d3dc39f7be4cf4ffb"
+        "v0.37.3": "587ed6ea56f1a5a090f97a4d3dc39f7be4cf4ffb",
+        "v0.37.4": "85af2ebab501abc157ab290a8d480ef311ceafe0"
       },
       "published": {
-        "tag": "v0.37.4",
-        "commit": "85af2ebab501abc157ab290a8d480ef311ceafe0",
-        "source_commit": "5dca6f065aa9802106e5ebea320fff1de0d964c4",
-        "published_at": "2026-11-10T23:12:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-10-v0374.json",
-        "note": "Patch release (#339, PR #340 & PR #341). Ships server/feedback-library-assets.js inside package.json#files so standalone npx installs pass 11/11 e2e:verify-release (superseding v0.37.3's failed npx acceptance retained in releases-observed-2026-11-10-v0373.json), restores Ctrl/Cmd+K & ~ palette invocation over <Panel>, stabilizes ReactMarkdown anchor clicks across pointerdown audio unlock, and syncs ARCHITECTURE.md & docs/verification.md; deployed live to https://demo.yolo-dev.ai (Version ID: 6106d624-a54c-433d-8b72-ceca4850f045)."
+        "tag": "v0.38.0",
+        "commit": "ff888647effa8decc04c6dd6a71c39ceb798510c",
+        "source_commit": "b28bb2bc60ae8b3ce573e33571a157e2fa9a8ded",
+        "published_at": "2026-11-10T23:39:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-10-v0380.json",
+        "note": "Minor feature release (#306, PR #343). Breaks out Puzzle Bobble and Tetris into modular lazy-loaded per-game packages (/games/puzzle-bobble-1l5URvI2.js 70.9 kB, /games/tetris-BQl6pEES.js 35.6 kB; Home shell reduced from 541.2 kB to 89.6 kB) tracked by /games/manifest.json and cached locally via SHA-256 verified CacheStorage (yolo-arcade-games-v1) + /game-cache-sw.js; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 1eca9d69-af7e-4aac-a98b-3329e4d6b73f)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -415,7 +416,8 @@
         ".yolo/reports/releases-observed-2026-11-06-v0371.json",
         ".yolo/reports/releases-observed-2026-11-09-v0372.json",
         ".yolo/reports/releases-observed-2026-11-10-v0373.json",
-        ".yolo/reports/releases-observed-2026-11-10-v0374.json"
+        ".yolo/reports/releases-observed-2026-11-10-v0374.json",
+        ".yolo/reports/releases-observed-2026-11-10-v0380.json"
       ]
     }
   },

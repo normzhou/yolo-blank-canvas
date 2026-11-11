@@ -61,6 +61,7 @@ async function openTetris(page: import('@playwright/test').Page) {
       if (!page.url().includes('?app=tetris')) {
         await page.getByTestId('deck-slide-card').click();
       }
+      await expect(page.locator('.tetris-side')).toBeVisible();
       return;
     }
   }
