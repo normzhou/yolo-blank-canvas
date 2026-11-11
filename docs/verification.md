@@ -4,20 +4,23 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
-## Conformity Reconciliation, Palette Shortcut & Markdown Link Stability Fixes, and Architecture Sync (#339) — 2026-11-10
+## Conformity Reconciliation, Palette Shortcut, Markdown Link Stability, Standalone `npx` Tarball Fix, and Architecture Sync (#339) — 2026-11-10
 
-Source revision `7371dea` (`Ctrl/⌘+K` palette over `<Panel>`, stable `ReactMarkdown` anchor identity across `pointerdown` audio unlock, E2E sync, and `ARCHITECTURE.md` update); build evidence `c1200c1`; published as `v0.37.3` on 2026-11-10.
+Source revision `5dca6f0` (ships `server/feedback-library-assets.js` inside `package.json#files` with a tarball-boundary unit test, following `7371dea` client/E2E/architecture fixes); build evidence `acdb688`; published as `v0.37.4` on 2026-11-10 (retaining `v0.37.3` at `587ed6e` as failed standalone-`npx` acceptance that exposed the `#290` `library-assets.mjs` exclusion).
 
+- **Standalone `npx` Tarball Packaging Fix (`server/feedback-library-assets.js`, `server/app.js`, `test/launcher.test.ts`):**
+  - Empty-directory `e2e:verify-release` on `v0.37.3` (`587ed6e`) caught `ERR_MODULE_NOT_FOUND` on `../.agents/skills/yolo/assets/feedback/dist/library-assets.mjs` (added in `#290` outside `package.json#files`). Copied the module to `server/feedback-library-assets.js` inside `server/` and added a unit test verifying all `server/*.js` relative imports resolve inside `package.json#files` and stay byte-identical to `.agents/skills/yolo/assets/feedback/dist/library-assets.mjs`.
 - **Client Fixes (`src/client/App.tsx`, `src/client/components/Markdown.tsx`, `test/markdown.test.tsx`):**
   - Restored `Ctrl/⌘+K` and non-editing `~` palette invocation while `<Panel>` is open by limiting the early overlay guard in `App.tsx` to the shadow-DOM `<yolo-feedback-v1>` dialog (`isHostedFeedbackOpen()`), preserving `openPalette()`'s documented panel-close transition.
   - Memoized `ReactMarkdown` custom `a` and `img` components in `Markdown.tsx` via `useMemo` + a latest-props ref so `pointerdown` state updates (such as default-on audio unlock on first interaction) never unmount and remount anchor nodes before `pointerup`/`click`, keeping in-panel same-repo issue navigation reliable on cold `?panel=<n>` loads.
-- **E2E & Documentation Sync (`e2e/canvas-gallery.spec.ts`, `e2e/deterministic.spec.ts`, `.yolo/governance/ARCHITECTURE.md`, `docs/verification.md`):**
+- **E2E & Documentation Sync (`e2e/canvas-gallery.spec.ts`, `e2e/deterministic.spec.ts`, `e2e/verify-release.spec.ts`, `.yolo/governance/ARCHITECTURE.md`, `docs/verification.md`):**
   - Updated stale Playwright expectations to match shipped `#290` (`<yolo-feedback-v1>` mount in static preview mode with `?panel` fallback notice), `#313` (direct-into-countdown game launch), `#317` (default-on music/SFX), and `#333` (countdown input lock).
-  - Synchronized `.yolo/governance/ARCHITECTURE.md` and `docs/verification.md` (`## Tested revision`) with `v0.15.0`–`v0.37.3` shipped capabilities, and repaired GitHub issue metadata on `#330` (`yolo:manual` assigned to `@normzhou`), `#236`, and `#242` (single `## YOLO status` summary per closed outcome).
-- `npm test`: 27 files, 184 tests passed.
+  - Synchronized `.yolo/governance/ARCHITECTURE.md` and `docs/verification.md` (`## Tested revision`) with `v0.15.0`–`v0.37.4` shipped capabilities, and repaired GitHub issue metadata on `#330` (`yolo:manual` assigned to `@normzhou`), `#236`, and `#242` (single `## YOLO status` summary per closed outcome).
+- `npm test`: 27 files, 185 tests passed.
 - `npx tsc --noEmit`: clean.
 - `npm run e2e`: 45 passed (46.6s).
 - `npm run e2e:live`: 5 passed (13.2s, read-only against `normzhou/yolo-blank-canvas` and `normzhou/yolo-dev`).
+- `npm run e2e:verify-release`: 11 passed against the standalone packed/published artifact in an empty directory.
 
 ## Centered End-of-Round `Next round` / `New game` Overlay & `Space`/`Enter` Keyboard Shortcut (#337) — 2026-11-09
 
@@ -2121,14 +2124,17 @@ agent, so these were taken under the standing grant rather than left waiting.
 
 ## Tested revision
 
-Release tag `v0.37.3` builds from source `7371dea` (`dist/client/.build-id` and
-`server/build-id.generated.js` both report `7371dea…`) with assets committed in `c1200c1`; native
+Release tag `v0.37.4` builds from source `5dca6f0` (`dist/client/.build-id` and
+`server/build-id.generated.js` both report `5dca6f0…`) with assets committed in `acdb688`; native
 versions across `package.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, and
-`hosting/cloudflare/wrangler.json` (`APP_VERSION`) match `0.37.3` / `v0.37.3`. `npm test` passes
-184 tests across 27 files, `npx tsc --noEmit` is clean, `npm run e2e` passes 45 of 45, and
-`npm run e2e:live` passes 5 of 5 (read-only), with release-installed `e2e:verify-release` and live
-`https://demo.yolo-dev.ai` verification recorded in
-[`.yolo/reports/releases-observed-2026-11-10-v0373.json`](../.yolo/reports/releases-observed-2026-11-10-v0373.json).
+`hosting/cloudflare/wrangler.json` (`APP_VERSION`) match `0.37.4` / `v0.37.4`. `npm test` passes
+185 tests across 27 files, `npx tsc --noEmit` is clean, `npm run e2e` passes 45 of 45,
+`npm run e2e:live` passes 5 of 5 (read-only), and empty-directory `npx` `e2e:verify-release` passes
+11 of 11 alongside live `https://demo.yolo-dev.ai` verification, as recorded in
+[`.yolo/reports/releases-observed-2026-11-10-v0374.json`](../.yolo/reports/releases-observed-2026-11-10-v0374.json)
+(with `v0.37.3` at `587ed6e` retained in
+[`.yolo/reports/releases-observed-2026-11-10-v0373.json`](../.yolo/reports/releases-observed-2026-11-10-v0373.json)
+as the failed standalone-`npx` acceptance observation that exposed `#290`'s tarball omission).
 Intermediate releases `v0.15.0` through `v0.37.2` (including `v0.37.2` at `f5889ff` / source
 `0484f3f` / assets `58750e9`, `yolo-demo-app` Version ID `5dbf2ab2-1777-415d-b380-58bdc1ee4746`)
 are documented chronologically in the per-release sections at the top of this file and in
