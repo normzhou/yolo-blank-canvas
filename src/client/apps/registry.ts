@@ -1,46 +1,49 @@
 import type { ComponentType } from 'react';
-import { TetrisView } from '../views/TetrisView';
-import { PuzzleBobbleView } from '../views/PuzzleBobbleView';
+import type { CanvasAppProps, GameEntryModule, GamePackageDescriptor } from '../../games/types';
+import { puzzleBobbleDescriptor } from '../../games/puzzle-bobble/descriptor';
+import { tetrisDescriptor } from '../../games/tetris/descriptor';
+import { createLazyGameElement, loadGameComponent } from '../gameBundles';
+
+export type { CanvasAppProps } from '../../games/types';
 
 /**
- * The first-party canvas content registry.
+ * The first-party modular canvas registry (#165, #306).
  *
- * Canvas content is compiled into the client and addressed by `?app=<id>`.
- * That is deliberately narrower than a plugin system: there is no manifest,
- * no remote loading, no install step and no per-app persistence. The registry
- * exists so the shell can own navigation and so each app stays a component
- * with one contract, not because the app is meant to become a platform.
- *
- * `id` must match the token the route parser accepts: lowercase letters,
- * digits and hyphens, starting with a letter.
+ * Only lightweight menu metadata (`descriptor.ts`) is compiled into the Home
+ * shell. Each game's engine and view live in their own content-hashed bundle
+ * (`/games/<id>-<hash>.js`, tracked by `/games/manifest.json`), lazily fetched,
+ * SHA-256 verified, and persisted in `CacheStorage` (`yolo-arcade-games-v1`)
+ * when the user enters that game.
  */
-export type CanvasAppProps = {
-  /** Return to the blank canvas. The shell owns the location. */
-  onExit: () => void;
-};
+export interface CanvasApp extends GamePackageDescriptor {
+  readonly element: ComponentType<CanvasAppProps>;
+  readonly preload: () => Promise<ComponentType<CanvasAppProps>>;
+}
 
-export type CanvasApp = {
-  /** URL token: `?app=<id>`. */
-  id: string;
-  title: string;
-  /** One quiet line in the switcher. */
-  summary: string;
-  element: ComponentType<CanvasAppProps>;
-};
+function defineLazyCanvasApp(
+  descriptor: GamePackageDescriptor,
+  devLoader: () => Promise<GameEntryModule>,
+): CanvasApp {
+  return {
+    ...descriptor,
+    element: createLazyGameElement(descriptor, devLoader),
+    preload: () => loadGameComponent(descriptor, devLoader),
+  };
+}
+
+const devPuzzleBobbleLoader: () => Promise<GameEntryModule> =
+  import.meta.env.DEV || import.meta.env.MODE === 'test'
+    ? () => import('../../games/puzzle-bobble/entry')
+    : () => Promise.reject(new Error('Production builds load game bundles via /games/manifest.json'));
+
+const devTetrisLoader: () => Promise<GameEntryModule> =
+  import.meta.env.DEV || import.meta.env.MODE === 'test'
+    ? () => import('../../games/tetris/entry')
+    : () => Promise.reject(new Error('Production builds load game bundles via /games/manifest.json'));
 
 export const CANVAS_APPS: readonly CanvasApp[] = [
-  {
-    id: 'puzzle-bobble',
-    title: 'Puzzle Bobble',
-    summary: '2-player Bust-A-Move bubble battle (ASDF vs Arrows). Local to this view.',
-    element: PuzzleBobbleView,
-  },
-  {
-    id: 'tetris',
-    title: 'Tetris',
-    summary: 'Clear lines. The board is local to this view.',
-    element: TetrisView,
-  },
+  defineLazyCanvasApp(puzzleBobbleDescriptor, devPuzzleBobbleLoader),
+  defineLazyCanvasApp(tetrisDescriptor, devTetrisLoader),
 ];
 
 /** Resolve a route token to an app. Unknown or absent ids are the canvas. */

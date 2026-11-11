@@ -1,0 +1,7 @@
+{
+  "name": "@yolo-arcade/game-puzzle-bobble",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Puzzle Bobble (Bust-A-Move) modular game package for YOLO Arcade",
+  "type": "module"
+}

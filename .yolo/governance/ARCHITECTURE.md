@@ -103,9 +103,18 @@ shell owns navigation through the slide deck (`‹` / `›` and horizontal carou
 `ArrowLeft` / `ArrowRight` and natural touch swipe to flip, `Enter` / `Space` to launch directly into the 22-language `"Ready… / Go!"`
 countdown without opening on the Pause menu, #198, #239, #264, #313, #333) as well as the Ctrl/⌘K (`~`) palette.
 `?app=<id>` is the app's location, and `?app=<id>&panel=<n>` composes the Requests overlay over it.
-The registry is a compile-time list, not a plugin surface: there is no remote game loading,
-iframe, third-party app, marketplace or per-app persistence. The Puzzle Bobble / Bust-A-Move entry (#181)
-and the Tetris entry (#4, including 1P, 2P Local side-by-side #301, and 2P Online #236) are compiled into the registry.
+The registry (`src/client/apps/registry.ts`) is a first-party modular list — never a third-party
+remote plugin surface, iframe, or marketplace — where only lightweight menu descriptors
+(`src/games/<id>/descriptor.ts` and `src/games/<id>/package.json#version`) are compiled into the
+~90 kB Home shell (#306). Each game's engine and view (`src/games/puzzle-bobble/entry.tsx` #181 and
+`src/games/tetris/entry.tsx` #4) compile into independent content-hashed ESM bundles
+(`/games/<id>-<hash>.js`, decoupled from `__CLIENT_BUILD__` so sibling-game or shell changes leave
+unchanged game hashes intact) indexed by `/games/manifest.json` (`schemaVersion: 1`, `{ id, version, hash, entry, chunks, sizeBytes }`).
+The Home menu loads `/games/manifest.json` (`Cache-Control: no-cache`) to track each game's required
+version/hash and local cache status while downloading zero `/games/*.js` bundles upfront; entering
+`?app=<id>` verifies SHA-256 integrity (`src/client/gameBundles.ts`), persists chunks in local
+`CacheStorage` (`yolo-arcade-games-v1`, selectively evicting only outdated prior hashes for that game),
+and serves subsequent/offline launches locally via same-origin `/game-cache-sw.js` (`worker-src 'self'`).
 
 For live public hosting at `https://demo.yolo-dev.ai` (#199, #290, #292, #328), `hosting/cloudflare/` is instantiated
 under the adopted `cloudflare` profile (`yolo-demo-app`), serving `../../dist/client` behind the

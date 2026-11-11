@@ -994,7 +994,16 @@ export default {
     if (!['GET', 'HEAD'].includes(request.method)) return failure(405, 'Method not allowed');
     const asset = await env.ASSETS.fetch(request);
     const out = new Response(asset.body, asset);
-    if (url.pathname === '/' || url.pathname.endsWith('.html')) out.headers.set('cache-control', 'no-cache');
+    if (
+      url.pathname === '/' ||
+      url.pathname.endsWith('.html') ||
+      url.pathname === '/games/manifest.json' ||
+      url.pathname === '/game-cache-sw.js'
+    ) {
+      out.headers.set('cache-control', 'no-cache');
+    } else if (url.pathname.startsWith('/games/') && url.pathname.endsWith('.js') && out.ok) {
+      out.headers.set('cache-control', 'public, max-age=31536000, immutable');
+    }
     return out;
   },
 };
