@@ -324,15 +324,16 @@
         "v0.37.1": "75eaf744596578ba3fb0d93dedb056b7247bd54f",
         "v0.37.2": "f5889ffaffb961fd6321924e5e1f2649a77a9293",
         "v0.37.3": "587ed6ea56f1a5a090f97a4d3dc39f7be4cf4ffb",
-        "v0.37.4": "85af2ebab501abc157ab290a8d480ef311ceafe0"
+        "v0.37.4": "85af2ebab501abc157ab290a8d480ef311ceafe0",
+        "v0.38.0": "ff888647effa8decc04c6dd6a71c39ceb798510c"
       },
       "published": {
-        "tag": "v0.38.0",
-        "commit": "ff888647effa8decc04c6dd6a71c39ceb798510c",
-        "source_commit": "b28bb2bc60ae8b3ce573e33571a157e2fa9a8ded",
-        "published_at": "2026-11-10T23:39:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-10-v0380.json",
-        "note": "Minor feature release (#306, PR #343). Breaks out Puzzle Bobble and Tetris into modular lazy-loaded per-game packages (/games/puzzle-bobble-1l5URvI2.js 70.9 kB, /games/tetris-BQl6pEES.js 35.6 kB; Home shell reduced from 541.2 kB to 89.6 kB) tracked by /games/manifest.json and cached locally via SHA-256 verified CacheStorage (yolo-arcade-games-v1) + /game-cache-sw.js; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 1eca9d69-af7e-4aac-a98b-3329e4d6b73f)."
+        "tag": "v0.39.0",
+        "commit": "fd19dfbb131e15fdf20c624d6cca76e17d82504c",
+        "source_commit": "a6af73dcfef97c1c64cca7927757f78db976089e",
+        "published_at": "2026-11-12T04:33:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-11-v0390.json",
+        "note": "Minor feature & polish release (#345, #342, PR #346). Upgrades Puzzle Bobble's four selectable mascots (@yolo-arcade/game-puzzle-bobble@1.1.0, while @yolo-arcade/game-tetris@1.0.0 stays byte-unchanged) to a Declarative Rigged Vector Puppet format with cel-shaded 3D volume, colored glossy irises, Dusk-theme dark ink contrast fix, curved 2-bone Bezier arm IK keeping the crank wheel spinning during cheer (#342), periodic eye blinks, and secondary ear/tail motion; verified across 3 closed-loop 3x Retina visual passes, 11/11 standalone npx e2e:verify-release, and deployed live to https://demo.yolo-dev.ai (Version ID: da2a2f3b-e133-48a4-8fb2-a65137098c33)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -417,7 +418,8 @@
         ".yolo/reports/releases-observed-2026-11-09-v0372.json",
         ".yolo/reports/releases-observed-2026-11-10-v0373.json",
         ".yolo/reports/releases-observed-2026-11-10-v0374.json",
-        ".yolo/reports/releases-observed-2026-11-10-v0380.json"
+        ".yolo/reports/releases-observed-2026-11-10-v0380.json",
+        ".yolo/reports/releases-observed-2026-11-11-v0390.json"
       ]
     }
   },

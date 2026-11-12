@@ -1,0 +1,77 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-11",
+  "observed_at": "2026-11-11",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#345",
+  "releases": [
+    {
+      "tag": "v0.39.0",
+      "commit": "fd19dfbb131e15fdf20c624d6cca76e17d82504c"
+    }
+  ],
+  "release": {
+    "tag": "v0.39.0",
+    "commit": "fd19dfbb131e15fdf20c624d6cca76e17d82504c",
+    "source_commit": "a6af73dcfef97c1c64cca7927757f78db976089e",
+    "assets_commit": "654d004c1dd523953cd3278a1251ba8e2a4c5e4e",
+    "native_version": "0.39.0",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-12T04:33:00Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.39.0",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/346"
+  },
+  "build_identity": {
+    "server_build_id": "a6af73dcfef97c1c64cca7927757f78db976089e",
+    "client_build_id": "a6af73dcfef97c1c64cca7927757f78db976089e",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "28 files, 191 tests passed",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 46 passed (46.1s, including #342 happy-cranking check and @yolo-arcade/game-puzzle-bobble@1.1.0)",
+      "e2e_live": "npm run e2e:live — 5 passed (17.6s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.39.0 --no-open --port 4490 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (20.6s)",
+      "ci": "GitHub Actions CI/Test and type check green"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "da2a2f3b-e133-48a4-8fb2-a65137098c33",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.39.0",
+      "observed_build_id": "a6af73dcfef97c1c64cca7927757f78db976089e",
+      "game_manifest": {
+        "puzzle-bobble": {
+          "version": "1.1.0",
+          "entry": "/games/puzzle-bobble-ChNR66BQ.js",
+          "hash": "dfe6f101c2043c5fa2f15638ff2bf6268b8be4890320b5c306cb5717e5ed41ec",
+          "sizeBytes": 81024
+        },
+        "tetris": {
+          "version": "1.0.0",
+          "entry": "/games/tetris-BQl6pEES.js",
+          "hash": "47d30e6c9db89d24ade29150c7c9735a1577504600e78cff4018dd4530d29017",
+          "sizeBytes": 35628
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Declarative Rigged Vector Puppet format (src/games/puzzle-bobble/mascots.tsx, @yolo-arcade/game-puzzle-bobble@1.1.0) upgrading Dragon (Bub/Bob), Cat (Mochi/Yuzu), Dog (Koro/Shiba), and Bunny (Usagi/Momo) with cel-shaded 3D volume, colored glossy irises with dual catchlights, species-distinct anatomy, Dusk-theme ink contrast fixes, and an extended launcher pedestal while keeping @yolo-arcade/game-tetris@1.0.0 byte-unchanged.",
+    "Curved 2-bone Bezier arm IK keeping the mascot's cranking paw gripping and spinning the brass crank wheel across normal, hurry, AND cheer (#342), plus separated secondary-motion layers (breathing squash-and-stretch, ear bounce, tail wag, periodic eye blinks, shot-launch lean, and outward-flared victory/cry poses)."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub.",
+    "Tag v0.39.0 points at merge commit fd19dfb following version-bump commit 6953772 and assets commit 654d004; both build-ID files record source a6af73d, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #345"
+}
