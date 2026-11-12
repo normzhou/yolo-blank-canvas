@@ -4,6 +4,25 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Boy & Girl Mascot Personas, Matching Names/Colors, Random Game-Start Duo, & Random-Other Click Switching (#347) — 2026-11-11
+
+Delivered in `@yolo-arcade/game-puzzle-bobble@1.2.0` and published as `v0.40.0` on 2026-11-11 (`tetris@1.0.0` `/games/tetris-BQl6pEES.js` unchanged).
+
+- **Boy & Girl Personas, Names, & Matching Token Palettes (`src/shared/puzzleBobble.ts`, `src/games/puzzle-bobble/mascots.tsx`, `src/client/views/PuzzleBobbleView.tsx`):**
+  - **Dragon:** Boy **`Bub`** (emerald green `var(--tetromino-s)` + cyan kerchief bandana) · Girl **`Bibi`** (coral-rose `var(--tetromino-z)` + golden crown ribbon bow, pearl sweetheart necklace, berry smile, curved winged eyelashes, and outer heart tail tip).
+  - **Cat:** Boy **`Yuzu`** (ginger-marmalade `var(--tetromino-l)` + cobalt star-tag collar) · Girl **`Mochi`** (orchid-lavender `var(--tetromino-t)` + tilted rose ear-base satin bow, rose bell collar, sapphire-cyan irises, and curved winged eyelashes).
+  - **Dog:** Boy **`Koro`** (sunny Shiba gold `var(--tetromino-o)` + cobalt V-bandana) · Girl **`Hana`** (snow-cream `var(--on-accent)` & blossom-rose `var(--tetromino-z)` puppy with 5-petal sakura blossom clip, scalloped rose-and-gold collar, pink button nose, and curved winged eyelashes).
+  - **Bunny:** Boy **`Poko`** (sky-cobalt `var(--tetromino-j)` + dapper cyan/gold bow-tie) · Girl **`Momo`** (berry-pink `var(--tetromino-z)` + plush golden lop-ear bow, ruffled sweetheart collar, orchid-violet irises, and curved winged eyelashes).
+  - Tints each player's `1UP` / `2UP` badge, `1P · <Name>` / `2P · <Name>` header title, and tactical callout text to match the active persona's palette.
+- **Random Game-Start Duo & Random-Other Click Switching:**
+  - `createRandomMascotPair()` initializes game start (and fresh new games) with two distinct random animal species and **one `'girl'` + one `'boy'`** (`['girl', 'boy']` or `['boy', 'girl']`).
+  - `pickRandomOtherMascot()` switches a clicked mascot to a **random other animal species** (`next.character !== current.character`) with a **random gender** (`'boy' | 'girl'`).
+  - Verified across 3 closed-loop 3× Retina Playwright visual passes (`dusk` and `slate` themes across all 8 Boy/Girl personas and `normal`/`cheer`/`celebrate`/`cry` moods).
+- `npm test`: 28 files, 191 tests passed (`test/puzzle-bobble.test.ts`).
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 46 passed (52.9s, including `#347` random 1-girl + 1-boy start & random-other click switching and `@yolo-arcade/game-puzzle-bobble@1.2.0`).
+- `npm run e2e:live`: 5 passed (13.6s, read-only).
+
 ## Puzzle Bobble Declarative Rigged Vector Mascots, Cel-Shaded Finish, & Happy Cranking Fix (#345, #342) — 2026-11-11
 
 Source revision `a6af73d` (`src/games/puzzle-bobble/mascots.tsx` declarative rigged vector puppet format + `@yolo-arcade/game-puzzle-bobble@1.1.0`, resolving `#342`); build evidence `654d004` (`tetris@1.0.0` `/games/tetris-BQl6pEES.js` unchanged); published as `v0.39.0` on 2026-11-11.

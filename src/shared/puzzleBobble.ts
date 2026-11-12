@@ -20,25 +20,79 @@ export type BubbleCell = BubbleColor | null;
 export type BubbleGrid = BubbleCell[][];
 
 export type CharacterId = 'dragon' | 'cat' | 'dog' | 'bunny';
+export type MascotGender = 'boy' | 'girl';
 export type MascotMood = 'normal' | 'cheer' | 'hurry' | 'celebrate' | 'cry';
+
+export interface MascotSelection {
+  readonly character: CharacterId;
+  readonly gender: MascotGender;
+}
 
 export interface CharacterOption {
   id: CharacterId;
   label: string;
+  boyName: string;
+  girlName: string;
   p1Name: string;
   p2Name: string;
 }
 
 export const CHARACTER_OPTIONS: readonly CharacterOption[] = [
-  { id: 'dragon', label: 'Dragon', p1Name: 'Bub', p2Name: 'Bob' },
-  { id: 'cat', label: 'Cat', p1Name: 'Mochi', p2Name: 'Yuzu' },
-  { id: 'dog', label: 'Dog', p1Name: 'Pochi', p2Name: 'Koro' },
-  { id: 'bunny', label: 'Bunny', p1Name: 'Usagi', p2Name: 'Momo' },
+  { id: 'dragon', label: 'Dragon', boyName: 'Bub', girlName: 'Bibi', p1Name: 'Bub', p2Name: 'Bibi' },
+  { id: 'cat', label: 'Cat', boyName: 'Yuzu', girlName: 'Mochi', p1Name: 'Yuzu', p2Name: 'Mochi' },
+  { id: 'dog', label: 'Dog', boyName: 'Koro', girlName: 'Hana', p1Name: 'Koro', p2Name: 'Hana' },
+  { id: 'bunny', label: 'Bunny', boyName: 'Poko', girlName: 'Momo', p1Name: 'Poko', p2Name: 'Momo' },
 ];
 
-export function characterDisplayName(character: CharacterId, playerNumber: 1 | 2): string {
+export function characterDisplayName(
+  character: CharacterId,
+  genderOrPlayer: MascotGender | 1 | 2 = 'boy',
+): string {
   const found = CHARACTER_OPTIONS.find((opt) => opt.id === character) ?? CHARACTER_OPTIONS[0];
-  return playerNumber === 1 ? found.p1Name : found.p2Name;
+  if (genderOrPlayer === 'girl' || genderOrPlayer === 2) return found.girlName;
+  return found.boyName;
+}
+
+/**
+ * Picks two random mascots for game start: two distinct animal species, with
+ * one `'girl'` and one `'boy'` assigned in random player order (#347).
+ */
+export function createRandomMascotPair(
+  rng: () => number = Math.random,
+): [MascotSelection, MascotSelection] {
+  const firstIdx = Math.min(
+    CHARACTER_OPTIONS.length - 1,
+    Math.max(0, Math.floor(rng() * CHARACTER_OPTIONS.length)),
+  );
+  const firstChar = CHARACTER_OPTIONS[firstIdx]!.id;
+  const remaining = CHARACTER_OPTIONS.filter((opt) => opt.id !== firstChar);
+  const secondIdx = Math.min(
+    remaining.length - 1,
+    Math.max(0, Math.floor(rng() * remaining.length)),
+  );
+  const secondChar = remaining[secondIdx]!.id;
+  const firstIsGirl = rng() < 0.5;
+  return [
+    { character: firstChar, gender: firstIsGirl ? 'girl' : 'boy' },
+    { character: secondChar, gender: firstIsGirl ? 'boy' : 'girl' },
+  ];
+}
+
+/**
+ * Clicking a mascot switches to a random *other* animal species (`!== current.character`)
+ * with a random gender (`'boy' | 'girl'`) (#347).
+ */
+export function pickRandomOtherMascot(
+  current: MascotSelection,
+  rng: () => number = Math.random,
+): MascotSelection {
+  const others = CHARACTER_OPTIONS.filter((opt) => opt.id !== current.character);
+  const idx = Math.min(others.length - 1, Math.max(0, Math.floor(rng() * others.length)));
+  const gender: MascotGender = rng() < 0.5 ? 'girl' : 'boy';
+  return {
+    character: others[idx]!.id,
+    gender,
+  };
 }
 
 export const BUBBLE_COLORS: readonly BubbleColor[] = [

@@ -41,7 +41,6 @@ import {
   ARENA_HEIGHT,
   ARENA_WIDTH,
   BUBBLE_RADIUS,
-  CHARACTER_OPTIONS,
   DANGER_LINE_Y,
   LAUNCHER_X,
   LAUNCHER_Y,
@@ -55,6 +54,7 @@ import {
   colsForRow,
   createMatch,
   createPlayerBoard,
+  createRandomMascotPair,
   createStageGrid,
   decomposeGarbageOrbs,
   deriveMascotAdvice,
@@ -64,6 +64,7 @@ import {
   formatAimAngle,
   generateGarbageColors,
   hurryCountdownSeconds,
+  pickRandomOtherMascot,
   queueIncomingGarbage,
   resolveMatchOutcome,
   setPlayerAimAngle,
@@ -75,11 +76,16 @@ import {
   type BubbleColor,
   type CharacterId,
   type MascotAdvice,
+  type MascotGender,
   type MascotMood,
+  type MascotSelection,
   type PlayerBoardState,
   type PuzzleBobbleMatch,
 } from '../../shared/puzzleBobble';
-import { CharacterMascotSvg, CharacterTokenIcon } from '../../games/puzzle-bobble/mascots';
+import {
+  CharacterMascotSvg,
+  mascotPalette,
+} from '../../games/puzzle-bobble/mascots';
 
 const BUBBLE_TOKEN: Record<BubbleColor, string> = {
   ruby: 'var(--tetromino-z)',
@@ -244,16 +250,18 @@ function BubbleSvg({
 function LauncherMechanismSvg({
   player,
   playerNumber,
-  character,
+  mascot,
   advice,
   onCycleCharacter,
 }: {
   player: PlayerBoardState;
   playerNumber: 1 | 2;
-  character: CharacterId;
+  mascot: MascotSelection;
   advice: MascotAdvice;
   onCycleCharacter?: () => void;
 }) {
+  const { character, gender } = mascot;
+  const palette = mascotPalette(character, gender);
   const gearRotation = Math.round(player.aimAngle * 6 * 10) / 10;
   const crankRotation = Math.round(-player.aimAngle * 18 * 10) / 10;
   const mood = deriveMascotMood(player);
@@ -395,12 +403,13 @@ function LauncherMechanismSvg({
         <BubbleSvg cx={0} cy={-1} color={player.nextBubble} radius={BUBBLE_RADIUS - 3} />
       </g>
 
-      {/* Selectable cute mascot turning the crank on the right — click to cycle animal (#204, #299, #313, #345) */}
+      {/* Selectable cute mascot turning the crank on the right — click for random other animal & gender (#204, #299, #313, #345, #347) */}
       <CharacterMascotSvg
         x={LAUNCHER_X + 44}
         y={LAUNCHER_Y + 6}
         playerNumber={playerNumber}
         character={character}
+        gender={gender}
         mood={mood}
         aimAngle={player.aimAngle}
         isFiring={player.flying !== null}
@@ -411,11 +420,11 @@ function LauncherMechanismSvg({
       {(() => {
         const bangIdx = advice.bubbleText.indexOf('! ');
         const line1 =
-          bangIdx > 0 && bangIdx < 18
+          bangIdx > 0 && bangIdx < 28
             ? advice.bubbleText.slice(0, bangIdx + 1)
             : advice.bubbleText;
         const line2 =
-          bangIdx > 0 && bangIdx < 18 ? advice.bubbleText.slice(bangIdx + 2) : '';
+          bangIdx > 0 && bangIdx < 28 ? advice.bubbleText.slice(bangIdx + 2) : '';
         const textFill =
           advice.kind === 'danger' || advice.kind === 'lose'
             ? 'var(--tetromino-z)'
@@ -423,13 +432,7 @@ function LauncherMechanismSvg({
               ? 'var(--tetromino-o)'
               : advice.kind === 'bank'
                 ? 'var(--tetromino-t)'
-                : character === 'cat'
-                  ? 'var(--tetromino-o)'
-                  : character === 'dog'
-                    ? 'var(--tetromino-i)'
-                    : character === 'bunny'
-                      ? 'var(--tetromino-t)'
-                      : 'var(--tetromino-s)';
+                : palette.calloutText;
         return (
           <g
             className={`pb-mascot-speech pb-mascot-speech-${advice.kind}`}
@@ -828,8 +831,8 @@ const SettledBubbleGridSvg = memo(function SettledBubbleGridSvg({
 function PlayerArena({
   player,
   playerNumber,
-  character,
-  onSelectCharacter,
+  mascot,
+  onSelectMascot,
   isTwoPlayer,
   showTouchControls,
   onlineOpponent,
@@ -842,8 +845,8 @@ function PlayerArena({
 }: {
   player: PlayerBoardState;
   playerNumber: 1 | 2;
-  character: CharacterId;
-  onSelectCharacter: (character: CharacterId) => void;
+  mascot: MascotSelection;
+  onSelectMascot: (next: MascotSelection) => void;
   isTwoPlayer: boolean;
   showTouchControls: boolean;
   onlineOpponent?: { name: string; radar: PuzzleBobbleRadarSnapshot } | null;
@@ -854,6 +857,8 @@ function PlayerArena({
   onHoldAimStart: (keyId: string, deltaDeg: number) => void;
   onHoldAimEnd: (keyId: string) => void;
 }) {
+  const { character, gender } = mascot;
+  const palette = mascotPalette(character, gender);
   const dragPointerIdRef = useRef<number | null>(null);
   const boardSvgRef = useRef<SVGSVGElement | null>(null);
 
@@ -873,7 +878,7 @@ function PlayerArena({
   }, [player.aimAngle, player.ceilingDrop]);
   const summary = eventSummary(player);
   const hurrySeconds = hurryCountdownSeconds(player);
-  const charName = characterDisplayName(character, playerNumber);
+  const charName = characterDisplayName(character, gender);
   const mood = deriveMascotMood(player);
   const adviceStateRef = useRef<{
     advice: MascotAdvice;
@@ -902,11 +907,9 @@ function PlayerArena({
   }
   const advice = adviceStateRef.current.advice;
 
-  const cycleCharacter = useCallback(() => {
-    const idx = CHARACTER_OPTIONS.findIndex((opt) => opt.id === character);
-    const next = CHARACTER_OPTIONS[(idx + 1) % CHARACTER_OPTIONS.length]!;
-    onSelectCharacter(next.id);
-  }, [character, onSelectCharacter]);
+  const randomizeMascot = useCallback(() => {
+    onSelectMascot(pickRandomOtherMascot(mascot));
+  }, [mascot, onSelectMascot]);
 
   const lastEv = player.lastEvent;
   const incomingPreview = player.incomingQueue.slice(0, 6);
@@ -923,14 +926,26 @@ function PlayerArena({
 
   return (
     <div className="pb-player-card" data-player={playerNumber}>
-      {/* Compact single-line arcade marquee (#215, #226, #313 — click mascot to switch animal) */}
+      {/* Compact single-line arcade marquee (#215, #226, #313, #347 — click mascot for random other mascot + gender) */}
       <div className="pb-player-header">
         <div className="pb-player-id">
-          <span className={`pb-up-badge pb-up-${playerNumber}`} aria-hidden="true">
+          <span
+            className={`pb-up-badge pb-up-${playerNumber}`}
+            style={{ background: palette.badgeBg, color: palette.badgeFg }}
+            aria-hidden="true"
+          >
             {playerNumber}UP
           </span>
           <span className="pb-player-title" data-testid={`p${playerNumber}-title`}>
-            {`${playerNumber}P · ${charName}`}
+            {`${playerNumber}P · `}
+            <span
+              style={{
+                color: palette.calloutText,
+                textShadow: '0 1px 2px var(--cabinet-well), 0 0 6px var(--cabinet-well)',
+              }}
+            >
+              {charName}
+            </span>
           </span>
         </div>
         <div className="pb-status-pills">
@@ -1230,9 +1245,9 @@ function PlayerArena({
           <LauncherMechanismSvg
             player={player}
             playerNumber={playerNumber}
-            character={character}
+            mascot={mascot}
             advice={advice}
-            onCycleCharacter={cycleCharacter}
+            onCycleCharacter={randomizeMascot}
           />
 
           {/* In-board arcade win/lose marquee plaque (#215) */}
@@ -1413,7 +1428,9 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
   const [match, setMatch] = useState<PuzzleBobbleMatch>(() =>
     createMatch(isPhoneViewport() ? '1p' : '2p'),
   );
-  const [characters, setCharacters] = useState<[CharacterId, CharacterId]>(['dragon', 'dragon']);
+  const [mascots, setMascots] = useState<[MascotSelection, MascotSelection]>(() =>
+    createRandomMascotPair(),
+  );
   const [stagePreset, setStagePreset] = useState<number>(0); // 0 = random wave, 1..5 = classic Taito stages
   const [paused, setPaused] = useState<boolean>(() => getSharedGamePaused());
   const [musicOn, setMusicOn] = useState<boolean>(() => getSharedMusicOn());
@@ -1971,13 +1988,35 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         detail?.winner === 0 ? 0 : detail?.winner === 1 ? 1 : null;
       setMatch((current) => resolveMatchOutcome(current, winner));
     }
+    function onSetMascot(event: Event) {
+      const detail = (
+        event as CustomEvent<{
+          player?: 0 | 1;
+          character?: CharacterId;
+          gender?: MascotGender;
+        }>
+      ).detail;
+      const idx: 0 | 1 = detail?.player === 1 ? 1 : 0;
+      const character: CharacterId =
+        detail?.character === 'cat' ||
+        detail?.character === 'dog' ||
+        detail?.character === 'bunny'
+          ? detail.character
+          : 'dragon';
+      const gender: MascotGender = detail?.gender === 'girl' ? 'girl' : 'boy';
+      setMascots((prev) =>
+        idx === 0 ? [{ character, gender }, prev[1]] : [prev[0], { character, gender }],
+      );
+    }
     window.addEventListener('yolo:puzzle-bobble:fire-resolve', onInstantResolve);
     window.addEventListener('yolo:puzzle-bobble:queue-garbage', onQueueGarbage);
     window.addEventListener('yolo:puzzle-bobble:round-outcome', onRoundOutcome);
+    window.addEventListener('yolo:puzzle-bobble:set-mascot', onSetMascot);
     return () => {
       window.removeEventListener('yolo:puzzle-bobble:fire-resolve', onInstantResolve);
       window.removeEventListener('yolo:puzzle-bobble:queue-garbage', onQueueGarbage);
       window.removeEventListener('yolo:puzzle-bobble:round-outcome', onRoundOutcome);
+      window.removeEventListener('yolo:puzzle-bobble:set-mascot', onSetMascot);
     };
   }, []);
 
@@ -1986,6 +2025,9 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
       prevShotsRef.current = [0, 0];
       prevEventIdsRef.current = [0, 0];
       prevMatchStatusRef.current = 'playing';
+      if (!keepWins) {
+        setMascots(createRandomMascotPair());
+      }
       setMatch((current) => {
         const wins: [number, number] = keepWins ? current.wins : [0, 0];
         if (preset > 0) {
@@ -2399,8 +2441,8 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         <PlayerArena
           player={match.players[0]}
           playerNumber={1}
-          character={characters[0]}
-          onSelectCharacter={(c) => setCharacters(([_, p2]) => [c, p2])}
+          mascot={mascots[0]}
+          onSelectMascot={(next) => setMascots(([, p2]) => [next, p2])}
           isTwoPlayer={match.mode === '2p' || isOnline2P}
           showTouchControls={touchAvailable}
           onlineOpponent={
@@ -2434,8 +2476,8 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
           <PlayerArena
             player={match.players[1]}
             playerNumber={2}
-            character={characters[1]}
-            onSelectCharacter={(c) => setCharacters(([p1]) => [p1, c])}
+            mascot={mascots[1]}
+            onSelectMascot={(next) => setMascots(([p1]) => [p1, next])}
             isTwoPlayer
             showTouchControls={touchAvailable}
             disabled={

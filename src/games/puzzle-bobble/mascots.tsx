@@ -1,33 +1,35 @@
-import { characterDisplayName, type CharacterId, type MascotMood } from '../../shared/puzzleBobble';
+import {
+  characterDisplayName,
+  type CharacterId,
+  type MascotGender,
+  type MascotMood,
+} from '../../shared/puzzleBobble';
 
 /**
- * Declarative Rigged Vector Puppet format for Puzzle Bobble mascots (#345, #342).
+ * Declarative Rigged Vector Puppet format for Puzzle Bobble mascots (#345, #342, #347).
  *
- * Why this representation was chosen over raster sprite sheets or external
- * Lottie/Rive runtimes:
- * 1. Continuous `0.5°` hand-crank 2-bone inverse kinematics (`solveTwoBoneIK`)
- *    with smooth quadratic Bezier limbs keeps the mascot's cranking paw
- *    physically gripping the crank pin across every aim micro-adjustment —
- *    including during `cheer` right after popping bubbles (#342).
- * 2. Infinite Retina/4K vector sharpness across responsive `148px`–`560px`
- *    boards with zero external texture downloads (self-contained inside the
- *    lazy `/games/puzzle-bobble-*.js` chunk from #306).
- * 3. Strict CSS theme-token compliance (`test/theme-tokens.test.ts`), using
- *    `var(--cabinet-well)` for dark arcade ink & glossy pupils so dark (`dusk`)
- *    mode never inverts pupils/outlines to white.
+ * Each animal species (`dragon`, `cat`, `dog`, `bunny`) supports distinct Boy and Girl
+ * personas with gender-matched names, CSS-token color palettes, curved winged eyelashes,
+ * and arcade accessories (crown ribbon bow, ear-base satin bow, 5-petal sakura blossom
+ * clip, lop-ear plush bow, sporty neck bandanas, star collar tag, and dapper bow-tie).
  */
 
 export interface MascotTokenPalette {
   readonly body: string;
   readonly accent: string;
+  readonly secondary: string;
   readonly iris: string;
   readonly belly: string;
   readonly cheek: string;
+  readonly calloutText: string;
+  readonly badgeBg: string;
+  readonly badgeFg: string;
 }
 
 export interface MascotSpeciesRig {
   readonly id: CharacterId;
-  readonly palettes: readonly [MascotTokenPalette, MascotTokenPalette];
+  readonly boy: MascotTokenPalette;
+  readonly girl: MascotTokenPalette;
   readonly topStarY: number;
   readonly tailPivot: readonly [number, number];
   readonly leftEarPivot: readonly [number, number];
@@ -37,91 +39,123 @@ export interface MascotSpeciesRig {
 export const MASCOT_RIGS: Readonly<Record<CharacterId, MascotSpeciesRig>> = {
   dragon: {
     id: 'dragon',
-    palettes: [
-      {
-        body: 'var(--tetromino-s)',
-        accent: 'var(--tetromino-l)',
-        iris: 'var(--positive)',
-        belly: 'var(--on-accent)',
-        cheek: 'var(--tetromino-z)',
-      },
-      {
-        body: 'var(--tetromino-j)',
-        accent: 'var(--tetromino-o)',
-        iris: 'var(--accent)',
-        belly: 'var(--on-accent)',
-        cheek: 'var(--tetromino-z)',
-      },
-    ],
-    topStarY: -26,
+    // Boy: Bub — Emerald green dino with amber spikes & cyan sporty bandana
+    boy: {
+      body: 'var(--tetromino-s)',
+      accent: 'var(--tetromino-l)',
+      secondary: 'var(--tetromino-i)',
+      iris: 'var(--positive)',
+      belly: 'var(--on-accent)',
+      cheek: 'var(--tetromino-z)',
+      calloutText: 'var(--tetromino-s)',
+      badgeBg: 'var(--tetromino-s)',
+      badgeFg: 'var(--cabinet-well)',
+    },
+    // Girl: Bibi — Blossom coral-pink dino with golden crown bow, violet irises & heart tail tip
+    girl: {
+      body: 'var(--tetromino-z)',
+      accent: 'var(--tetromino-o)',
+      secondary: 'var(--tetromino-t)',
+      iris: 'var(--tetromino-t)',
+      belly: 'var(--on-accent)',
+      cheek: 'var(--tetromino-t)',
+      calloutText: 'var(--tetromino-z)',
+      badgeBg: 'var(--tetromino-z)',
+      badgeFg: 'var(--cabinet-well)',
+    },
+    topStarY: -27,
     tailPivot: [11, 5.5],
     leftEarPivot: [-0.5, -18.5],
     rightEarPivot: [5.5, -18.5],
   },
   cat: {
     id: 'cat',
-    palettes: [
-      {
-        body: 'var(--tetromino-l)',
-        accent: 'var(--tetromino-z)',
-        iris: 'var(--tetromino-s)',
-        belly: 'var(--on-accent)',
-        cheek: 'var(--tetromino-z)',
-      },
-      {
-        body: 'var(--tetromino-t)',
-        accent: 'var(--tetromino-o)',
-        iris: 'var(--tetromino-i)',
-        belly: 'var(--on-accent)',
-        cheek: 'var(--tetromino-z)',
-      },
-    ],
-    topStarY: -28,
+    // Boy: Yuzu — Ginger-marmalade tabby cat with cobalt collar & cyan star tag
+    boy: {
+      body: 'var(--tetromino-l)',
+      accent: 'var(--tetromino-o)',
+      secondary: 'var(--tetromino-j)',
+      iris: 'var(--tetromino-s)',
+      belly: 'var(--on-accent)',
+      cheek: 'var(--tetromino-z)',
+      calloutText: 'var(--tetromino-l)',
+      badgeBg: 'var(--tetromino-l)',
+      badgeFg: 'var(--cabinet-well)',
+    },
+    // Girl: Mochi — Pastel orchid-lavender kitty with rose ear-base satin bow & heart bell
+    girl: {
+      body: 'var(--tetromino-t)',
+      accent: 'var(--tetromino-z)',
+      secondary: 'var(--tetromino-o)',
+      iris: 'var(--tetromino-i)',
+      belly: 'var(--on-accent)',
+      cheek: 'var(--tetromino-z)',
+      calloutText: 'var(--tetromino-t)',
+      badgeBg: 'var(--tetromino-t)',
+      badgeFg: 'var(--cabinet-well)',
+    },
+    topStarY: -29,
     tailPivot: [11, 5],
     leftEarPivot: [-3.5, -17.5],
     rightEarPivot: [7.5, -17.5],
   },
   dog: {
     id: 'dog',
-    palettes: [
-      {
-        body: 'var(--tetromino-o)',
-        accent: 'var(--tetromino-l)',
-        iris: 'var(--problem)',
-        belly: 'var(--on-accent)',
-        cheek: 'var(--tetromino-z)',
-      },
-      {
-        body: 'var(--tetromino-l)',
-        accent: 'var(--tetromino-z)',
-        iris: 'var(--problem)',
-        belly: 'var(--on-accent)',
-        cheek: 'var(--tetromino-z)',
-      },
-    ],
-    topStarY: -26,
+    // Boy: Koro — Sunny Shiba gold pup with chestnut ears & sporty cobalt V-bandana
+    boy: {
+      body: 'var(--tetromino-o)',
+      accent: 'var(--tetromino-l)',
+      secondary: 'var(--tetromino-j)',
+      iris: 'var(--problem)',
+      belly: 'var(--on-accent)',
+      cheek: 'var(--tetromino-z)',
+      calloutText: 'var(--tetromino-o)',
+      badgeBg: 'var(--tetromino-o)',
+      badgeFg: 'var(--cabinet-well)',
+    },
+    // Girl: Hana — Snow-cream & blossom-rose puppy with 5-petal sakura hair clip & pearl-rose collar
+    girl: {
+      body: 'var(--on-accent)',
+      accent: 'var(--tetromino-z)',
+      secondary: 'var(--tetromino-o)',
+      iris: 'var(--accent)',
+      belly: 'var(--tetromino-z)',
+      cheek: 'var(--tetromino-z)',
+      calloutText: 'var(--tetromino-z)',
+      badgeBg: 'var(--tetromino-z)',
+      badgeFg: 'var(--cabinet-well)',
+    },
+    topStarY: -27,
     tailPivot: [11.5, 4],
     leftEarPivot: [-6.5, -14.5],
     rightEarPivot: [10.5, -14.5],
   },
   bunny: {
     id: 'bunny',
-    palettes: [
-      {
-        body: 'var(--tetromino-t)',
-        accent: 'var(--tetromino-z)',
-        iris: 'var(--tetromino-z)',
-        belly: 'var(--on-accent)',
-        cheek: 'var(--tetromino-z)',
-      },
-      {
-        body: 'var(--tetromino-z)',
-        accent: 'var(--tetromino-o)',
-        iris: 'var(--tetromino-t)',
-        belly: 'var(--on-accent)',
-        cheek: 'var(--tetromino-o)',
-      },
-    ],
+    // Boy: Poko — Sky-cobalt bunny with cyan inner ears & dapper cyan/gold bow-tie
+    boy: {
+      body: 'var(--tetromino-j)',
+      accent: 'var(--tetromino-i)',
+      secondary: 'var(--tetromino-o)',
+      iris: 'var(--tetromino-s)',
+      belly: 'var(--on-accent)',
+      cheek: 'var(--tetromino-z)',
+      calloutText: 'var(--tetromino-i)',
+      badgeBg: 'var(--tetromino-i)',
+      badgeFg: 'var(--cabinet-well)',
+    },
+    // Girl: Momo — Sweet berry-pink bunny with golden inner ears, plush lop-ear bow & sweetheart ribbon
+    girl: {
+      body: 'var(--tetromino-z)',
+      accent: 'var(--tetromino-o)',
+      secondary: 'var(--tetromino-t)',
+      iris: 'var(--tetromino-t)',
+      belly: 'var(--on-accent)',
+      cheek: 'var(--tetromino-t)',
+      calloutText: 'var(--tetromino-z)',
+      badgeBg: 'var(--tetromino-z)',
+      badgeFg: 'var(--cabinet-well)',
+    },
     topStarY: -31,
     tailPivot: [12.5, 5.5],
     leftEarPivot: [-1.5, -18],
@@ -184,9 +218,92 @@ const INK = 'var(--cabinet-well)';
 
 export function mascotPalette(
   character: CharacterId,
-  playerNumber: 1 | 2,
+  genderOrPlayer: MascotGender | 1 | 2 = 'boy',
 ): MascotTokenPalette {
-  return MASCOT_RIGS[character].palettes[playerNumber === 1 ? 0 : 1];
+  const rig = MASCOT_RIGS[character];
+  if (genderOrPlayer === 'girl' || genderOrPlayer === 2) return rig.girl;
+  return rig.boy;
+}
+
+/**
+ * Reusable twin-loop arcade satin ribbon bow for Girl mascots (#347).
+ */
+function RibbonBowSvg({
+  cx,
+  cy,
+  scale = 1,
+  rotateDeg = 0,
+  bowFill,
+  knotFill,
+}: {
+  cx: number;
+  cy: number;
+  scale?: number;
+  rotateDeg?: number;
+  bowFill: string;
+  knotFill: string;
+}) {
+  return (
+    <g transform={`translate(${cx}, ${cy}) rotate(${rotateDeg}) scale(${scale})`}>
+      {/* Left puffy loop */}
+      <path
+        d="M 0 0 C -3.8 -3.4, -6.2 -1.2, -5.2 1.4 C -4.4 3.4, -1.6 2.5, 0 0 Z"
+        fill={bowFill}
+        stroke={INK}
+        strokeWidth="0.95"
+        strokeLinejoin="round"
+      />
+      {/* Right puffy loop */}
+      <path
+        d="M 0 0 C 3.8 -3.4, 6.2 -1.2, 5.2 1.4 C 4.4 3.4, 1.6 2.5, 0 0 Z"
+        fill={bowFill}
+        stroke={INK}
+        strokeWidth="0.95"
+        strokeLinejoin="round"
+      />
+      {/* Loop highlights */}
+      <circle cx="-3.2" cy="-0.6" r="0.7" fill="var(--on-accent)" opacity="0.55" />
+      <circle cx="3.2" cy="-0.6" r="0.7" fill="var(--on-accent)" opacity="0.55" />
+      {/* Center knot */}
+      <circle cx="0" cy="0.2" r="1.45" fill={knotFill} stroke={INK} strokeWidth="0.9" />
+    </g>
+  );
+}
+
+/**
+ * 5-petal sakura / daisy hair clip for Hana (Girl Dog) (#347).
+ */
+function BlossomClipSvg({ cx, cy }: { cx: number; cy: number }) {
+  return (
+    <g transform={`translate(${cx}, ${cy})`}>
+      {/* Cute emerald leaf behind blossom */}
+      <ellipse
+        cx="3.2"
+        cy="1.2"
+        rx="2.3"
+        ry="1.1"
+        transform="rotate(25 3.2 1.2)"
+        fill="var(--tetromino-s)"
+        stroke={INK}
+        strokeWidth="0.8"
+      />
+      {Array.from({ length: 5 }, (_, i) => (
+        <ellipse
+          key={i}
+          cx="0"
+          cy="-2.2"
+          rx="1.55"
+          ry="2.0"
+          transform={`rotate(${i * 72})`}
+          fill="var(--on-accent)"
+          stroke={INK}
+          strokeWidth="0.8"
+        />
+      ))}
+      <circle cx="0" cy="0" r="1.4" fill="var(--tetromino-z)" stroke={INK} strokeWidth="0.75" />
+      <circle cx="-0.3" cy="-0.3" r="0.4" fill="var(--tetromino-o)" />
+    </g>
+  );
 }
 
 /**
@@ -223,7 +340,6 @@ function ArticulatedLimb({
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      {/* Plump rounded paw with inner pad */}
       <circle
         cx={ik.handX}
         cy={ik.handY}
@@ -242,6 +358,7 @@ export function CharacterMascotSvg({
   y,
   playerNumber,
   character,
+  gender,
   mood,
   aimAngle,
   isFiring = false,
@@ -251,14 +368,24 @@ export function CharacterMascotSvg({
   y: number;
   playerNumber: 1 | 2;
   character: CharacterId;
+  gender: MascotGender;
   mood: MascotMood;
   aimAngle: number;
   isFiring?: boolean;
   onCycleCharacter?: () => void;
 }) {
   const rig = MASCOT_RIGS[character];
-  const palette = mascotPalette(character, playerNumber);
-  const { body: bodyFill, accent: accentFill, iris: irisFill, belly: bellyFill, cheek: cheekFill } = palette;
+  const palette = mascotPalette(character, gender);
+  const {
+    body: bodyFill,
+    accent: accentFill,
+    secondary: secondaryFill,
+    iris: irisFill,
+    belly: bellyFill,
+    cheek: cheekFill,
+  } = palette;
+  const isGirl = gender === 'girl';
+  const displayName = characterDisplayName(character, gender);
 
   // #342: Keep the cranking arm actively gripping and spinning the wheel across ALL live-play moods
   // (`normal`, `hurry`, AND `cheer`), detaching only when the round ends (`celebrate` or `cry`).
@@ -266,12 +393,9 @@ export function CharacterMascotSvg({
   const crankDeg = Math.round(-aimAngle * 18);
   const crankRad = (-aimAngle * 18 * Math.PI) / 180;
 
-  // Mascot sits at (LAUNCHER_X + 44, LAUNCHER_Y + 6), putting the crank wheel center at (-17, 0)
-  // with handle pin radius 5.2 in mascot-local space.
   const crankPinX = -17 + Math.cos(crankRad) * 5.2;
   const crankPinY = Math.sin(crankRad) * 5.2;
 
-  // Outer kinematic transform (kept strictly on a separate <g> from CSS keyframe classes so CSS never overrides SVG transform!).
   const shotLeanDeg = isFiring ? -4.0 : 0;
   const shotLiftY = isFiring ? -1.2 : 0;
   const bodyBobY = (isCranking ? Math.sin(crankRad) * 1.3 : 0) + shotLiftY;
@@ -280,8 +404,6 @@ export function CharacterMascotSvg({
   const leftFootY = isCranking ? 9.8 + Math.sin(crankRad) * 1.2 : 9.8;
   const rightFootY = isCranking ? 9.8 - Math.sin(crankRad) * 1.2 : 9.8;
 
-  // Shoulder in mascot-root space follows the outer kinematic lean/bob, while the elbow hangs
-  // naturally downward (`bendDirection = -1`) and the paw stays pixel-locked onto `(crankPinX, crankPinY)`.
   const tiltRad = (bodyTiltDeg * Math.PI) / 180;
   const cosB = Math.cos(tiltRad);
   const sinB = Math.sin(tiltRad);
@@ -298,7 +420,6 @@ export function CharacterMascotSvg({
     -1,
   );
 
-  // Outward-flared chibi arms for celebrate (\o/) and cry (rubbing outer cheeks) so arms NEVER cross the face!
   const nonCrankLeftIK =
     mood === 'celebrate'
       ? solveTwoBoneIK(-5.8, -3.2, -12.6, -15.2, 6.8, 6.8, -1)
@@ -322,20 +443,22 @@ export function CharacterMascotSvg({
             );
 
   const reportedHand = isCranking ? crankArmIK : nonCrankLeftIK;
-  const gradPrefix = `pb-mascot-${playerNumber}-${character}`;
+  const gradPrefix = `pb-mascot-${playerNumber}-${character}-${gender}`;
 
   return (
     <g
       transform={`translate(${x}, ${y})`}
       data-testid={`p${playerNumber}-mascot`}
       data-character={character}
+      data-gender={gender}
+      data-mascot-name={displayName}
       data-mood={mood}
       data-crank-angle={crankDeg}
       data-crank-x={reportedHand.handX.toFixed(1)}
       data-crank-y={reportedHand.handY.toFixed(1)}
       role="button"
       tabIndex={0}
-      aria-label={`Switch Player ${playerNumber} character (${characterDisplayName(character, playerNumber)})`}
+      aria-label={`Switch Player ${playerNumber} character (${displayName}, ${gender} ${character})`}
       style={{ cursor: 'pointer', outline: 'none' }}
       onMouseDown={(event) => {
         event.preventDefault();
@@ -360,7 +483,6 @@ export function CharacterMascotSvg({
       }}
     >
       <defs>
-        {/* Top-left arcade rim-light + cel-shading volume gradient */}
         <radialGradient id={`${gradPrefix}-shine`} cx="32%" cy="24%" r="72%">
           <stop offset="0%" stopColor="var(--on-accent)" stopOpacity="0.34" />
           <stop offset="52%" stopColor="var(--on-accent)" stopOpacity="0.04" />
@@ -368,26 +490,24 @@ export function CharacterMascotSvg({
         </radialGradient>
       </defs>
 
-      {/* Stationary click hit-box so clicking the animal works reliably while it bobs/cranks */}
-      <rect x={-24} y={-35} width={48} height={52} fill="transparent" />
+      {/* Stationary click hit-box */}
+      <rect x={-24} y={-36} width={48} height={54} fill="transparent" />
 
-      {/* Ground contact shadow anchored directly on top of the launcher pedestal */}
+      {/* Ground contact shadow */}
       <ellipse cx="2.5" cy="11.2" rx="11.2" ry="2.2" fill={INK} opacity="0.55" />
 
-      {/* Outer kinematic group: continuous aimAngle crank lean & bob (never overridden by CSS keyframes) */}
+      {/* Outer kinematic group */}
       <g
         transform={`translate(0, ${bodyBobY.toFixed(2)}) rotate(${bodyTiltDeg.toFixed(2)})`}
       >
-        {/* Inner secondary-motion group: idle breathing, cheer bounce, hurry shiver, victory jump, cry sob */}
         <g className={`pb-mascot pb-mascot-${mood}${isFiring ? ' pb-mascot-firing' : ''}`}>
-          {/* --- 1. TAIL & DORSAL CRESTS (behind body, with secondary wag/swish) --- */}
+          {/* --- 1. TAIL & DORSAL CRESTS --- */}
           <g
             className="pb-mascot-tail"
             style={{ transformOrigin: `${rig.tailPivot[0]}px ${rig.tailPivot[1]}px` }}
           >
             {character === 'dragon' ? (
               <g>
-                {/* Plump curled Bub/Bob dino tail */}
                 <path
                   d="M 9 4.5 Q 17.8 6.5 19.2 0.2 Q 20.2 -4.2 16.0 -3.4 Q 14.3 -2.7 15.0 0"
                   fill="none"
@@ -402,7 +522,15 @@ export function CharacterMascotSvg({
                   strokeWidth="3.2"
                   strokeLinecap="round"
                 />
-                {/* Chunky rounded Taito dorsal spikes along head & back */}
+                {/* Girl Dragon (Bibi) cute golden heart tail-charm positioned cleanly at outer curl */}
+                {isGirl ? (
+                  <path
+                    d="M 19.2 -3.8 C 18.0 -5.7, 16.0 -4.5, 17.4 -2.5 L 19.2 -0.7 L 21.0 -2.5 C 22.4 -4.5, 20.4 -5.7, 19.2 -3.8 Z"
+                    fill={accentFill}
+                    stroke={INK}
+                    strokeWidth="0.85"
+                  />
+                ) : null}
                 <path
                   d="M 8.8 -16.8 Q 15.8 -19.8 13.0 -12.4 Z"
                   fill={accentFill}
@@ -449,7 +577,6 @@ export function CharacterMascotSvg({
 
             {character === 'dog' ? (
               <g>
-                {/* Fluffy curled Shiba donut tail */}
                 <path
                   d="M 10.5 3.8 C 17.5 3.8, 19.6 -2.8, 15.0 -5.2 C 12.0 -6.4, 11.0 -2.2, 13.6 -1.0"
                   fill="none"
@@ -470,7 +597,6 @@ export function CharacterMascotSvg({
 
             {character === 'bunny' ? (
               <g>
-                {/* Fluffy cotton-puff tail */}
                 <circle cx="13.8" cy="4.4" r="3.9" fill={bellyFill} stroke={INK} strokeWidth="1.15" />
                 <circle cx="15.5" cy="3.0" r="2.3" fill={bellyFill} stroke={INK} strokeWidth="0.95" />
                 <circle cx="13.3" cy="3.5" r="2.1" fill={bellyFill} />
@@ -478,12 +604,12 @@ export function CharacterMascotSvg({
             ) : null}
           </g>
 
-          {/* --- 2. BACK/OUTER RIGHT ARM (pumps high in cheer/celebrate, rests naturally otherwise) --- */}
+          {/* --- 2. BACK/OUTER RIGHT ARM --- */}
           <g className={mood === 'cheer' ? 'pb-mascot-cheer-arm' : undefined}>
             <ArticulatedLimb ik={rightArmIK} fill={bodyFill} padFill={accentFill} width={3.7} />
           </g>
 
-          {/* --- 3. FEET (planted on pedestal, pedaling in phase with crank wheel) --- */}
+          {/* --- 3. FEET --- */}
           <g>
             <ellipse
               cx="-2.0"
@@ -507,11 +633,16 @@ export function CharacterMascotSvg({
             <ellipse cx="5.4" cy={rightFootY - 0.5} rx="1.9" ry="0.8" fill="var(--on-accent)" opacity="0.45" />
           </g>
 
-          {/* --- 4. PLUMP TORSO, TUMMY MARKINGS & CEL-SHADING --- */}
+          {/* --- 4. PLUMP TORSO, TUMMY MARKINGS & GENDER NECKWEAR --- */}
           <ellipse cx="2.8" cy="0.4" rx="9.8" ry="10.0" fill={bodyFill} stroke={INK} strokeWidth="1.35" />
-          {/* Plush cream tummy patch */}
-          <ellipse cx="1.0" cy="1.8" rx="6.0" ry="6.7" fill={bellyFill} opacity="0.94" />
-          {/* Dragon horizontal belly-scale plates */}
+          <ellipse
+            cx="1.0"
+            cy="1.8"
+            rx="6.0"
+            ry="6.7"
+            fill={bellyFill}
+            opacity={character === 'dog' && isGirl ? 0.32 : 0.94}
+          />
           {character === 'dragon' ? (
             <g stroke={accentFill} strokeWidth="0.95" strokeLinecap="round" fill="none" opacity="0.8">
               <path d="M -3.4 -0.9 Q 0.9 0.3 5.2 -0.9" />
@@ -519,32 +650,106 @@ export function CharacterMascotSvg({
               <path d="M -3.0 5.1 Q 0.9 6.2 4.8 5.1" />
             </g>
           ) : null}
-          {/* Torso 3D cel-shade overlay */}
           <ellipse cx="2.8" cy="0.4" rx="9.2" ry="9.4" fill={`url(#${gradPrefix}-shine)`} />
 
-          {/* Cat gold bell collar / Bunny ribbon bow at neck */}
-          {character === 'cat' ? (
+          {/* Gender-specific neckwear & collars positioned cleanly below chin (y ~ -3.2..-1.2) */}
+          {character === 'dragon' ? (
+            isGirl ? (
+              /* Bibi pearl-lavender sweetheart necklace */
+              <g>
+                <circle cx="-1.6" cy="-2.4" r="1.15" fill="var(--on-accent)" stroke={INK} strokeWidth="0.7" />
+                <circle cx="0.9" cy="-1.9" r="1.45" fill={accentFill} stroke={INK} strokeWidth="0.8" />
+                <circle cx="3.4" cy="-2.4" r="1.15" fill="var(--on-accent)" stroke={INK} strokeWidth="0.7" />
+              </g>
+            ) : (
+              /* Bub sporty cyan kerchief bandana */
+              <g>
+                <path
+                  d="M -4.2 -3.8 Q 1.4 -2.2 7.2 -3.8 L 1.2 0.2 Z"
+                  fill={secondaryFill}
+                  stroke={INK}
+                  strokeWidth="0.9"
+                  strokeLinejoin="round"
+                />
+              </g>
+            )
+          ) : character === 'cat' ? (
+            isGirl ? (
+              /* Mochi rose collar with golden bell */
+              <g>
+                <path
+                  d="M -4.2 -3.4 Q 1.5 -1.8 7.6 -3.4"
+                  fill="none"
+                  stroke={accentFill}
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                />
+                <circle cx="1.2" cy="-1.9" r="2.0" fill={secondaryFill} stroke={INK} strokeWidth="0.9" />
+                <line x1="0.3" y1="-1.7" x2="2.1" y2="-1.7" stroke={INK} strokeWidth="0.75" />
+              </g>
+            ) : (
+              /* Yuzu cobalt collar with cyan star tag */
+              <g>
+                <path
+                  d="M -4.2 -3.4 Q 1.5 -1.8 7.6 -3.4"
+                  fill="none"
+                  stroke={secondaryFill}
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                />
+                <polygon
+                  points="1.2,-3.8 1.8,-2.4 3.2,-2.2 2.1,-1.2 2.4,0.2 1.2,-0.6 0.0,0.2 0.3,-1.2 -0.8,-2.2 0.6,-2.4"
+                  fill="var(--tetromino-i)"
+                  stroke={INK}
+                  strokeWidth="0.7"
+                />
+              </g>
+            )
+          ) : character === 'dog' ? (
+            isGirl ? (
+              /* Hana scalloped rose ribbon collar + golden charm */
+              <g>
+                <path
+                  d="M -4.4 -3.3 Q 1.4 -1.6 7.4 -3.3"
+                  fill="none"
+                  stroke={accentFill}
+                  strokeWidth="2.4"
+                  strokeLinecap="round"
+                />
+                <circle cx="-1.5" cy="-2.3" r="1.2" fill={accentFill} stroke={INK} strokeWidth="0.75" />
+                <circle cx="1.1" cy="-1.9" r="1.5" fill={secondaryFill} stroke={INK} strokeWidth="0.8" />
+                <circle cx="3.7" cy="-2.3" r="1.2" fill={accentFill} stroke={INK} strokeWidth="0.75" />
+              </g>
+            ) : (
+              /* Koro sporty cobalt V-bandana */
+              <g>
+                <path
+                  d="M -4.5 -3.8 Q 1.5 -2.2 7.8 -3.8 L 1.2 0.5 Z"
+                  fill={secondaryFill}
+                  stroke={INK}
+                  strokeWidth="0.95"
+                  strokeLinejoin="round"
+                />
+              </g>
+            )
+          ) : isGirl ? (
+            /* Momo ruffled sweetheart ribbon collar */
             <g>
-              <path
-                d="M -4.2 -5.2 Q 1.8 -3.3 8.0 -5.2"
-                fill="none"
-                stroke={accentFill}
-                strokeWidth="2.1"
-                strokeLinecap="round"
-              />
-              <circle cx="1.2" cy="-3.6" r="2.0" fill="var(--tetromino-o)" stroke={INK} strokeWidth="0.95" />
-              <line x1="0.3" y1="-3.3" x2="2.1" y2="-3.3" stroke={INK} strokeWidth="0.75" />
+              <circle cx="-1.2" cy="-2.2" r="1.45" fill="var(--on-accent)" stroke={INK} strokeWidth="0.75" />
+              <circle cx="3.4" cy="-2.2" r="1.45" fill="var(--on-accent)" stroke={INK} strokeWidth="0.75" />
+              <RibbonBowSvg cx={1.1} cy={-2.0} scale={0.58} bowFill={accentFill} knotFill={secondaryFill} />
             </g>
-          ) : character === 'bunny' ? (
+          ) : (
+            /* Poko dapper cyan & gold bow-tie */
             <g>
-              <polygon points="-2.5,-4.6 1.2,-3.2 -2.5,-1.7" fill={accentFill} stroke={INK} strokeWidth="0.85" />
-              <polygon points="4.9,-4.6 1.2,-3.2 4.9,-1.7" fill={accentFill} stroke={INK} strokeWidth="0.85" />
-              <circle cx="1.2" cy="-3.2" r="1.25" fill="var(--tetromino-o)" stroke={INK} strokeWidth="0.8" />
+              <polygon points="-2.7,-3.5 1.2,-2.0 -2.7,-0.5" fill={accentFill} stroke={INK} strokeWidth="0.85" />
+              <polygon points="5.1,-3.5 1.2,-2.0 5.1,-0.5" fill={accentFill} stroke={INK} strokeWidth="0.85" />
+              <circle cx="1.2" cy="-2.0" r="1.3" fill={secondaryFill} stroke={INK} strokeWidth="0.8" />
             </g>
-          ) : null}
+          )}
 
           {/* --- 5. EARS / CROWN CRESTS BEHIND HEAD --- */}
-          {character === 'dragon' ? (
+          {character === 'dragon' && !isGirl ? (
             <g>
               <g
                 className="pb-mascot-ear-left"
@@ -638,7 +843,7 @@ export function CharacterMascotSvg({
                   cy="-22.5"
                   rx="2.95"
                   ry="6.4"
-                  transform="rotate(15 6.0 -22.5)"
+                  transform={`rotate(${isGirl ? 22 : 13} 6.0 -22.5)`}
                   fill={bodyFill}
                   stroke={INK}
                   strokeWidth="1.2"
@@ -648,7 +853,7 @@ export function CharacterMascotSvg({
                   cy="-22.3"
                   rx="1.45"
                   ry="4.2"
-                  transform="rotate(15 6.0 -22.3)"
+                  transform={`rotate(${isGirl ? 22 : 13} 6.0 -22.3)`}
                   fill={accentFill}
                 />
               </g>
@@ -658,13 +863,15 @@ export function CharacterMascotSvg({
           {/* --- 6. SCULPTED CHIBI HEAD & SPECIES FACIAL ANATOMY --- */}
           <ellipse cx="1.8" cy="-11.6" rx="9.6" ry="8.7" fill={bodyFill} stroke={INK} strokeWidth="1.35" />
 
-          {/* Dog Shiba urajiro cream lower-face mask & floppy puppy ears */}
           {character === 'dog' ? (
             <g>
-              <ellipse cx="1.0" cy="-9.2" rx="7.0" ry="5.0" fill={bellyFill} opacity="0.94" />
-              {/* Iconic round Shiba maru-mayu brow spots */}
-              <ellipse cx="-2.1" cy="-16.1" rx="1.3" ry="0.88" fill={bellyFill} opacity="0.95" />
-              <ellipse cx="4.3" cy="-16.1" rx="1.3" ry="0.88" fill={bellyFill} opacity="0.95" />
+              {!isGirl ? (
+                <>
+                  <ellipse cx="1.0" cy="-9.2" rx="7.0" ry="5.0" fill={bellyFill} opacity="0.94" />
+                  <ellipse cx="-2.1" cy="-16.1" rx="1.3" ry="0.88" fill={bellyFill} opacity="0.95" />
+                  <ellipse cx="4.3" cy="-16.1" rx="1.3" ry="0.88" fill={bellyFill} opacity="0.95" />
+                </>
+              ) : null}
               <g
                 className="pb-mascot-ear-left"
                 style={{ transformOrigin: `${rig.leftEarPivot[0]}px ${rig.leftEarPivot[1]}px` }}
@@ -672,8 +879,8 @@ export function CharacterMascotSvg({
                 <ellipse
                   cx="-7.4"
                   cy="-11.2"
-                  rx="2.8"
-                  ry="5.6"
+                  rx="2.9"
+                  ry="5.8"
                   transform="rotate(20 -7.4 -11.2)"
                   fill={accentFill}
                   stroke={INK}
@@ -687,8 +894,8 @@ export function CharacterMascotSvg({
                 <ellipse
                   cx="10.6"
                   cy="-11.0"
-                  rx="2.8"
-                  ry="5.6"
+                  rx="2.9"
+                  ry="5.8"
                   transform="rotate(-18 10.6 -11.0)"
                   fill={accentFill}
                   stroke={INK}
@@ -698,7 +905,6 @@ export function CharacterMascotSvg({
             </g>
           ) : null}
 
-          {/* Cat forehead tabby stripes */}
           {character === 'cat' ? (
             <g stroke={accentFill} strokeWidth="1.25" strokeLinecap="round" opacity="0.88">
               <line x1="1.5" y1="-19.2" x2="1.5" y2="-16.8" />
@@ -719,33 +925,62 @@ export function CharacterMascotSvg({
             opacity="0.38"
           />
 
-          {/* Soft rosy arcade cheek blushes */}
+          {/* --- 6B. SIGNATURE GIRL HEAD / EAR ACCESSORIES (rendered on top of head so always unmistakable!) --- */}
+          {isGirl ? (
+            character === 'dragon' ? (
+              /* Bibi: Big puffy golden crown bow perched proudly atop her head */
+              <RibbonBowSvg cx={1.8} cy={-20.0} scale={1.06} rotateDeg={4} bowFill={accentFill} knotFill={secondaryFill} />
+            ) : character === 'cat' ? (
+              /* Mochi: Tilted rose satin bow at the base of her right ear */
+              <RibbonBowSvg cx={7.2} cy={-18.2} scale={0.9} rotateDeg={22} bowFill={accentFill} knotFill={secondaryFill} />
+            ) : character === 'dog' ? (
+              /* Hana: 5-petal sakura blossom clip + tiny golden ribbon bow beside her right ear */
+              <BlossomClipSvg cx={8.0} cy={-17.0} />
+            ) : (
+              /* Momo: Big plush golden bow tied around her tilted right lop ear */
+              <RibbonBowSvg cx={5.6} cy={-18.4} scale={0.95} rotateDeg={18} bowFill={accentFill} knotFill={secondaryFill} />
+            )
+          ) : null}
+
+          {/* Rosy arcade cheek blushes (fuller glow + cute specular dot on Girl personas) */}
           {mood !== 'cry' ? (
-            <g opacity={mood === 'celebrate' || mood === 'cheer' ? 0.78 : 0.45}>
-              <ellipse cx="-4.8" cy="-9.5" rx="1.8" ry="1.1" fill={cheekFill} />
-              <ellipse cx="7.4" cy="-9.5" rx="1.8" ry="1.1" fill={cheekFill} />
+            <g opacity={mood === 'celebrate' || mood === 'cheer' ? 0.85 : isGirl ? 0.68 : 0.42}>
+              <ellipse cx="-5.0" cy="-9.5" rx={isGirl ? 2.15 : 1.75} ry={isGirl ? 1.28 : 1.05} fill={cheekFill} />
+              <ellipse cx="7.6" cy="-9.5" rx={isGirl ? 2.15 : 1.75} ry={isGirl ? 1.28 : 1.05} fill={cheekFill} />
+              {isGirl ? (
+                <>
+                  <circle cx="-5.5" cy="-9.8" r="0.45" fill="var(--on-accent)" opacity="0.85" />
+                  <circle cx="7.1" cy="-9.8" r="0.45" fill="var(--on-accent)" opacity="0.85" />
+                </>
+              ) : null}
             </g>
           ) : null}
 
-          {/* Dragon integrated Taito Bub/Bob snout (clean bridge highlight + cute nostrils, zero double-mouth line) */}
+          {/* Species snouts & whiskers */}
           {character === 'dragon' ? (
             <g>
               <ellipse cx="0.6" cy="-9.3" rx="2.7" ry="1.05" fill="var(--on-accent)" opacity="0.28" />
-              <circle cx="-0.8" cy="-9.2" r="0.62" fill={INK} />
-              <circle cx="2.0" cy="-9.2" r="0.62" fill={INK} />
+              <circle cx="-0.8" cy="-9.2" r="0.58" fill={INK} />
+              <circle cx="2.0" cy="-9.2" r="0.58" fill={INK} />
             </g>
           ) : null}
 
-          {/* Dog sculpted snout & glossy button nose */}
           {character === 'dog' ? (
             <g>
-              <ellipse cx="0.8" cy="-8.5" rx="3.8" ry="2.5" fill={bellyFill} stroke={INK} strokeWidth="0.9" />
-              <ellipse cx="0.8" cy="-9.6" rx="1.6" ry="1.1" fill={INK} />
-              <circle cx="0.3" cy="-9.9" r="0.42" fill="var(--on-accent)" opacity="0.8" />
+              <ellipse
+                cx="0.8"
+                cy="-8.5"
+                rx="3.7"
+                ry="2.45"
+                fill="var(--on-accent)"
+                stroke={INK}
+                strokeWidth="0.9"
+              />
+              <ellipse cx="0.8" cy="-9.6" rx="1.5" ry="1.05" fill={isGirl ? accentFill : INK} stroke={INK} strokeWidth={isGirl ? 0.55 : 0} />
+              <circle cx="0.3" cy="-9.9" r="0.42" fill="var(--on-accent)" opacity="0.85" />
             </g>
           ) : null}
 
-          {/* Cat plush muzzle pads, pink nose & springy whiskers */}
           {character === 'cat' ? (
             <g>
               <circle cx="-0.2" cy="-8.4" r="1.75" fill={bellyFill} opacity="0.92" />
@@ -760,7 +995,6 @@ export function CharacterMascotSvg({
             </g>
           ) : null}
 
-          {/* Bunny plush cheeks, pink twitching nose & whiskers */}
           {character === 'bunny' ? (
             <g>
               <circle cx="-0.1" cy="-8.5" r="1.7" fill={bellyFill} opacity="0.92" />
@@ -775,10 +1009,9 @@ export function CharacterMascotSvg({
             </g>
           ) : null}
 
-          {/* --- 7. EXPRESSIVE ARCADE EYES, EYEBROWS, BLINK & MOUTH BY MOOD --- */}
+          {/* --- 7. EXPRESSIVE ARCADE EYES, GIRL EYELASHES, BLINK & MOUTH --- */}
           {mood === 'celebrate' || mood === 'cheer' ? (
             <g>
-              {/* Happy curved arc eyes (^ ^) */}
               <path
                 d="M -4.0 -12.4 Q -1.8 -15.4 0.4 -12.4"
                 fill="none"
@@ -793,7 +1026,15 @@ export function CharacterMascotSvg({
                 strokeWidth="1.55"
                 strokeLinecap="round"
               />
-              {/* Joyful open grin with cute fang / tooth */}
+              {/* Girl outer eyelash flicks on happy ^ ^ eyes */}
+              {isGirl ? (
+                <g stroke={INK} strokeWidth="1.15" strokeLinecap="round">
+                  <line x1="-4.0" y1="-12.6" x2="-5.7" y2="-14.1" />
+                  <line x1="-3.5" y1="-13.4" x2="-5.1" y2="-15.1" />
+                  <line x1="6.8" y1="-12.6" x2="8.5" y2="-14.1" />
+                  <line x1="6.3" y1="-13.4" x2="7.9" y2="-15.1" />
+                </g>
+              ) : null}
               <path
                 d="M -1.3 -7.2 Q 1.3 -3.6 3.9 -7.2 Z"
                 fill="var(--tetromino-z)"
@@ -801,7 +1042,7 @@ export function CharacterMascotSvg({
                 strokeWidth="0.95"
                 strokeLinejoin="round"
               />
-              {character === 'dragon' ? (
+              {character === 'dragon' && !isGirl ? (
                 <polygon points="-0.7,-7.1 0.2,-5.8 0.9,-7.1" fill="var(--on-accent)" />
               ) : character === 'bunny' ? (
                 <rect x="0.7" y="-7.2" width="1.2" height="1.3" rx="0.3" fill="var(--on-accent)" />
@@ -809,7 +1050,6 @@ export function CharacterMascotSvg({
             </g>
           ) : mood === 'cry' ? (
             <g>
-              {/* Quivering crying eyes (> <) */}
               <path
                 d="M -4.0 -14.0 L -0.5 -12.3 L -4.0 -10.6"
                 fill="none"
@@ -826,14 +1066,18 @@ export function CharacterMascotSvg({
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
-              {/* Wailing downturned mouth */}
+              {isGirl ? (
+                <g stroke={INK} strokeWidth="1.1" strokeLinecap="round">
+                  <line x1="-4.0" y1="-14.0" x2="-5.6" y2="-15.2" />
+                  <line x1="6.8" y1="-14.0" x2="8.4" y2="-15.2" />
+                </g>
+              ) : null}
               <path
                 d="M -1.4 -5.5 Q 1.3 -9.0 4.0 -5.5 Z"
                 fill="var(--tetromino-z)"
                 stroke={INK}
                 strokeWidth="0.95"
               />
-              {/* Streaming tear fountains & cascading teardrops */}
               <g className="pb-mascot-tear pb-mascot-tear-left">
                 <ellipse
                   cx="-3.4"
@@ -886,8 +1130,20 @@ export function CharacterMascotSvg({
                 </g>
               ) : null}
 
-              {/* Glossy multi-layered arcade eyes (sclera + colored iris + deep pupil + dual catchlights) */}
               <g className="pb-mascot-eyes-open">
+                {/* Girl curved winged outer eyelashes fanned gracefully from upper eyelid */}
+                {isGirl ? (
+                  <g stroke={INK} strokeWidth="1.2" strokeLinecap="round" fill="none">
+                    {/* Left eye outer winged lashes */}
+                    <path d="M -3.5 -15.3 Q -5.0 -16.6 -5.8 -17.5" />
+                    <path d="M -4.2 -13.9 Q -5.8 -14.7 -6.6 -15.5" />
+                    {/* Right eye outer winged lashes */}
+                    <path d="M 6.0 -15.3 Q 7.5 -16.6 8.3 -17.5" />
+                    <path d="M 6.6 -13.9 Q 8.2 -14.7 9.0 -15.5" />
+                  </g>
+                ) : null}
+
+                {/* Left eye */}
                 <ellipse
                   cx="-1.7"
                   cy="-12.9"
@@ -895,13 +1151,13 @@ export function CharacterMascotSvg({
                   ry="3.35"
                   fill="var(--on-accent)"
                   stroke={INK}
-                  strokeWidth="1.0"
+                  strokeWidth={isGirl ? 1.15 : 1.0}
                 />
                 <ellipse
                   cx={isFiring ? -1.9 : -2.1}
                   cy={isFiring ? -13.4 : -12.7}
-                  rx={mood === 'hurry' ? 1.25 : 1.7}
-                  ry={mood === 'hurry' ? 1.45 : 2.15}
+                  rx={mood === 'hurry' ? 1.25 : 1.75}
+                  ry={mood === 'hurry' ? 1.45 : 2.2}
                   fill={irisFill}
                 />
                 <ellipse
@@ -911,9 +1167,10 @@ export function CharacterMascotSvg({
                   ry={mood === 'hurry' ? 1.0 : 1.55}
                   fill={INK}
                 />
-                <circle cx="-2.7" cy="-14.0" r="0.78" fill="var(--on-accent)" />
-                <circle cx="-1.3" cy="-11.7" r="0.42" fill="var(--on-accent)" opacity="0.88" />
+                <circle cx="-2.7" cy="-14.0" r={isGirl ? 0.88 : 0.78} fill="var(--on-accent)" />
+                <circle cx="-1.3" cy="-11.7" r="0.45" fill="var(--on-accent)" opacity="0.9" />
 
+                {/* Right eye */}
                 <ellipse
                   cx="4.3"
                   cy="-12.9"
@@ -921,13 +1178,13 @@ export function CharacterMascotSvg({
                   ry="3.2"
                   fill="var(--on-accent)"
                   stroke={INK}
-                  strokeWidth="1.0"
+                  strokeWidth={isGirl ? 1.15 : 1.0}
                 />
                 <ellipse
                   cx={isFiring ? 4.0 : 3.85}
                   cy={isFiring ? -13.4 : -12.7}
-                  rx={mood === 'hurry' ? 1.2 : 1.6}
-                  ry={mood === 'hurry' ? 1.4 : 2.05}
+                  rx={mood === 'hurry' ? 1.2 : 1.65}
+                  ry={mood === 'hurry' ? 1.4 : 2.1}
                   fill={irisFill}
                 />
                 <ellipse
@@ -937,14 +1194,20 @@ export function CharacterMascotSvg({
                   ry={mood === 'hurry' ? 0.95 : 1.48}
                   fill={INK}
                 />
-                <circle cx="3.3" cy="-14.0" r="0.72" fill="var(--on-accent)" />
-                <circle cx="4.6" cy="-11.7" r="0.4" fill="var(--on-accent)" opacity="0.88" />
+                <circle cx="3.3" cy="-14.0" r={isGirl ? 0.82 : 0.72} fill="var(--on-accent)" />
+                <circle cx="4.6" cy="-11.7" r="0.42" fill="var(--on-accent)" opacity="0.9" />
               </g>
 
               {mood === 'normal' ? (
                 <g className="pb-mascot-eyes-blink" stroke={INK} strokeWidth="1.35" strokeLinecap="round" fill="none">
                   <path d="M -4.1 -12.7 Q -1.7 -11.5 0.7 -12.7" />
                   <path d="M 1.9 -12.7 Q 4.3 -11.5 6.7 -12.7" />
+                  {isGirl ? (
+                    <>
+                      <line x1="-4.1" y1="-12.7" x2="-5.5" y2="-13.6" />
+                      <line x1="6.7" y1="-12.7" x2="8.1" y2="-13.6" />
+                    </>
+                  ) : null}
                 </g>
               ) : null}
 
@@ -983,6 +1246,18 @@ export function CharacterMascotSvg({
                     strokeWidth="0.6"
                   />
                 </g>
+              ) : isGirl ? (
+                /* Bibi sweet curved smile with bright berry tongue */
+                <g>
+                  <path
+                    d="M -1.1 -7.1 Q 0.9 -4.8 2.9 -7.1 Z"
+                    fill="var(--on-accent)"
+                    stroke={INK}
+                    strokeWidth="0.85"
+                    strokeLinejoin="round"
+                  />
+                  <ellipse cx="0.9" cy="-6.2" rx="1.1" ry="0.55" fill={secondaryFill} />
+                </g>
               ) : (
                 <g>
                   <path
@@ -998,7 +1273,7 @@ export function CharacterMascotSvg({
             </g>
           )}
 
-          {/* --- 8. NON-CRANKING LEFT ARM (outward-flared victory / cheek-rubbing cry poses) --- */}
+          {/* --- 8. NON-CRANKING LEFT ARM --- */}
           {!isCranking ? (
             <ArticulatedLimb ik={nonCrankLeftIK} fill={bodyFill} padFill={accentFill} width={3.8} />
           ) : null}

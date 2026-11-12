@@ -24,6 +24,7 @@ import {
   colsForRow,
   createEmptyGrid,
   createMatch,
+  createRandomMascotPair,
   createStageGrid,
   decomposeGarbageOrbs,
   deriveMascotAdvice,
@@ -35,6 +36,7 @@ import {
   formatAimAngle,
   hexNeighbors,
   hurryCountdownSeconds,
+  pickRandomOtherMascot,
   resolveMatchOutcome,
   scoreForDroppedBubbles,
   scoreForPop,
@@ -45,6 +47,7 @@ import {
   stageTitle,
   stepMatch,
   tickShotTimers,
+  type MascotSelection,
 } from '../src/shared/puzzleBobble';
 
 describe('Puzzle Bobble (Bust-A-Move) arcade rules', () => {
@@ -320,13 +323,16 @@ describe('Puzzle Bobble (Bust-A-Move) arcade rules', () => {
     expect(match.players[1]?.shotsFired).toBe(1);
   });
 
-  it('provides cute character options (dragon, cat, dog, bunny) and derives normal, cheer, hurry, celebrate, and cry mascot moods', () => {
+  it('provides boy & girl mascot personas (Bub/Bibi, Yuzu/Mochi, Koro/Hana, Poko/Momo) and derives normal, cheer, hurry, celebrate, and cry moods (#347)', () => {
     expect(CHARACTER_OPTIONS.map((c) => c.id)).toEqual(['dragon', 'cat', 'dog', 'bunny']);
-    expect(characterDisplayName('dragon', 1)).toBe('Bub');
-    expect(characterDisplayName('dragon', 2)).toBe('Bob');
-    expect(characterDisplayName('cat', 1)).toBe('Mochi');
-    expect(characterDisplayName('dog', 2)).toBe('Koro');
-    expect(characterDisplayName('bunny', 1)).toBe('Usagi');
+    expect(characterDisplayName('dragon', 'boy')).toBe('Bub');
+    expect(characterDisplayName('dragon', 'girl')).toBe('Bibi');
+    expect(characterDisplayName('cat', 'boy')).toBe('Yuzu');
+    expect(characterDisplayName('cat', 'girl')).toBe('Mochi');
+    expect(characterDisplayName('dog', 'boy')).toBe('Koro');
+    expect(characterDisplayName('dog', 'girl')).toBe('Hana');
+    expect(characterDisplayName('bunny', 'boy')).toBe('Poko');
+    expect(characterDisplayName('bunny', 'girl')).toBe('Momo');
 
     let match = createMatch('2p', () => 0.2);
     expect(deriveMascotMood(match.players[0])).toBe('normal');
@@ -409,26 +415,59 @@ describe('Puzzle Bobble (Bust-A-Move) arcade rules', () => {
     expect(deriveMascotAdvice(won.players[0]).kind).toBe('win');
     expect(deriveMascotAdvice(won.players[1]!).kind).toBe('lose');
   });
+it('defines boy/girl mascot rigs, initializes a random 1-girl + 1-boy duo, switches to a random other animal & gender on click, and solves finite 2-bone arm IK (#345, #342, #347)', () => {
+  for (const id of ['dragon', 'cat', 'dog', 'bunny'] as const) {
+    expect(MASCOT_RIGS[id].id).toBe(id);
+    const boy = mascotPalette(id, 'boy');
+    const girl = mascotPalette(id, 'girl');
+    expect(boy.body).toMatch(/^var\(--/);
+    expect(girl.body).toMatch(/^var\(--/);
+    expect(boy.badgeBg).toMatch(/^var\(--/);
+    expect(girl.badgeBg).toMatch(/^var\(--/);
+    expect(boy.body).not.toBe(girl.body);
+  }
 
-  it('defines declarative mascot rigs for all 4 species and solves finite 2-bone arm IK across full crank rotation (#345, #342)', () => {
-    for (const id of ['dragon', 'cat', 'dog', 'bunny'] as const) {
-      expect(MASCOT_RIGS[id].id).toBe(id);
-      const p1 = mascotPalette(id, 1);
-      const p2 = mascotPalette(id, 2);
-      expect(p1.body).toMatch(/^var\(--/);
-      expect(p2.body).toMatch(/^var\(--/);
-      expect(p1.body).not.toBe(p2.body);
-    }
+  // Game-start random mascot pair: always 1 girl + 1 boy and two distinct random species.
+  let s = 17;
+  const nextRng = () => {
+    s = (s * 48271) % 2147483647;
+    return s / 2147483647;
+  };
+  const seenPairs = new Set<string>();
+  const seenOrders = new Set<string>();
+  for (let i = 0; i < 60; i++) {
+    const [m1, m2] = createRandomMascotPair(nextRng);
+    expect(m1.character).not.toBe(m2.character);
+    expect([m1.gender, m2.gender].sort()).toEqual(['boy', 'girl']);
+    seenPairs.add(`${m1.character}:${m2.character}`);
+    seenOrders.add(`${m1.gender}-${m2.gender}`);
+  }
+  expect(seenPairs.size).toBeGreaterThan(6);
+  expect(seenOrders).toEqual(new Set(['boy-girl', 'girl-boy']));
 
-    for (let deg = -75; deg <= 75; deg += 5) {
-      const rad = (-deg * 18 * Math.PI) / 180;
-      const pinX = -17 + Math.cos(rad) * 5.2;
-      const pinY = Math.sin(rad) * 5.2;
-      const ik = solveTwoBoneIK(-4.2, -1.2, pinX, pinY, 9.6, 9.8, -1);
-      expect(Number.isFinite(ik.elbowX)).toBe(true);
-      expect(Number.isFinite(ik.elbowY)).toBe(true);
-      expect(ik.handX).toBeCloseTo(pinX, 1);
-      expect(ik.handY).toBeCloseTo(pinY, 1);
-    }
+  // Clicking a mascot: always switches to a random *other* species with random gender.
+  let current: MascotSelection = { character: 'dragon', gender: 'boy' };
+  const clickedSpecies = new Set<string>();
+  const clickedGenders = new Set<string>();
+  for (let i = 0; i < 40; i++) {
+    const next = pickRandomOtherMascot(current, nextRng);
+    expect(next.character).not.toBe(current.character);
+    clickedSpecies.add(next.character);
+    clickedGenders.add(next.gender);
+    current = next;
+  }
+  expect(clickedSpecies.size).toBe(4);
+  expect(clickedGenders).toEqual(new Set(['boy', 'girl']));
+
+  for (let deg = -75; deg <= 75; deg += 5) {
+    const rad = (-deg * 18 * Math.PI) / 180;
+    const pinX = -17 + Math.cos(rad) * 5.2;
+    const pinY = Math.sin(rad) * 5.2;
+    const ik = solveTwoBoneIK(-4.2, -1.2, pinX, pinY, 9.6, 9.8, -1);
+    expect(Number.isFinite(ik.elbowX)).toBe(true);
+    expect(Number.isFinite(ik.elbowY)).toBe(true);
+    expect(ik.handX).toBeCloseTo(pinX, 1);
+    expect(ik.handY).toBeCloseTo(pinY, 1);
+  }
   });
 });
