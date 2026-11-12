@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { MASCOT_RIGS, mascotPalette, solveTwoBoneIK } from '../src/games/puzzle-bobble/mascots';
 import {
   AIM_STEP_DEG,
   ARENA_WIDTH,
@@ -407,5 +408,27 @@ describe('Puzzle Bobble (Bust-A-Move) arcade rules', () => {
     const won = resolveMatchOutcome(match, 0);
     expect(deriveMascotAdvice(won.players[0]).kind).toBe('win');
     expect(deriveMascotAdvice(won.players[1]!).kind).toBe('lose');
+  });
+
+  it('defines declarative mascot rigs for all 4 species and solves finite 2-bone arm IK across full crank rotation (#345, #342)', () => {
+    for (const id of ['dragon', 'cat', 'dog', 'bunny'] as const) {
+      expect(MASCOT_RIGS[id].id).toBe(id);
+      const p1 = mascotPalette(id, 1);
+      const p2 = mascotPalette(id, 2);
+      expect(p1.body).toMatch(/^var\(--/);
+      expect(p2.body).toMatch(/^var\(--/);
+      expect(p1.body).not.toBe(p2.body);
+    }
+
+    for (let deg = -75; deg <= 75; deg += 5) {
+      const rad = (-deg * 18 * Math.PI) / 180;
+      const pinX = -17 + Math.cos(rad) * 5.2;
+      const pinY = Math.sin(rad) * 5.2;
+      const ik = solveTwoBoneIK(-4.2, -1.2, pinX, pinY, 9.6, 9.8, -1);
+      expect(Number.isFinite(ik.elbowX)).toBe(true);
+      expect(Number.isFinite(ik.elbowY)).toBe(true);
+      expect(ik.handX).toBeCloseTo(pinX, 1);
+      expect(ik.handY).toBeCloseTo(pinY, 1);
+    }
   });
 });

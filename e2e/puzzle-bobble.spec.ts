@@ -112,6 +112,26 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
     await expect(p1Mascot).toHaveAttribute('data-mood', /^(?:normal|cheer)$/);
     await expect(p2Mascot).toHaveAttribute('data-mood', 'normal');
 
+    // #342: Even when the Dinosaur is happy (`cheer`) right after hitting/popping a cluster,
+    // aiming continues to spin the crank wheel and move the dinosaur's cranking paw!
+    await page.evaluate(() => {
+      window.dispatchEvent(
+        new CustomEvent('yolo:puzzle-bobble:fire-resolve', {
+          detail: { player: 0, forceClusterPop: true },
+        }),
+      );
+    });
+    await expect(p1Mascot).toHaveAttribute('data-mood', 'cheer');
+    const cheerCrankBefore = await p1Mascot.getAttribute('data-crank-x');
+    const cheerGearBefore = await page.getByTestId('p1-crank-gear').getAttribute('data-crank-angle');
+    await page.keyboard.press('d');
+    await page.keyboard.press('d');
+    await expect(p1Mascot).toHaveAttribute('data-mood', 'cheer');
+    const cheerCrankAfter = await p1Mascot.getAttribute('data-crank-x');
+    const cheerGearAfter = await page.getByTestId('p1-crank-gear').getAttribute('data-crank-angle');
+    expect(cheerGearAfter).not.toBe(cheerGearBefore);
+    expect(cheerCrankAfter).not.toBe(cheerCrankBefore);
+
     await p1Mascot.click();
     await p2Mascot.click();
     await p2Mascot.click();

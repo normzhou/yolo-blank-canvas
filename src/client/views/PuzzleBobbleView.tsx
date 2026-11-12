@@ -79,6 +79,7 @@ import {
   type PlayerBoardState,
   type PuzzleBobbleMatch,
 } from '../../shared/puzzleBobble';
+import { CharacterMascotSvg, CharacterTokenIcon } from '../../games/puzzle-bobble/mascots';
 
 const BUBBLE_TOKEN: Record<BubbleColor, string> = {
   ruby: 'var(--tetromino-z)',
@@ -236,528 +237,6 @@ function BubbleSvg({
   );
 }
 
-function mascotPalette(character: CharacterId, playerNumber: 1 | 2): { body: string; accent: string } {
-  switch (character) {
-    case 'dragon':
-      return {
-        body: playerNumber === 1 ? 'var(--tetromino-s)' : 'var(--tetromino-j)',
-        accent: playerNumber === 1 ? 'var(--tetromino-l)' : 'var(--tetromino-o)',
-      };
-    case 'cat':
-      return {
-        body: playerNumber === 1 ? 'var(--tetromino-l)' : 'var(--tetromino-t)',
-        accent: playerNumber === 1 ? 'var(--tetromino-z)' : 'var(--tetromino-o)',
-      };
-    case 'dog':
-      return {
-        body: playerNumber === 1 ? 'var(--tetromino-o)' : 'var(--tetromino-l)',
-        accent: playerNumber === 1 ? 'var(--tetromino-l)' : 'var(--tetromino-z)',
-      };
-    case 'bunny':
-      return {
-        body: playerNumber === 1 ? 'var(--tetromino-t)' : 'var(--tetromino-z)',
-        accent: playerNumber === 1 ? 'var(--tetromino-z)' : 'var(--tetromino-o)',
-      };
-  }
-}
-
-/**
- * Cute selectable mascot beside the catapult wheel (#204):
- * - Supports `'dragon'`, `'cat'`, `'dog'`, and `'bunny'`
- * - Turns the crank as the player aims, cheers on combos, panics on `HURRY UP!`,
- *   celebrates with a jumping victory dance and sparkles when the player wins (`celebrate`),
- *   and cries with trembling sobs and cascading teardrops when the player loses (`cry`).
- */
-function CharacterMascotSvg({
-  x,
-  y,
-  playerNumber,
-  character,
-  mood,
-  aimAngle,
-  onCycleCharacter,
-}: {
-  x: number;
-  y: number;
-  playerNumber: 1 | 2;
-  character: CharacterId;
-  mood: MascotMood;
-  aimAngle: number;
-  onCycleCharacter?: () => void;
-}) {
-  const { body: bodyFill, accent: accentFill } = mascotPalette(character, playerNumber);
-  const isCranking = mood === 'normal' || mood === 'hurry';
-  // High-ratio hand-crank rotation (-18° per 1° of aim) so every micro-nudge or sweep visibly spins the crank
-  const crankDeg = Math.round(-aimAngle * 18);
-  const crankRad = (-aimAngle * 18 * Math.PI) / 180;
-  // The secondary crank wheel center is at (-17, +2) in mascot-local coordinates, with handle pin at radius 5.2
-  const crankPinX = -17 + Math.cos(crankRad) * 5.2;
-  const crankPinY = 2 + Math.sin(crankRad) * 5.2;
-  const bodyBobY = isCranking ? Math.sin(crankRad) * 1.6 : 0;
-  const bodyTiltDeg = isCranking ? Math.cos(crankRad) * 5.5 : 0;
-  const leftFootY = isCranking ? 11 + Math.sin(crankRad) * 1.4 : 11;
-  const rightFootY = isCranking ? 11 - Math.sin(crankRad) * 1.4 : 11;
-  const leftArmY =
-    mood === 'celebrate'
-      ? -11.5
-      : mood === 'cheer'
-        ? -8.5
-        : mood === 'cry'
-          ? -4.2
-          : crankPinY;
-  const leftArmX =
-    mood === 'celebrate'
-      ? -7.6
-      : mood === 'cheer'
-        ? -7.2
-        : mood === 'cry'
-          ? -7.2
-          : crankPinX;
-  const rightArmY =
-    mood === 'celebrate'
-      ? -11.5
-      : mood === 'cheer'
-        ? -8.5
-        : mood === 'cry'
-          ? -4.2
-          : -1.5 - Math.sin(crankRad) * 2.2;
-  const rightArmX =
-    mood === 'celebrate'
-      ? 11.2
-      : mood === 'cheer'
-        ? 10.6
-        : mood === 'cry'
-          ? 9.8
-          : 9.8 + Math.cos(crankRad) * 1.8;
-  const topStarY = character === 'bunny' ? -30 : character === 'cat' ? -27 : -24;
-
-  return (
-    <g
-      transform={`translate(${x}, ${y})`}
-      data-testid={`p${playerNumber}-mascot`}
-      data-character={character}
-      data-mood={mood}
-      data-crank-angle={crankDeg}
-      data-crank-x={leftArmX.toFixed(1)}
-      data-crank-y={leftArmY.toFixed(1)}
-      role="button"
-      tabIndex={0}
-      aria-label={`Switch Player ${playerNumber} character (${characterDisplayName(character, playerNumber)})`}
-      style={{ cursor: 'pointer', outline: 'none' }}
-      onMouseDown={(event) => {
-        event.preventDefault();
-        event.stopPropagation();
-      }}
-      onPointerDown={(event) => {
-        event.stopPropagation();
-      }}
-      onPointerUp={(event) => {
-        event.stopPropagation();
-      }}
-      onClick={(event) => {
-        event.stopPropagation();
-        onCycleCharacter?.();
-      }}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          event.stopPropagation();
-          onCycleCharacter?.();
-        }
-      }}
-    >
-      {/* Stationary click hit-box so clicking the animal works reliably while it bobs/cranks */}
-      <rect x={-22} y={-34} width={44} height={50} fill="transparent" />
-      <g
-        className={`pb-mascot pb-mascot-${mood}`}
-        transform={
-          isCranking
-            ? `translate(0, ${bodyBobY.toFixed(2)}) rotate(${bodyTiltDeg.toFixed(2)})`
-            : undefined
-        }
-      >
-        {/* Character-specific tail / dorsal crests behind the body */}
-        {character === 'dragon' ? (
-          <g>
-            <polygon points="9,-16 14,-20 12,-13" fill={accentFill} stroke="var(--text)" strokeWidth="0.8" />
-            <polygon points="10,-10 15,-14 14,-7" fill={accentFill} stroke="var(--text)" strokeWidth="0.8" />
-            <polygon points="12,-4 17,-7 15,0" fill={accentFill} stroke="var(--text)" strokeWidth="0.8" />
-            <polygon points="11,3 17,2 13,7" fill={accentFill} stroke="var(--text)" strokeWidth="0.8" />
-          </g>
-        ) : null}
-        {character === 'cat' ? (
-          <g>
-            <path
-              d="M 11 5 Q 19 2 17 -6 Q 16 -10 13 -8"
-              fill="none"
-              stroke="var(--text)"
-              strokeWidth="4.4"
-              strokeLinecap="round"
-            />
-            <path
-              d="M 11 5 Q 19 2 17 -6 Q 16 -10 13 -8"
-              fill="none"
-              stroke={bodyFill}
-              strokeWidth="2.6"
-              strokeLinecap="round"
-            />
-          </g>
-        ) : null}
-        {character === 'dog' ? (
-          <ellipse
-            cx="14"
-            cy="3"
-            rx="4.2"
-            ry="2.2"
-            transform="rotate(-28 14 3)"
-            fill={accentFill}
-            stroke="var(--text)"
-            strokeWidth="0.9"
-          />
-        ) : null}
-        {character === 'bunny' ? (
-          <circle
-            cx="13.5"
-            cy="5"
-            r="3.6"
-            fill="var(--on-accent)"
-            stroke="var(--text)"
-            strokeWidth="0.9"
-          />
-        ) : null}
-
-        {/* Body & tummy */}
-        <ellipse cx="4" cy="0" rx="10" ry="11" fill={bodyFill} stroke="var(--text)" strokeWidth="1.2" />
-        <ellipse cx="1.5" cy="2" rx="5.8" ry="7" fill="var(--on-accent)" opacity="0.88" />
-
-        {/* Character-specific ears behind/on the head */}
-        {character === 'cat' ? (
-          <g>
-            <polygon points="-5,-16 -2,-24 2,-17" fill={bodyFill} stroke="var(--text)" strokeWidth="1" />
-            <polygon points="-3.8,-17 -2,-22 0.6,-17.5" fill={accentFill} />
-            <polygon points="3,-17 7,-24 10,-16" fill={bodyFill} stroke="var(--text)" strokeWidth="1" />
-            <polygon points="4.4,-17.5 7,-22 8.6,-17" fill={accentFill} />
-          </g>
-        ) : null}
-        {character === 'bunny' ? (
-          <g>
-            <ellipse
-              cx="-1.5"
-              cy="-22"
-              rx="2.7"
-              ry="6.8"
-              transform="rotate(-8 -1.5 -22)"
-              fill={bodyFill}
-              stroke="var(--text)"
-              strokeWidth="1"
-            />
-            <ellipse
-              cx="-1.5"
-              cy="-22"
-              rx="1.3"
-              ry="4.4"
-              transform="rotate(-8 -1.5 -22)"
-              fill={accentFill}
-            />
-            <ellipse
-              cx="5.5"
-              cy="-22"
-              rx="2.7"
-              ry="6.8"
-              transform="rotate(8 5.5 -22)"
-              fill={bodyFill}
-              stroke="var(--text)"
-              strokeWidth="1"
-            />
-            <ellipse
-              cx="5.5"
-              cy="-22"
-              rx="1.3"
-              ry="4.4"
-              transform="rotate(8 5.5 -22)"
-              fill={accentFill}
-            />
-          </g>
-        ) : null}
-
-        {/* Head */}
-        <circle cx="2" cy="-11" r="8.6" fill={bodyFill} stroke="var(--text)" strokeWidth="1.2" />
-
-        {/* Floppy dog ears & snout */}
-        {character === 'dog' ? (
-          <g>
-            <ellipse
-              cx="-6"
-              cy="-10"
-              rx="2.6"
-              ry="5.5"
-              transform="rotate(16 -6 -10)"
-              fill={accentFill}
-              stroke="var(--text)"
-              strokeWidth="1"
-            />
-            <ellipse
-              cx="10"
-              cy="-10"
-              rx="2.6"
-              ry="5.5"
-              transform="rotate(-16 10 -10)"
-              fill={accentFill}
-              stroke="var(--text)"
-              strokeWidth="1"
-            />
-            <ellipse cx="1.2" cy="-8.6" rx="3.4" ry="2.3" fill="var(--on-accent)" opacity="0.9" />
-            <circle cx="1.2" cy="-9.6" r="1.2" fill="var(--text)" />
-          </g>
-        ) : null}
-
-        {/* Cat nose & whiskers */}
-        {character === 'cat' ? (
-          <g>
-            <polygon points="0.4,-9.5 2,-9.5 1.2,-8.3" fill={accentFill} />
-            <line x1="-7.5" y1="-10" x2="-3.5" y2="-9.5" stroke="var(--text)" strokeWidth="0.7" />
-            <line x1="-7.5" y1="-8.2" x2="-3.5" y2="-8.5" stroke="var(--text)" strokeWidth="0.7" />
-            <line x1="6" y1="-9.5" x2="10" y2="-10" stroke="var(--text)" strokeWidth="0.7" />
-            <line x1="6" y1="-8.5" x2="10" y2="-8.2" stroke="var(--text)" strokeWidth="0.7" />
-          </g>
-        ) : null}
-
-        {/* Bunny nose & whiskers */}
-        {character === 'bunny' ? (
-          <g>
-            <ellipse cx="1.2" cy="-9.1" rx="1.2" ry="0.85" fill="var(--tetromino-z)" />
-            <line x1="-6.8" y1="-9.5" x2="-3.5" y2="-9.2" stroke="var(--text)" strokeWidth="0.65" />
-            <line x1="6" y1="-9.2" x2="9.3" y2="-9.5" stroke="var(--text)" strokeWidth="0.65" />
-          </g>
-        ) : null}
-
-        {/* Eyes & facial expression by mood */}
-        {mood === 'celebrate' || mood === 'cheer' ? (
-          <g>
-            {/* Happy curved arc eyes (^ ^) */}
-            <path
-              d="M -3.8 -12.2 Q -1.8 -15 0.2 -12.2"
-              fill="none"
-              stroke="var(--text)"
-              strokeWidth="1.3"
-              strokeLinecap="round"
-            />
-            <path
-              d="M 2.2 -12.2 Q 4.2 -15 6.2 -12.2"
-              fill="none"
-              stroke="var(--text)"
-              strokeWidth="1.3"
-              strokeLinecap="round"
-            />
-            {/* Rosy blush cheeks */}
-            <circle cx="-4.2" cy="-9.8" r="1.5" fill="var(--tetromino-z)" opacity="0.7" />
-            <circle cx="6.6" cy="-9.8" r="1.5" fill="var(--tetromino-z)" opacity="0.7" />
-            {/* Joyful open grin */}
-            <path
-              d="M -1.2 -8 Q 1.2 -4.6 3.8 -8 Z"
-              fill="var(--tetromino-z)"
-              stroke="var(--text)"
-              strokeWidth="0.8"
-            />
-          </g>
-        ) : mood === 'cry' ? (
-          <g>
-            {/* Quivering crying eyes (> <) */}
-            <path
-              d="M -3.8 -13.6 L -0.4 -12.1 L -3.8 -10.6"
-              fill="none"
-              stroke="var(--text)"
-              strokeWidth="1.25"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M 6.2 -13.6 L 2.8 -12.1 L 6.2 -10.6"
-              fill="none"
-              stroke="var(--text)"
-              strokeWidth="1.25"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            {/* Wailing downturned mouth */}
-            <path
-              d="M -1.4 -6.0 Q 1.2 -9.3 3.8 -6.0 Z"
-              fill="var(--tetromino-z)"
-              stroke="var(--text)"
-              strokeWidth="0.8"
-            />
-            {/* Streaming tear trails & animated cascading teardrops on both cheeks */}
-            <g className="pb-mascot-tear pb-mascot-tear-left">
-              <ellipse
-                cx="-3.0"
-                cy="-8.8"
-                rx="1.65"
-                ry="2.7"
-                fill="var(--tetromino-i)"
-                stroke="var(--text)"
-                strokeWidth="0.7"
-              />
-              <circle cx="-3.4" cy="-9.6" r="0.55" fill="var(--on-accent)" />
-            </g>
-            <g className="pb-mascot-tear pb-mascot-tear-right">
-              <ellipse
-                cx="5.4"
-                cy="-8.8"
-                rx="1.65"
-                ry="2.7"
-                fill="var(--tetromino-i)"
-                stroke="var(--text)"
-                strokeWidth="0.7"
-              />
-              <circle cx="5.0" cy="-9.6" r="0.55" fill="var(--on-accent)" />
-            </g>
-            <circle
-              className="pb-mascot-tear pb-mascot-tear-splash"
-              cx="-5.8"
-              cy="-5.8"
-              r="1.35"
-              fill="var(--tetromino-i)"
-              stroke="var(--text)"
-              strokeWidth="0.55"
-            />
-            <circle
-              className="pb-mascot-tear pb-mascot-tear-splash"
-              cx="8.2"
-              cy="-5.8"
-              r="1.35"
-              fill="var(--tetromino-i)"
-              stroke="var(--text)"
-              strokeWidth="0.55"
-            />
-          </g>
-        ) : (
-          <g>
-            {/* Big glossy arcade eyes */}
-            <ellipse
-              cx="-1.5"
-              cy="-12.5"
-              rx="2.5"
-              ry="3.1"
-              fill="var(--on-accent)"
-              stroke="var(--text)"
-              strokeWidth="0.8"
-            />
-            <circle cx="-1.9" cy="-12.5" r={mood === 'hurry' ? 0.9 : 1.3} fill="var(--text)" />
-            <circle cx="-2.3" cy="-13.4" r="0.6" fill="var(--on-accent)" />
-            <ellipse
-              cx="4.1"
-              cy="-12.5"
-              rx="2.3"
-              ry="2.9"
-              fill="var(--on-accent)"
-              stroke="var(--text)"
-              strokeWidth="0.8"
-            />
-            <circle cx="3.7" cy="-12.5" r={mood === 'hurry' ? 0.9 : 1.2} fill="var(--text)" />
-            <circle cx="3.3" cy="-13.4" r="0.55" fill="var(--on-accent)" />
-            {mood === 'hurry' ? (
-              <circle
-                cx="1.2"
-                cy="-7.5"
-                r="1.4"
-                fill="var(--tetromino-z)"
-                stroke="var(--text)"
-                strokeWidth="0.7"
-              />
-            ) : (
-              <path
-                d="M -0.6 -7.8 Q 1.2 -6.2 3.1 -7.8"
-                fill="none"
-                stroke="var(--text)"
-                strokeWidth="0.9"
-                strokeLinecap="round"
-              />
-            )}
-          </g>
-        )}
-
-        {/* Connecting cranking forearm from shoulder to the gear handle pin (#299) */}
-        {isCranking ? (
-          <line
-            x1={-4.5}
-            y1={-1.5}
-            x2={leftArmX}
-            y2={leftArmY}
-            stroke={bodyFill}
-            strokeWidth="3.8"
-            strokeLinecap="round"
-          />
-        ) : null}
-
-        {/* Left & right paws (drawn in front so raised celebration/cheer/cry poses read clearly) */}
-        <circle
-          cx={leftArmX}
-          cy={leftArmY}
-          r="3.1"
-          fill={bodyFill}
-          stroke="var(--text)"
-          strokeWidth="1"
-        />
-        <circle
-          cx={rightArmX}
-          cy={rightArmY}
-          r="3"
-          fill={bodyFill}
-          stroke="var(--text)"
-          strokeWidth="1"
-        />
-
-        {/* Feet (alternate pedaling while cranking the gears) */}
-        <ellipse cx="-2" cy={leftFootY} rx="4.5" ry="2.2" fill={accentFill} stroke="var(--text)" strokeWidth="1" />
-        <ellipse cx="6" cy={rightFootY} rx="4.5" ry="2.2" fill={accentFill} stroke="var(--text)" strokeWidth="1" />
-
-        {/* Celebratory 4-point stars & sparkles on round win (`celebrate`) or combo (`cheer`) */}
-        {mood === 'celebrate' ? (
-          <g aria-hidden="true">
-            <polygon
-              className="pb-mascot-sparkle pb-mascot-sparkle-1"
-              points="-11,-22 -9.5,-19 -6.5,-17.5 -9.5,-16 -11,-13 -12.5,-16 -15.5,-17.5 -12.5,-19"
-              fill="var(--tetromino-o)"
-              stroke="var(--text)"
-              strokeWidth="0.6"
-            />
-            <polygon
-              className="pb-mascot-sparkle pb-mascot-sparkle-2"
-              points="14,-23 15.2,-20.5 17.8,-19.3 15.2,-18.1 14,-15.6 12.8,-18.1 10.2,-19.3 12.8,-20.5"
-              fill="var(--tetromino-z)"
-              stroke="var(--text)"
-              strokeWidth="0.6"
-            />
-            <polygon
-              className="pb-mascot-sparkle pb-mascot-sparkle-1"
-              points={`2,${topStarY - 3.5} 3,${topStarY - 1} 5.5,${topStarY} 3,${topStarY + 1} 2,${topStarY + 3.5} 1,${topStarY + 1} -1.5,${topStarY} 1,${topStarY - 1}`}
-              fill="var(--tetromino-s)"
-              stroke="var(--text)"
-              strokeWidth="0.55"
-            />
-          </g>
-        ) : mood === 'cheer' ? (
-          <polygon
-            className="pb-mascot-sparkle pb-mascot-sparkle-1"
-            points="13,-20 14.2,-17.5 16.8,-16.3 14.2,-15.1 13,-12.6 11.8,-15.1 9.2,-16.3 11.8,-17.5"
-            fill="var(--tetromino-o)"
-            stroke="var(--text)"
-            strokeWidth="0.6"
-          />
-        ) : null}
-
-        {/* Hurry sweat drops */}
-        {mood === 'hurry' ? (
-          <g className="pb-mascot-sweat" fill="var(--tetromino-i)" stroke="var(--text)" strokeWidth="0.55">
-            <circle cx="13" cy="-16" r="1.8" />
-            <circle cx="16" cy="-11" r="1.4" />
-          </g>
-        ) : null}
-      </g>
-    </g>
-  );
-}
-
 /**
  * Neo-Geo style mechanical catapult / pointer launcher with rotating toothed
  * gears, aiming arrow shaft, next-bubble cradle, and selectable cute mascot.
@@ -781,15 +260,15 @@ function LauncherMechanismSvg({
 
   return (
     <g>
-      {/* Pedestal base */}
+      {/* Full-width launcher & mascot arcade pedestal base */}
       <rect
         x={LAUNCHER_X - 44}
         y={LAUNCHER_Y + 13}
-        width={88}
+        width={106}
         height={10}
         rx={4}
-        fill="var(--neutral-weak)"
-        stroke="var(--border)"
+        fill="var(--cabinet-surface)"
+        stroke="var(--cabinet-border)"
         strokeWidth="1.2"
       />
 
@@ -807,9 +286,9 @@ function LauncherMechanismSvg({
             width={5}
             height={6}
             rx={1}
-            fill="var(--border-hover)"
-            stroke="var(--text)"
-            strokeWidth="0.8"
+            fill="var(--cabinet-bezel)"
+            stroke="var(--cabinet-well)"
+            strokeWidth="0.9"
             transform={`rotate(${i * 30})`}
           />
         ))}
@@ -817,16 +296,16 @@ function LauncherMechanismSvg({
           cx={0}
           cy={0}
           r={20}
-          fill="var(--surface)"
-          stroke="var(--text)"
-          strokeWidth="1.4"
+          fill="var(--cabinet-surface)"
+          stroke="var(--cabinet-bezel)"
+          strokeWidth="1.5"
         />
         <circle
           cx={0}
           cy={0}
           r={14}
           fill="none"
-          stroke="var(--border)"
+          stroke="var(--cabinet-border)"
           strokeWidth="1.2"
           strokeDasharray="4 3"
         />
@@ -845,17 +324,18 @@ function LauncherMechanismSvg({
             y={-12}
             width={3.6}
             height={4}
-            fill="var(--warning-weak)"
-            stroke="var(--text)"
-            strokeWidth="0.7"
+            fill="var(--tetromino-o)"
+            stroke="var(--cabinet-well)"
+            strokeWidth="0.8"
             transform={`rotate(${i * 45})`}
           />
         ))}
-        <circle cx={0} cy={0} r={9.5} fill="var(--warning-weak)" stroke="var(--text)" strokeWidth="1.2" />
-        <line x1={-7.5} y1={0} x2={7.5} y2={0} stroke="var(--border-hover)" strokeWidth="1.2" />
-        <line x1={0} y1={-7.5} x2={0} y2={7.5} stroke="var(--border-hover)" strokeWidth="1.2" />
-        <circle cx={0} cy={0} r={3.2} fill="var(--surface)" stroke="var(--text)" strokeWidth="1" />
-        <circle cx={5.2} cy={0} r={2.2} fill="var(--accent)" stroke="var(--text)" strokeWidth="0.9" />
+        <circle cx={0} cy={0} r={9.5} fill="var(--tetromino-o)" stroke="var(--cabinet-well)" strokeWidth="1.2" />
+        <circle cx={0} cy={0} r={7.2} fill="var(--cabinet-surface)" opacity="0.28" />
+        <line x1={-7.5} y1={0} x2={7.5} y2={0} stroke="var(--cabinet-well)" strokeWidth="1.0" opacity="0.45" />
+        <line x1={0} y1={-7.5} x2={0} y2={7.5} stroke="var(--cabinet-well)" strokeWidth="1.0" opacity="0.45" />
+        <circle cx={0} cy={0} r={3.2} fill="var(--cabinet-surface)" stroke="var(--cabinet-well)" strokeWidth="1" />
+        <circle cx={5.2} cy={0} r={2.3} fill="var(--warning)" stroke="var(--cabinet-well)" strokeWidth="0.95" />
       </g>
 
       {/* Rotating ornate pointer arrow */}
@@ -863,9 +343,9 @@ function LauncherMechanismSvg({
         {/* Pointer side wings */}
         <polygon
           points="-11,-8 -4,-28 4,-28 11,-8"
-          fill="var(--accent-weak)"
-          stroke="var(--text)"
-          strokeWidth="1.1"
+          fill="var(--tetromino-i)"
+          stroke="var(--cabinet-well)"
+          strokeWidth="1.15"
         />
         {/* Pointer main shaft */}
         <rect
@@ -875,15 +355,15 @@ function LauncherMechanismSvg({
           height={28}
           rx={2}
           fill="var(--accent)"
-          stroke="var(--text)"
-          strokeWidth="1.1"
+          stroke="var(--cabinet-well)"
+          strokeWidth="1.15"
         />
         {/* Ornate arrowhead tip */}
         <polygon
           points="0,-54 -9,-38 -3,-40 0,-43 3,-40 9,-38"
-          fill="var(--warning-weak)"
-          stroke="var(--text)"
-          strokeWidth="1.2"
+          fill="var(--tetromino-o)"
+          stroke="var(--cabinet-well)"
+          strokeWidth="1.25"
         />
       </g>
 
@@ -895,8 +375,8 @@ function LauncherMechanismSvg({
           cx={LAUNCHER_X}
           cy={LAUNCHER_Y}
           r={BUBBLE_RADIUS - 3}
-          fill="var(--field)"
-          stroke="var(--border)"
+          fill="var(--cabinet-slot)"
+          stroke="var(--cabinet-border)"
           strokeDasharray="3 2"
         />
       )}
@@ -908,21 +388,22 @@ function LauncherMechanismSvg({
           cy={10}
           rx={14}
           ry={4}
-          fill="var(--neutral-weak)"
-          stroke="var(--border)"
+          fill="var(--cabinet-surface)"
+          stroke="var(--cabinet-border)"
           strokeWidth="1"
         />
         <BubbleSvg cx={0} cy={-1} color={player.nextBubble} radius={BUBBLE_RADIUS - 3} />
       </g>
 
-      {/* Selectable cute mascot turning the crank on the right — click to cycle animal (#204, #299, #313) */}
+      {/* Selectable cute mascot turning the crank on the right — click to cycle animal (#204, #299, #313, #345) */}
       <CharacterMascotSvg
         x={LAUNCHER_X + 44}
-        y={LAUNCHER_Y + 4}
+        y={LAUNCHER_Y + 6}
         playerNumber={playerNumber}
         character={character}
         mood={mood}
         aimAngle={player.aimAngle}
+        isFiring={player.flying !== null}
         onCycleCharacter={onCycleCharacter}
       />
 
@@ -999,54 +480,6 @@ function GarbageOrbsRow({ count, label }: { count: number; label: string }) {
       ))}
     </span>
   );
-}
-
-/**
- * Miniature 12x12 mascot emblem for the arcade fighter select strip (#215).
- * Marked `aria-hidden="true"` so the button's accessible name remains the character label.
- */
-function CharacterTokenIcon({ id }: { id: CharacterId }) {
-  switch (id) {
-    case 'dragon':
-      return (
-        <svg className="pb-char-icon" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-          <polygon points="3,4 5,1 7,1 9,4" fill="var(--tetromino-l)" />
-          <circle cx="6" cy="7" r="4" fill="var(--tetromino-s)" stroke="var(--text)" strokeWidth="1" />
-          <circle cx="4.8" cy="6.3" r="0.9" fill="var(--text)" />
-          <circle cx="7.2" cy="6.3" r="0.9" fill="var(--text)" />
-        </svg>
-      );
-    case 'cat':
-      return (
-        <svg className="pb-char-icon" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-          <polygon points="2,6 2.5,1.5 5.5,4" fill="var(--tetromino-i)" stroke="var(--text)" strokeWidth="0.9" />
-          <polygon points="10,6 9.5,1.5 6.5,4" fill="var(--tetromino-i)" stroke="var(--text)" strokeWidth="0.9" />
-          <circle cx="6" cy="7" r="3.8" fill="var(--tetromino-i)" stroke="var(--text)" strokeWidth="1" />
-          <circle cx="4.8" cy="6.5" r="0.9" fill="var(--text)" />
-          <circle cx="7.2" cy="6.5" r="0.9" fill="var(--text)" />
-        </svg>
-      );
-    case 'dog':
-      return (
-        <svg className="pb-char-icon" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-          <ellipse cx="2.2" cy="7" rx="1.4" ry="2.8" fill="var(--tetromino-z)" stroke="var(--text)" strokeWidth="0.9" />
-          <ellipse cx="9.8" cy="7" rx="1.4" ry="2.8" fill="var(--tetromino-z)" stroke="var(--text)" strokeWidth="0.9" />
-          <circle cx="6" cy="6.8" r="3.8" fill="var(--tetromino-o)" stroke="var(--text)" strokeWidth="1" />
-          <circle cx="4.8" cy="6.2" r="0.9" fill="var(--text)" />
-          <circle cx="7.2" cy="6.2" r="0.9" fill="var(--text)" />
-        </svg>
-      );
-    case 'bunny':
-      return (
-        <svg className="pb-char-icon" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-          <ellipse cx="4.3" cy="3" rx="1.2" ry="2.6" fill="var(--tetromino-t)" stroke="var(--text)" strokeWidth="0.9" />
-          <ellipse cx="7.7" cy="3" rx="1.2" ry="2.6" fill="var(--tetromino-t)" stroke="var(--text)" strokeWidth="0.9" />
-          <circle cx="6" cy="7.6" r="3.5" fill="var(--tetromino-t)" stroke="var(--text)" strokeWidth="1" />
-          <circle cx="4.8" cy="7.2" r="0.9" fill="var(--text)" />
-          <circle cx="7.2" cy="7.2" r="0.9" fill="var(--text)" />
-        </svg>
-      );
-  }
 }
 
 function mulberry32(seed: number): () => number {

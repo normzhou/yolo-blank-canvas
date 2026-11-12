@@ -272,36 +272,43 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
           stroke="var(--tetromino-o)"
           strokeWidth="2"
         />
-        {/* Launcher gear & animated pointer */}
-        <circle cx="110" cy="146" r="14" fill="var(--field)" stroke="var(--text)" strokeWidth="1.2" />
+        {/*Launcher gear & animated pointer*/}
+        <circle cx="110" cy="146" r="14" fill="var(--cabinet-surface)" stroke="var(--cabinet-bezel)" strokeWidth="1.2" />
         <g className="deck-pb-aim-sweep">
-          <polygon points="110,122 105,134 115,134" fill="var(--warning-weak)" stroke="var(--text)" strokeWidth="1" />
+          <polygon points="110,122 105,134 115,134" fill="var(--tetromino-o)" stroke="var(--cabinet-well)" strokeWidth="1" />
         </g>
-        <circle cx="110" cy="146" r="9" fill="var(--tetromino-i)" stroke="var(--text)" strokeWidth="1.1" />
+        <circle cx="110" cy="146" r="9" fill="var(--tetromino-i)" stroke="var(--cabinet-well)" strokeWidth="1.1" />
         {/* Cute P1 Dragon & P2 Cat mascots flanking the launcher */}
-        <g transform="translate(72, 149)" stroke="var(--text)" strokeWidth="0.9">
+        <g transform="translate(72, 149)" stroke="var(--cabinet-well)" strokeWidth="0.95">
           <polygon points="-5,-9 -10,-12 -8,-6" fill="var(--tetromino-l)" />
           <polygon points="-6,-3 -11,-5 -9,0" fill="var(--tetromino-l)" />
           <polygon points="-5,3 -10,2 -7,6" fill="var(--tetromino-l)" />
           <ellipse cx="0" cy="2" rx="6.5" ry="7" fill="var(--tetromino-s)" />
-          <ellipse cx="1.5" cy="3" rx="3.8" ry="4.5" fill="var(--on-accent)" stroke="none" opacity="0.88" />
+          <ellipse cx="1.5" cy="3" rx="3.8" ry="4.5" fill="var(--on-accent)" stroke="none" opacity="0.92" />
           <circle cx="0" cy="-6" r="5.8" fill="var(--tetromino-s)" />
-          <circle cx="-1" cy="-6.8" r="1.3" fill="var(--on-accent)" stroke="none" />
-          <circle cx="-0.8" cy="-6.8" r="0.7" fill="var(--text)" stroke="none" />
-          <circle cx="2.5" cy="-6.8" r="1.3" fill="var(--on-accent)" stroke="none" />
-          <circle cx="2.7" cy="-6.8" r="0.7" fill="var(--text)" stroke="none" />
+          <circle cx="-1" cy="-6.8" r="1.45" fill="var(--on-accent)" stroke="var(--cabinet-well)" strokeWidth="0.6" />
+          <circle cx="-0.8" cy="-6.8" r="0.85" fill="var(--cabinet-well)" stroke="none" />
+          <circle cx="-1.1" cy="-7.2" r="0.32" fill="var(--on-accent)" stroke="none" />
+          <circle cx="2.5" cy="-6.8" r="1.45" fill="var(--on-accent)" stroke="var(--cabinet-well)" strokeWidth="0.6" />
+          <circle cx="2.7" cy="-6.8" r="0.85" fill="var(--cabinet-well)" stroke="none" />
+          <circle cx="2.4" cy="-7.2" r="0.32" fill="var(--on-accent)" stroke="none" />
+          <ellipse cx="3.8" cy="-5.1" rx="1.1" ry="0.65" fill="var(--tetromino-z)" stroke="none" opacity="0.55" />
         </g>
-        <g transform="translate(148, 149)" stroke="var(--text)" strokeWidth="0.9">
-          <path d="M 6 4 Q 12 2 11 -4" fill="none" stroke="var(--tetromino-l)" strokeWidth="2.2" strokeLinecap="round" />
+        <g transform="translate(148, 149)" stroke="var(--cabinet-well)" strokeWidth="0.95">
+          <path d="M 6 4 Q 12 2 11 -4" fill="none" stroke="var(--cabinet-well)" strokeWidth="3.2" strokeLinecap="round" />
+          <path d="M 6 4 Q 12 2 11 -4" fill="none" stroke="var(--tetromino-l)" strokeWidth="2.1" strokeLinecap="round" />
           <polygon points="-4,-10 -2,-15 1,-10" fill="var(--tetromino-l)" />
           <polygon points="1,-10 4,-15 6,-10" fill="var(--tetromino-l)" />
           <ellipse cx="0" cy="2" rx="6.5" ry="7" fill="var(--tetromino-l)" />
-          <ellipse cx="-1.2" cy="3" rx="3.8" ry="4.5" fill="var(--on-accent)" stroke="none" opacity="0.88" />
+          <ellipse cx="-1.2" cy="3" rx="3.8" ry="4.5" fill="var(--on-accent)" stroke="none" opacity="0.92" />
           <circle cx="0" cy="-6" r="5.8" fill="var(--tetromino-l)" />
-          <circle cx="-2.4" cy="-6.8" r="1.3" fill="var(--on-accent)" stroke="none" />
-          <circle cx="-2.6" cy="-6.8" r="0.7" fill="var(--text)" stroke="none" />
-          <circle cx="1.1" cy="-6.8" r="1.3" fill="var(--on-accent)" stroke="none" />
-          <circle cx="0.9" cy="-6.8" r="0.7" fill="var(--text)" stroke="none" />
+          <circle cx="-2.4" cy="-6.8" r="1.45" fill="var(--on-accent)" stroke="var(--cabinet-well)" strokeWidth="0.6" />
+          <circle cx="-2.6" cy="-6.8" r="0.85" fill="var(--cabinet-well)" stroke="none" />
+          <circle cx="-2.9" cy="-7.2" r="0.32" fill="var(--on-accent)" stroke="none" />
+          <circle cx="1.1" cy="-6.8" r="1.45" fill="var(--on-accent)" stroke="var(--cabinet-well)" strokeWidth="0.6" />
+          <circle cx="0.9" cy="-6.8" r="0.85" fill="var(--cabinet-well)" stroke="none" />
+          <circle cx="0.6" cy="-7.2" r="0.32" fill="var(--on-accent)" stroke="none" />
+          <ellipse cx="-3.9" cy="-5.1" rx="1.1" ry="0.65" fill="var(--tetromino-z)" stroke="none" opacity="0.55" />
         </g>
       </svg>
       <div className="deck-preview-hud">
