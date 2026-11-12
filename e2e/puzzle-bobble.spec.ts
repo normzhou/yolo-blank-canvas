@@ -143,24 +143,31 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
     expect(cheerGearAfter).not.toBe(cheerGearBefore);
     expect(cheerCrankAfter).not.toBe(cheerCrankBefore);
 
-    // Clicking a mascot changes to a random *other* animal species (`!== prev`) with random gender and updates the title!
-    let prevChar = initialP1Char;
-    for (let step = 0; step < 3; step++) {
+    // Clicking a mascot changes to a random *other* animal species that is neither its previous
+    // character NOR the opposite side's character (#347, #349), with random gender and matching title!
+    let prevP1 = initialP1Char;
+    let prevP2 = initialP2Char;
+    for (let step = 0; step < 6; step++) {
       await p1Mascot.click();
-      const nextChar = await p1Mascot.getAttribute('data-character');
-      const nextGender = await p1Mascot.getAttribute('data-gender');
-      const nextName = await p1Mascot.getAttribute('data-mascot-name');
-      expect(nextChar).not.toBe(prevChar);
-      expect(['boy', 'girl']).toContain(nextGender);
-      await expect(page.getByTestId('p1-title')).toHaveText(`1P · ${nextName}`);
-      prevChar = nextChar;
+      const nextP1Char = await p1Mascot.getAttribute('data-character');
+      const nextP1Gender = await p1Mascot.getAttribute('data-gender');
+      const nextP1Name = await p1Mascot.getAttribute('data-mascot-name');
+      expect(nextP1Char).not.toBe(prevP1);
+      expect(nextP1Char).not.toBe(prevP2);
+      expect(['boy', 'girl']).toContain(nextP1Gender);
+      await expect(page.getByTestId('p1-title')).toHaveText(`1P · ${nextP1Name}`);
+      prevP1 = nextP1Char;
+
+      await p2Mascot.click();
+      const nextP2Char = await p2Mascot.getAttribute('data-character');
+      const nextP2Gender = await p2Mascot.getAttribute('data-gender');
+      const nextP2Name = await p2Mascot.getAttribute('data-mascot-name');
+      expect(nextP2Char).not.toBe(prevP2);
+      expect(nextP2Char).not.toBe(prevP1);
+      expect(['boy', 'girl']).toContain(nextP2Gender);
+      await expect(page.getByTestId('p2-title')).toHaveText(`2P · ${nextP2Name}`);
+      prevP2 = nextP2Char;
     }
-    const prevP2Char = await p2Mascot.getAttribute('data-character');
-    await p2Mascot.click();
-    const nextP2Char = await p2Mascot.getAttribute('data-character');
-    const nextP2Name = await p2Mascot.getAttribute('data-mascot-name');
-    expect(nextP2Char).not.toBe(prevP2Char);
-    await expect(page.getByTestId('p2-title')).toHaveText(`2P · ${nextP2Name}`);
 
     // #204: When one side wins, the winning character celebrates (.pb-mascot-celebrate + sparkles)
     // and the losing character cries (.pb-mascot-cry + falling teardrops).
