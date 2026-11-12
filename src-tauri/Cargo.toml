@@ -1,6 +1,6 @@
 [package]
 name = "yolo-arcade"
-version = "0.39.0"
+version = "0.40.0"
 description = "YOLO Arcade — installable desktop (macOS/Windows) and Android wrapper for demo.yolo-dev.ai"
 authors = ["normzhou"]
 license = "MIT"

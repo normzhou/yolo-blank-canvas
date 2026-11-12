@@ -104,16 +104,27 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
     const p2Board = page.getByRole('img', { name: 'Player 2 bubble board' });
     await expect(p2Board.locator('.pb-rise-bubble')).toHaveCount(3);
 
-    // #204, #313: Players can cycle cute characters (Dragon -> Cat -> Dog -> Bunny) by clicking the mascot directly.
+    // #204, #313, #347: At game start, the two mascots start as a random species pair with one Girl and one Boy,
+    // and clicking a mascot switches to a random *other* animal with random gender and matching name/color!
     const p1Mascot = page.getByTestId('p1-mascot');
     const p2Mascot = page.getByTestId('p2-mascot');
-    await expect(p1Mascot).toHaveAttribute('data-character', 'dragon');
-    await expect(p2Mascot).toHaveAttribute('data-character', 'dragon');
+    const initialP1Char = await p1Mascot.getAttribute('data-character');
+    const initialP2Char = await p2Mascot.getAttribute('data-character');
+    const initialP1Gender = await p1Mascot.getAttribute('data-gender');
+    const initialP2Gender = await p2Mascot.getAttribute('data-gender');
+    const initialP1Name = await p1Mascot.getAttribute('data-mascot-name');
+    const initialP2Name = await p2Mascot.getAttribute('data-mascot-name');
+    expect(['dragon', 'cat', 'dog', 'bunny']).toContain(initialP1Char);
+    expect(['dragon', 'cat', 'dog', 'bunny']).toContain(initialP2Char);
+    expect(initialP1Char).not.toBe(initialP2Char);
+    expect([initialP1Gender, initialP2Gender].sort()).toEqual(['boy', 'girl']);
+    await expect(page.getByTestId('p1-title')).toHaveText(`1P · ${initialP1Name}`);
+    await expect(page.getByTestId('p2-title')).toHaveText(`2P · ${initialP2Name}`);
     await expect(p1Mascot).toHaveAttribute('data-mood', /^(?:normal|cheer)$/);
     await expect(p2Mascot).toHaveAttribute('data-mood', 'normal');
 
-    // #342: Even when the Dinosaur is happy (`cheer`) right after hitting/popping a cluster,
-    // aiming continues to spin the crank wheel and move the dinosaur's cranking paw!
+    // #342: Even when the mascot is happy (`cheer`) right after hitting/popping a cluster,
+    // aiming continues to spin the crank wheel and move the cranking paw!
     await page.evaluate(() => {
       window.dispatchEvent(
         new CustomEvent('yolo:puzzle-bobble:fire-resolve', {
@@ -132,13 +143,24 @@ test('home gallery opens 2-player Puzzle Bobble, aims with 0.5° taps, displays 
     expect(cheerGearAfter).not.toBe(cheerGearBefore);
     expect(cheerCrankAfter).not.toBe(cheerCrankBefore);
 
-    await p1Mascot.click();
+    // Clicking a mascot changes to a random *other* animal species (`!== prev`) with random gender and updates the title!
+    let prevChar = initialP1Char;
+    for (let step = 0; step < 3; step++) {
+      await p1Mascot.click();
+      const nextChar = await p1Mascot.getAttribute('data-character');
+      const nextGender = await p1Mascot.getAttribute('data-gender');
+      const nextName = await p1Mascot.getAttribute('data-mascot-name');
+      expect(nextChar).not.toBe(prevChar);
+      expect(['boy', 'girl']).toContain(nextGender);
+      await expect(page.getByTestId('p1-title')).toHaveText(`1P · ${nextName}`);
+      prevChar = nextChar;
+    }
+    const prevP2Char = await p2Mascot.getAttribute('data-character');
     await p2Mascot.click();
-    await p2Mascot.click();
-    await expect(p1Mascot).toHaveAttribute('data-character', 'cat');
-    await expect(p2Mascot).toHaveAttribute('data-character', 'dog');
-    await expect(page.getByTestId('p1-title')).toHaveText('1P · Mochi');
-    await expect(page.getByTestId('p2-title')).toHaveText('2P · Koro');
+    const nextP2Char = await p2Mascot.getAttribute('data-character');
+    const nextP2Name = await p2Mascot.getAttribute('data-mascot-name');
+    expect(nextP2Char).not.toBe(prevP2Char);
+    await expect(page.getByTestId('p2-title')).toHaveText(`2P · ${nextP2Name}`);
 
     // #204: When one side wins, the winning character celebrates (.pb-mascot-celebrate + sparkles)
     // and the losing character cries (.pb-mascot-cry + falling teardrops).
