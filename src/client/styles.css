@@ -2522,19 +2522,44 @@ button.pb-touch-fire {
   transform-origin: center bottom;
 }
 .pb-mascot-normal {
-  animation: pb-mascot-idle 1400ms ease-in-out infinite alternate;
+  animation: pb-mascot-idle 1500ms ease-in-out infinite alternate;
 }
 .pb-mascot-cheer {
-  animation: pb-mascot-hop 360ms ease-in-out infinite alternate;
+  animation: pb-mascot-hop 340ms cubic-bezier(0.28, 0.85, 0.42, 1) infinite alternate;
 }
 .pb-mascot-hurry {
-  animation: pb-mascot-panic 140ms linear infinite alternate;
+  animation: pb-mascot-panic 130ms linear infinite alternate;
 }
 .pb-mascot-celebrate {
-  animation: pb-mascot-victory 420ms cubic-bezier(0.25, 0.9, 0.35, 1) infinite alternate;
+  animation: pb-mascot-victory 410ms cubic-bezier(0.25, 0.9, 0.35, 1) infinite alternate;
 }
 .pb-mascot-cry {
   animation: pb-mascot-sob 320ms ease-in-out infinite alternate;
+}
+.pb-mascot-tail {
+  animation: pb-tail-wag 920ms ease-in-out infinite alternate;
+}
+.pb-mascot-cheer .pb-mascot-tail,
+.pb-mascot-celebrate .pb-mascot-tail {
+  animation-duration: 280ms;
+}
+.pb-mascot-ear-left {
+  animation: pb-ear-bounce-left 1500ms ease-in-out infinite alternate;
+}
+.pb-mascot-ear-right {
+  animation: pb-ear-bounce-right 1500ms ease-in-out 180ms infinite alternate;
+}
+.pb-mascot-cheer-arm {
+  transform-box: fill-box;
+  transform-origin: left bottom;
+  animation: pb-cheer-arm-pump 300ms ease-in-out infinite alternate;
+}
+.pb-mascot-eyes-open {
+  animation: pb-eyes-open-cycle 4200ms steps(1, end) infinite;
+}
+.pb-mascot-eyes-blink {
+  opacity: 0;
+  animation: pb-eyes-blink-cycle 4200ms steps(1, end) infinite;
 }
 .pb-mascot-sparkle {
   transform-box: fill-box;
@@ -2581,24 +2606,48 @@ button.pb-touch-fire {
   animation: pb-trail-flash 380ms ease-out forwards;
 }
 @keyframes pb-mascot-idle {
-  from { transform: translateY(0) scaleY(1); }
-  to { transform: translateY(-1.2px) scaleY(1.02); }
+  from { transform: translateY(0) scale(1.015, 0.985); }
+  to { transform: translateY(-1.4px) scale(0.99, 1.02); }
 }
 @keyframes pb-mascot-hop {
-  from { transform: translateY(0) rotate(-3deg); }
-  to { transform: translateY(-4.5px) rotate(4deg); }
+  from { transform: translateY(0.4px) scale(1.03, 0.97) rotate(-2deg); }
+  to { transform: translateY(-2.4px) scale(0.98, 1.03) rotate(3deg); }
 }
 @keyframes pb-mascot-panic {
   from { transform: translateX(-1.2px) translateY(0); }
   to { transform: translateX(1.2px) translateY(-1.5px); }
 }
 @keyframes pb-mascot-victory {
-  0% { transform: translateY(0) scale(1, 0.96) rotate(-5deg); }
-  100% { transform: translateY(-6.5px) scale(1.04, 1.05) rotate(6deg); }
+  0% { transform: translateY(0) scale(1.04, 0.94) rotate(-5deg); }
+  100% { transform: translateY(-7px) scale(0.97, 1.06) rotate(6deg); }
 }
 @keyframes pb-mascot-sob {
-  0% { transform: translateY(1.5px) scale(1.02, 0.94) rotate(-2deg); }
-  100% { transform: translateY(3px) scale(0.98, 0.9) rotate(2deg); }
+  0% { transform: translateY(1.5px) scale(1.03, 0.94) rotate(-2deg); }
+  100% { transform: translateY(3.2px) scale(0.98, 0.9) rotate(2deg); }
+}
+@keyframes pb-tail-wag {
+  from { transform: rotate(-6deg); }
+  to { transform: rotate(8deg); }
+}
+@keyframes pb-ear-bounce-left {
+  from { transform: rotate(-3.5deg); }
+  to { transform: rotate(2.5deg); }
+}
+@keyframes pb-ear-bounce-right {
+  from { transform: rotate(3.5deg); }
+  to { transform: rotate(-2.5deg); }
+}
+@keyframes pb-cheer-arm-pump {
+  from { transform: rotate(-8deg) translateY(0.5px); }
+  to { transform: rotate(10deg) translateY(-1.8px); }
+}
+@keyframes pb-eyes-open-cycle {
+  0%, 93.9%, 97.6%, 100% { opacity: 1; }
+  94%, 97.5% { opacity: 0; }
+}
+@keyframes pb-eyes-blink-cycle {
+  0%, 93.9%, 97.6%, 100% { opacity: 0; }
+  94%, 97.5% { opacity: 1; }
 }
 @keyframes pb-sparkle-twinkle {
   from { transform: translateY(0) scale(0.82); opacity: 0.75; }
@@ -2658,6 +2707,12 @@ button.pb-touch-fire {
   .pb-mascot-hurry,
   .pb-mascot-celebrate,
   .pb-mascot-cry,
+  .pb-mascot-tail,
+  .pb-mascot-ear-left,
+  .pb-mascot-ear-right,
+  .pb-mascot-cheer-arm,
+  .pb-mascot-eyes-open,
+  .pb-mascot-eyes-blink,
   .pb-mascot-sparkle,
   .pb-mascot-tear,
   .pb-mascot-sweat,
