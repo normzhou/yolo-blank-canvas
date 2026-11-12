@@ -1,0 +1,76 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-11",
+  "observed_at": "2026-11-11",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#349",
+  "releases": [
+    {
+      "tag": "v0.40.1",
+      "commit": "50b9df58fc1689e9fb59e66acca8d2d2e929f3b4"
+    }
+  ],
+  "release": {
+    "tag": "v0.40.1",
+    "commit": "50b9df58fc1689e9fb59e66acca8d2d2e929f3b4",
+    "source_commit": "c16f8be87025865263cccbf460898cb7c5a6f0d2",
+    "assets_commit": "ab052ef0c279003c18323480072b832be3d5ebdb",
+    "native_version": "0.40.1",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-12T19:12:00Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.40.1",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/350"
+  },
+  "build_identity": {
+    "server_build_id": "c16f8be87025865263cccbf460898cb7c5a6f0d2",
+    "client_build_id": "c16f8be87025865263cccbf460898cb7c5a6f0d2",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "28 files, 191 tests passed",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 46 passed (53.9s, including #349 cross-side mascot exclusion and @yolo-arcade/game-puzzle-bobble@1.2.1)",
+      "e2e_live": "npm run e2e:live — 5 passed (13.7s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.40.1 --no-open --port 4492 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (20.9s)",
+      "ci": "GitHub Actions CI/Test and type check green"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "a464d293-cef6-4836-afba-9dcad22d9bd2",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.40.1",
+      "observed_build_id": "c16f8be87025865263cccbf460898cb7c5a6f0d2",
+      "game_manifest": {
+        "puzzle-bobble": {
+          "version": "1.2.1",
+          "entry": "/games/puzzle-bobble-B7vELGfF.js",
+          "hash": "fecb28b252ee06f7bbb4f5a1af60db81015664d1ee57db75bc92a7bb132330ae",
+          "sizeBytes": 88200
+        },
+        "tetris": {
+          "version": "1.0.0",
+          "entry": "/games/tetris-BQl6pEES.js",
+          "hash": "47d30e6c9db89d24ade29150c7c9735a1577504600e78cff4018dd4530d29017",
+          "sizeBytes": 35628
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Cross-side distinct mascot switching (#349, @yolo-arcade/game-puzzle-bobble@1.2.1 while @yolo-arcade/game-tetris@1.0.0 stays byte-unchanged): pickRandomOtherMascot excludes both the clicked side's current character and the opposite side's character via functional state updates, guaranteeing the two sides never share the same mascot character."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub.",
+    "Tag v0.40.1 points at merge commit 50b9df5 wrapping commit ab052ef; both build-ID files record parent HEAD c16f8be at build time, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #349"
+}

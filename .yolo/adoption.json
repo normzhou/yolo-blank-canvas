@@ -326,15 +326,16 @@
         "v0.37.3": "587ed6ea56f1a5a090f97a4d3dc39f7be4cf4ffb",
         "v0.37.4": "85af2ebab501abc157ab290a8d480ef311ceafe0",
         "v0.38.0": "ff888647effa8decc04c6dd6a71c39ceb798510c",
-        "v0.39.0": "fd19dfbb131e15fdf20c624d6cca76e17d82504c"
+        "v0.39.0": "fd19dfbb131e15fdf20c624d6cca76e17d82504c",
+        "v0.40.0": "f82809e0678a8ff896d20957a5859010325dc458"
       },
       "published": {
-        "tag": "v0.40.0",
-        "commit": "f82809e0678a8ff896d20957a5859010325dc458",
-        "source_commit": "764e813b24b3a461a94b6ea97542948165f37613",
-        "published_at": "2026-11-12T07:35:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-11-v0400.json",
-        "note": "Minor feature release (#347, PR #348). Adds distinct Boy & Girl mascot personas across all four Puzzle Bobble species (@yolo-arcade/game-puzzle-bobble@1.2.0: Bub/Bibi, Yuzu/Mochi, Koro/Hana, Poko/Momo; @yolo-arcade/game-tetris@1.0.0 byte-unchanged) with matching colors, curved eyelashes, crown/ear bows & sakura clip, initializes every game with a random 1-girl + 1-boy duo, and switches clicked mascots to a random other animal with random gender; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 1b0e97ac-67de-49ca-b3e7-e38268f51c38)."
+        "tag": "v0.40.1",
+        "commit": "50b9df58fc1689e9fb59e66acca8d2d2e929f3b4",
+        "source_commit": "c16f8be87025865263cccbf460898cb7c5a6f0d2",
+        "published_at": "2026-11-12T19:12:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-11-v0401.json",
+        "note": "Patch UX release (#349, PR #350). Ensures the two Puzzle Bobble player sides never share the same mascot character (@yolo-arcade/game-puzzle-bobble@1.2.1; @yolo-arcade/game-tetris@1.0.0 byte-unchanged) by excluding both the active side's character and the opposite side's character in pickRandomOtherMascot; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: a464d293-cef6-4836-afba-9dcad22d9bd2)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -421,7 +422,8 @@
         ".yolo/reports/releases-observed-2026-11-10-v0374.json",
         ".yolo/reports/releases-observed-2026-11-10-v0380.json",
         ".yolo/reports/releases-observed-2026-11-11-v0390.json",
-        ".yolo/reports/releases-observed-2026-11-11-v0400.json"
+        ".yolo/reports/releases-observed-2026-11-11-v0400.json",
+        ".yolo/reports/releases-observed-2026-11-11-v0401.json"
       ]
     }
   },
