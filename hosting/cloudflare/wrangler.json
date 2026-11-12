@@ -30,6 +30,6 @@
     "PUBLIC_ORIGIN": "https://demo.yolo-dev.ai",
     "BACKEND_ORIGIN": "",
     "CLIENT_IDENTITY_ENABLED": "true",
-    "APP_VERSION": "v0.38.0"
+    "APP_VERSION": "v0.39.0"
   }
 }

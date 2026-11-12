@@ -4,6 +4,22 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Puzzle Bobble Declarative Rigged Vector Mascots, Cel-Shaded Finish, & Happy Cranking Fix (#345, #342) — 2026-11-11
+
+Source revision `a6af73d` (`src/games/puzzle-bobble/mascots.tsx` declarative rigged vector puppet format + `@yolo-arcade/game-puzzle-bobble@1.1.0`, resolving `#342`); build evidence `654d004` (`tetris@1.0.0` `/games/tetris-BQl6pEES.js` unchanged); published as `v0.39.0` on 2026-11-11.
+
+- **Declarative Rigged Vector Puppet Format (`src/games/puzzle-bobble/mascots.tsx`):**
+  - Evaluated raster sprite sheets vs. Lottie/Rive vs. a structured `MascotSpeciesRig` + `solveTwoBoneIK` + layered cel-shaded SVG puppet co-located inside `src/games/puzzle-bobble/`. Chosen format delivers infinite Retina sharpness, zero external image downloads (~2.4 kB gzip delta inside `/games/puzzle-bobble-ChNR66BQ.js`), and 100% CSS theme-token compliance.
+  - Fixed Dusk-theme `var(--text)` white-pupil / chalky-outline bug by standardizing character/launcher ink linework on `var(--cabinet-well)` and brass crank wheel fills on `var(--tetromino-o)`, adding colored irises, dual specular catchlights, cel-shaded volume gradients, species anatomy (Dragon Bub/Bob belly scales + crown/dorsal crests + snaggle-fang + curled tail; Cat tabby stripes + gold bell collar + `:3` muzzle; Shiba Dog urajiro mask + maru-mayu brows + donut tail; Bunny bow tie + lop-tilted ears + cotton tail), and an extended launcher pedestal.
+- **2-Bone Bezier Arm IK, `#342` Happy-Cranking Fix, & Closed-Loop Visual Iteration:**
+  - Keeps `isCranking` active across `normal`, `hurry`, **and `cheer`** (`#342`), locking the foreground 2-bone IK paw onto the crank pin while the outer right arm pumps in celebration; separates kinematic SVG `<g>` transforms from inner CSS secondary-motion `<g>` layers (breathing squash-and-stretch, ear bounce, tail wag, periodic natural eye blink, shot-launch lean, outward-flared `\o/` victory jump, and cheek-rubbing cry sob).
+  - Iterated across 3 closed-loop 3× Retina Playwright visual passes (`slate` and `dusk` themes across all 4 species and 5 moods) to switch elbow bend downward (`bendDirection = -1`) with smooth quadratic Bezier curves, clear staged incoming bubbles above Bunny's ears, and refine Bub/Bob's snout & crests.
+- `npm test`: 28 files, 191 tests passed (`test/puzzle-bobble.test.ts`).
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 46 passed (46.1s, including `#342` happy-cranking E2E check and `@yolo-arcade/game-puzzle-bobble@1.1.0`).
+- `npm run e2e:live`: 5 passed (17.6s, read-only).
+- `npm run e2e:verify-release`: 11 passed against standalone empty-directory `npx` install.
+
 ## Modular Lazy-Loaded Per-Game Packages with Menu Version/Hash Manifest & Local `CacheStorage` (#306) — 2026-11-10
 
 Source revision `b28bb2b` (modular `src/games/{puzzle-bobble,tetris}/` packages, Rollup multi-entry `/games/<id>-<hash>.js` chunk isolation + `/games/manifest.json` generator, SHA-256 `CacheStorage` bundle manager `src/client/gameBundles.ts`, and `/game-cache-sw.js`); build evidence `b724007`; published as `v0.38.0` on 2026-11-10.
@@ -2140,19 +2156,19 @@ agent, so these were taken under the standing grant rather than left waiting.
 
 ## Tested revision
 
-Release tag `v0.38.0` builds from source `b28bb2b` (`dist/client/.build-id` and
-`server/build-id.generated.js` both report `b28bb2b…`) with modular per-game bundles and
-`dist/client/games/manifest.json` committed in `b724007`; native versions across `package.json`,
+Release tag `v0.39.0` builds from source `a6af73d` (`dist/client/.build-id` and
+`server/build-id.generated.js` both report `a6af73d…`) with `@yolo-arcade/game-puzzle-bobble@1.1.0`
+(`/games/puzzle-bobble-ChNR66BQ.js`) and unchanged `@yolo-arcade/game-tetris@1.0.0`
+(`/games/tetris-BQl6pEES.js`) committed in `654d004`; native versions across `package.json`,
 `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, and `hosting/cloudflare/wrangler.json`
-(`APP_VERSION`) match `0.38.0` / `v0.38.0`. `npm test` passes 190 tests across 28 files,
+(`APP_VERSION`) match `0.39.0` / `v0.39.0`. `npm test` passes 191 tests across 28 files,
 `npx tsc --noEmit` is clean, `npm run e2e` passes 46 of 46, `npm run e2e:live` passes 5 of 5
 (read-only), and empty-directory `npx` `e2e:verify-release` passes 11 of 11 alongside live
 `https://demo.yolo-dev.ai` verification, as recorded in
-[`.yolo/reports/releases-observed-2026-11-10-v0380.json`](../.yolo/reports/releases-observed-2026-11-10-v0380.json).
-Intermediate releases `v0.15.0` through `v0.37.4` (including `v0.37.4` at `85af2eb` / source
-`5dca6f0` / assets `acdb688`, and `v0.37.3` retained in `releases-observed-2026-11-10-v0373.json`)
-are documented chronologically in the per-release sections at the top of this file and in
-`.yolo/reports/releases-observed-2026-*.json`.
+[`.yolo/reports/releases-observed-2026-11-11-v0390.json`](../.yolo/reports/releases-observed-2026-11-11-v0390.json).
+Intermediate releases `v0.15.0` through `v0.38.0` (including `v0.38.0` at `ff88864` / source
+`b28bb2b` / assets `b724007`) are documented chronologically in the per-release sections at the top
+of this file and in `.yolo/reports/releases-observed-2026-*.json`.
 
 Previously named here (`v0.14.2`, retained as history rather than replaced silently): release tag
 `v0.14.2` points at release commit `db571a4`. Assets were built from source `a38b872`
