@@ -1,0 +1,77 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-11",
+  "observed_at": "2026-11-11",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#347",
+  "releases": [
+    {
+      "tag": "v0.40.0",
+      "commit": "f82809e0678a8ff896d20957a5859010325dc458"
+    }
+  ],
+  "release": {
+    "tag": "v0.40.0",
+    "commit": "f82809e0678a8ff896d20957a5859010325dc458",
+    "source_commit": "764e813b24b3a461a94b6ea97542948165f37613",
+    "assets_commit": "54a6c84fa16fc4cb147a4917e1ef2e7438cdf513",
+    "native_version": "0.40.0",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-12T07:35:00Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.40.0",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/348"
+  },
+  "build_identity": {
+    "server_build_id": "764e813b24b3a461a94b6ea97542948165f37613",
+    "client_build_id": "764e813b24b3a461a94b6ea97542948165f37613",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "28 files, 191 tests passed",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 46 passed (52.9s, including #347 random 1-girl + 1-boy start & random-other click switching and @yolo-arcade/game-puzzle-bobble@1.2.0)",
+      "e2e_live": "npm run e2e:live — 5 passed (13.6s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.40.0 --no-open --port 4491 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (39.8s)",
+      "ci": "GitHub Actions CI/Test and type check green"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "1b0e97ac-67de-49ca-b3e7-e38268f51c38",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.40.0",
+      "observed_build_id": "764e813b24b3a461a94b6ea97542948165f37613",
+      "game_manifest": {
+        "puzzle-bobble": {
+          "version": "1.2.0",
+          "entry": "/games/puzzle-bobble-A2sI_IYb.js",
+          "hash": "26ef0e709f9ff9984df175b24e91deecea9aabd2a9ae1a28e19f1be287121240",
+          "sizeBytes": 88068
+        },
+        "tetris": {
+          "version": "1.0.0",
+          "entry": "/games/tetris-BQl6pEES.js",
+          "hash": "47d30e6c9db89d24ade29150c7c9735a1577504600e78cff4018dd4530d29017",
+          "sizeBytes": 35628
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Boy & Girl mascot personas across all four Puzzle Bobble animal species (@yolo-arcade/game-puzzle-bobble@1.2.0, while @yolo-arcade/game-tetris@1.0.0 stays byte-unchanged): Dragon Bub/Bibi, Cat Yuzu/Mochi, Dog Koro/Hana, and Bunny Poko/Momo, with gender-matched color palettes, curved winged eyelashes, crown/ear bows, sakura blossom clip, and matching 1UP/2UP badges & player title colors.",
+    "Random 1-girl + 1-boy distinct-species mascot duo at game start (createRandomMascotPair) and random-other-species + random-gender mascot switching on click (pickRandomOtherMascot), verified across 3 closed-loop 3x Retina visual passes."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub.",
+    "Tag v0.40.0 points at merge commit f82809e wrapping commit 54a6c84; both build-ID files record parent HEAD 764e813 at build time, and the tag was not moved after publication."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #347"
+}
