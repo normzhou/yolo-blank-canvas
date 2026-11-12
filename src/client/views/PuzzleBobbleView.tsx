@@ -832,7 +832,7 @@ function PlayerArena({
   player,
   playerNumber,
   mascot,
-  onSelectMascot,
+  onRandomizeMascot,
   isTwoPlayer,
   showTouchControls,
   onlineOpponent,
@@ -846,7 +846,7 @@ function PlayerArena({
   player: PlayerBoardState;
   playerNumber: 1 | 2;
   mascot: MascotSelection;
-  onSelectMascot: (next: MascotSelection) => void;
+  onRandomizeMascot: () => void;
   isTwoPlayer: boolean;
   showTouchControls: boolean;
   onlineOpponent?: { name: string; radar: PuzzleBobbleRadarSnapshot } | null;
@@ -906,10 +906,6 @@ function PlayerArena({
     };
   }
   const advice = adviceStateRef.current.advice;
-
-  const randomizeMascot = useCallback(() => {
-    onSelectMascot(pickRandomOtherMascot(mascot));
-  }, [mascot, onSelectMascot]);
 
   const lastEv = player.lastEvent;
   const incomingPreview = player.incomingQueue.slice(0, 6);
@@ -1247,7 +1243,7 @@ function PlayerArena({
             playerNumber={playerNumber}
             mascot={mascot}
             advice={advice}
-            onCycleCharacter={randomizeMascot}
+            onCycleCharacter={onRandomizeMascot}
           />
 
           {/* In-board arcade win/lose marquee plaque (#215) */}
@@ -2442,7 +2438,9 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
           player={match.players[0]}
           playerNumber={1}
           mascot={mascots[0]}
-          onSelectMascot={(next) => setMascots(([, p2]) => [next, p2])}
+          onRandomizeMascot={() =>
+            setMascots(([p1, p2]) => [pickRandomOtherMascot(p1, p2.character), p2])
+          }
           isTwoPlayer={match.mode === '2p' || isOnline2P}
           showTouchControls={touchAvailable}
           onlineOpponent={
@@ -2477,7 +2475,9 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
             player={match.players[1]}
             playerNumber={2}
             mascot={mascots[1]}
-            onSelectMascot={(next) => setMascots(([p1]) => [p1, next])}
+            onRandomizeMascot={() =>
+              setMascots(([p1, p2]) => [p1, pickRandomOtherMascot(p2, p1.character)])
+            }
             isTwoPlayer
             showTouchControls={touchAvailable}
             disabled={

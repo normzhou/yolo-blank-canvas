@@ -445,16 +445,28 @@ it('defines boy/girl mascot rigs, initializes a random 1-girl + 1-boy duo, switc
   expect(seenPairs.size).toBeGreaterThan(6);
   expect(seenOrders).toEqual(new Set(['boy-girl', 'girl-boy']));
 
-  // Clicking a mascot: always switches to a random *other* species with random gender.
-  let current: MascotSelection = { character: 'dragon', gender: 'boy' };
+  // Clicking a mascot: always switches to a random *other* species that is neither
+  // current.character nor the opposite side's character (#347, #349), with random gender.
+  let p1: MascotSelection = { character: 'dragon', gender: 'boy' };
+  let p2: MascotSelection = { character: 'cat', gender: 'girl' };
   const clickedSpecies = new Set<string>();
   const clickedGenders = new Set<string>();
-  for (let i = 0; i < 40; i++) {
-    const next = pickRandomOtherMascot(current, nextRng);
-    expect(next.character).not.toBe(current.character);
-    clickedSpecies.add(next.character);
-    clickedGenders.add(next.gender);
-    current = next;
+  for (let i = 0; i < 60; i++) {
+    if (i % 2 === 0) {
+      const nextP1 = pickRandomOtherMascot(p1, p2.character, nextRng);
+      expect(nextP1.character).not.toBe(p1.character);
+      expect(nextP1.character).not.toBe(p2.character);
+      clickedSpecies.add(nextP1.character);
+      clickedGenders.add(nextP1.gender);
+      p1 = nextP1;
+    } else {
+      const nextP2 = pickRandomOtherMascot(p2, p1.character, nextRng);
+      expect(nextP2.character).not.toBe(p2.character);
+      expect(nextP2.character).not.toBe(p1.character);
+      clickedSpecies.add(nextP2.character);
+      clickedGenders.add(nextP2.gender);
+      p2 = nextP2;
+    }
   }
   expect(clickedSpecies.size).toBe(4);
   expect(clickedGenders).toEqual(new Set(['boy', 'girl']));

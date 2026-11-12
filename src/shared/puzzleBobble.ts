@@ -79,14 +79,26 @@ export function createRandomMascotPair(
 }
 
 /**
- * Clicking a mascot switches to a random *other* animal species (`!== current.character`)
- * with a random gender (`'boy' | 'girl'`) (#347).
+ * Clicking a mascot switches to a random *other* animal species that is neither
+ * `current.character` nor the opposite side's `excludedCharacter` (#347, #349),
+ * with a random gender (`'boy' | 'girl'`).
  */
 export function pickRandomOtherMascot(
   current: MascotSelection,
-  rng: () => number = Math.random,
+  excludedOrRng?: CharacterId | null | (() => number),
+  maybeRng?: () => number,
 ): MascotSelection {
-  const others = CHARACTER_OPTIONS.filter((opt) => opt.id !== current.character);
+  const excludedCharacter: CharacterId | null =
+    typeof excludedOrRng === 'string' ? excludedOrRng : null;
+  const rng: () => number =
+    typeof excludedOrRng === 'function' ? excludedOrRng : (maybeRng ?? Math.random);
+  const filtered = CHARACTER_OPTIONS.filter(
+    (opt) => opt.id !== current.character && opt.id !== excludedCharacter,
+  );
+  const others =
+    filtered.length > 0
+      ? filtered
+      : CHARACTER_OPTIONS.filter((opt) => opt.id !== current.character);
   const idx = Math.min(others.length - 1, Math.max(0, Math.floor(rng() * others.length)));
   const gender: MascotGender = rng() < 0.5 ? 'girl' : 'boy';
   return {

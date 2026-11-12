@@ -4,6 +4,17 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## Distinct Mascot Characters Across Player Sides When Switching (#349) — 2026-11-11
+
+Delivered in `@yolo-arcade/game-puzzle-bobble@1.2.1` and published as `v0.40.1` on 2026-11-11 (`tetris@1.0.0` `/games/tetris-BQl6pEES.js` unchanged).
+
+- **Cross-Side Character Exclusion (`src/shared/puzzleBobble.ts`, `src/client/views/PuzzleBobbleView.tsx`):**
+  - `pickRandomOtherMascot(current, excludedCharacter, rng)` excludes **both** `current.character` and `excludedCharacter` (the opposite side's character) via functional state updates (`setMascots(([p1, p2]) => ...)`), ensuring the two sides never share the same animal character at game start or across repeated/simultaneous clicks on either side.
+- `npm test`: 28 files, 191 tests passed (`test/puzzle-bobble.test.ts` verifying 60 alternating clicks never repeat or collide across sides).
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 46 passed (53.9s, including `#349` multi-step alternating P1/P2 mascot click verification and `@yolo-arcade/game-puzzle-bobble@1.2.1`).
+- `npm run e2e:live`: 5 passed (13.7s, read-only).
+
 ## Boy & Girl Mascot Personas, Matching Names/Colors, Random Game-Start Duo, & Random-Other Click Switching (#347) — 2026-11-11
 
 Delivered in `@yolo-arcade/game-puzzle-bobble@1.2.0` and published as `v0.40.0` on 2026-11-11 (`tetris@1.0.0` `/games/tetris-BQl6pEES.js` unchanged).
