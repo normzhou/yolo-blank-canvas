@@ -213,7 +213,7 @@ function PixelBackdrop({ art }: { art: Backdrop }) {
 }
 
 /**
- * Compact inline header upcoming-prism pill (replaces boxed right-rail "Next" window, #352).
+ * Tight-cropped, 3D-beveled inline header upcoming-piece pill (#352, #354).
  */
 const InlineNextPrismPill = memo(function InlineNextPrismPill({
   type,
@@ -223,7 +223,15 @@ const InlineNextPrismPill = memo(function InlineNextPrismPill({
   testId?: string;
 }) {
   const cells = rotationCells(type, 0);
-  const filled = new Set(cells.map(([x, y]) => `${x},${y}`));
+  const xs = cells.map(([x]) => x);
+  const ys = cells.map(([, y]) => y);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+  const cols = maxX - minX + 1;
+  const rows = maxY - minY + 1;
+  const filled = new Set(cells.map(([x, y]) => `${x - minX},${y - minY}`));
   return (
     <div
       className="stack-next-pill"
@@ -232,14 +240,20 @@ const InlineNextPrismPill = memo(function InlineNextPrismPill({
       aria-label={`Upcoming prism ${type}`}
     >
       <span className="stack-next-pill-label">Upcoming</span>
-      <div className="stack-next-mini">
-        {Array.from({ length: 4 }, (_, y) =>
-          Array.from({ length: 4 }, (_, x) => (
+      <div
+        className="stack-next-mini"
+        style={{
+          gridTemplateColumns: `repeat(${cols}, 11px)`,
+          gridAutoRows: '11px',
+        }}
+      >
+        {Array.from({ length: rows }, (_, y) =>
+          Array.from({ length: cols }, (_, x) => (
             <div
               key={`${x},${y}`}
               className={
                 filled.has(`${x},${y}`)
-                  ? `stack-next-mini-cell ${CELL_CLASS[type]}`
+                  ? `stack-next-mini-cell is-filled ${CELL_CLASS[type]}`
                   : 'stack-next-mini-cell'
               }
             />
@@ -294,51 +308,57 @@ const OnlineOpponentPrismLane = memo(function OnlineOpponentPrismLane({
       data-player="2"
       data-testid="prism-online-opponent-arena"
     >
-      <div className="stack-lane-bar">
-        <div className="sb-player-id">
-          <span
-            className="sb-slot-badge sb-slot-2"
-            style={{ background: 'var(--prism-7)', color: 'var(--stage-well)' }}
-          >
-            VS
-          </span>
-          <span className="sb-player-title" title={opponentName}>
-            {opponentName}
-          </span>
-          <span
-            className={statusLabel === 'KO' ? 'netplay-radar-badge is-ko' : 'netplay-radar-badge'}
-            data-testid="prism-opponent-status"
-          >
-            {statusLabel}
-          </span>
-        </div>
-        {snapshot.nextPiece ? <InlineNextPrismPill type={snapshot.nextPiece} /> : null}
-      </div>
-
       <div className="stack-stage-row">
+        <div className="stack-board-column">
+          <div className="stack-lane-bar">
+            <div className="sb-player-id">
+              <span
+                className="sb-slot-badge sb-slot-2"
+                style={{ background: 'var(--prism-7)', color: 'var(--stage-well)' }}
+              >
+                VS
+              </span>
+              <span className="sb-player-title" title={opponentName}>
+                {opponentName}
+              </span>
+              <span
+                className={statusLabel === 'KO' ? 'netplay-radar-badge is-ko' : 'netplay-radar-badge'}
+                data-testid="prism-opponent-status"
+              >
+                {statusLabel}
+              </span>
+            </div>
+            {snapshot.nextPiece ? <InlineNextPrismPill type={snapshot.nextPiece} /> : null}
+          </div>
+
+          <div
+            className={
+              statusLabel === 'KO' ? 'stack-board is-dissolved' : 'stack-board'
+            }
+            data-testid="prism-opponent-board"
+            role="img"
+            aria-label={`${opponentName} Prism Stack board, ${BOARD_WIDTH} by ${BOARD_HEIGHT}, score ${snapshot.score}, lines ${snapshot.lines}`}
+          >
+            {board.map((row, y) =>
+              row.map((cell, x) => <div key={`${x},${y}`} className={cellClass(cell)} />),
+            )}
+            {snapshot.activePiece ? (
+              <span
+                className="sr-only"
+                data-testid="prism-opponent-active-piece"
+                data-x={snapshot.activePiece.x}
+                data-y={snapshot.activePiece.y}
+              />
+            ) : null}
+          </div>
+        </div>
+
         <div
           className={
-            statusLabel === 'KO' ? 'stack-board is-dissolved' : 'stack-board'
+            snapshot.pendingHazard > 0
+              ? 'stack-hazard-meter has-hazard'
+              : 'stack-hazard-meter'
           }
-          data-testid="prism-opponent-board"
-          role="img"
-          aria-label={`${opponentName} Prism Stack board, ${BOARD_WIDTH} by ${BOARD_HEIGHT}, score ${snapshot.score}, lines ${snapshot.lines}`}
-        >
-          {board.map((row, y) =>
-            row.map((cell, x) => <div key={`${x},${y}`} className={cellClass(cell)} />),
-          )}
-          {snapshot.activePiece ? (
-            <span
-              className="sr-only"
-              data-testid="prism-opponent-active-piece"
-              data-x={snapshot.activePiece.x}
-              data-y={snapshot.activePiece.y}
-            />
-          ) : null}
-        </div>
-
-        <div
-          className="stack-hazard-meter"
           role="status"
           aria-label={`${opponentName} ${snapshot.pendingHazard} incoming hazard bars`}
         >
@@ -1225,76 +1245,84 @@ export function PrismStackView({ onExit }: { onExit: () => void }) {
 
       <div className={isSymmetric2P ? 'stack-body is-symmetric-2p' : 'stack-body'}>
         <div className="stack-player-lane" data-player="1">
-          <div className="stack-lane-bar">
-            <div className="sb-player-id">
-              <span
-                className="sb-slot-badge sb-slot-1"
-                style={{ background: 'var(--prism-3)', color: 'var(--stage-well)' }}
-                aria-hidden="true"
-              >
-                P1
-              </span>
-              <span className="sb-player-title">
-                {isOnline2P ? netplay.clientName : isLocal2P ? 'WASD + F' : '9×18 Matrix'}
-              </span>
-            </div>
-            <InlineNextPrismPill type={game.next} testId="prism-p1-next" />
-          </div>
-
           <div className="stack-stage-row">
-            <div
-              className={game.status === 'over' ? 'stack-board is-dissolved' : 'stack-board'}
-              data-testid="prism-p1-board"
-              role="img"
-              aria-label={`Prism Stack board, ${BOARD_WIDTH} by ${BOARD_HEIGHT}`}
-              onPointerDown={onBoardPointerDown}
-              onPointerMove={onBoardPointerMove}
-              onPointerUp={onBoardPointerUp}
-              onPointerCancel={() => {
-                boardGestureRef.current = null;
-              }}
-            >
-              {board.map((row, y) =>
-                row.map((cell, x) => {
-                  const key = `${x},${y}`;
-                  const isGuide = cell === null && guide1.columns.has(x);
-                  const isTick = cell === null && tickSet1.has(key);
-                  return (
-                    <div
-                      key={key}
-                      className={cellClass(cell, isGuide, isTick)}
-                      data-guide-col={isGuide ? 'true' : undefined}
-                      data-landing-tick={isTick ? 'true' : undefined}
-                    />
-                  );
-                }),
-              )}
-              {!paused && !isReadyCheck && !isInviting && countdown > 0 ? (
-                <div
-                  className="arcade-countdown-backdrop"
-                  data-testid="arcade-countdown"
-                  data-lang={countdownLang.id}
-                  data-phase={countdown >= 2 ? 'ready' : 'go'}
-                  role="status"
-                  aria-live="polite"
-                >
-                  <span
-                    className="arcade-countdown-flags"
-                    data-testid="arcade-countdown-flags"
-                    aria-hidden="true"
+            <div className="stack-board-column">
+              <div className={isOnline2P || isLocal2P ? 'stack-lane-bar' : 'stack-lane-bar is-solo'}>
+                {isOnline2P || isLocal2P ? (
+                  <div className="sb-player-id">
+                    <span
+                      className="sb-slot-badge sb-slot-1"
+                      style={{ background: 'var(--prism-3)', color: 'var(--stage-well)' }}
+                      aria-hidden="true"
+                    >
+                      P1
+                    </span>
+                    <span className="sb-player-title">
+                      {isOnline2P ? netplay.clientName : 'WASD + F'}
+                    </span>
+                  </div>
+                ) : null}
+                <InlineNextPrismPill type={game.next} testId="prism-p1-next" />
+              </div>
+
+              <div
+                className={game.status === 'over' ? 'stack-board is-dissolved' : 'stack-board'}
+                data-testid="prism-p1-board"
+                role="img"
+                aria-label={`Prism Stack board, ${BOARD_WIDTH} by ${BOARD_HEIGHT}`}
+                onPointerDown={onBoardPointerDown}
+                onPointerMove={onBoardPointerMove}
+                onPointerUp={onBoardPointerUp}
+                onPointerCancel={() => {
+                  boardGestureRef.current = null;
+                }}
+              >
+                {board.map((row, y) =>
+                  row.map((cell, x) => {
+                    const key = `${x},${y}`;
+                    const isGuide = cell === null && guide1.columns.has(x);
+                    const isTick = cell === null && tickSet1.has(key);
+                    return (
+                      <div
+                        key={key}
+                        className={cellClass(cell, isGuide, isTick)}
+                        data-guide-col={isGuide ? 'true' : undefined}
+                        data-landing-tick={isTick ? 'true' : undefined}
+                      />
+                    );
+                  }),
+                )}
+                {!paused && !isReadyCheck && !isInviting && countdown > 0 ? (
+                  <div
+                    className="arcade-countdown-backdrop"
+                    data-testid="arcade-countdown"
+                    data-lang={countdownLang.id}
+                    data-phase={countdown >= 2 ? 'ready' : 'go'}
+                    role="status"
+                    aria-live="polite"
                   >
-                    {countdownLang.flags}
-                  </span>
-                  <span className="arcade-countdown-digit">
-                    {countdown >= 2 ? countdownLang.readyText : countdownLang.goText}
-                  </span>
-                </div>
-              ) : null}
+                    <span
+                      className="arcade-countdown-flags"
+                      data-testid="arcade-countdown-flags"
+                      aria-hidden="true"
+                    >
+                      {countdownLang.flags}
+                    </span>
+                    <span className="arcade-countdown-digit">
+                      {countdown >= 2 ? countdownLang.readyText : countdownLang.goText}
+                    </span>
+                  </div>
+                ) : null}
+              </div>
             </div>
 
             {(isOnline2P || isLocal2P || pendingHazard1 > 0) ? (
               <div
-                className="stack-hazard-meter"
+                className={
+                  pendingHazard1 > 0
+                    ? 'stack-hazard-meter has-hazard'
+                    : 'stack-hazard-meter'
+                }
                 data-testid="prism-hazard-meter"
                 role="status"
                 aria-label={`${pendingHazard1} incoming hazard bars`}
@@ -1342,46 +1370,52 @@ export function PrismStackView({ onExit }: { onExit: () => void }) {
           />
         ) : isLocal2P ? (
           <div className="stack-player-lane" data-player="2">
-            <div className="stack-lane-bar">
-              <div className="sb-player-id">
-                <span
-                  className="sb-slot-badge sb-slot-2"
-                  style={{ background: 'var(--prism-7)', color: 'var(--stage-well)' }}
-                  aria-hidden="true"
-                >
-                  P2
-                </span>
-                <span className="sb-player-title">Arrows + Space</span>
-              </div>
-              <InlineNextPrismPill type={game2.next} testId="prism-p2-next" />
-            </div>
-
             <div className="stack-stage-row">
-              <div
-                className={game2.status === 'over' ? 'stack-board is-dissolved' : 'stack-board'}
-                data-testid="prism-p2-board"
-                role="img"
-                aria-label={`Player 2 Prism Stack board, ${BOARD_WIDTH} by ${BOARD_HEIGHT}`}
-              >
-                {board2.map((row, y) =>
-                  row.map((cell, x) => {
-                    const key = `${x},${y}`;
-                    const isGuide = cell === null && guide2.columns.has(x);
-                    const isTick = cell === null && tickSet2.has(key);
-                    return (
-                      <div
-                        key={key}
-                        className={cellClass(cell, isGuide, isTick)}
-                        data-guide-col={isGuide ? 'true' : undefined}
-                        data-landing-tick={isTick ? 'true' : undefined}
-                      />
-                    );
-                  }),
-                )}
+              <div className="stack-board-column">
+                <div className="stack-lane-bar">
+                  <div className="sb-player-id">
+                    <span
+                      className="sb-slot-badge sb-slot-2"
+                      style={{ background: 'var(--prism-7)', color: 'var(--stage-well)' }}
+                      aria-hidden="true"
+                    >
+                      P2
+                    </span>
+                    <span className="sb-player-title">Arrows + Space</span>
+                  </div>
+                  <InlineNextPrismPill type={game2.next} testId="prism-p2-next" />
+                </div>
+
+                <div
+                  className={game2.status === 'over' ? 'stack-board is-dissolved' : 'stack-board'}
+                  data-testid="prism-p2-board"
+                  role="img"
+                  aria-label={`Player 2 Prism Stack board, ${BOARD_WIDTH} by ${BOARD_HEIGHT}`}
+                >
+                  {board2.map((row, y) =>
+                    row.map((cell, x) => {
+                      const key = `${x},${y}`;
+                      const isGuide = cell === null && guide2.columns.has(x);
+                      const isTick = cell === null && tickSet2.has(key);
+                      return (
+                        <div
+                          key={key}
+                          className={cellClass(cell, isGuide, isTick)}
+                          data-guide-col={isGuide ? 'true' : undefined}
+                          data-landing-tick={isTick ? 'true' : undefined}
+                        />
+                      );
+                    }),
+                  )}
+                </div>
               </div>
 
               <div
-                className="stack-hazard-meter"
+                className={
+                  pendingHazard2 > 0
+                    ? 'stack-hazard-meter has-hazard'
+                    : 'stack-hazard-meter'
+                }
                 data-testid="prism-p2-hazard-meter"
                 role="status"
                 aria-label={`Player 2 ${pendingHazard2} incoming hazard bars`}

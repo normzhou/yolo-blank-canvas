@@ -23,7 +23,7 @@ test('Home menu tracks game version/hash without downloading game bundles until 
 
     const card = page.getByTestId('deck-slide-card');
     await expect(card).toHaveAttribute('data-slide-id', 'starlight-burst');
-    await expect(card).toHaveAttribute('data-game-version', '2.0.0');
+    await expect(card).toHaveAttribute('data-game-version', '2.1.0');
     await expect.poll(async () => (await card.getAttribute('data-game-hash'))?.length ?? 0).toBe(64);
     await expect(card).toHaveAttribute('data-bundle-cached', 'false');
 

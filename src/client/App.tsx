@@ -109,6 +109,21 @@ function composerFor(
  */
 function DeckPreviewGraphic({ appId }: { appId: string }) {
   if (appId === 'prism-stack') {
+    const blocks: Array<{ x: number; y: number; fill: string }> = [
+      { x: 56, y: 140, fill: 'var(--prism-1)' },
+      { x: 68, y: 140, fill: 'var(--prism-1)' },
+      { x: 80, y: 140, fill: 'var(--prism-1)' },
+      { x: 92, y: 140, fill: 'var(--prism-1)' },
+      { x: 116, y: 140, fill: 'var(--prism-2)' },
+      { x: 128, y: 140, fill: 'var(--prism-2)' },
+      { x: 116, y: 128, fill: 'var(--prism-2)' },
+      { x: 128, y: 128, fill: 'var(--prism-2)' },
+      { x: 140, y: 140, fill: 'var(--prism-7)' },
+      { x: 152, y: 140, fill: 'var(--prism-7)' },
+      { x: 152, y: 128, fill: 'var(--prism-7)' },
+      { x: 56, y: 128, fill: 'var(--prism-4)' },
+      { x: 68, y: 128, fill: 'var(--prism-4)' },
+    ];
     return (
       <div
         className="deck-preview-stage is-live-preview"
@@ -121,63 +136,79 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
           viewBox="0 0 220 180"
           aria-hidden="true"
         >
-          {/* Miniature 9×18 crystal prism stage frame */}
+          <defs>
+            <linearGradient id="deck-block-3d" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="var(--on-accent)" stopOpacity="0.38" />
+              <stop offset="50%" stopColor="var(--on-accent)" stopOpacity="0.03" />
+              <stop offset="100%" stopColor="var(--stage-well)" stopOpacity="0.34" />
+            </linearGradient>
+          </defs>
           <rect
             x="52"
             y="12"
             width="116"
             height="156"
-            rx="6"
-            fill="var(--surface)"
-            stroke="var(--border)"
-            strokeWidth="1.5"
+            rx="7"
+            fill="var(--stage-well)"
+            stroke="var(--stage-bezel)"
+            strokeWidth="1.6"
           />
-          {/* Subtle vertical column guide rail + bottom landing target ticks (no ghost piece) */}
-          <rect x="86" y="20" width="36" height="106" fill="var(--accent)" opacity="0.09" />
-          <line x1="87" y1="126" x2="121" y2="126" stroke="var(--prism-4)" strokeWidth="2.4" strokeLinecap="round" />
-          {/* Animated falling Seafoam-Mint crest prism */}
-          <g
-            className="deck-prism-falling-piece"
-            fill="var(--prism-3)"
-            stroke="var(--text)"
-            strokeWidth="1"
-          >
-            <rect x="98" y="28" width="12" height="12" rx="3.5" />
-            <rect x="86" y="40" width="12" height="12" rx="3.5" />
-            <rect x="98" y="40" width="12" height="12" rx="3.5" />
-            <rect x="110" y="40" width="12" height="12" rx="3.5" />
+          {/* Subtle vertical column guide rail + glowing floor target bar */}
+          <rect x="86" y="18" width="36" height="108" fill="var(--guide-rail-bg)" />
+          <line x1="87" y1="126" x2="121" y2="126" stroke="var(--prism-4)" strokeWidth="2.5" strokeLinecap="round" />
+          {/* Animated falling 3D Seafoam-Mint piece */}
+          <g className="deck-prism-falling-piece">
+            {[
+              [98, 28],
+              [86, 40],
+              [98, 40],
+              [110, 40],
+            ].map(([bx, by], idx) => (
+              <g key={idx}>
+                <rect x={bx} y={by} width="11.5" height="11.5" rx="3" fill="var(--prism-3)" stroke="var(--stage-well)" strokeWidth="0.9" />
+                <rect x={bx} y={by} width="11.5" height="11.5" rx="3" fill="url(#deck-block-3d)" />
+                <rect x={bx + 2} y={by + 1.6} width="7.5" height="2.4" rx="1.2" fill="var(--on-accent)" opacity="0.48" />
+              </g>
+            ))}
           </g>
-          {/* Full-width solid Hazard Lock Bar at bottom + settled chamfered crystal prisms */}
-          <g stroke="var(--text)" strokeWidth="1">
-            <rect x="56" y="154" width="108" height="10" rx="3" fill="var(--warning-weak)" stroke="var(--warning-border)" />
-            <rect x="56" y="140" width="12" height="12" rx="3.5" fill="var(--prism-1)" />
-            <rect x="68" y="140" width="12" height="12" rx="3.5" fill="var(--prism-1)" />
-            <rect x="80" y="140" width="12" height="12" rx="3.5" fill="var(--prism-1)" />
-            <rect x="92" y="140" width="12" height="12" rx="3.5" fill="var(--prism-1)" />
-            <rect x="116" y="140" width="12" height="12" rx="3.5" fill="var(--prism-2)" />
-            <rect x="128" y="140" width="12" height="12" rx="3.5" fill="var(--prism-2)" />
-            <rect x="116" y="128" width="12" height="12" rx="3.5" fill="var(--prism-2)" />
-            <rect x="128" y="128" width="12" height="12" rx="3.5" fill="var(--prism-2)" />
-            <rect x="140" y="140" width="12" height="12" rx="3.5" fill="var(--prism-7)" />
-            <rect x="152" y="140" width="12" height="12" rx="3.5" fill="var(--prism-7)" />
-            <rect x="152" y="128" width="12" height="12" rx="3.5" fill="var(--prism-7)" />
-            <rect x="56" y="128" width="12" height="12" rx="3.5" fill="var(--prism-4)" />
-            <rect x="68" y="128" width="12" height="12" rx="3.5" fill="var(--prism-4)" />
+          {/* Armored 3D steel-obsidian lock bar + settled 3D jewel blocks */}
+          <g>
+            {Array.from({ length: 9 }, (_, i) => (
+              <g key={`lock-${i}`}>
+                <rect
+                  x={56 + i * 12}
+                  y="153"
+                  width="11.5"
+                  height="10.5"
+                  rx="2.5"
+                  fill="var(--lock-cell-top)"
+                  stroke="var(--stage-well)"
+                  strokeWidth="0.9"
+                />
+                <rect x={58.8 + i * 12} y="157.3" width="5.8" height="2" rx="1" fill="var(--prism-6)" />
+              </g>
+            ))}
+            {blocks.map((b, idx) => (
+              <g key={idx}>
+                <rect x={b.x} y={b.y} width="11.5" height="11.5" rx="3" fill={b.fill} stroke="var(--stage-well)" strokeWidth="0.9" />
+                <rect x={b.x} y={b.y} width="11.5" height="11.5" rx="3" fill="url(#deck-block-3d)" />
+                <rect x={b.x + 2} y={b.y + 1.6} width="7.5" height="2.4" rx="1.2" fill="var(--on-accent)" opacity="0.48" />
+              </g>
+            ))}
           </g>
-          {/* Line-clear & hazard-shatter pulse highlight */}
           <rect
             className="deck-prism-line-flash"
-            x="54"
+            x="55"
             y="139"
-            width="112"
-            height="14"
+            width="110"
+            height="13.5"
             rx="3"
             fill="var(--prism-4)"
           />
         </svg>
         <div className="deck-preview-hud">
-          <span>9×18 Prism Matrix</span>
-          <span>6 Scenes · Symmetric 2P</span>
+          <span>1P · 2P Local & Online</span>
+          <span>Combo & Shatter</span>
         </div>
       </div>
     );
@@ -195,18 +226,26 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
         viewBox="0 0 220 180"
         aria-hidden="true"
       >
+        <defs>
+          <radialGradient id="deck-orb-3d" cx="30%" cy="24%" r="74%">
+            <stop offset="0%" stopColor="var(--on-accent)" stopOpacity="0.64" />
+            <stop offset="28%" stopColor="var(--on-accent)" stopOpacity="0.16" />
+            <stop offset="68%" stopColor="var(--stage-well)" stopOpacity="0.08" />
+            <stop offset="100%" stopColor="var(--stage-well)" stopOpacity="0.5" />
+          </radialGradient>
+        </defs>
         <rect
           x="26"
           y="12"
           width="168"
           height="156"
-          rx="6"
-          fill="var(--surface)"
-          stroke="var(--border)"
-          strokeWidth="1.5"
+          rx="7"
+          fill="var(--stage-well)"
+          stroke="var(--stage-bezel)"
+          strokeWidth="1.6"
         />
-        {/* Hexagonal astral star-core constellation with orbital rings & inner sigils */}
-        <g stroke="var(--stage-well)" strokeWidth="1.1">
+        {/* Hexagonal 3D glass/crystal Star-Orbs */}
+        <g>
           {[
             { cx: 52, cy: 30, fill: 'var(--prism-1)' },
             { cx: 72, cy: 30, fill: 'var(--prism-1)' },
@@ -225,22 +264,21 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
             { cx: 132, cy: 66, fill: 'var(--prism-7)' },
           ].map((b, idx) => (
             <g key={idx}>
-              <circle cx={b.cx} cy={b.cy} r="10" fill={b.fill} />
-              <circle
-                cx={b.cx}
-                cy={b.cy}
-                r="7.2"
-                fill="none"
-                stroke="var(--on-accent)"
-                strokeWidth="0.8"
-                strokeDasharray="3 2"
-                opacity="0.65"
+              <circle cx={b.cx} cy={b.cy} r="9.8" fill={b.fill} stroke="var(--stage-well)" strokeWidth="1.1" />
+              <circle cx={b.cx} cy={b.cy} r="9.3" fill="url(#deck-orb-3d)" />
+              <ellipse
+                cx={b.cx - 3.2}
+                cy={b.cy - 3.4}
+                rx="3.1"
+                ry="1.7"
+                transform={`rotate(-32 ${b.cx - 3.2} ${b.cy - 3.4})`}
+                fill="var(--on-accent)"
+                opacity="0.86"
               />
               <polygon
-                points={`${b.cx},${b.cy - 4} ${b.cx + 1.5},${b.cy - 1.5} ${b.cx + 4},${b.cy} ${b.cx + 1.5},${b.cy + 1.5} ${b.cx},${b.cy + 4} ${b.cx - 1.5},${b.cy + 1.5} ${b.cx - 4},${b.cy} ${b.cx - 1.5},${b.cy - 1.5}`}
+                points={`${b.cx + 1.4},${b.cy - 1.2} ${b.cx + 2.1},${b.cy + 0.7} ${b.cx + 4},${b.cy + 1.4} ${b.cx + 2.1},${b.cy + 2.1} ${b.cx + 1.4},${b.cy + 4} ${b.cx + 0.7},${b.cy + 2.1} ${b.cx - 1.2},${b.cy + 1.4} ${b.cx + 0.7},${b.cy + 0.7}`}
                 fill="var(--on-accent)"
-                stroke="none"
-                opacity="0.88"
+                opacity="0.45"
               />
             </g>
           ))}
@@ -253,16 +291,12 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
           strokeWidth="1.8"
           strokeDasharray="4 3"
         />
-        {/* Animated flying star-core & starburst ring */}
-        <circle
-          className="deck-sb-flying-star"
-          cx="132"
-          cy="84"
-          r="9.5"
-          fill="var(--prism-7)"
-          stroke="var(--stage-well)"
-          strokeWidth="1.1"
-        />
+        {/* Animated flying 3D star-orb & starburst ring */}
+        <g className="deck-sb-flying-star">
+          <circle cx="132" cy="84" r="9.5" fill="var(--prism-7)" stroke="var(--stage-well)" strokeWidth="1.1" />
+          <circle cx="132" cy="84" r="9.0" fill="url(#deck-orb-3d)" />
+          <ellipse cx="129" cy="80.8" rx="3" ry="1.6" transform="rotate(-32 129 80.8)" fill="var(--on-accent)" opacity="0.86" />
+        </g>
         <circle
           className="deck-sb-pop-ring"
           cx="132"
@@ -272,15 +306,17 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
           stroke="var(--prism-4)"
           strokeWidth="2"
         />
-        {/* Celestial Twin-Crescent Starlight Sling & focus diamond */}
-        <circle cx="110" cy="146" r="14" fill="var(--stage-surface)" stroke="var(--prism-5)" strokeWidth="1.2" />
+        {/* Sculpted 3D Celestial Sling & golden star-compass pointer */}
+        <circle cx="110" cy="146" r="14.5" fill="var(--stage-surface)" stroke="var(--prism-5)" strokeWidth="1.3" />
         <g className="deck-sb-aim-sweep">
-          <polygon points="110,119 114,126 110,133 106,126" fill="var(--prism-4)" stroke="var(--stage-well)" strokeWidth="1" />
+          <polygon points="110,120 106.5,131 110,129.5" fill="var(--prism-4)" stroke="var(--stage-well)" strokeWidth="0.9" />
+          <polygon points="110,120 113.5,131 110,129.5" fill="var(--prism-6)" stroke="var(--stage-well)" strokeWidth="0.9" />
         </g>
-        <circle cx="110" cy="146" r="9" fill="var(--prism-7)" stroke="var(--stage-well)" strokeWidth="1.1" />
+        <circle cx="110" cy="146" r="9.5" fill="var(--prism-7)" stroke="var(--stage-well)" strokeWidth="1.1" />
+        <circle cx="110" cy="146" r="9.0" fill="url(#deck-orb-3d)" />
+        <ellipse cx="107" cy="142.8" rx="3" ry="1.6" transform="rotate(-32 107 142.8)" fill="var(--on-accent)" opacity="0.86" />
         {/* Cute Boy Fox (Ren) & Girl Cat (Mochi) companions flanking the Starlight Sling */}
         <g transform="translate(72, 149)" stroke="var(--stage-well)" strokeWidth="0.95">
-          {/* Fluffy fox tail with snow-cream tip */}
           <path d="M -6 4 Q -13 2 -11 -5 Q -8 -7 -6 -2" fill="var(--prism-6)" />
           <circle cx="-10.5" cy="-4.5" r="2.2" fill="var(--on-accent)" strokeWidth="0.7" />
           <polygon points="-5,-10 -3,-16 0,-10" fill="var(--prism-6)" />

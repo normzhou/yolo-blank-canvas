@@ -378,8 +378,8 @@ export function CompanionSvg({
   const orbitDeg = Math.round(-aimAngle * 18);
   const orbitRad = (-aimAngle * 18 * Math.PI) / 180;
 
-  const wandNodeX = -17 + Math.cos(orbitRad) * 5.2;
-  const wandNodeY = Math.sin(orbitRad) * 5.2;
+  const wandNodeX = -12.6 + Math.cos(orbitRad) * 3.0;
+  const wandNodeY = Math.sin(orbitRad) * 4.8;
 
   const shotLeanDeg = isFiring ? -4.0 : 0;
   const shotLiftY = isFiring ? -1.2 : 0;
@@ -400,8 +400,8 @@ export function CompanionSvg({
     rootLeftShoulderY,
     wandNodeX,
     wandNodeY,
-    9.6,
-    9.8,
+    6.8,
+    7.0,
     -1,
   );
 

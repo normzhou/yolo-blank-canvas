@@ -119,78 +119,39 @@ function eventSummary(player: PlayerBoardState): string | null {
 }
 
 /**
- * Distinct inner geometric constellation rune for each star-core color so
- * players can distinguish all 6 elemental star-cores by shape as well as color.
+ * Shared SVG <defs> for lush 3D glass/crystal spherical lighting on Star-Orbs (#354).
  */
-function StarCoreRune({ cx, cy, color, r }: { cx: number; cy: number; color: StarColor; r: number }) {
-  const s = r * 0.44;
-  switch (color) {
-    case 'ruby':
-      return (
-        <polygon
-          points={`${cx},${cy - s} ${cx + s * 0.36},${cy - s * 0.36} ${cx + s},${cy} ${cx + s * 0.36},${cy + s * 0.36} ${cx},${cy + s} ${cx - s * 0.36},${cy + s * 0.36} ${cx - s},${cy} ${cx - s * 0.36},${cy - s * 0.36}`}
-          fill="var(--on-accent)"
-          opacity="0.88"
-        />
-      );
-    case 'amber':
-      return (
-        <polygon
-          points={`${cx},${cy - s * 0.92} ${cx + s * 0.86},${cy + s * 0.68} ${cx - s * 0.86},${cy + s * 0.68}`}
-          fill="var(--on-accent)"
-          opacity="0.86"
-        />
-      );
-    case 'emerald':
-      return (
-        <g fill="var(--on-accent)" opacity="0.86">
-          <rect x={cx - s * 0.24} y={cy - s * 0.88} width={s * 0.48} height={s * 1.76} rx={1.2} />
-          <rect x={cx - s * 0.88} y={cy - s * 0.24} width={s * 1.76} height={s * 0.48} rx={1.2} />
-        </g>
-      );
-    case 'azure':
-      return (
-        <g opacity="0.88">
-          <circle
-            cx={cx}
-            cy={cy}
-            r={s * 0.68}
-            fill="none"
-            stroke="var(--on-accent)"
-            strokeWidth={1.65}
-          />
-          <circle cx={cx} cy={cy} r={s * 0.24} fill="var(--on-accent)" />
-        </g>
-      );
-    case 'amethyst':
-      return (
-        <polygon
-          points={`${cx},${cy - s} ${cx + s * 0.78},${cy} ${cx},${cy + s} ${cx - s * 0.78},${cy}`}
-          fill="var(--on-accent)"
-          opacity="0.86"
-        />
-      );
-    case 'coral':
-      return (
-        <g stroke="var(--on-accent)" strokeWidth={1.55} strokeLinecap="round" opacity="0.88">
-          <line x1={cx} y1={cy - s * 0.86} x2={cx} y2={cy + s * 0.86} />
-          <line x1={cx - s * 0.74} y1={cy - s * 0.43} x2={cx + s * 0.74} y2={cy + s * 0.43} />
-          <line x1={cx - s * 0.74} y1={cy + s * 0.43} x2={cx + s * 0.74} y2={cy - s * 0.43} />
-        </g>
-      );
-  }
+function StarOrbDefs({ idPrefix }: { idPrefix: string }) {
+  return (
+    <>
+      <radialGradient id={`${idPrefix}-orb-3d`} cx="30%" cy="24%" r="74%">
+        <stop offset="0%" stopColor="var(--on-accent)" stopOpacity="0.68" />
+        <stop offset="24%" stopColor="var(--on-accent)" stopOpacity="0.14" />
+        <stop offset="64%" stopColor="var(--stage-well)" stopOpacity="0.06" />
+        <stop offset="100%" stopColor="var(--stage-well)" stopOpacity="0.56" />
+      </radialGradient>
+      <radialGradient id={`${idPrefix}-orb-core`} cx="56%" cy="58%" r="44%">
+        <stop offset="0%" stopColor="var(--on-accent)" stopOpacity="0.28" />
+        <stop offset="70%" stopColor="var(--on-accent)" stopOpacity="0.03" />
+        <stop offset="100%" stopColor="var(--on-accent)" stopOpacity="0" />
+      </radialGradient>
+    </>
+  );
 }
 
 /**
- * Faceted Astral Star-Core projectile (no soap-bubble specular crescents):
- * dark astral rim + radiant crystal core + concentric orbital energy ring +
- * faceted hexagon inner aura + geometric constellation sigil (#352).
+ * Lush 3D glass/crystal Starlight Orb (#354):
+ * - Deep saturated jewel sphere with 3D radial dome shading (`-orb-3d`)
+ * - Subtle inner starlight luminescence + dainty jewel-gleam sparkle
+ * - Lower-right subsurface bounce-light crescent arc
+ * - Curved upper-left glass specular gleam + pinpoint sparkle
  */
 function StarCoreSvg({
   cx,
   cy,
   color,
-  radius = STAR_RADIUS - 0.8,
+  radius = STAR_RADIUS - 0.7,
+  defsPrefix = 'sb-p1',
   className,
   style,
 }: {
@@ -198,48 +159,76 @@ function StarCoreSvg({
   cy: number;
   color: StarColor;
   radius?: number;
+  defsPrefix?: string;
   className?: string;
   style?: CSSProperties;
 }) {
-  const hexR = radius * 0.64;
-  const hexPoints = Array.from({ length: 6 }, (_, i) => {
-    const rad = ((i * 60 - 30) * Math.PI) / 180;
-    return `${(cx + Math.cos(rad) * hexR).toFixed(1)},${(cy + Math.sin(rad) * hexR).toFixed(1)}`;
-  }).join(' ');
+  const glintX = cx - radius * 0.32;
+  const glintY = cy - radius * 0.35;
+  const starX = cx + radius * 0.22;
+  const starY = cy + radius * 0.2;
+  const s = radius * 0.19;
+  const bounceR = Math.max(2, radius * 0.77);
+  const bx1 = cx - bounceR * 0.36;
+  const by1 = cy + bounceR * 0.91;
+  const bx2 = cx + bounceR * 0.91;
+  const by2 = cy + bounceR * 0.36;
+
   return (
     <g className={className} style={style}>
+      {/* Base jewel sphere + crisp ink rim */}
       <circle
         cx={cx}
         cy={cy}
         r={radius}
         fill={STAR_TOKEN[color]}
         stroke="var(--stage-well)"
-        strokeWidth="1.3"
+        strokeWidth="1.25"
       />
-      <circle cx={cx} cy={cy} r={radius} fill="url(#sb-core-depth)" />
-      {/* Concentric orbital energy ring */}
-      <circle
-        cx={cx}
-        cy={cy}
-        r={Math.max(2, radius - 2.6)}
+      {/* 3D spherical lighting & shadow dome */}
+      <circle cx={cx} cy={cy} r={Math.max(1, radius - 0.5)} fill={`url(#${defsPrefix}-orb-3d)`} />
+      {/* Soft inner subsurface luminescence */}
+      <circle cx={cx} cy={cy} r={radius * 0.65} fill={`url(#${defsPrefix}-orb-core)`} />
+      {/* Lower-right subsurface bounce-light rim arc */}
+      <path
+        d={`M ${bx1.toFixed(1)} ${by1.toFixed(1)} A ${bounceR.toFixed(1)} ${bounceR.toFixed(1)} 0 0 0 ${bx2.toFixed(1)} ${by2.toFixed(1)}`}
         fill="none"
         stroke="var(--on-accent)"
-        strokeWidth="0.95"
-        strokeDasharray="4.2 2.4"
-        opacity="0.62"
+        strokeWidth={Math.max(0.85, radius * 0.095)}
+        strokeLinecap="round"
+        opacity="0.42"
       />
-      {/* Faceted hexagonal crystal facet */}
-      <polygon points={hexPoints} fill="var(--on-accent)" opacity="0.2" />
-      <StarCoreRune cx={cx} cy={cy} color={color} r={radius} />
+      {/* Dainty starlight crystal glisten nestled inside the lower-right glow */}
+      <polygon
+        points={`${starX},${starY - s} ${starX + s * 0.26},${starY - s * 0.26} ${starX + s},${starY} ${starX + s * 0.26},${starY + s * 0.26} ${starX},${starY + s} ${starX - s * 0.26},${starY + s * 0.26} ${starX - s},${starY} ${starX - s * 0.26},${starY - s * 0.26}`}
+        fill="var(--on-accent)"
+        opacity="0.34"
+      />
+      {/* Curved upper-left 3D glass specular highlight */}
+      <ellipse
+        cx={glintX}
+        cy={glintY}
+        rx={radius * 0.34}
+        ry={radius * 0.18}
+        transform={`rotate(-32 ${glintX.toFixed(1)} ${glintY.toFixed(1)})`}
+        fill="var(--on-accent)"
+        opacity="0.88"
+      />
+      {/* Pinpoint secondary starlight glint */}
+      <circle
+        cx={cx - radius * 0.08}
+        cy={cy - radius * 0.55}
+        r={Math.max(0.75, radius * 0.088)}
+        fill="var(--on-accent)"
+        opacity="0.76"
+      />
     </g>
   );
 }
 
 /**
- * Celestial Starlight Sling: levitating astral sanctuary platform, left on-deck
- * star pedestal, twin-crescent prism emitter with rotating constellation halo,
- * dual-prong crystal star-sight, right orbital focus ring, and selectable plush
- * companion channeling the ring with a glowing Star-Wand (#352).
+ * Sculpted 3D Celestial Starlight Sling, Next-Orb Chalice, Faceted Golden
+ * Star-Compass Pointer, and 3D Astrolabe Focus Wheel channeled by the companion (#354).
  */
 function StarlightSlingSvg({
   player,
@@ -256,162 +245,235 @@ function StarlightSlingSvg({
 }) {
   const { character, gender } = mascot;
   const palette = mascotPalette(character, gender);
-  const haloRotation = Math.round(player.aimAngle * 6 * 10) / 10;
+  const haloRotation = Math.round(player.aimAngle * 5 * 10) / 10;
   const orbitRotation = Math.round(-player.aimAngle * 18 * 10) / 10;
   const mood = deriveMascotMood(player);
+  const defsPrefix = `sb-p${playerNumber}`;
 
   return (
     <g>
-      {/* Floating celestial sanctuary platform */}
+      {/* 3D sculpted celestial sanctuary pedestal with bevel top & shadow lip */}
+      <ellipse
+        cx={LAUNCHER_X + 10}
+        cy={LAUNCHER_Y + 24.5}
+        rx={58}
+        ry={3.2}
+        fill="var(--stage-well)"
+        opacity="0.65"
+      />
       <rect
-        x={LAUNCHER_X - 46}
+        x={LAUNCHER_X - 48}
         y={LAUNCHER_Y + 13}
-        width={112}
+        width={116}
         height={11}
         rx={5.5}
         fill="var(--stage-surface)"
-        stroke="var(--stage-border)"
-        strokeWidth="1.25"
+        stroke="var(--stage-well)"
+        strokeWidth="1.35"
       />
-      <line
-        x1={LAUNCHER_X - 38}
-        y1={LAUNCHER_Y + 18.5}
-        x2={LAUNCHER_X + 58}
-        y2={LAUNCHER_Y + 18.5}
+      <path
+        d={`M ${LAUNCHER_X - 42} ${LAUNCHER_Y + 15.2} L ${LAUNCHER_X + 62} ${LAUNCHER_Y + 15.2}`}
+        stroke="var(--stage-bezel)"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        opacity="0.85"
+      />
+      <path
+        d={`M ${LAUNCHER_X - 34} ${LAUNCHER_Y + 19.5} L ${LAUNCHER_X + 54} ${LAUNCHER_Y + 19.5}`}
         stroke="var(--prism-7)"
         strokeWidth="1.1"
-        opacity="0.45"
+        strokeLinecap="round"
+        opacity="0.5"
       />
 
-      {/* Left On-Deck Star-Core Pedestal */}
-      <g transform={`translate(${LAUNCHER_X - 42}, ${LAUNCHER_Y + 8})`}>
-        <ellipse cx={0} cy={7} rx={12} ry={3} fill="var(--stage-well)" opacity="0.5" />
+      {/* Left 3D Cushioned Next-Orb Chalice */}
+      <g transform={`translate(${LAUNCHER_X - 41}, ${LAUNCHER_Y + 8})`}>
+        <ellipse cx={0} cy={6.2} rx={12.5} ry={3.2} fill="var(--stage-well)" opacity="0.55" />
         <path
-          d="M -11 5 Q 0 10 11 5 L 8 1 Q 0 4 -8 1 Z"
-          fill="var(--prism-2)"
+          d="M -11.5 4.5 Q 0 9.5 11.5 4.5 L 9.2 0.2 Q 0 3.8 -9.2 0.2 Z"
+          fill="var(--prism-5)"
           stroke="var(--stage-well)"
-          strokeWidth="1"
+          strokeWidth="1.15"
+          strokeLinejoin="round"
         />
-        <StarCoreSvg cx={0} cy={-5} color={player.nextStar} radius={10} />
-      </g>
-
-      {/* Center Rotating Constellation Halo (replaces mechanical gear teeth) */}
-      <g transform={`translate(${LAUNCHER_X}, ${LAUNCHER_Y}) rotate(${haloRotation})`}>
-        <circle
-          cx={0}
-          cy={0}
-          r={20}
-          fill="var(--stage-surface)"
-          stroke="var(--prism-5)"
-          strokeWidth="1.35"
-          opacity="0.88"
-        />
-        <circle
-          cx={0}
-          cy={0}
-          r={16.5}
+        <path
+          d="M -8.2 1.4 Q 0 4.2 8.2 1.4"
           fill="none"
-          stroke="var(--prism-7)"
+          stroke="var(--on-accent)"
           strokeWidth="0.9"
-          strokeDasharray="3 3"
-          opacity="0.65"
+          opacity="0.55"
         />
-        {Array.from({ length: 6 }, (_, i) => (
-          <polygon
-            key={i}
-            points="0,-23.5 2.1,-20 0,-17.5 -2.1,-20"
-            fill="var(--prism-4)"
-            stroke="var(--stage-well)"
-            strokeWidth="0.7"
-            transform={`rotate(${i * 60})`}
-          />
-        ))}
+        <StarCoreSvg
+          cx={0}
+          cy={-5.5}
+          color={player.nextStar}
+          radius={10}
+          defsPrefix={defsPrefix}
+        />
       </g>
 
-      {/* Right Orbital Starlight Focus Ring channeled by the companion's Star-Wand */}
+      {/* Center 3D Celestial Ring Base & Rotating Star-Studs */}
+      <g transform={`translate(${LAUNCHER_X}, ${LAUNCHER_Y})`}>
+        <circle
+          cx={0}
+          cy={0}
+          r={20.5}
+          fill="var(--stage-surface)"
+          stroke="var(--stage-well)"
+          strokeWidth="1.5"
+        />
+        <circle
+          cx={0}
+          cy={0}
+          r={18.4}
+          fill="none"
+          stroke="var(--prism-5)"
+          strokeWidth="1.6"
+          opacity="0.82"
+        />
+        <path
+          d="M -14 -12 A 18.4 18.4 0 0 1 14 -12"
+          fill="none"
+          stroke="var(--on-accent)"
+          strokeWidth="1.0"
+          opacity="0.35"
+        />
+        <g transform={`rotate(${haloRotation})`}>
+          {Array.from({ length: 8 }, (_, i) => (
+            <circle
+              key={i}
+              cx={0}
+              cy={-18.4}
+              r={1.45}
+              fill={i % 2 === 0 ? 'var(--prism-4)' : 'var(--prism-7)'}
+              stroke="var(--stage-well)"
+              strokeWidth="0.6"
+              transform={`rotate(${i * 45})`}
+            />
+          ))}
+        </g>
+      </g>
+
+      {/* Right 3D Jewel-Set Astrolabe Focus Wheel channeled by the companion */}
       <g
         transform={`translate(${LAUNCHER_X + 27}, ${LAUNCHER_Y + 6}) rotate(${orbitRotation})`}
         data-testid={`p${playerNumber}-sling-ring`}
         data-sling-angle={orbitRotation}
       >
+        {/* Outer 3D wheel rim */}
         <circle
           cx={0}
           cy={0}
-          r={9.6}
-          fill="var(--stage-well)"
-          opacity="0.55"
+          r={9.8}
+          fill="var(--stage-slot)"
+          stroke="var(--stage-well)"
+          strokeWidth="1.3"
         />
+        {/* 6 delicate golden astrolabe spokes */}
+        {Array.from({ length: 6 }, (_, i) => (
+          <line
+            key={i}
+            x1={0}
+            y1={-8.4}
+            x2={0}
+            y2={8.4}
+            stroke="var(--prism-4)"
+            strokeWidth="1.15"
+            opacity="0.72"
+            transform={`rotate(${i * 30})`}
+          />
+        ))}
+        {/* Sculpted lavender-violet outer ring + inner specular sheen */}
         <circle
           cx={0}
           cy={0}
-          r={9.2}
+          r={8.4}
           fill="none"
           stroke="var(--prism-2)"
-          strokeWidth="2.4"
+          strokeWidth="2.5"
         />
         <circle
           cx={0}
           cy={0}
-          r={6.2}
+          r={9.1}
           fill="none"
-          stroke="var(--prism-4)"
-          strokeWidth="1.0"
-          strokeDasharray="2.8 2.2"
+          stroke="var(--on-accent)"
+          strokeWidth="0.65"
+          opacity="0.4"
         />
+        {/* 4 cardinal aqua gem studs */}
         {Array.from({ length: 4 }, (_, i) => (
-          <polygon
+          <circle
             key={i}
-            points="0,-11.2 1.8,-9.2 0,-7.2 -1.8,-9.2"
+            cx={0}
+            cy={-8.4}
+            r={1.55}
             fill="var(--prism-7)"
             stroke="var(--stage-well)"
             strokeWidth="0.65"
             transform={`rotate(${i * 90})`}
           />
         ))}
-        <circle cx={0} cy={0} r={2.6} fill="var(--prism-4)" stroke="var(--stage-well)" strokeWidth="0.85" />
-      </g>
-
-      {/* Tilting Dual-Prong Crystal Starlight Emitter (replaces arrow pointer) */}
-      <g transform={`translate(${LAUNCHER_X}, ${LAUNCHER_Y}) rotate(${player.aimAngle})`}>
-        {/* Left & right sweeping astral crescent wings */}
-        <path
-          d="M -14 2 C -17 -12, -10 -24, -4 -33 L -2 -20 C -6 -13, -8 -5, -7 2 Z"
-          fill="var(--prism-7)"
-          stroke="var(--stage-well)"
-          strokeWidth="1.15"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M 14 2 C 17 -12, 10 -24, 4 -33 L 2 -20 C 6 -13, 8 -5, 7 2 Z"
-          fill="var(--prism-7)"
-          stroke="var(--stage-well)"
-          strokeWidth="1.15"
-          strokeLinejoin="round"
-        />
-        {/* Inner luminous beam conduit */}
-        <line
-          x1={0}
-          y1={-14}
-          x2={0}
-          y2={-41}
-          stroke="var(--prism-4)"
-          strokeWidth="2.4"
-          strokeLinecap="round"
-        />
-        {/* Floating 4-point astral focus diamond at emitter tip */}
-        <polygon
-          points="0,-51 4.2,-43.5 0,-36 -4.2,-43.5"
+        {/* Central 3D golden cabochon jewel */}
+        <circle
+          cx={0}
+          cy={0}
+          r={3.2}
           fill="var(--prism-4)"
           stroke="var(--stage-well)"
+          strokeWidth="0.95"
+        />
+        <circle cx={-0.8} cy={-0.9} r={0.95} fill="var(--on-accent)" opacity="0.85" />
+      </g>
+
+      {/* Tilting 3D Crescent Cradle Claws & Faceted Golden Star-Compass Pointer (frames the orb cleanly without impaling it) */}
+      <g transform={`translate(${LAUNCHER_X}, ${LAUNCHER_Y}) rotate(${player.aimAngle})`}>
+        {/* Left & right sculpted crescent cradle arms hugging the orb */}
+        <path
+          d="M -15.5 3 C -17.5 -6, -13.5 -15, -6.5 -19.5 C -10.5 -13, -12.2 -5, -11.2 3 Z"
+          fill="var(--prism-7)"
+          stroke="var(--stage-well)"
           strokeWidth="1.15"
           strokeLinejoin="round"
         />
-        <circle cx={0} cy={-43.5} r={1.4} fill="var(--on-accent)" />
+        <path
+          d="M 15.5 3 C 17.5 -6, 13.5 -15, 6.5 -19.5 C 10.5 -13, 12.2 -5, 11.2 3 Z"
+          fill="var(--prism-5)"
+          stroke="var(--stage-well)"
+          strokeWidth="1.15"
+          strokeLinejoin="round"
+        />
+        {/* Two-tone 3D faceted golden compass lance starting outside the orb rim (y = -15 to -44) */}
+        <polygon
+          points="0,-46 -5.2,-33 -2.2,-31.5 -2.6,-15.5 0,-16.8"
+          fill="var(--prism-4)"
+          stroke="var(--stage-well)"
+          strokeWidth="1.05"
+          strokeLinejoin="round"
+        />
+        <polygon
+          points="0,-46 5.2,-33 2.2,-31.5 2.6,-15.5 0,-16.8"
+          fill="var(--prism-6)"
+          stroke="var(--stage-well)"
+          strokeWidth="1.05"
+          strokeLinejoin="round"
+        />
+        {/* Luminous starlight gem set into the compass tip */}
+        <polygon
+          points="0,-40.5 2.2,-36 0,-31.5 -2.2,-36"
+          fill="var(--on-accent)"
+          opacity="0.9"
+        />
       </g>
 
-      {/* Active Star-Core seated in the celestial cradle */}
+      {/* Active 3D Star-Orb seated cleanly in the celestial cradle */}
       {player.flying === null && player.status === 'playing' ? (
-        <StarCoreSvg cx={LAUNCHER_X} cy={LAUNCHER_Y} color={player.currentStar} />
+        <StarCoreSvg
+          cx={LAUNCHER_X}
+          cy={LAUNCHER_Y}
+          color={player.currentStar}
+          defsPrefix={defsPrefix}
+        />
       ) : (
         <circle
           cx={LAUNCHER_X}
@@ -583,11 +645,13 @@ const SettledStarGridSvg = memo(function SettledStarGridSvg({
   ceilingDrop,
   ceilingWarning,
   lastEvent,
+  defsPrefix,
 }: {
   grid: PlayerBoardState['grid'];
   ceilingDrop: number;
   ceilingWarning: boolean;
   lastEvent: PlayerBoardState['lastEvent'];
+  defsPrefix: string;
 }) {
   const stagingY = DANGER_LINE_Y + 12;
   const risenKeySet = new Set<string>(
@@ -608,6 +672,7 @@ const SettledStarGridSvg = memo(function SettledStarGridSvg({
               cx={center.x}
               cy={center.y}
               color={color}
+              defsPrefix={defsPrefix}
               className={justRose ? 'sb-rise-star' : undefined}
               style={
                 justRose
@@ -813,10 +878,7 @@ function PlayerArena({
           }
         >
           <defs>
-            <radialGradient id="sb-core-depth" cx="45%" cy="42%" r="60%">
-              <stop offset="55%" stopColor="var(--stage-well)" stopOpacity="0" />
-              <stop offset="100%" stopColor="var(--stage-well)" stopOpacity="0.28" />
-            </radialGradient>
+            <StarOrbDefs idPrefix={`sb-p${playerNumber}`} />
             <pattern
               id={`sb-constellation-grid-${playerNumber}`}
               width={STAR_RADIUS * 2}
@@ -933,6 +995,7 @@ function PlayerArena({
             ceilingDrop={player.ceilingDrop}
             ceilingWarning={player.ceilingWarning}
             lastEvent={lastEv}
+            defsPrefix={`sb-p${playerNumber}`}
           />
 
           {/* On-board indicator of incoming starlight orbs */}
@@ -967,7 +1030,13 @@ function PlayerArena({
                       points={`${bx},${stagingY - 15} ${bx - 4},${stagingY - 9} ${bx + 4},${stagingY - 9}`}
                       fill="var(--problem)"
                     />
-                    <StarCoreSvg cx={bx} cy={stagingY} color={color} radius={8.5} />
+                    <StarCoreSvg
+                      cx={bx}
+                      cy={stagingY}
+                      color={color}
+                      radius={8.5}
+                      defsPrefix={`sb-p${playerNumber}`}
+                    />
                   </g>
                 );
               })}
@@ -996,6 +1065,7 @@ function PlayerArena({
                   cx={cell.x}
                   cy={cell.y}
                   color={cell.color}
+                  defsPrefix={`sb-p${playerNumber}`}
                 />
               ))}
             </g>
@@ -1007,6 +1077,7 @@ function PlayerArena({
               cx={player.flying.x}
               cy={player.flying.y}
               color={player.flying.color}
+              defsPrefix={`sb-p${playerNumber}`}
             />
           ) : null}
 
@@ -1092,10 +1163,14 @@ function PlayerArena({
                 viewBox={`0 0 ${STAR_RADIUS * 2 + 10} ${STAR_RADIUS * 2 + 10}`}
                 aria-label={`Player ${playerNumber} next star ${player.nextStar}`}
               >
+                <defs>
+                  <StarOrbDefs idPrefix={`sb-next-p${playerNumber}`} />
+                </defs>
                 <StarCoreSvg
                   cx={STAR_RADIUS + 5}
                   cy={STAR_RADIUS + 5}
                   color={player.nextStar}
+                  defsPrefix={`sb-next-p${playerNumber}`}
                 />
               </svg>
             </div>

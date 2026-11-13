@@ -6,7 +6,7 @@ export const prismStackDescriptor: GamePackageDescriptor = {
   packageName: pkg.name,
   version: pkg.version,
   title: 'Prism Stack',
-  summary: 'Stack 9×18 crystal prisms and shatter hazard bars. Local to this view.',
+  summary: 'Stack 3D crystal blocks, chain line clears, and shatter lock bars.',
   modeBadge: '1P & 2P Online',
   controlsLabel: 'Prism Stack controls',
   controls: [
