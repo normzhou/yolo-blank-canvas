@@ -1,7 +1,7 @@
 {
   "name": "YOLO Arcade",
   "short_name": "yolo-arcade",
-  "description": "YOLO Arcade — Tetris & Puzzle Bobble with live multiplayer and in-app YOLO feedback",
+  "description": "YOLO Arcade — Prism Stack & Starlight Burst with live multiplayer and in-app YOLO feedback",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
