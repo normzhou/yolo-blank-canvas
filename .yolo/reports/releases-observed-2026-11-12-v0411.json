@@ -1,0 +1,76 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-12",
+  "observed_at": "2026-11-12",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#354",
+  "releases": [
+    {
+      "tag": "v0.41.1",
+      "commit": "8a407bd66739a4bc161b2f6e4d51d94b2a1a90a3"
+    }
+  ],
+  "release": {
+    "tag": "v0.41.1",
+    "commit": "8a407bd66739a4bc161b2f6e4d51d94b2a1a90a3",
+    "source_commit": "c641e4d3704d489ffcea3154ae0ce1d599e3f207",
+    "assets_commit": "91f1eb1c99ac94659c705f01f9510564a301159a",
+    "native_version": "0.41.1",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-12T22:29:00Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.41.1",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/355"
+  },
+  "build_identity": {
+    "server_build_id": "c641e4d3704d489ffcea3154ae0ce1d599e3f207",
+    "client_build_id": "c641e4d3704d489ffcea3154ae0ce1d599e3f207",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "29 files, 187 tests passed (including test/ip-compliance.test.ts and test/theme-tokens.test.ts)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 47 passed (57.2s, including #354 3D orb radial lighting & Prism Stack solo Upcoming alignment)",
+      "e2e_live": "npm run e2e:live — 5 passed (12.9s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.41.1 --no-open --port 4441 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (20.2s)",
+      "ci": "GitHub Actions CI/Test and type check green"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "8f1fbe0d-b2d9-4172-8e1f-64ad2b9840f7",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.41.1",
+      "observed_build_id": "c641e4d3704d489ffcea3154ae0ce1d599e3f207",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.1.0",
+          "entry": "/games/starlight-burst-Bp0ckWbf.js",
+          "hash": "e13621de322a3b51d922743daed1563218041a8cc98999a9ea4eac8c147cdee4",
+          "sizeBytes": 86984
+        },
+        "prism-stack": {
+          "version": "2.1.0",
+          "entry": "/games/prism-stack-BLel6y1B.js",
+          "hash": "8c5be45facad5ec27f4193206fce9db08e277dd2f67133f7009a5556328f985e",
+          "sizeBytes": 37312
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Restores lush 3D glass/crystal spherical lighting on all Starlight Burst orbs (@yolo-arcade/game-starlight-burst@2.1.0) and sculpts the 3D Celestial Sling, sapphire Next-Orb chalice, faceted golden Star-Compass pointer, and 3D golden-violet Astrolabe Wheel with compact plush Star-Wand IK.",
+    "Removes non-player-facing '9x18 Matrix' copy, upgrades Prism Stack (@yolo-arcade/game-prism-stack@2.1.0) to 3D beveled jewel/crystal blocks and 3D steel-obsidian crystal lock blocks, and centers/aligns the enlarged 3D Upcoming preview directly over .stack-board."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #354"
+}
