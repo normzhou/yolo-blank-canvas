@@ -4,32 +4,32 @@
     "starlight-burst": {
       "id": "starlight-burst",
       "packageName": "@yolo-arcade/game-starlight-burst",
-      "version": "2.0.0",
-      "hash": "e8a4abd8c3c48551391d943d7c74e3d416d20fbd575b1fbd45a388344dbf5403",
-      "entry": "/games/starlight-burst-Do8Y9b_1.js",
+      "version": "2.1.0",
+      "hash": "e13621de322a3b51d922743daed1563218041a8cc98999a9ea4eac8c147cdee4",
+      "entry": "/games/starlight-burst-Bp0ckWbf.js",
       "chunks": [
         "/assets/vendor-react-W1izUqcL.js",
         "/assets/arcade-runtime-Dn0AqKyO.js",
         "/assets/stageBackdrops-weYOhPsk.js",
-        "/assets/descriptor-O7Wa2ZCB.js",
-        "/games/starlight-burst-Do8Y9b_1.js"
+        "/assets/descriptor-wOBz9Z0-.js",
+        "/games/starlight-burst-Bp0ckWbf.js"
       ],
-      "sizeBytes": 86069
+      "sizeBytes": 86984
     },
     "prism-stack": {
       "id": "prism-stack",
       "packageName": "@yolo-arcade/game-prism-stack",
-      "version": "2.0.0",
-      "hash": "626e03dff01c9c35fc089e57a3eb1cadcbc22a457effaa073e66a8398be98b01",
-      "entry": "/games/prism-stack-CD4fqDvv.js",
+      "version": "2.1.0",
+      "hash": "8c5be45facad5ec27f4193206fce9db08e277dd2f67133f7009a5556328f985e",
+      "entry": "/games/prism-stack-BLel6y1B.js",
       "chunks": [
         "/assets/vendor-react-W1izUqcL.js",
         "/assets/arcade-runtime-Dn0AqKyO.js",
         "/assets/stageBackdrops-weYOhPsk.js",
-        "/assets/descriptor-DyGo3oQ3.js",
-        "/games/prism-stack-CD4fqDvv.js"
+        "/assets/descriptor-DE_vI4CJ.js",
+        "/games/prism-stack-BLel6y1B.js"
       ],
-      "sizeBytes": 36793
+      "sizeBytes": 37312
     }
   }
 }
