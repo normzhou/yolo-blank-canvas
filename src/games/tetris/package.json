@@ -1,7 +1,0 @@
-{
-  "name": "@yolo-arcade/game-tetris",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Tetris modular game package for YOLO Arcade",
-  "type": "module"
-}

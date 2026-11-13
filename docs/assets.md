@@ -1,33 +1,37 @@
 # Third-party and synthesized asset provenance
 
-The game music and backdrops are bundled in `public/tetris/` and served locally
-with the app. Nothing is fetched from third-party hosts at runtime.
+The game music and backdrops are bundled in `public/audio/` and `public/backdrops/`
+and served locally with the app. Nothing is fetched from third-party hosts at runtime.
 
-## Music (`tetris/*.m4a`, #232, #234)
+## Music (`audio/*.m4a`, #232, #234, #352)
 
-12 full-length (~114–118s / ~2 minutes each) multi-channel arcade/SNES and
+12 full-length (~114–118s / ~2 minutes each) multi-channel chiptune and
 Tone.js-style (`FMSynth`, `PolySynth`, `MembraneSynth`) arrangements synthesized
-at 44.1 kHz and encoded to AAC-LC `.m4a` via macOS `afconvert` (public domain / CC0):
+at 44.1 kHz and encoded to AAC-LC `.m4a` via macOS `afconvert` (public domain / CC0;
+note: original bespoke musical composition update is tracked as Phase 4 of #351):
 
 ### Selector Screen Playlist (`SELECTOR_PLAYLIST`)
-- `selector-arcade-lobby.m4a` (*Arcade Neon Lobby*, `116.0s`): Original chill FMSynth electric-piano, PolySynth 7th chords, and MembraneSynth lounge groove (CC0).
-- `selector-pixel-lounge.m4a` (*Pixel Lounge Overworld*, `114.3s`): Original upbeat 16-bit game-select overworld theme (CC0).
+- `selector-lobby.m4a` (*Für Elise & Turkish March*, `116.0s`)
+- `selector-lounge.m4a` (*Sugar Plum Fairy & Swan Lake*, `114.3s`)
 
-### Tetris Playlist (`TETRIS_PLAYLIST`)
-- `korobeiniki.m4a` (*Korobeiniki (Type A)*, `117.6s`): Traditional 19th-century Russian folk song (public domain), arranged for pulse lead, harmony counter-melody, oom-pah bass, triangle arpeggios, and percussion.
-- `kalinka-troika.m4a` (*Kalinka & Troika (Type B)*, `116.7s`): Traditional Russian folk medley (public domain), arranged for square-wave lead, plucked harpsichord arpeggios, bass, and percussion.
-- `baroque-invention.m4a` (*Baroque Invention (Type C)*, `115.9s`): J.S. Bach *French Suite No. 3 in B minor, BWV 814 — Menuet & Trio* (public domain), arranged for harpsichord, bell chime, and bassoon-synth continuo.
-- `technotris-fm.m4a` (*Technotris FM Drive*, `118.4s`): Original YM2612/Genesis-style FMSynth slap bass, PolySynth lead, and MembraneSynth electro-polka (CC0).
-- `cosmic-odyssey.m4a` (*Cosmic Block Odyssey*, `118.3s`): Original shimmering FMSynth bell arpeggios and PolySynth minor chords (CC0).
+### Prism Stack Playlist (`PRISM_STACK_PLAYLIST`)
+- `prism-track-1.m4a` (*Folk Polka Medley I*, `117.6s`)
+- `prism-track-2.m4a` (*Kalinka & Troika Medley*, `116.7s`)
+- `prism-track-3.m4a` (*Baroque Invention — Bach Minuet in G*, `115.9s`)
+- `prism-track-4.m4a` (*Mountain King & Ode to Joy*, `118.4s`)
+- `prism-track-5.m4a` (*Greensleeves & Scarborough Fair*, `118.3s`)
 
-### Puzzle Bobble Playlist (`PUZZLE_BOBBLE_PLAYLIST`)
-- `pb-bubble-march.m4a` (*Bubble Dragon March*, `114.7s`): Original whimsical major-key marimba, bell chime, and bouncy bass arcade theme (CC0).
-- `pb-rainbow-carnival.m4a` (*Rainbow Island Carnival*, `116.6s`): Original sunny tropical calypso/flute-synth arcade tune (CC0).
-- `pb-starlight-carousel.m4a` (*Starlight Carousel*, `114.6s`): Original whimsical music-box & glockenspiel bounce (CC0).
-- `pb-candy-playground.m4a` (*Candy Cloud Playground*, `118.3s`): Original whimsical FMSynth toy-piano, PolySynth staccato brass, and MembraneSynth bongos (CC0).
-- `pb-soda-pop.m4a` (*Bubblegum Soda Pop*, `114.9s`): Original cheerful A-major Japanese arcade pop theme (CC0).
+### Starlight Burst Playlist (`STARLIGHT_BURST_PLAYLIST`)
+- `starlight-track-1.m4a` (*Starlight Chime March*, `114.7s`)
+- `starlight-track-2.m4a` (*Overworld Rag & The Entertainer*, `116.6s`)
+- `starlight-track-3.m4a` (*Athletic Rag & Can-Can Galop*, `114.6s`)
+- `starlight-track-4.m4a` (*Spring Meadow & William Tell Galop*, `118.3s`)
+- `starlight-track-5.m4a` (*Csikós Post & Gladiators Galop*, `114.9s`)
 
-## Backdrops (`tetris/*.jpg|png|gif`)
+### Spoken Countdown Sprite (`audio/countdown-voices.m4a`, #262, #331, #333)
+- `countdown-voices.m4a`: 22 spoken "Ready…" / "Go!" phrase pairs generated with Microsoft Edge Neural TTS (`edge-tts`).
+
+## Backdrops (`backdrops/*.jpg|png|gif`)
 
 | File | Scene | Source | Author | License |
 | --- | --- | --- | --- | --- |

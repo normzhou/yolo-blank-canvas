@@ -14,7 +14,7 @@ import {
   setSharedMusicOn,
   setSharedSfxOn,
   subscribeSharedAudio,
-} from '../audio/tetrisMusic';
+} from '../audio/arcadeAudio';
 import {
   getSharedGamePaused,
   getSharedOverlayOpen,
@@ -27,18 +27,18 @@ import {
   getSharedNetplay,
   INVITE_TIMEOUT_MS,
   type NetplayState,
-  type TetrisRadarSnapshot,
+  type PrismStackLiveSnapshot,
 } from '../netplay';
 import {
   pickCountdownLanguage,
   type CountdownLanguage,
 } from '../../shared/countdownLanguages';
-import { TETRIS_PLAYLIST } from '../../shared/tetrisMusic';
+import { PRISM_STACK_PLAYLIST } from '../../shared/arcadeMusic';
 import {
   BACKGROUNDS,
   nextBackgroundIndex,
   type Backdrop,
-} from '../../shared/tetrisBackgrounds';
+} from '../../shared/stageBackdrops';
 import {
   BOARD_HEIGHT,
   BOARD_WIDTH,
@@ -46,34 +46,37 @@ import {
   createGame,
   displayBoard,
   dropInterval,
-  ghostPiece,
   hardDrop,
+  landingGuide,
   moveLeft,
   moveRight,
-  pendingGarbageCount,
-  queueTetrisGarbage,
+  pendingHazardCount,
+  queuePrismHazard,
   rotate,
   rotationCells,
   softDrop,
   tick,
   type Cell,
-  type TetrisState,
-  type Tetromino,
-} from '../../shared/tetris';
-
-/** `prefers-reduced-motion: reduce`, where the crossfade is cut, not animated. */
-function motionReduced(): boolean {
-  return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
+  type PolyId,
+  type PrismStackState,
+} from '../../shared/prismStack';
 
 const COUNTDOWN_READY_MS =
   typeof navigator !== 'undefined' && navigator.webdriver ? 180 : 950;
 const COUNTDOWN_GO_MS =
   typeof navigator !== 'undefined' && navigator.webdriver ? 140 : 600;
 
+function motionReduced(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+}
+
 function detectTouchAvailable(): boolean {
   if (typeof window === 'undefined') return false;
-  if (window.innerWidth < 768 || (window.innerWidth < 900 && window.innerHeight < 440)) return true;
+  if (window.innerWidth < 768) return true;
   if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0) return true;
   if (typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches) return true;
   return false;
@@ -89,21 +92,22 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-function createInitialTetrisRadar(): TetrisRadarSnapshot {
+function createInitialPrismSnapshot(): PrismStackLiveSnapshot {
   return {
     board: createEmptyBoard(),
     settledBoard: createEmptyBoard(),
     activePiece: null,
+    nextPiece: 'bar',
     lastEvent: null,
     score: 0,
     lines: 0,
     level: 1,
     status: 'playing',
-    pendingGarbage: 0,
+    pendingHazard: 0,
   };
 }
 
-function buildTetrisRadarSnapshot(cur: TetrisState): TetrisRadarSnapshot {
+function buildPrismLiveSnapshot(cur: PrismStackState): PrismStackLiveSnapshot {
   return {
     board: displayBoard(cur),
     settledBoard: cur.board,
@@ -115,48 +119,63 @@ function buildTetrisRadarSnapshot(cur: TetrisState): TetrisRadarSnapshot {
           rotation: cur.piece.rotation,
         }
       : null,
+    nextPiece: cur.next,
     lastEvent: cur.lastLockEvent
       ? {
           id: cur.lastLockEvent.id,
           clearedLines: cur.lastLockEvent.cleared,
-          sentGarbage: cur.lastLockEvent.sentGarbage,
-          risenGarbage: cur.lastLockEvent.risenGarbage,
+          sentHazard: cur.lastLockEvent.sentHazard,
+          risenHazard: cur.lastLockEvent.risenHazard,
         }
       : null,
     score: cur.score,
     lines: cur.lines,
     level: cur.level,
     status: cur.status,
-    pendingGarbage: pendingGarbageCount(cur),
+    pendingHazard: pendingHazardCount(cur),
   };
 }
 
-const CELL_CLASS: Record<Tetromino | 'G', string> = {
-  I: 'tetromino-i',
-  J: 'tetromino-j',
-  L: 'tetromino-l',
-  O: 'tetromino-o',
-  S: 'tetromino-s',
-  T: 'tetromino-t',
-  Z: 'tetromino-z',
-  G: 'tetromino-g',
+/**
+ * Non-Guideline jewel/prism color mapping (#352):
+ * - `bar`   (4-bar) -> `--prism-1` (Coral-Ruby)
+ * - `quad`  (2×2)   -> `--prism-2` (Amethyst-Orchid)
+ * - `crest` (3+1)   -> `--prism-3` (Seafoam-Mint)
+ * - `stepR`         -> `--prism-4` (Solar-Gold)
+ * - `stepL`         -> `--prism-5` (Cobalt-Sapphire)
+ * - `hookL`         -> `--prism-6` (Tangerine-Amber)
+ * - `hookR`         -> `--prism-7` (Sky-Aqua)
+ * - `H`             -> Solid crystalline Hazard Lock Bar
+ */
+const CELL_CLASS: Record<PolyId | 'H', string> = {
+  bar: 'prism-cell-1',
+  quad: 'prism-cell-2',
+  crest: 'prism-cell-3',
+  stepR: 'prism-cell-4',
+  stepL: 'prism-cell-5',
+  hookL: 'prism-cell-6',
+  hookR: 'prism-cell-7',
+  H: 'prism-cell-hazard',
 };
 
-function cellClass(cell: Cell): string {
-  return cell ? `tetris-cell ${CELL_CLASS[cell]}` : 'tetris-cell';
+function cellClass(cell: Cell, isGuideCol = false, isLandingTick = false): string {
+  if (cell) return `stack-cell ${CELL_CLASS[cell]}`;
+  if (isLandingTick) return 'stack-cell is-guide-col is-landing-tick';
+  if (isGuideCol) return 'stack-cell is-guide-col';
+  return 'stack-cell';
 }
 
 function ArtLayer({ art, past, onFaded }: { art: Backdrop; past: boolean; onFaded: () => void }) {
   return (
     <img
-      className={`tetris-art-layer ${past ? 'is-past' : 'is-current'}`}
+      className={`stack-art-layer ${past ? 'is-past' : 'is-current'}`}
       src={art.src}
       alt=""
       aria-hidden="true"
       onAnimationEnd={
         past
           ? (event) => {
-              if (event.animationName === 'tetris-art-out') onFaded();
+              if (event.animationName === 'stack-art-out') onFaded();
             }
           : undefined
       }
@@ -185,7 +204,7 @@ function PixelBackdrop({ art }: { art: Backdrop }) {
   }, [layers, dropPastLayers]);
 
   return (
-    <div className="tetris-art" aria-hidden="true">
+    <div className="stack-art" aria-hidden="true">
       {layers.map((layer, index) => (
         <ArtLayer key={layer.key} art={layer.art} past={index < layers.length - 1} onFaded={dropPastLayers} />
       ))}
@@ -193,160 +212,174 @@ function PixelBackdrop({ art }: { art: Backdrop }) {
   );
 }
 
-const NextPreview = memo(function NextPreview({ type }: { type: Tetromino }) {
+/**
+ * Compact inline header upcoming-prism pill (replaces boxed right-rail "Next" window, #352).
+ */
+const InlineNextPrismPill = memo(function InlineNextPrismPill({
+  type,
+  testId,
+}: {
+  type: PolyId;
+  testId?: string;
+}) {
   const cells = rotationCells(type, 0);
   const filled = new Set(cells.map(([x, y]) => `${x},${y}`));
   return (
-    <div className="tetris-next" aria-label={`Next piece ${type}`}>
-      {Array.from({ length: 4 }, (_, y) =>
-        Array.from({ length: 4 }, (_, x) => (
-          <div key={`${x},${y}`} className={filled.has(`${x},${y}`) ? `tetris-cell ${CELL_CLASS[type]}` : 'tetris-cell'} />
-        )),
-      )}
+    <div
+      className="stack-next-pill"
+      data-testid={testId}
+      data-next-shape={type}
+      aria-label={`Upcoming prism ${type}`}
+    >
+      <span className="stack-next-pill-label">Upcoming</span>
+      <div className="stack-next-mini">
+        {Array.from({ length: 4 }, (_, y) =>
+          Array.from({ length: 4 }, (_, x) => (
+            <div
+              key={`${x},${y}`}
+              className={
+                filled.has(`${x},${y}`)
+                  ? `stack-next-mini-cell ${CELL_CLASS[type]}`
+                  : 'stack-next-mini-cell'
+              }
+            />
+          )),
+        )}
+      </div>
     </div>
   );
 });
 
-const OpponentTetrisRadar = memo(function OpponentTetrisRadar({
+/**
+ * Full-size symmetric 9×18 Online Opponent Stage (replaces miniature side-radar, #352).
+ */
+const OnlineOpponentPrismLane = memo(function OnlineOpponentPrismLane({
   opponentName,
-  radar,
+  snapshot,
   roundOutcome,
 }: {
   opponentName: string;
-  radar: TetrisRadarSnapshot;
+  snapshot: PrismStackLiveSnapshot;
   roundOutcome: 'playing' | 'won' | 'lost';
 }) {
   const statusLabel =
-    roundOutcome === 'won' || radar.status === 'over'
+    roundOutcome === 'won' || snapshot.status === 'over'
       ? 'KO'
       : roundOutcome === 'lost'
         ? 'WIN'
         : 'LIVE';
 
-  const prevLinesRef = useRef<number>(radar.lines);
-  const prevGarbageCellsRef = useRef<number>(0);
-  const prevEventIdRef = useRef<number>(0);
-  const [animMode, setAnimMode] = useState<'none' | 'clearing' | 'rising'>('none');
-
-  useEffect(() => {
-    let garbageCells = 0;
-    for (const row of radar.board) {
-      for (const cell of row) {
-        if (cell === 'G') garbageCells += 1;
+  const board = useMemo(() => {
+    const base = snapshot.settledBoard
+      ? snapshot.settledBoard.map((r) => r.slice())
+      : snapshot.board.map((r) => r.slice());
+    if (snapshot.activePiece) {
+      for (const [dx, dy] of rotationCells(
+        snapshot.activePiece.type,
+        snapshot.activePiece.rotation,
+      )) {
+        const x = snapshot.activePiece.x + dx;
+        const y = snapshot.activePiece.y + dy;
+        if (y >= 0 && y < BOARD_HEIGHT && x >= 0 && x < BOARD_WIDTH) {
+          base[y]![x] = snapshot.activePiece.type;
+        }
       }
     }
-    const prevGarbage = prevGarbageCellsRef.current;
-    prevGarbageCellsRef.current = garbageCells;
-
-    const prevLines = prevLinesRef.current;
-    prevLinesRef.current = radar.lines;
-
-    const ev = radar.lastEvent;
-    let nextAnim: 'none' | 'clearing' | 'rising' = 'none';
-    if (ev && ev.id !== prevEventIdRef.current) {
-      prevEventIdRef.current = ev.id;
-      if (ev.risenGarbage > 0) nextAnim = 'rising';
-      else if (ev.clearedLines > 0) nextAnim = 'clearing';
-    } else if (garbageCells > prevGarbage) {
-      nextAnim = 'rising';
-    } else if (radar.lines > prevLines) {
-      nextAnim = 'clearing';
-    }
-
-    if (nextAnim !== 'none') {
-      setAnimMode(nextAnim);
-      const id = window.setTimeout(() => setAnimMode('none'), 450);
-      return () => window.clearTimeout(id);
-    }
-    return undefined;
-  }, [radar.board, radar.lines, radar.lastEvent]);
-
-  const activePieceCells = useMemo(() => {
-    if (!radar.activePiece) return null;
-    const coords = new Set<string>();
-    for (const [dx, dy] of rotationCells(radar.activePiece.type, radar.activePiece.rotation)) {
-      coords.add(`${dx},${dy}`);
-    }
-    return coords;
-  }, [radar.activePiece]);
-
-  const gridClass =
-    animMode === 'clearing'
-      ? 'tetris-radar-grid is-clearing'
-      : animMode === 'rising'
-        ? 'tetris-radar-grid is-rising-garbage'
-        : 'tetris-radar-grid';
+    return base;
+  }, [snapshot.activePiece, snapshot.board, snapshot.settledBoard]);
 
   return (
     <div
-      className="netplay-radar-card"
-      data-testid="tetris-opponent-radar"
-      aria-label={`Opponent ${opponentName} mini radar`}
+      className="stack-player-lane"
+      data-player="2"
+      data-testid="prism-online-opponent-arena"
     >
-      <div className="netplay-radar-header">
-        <span className="netplay-radar-name" title={opponentName}>
-          VS {opponentName}
-        </span>
-        <span
-          className={
-            statusLabel === 'KO'
-              ? 'netplay-radar-badge is-ko'
-              : 'netplay-radar-badge'
-          }
-          data-testid="tetris-opponent-status"
-        >
-          {statusLabel}
-        </span>
-      </div>
-      <div
-        className={gridClass}
-        role="img"
-        aria-label={`${opponentName} board radar, score ${radar.score}, lines ${radar.lines}`}
-      >
-        {radar.board.map((row, y) =>
-          row.map((cell, x) => (
-            <div
-              key={`${x},${y}`}
-              className={cell ? `tetris-radar-cell ${CELL_CLASS[cell]}` : 'tetris-radar-cell'}
-            />
-          )),
-        )}
-        {radar.activePiece && activePieceCells ? (
-          <div
-            className="tetris-radar-active-piece"
-            data-testid="tetris-opponent-active-piece"
-            aria-hidden="true"
-            style={{
-              transform: `translate(${radar.activePiece.x * 7}px, ${radar.activePiece.y * 6}px)`,
-            }}
+      <div className="stack-lane-bar">
+        <div className="sb-player-id">
+          <span
+            className="sb-slot-badge sb-slot-2"
+            style={{ background: 'var(--prism-7)', color: 'var(--stage-well)' }}
           >
-            {Array.from({ length: 4 }, (_, py) =>
-              Array.from({ length: 4 }, (_, px) => {
-                const filled = activePieceCells.has(`${px},${py}`);
-                return (
-                  <div
-                    key={`${px},${py}`}
-                    className={
-                      filled
-                        ? `tetris-radar-active-cell ${CELL_CLASS[radar.activePiece!.type]}`
-                        : 'tetris-radar-active-cell'
-                    }
-                  />
-                );
-              }),
-            )}
-          </div>
-        ) : null}
+            VS
+          </span>
+          <span className="sb-player-title" title={opponentName}>
+            {opponentName}
+          </span>
+          <span
+            className={statusLabel === 'KO' ? 'netplay-radar-badge is-ko' : 'netplay-radar-badge'}
+            data-testid="prism-opponent-status"
+          >
+            {statusLabel}
+          </span>
+        </div>
+        {snapshot.nextPiece ? <InlineNextPrismPill type={snapshot.nextPiece} /> : null}
       </div>
-      <div className="netplay-radar-stats">
-        <span data-testid="tetris-opponent-score">{radar.score} pts</span>
-        <span data-testid="tetris-opponent-lines">{radar.lines}L</span>
+
+      <div className="stack-stage-row">
+        <div
+          className={
+            statusLabel === 'KO' ? 'stack-board is-dissolved' : 'stack-board'
+          }
+          data-testid="prism-opponent-board"
+          role="img"
+          aria-label={`${opponentName} Prism Stack board, ${BOARD_WIDTH} by ${BOARD_HEIGHT}, score ${snapshot.score}, lines ${snapshot.lines}`}
+        >
+          {board.map((row, y) =>
+            row.map((cell, x) => <div key={`${x},${y}`} className={cellClass(cell)} />),
+          )}
+          {snapshot.activePiece ? (
+            <span
+              className="sr-only"
+              data-testid="prism-opponent-active-piece"
+              data-x={snapshot.activePiece.x}
+              data-y={snapshot.activePiece.y}
+            />
+          ) : null}
+        </div>
+
+        <div
+          className="stack-hazard-meter"
+          role="status"
+          aria-label={`${opponentName} ${snapshot.pendingHazard} incoming hazard bars`}
+        >
+          {Array.from({ length: BOARD_HEIGHT }, (_, idx) => {
+            const rowFromBottom = BOARD_HEIGHT - 1 - idx;
+            const active = rowFromBottom < snapshot.pendingHazard;
+            return (
+              <div
+                key={idx}
+                className={
+                  active ? 'stack-hazard-segment is-active' : 'stack-hazard-segment'
+                }
+              />
+            );
+          })}
+        </div>
+
+        <aside className="stack-side">
+          <div className="stack-stat">
+            <span className="stack-label">Score</span>
+            <span className="stack-value" data-testid="prism-opponent-score">
+              {snapshot.score}
+            </span>
+          </div>
+          <div className="stack-stat">
+            <span className="stack-label">Lines</span>
+            <span className="stack-value" data-testid="prism-opponent-lines">
+              {snapshot.lines}
+            </span>
+          </div>
+          <div className="stack-stat">
+            <span className="stack-label">Level</span>
+            <span className="stack-value">{snapshot.level}</span>
+          </div>
+        </aside>
       </div>
     </div>
   );
 });
 
-export function TetrisView({ onExit }: { onExit: () => void }) {
+export function PrismStackView({ onExit }: { onExit: () => void }) {
   const customRngRef = useRef<(() => number) | null>(null);
   const rngRef = {
     get current(): () => number {
@@ -356,8 +389,8 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
       customRngRef.current = fn === Math.random ? null : fn;
     },
   };
-  const [game, setGame] = useState<TetrisState>(() => createGame());
-  const [game2, setGame2] = useState<TetrisState>(() => createGame());
+  const [game, setGame] = useState<PrismStackState>(() => createGame());
+  const [game2, setGame2] = useState<PrismStackState>(() => createGame());
   const [localMode, setLocalMode] = useState<'1p' | '2p'>('1p');
   const [paused, setPaused] = useState<boolean>(() => getSharedGamePaused());
   const [musicOn, setMusicOn] = useState<boolean>(() => getSharedMusicOn());
@@ -367,8 +400,8 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     () => getSharedArcadeAudio().getCurrentTrack()?.title ?? null,
   );
   const [netplay, setNetplay] = useState<NetplayState>(() => getSharedNetplay().getState());
-  const [opponentRadar, setOpponentRadar] = useState<TetrisRadarSnapshot>(() =>
-    createInitialTetrisRadar(),
+  const [opponentSnapshot, setOpponentSnapshot] = useState<PrismStackLiveSnapshot>(() =>
+    createInitialPrismSnapshot(),
   );
   const [roundOutcome, setRoundOutcome] = useState<'playing' | 'won' | 'lost'>('playing');
   const [wins, setWins] = useState<[number, number]>([0, 0]);
@@ -426,8 +459,8 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
   roundOutcomeRef.current = roundOutcome;
   const activeRoomIdRef = useRef<string | null>(null);
   const activeRoomStartedRef = useRef<string | null>(null);
-  const tetrisCountRef = useRef(game.tetrisCount);
-  const tetrisCount2Ref = useRef(game2.tetrisCount);
+  const quadClearRef = useRef(game.quadClearCount);
+  const quadClear2Ref = useRef(game2.quadClearCount);
   const prevLinesRef = useRef(game.lines);
   const prevLines2Ref = useRef(game2.lines);
   const prevStatusRef = useRef(game.status);
@@ -436,46 +469,48 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
   const prevLockId2Ref = useRef<number>(0);
   const gameSectionRef = useRef<HTMLElement>(null);
 
-  const activeTetrisRoom =
-    netplay.activeRoom && netplay.activeRoom.gameId === 'tetris' ? netplay.activeRoom : null;
-  const isOnline2P = activeTetrisRoom !== null;
-  const isReadyCheck = activeTetrisRoom?.status === 'ready_check';
+  const activePrismRoom =
+    netplay.activeRoom && netplay.activeRoom.gameId === 'prism-stack'
+      ? netplay.activeRoom
+      : null;
+  const isOnline2P = activePrismRoom !== null;
+  const isReadyCheck = activePrismRoom?.status === 'ready_check';
   const isNetworkPaused = Boolean(
     isOnline2P &&
-      activeTetrisRoom?.status === 'playing' &&
-      activeTetrisRoom?.syncStatus === 'paused',
+      activePrismRoom?.status === 'playing' &&
+      activePrismRoom?.syncStatus === 'paused',
   );
   const syncSecondsLeft = Math.max(
     0,
-    Math.ceil((activeTetrisRoom?.syncRemainingMs ?? 15_000) / 1000),
+    Math.ceil((activePrismRoom?.syncRemainingMs ?? 15_000) / 1000),
   );
-  const isInviting = netplay.myPendingInvite?.gameId === 'tetris';
+  const isInviting = netplay.myPendingInvite?.gameId === 'prism-stack';
   const isLocal2P = localMode === '2p' && !isOnline2P && !isInviting;
-  const myRoomPlayer = activeTetrisRoom?.players.find((p) => p.id === netplay.clientId);
+  const isSymmetric2P = isLocal2P || isOnline2P;
+  const myRoomPlayer = activePrismRoom?.players.find((p) => p.id === netplay.clientId);
   const myReady = Boolean(myRoomPlayer?.ready);
-  const oppReady = Boolean(activeTetrisRoom?.opponent?.ready);
+  const oppReady = Boolean(activePrismRoom?.opponent?.ready);
 
   useEffect(() => {
-    if (activeTetrisRoom?.syncStatus === 'timeout') {
+    if (activePrismRoom?.syncStatus === 'timeout') {
       void getSharedNetplay().leaveRoom();
       onExit();
     }
-  }, [activeTetrisRoom?.syncStatus, onExit]);
+  }, [activePrismRoom?.syncStatus, onExit]);
 
-  // Continuous 2P keep-alive and live board radar push (#250, #254, #256: 500ms / 2Hz deduplicated).
-  const lastRadarDigestRef = useRef<string>('');
+  const lastSnapshotDigestRef = useRef<string>('');
   useEffect(() => {
     if (!isOnline2P || isReadyCheck || isNetworkPaused || roundOutcome !== 'playing') return;
-    const pushRadar = () => {
+    const pushSnapshot = () => {
       const cur = gameRef.current;
-      const snap = buildTetrisRadarSnapshot(cur);
+      const snap = buildPrismLiveSnapshot(cur);
       const digest = JSON.stringify(snap);
-      if (digest === lastRadarDigestRef.current) return;
-      lastRadarDigestRef.current = digest;
-      void getSharedNetplay().sendRoomEvent('tetris_state', snap);
+      if (digest === lastSnapshotDigestRef.current) return;
+      lastSnapshotDigestRef.current = digest;
+      void getSharedNetplay().sendRoomEvent('prism_state', snap);
     };
-    pushRadar();
-    const id = window.setInterval(pushRadar, 500);
+    pushSnapshot();
+    const id = window.setInterval(pushSnapshot, 500);
     return () => window.clearInterval(id);
   }, [isOnline2P, isReadyCheck, isNetworkPaused, roundOutcome]);
 
@@ -497,7 +532,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
       prevStatusRef.current = 'playing';
       prevLockIdRef.current = 0;
       setGame(fresh);
-      setOpponentRadar(createInitialTetrisRadar());
+      setOpponentSnapshot(createInitialPrismSnapshot());
       setRoundOutcome('playing');
       setSharedGamePaused(false);
       triggerFreshCountdown(pickCountdownLanguage(mulberry32((seed ^ 0x5a5a5a5a) >>> 0)));
@@ -509,10 +544,9 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     [triggerFreshCountdown],
   );
 
-  // 20-second invite countdown timer (#248).
   useEffect(() => {
     const invite = netplay.myPendingInvite;
-    if (!invite || invite.gameId !== 'tetris') {
+    if (!invite || invite.gameId !== 'prism-stack') {
       setInviteSecondsLeft(20);
       return;
     }
@@ -529,7 +563,6 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     return () => window.clearInterval(id);
   }, [netplay.myPendingInvite]);
 
-  // "Ready…" -> "Go!" speaker-weighted 10-language start countdown with spoken voice audio (#262, #268, #303).
   useEffect(() => {
     if (countdown <= 0 || paused || isReadyCheck || isInviting || isNetworkPaused) return;
     const phase = countdown >= 2 ? 'ready' : 'go';
@@ -555,7 +588,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     const unsubState = client.subscribe((nextState) => {
       setNetplay(nextState);
       const room =
-        nextState.activeRoom && nextState.activeRoom.gameId === 'tetris'
+        nextState.activeRoom && nextState.activeRoom.gameId === 'prism-stack'
           ? nextState.activeRoom
           : null;
       if (room && activeRoomIdRef.current !== room.id) {
@@ -583,7 +616,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     const unsubEvents = client.onRoomEvent((event) => {
       if (event.kind === 'match_start') {
         const payload = event.payload as { gameId?: string; seed?: number; id?: string; roomId?: string } | null;
-        if (payload && payload.gameId === 'tetris') {
+        if (payload && payload.gameId === 'prism-stack') {
           const rid = payload.id ?? payload.roomId ?? null;
           if (rid && activeRoomStartedRef.current !== rid) {
             activeRoomIdRef.current = rid;
@@ -607,25 +640,25 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
 
       if (event.senderId === client.getState().clientId) return;
 
-      if (event.kind === 'tetris_attack') {
-        const payload = event.payload as { lines?: number; holeColumn?: number } | null;
+      if (event.kind === 'prism_attack') {
+        const payload = event.payload as { lines?: number } | null;
         const lines = Number(payload?.lines ?? 0);
         if (lines > 0) {
-          setGame((current) => queueTetrisGarbage(current, lines, payload?.holeColumn));
+          setGame((current) => queuePrismHazard(current, lines));
         }
         return;
       }
 
-      if (event.kind === 'tetris_state') {
-        const snapshot = event.payload as TetrisRadarSnapshot | null;
+      if (event.kind === 'prism_state') {
+        const snapshot = event.payload as PrismStackLiveSnapshot | null;
         if (snapshot && Array.isArray(snapshot.board)) {
-          setOpponentRadar(snapshot);
+          setOpponentSnapshot(snapshot);
         }
         return;
       }
 
-      if (event.kind === 'tetris_ko') {
-        setOpponentRadar((prev) => ({ ...prev, status: 'over' }));
+      if (event.kind === 'prism_ko') {
+        setOpponentSnapshot((prev) => ({ ...prev, status: 'over' }));
         if (roundOutcomeRef.current === 'playing') {
           setRoundOutcome('won');
           setWins(([myW, oppW]) => [myW + 1, oppW]);
@@ -634,14 +667,14 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
         return;
       }
 
-      if (event.kind === 'tetris_rematch') {
+      if (event.kind === 'prism_rematch') {
         const payload = event.payload as { seed?: number } | null;
         startOnlineRoundWithSeed(payload?.seed ?? Date.now(), false);
         return;
       }
 
       if (event.kind === 'player_left') {
-        setOpponentRadar((prev) => ({ ...prev, status: 'over' }));
+        setOpponentSnapshot((prev) => ({ ...prev, status: 'over' }));
         if (roundOutcomeRef.current === 'playing') {
           setRoundOutcome('won');
         }
@@ -652,11 +685,11 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
       unsubState();
       unsubEvents();
     };
-  }, [startOnlineRoundWithSeed]);
+  }, [onExit, startOnlineRoundWithSeed, triggerFreshCountdown]);
 
   useEffect(() => {
     const audio = getSharedArcadeAudio();
-    audio.setPlaylist(TETRIS_PLAYLIST);
+    audio.setPlaylist(PRISM_STACK_PLAYLIST);
     setNowPlaying(audio.getCurrentTrack()?.title ?? null);
     return subscribeSharedAudio((nextOn, nextTitle, nextSfxOn) => {
       setMusicOn(nextOn);
@@ -665,8 +698,6 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     });
   }, []);
 
-  // #217: Prevent browser viewport scroll or rubber-banding when dragging
-  // anywhere on the full-screen game stage on iOS Safari / Chrome.
   useEffect(() => {
     const el = gameSectionRef.current;
     if (!el) return;
@@ -677,24 +708,21 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     return () => el.removeEventListener('touchmove', onTouchMove);
   }, []);
 
-  // Clearing four lines at once advances the backdrop to the next scene.
   useEffect(() => {
-    if (game.tetrisCount > tetrisCountRef.current) {
+    if (game.quadClearCount > quadClearRef.current) {
       setBackgroundIndex((index) => nextBackgroundIndex(index));
     }
-    tetrisCountRef.current = game.tetrisCount;
-  }, [game.tetrisCount]);
+    quadClearRef.current = game.quadClearCount;
+  }, [game.quadClearCount]);
 
   useEffect(() => {
     if (!isLocal2P) return;
-    if (game2.tetrisCount > tetrisCount2Ref.current) {
+    if (game2.quadClearCount > quadClear2Ref.current) {
       setBackgroundIndex((index) => nextBackgroundIndex(index));
     }
-    tetrisCount2Ref.current = game2.tetrisCount;
-  }, [game2.tetrisCount, isLocal2P]);
+    quadClear2Ref.current = game2.quadClearCount;
+  }, [game2.quadClearCount, isLocal2P]);
 
-  // #234, #236, #301: Trigger real-time Tone.js-style SFX on line clears, garbage send/rise, and Game Over,
-  // and relay 2P Versus garbage attacks (online or local 2P) and live radar snapshots to the opponent.
   useEffect(() => {
     if (game.lines > prevLinesRef.current) {
       const cleared = game.lines - prevLinesRef.current;
@@ -717,23 +745,21 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     if (lockEv && lockEv.id !== prevLockIdRef.current) {
       prevLockIdRef.current = lockEv.id;
       const sfx = getSharedArcadeAudio().sfx;
-      if (lockEv.sentGarbage > 0) {
-        sfx.playGarbageSend(lockEv.sentGarbage);
-        const holeColumn = Math.floor(rngRef.current() * BOARD_WIDTH);
+      if (lockEv.sentHazard > 0) {
+        sfx.playGarbageSend(lockEv.sentHazard);
         if (isOnline2P) {
-          void getSharedNetplay().sendRoomEvent('tetris_attack', {
-            lines: lockEv.sentGarbage,
-            holeColumn,
+          void getSharedNetplay().sendRoomEvent('prism_attack', {
+            lines: lockEv.sentHazard,
           });
         } else if (isLocal2P) {
-          setGame2((cur2) => queueTetrisGarbage(cur2, lockEv.sentGarbage, holeColumn));
+          setGame2((cur2) => queuePrismHazard(cur2, lockEv.sentHazard));
         }
       }
-      if (lockEv.risenGarbage > 0) {
-        sfx.playGarbageRise(lockEv.risenGarbage);
+      if (lockEv.risenHazard > 0) {
+        sfx.playGarbageRise(lockEv.risenHazard);
       }
       if (isOnline2P) {
-        void getSharedNetplay().sendRoomEvent('tetris_state', buildTetrisRadarSnapshot(game));
+        void getSharedNetplay().sendRoomEvent('prism_state', buildPrismLiveSnapshot(game));
       }
     }
   }, [game, isLocal2P, isOnline2P]);
@@ -744,13 +770,12 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     if (lockEv2 && lockEv2.id !== prevLockId2Ref.current) {
       prevLockId2Ref.current = lockEv2.id;
       const sfx = getSharedArcadeAudio().sfx;
-      if (lockEv2.sentGarbage > 0) {
-        sfx.playGarbageSend(lockEv2.sentGarbage);
-        const holeColumn = Math.floor(rngRef.current() * BOARD_WIDTH);
-        setGame((cur1) => queueTetrisGarbage(cur1, lockEv2.sentGarbage, holeColumn));
+      if (lockEv2.sentHazard > 0) {
+        sfx.playGarbageSend(lockEv2.sentHazard);
+        setGame((cur1) => queuePrismHazard(cur1, lockEv2.sentHazard));
       }
-      if (lockEv2.risenGarbage > 0) {
-        sfx.playGarbageRise(lockEv2.risenGarbage);
+      if (lockEv2.risenHazard > 0) {
+        sfx.playGarbageRise(lockEv2.risenHazard);
       }
     }
   }, [game2, isLocal2P]);
@@ -761,7 +786,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
         getSharedArcadeAudio().sfx.playGameOver();
         setRoundOutcome('lost');
         setWins(([myW, oppW]) => [myW, oppW + 1]);
-        void getSharedNetplay().sendRoomEvent('tetris_ko', { score: game.score, lines: game.lines });
+        void getSharedNetplay().sendRoomEvent('prism_ko', { score: game.score, lines: game.lines });
       } else if (isLocal2P && roundOutcomeRef.current === 'playing') {
         getSharedArcadeAudio().sfx.playRoundEnd(true);
         setRoundOutcome('lost');
@@ -785,37 +810,35 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     prevStatus2Ref.current = game2.status;
   }, [game2.status, isLocal2P]);
 
-  // Browser-driven test hooks: synthetic four-line clear and deterministic Versus garbage queue (#236).
   useEffect(() => {
-    function forceFourLineClear() {
+    function forceQuadClear() {
       getSharedArcadeAudio().sfx.playLineClear(4);
       setGame((current) => ({
         ...current,
         lines: current.lines + 4,
         score: current.score + 800 * current.level,
-        tetrisCount: current.tetrisCount + 1,
-        garbageSent: current.garbageSent + 4,
+        quadClearCount: current.quadClearCount + 1,
+        hazardSent: current.hazardSent + 4,
         lastLockEvent: {
           id: (current.lastLockEvent?.id ?? 0) + 1,
           cleared: 4,
-          combo: 1,
-          sentGarbage: 4,
-          canceledGarbage: 0,
-          risenGarbage: 0,
+          shatteredHazards: 0,
+          sentHazard: 4,
+          canceledHazard: 0,
+          risenHazard: 0,
         },
       }));
     }
-    function onQueueGarbage(event: Event) {
-      const detail = (event as CustomEvent<{ lines?: number; holeColumn?: number }>).detail;
+    function onQueueHazard(event: Event) {
+      const detail = (event as CustomEvent<{ lines?: number }>).detail;
       const lines = detail?.lines ?? 2;
-      const holeColumn = detail?.holeColumn ?? 4;
-      setGame((current) => queueTetrisGarbage(current, lines, holeColumn));
+      setGame((current) => queuePrismHazard(current, lines));
     }
-    window.addEventListener('yolo:tetris:four-line-clear', forceFourLineClear);
-    window.addEventListener('yolo:tetris:queue-garbage', onQueueGarbage);
+    window.addEventListener('yolo:prism:quad-clear', forceQuadClear);
+    window.addEventListener('yolo:prism:queue-hazard', onQueueHazard);
     return () => {
-      window.removeEventListener('yolo:tetris:four-line-clear', forceFourLineClear);
-      window.removeEventListener('yolo:tetris:queue-garbage', onQueueGarbage);
+      window.removeEventListener('yolo:prism:quad-clear', forceQuadClear);
+      window.removeEventListener('yolo:prism:queue-hazard', onQueueHazard);
     };
   }, []);
 
@@ -824,12 +847,10 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     (isLocal2P && (game2.status !== 'playing' || roundOutcome !== 'playing')) ||
     (isOnline2P && roundOutcome !== 'playing');
 
-  // Drive playback from game state.
   useEffect(() => {
     getSharedArcadeAudio().setActive(musicOn && !matchEnded);
   }, [musicOn, matchEnded]);
 
-  // Gravity. Restarts when the level (speed) changes and stops when not playing or during countdown/ready-check/network-pause.
   useEffect(() => {
     if (paused || matchEnded || isReadyCheck || isInviting || isNetworkPaused || countdown > 0) return;
     const id = window.setInterval(() => {
@@ -846,7 +867,6 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     return () => window.clearInterval(id);
   }, [isLocal2P, paused, game2.level, matchEnded, isReadyCheck, isInviting, isNetworkPaused, countdown]);
 
-  // Highlight Continue button when Pause Menu opens (#268).
   useEffect(() => {
     if (!paused || overlayOpen || isReadyCheck || isInviting || isNetworkPaused) return;
     const menu = pauseMenuRef.current;
@@ -865,7 +885,6 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     });
   }, [paused, overlayOpen, isReadyCheck, isInviting, isNetworkPaused]);
 
-  // Keyboard controls: arrows move/rotate/soft-drop, space hard-drops, Escape toggles Pause Menu (#237, #268).
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (getSharedOverlayOpen()) return;
@@ -973,7 +992,6 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
       }
       const setArrowTarget = isLocal2P ? setGame2 : setGame;
       switch (event.key) {
-        // Player 1 controls in Local 2P (also usable in 1P): WASD + F/Q/E
         case 'a':
         case 'A':
           event.preventDefault();
@@ -1005,7 +1023,6 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
           getSharedArcadeAudio().sfx.playHardDrop();
           setGame((current) => hardDrop(current, rngRef.current));
           break;
-        // Player 2 controls in Local 2P (primary 1P controls in Solo/Online): Arrows + Space/Enter
         case 'ArrowLeft':
           event.preventDefault();
           setArrowTarget((current) => moveLeft(current));
@@ -1039,8 +1056,6 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isInviting, isLocal2P, isNetworkPaused, isOnline2P, isReadyCheck, onExit, paused]);
 
-  // #212: Touch / pointer auto-repeat (DAS) for on-screen Tetris arcade buttons
-  // and direct board gestures.
   const repeatTimeoutRef = useRef<number | null>(null);
   const repeatIntervalRef = useRef<number | null>(null);
   const boardGestureRef = useRef<{
@@ -1124,52 +1139,20 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
   };
 
   const board = useMemo(() => displayBoard(game), [game]);
-  const { ghost, ghostCoords } = useMemo(() => {
-    const g = ghostPiece(game);
-    const coords = new Set<string>();
-    if (g) {
-      for (const [dx, dy] of rotationCells(g.type, g.rotation)) {
-        const gx = g.x + dx;
-        const gy = g.y + dy;
-        if (
-          gy >= 0 &&
-          gy < BOARD_HEIGHT &&
-          gx >= 0 &&
-          gx < BOARD_WIDTH &&
-          board[gy][gx] === null
-        ) {
-          coords.add(`${gx},${gy}`);
-        }
-      }
-    }
-    return { ghost: g, ghostCoords: coords };
-  }, [game, board]);
-
-  const pendingGarbage = pendingGarbageCount(game);
+  const guide1 = useMemo(() => landingGuide(game), [game]);
+  const tickSet1 = useMemo(
+    () => new Set(guide1.floorTicks.map((t) => `${t.x},${t.y}`)),
+    [guide1.floorTicks],
+  );
+  const pendingHazard1 = pendingHazardCount(game);
 
   const board2 = useMemo(() => displayBoard(game2), [game2]);
-  const { ghost: ghost2, ghostCoords: ghostCoords2 } = useMemo(() => {
-    const g = ghostPiece(game2);
-    const coords = new Set<string>();
-    if (g) {
-      for (const [dx, dy] of rotationCells(g.type, g.rotation)) {
-        const gx = g.x + dx;
-        const gy = g.y + dy;
-        if (
-          gy >= 0 &&
-          gy < BOARD_HEIGHT &&
-          gx >= 0 &&
-          gx < BOARD_WIDTH &&
-          board2[gy][gx] === null
-        ) {
-          coords.add(`${gx},${gy}`);
-        }
-      }
-    }
-    return { ghost: g, ghostCoords: coords };
-  }, [game2, board2]);
-
-  const pendingGarbage2 = pendingGarbageCount(game2);
+  const guide2 = useMemo(() => landingGuide(game2), [game2]);
+  const tickSet2 = useMemo(
+    () => new Set(guide2.floorTicks.map((t) => `${t.x},${t.y}`)),
+    [guide2.floorTicks],
+  );
+  const pendingHazard2 = pendingHazardCount(game2);
 
   const startLocalRound = useCallback(
     (mode: '1p' | '2p', resetWins = false) => {
@@ -1203,7 +1186,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
     if (isOnline2P) {
       const nextSeed = ((Date.now() & 0x7fffffff) ^ 0x3c6ef372) >>> 0 || 2026;
       startOnlineRoundWithSeed(nextSeed, false);
-      void getSharedNetplay().sendRoomEvent('tetris_rematch', { seed: nextSeed });
+      void getSharedNetplay().sendRoomEvent('prism_rematch', { seed: nextSeed });
     } else {
       startLocalRound(localMode, false);
     }
@@ -1213,29 +1196,26 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
 
   return (
     <section
-      className="tetris"
-      data-mode={isLocal2P ? '2p' : '1p'}
-      aria-label="Tetris game"
+      className="stack-stage"
+      data-mode={isSymmetric2P ? '2p' : '1p'}
+      aria-label="Prism Stack game"
       ref={gameSectionRef}
     >
       <PixelBackdrop art={BACKGROUNDS[backgroundIndex]} />
-      <header className="tetris-header">
+      <header className="stack-header">
         <div className="row">
-          <span className="pb-up-badge pb-up-1" aria-hidden="true">
-            1UP
-          </span>
-          <h2 className="tetris-title">Tetris</h2>
-          {isOnline2P && activeTetrisRoom ? (
-            <span className="pb-tally" data-testid="tetris-2p-tally" aria-label="Online 2P round wins">
-              YOU {wins[0]} – {wins[1]} {activeTetrisRoom.opponent.name}
+          <h2 className="stack-title">Prism Stack</h2>
+          {isOnline2P && activePrismRoom ? (
+            <span className="sb-tally" data-testid="prism-2p-tally" aria-label="Online 2P round wins">
+              YOU {wins[0]} – {wins[1]} {activePrismRoom.opponent.name}
             </span>
           ) : isLocal2P ? (
-            <span className="pb-tally" data-testid="tetris-2p-tally" aria-label="Local 2P round wins">
-              1UP {wins[0]} – {wins[1]} 2UP
+            <span className="sb-tally" data-testid="prism-2p-tally" aria-label="Local 2P round wins">
+              P1 {wins[0]} – {wins[1]} P2
             </span>
           ) : null}
           {BACKGROUNDS.length > 1 ? (
-            <span className="tetris-scene sr-only" aria-live="polite">
+            <span className="stack-scene sr-only" aria-live="polite">
               Scene {backgroundIndex + 1}/{BACKGROUNDS.length}: {BACKGROUNDS[backgroundIndex].title}
               {musicOn && nowPlaying ? ` · Music: ${nowPlaying}` : ''}
             </span>
@@ -1243,180 +1223,201 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
         </div>
       </header>
 
-      <div className={isLocal2P ? 'tetris-body is-local-2p' : 'tetris-body'}>
-        <div className="tetris-player-lane" data-player="1">
-          <div
-            className="tetris-board"
-            data-testid="tetris-p1-board"
-            role="img"
-            aria-label={`Tetris board, ${BOARD_WIDTH} by ${BOARD_HEIGHT}`}
-            onPointerDown={onBoardPointerDown}
-            onPointerMove={onBoardPointerMove}
-            onPointerUp={onBoardPointerUp}
-            onPointerCancel={() => {
-              boardGestureRef.current = null;
-            }}
-          >
-            {board.map((row, y) =>
-              row.map((cell, x) => {
-                const key = `${x},${y}`;
-                const isGhost = cell === null && ghost !== null && ghostCoords.has(key);
-                const cls = isGhost
-                  ? `tetris-cell is-ghost ${CELL_CLASS[ghost.type]}`
-                  : cellClass(cell);
-                return <div key={key} className={cls} />;
-              }),
-            )}
-            {!paused && !isReadyCheck && !isInviting && countdown > 0 ? (
-              <div
-                className="arcade-countdown-backdrop"
-                data-testid="arcade-countdown"
-                data-lang={countdownLang.id}
-                data-phase={countdown >= 2 ? 'ready' : 'go'}
-                role="status"
-                aria-live="polite"
+      <div className={isSymmetric2P ? 'stack-body is-symmetric-2p' : 'stack-body'}>
+        <div className="stack-player-lane" data-player="1">
+          <div className="stack-lane-bar">
+            <div className="sb-player-id">
+              <span
+                className="sb-slot-badge sb-slot-1"
+                style={{ background: 'var(--prism-3)', color: 'var(--stage-well)' }}
+                aria-hidden="true"
               >
-                <span
-                  className="arcade-countdown-flags"
-                  data-testid="arcade-countdown-flags"
-                  aria-hidden="true"
-                >
-                  {countdownLang.flags}
-                </span>
-                <span className="arcade-countdown-digit">
-                  {countdown >= 2 ? countdownLang.readyText : countdownLang.goText}
-                </span>
-              </div>
-            ) : null}
-          </div>
-
-          {(isOnline2P || isLocal2P || pendingGarbage > 0) ? (
-            <div
-              className="tetris-garbage-meter"
-              data-testid="tetris-garbage-meter"
-              role="status"
-              aria-label={`${pendingGarbage} incoming garbage lines`}
-              title={`${pendingGarbage} incoming garbage lines`}
-            >
-              {Array.from({ length: BOARD_HEIGHT }, (_, idx) => {
-                const rowFromBottom = BOARD_HEIGHT - 1 - idx;
-                const active = rowFromBottom < pendingGarbage;
-                return (
-                  <div
-                    key={idx}
-                    className={
-                      active
-                        ? 'tetris-garbage-segment is-active'
-                        : 'tetris-garbage-segment'
-                    }
-                  />
-                );
-              })}
-            </div>
-          ) : null}
-
-          <aside className="tetris-side">
-            {isLocal2P ? (
-              <div className="tetris-stat">
-                <span className="tetris-label">1UP Keys</span>
-                <span className="pb-stat-small">WASD + F</span>
-              </div>
-            ) : null}
-            <div className="tetris-stat">
-              <span className="tetris-label">Score</span>
-              <span className="tetris-value" data-testid="tetris-p1-score" aria-live="polite">
-                {game.score}
+                P1
+              </span>
+              <span className="sb-player-title">
+                {isOnline2P ? netplay.clientName : isLocal2P ? 'WASD + F' : '9×18 Matrix'}
               </span>
             </div>
-            <div className="tetris-stat">
-              <span className="tetris-label">Lines</span>
-              <span className="tetris-value" data-testid="tetris-p1-lines">{game.lines}</span>
-            </div>
-            <div className="tetris-stat">
-              <span className="tetris-label">Level</span>
-              <span className="tetris-value" data-testid="tetris-p1-level">{game.level}</span>
-            </div>
-            <div className="tetris-stat">
-              <span className="tetris-label">Next</span>
-              <NextPreview type={game.next} />
-            </div>
-            {isOnline2P && activeTetrisRoom ? (
-              <OpponentTetrisRadar
-                opponentName={activeTetrisRoom.opponent.name}
-                radar={opponentRadar}
-                roundOutcome={roundOutcome}
-              />
-            ) : null}
-          </aside>
-        </div>
+            <InlineNextPrismPill type={game.next} testId="prism-p1-next" />
+          </div>
 
-        {isLocal2P ? (
-          <div className="tetris-player-lane" data-player="2">
+          <div className="stack-stage-row">
             <div
-              className="tetris-board"
-              data-testid="tetris-p2-board"
+              className={game.status === 'over' ? 'stack-board is-dissolved' : 'stack-board'}
+              data-testid="prism-p1-board"
               role="img"
-              aria-label={`Player 2 Tetris board, ${BOARD_WIDTH} by ${BOARD_HEIGHT}`}
+              aria-label={`Prism Stack board, ${BOARD_WIDTH} by ${BOARD_HEIGHT}`}
+              onPointerDown={onBoardPointerDown}
+              onPointerMove={onBoardPointerMove}
+              onPointerUp={onBoardPointerUp}
+              onPointerCancel={() => {
+                boardGestureRef.current = null;
+              }}
             >
-              {board2.map((row, y) =>
+              {board.map((row, y) =>
                 row.map((cell, x) => {
                   const key = `${x},${y}`;
-                  const isGhost = cell === null && ghost2 !== null && ghostCoords2.has(key);
-                  const cls = isGhost
-                    ? `tetris-cell is-ghost ${CELL_CLASS[ghost2.type]}`
-                    : cellClass(cell);
-                  return <div key={key} className={cls} />;
+                  const isGuide = cell === null && guide1.columns.has(x);
+                  const isTick = cell === null && tickSet1.has(key);
+                  return (
+                    <div
+                      key={key}
+                      className={cellClass(cell, isGuide, isTick)}
+                      data-guide-col={isGuide ? 'true' : undefined}
+                      data-landing-tick={isTick ? 'true' : undefined}
+                    />
+                  );
                 }),
               )}
+              {!paused && !isReadyCheck && !isInviting && countdown > 0 ? (
+                <div
+                  className="arcade-countdown-backdrop"
+                  data-testid="arcade-countdown"
+                  data-lang={countdownLang.id}
+                  data-phase={countdown >= 2 ? 'ready' : 'go'}
+                  role="status"
+                  aria-live="polite"
+                >
+                  <span
+                    className="arcade-countdown-flags"
+                    data-testid="arcade-countdown-flags"
+                    aria-hidden="true"
+                  >
+                    {countdownLang.flags}
+                  </span>
+                  <span className="arcade-countdown-digit">
+                    {countdown >= 2 ? countdownLang.readyText : countdownLang.goText}
+                  </span>
+                </div>
+              ) : null}
             </div>
 
-            <div
-              className="tetris-garbage-meter"
-              data-testid="tetris-p2-garbage-meter"
-              role="status"
-              aria-label={`Player 2 ${pendingGarbage2} incoming garbage lines`}
-              title={`Player 2 ${pendingGarbage2} incoming garbage lines`}
-            >
-              {Array.from({ length: BOARD_HEIGHT }, (_, idx) => {
-                const rowFromBottom = BOARD_HEIGHT - 1 - idx;
-                const active = rowFromBottom < pendingGarbage2;
-                return (
-                  <div
-                    key={idx}
-                    className={
-                      active
-                        ? 'tetris-garbage-segment is-active'
-                        : 'tetris-garbage-segment'
-                    }
-                  />
-                );
-              })}
-            </div>
-
-            <aside className="tetris-side">
-              <div className="tetris-stat">
-                <span className="tetris-label">2UP Keys</span>
-                <span className="pb-stat-small">Arrows + Space</span>
+            {(isOnline2P || isLocal2P || pendingHazard1 > 0) ? (
+              <div
+                className="stack-hazard-meter"
+                data-testid="prism-hazard-meter"
+                role="status"
+                aria-label={`${pendingHazard1} incoming hazard bars`}
+                title={`${pendingHazard1} incoming hazard bars`}
+              >
+                {Array.from({ length: BOARD_HEIGHT }, (_, idx) => {
+                  const rowFromBottom = BOARD_HEIGHT - 1 - idx;
+                  const active = rowFromBottom < pendingHazard1;
+                  return (
+                    <div
+                      key={idx}
+                      className={
+                        active ? 'stack-hazard-segment is-active' : 'stack-hazard-segment'
+                      }
+                    />
+                  );
+                })}
               </div>
-              <div className="tetris-stat">
-                <span className="tetris-label">Score</span>
-                <span className="tetris-value" data-testid="tetris-p2-score" aria-live="polite">
-                  {game2.score}
+            ) : null}
+
+            <aside className="stack-side">
+              <div className="stack-stat">
+                <span className="stack-label">Score</span>
+                <span className="stack-value" data-testid="prism-p1-score" aria-live="polite">
+                  {game.score}
                 </span>
               </div>
-              <div className="tetris-stat">
-                <span className="tetris-label">Lines</span>
-                <span className="tetris-value" data-testid="tetris-p2-lines">{game2.lines}</span>
+              <div className="stack-stat">
+                <span className="stack-label">Lines</span>
+                <span className="stack-value" data-testid="prism-p1-lines">{game.lines}</span>
               </div>
-              <div className="tetris-stat">
-                <span className="tetris-label">Level</span>
-                <span className="tetris-value" data-testid="tetris-p2-level">{game2.level}</span>
-              </div>
-              <div className="tetris-stat">
-                <span className="tetris-label">Next</span>
-                <NextPreview type={game2.next} />
+              <div className="stack-stat">
+                <span className="stack-label">Level</span>
+                <span className="stack-value" data-testid="prism-p1-level">{game.level}</span>
               </div>
             </aside>
+          </div>
+        </div>
+
+        {isOnline2P && activePrismRoom ? (
+          <OnlineOpponentPrismLane
+            opponentName={activePrismRoom.opponent.name}
+            snapshot={opponentSnapshot}
+            roundOutcome={roundOutcome}
+          />
+        ) : isLocal2P ? (
+          <div className="stack-player-lane" data-player="2">
+            <div className="stack-lane-bar">
+              <div className="sb-player-id">
+                <span
+                  className="sb-slot-badge sb-slot-2"
+                  style={{ background: 'var(--prism-7)', color: 'var(--stage-well)' }}
+                  aria-hidden="true"
+                >
+                  P2
+                </span>
+                <span className="sb-player-title">Arrows + Space</span>
+              </div>
+              <InlineNextPrismPill type={game2.next} testId="prism-p2-next" />
+            </div>
+
+            <div className="stack-stage-row">
+              <div
+                className={game2.status === 'over' ? 'stack-board is-dissolved' : 'stack-board'}
+                data-testid="prism-p2-board"
+                role="img"
+                aria-label={`Player 2 Prism Stack board, ${BOARD_WIDTH} by ${BOARD_HEIGHT}`}
+              >
+                {board2.map((row, y) =>
+                  row.map((cell, x) => {
+                    const key = `${x},${y}`;
+                    const isGuide = cell === null && guide2.columns.has(x);
+                    const isTick = cell === null && tickSet2.has(key);
+                    return (
+                      <div
+                        key={key}
+                        className={cellClass(cell, isGuide, isTick)}
+                        data-guide-col={isGuide ? 'true' : undefined}
+                        data-landing-tick={isTick ? 'true' : undefined}
+                      />
+                    );
+                  }),
+                )}
+              </div>
+
+              <div
+                className="stack-hazard-meter"
+                data-testid="prism-p2-hazard-meter"
+                role="status"
+                aria-label={`Player 2 ${pendingHazard2} incoming hazard bars`}
+                title={`Player 2 ${pendingHazard2} incoming hazard bars`}
+              >
+                {Array.from({ length: BOARD_HEIGHT }, (_, idx) => {
+                  const rowFromBottom = BOARD_HEIGHT - 1 - idx;
+                  const active = rowFromBottom < pendingHazard2;
+                  return (
+                    <div
+                      key={idx}
+                      className={
+                        active ? 'stack-hazard-segment is-active' : 'stack-hazard-segment'
+                      }
+                    />
+                  );
+                })}
+              </div>
+
+              <aside className="stack-side">
+                <div className="stack-stat">
+                  <span className="stack-label">Score</span>
+                  <span className="stack-value" data-testid="prism-p2-score" aria-live="polite">
+                    {game2.score}
+                  </span>
+                </div>
+                <div className="stack-stat">
+                  <span className="stack-label">Lines</span>
+                  <span className="stack-value" data-testid="prism-p2-lines">{game2.lines}</span>
+                </div>
+                <div className="stack-stat">
+                  <span className="stack-label">Level</span>
+                  <span className="stack-value" data-testid="prism-p2-level">{game2.level}</span>
+                </div>
+              </aside>
+            </div>
           </div>
         ) : null}
       </div>
@@ -1427,7 +1428,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
             className="game-pause-menu"
             role="status"
             aria-live="polite"
-            data-testid="tetris-invite-waiting"
+            data-testid="prism-invite-waiting"
           >
             <span className="game-pause-kicker">2P Online Matchmaking</span>
             <h3 className="game-pause-title">Waiting for player…</h3>
@@ -1437,7 +1438,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
             <div className="game-pause-actions">
               <button
                 type="button"
-                data-testid="tetris-cancel-invite-btn"
+                data-testid="prism-cancel-invite-btn"
                 onClick={() => void getSharedNetplay().cancelInvite()}
               >
                 Cancel invite
@@ -1447,7 +1448,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
         </div>
       ) : null}
 
-      {isOnline2P && isReadyCheck && activeTetrisRoom ? (
+      {isOnline2P && isReadyCheck && activePrismRoom ? (
         <div className="game-pause-backdrop">
           <div
             className="game-pause-menu"
@@ -1456,7 +1457,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
             aria-label="2P Online Ready Check"
             data-testid="netplay-ready-modal"
           >
-            <span className="game-pause-kicker">2P Online Tetris</span>
+            <span className="game-pause-kicker">2P Online Prism Stack</span>
             <h3 className="game-pause-title">Players Ready?</h3>
             <div className="netplay-ready-roster">
               <div className="netplay-ready-row">
@@ -1466,7 +1467,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
                 </span>
               </div>
               <div className="netplay-ready-row">
-                <span>{activeTetrisRoom.opponent.name}</span>
+                <span>{activePrismRoom.opponent.name}</span>
                 <span className={oppReady ? 'netplay-ready-pill is-ready' : 'netplay-ready-pill'}>
                   {oppReady ? 'READY ✓' : 'Waiting…'}
                 </span>
@@ -1493,7 +1494,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
         </div>
       ) : null}
 
-      {isNetworkPaused && activeTetrisRoom ? (
+      {isNetworkPaused && activePrismRoom ? (
         <div className="game-pause-backdrop">
           <div
             className="game-pause-menu"
@@ -1506,8 +1507,8 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
             <p className="game-pause-copy">
               Waiting for{' '}
               <strong>
-                {activeTetrisRoom.laggingPlayerNames?.length
-                  ? activeTetrisRoom.laggingPlayerNames.join(', ')
+                {activePrismRoom.laggingPlayerNames?.length
+                  ? activePrismRoom.laggingPlayerNames.join(', ')
                   : 'both players'}
               </strong>{' '}
               to re-sync…
@@ -1541,14 +1542,14 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
             data-testid="game-pause-menu"
             ref={pauseMenuRef}
           >
-            <span className="game-pause-kicker">Tetris</span>
+            <span className="game-pause-kicker">Prism Stack</span>
             <h3 className="game-pause-title">Paused</h3>
             <div className="game-pause-section">
-              <span className="tetris-label">Game Mode</span>
-              <div className="filter-group" role="group" aria-label="Tetris player mode">
+              <span className="stack-label">Game Mode</span>
+              <div className="filter-group" role="group" aria-label="Prism Stack player mode">
                 <button
                   type="button"
-                  data-testid="tetris-1p-btn"
+                  data-testid="prism-1p-btn"
                   aria-pressed={!isLocal2P && !isOnline2P && !isInviting}
                   onClick={() => startLocalRound('1p', true)}
                 >
@@ -1556,7 +1557,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
                 </button>
                 <button
                   type="button"
-                  data-testid="tetris-2p-local-btn"
+                  data-testid="prism-2p-local-btn"
                   aria-pressed={isLocal2P}
                   onClick={() => startLocalRound('2p', true)}
                 >
@@ -1564,12 +1565,12 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
                 </button>
                 <button
                   type="button"
-                  data-testid="tetris-2p-online-btn"
+                  data-testid="prism-2p-online-btn"
                   aria-pressed={isOnline2P || isInviting}
                   disabled={!canSelectOnline2P}
                   title={
                     canSelectOnline2P
-                      ? 'Challenge online players to 2P Versus Tetris'
+                      ? 'Challenge online players to 2P Versus Prism Stack'
                       : 'Requires at least 2 players online'
                   }
                   onClick={() => {
@@ -1580,12 +1581,12 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
                     } else if (canSelectOnline2P) {
                       setLocalMode('1p');
                       setSharedGamePaused(false);
-                      void getSharedNetplay().sendInvite('tetris');
+                      void getSharedNetplay().sendInvite('prism-stack');
                     }
                   }}
                 >
                   {isOnline2P
-                    ? `2P online (${activeTetrisRoom.opponent.name})`
+                    ? `2P online (${activePrismRoom.opponent.name})`
                     : isInviting
                       ? `Waiting 2P… (${inviteSecondsLeft}s)`
                       : '2P online'}
@@ -1593,7 +1594,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
               </div>
             </div>
             <div className="game-pause-section">
-              <span className="tetris-label">Audio</span>
+              <span className="stack-label">Audio</span>
               <div className="filter-group" role="group" aria-label="Audio controls">
                 <button
                   type="button"
@@ -1610,7 +1611,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
                   data-testid="pause-menu-music-btn"
                   aria-pressed={musicOn}
                   onClick={() => {
-                    getSharedArcadeAudio().setPlaylist(TETRIS_PLAYLIST);
+                    getSharedArcadeAudio().setPlaylist(PRISM_STACK_PLAYLIST);
                     setSharedMusicOn(!musicOn, true);
                   }}
                 >
@@ -1650,7 +1651,7 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
               <button
                 type="button"
                 data-testid="pause-menu-exit"
-                aria-label="Close Tetris"
+                aria-label="Close Prism Stack"
                 onClick={onExit}
               >
                 Exit to menu
@@ -1662,16 +1663,16 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
 
       {touchAvailable ? (
         <div
-          className="tetris-touch-bar"
+          className="stack-touch-bar"
           role="group"
-          aria-label="Tetris touch controls"
-          data-testid="tetris-touch-controls"
+          aria-label="Prism Stack touch controls"
+          data-testid="prism-touch-controls"
         >
           <div className="touch-cluster touch-cluster-left">
             <button
               type="button"
-              className="pb-touch-btn pb-touch-rocker"
-              data-testid="tetris-touch-left"
+              className="sb-touch-btn sb-touch-rocker"
+              data-testid="prism-touch-left"
               aria-label="Move left"
               disabled={paused || matchEnded || isReadyCheck || countdown > 0}
               onPointerDown={(event) => {
@@ -1691,8 +1692,8 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
             </button>
             <button
               type="button"
-              className="pb-touch-btn pb-touch-rocker"
-              data-testid="tetris-touch-soft"
+              className="sb-touch-btn sb-touch-rocker"
+              data-testid="prism-touch-soft"
               aria-label="Soft drop"
               disabled={paused || matchEnded || isReadyCheck || countdown > 0}
               onPointerDown={(event) => {
@@ -1712,8 +1713,8 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
             </button>
             <button
               type="button"
-              className="pb-touch-btn pb-touch-rocker"
-              data-testid="tetris-touch-right"
+              className="sb-touch-btn sb-touch-rocker"
+              data-testid="prism-touch-right"
               aria-label="Move right"
               disabled={paused || matchEnded || isReadyCheck || countdown > 0}
               onPointerDown={(event) => {
@@ -1735,9 +1736,9 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
           <div className="touch-cluster touch-cluster-right">
             <button
               type="button"
-              className="pb-touch-btn pb-touch-rotate"
-              data-testid="tetris-touch-rotate"
-              aria-label="Rotate piece"
+              className="sb-touch-btn sb-touch-rotate"
+              data-testid="prism-touch-rotate"
+              aria-label="Rotate prism"
               disabled={paused || matchEnded || isReadyCheck || countdown > 0}
               onPointerDown={(event) => {
                 event.preventDefault();
@@ -1755,8 +1756,8 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
             </button>
             <button
               type="button"
-              className="primary pb-touch-btn pb-touch-fire"
-              data-testid="tetris-touch-drop"
+              className="primary sb-touch-btn sb-touch-fire"
+              data-testid="prism-touch-drop"
               aria-label="Hard drop"
               disabled={paused || matchEnded || isReadyCheck || countdown > 0}
               onPointerDown={(event) => {
@@ -1777,31 +1778,31 @@ export function TetrisView({ onExit }: { onExit: () => void }) {
         </div>
       ) : null}
 
-      {!paused && isOnline2P && roundOutcome === 'won' && activeTetrisRoom ? (
-        <p className="tetris-over" role="status" data-testid="tetris-online-banner">
-          YOU WIN! {activeTetrisRoom.opponent.name} topped out ({wins[0]}–{wins[1]}).{' '}
+      {!paused && isOnline2P && roundOutcome === 'won' && activePrismRoom ? (
+        <p className="stack-over" role="status" data-testid="prism-online-banner">
+          YOU WIN! {activePrismRoom.opponent.name} topped out ({wins[0]}–{wins[1]}).{' '}
           <button type="button" className="primary" onClick={handleNewOrRematch}>
             Next round
           </button>
         </p>
-      ) : !paused && isOnline2P && roundOutcome === 'lost' && activeTetrisRoom ? (
-        <p className="tetris-over" role="status" data-testid="tetris-online-banner">
-          KO! {activeTetrisRoom.opponent.name} wins the round ({wins[0]}–{wins[1]}).{' '}
+      ) : !paused && isOnline2P && roundOutcome === 'lost' && activePrismRoom ? (
+        <p className="stack-over" role="status" data-testid="prism-online-banner">
+          KO! {activePrismRoom.opponent.name} wins the round ({wins[0]}–{wins[1]}).{' '}
           <button type="button" className="primary" onClick={handleNewOrRematch}>
             Next round
           </button>
         </p>
       ) : !paused && isLocal2P && (roundOutcome !== 'playing' || game.status === 'over' || game2.status === 'over') ? (
-        <p className="tetris-over" role="status" data-testid="tetris-local-2p-banner">
+        <p className="stack-over" role="status" data-testid="prism-local-2p-banner">
           {roundOutcome === 'won' || game2.status === 'over'
-            ? `1UP WINS! (${wins[0]}–${wins[1]}) · Score ${game.score} vs ${game2.score}. `
-            : `2UP WINS! (${wins[0]}–${wins[1]}) · Score ${game.score} vs ${game2.score}. `}
+            ? `P1 WINS! (${wins[0]}–${wins[1]}) · Score ${game.score} vs ${game2.score}. `
+            : `P2 WINS! (${wins[0]}–${wins[1]}) · Score ${game.score} vs ${game2.score}. `}
           <button type="button" className="primary" onClick={handleNewOrRematch}>
             Next round
           </button>
         </p>
       ) : !paused && game.status === 'over' ? (
-        <p className="tetris-over" role="status">
+        <p className="stack-over" role="status">
           Game over — score {game.score}.{' '}
           <button type="button" className="primary" onClick={handleNewOrRematch}>
             New game

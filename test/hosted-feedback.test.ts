@@ -116,7 +116,7 @@ describe('Hosted v1 shared feedback integration (#290, #294, #296)', () => {
   }
 
   it('loads https://yolo-dev.ai/feedback/v1.mjs, pauses game on open, isolates keyboard events, and saves/consumes post-login return state (#294, #296)', async () => {
-    const { roots, submittedForms, reloadSpy, docListeners } = setupMockDom('?app=puzzle-bobble');
+    const { roots, submittedForms, reloadSpy, docListeners } = setupMockDom('?app=starlight-burst');
     const fetchMock = vi.fn().mockResolvedValue({ status: 204 });
     (globalThis as unknown as { fetch: unknown }).fetch = fetchMock;
 
@@ -132,7 +132,7 @@ describe('Hosted v1 shared feedback integration (#290, #294, #296)', () => {
     let capturedOnOpenChange: ((open: boolean) => void) | undefined;
 
     const ok = await openHostedFeedback({
-      page: 'Puzzle Bobble',
+      page: 'Starlight Burst',
       importer: async (url) => {
         expect(url).toBe(HOSTED_FEEDBACK_V1_URL);
         return {
@@ -160,8 +160,8 @@ describe('Hosted v1 shared feedback integration (#290, #294, #296)', () => {
 
     expect(ok).toBe(true);
     expect(prepareStyles).toHaveBeenCalledTimes(1);
-    expect(openSpy).toHaveBeenCalledWith({ context: { page: 'Puzzle Bobble' } });
-    expect(capturedGetContext?.()).toEqual({ page: 'Puzzle Bobble' });
+    expect(openSpy).toHaveBeenCalledWith({ context: { page: 'Starlight Burst' } });
+    expect(capturedGetContext?.()).toEqual({ page: 'Starlight Burst' });
     const root = roots.get('yolo-hosted-feedback-root');
     expect(root?.dataset.yoloFeedbackSource).toBe('hosted-v1');
     expect(root?.dataset.yoloFeedbackVersion).toBe('0.1.0-alpha.58');
@@ -191,8 +191,8 @@ describe('Hosted v1 shared feedback integration (#290, #294, #296)', () => {
     ]);
     const restored = consumePendingFeedbackLoginReturn();
     expect(restored).toEqual({
-      search: '?app=puzzle-bobble',
-      page: 'Puzzle Bobble',
+      search: '?app=starlight-burst',
+      page: 'Starlight Burst',
     });
     // Consuming a second time returns null (single-use)
     expect(consumePendingFeedbackLoginReturn()).toBeNull();
@@ -231,7 +231,7 @@ describe('Hosted v1 shared feedback integration (#290, #294, #296)', () => {
     let hasCallbacks = false;
 
     const ok = await openHostedFeedback({
-      page: 'Tetris',
+      page: 'Prism Stack',
       importer: async (url) => {
         if (url.startsWith(HOSTED_FEEDBACK_V1_URL)) {
           throw new Error('CDN unreachable');
@@ -253,7 +253,7 @@ describe('Hosted v1 shared feedback integration (#290, #294, #296)', () => {
 
     expect(ok).toBe(true);
     expect(hasCallbacks).toBe(true);
-    expect(openSpy).toHaveBeenCalledWith({ context: { page: 'Tetris' } });
+    expect(openSpy).toHaveBeenCalledWith({ context: { page: 'Prism Stack' } });
     const root = roots.get('yolo-hosted-feedback-root');
     expect(root?.dataset.yoloFeedbackSource).toBe('local-fallback');
   });

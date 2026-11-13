@@ -30,7 +30,7 @@ test('canvas empty state, Requests panel with issue-state variants, and refresh'
 
   // Closed filter shows the closed fixture.
   await page.getByRole('button', { name: 'Closed', exact: true }).click();
-  await expect(page.getByText('#4 Tetris')).toBeVisible();
+  await expect(page.getByText('#4 Prism Stack')).toBeVisible();
   await expect(page.getByText('Completed (reported)')).toBeVisible();
   await snap('03-closed-filter');
 
@@ -138,21 +138,19 @@ test('a timing quoted inside a code example is not read as a reported timing', a
   expectClean(errors);
 });
 
-test('Tetris: board renders, music toggles with a stable track label, scenes cycle on four-line clears', async ({ page, errors, snap }) => {
+test('Prism Stack: 9x18 board renders, music toggles with a stable track label, scenes cycle on four-line clears', async ({ page, errors, snap }) => {
   await page.goto(stub.base);
-  await page.getByRole('button', { name: 'Tetris', exact: true }).click();
+  await page.getByRole('button', { name: 'Prism Stack', exact: true }).click();
   await page.getByTestId('deck-slide-card').click();
-  await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
+  await expect(page.getByRole('img', { name: 'Prism Stack board, 9 by 18' })).toBeVisible();
   await expect(page.getByText(/Scene 1\/\d+:/)).toBeVisible();
-  await snap('09-tetris-board');
+  await snap('09-prism-stack-board');
 
-  // Music starts on by default (#317) and toggles cleanly; the track label appears and must not spin (the #67 CSP regression),
-  // and closed-loop Web Audio AnalyserNode confirms a full-length (~2-min) Tetris track is actively playing (#232).
   await page.getByRole('button', { name: /Music on/ }).click();
   await page.getByRole('button', { name: /Music off/ }).click();
-  const sceneLine = page.locator('.tetris-scene');
+  const sceneLine = page.locator('.stack-scene');
   await expect(sceneLine).toContainText(
-    /Music: (?:Korobeiniki|Kalinka & Troika|Baroque Invention|Mountain King & Ode to Joy|Greensleeves & Scarborough Fair)/,
+    /Music: (?:Folk Polka Medley I|Kalinka & Troika|Baroque Invention|Mountain King & Ode to Joy|Greensleeves & Scarborough Fair)/,
   );
   const first = await sceneLine.textContent();
   await expect
@@ -167,27 +165,24 @@ test('Tetris: board renders, music toggles with a stable track label, scenes cyc
     .toBe(true);
   await page.waitForTimeout(3000);
   expect(await sceneLine.textContent()).toBe(first);
-  await snap('10-tetris-music');
+  await snap('10-prism-stack-music');
 
-  // Wait for the initial Ready/Go countdown input lock (#331/#333) to finish before testing Space hard-drop.
   await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 6000 });
 
-  // A four-line clear advances the scene and triggers the 4-line TETRIS SFX fanfare (#234).
-  await page.evaluate(() => window.dispatchEvent(new Event('yolo:tetris:four-line-clear')));
+  await page.evaluate(() => window.dispatchEvent(new Event('yolo:prism:quad-clear')));
   await expect(sceneLine).toContainText('Scene 2/');
-  await snap('11-tetris-next-scene');
+  await snap('11-prism-stack-next-scene');
 
-  // Keyboard: hard-drop works (triggering tetris-drop SFX), Escape closes the view.
   await page.keyboard.press('Space');
   const sfxLog = await page.evaluate(() => {
     const fn = (window as unknown as { __yoloAudioMetrics?: () => { sfxLog: string[] } }).__yoloAudioMetrics;
     return fn ? fn().sfxLog : [];
   });
-  expect(sfxLog).toContain('tetris-four-line');
-  expect(sfxLog).toContain('tetris-drop');
+  expect(sfxLog).toContain('prism-quad-clear');
+  expect(sfxLog).toContain('prism-drop');
   await page.keyboard.press('Escape');
   await expect(page.getByTestId('game-pause-menu')).toBeVisible();
-  await page.getByRole('button', { name: 'Close Tetris' }).click();
-  await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Close Prism Stack' }).click();
+  await expect(page.getByRole('img', { name: 'Prism Stack board, 9 by 18' })).toHaveCount(0);
   expectClean(errors);
 });

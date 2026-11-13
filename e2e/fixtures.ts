@@ -61,7 +61,7 @@ export { expect };
  * if regenerating them produces no diff, which needs three things pinned:
  *
  * 1. **The clock** — the panel footer renders a wall-clock time.
- * 2. **Randomness** — the Tetris 7-bag and the music shuffle read
+ * 2. **Randomness** — the Prism Stack 7-bag and the music shuffle read
  *    `Math.random`, so the board and the playing track would differ per run.
  *    Seeded with a small deterministic PRNG rather than stubbing the product,
  *    which already takes an injectable `rng`.
@@ -108,7 +108,7 @@ export async function listSettled(page: Page) {
 /**
  * Wait for every image to finish decoding.
  *
- * The Tetris backdrops are `<img>` layers over the card. A capture taken before
+ * The stage backdrops are `<img>` layers over the card. A capture taken before
  * they decode photographs a different panel from the one a warm cache produces,
  * which made the committed board capture churn between runs.
  */

@@ -4,7 +4,7 @@
  *
  * Each language's selection probability is strictly linear in its total speaker count
  * (`speakersMillions / TOTAL_COUNTDOWN_SPEAKERS_MILLIONS`), and its spoken audio
- * is bundled in `public/tetris/countdown-voices.m4a` at 1.5s sprite slots:
+ * is bundled in `public/audio/countdown-voices.m4a` at 1.5s sprite slots:
  * - Ready clip: `(spriteIndex * 2) * 1.5s` (duration 1.4s)
  * - Go! clip:   `(spriteIndex * 2 + 1) * 1.5s` (duration 1.4s)
  */
@@ -48,11 +48,11 @@ export interface CountdownLanguage {
   readyText: string;
   /** On-screen text for the "Go!" phase. */
   goText: string;
-  /** 0-based index into `public/tetris/countdown-voices.m4a`. */
+  /** 0-based index into `public/audio/countdown-voices.m4a`. */
   spriteIndex: number;
 }
 
-export const COUNTDOWN_VOICE_SPRITE_SRC = 'tetris/countdown-voices.m4a';
+export const COUNTDOWN_VOICE_SPRITE_SRC = 'audio/countdown-voices.m4a';
 export const COUNTDOWN_VOICE_SLOT_SEC = 1.5;
 
 export const COUNTDOWN_LANGUAGES: ReadonlyArray<CountdownLanguage> = [

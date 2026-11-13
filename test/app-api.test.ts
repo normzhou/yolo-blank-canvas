@@ -320,31 +320,31 @@ describe('issue operations', () => {
       // Player 1 and Player 2 send heartbeats
       const p1Hb = await request(
         '/api/netplay',
-        json({ action: 'heartbeat', clientId: 'p1-test', name: 'Alice', app: 'tetris' }),
+        json({ action: 'heartbeat', clientId: 'p1-test', name: 'Alice', app: 'prism-stack' }),
       );
       expect(p1Hb.status).toBe(200);
       expect(p1Hb.body.onlineCount).toBe(1);
 
       const p2Hb = await request(
         '/api/netplay',
-        json({ action: 'heartbeat', clientId: 'p2-test', name: 'Bob', app: 'home' }),
+        json({ action: 'heartbeat', clientId: 'p2-test', name: 'Peer', app: 'home' }),
       );
       expect(p2Hb.status).toBe(200);
       expect(p2Hb.body.onlineCount).toBe(2);
 
-      // Player 1 broadcasts an open 2P Tetris invite
+      // Player 1 broadcasts an open 2P Prism Stack invite
       const invRes = await request(
         '/api/netplay',
-        json({ action: 'invite', clientId: 'p1-test', name: 'Alice', gameId: 'tetris' }),
+        json({ action: 'invite', clientId: 'p1-test', name: 'Alice', gameId: 'prism-stack' }),
       );
       expect(invRes.status).toBe(200);
-      expect(invRes.body.myPendingInvites[0]?.gameId).toBe('tetris');
+      expect(invRes.body.myPendingInvites[0]?.gameId).toBe('prism-stack');
       const inviteId = invRes.body.myPendingInvites[0].id as string;
 
       // Player 2 sees the open invite in their next heartbeat
       const p2SeeInv = await request(
         '/api/netplay',
-        json({ action: 'heartbeat', clientId: 'p2-test', name: 'Bob', app: 'home' }),
+        json({ action: 'heartbeat', clientId: 'p2-test', name: 'Peer', app: 'home' }),
       );
       expect(p2SeeInv.body.openInvites).toHaveLength(1);
       expect(p2SeeInv.body.openInvites[0].id).toBe(inviteId);
@@ -353,14 +353,14 @@ describe('issue operations', () => {
       // Player 2 accepts the invite -> room created in ready_check status (#248)
       const p2Accept = await request(
         '/api/netplay',
-        json({ action: 'accept_invite', clientId: 'p2-test', name: 'Bob', inviteId }),
+        json({ action: 'accept_invite', clientId: 'p2-test', name: 'Peer', inviteId }),
       );
       expect(p2Accept.status).toBe(200);
       expect(p2Accept.body.activeRoom).not.toBeNull();
-      expect(p2Accept.body.activeRoom.gameId).toBe('tetris');
+      expect(p2Accept.body.activeRoom.gameId).toBe('prism-stack');
       expect(p2Accept.body.activeRoom.status).toBe('ready_check');
       expect(p2Accept.body.activeRoom.players[0].name).toBe('Alice');
-      expect(p2Accept.body.activeRoom.players[1].name).toBe('Bob');
+      expect(p2Accept.body.activeRoom.players[1].name).toBe('Peer');
       const roomId = p2Accept.body.activeRoom.id as string;
 
       // Both players mark Ready -> room status transitions to 'playing'
@@ -376,15 +376,15 @@ describe('issue operations', () => {
       );
       expect(p2Ready.body.activeRoom.status).toBe('playing');
 
-      // Player 1 sends a garbage attack event in the room
+      // Player 1 sends a hazard attack event in the room
       const p1Attack = await request(
         '/api/netplay',
         json({
           action: 'room_event',
           clientId: 'p1-test',
           roomId,
-          kind: 'tetris_attack',
-          payload: { lines: 4, holeColumn: 3 },
+          kind: 'prism_attack',
+          payload: { lines: 4 },
           afterSeq: 0,
         }),
       );
@@ -393,13 +393,13 @@ describe('issue operations', () => {
       // Player 2 receives the room event on poll
       const p2Poll = await request(
         '/api/netplay',
-        json({ action: 'heartbeat', clientId: 'p2-test', name: 'Bob', app: 'tetris', afterSeq: 0 }),
+        json({ action: 'heartbeat', clientId: 'p2-test', name: 'Peer', app: 'prism-stack', afterSeq: 0 }),
       );
       const attackEvent = p2Poll.body.activeRoom.events.find(
-        (ev: { kind: string }) => ev.kind === 'tetris_attack',
+        (ev: { kind: string }) => ev.kind === 'prism_attack',
       );
       expect(attackEvent).toBeDefined();
-      expect(attackEvent.payload).toEqual({ lines: 4, holeColumn: 3 });
+      expect(attackEvent.payload).toEqual({ lines: 4 });
       expect(p2Poll.body.activeRoom.syncStatus).toBe('ok');
 
       // Player 1 experiences network lag -> both players see syncStatus === 'paused' with 15s countdown (#250)
@@ -412,7 +412,7 @@ describe('issue operations', () => {
 
       const p2LagSee = await request(
         '/api/netplay',
-        json({ action: 'heartbeat', clientId: 'p2-test', name: 'Bob', app: 'tetris' }),
+        json({ action: 'heartbeat', clientId: 'p2-test', name: 'Peer', app: 'prism-stack' }),
       );
       expect(p2LagSee.body.activeRoom.syncStatus).toBe('paused');
       expect(p2LagSee.body.activeRoom.syncRemainingMs).toBeLessThanOrEqual(15_000);

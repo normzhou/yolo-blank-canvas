@@ -7,7 +7,7 @@ import {
   setSharedMusicOn,
   setSharedSfxOn,
   subscribeSharedAudio,
-} from './audio/tetrisMusic';
+} from './audio/arcadeAudio';
 import {
   getSharedGamePaused,
   getSharedOverlayOpen,
@@ -40,12 +40,12 @@ import { CanvasPalette } from './components/CanvasPalette';
 import { CANVAS_APPS, canvasAppById } from './apps/registry';
 import { useGameBundleSnapshot } from './gameBundles';
 import { getSharedNetplay, type NetplayState } from './netplay';
-import { BACKGROUNDS } from '../shared/tetrisBackgrounds';
+import { BACKGROUNDS } from '../shared/stageBackdrops';
 import {
-  PUZZLE_BOBBLE_PLAYLIST,
+  PRISM_STACK_PLAYLIST,
   SELECTOR_PLAYLIST,
-  TETRIS_PLAYLIST,
-} from '../shared/tetrisMusic';
+  STARLIGHT_BURST_PLAYLIST,
+} from '../shared/arcadeMusic';
 import { useVisible } from './usePolling';
 import { appContextLine } from './feedback';
 import {
@@ -108,12 +108,12 @@ function composerFor(
  * with a delayed fade-in animated gameplay loop showing the game being played.
  */
 function DeckPreviewGraphic({ appId }: { appId: string }) {
-  if (appId === 'tetris') {
+  if (appId === 'prism-stack') {
     return (
       <div
         className="deck-preview-stage is-live-preview"
         data-testid="deck-live-preview"
-        data-preview-game="tetris"
+        data-preview-game="prism-stack"
       >
         <img className="deck-preview-bg" src={BACKGROUNDS[0].src} alt="" aria-hidden="true" />
         <svg
@@ -121,69 +121,63 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
           viewBox="0 0 220 180"
           aria-hidden="true"
         >
-          {/* Miniature 10-column matrix frame */}
+          {/* Miniature 9×18 crystal prism stage frame */}
           <rect
-            x="46"
+            x="52"
             y="12"
-            width="128"
+            width="116"
             height="156"
             rx="6"
             fill="var(--surface)"
             stroke="var(--border)"
             strokeWidth="1.5"
           />
-          {/* Dashed ghost landing piece */}
-          <g fill="none" stroke="var(--muted)" strokeWidth="1.2" strokeDasharray="3 2">
-            <rect x="98" y="108" width="12" height="12" rx="2" />
-            <rect x="86" y="120" width="12" height="12" rx="2" />
-            <rect x="98" y="120" width="12" height="12" rx="2" />
-            <rect x="110" y="120" width="12" height="12" rx="2" />
-          </g>
-          {/* Animated falling T-piece (delayed fade-in gameplay preview #240) */}
+          {/* Subtle vertical column guide rail + bottom landing target ticks (no ghost piece) */}
+          <rect x="86" y="20" width="36" height="106" fill="var(--accent)" opacity="0.09" />
+          <line x1="87" y1="126" x2="121" y2="126" stroke="var(--prism-4)" strokeWidth="2.4" strokeLinecap="round" />
+          {/* Animated falling Seafoam-Mint crest prism */}
           <g
-            className="deck-tetris-falling-piece"
-            fill="var(--tetromino-t)"
+            className="deck-prism-falling-piece"
+            fill="var(--prism-3)"
             stroke="var(--text)"
             strokeWidth="1"
           >
-            <rect x="98" y="28" width="12" height="12" rx="2" />
-            <rect x="86" y="40" width="12" height="12" rx="2" />
-            <rect x="98" y="40" width="12" height="12" rx="2" />
-            <rect x="110" y="40" width="12" height="12" rx="2" />
+            <rect x="98" y="28" width="12" height="12" rx="3.5" />
+            <rect x="86" y="40" width="12" height="12" rx="3.5" />
+            <rect x="98" y="40" width="12" height="12" rx="3.5" />
+            <rect x="110" y="40" width="12" height="12" rx="3.5" />
           </g>
-          {/* Settled bottom stack (I, L, S, O, J blocks) */}
+          {/* Full-width solid Hazard Lock Bar at bottom + settled chamfered crystal prisms */}
           <g stroke="var(--text)" strokeWidth="1">
-            <rect x="50" y="152" width="12" height="12" rx="2" fill="var(--tetromino-i)" />
-            <rect x="62" y="152" width="12" height="12" rx="2" fill="var(--tetromino-i)" />
-            <rect x="74" y="152" width="12" height="12" rx="2" fill="var(--tetromino-i)" />
-            <rect x="86" y="152" width="12" height="12" rx="2" fill="var(--tetromino-i)" />
-            <rect x="110" y="152" width="12" height="12" rx="2" fill="var(--tetromino-o)" />
-            <rect x="122" y="152" width="12" height="12" rx="2" fill="var(--tetromino-o)" />
-            <rect x="110" y="140" width="12" height="12" rx="2" fill="var(--tetromino-o)" />
-            <rect x="122" y="140" width="12" height="12" rx="2" fill="var(--tetromino-o)" />
-            <rect x="134" y="152" width="12" height="12" rx="2" fill="var(--tetromino-l)" />
-            <rect x="146" y="152" width="12" height="12" rx="2" fill="var(--tetromino-l)" />
-            <rect x="158" y="152" width="12" height="12" rx="2" fill="var(--tetromino-l)" />
-            <rect x="158" y="140" width="12" height="12" rx="2" fill="var(--tetromino-l)" />
-            <rect x="50" y="140" width="12" height="12" rx="2" fill="var(--tetromino-s)" />
-            <rect x="62" y="140" width="12" height="12" rx="2" fill="var(--tetromino-s)" />
-            <rect x="62" y="128" width="12" height="12" rx="2" fill="var(--tetromino-s)" />
-            <rect x="74" y="128" width="12" height="12" rx="2" fill="var(--tetromino-s)" />
+            <rect x="56" y="154" width="108" height="10" rx="3" fill="var(--warning-weak)" stroke="var(--warning-border)" />
+            <rect x="56" y="140" width="12" height="12" rx="3.5" fill="var(--prism-1)" />
+            <rect x="68" y="140" width="12" height="12" rx="3.5" fill="var(--prism-1)" />
+            <rect x="80" y="140" width="12" height="12" rx="3.5" fill="var(--prism-1)" />
+            <rect x="92" y="140" width="12" height="12" rx="3.5" fill="var(--prism-1)" />
+            <rect x="116" y="140" width="12" height="12" rx="3.5" fill="var(--prism-2)" />
+            <rect x="128" y="140" width="12" height="12" rx="3.5" fill="var(--prism-2)" />
+            <rect x="116" y="128" width="12" height="12" rx="3.5" fill="var(--prism-2)" />
+            <rect x="128" y="128" width="12" height="12" rx="3.5" fill="var(--prism-2)" />
+            <rect x="140" y="140" width="12" height="12" rx="3.5" fill="var(--prism-7)" />
+            <rect x="152" y="140" width="12" height="12" rx="3.5" fill="var(--prism-7)" />
+            <rect x="152" y="128" width="12" height="12" rx="3.5" fill="var(--prism-7)" />
+            <rect x="56" y="128" width="12" height="12" rx="3.5" fill="var(--prism-4)" />
+            <rect x="68" y="128" width="12" height="12" rx="3.5" fill="var(--prism-4)" />
           </g>
-          {/* Line-clear pulse highlight */}
+          {/* Line-clear & hazard-shatter pulse highlight */}
           <rect
-            className="deck-tetris-line-flash"
-            x="48"
-            y="151"
-            width="124"
+            className="deck-prism-line-flash"
+            x="54"
+            y="139"
+            width="112"
             height="14"
-            rx="2"
-            fill="var(--tetromino-o)"
+            rx="3"
+            fill="var(--prism-4)"
           />
         </svg>
         <div className="deck-preview-hud">
-          <span>10×20 Matrix</span>
-          <span>6 Scenes · 5 FM/Chip Tracks</span>
+          <span>9×18 Prism Matrix</span>
+          <span>6 Scenes · Symmetric 2P</span>
         </div>
       </div>
     );
@@ -193,7 +187,7 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
     <div
       className="deck-preview-stage is-live-preview"
       data-testid="deck-live-preview"
-      data-preview-game="puzzle-bobble"
+      data-preview-game="starlight-burst"
     >
       <img className="deck-preview-bg" src={BACKGROUNDS[1].src} alt="" aria-hidden="true" />
       <svg
@@ -211,41 +205,47 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
           stroke="var(--border)"
           strokeWidth="1.5"
         />
-        {/* Hexagonal bubble wave with glossy arcade highlights */}
-        <g stroke="var(--text)" strokeWidth="1.1">
+        {/* Hexagonal astral star-core constellation with orbital rings & inner sigils */}
+        <g stroke="var(--stage-well)" strokeWidth="1.1">
           {[
-            { cx: 52, cy: 30, fill: 'var(--tetromino-z)' },
-            { cx: 72, cy: 30, fill: 'var(--tetromino-z)' },
-            { cx: 92, cy: 30, fill: 'var(--tetromino-l)' },
-            { cx: 112, cy: 30, fill: 'var(--tetromino-l)' },
-            { cx: 132, cy: 30, fill: 'var(--tetromino-s)' },
-            { cx: 152, cy: 30, fill: 'var(--tetromino-j)' },
-            { cx: 172, cy: 30, fill: 'var(--tetromino-j)' },
-            { cx: 62, cy: 48, fill: 'var(--tetromino-z)' },
-            { cx: 82, cy: 48, fill: 'var(--tetromino-t)' },
-            { cx: 102, cy: 48, fill: 'var(--tetromino-l)' },
-            { cx: 122, cy: 48, fill: 'var(--tetromino-s)' },
-            { cx: 142, cy: 48, fill: 'var(--tetromino-s)' },
-            { cx: 162, cy: 48, fill: 'var(--tetromino-i)' },
-            { cx: 92, cy: 66, fill: 'var(--tetromino-t)' },
-            { cx: 132, cy: 66, fill: 'var(--tetromino-i)' },
+            { cx: 52, cy: 30, fill: 'var(--prism-1)' },
+            { cx: 72, cy: 30, fill: 'var(--prism-1)' },
+            { cx: 92, cy: 30, fill: 'var(--prism-4)' },
+            { cx: 112, cy: 30, fill: 'var(--prism-4)' },
+            { cx: 132, cy: 30, fill: 'var(--prism-3)' },
+            { cx: 152, cy: 30, fill: 'var(--prism-5)' },
+            { cx: 172, cy: 30, fill: 'var(--prism-5)' },
+            { cx: 62, cy: 48, fill: 'var(--prism-1)' },
+            { cx: 82, cy: 48, fill: 'var(--prism-2)' },
+            { cx: 102, cy: 48, fill: 'var(--prism-4)' },
+            { cx: 122, cy: 48, fill: 'var(--prism-3)' },
+            { cx: 142, cy: 48, fill: 'var(--prism-3)' },
+            { cx: 162, cy: 48, fill: 'var(--prism-7)' },
+            { cx: 92, cy: 66, fill: 'var(--prism-2)' },
+            { cx: 132, cy: 66, fill: 'var(--prism-7)' },
           ].map((b, idx) => (
             <g key={idx}>
               <circle cx={b.cx} cy={b.cy} r="10" fill={b.fill} />
-              <ellipse
-                cx={b.cx - 3.2}
-                cy={b.cy - 3.4}
-                rx="2.8"
-                ry="1.7"
-                transform={`rotate(-28 ${b.cx - 3.2} ${b.cy - 3.4})`}
+              <circle
+                cx={b.cx}
+                cy={b.cy}
+                r="7.2"
+                fill="none"
+                stroke="var(--on-accent)"
+                strokeWidth="0.8"
+                strokeDasharray="3 2"
+                opacity="0.65"
+              />
+              <polygon
+                points={`${b.cx},${b.cy - 4} ${b.cx + 1.5},${b.cy - 1.5} ${b.cx + 4},${b.cy} ${b.cx + 1.5},${b.cy + 1.5} ${b.cx},${b.cy + 4} ${b.cx - 1.5},${b.cy + 1.5} ${b.cx - 4},${b.cy} ${b.cx - 1.5},${b.cy - 1.5}`}
                 fill="var(--on-accent)"
                 stroke="none"
-                opacity="0.85"
+                opacity="0.88"
               />
             </g>
           ))}
         </g>
-        {/* Wall-bounce sight line */}
+        {/* Wall-ricochet starlight beam */}
         <polyline
           points="110,146 182,92 132,66"
           fill="none"
@@ -253,70 +253,67 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
           strokeWidth="1.8"
           strokeDasharray="4 3"
         />
-        {/* Animated flying bubble & cluster pop ring (#240) */}
+        {/* Animated flying star-core & starburst ring */}
         <circle
-          className="deck-pb-flying-bubble"
+          className="deck-sb-flying-star"
           cx="132"
           cy="84"
           r="9.5"
-          fill="var(--tetromino-i)"
-          stroke="var(--text)"
+          fill="var(--prism-7)"
+          stroke="var(--stage-well)"
           strokeWidth="1.1"
         />
         <circle
-          className="deck-pb-pop-ring"
+          className="deck-sb-pop-ring"
           cx="132"
           cy="66"
           r="14"
           fill="none"
-          stroke="var(--tetromino-o)"
+          stroke="var(--prism-4)"
           strokeWidth="2"
         />
-        {/*Launcher gear & animated pointer*/}
-        <circle cx="110" cy="146" r="14" fill="var(--cabinet-surface)" stroke="var(--cabinet-bezel)" strokeWidth="1.2" />
-        <g className="deck-pb-aim-sweep">
-          <polygon points="110,122 105,134 115,134" fill="var(--tetromino-o)" stroke="var(--cabinet-well)" strokeWidth="1" />
+        {/* Celestial Twin-Crescent Starlight Sling & focus diamond */}
+        <circle cx="110" cy="146" r="14" fill="var(--stage-surface)" stroke="var(--prism-5)" strokeWidth="1.2" />
+        <g className="deck-sb-aim-sweep">
+          <polygon points="110,119 114,126 110,133 106,126" fill="var(--prism-4)" stroke="var(--stage-well)" strokeWidth="1" />
         </g>
-        <circle cx="110" cy="146" r="9" fill="var(--tetromino-i)" stroke="var(--cabinet-well)" strokeWidth="1.1" />
-        {/* Cute Boy Dragon (Bub) & Girl Cat (Mochi) mascots flanking the launcher (#347) */}
-        <g transform="translate(72, 149)" stroke="var(--cabinet-well)" strokeWidth="0.95">
-          <polygon points="-5,-9 -10,-12 -8,-6" fill="var(--tetromino-l)" />
-          <polygon points="-6,-3 -11,-5 -9,0" fill="var(--tetromino-l)" />
-          <polygon points="-5,3 -10,2 -7,6" fill="var(--tetromino-l)" />
-          <ellipse cx="0" cy="2" rx="6.5" ry="7" fill="var(--tetromino-s)" />
-          <ellipse cx="1.5" cy="3" rx="3.8" ry="4.5" fill="var(--on-accent)" stroke="none" opacity="0.92" />
-          <polygon points="-3.5,-1.5 4.2,-1.5 1.2,1.8" fill="var(--tetromino-i)" strokeWidth="0.7" />
-          <circle cx="0" cy="-6" r="5.8" fill="var(--tetromino-s)" />
-          <circle cx="-1" cy="-6.8" r="1.45" fill="var(--on-accent)" stroke="var(--cabinet-well)" strokeWidth="0.6" />
-          <circle cx="-0.8" cy="-6.8" r="0.85" fill="var(--cabinet-well)" stroke="none" />
-          <circle cx="-1.1" cy="-7.2" r="0.32" fill="var(--on-accent)" stroke="none" />
-          <circle cx="2.5" cy="-6.8" r="1.45" fill="var(--on-accent)" stroke="var(--cabinet-well)" strokeWidth="0.6" />
-          <circle cx="2.7" cy="-6.8" r="0.85" fill="var(--cabinet-well)" stroke="none" />
-          <circle cx="2.4" cy="-7.2" r="0.32" fill="var(--on-accent)" stroke="none" />
-          <ellipse cx="3.8" cy="-5.1" rx="1.1" ry="0.65" fill="var(--tetromino-z)" stroke="none" opacity="0.55" />
+        <circle cx="110" cy="146" r="9" fill="var(--prism-7)" stroke="var(--stage-well)" strokeWidth="1.1" />
+        {/* Cute Boy Fox (Ren) & Girl Cat (Mochi) companions flanking the Starlight Sling */}
+        <g transform="translate(72, 149)" stroke="var(--stage-well)" strokeWidth="0.95">
+          {/* Fluffy fox tail with snow-cream tip */}
+          <path d="M -6 4 Q -13 2 -11 -5 Q -8 -7 -6 -2" fill="var(--prism-6)" />
+          <circle cx="-10.5" cy="-4.5" r="2.2" fill="var(--on-accent)" strokeWidth="0.7" />
+          <polygon points="-5,-10 -3,-16 0,-10" fill="var(--prism-6)" />
+          <polygon points="1,-10 4,-16 6,-10" fill="var(--prism-6)" />
+          <ellipse cx="0" cy="2" rx="6.5" ry="7" fill="var(--prism-6)" />
+          <ellipse cx="1.2" cy="3" rx="3.8" ry="4.5" fill="var(--on-accent)" stroke="none" opacity="0.92" />
+          <polygon points="-3.5,-1.5 4.2,-1.5 1.2,1.8" fill="var(--prism-5)" strokeWidth="0.7" />
+          <circle cx="0" cy="-6" r="5.8" fill="var(--prism-6)" />
+          <ellipse cx="0.6" cy="-4.3" rx="4.6" ry="2.2" fill="var(--on-accent)" stroke="none" opacity="0.92" />
+          <circle cx="-1" cy="-6.8" r="1.45" fill="var(--on-accent)" stroke="var(--stage-well)" strokeWidth="0.6" />
+          <circle cx="-0.8" cy="-6.8" r="0.85" fill="var(--stage-well)" stroke="none" />
+          <circle cx="2.5" cy="-6.8" r="1.45" fill="var(--on-accent)" stroke="var(--stage-well)" strokeWidth="0.6" />
+          <circle cx="2.7" cy="-6.8" r="0.85" fill="var(--stage-well)" stroke="none" />
         </g>
-        <g transform="translate(148, 149)" stroke="var(--cabinet-well)" strokeWidth="0.95">
-          <path d="M 6 4 Q 12 2 11 -4" fill="none" stroke="var(--cabinet-well)" strokeWidth="3.2" strokeLinecap="round" />
-          <path d="M 6 4 Q 12 2 11 -4" fill="none" stroke="var(--tetromino-t)" strokeWidth="2.1" strokeLinecap="round" />
-          <polygon points="-4,-10 -2,-15 1,-10" fill="var(--tetromino-t)" />
-          <polygon points="1,-10 4,-15 6,-10" fill="var(--tetromino-t)" />
-          <ellipse cx="0" cy="2" rx="6.5" ry="7" fill="var(--tetromino-t)" />
+        <g transform="translate(148, 149)" stroke="var(--stage-well)" strokeWidth="0.95">
+          <path d="M 6 4 Q 12 2 11 -4" fill="none" stroke="var(--stage-well)" strokeWidth="3.2" strokeLinecap="round" />
+          <path d="M 6 4 Q 12 2 11 -4" fill="none" stroke="var(--prism-2)" strokeWidth="2.1" strokeLinecap="round" />
+          <polygon points="-4,-10 -2,-15 1,-10" fill="var(--prism-2)" />
+          <polygon points="1,-10 4,-15 6,-10" fill="var(--prism-2)" />
+          <ellipse cx="0" cy="2" rx="6.5" ry="7" fill="var(--prism-2)" />
           <ellipse cx="-1.2" cy="3" rx="3.8" ry="4.5" fill="var(--on-accent)" stroke="none" opacity="0.92" />
-          <circle cx="0" cy="-6" r="5.8" fill="var(--tetromino-t)" />
-          {/* Girl Cat rose ear bow & eyelashes */}
-          <ellipse cx="3.0" cy="-11.0" rx="2.0" ry="1.1" transform="rotate(-15 3.0 -11.0)" fill="var(--tetromino-z)" strokeWidth="0.65" />
-          <ellipse cx="5.8" cy="-9.8" rx="2.0" ry="1.1" transform="rotate(28 5.8 -9.8)" fill="var(--tetromino-z)" strokeWidth="0.65" />
-          <circle cx="4.4" cy="-10.3" r="0.95" fill="var(--tetromino-o)" strokeWidth="0.6" />
-          <line x1="-3.7" y1="-7.6" x2="-4.8" y2="-8.6" stroke="var(--cabinet-well)" strokeWidth="0.75" />
-          <line x1="2.4" y1="-7.6" x2="3.5" y2="-8.6" stroke="var(--cabinet-well)" strokeWidth="0.75" />
-          <circle cx="-2.4" cy="-6.8" r="1.45" fill="var(--on-accent)" stroke="var(--cabinet-well)" strokeWidth="0.6" />
-          <circle cx="-2.6" cy="-6.8" r="0.85" fill="var(--cabinet-well)" stroke="none" />
-          <circle cx="-2.9" cy="-7.2" r="0.32" fill="var(--on-accent)" stroke="none" />
-          <circle cx="1.1" cy="-6.8" r="1.45" fill="var(--on-accent)" stroke="var(--cabinet-well)" strokeWidth="0.6" />
-          <circle cx="0.9" cy="-6.8" r="0.85" fill="var(--cabinet-well)" stroke="none" />
-          <circle cx="0.6" cy="-7.2" r="0.32" fill="var(--on-accent)" stroke="none" />
-          <ellipse cx="-3.9" cy="-5.1" rx="1.25" ry="0.75" fill="var(--tetromino-z)" stroke="none" opacity="0.75" />
-          <ellipse cx="2.5" cy="-5.1" rx="1.25" ry="0.75" fill="var(--tetromino-z)" stroke="none" opacity="0.75" />
+          <circle cx="0" cy="-6" r="5.8" fill="var(--prism-2)" />
+          <ellipse cx="3.0" cy="-11.0" rx="2.0" ry="1.1" transform="rotate(-15 3.0 -11.0)" fill="var(--prism-1)" strokeWidth="0.65" />
+          <ellipse cx="5.8" cy="-9.8" rx="2.0" ry="1.1" transform="rotate(28 5.8 -9.8)" fill="var(--prism-1)" strokeWidth="0.65" />
+          <circle cx="4.4" cy="-10.3" r="0.95" fill="var(--prism-4)" strokeWidth="0.6" />
+          <line x1="-3.7" y1="-7.6" x2="-4.8" y2="-8.6" stroke="var(--stage-well)" strokeWidth="0.75" />
+          <line x1="2.4" y1="-7.6" x2="3.5" y2="-8.6" stroke="var(--stage-well)" strokeWidth="0.75" />
+          <circle cx="-2.4" cy="-6.8" r="1.45" fill="var(--on-accent)" stroke="var(--stage-well)" strokeWidth="0.6" />
+          <circle cx="-2.6" cy="-6.8" r="0.85" fill="var(--stage-well)" stroke="none" />
+          <circle cx="1.1" cy="-6.8" r="1.45" fill="var(--on-accent)" stroke="var(--stage-well)" strokeWidth="0.6" />
+          <circle cx="0.9" cy="-6.8" r="0.85" fill="var(--stage-well)" stroke="none" />
+          <ellipse cx="-3.9" cy="-5.1" rx="1.25" ry="0.75" fill="var(--prism-1)" stroke="none" opacity="0.75" />
+          <ellipse cx="2.5" cy="-5.1" rx="1.25" ry="0.75" fill="var(--prism-1)" stroke="none" opacity="0.75" />
         </g>
       </svg>
       <div className="deck-preview-hud">
@@ -544,12 +541,12 @@ function CanvasAmbientEffects() {
           strokeDasharray="6 6"
           opacity="0.55"
         />
-        {/* Subtle floating tetromino motif */}
-        <g fill="var(--tetromino-t)" opacity="0.22" transform="translate(150, 130)">
-          <rect x="0" y="16" width="14" height="14" rx="3" />
-          <rect x="16" y="16" width="14" height="14" rx="3" />
-          <rect x="32" y="16" width="14" height="14" rx="3" />
-          <rect x="16" y="0" width="14" height="14" rx="3" />
+        {/* Subtle floating prism cluster motif */}
+        <g fill="var(--prism-2)" opacity="0.22" transform="translate(150, 130)">
+          <rect x="0" y="16" width="14" height="14" rx="4" />
+          <rect x="16" y="16" width="14" height="14" rx="4" />
+          <rect x="32" y="16" width="14" height="14" rx="4" />
+          <rect x="16" y="0" width="14" height="14" rx="4" />
         </g>
       </g>
 
@@ -565,8 +562,8 @@ function CanvasAmbientEffects() {
           strokeDasharray="8 6"
           opacity="0.5"
         />
-        {/* Subtle floating bubble-cluster motif */}
-        <g fill="var(--tetromino-i)" opacity="0.22" transform="translate(1015, 455)">
+        {/* Subtle floating star-core constellation motif */}
+        <g fill="var(--prism-7)" opacity="0.22" transform="translate(1015, 455)">
           <circle cx="0" cy="0" r="9" />
           <circle cx="19" cy="0" r="9" />
           <circle cx="9.5" cy="16.5" r="9" />
@@ -778,16 +775,16 @@ export function App() {
   const nextSlide = CANVAS_APPS[nextSlideIndex] ?? currentSlide;
   const prevSlide = CANVAS_APPS[prevSlideIndex] ?? currentSlide;
 
-  // #234, #240: Crossfade into the active or selected game's own soundtrack
-  // (Tetris vs Puzzle Bobble) both inside the game and on the selection menu!
+  // #234, #240, #352: Crossfade into the active or selected game's own soundtrack
+  // (Prism Stack vs Starlight Burst) both inside the game and on the selection menu!
   const activeMusicGameId = appId ?? currentSlide.id;
   useEffect(() => {
     const audio = getSharedArcadeAudio();
     const targetPlaylist =
-      activeMusicGameId === 'puzzle-bobble'
-        ? PUZZLE_BOBBLE_PLAYLIST
-        : activeMusicGameId === 'tetris'
-          ? TETRIS_PLAYLIST
+      activeMusicGameId === 'starlight-burst'
+        ? STARLIGHT_BURST_PLAYLIST
+        : activeMusicGameId === 'prism-stack'
+          ? PRISM_STACK_PLAYLIST
           : SELECTOR_PLAYLIST;
     audio.setPlaylist(targetPlaylist);
     if (appId === null) {
@@ -1340,10 +1337,10 @@ export function App() {
             }
             onClick={() => {
               const targetPlaylist =
-                activeMusicGameId === 'puzzle-bobble'
-                  ? PUZZLE_BOBBLE_PLAYLIST
-                  : activeMusicGameId === 'tetris'
-                    ? TETRIS_PLAYLIST
+                activeMusicGameId === 'starlight-burst'
+                  ? STARLIGHT_BURST_PLAYLIST
+                  : activeMusicGameId === 'prism-stack'
+                    ? PRISM_STACK_PLAYLIST
                     : SELECTOR_PLAYLIST;
               getSharedArcadeAudio().setPlaylist(targetPlaylist);
               setSharedMusicOn(!musicOn, true);
@@ -1415,7 +1412,8 @@ export function App() {
           data-testid="netplay-invite-toast"
         >
           {netplay.openInvites.slice(0, 2).map((invite) => {
-            const gameTitle = invite.gameId === 'puzzle-bobble' ? 'Puzzle Bobble' : 'Tetris';
+            const gameTitle =
+              invite.gameId === 'starlight-burst' ? 'Starlight Burst' : 'Prism Stack';
             return (
               <div key={invite.id} className="netplay-toast" role="status">
                 <div className="netplay-toast-copy">

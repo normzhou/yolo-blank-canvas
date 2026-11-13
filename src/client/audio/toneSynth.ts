@@ -7,7 +7,7 @@
  * under `default-src 'none'; script-src 'self'` (avoiding `Tone.js`
  * `standardized-audio-context` `blob:` Worker CSP violations) and shares the
  * exact same iOS-unlocked `AudioContext` and closed-loop `AnalyserNode` as
- * `TetrisMusic`.
+ * `ArcadeMusicPlayer`.
  */
 
 const NOTE_SEMI: Record<string, number> = {
@@ -254,18 +254,18 @@ export class ToneMembraneSynth {
 export type SfxEventName =
   | 'countdown-tick'
   | 'countdown-go'
-  | 'bubble-shoot'
-  | 'bubble-pop'
-  | 'bubble-avalanche'
+  | 'star-shoot'
+  | 'star-burst'
+  | 'star-cascade'
   | 'garbage-send'
   | 'garbage-rise'
   | 'round-win'
   | 'round-lose'
-  | 'tetris-rotate'
-  | 'tetris-drop'
-  | 'tetris-line-clear'
-  | 'tetris-four-line'
-  | 'tetris-over';
+  | 'prism-rotate'
+  | 'prism-drop'
+  | 'prism-line-clear'
+  | 'prism-quad-clear'
+  | 'prism-over';
 
 /**
  * Real-time arcade sound effects controller powered by `TonePolySynth`,
@@ -302,7 +302,7 @@ export class ArcadeSfx {
     };
   }
 
-  /** Arcade / car-race 3, 2, 1 countdown beep and green-light launch tone (#252, #258). */
+  /** Arcade 3, 2, 1 countdown beep and green-light launch tone (#252, #258). */
   playCountdown(step: number): void {
     if (step > 0) {
       const synths = this.recordAndReady('countdown-tick');
@@ -317,26 +317,26 @@ export class ArcadeSfx {
     synths.poly.triggerAttackRelease(['A5', 'C#6', 'E6', 'A6'], 0.3, 0, 0.72);
   }
 
-  /** Puzzle Bobble: crisp upward chirp + membrane pop when firing a bubble. */
-  playBubbleShoot(): void {
-    const synths = this.recordAndReady('bubble-shoot');
+  /** Starlight Burst: crisp upward chirp + membrane pulse when launching a star-core. */
+  playStarShoot(): void {
+    const synths = this.recordAndReady('star-shoot');
     if (!synths) return;
     synths.membrane.triggerAttackRelease(150, 0.06, 0, { octaves: 2.0, pitchDecay: 0.025, velocity: 0.65 });
     synths.fm.triggerAttackRelease(340, 0.075, 0, 0.58, 680);
   }
 
-  /** Puzzle Bobble: bubbly harmonic arpeggio when bubbles pop + avalanche cascade chime. */
-  playBubblePop(poppedCount: number, droppedCount = 0): void {
-    const synths = this.recordAndReady('bubble-pop');
-    const popScale = ['C5', 'E5', 'G5', 'A5', 'C6', 'D6', 'E6', 'G6'];
-    const notesToPlay = Math.min(popScale.length, Math.max(2, poppedCount));
+  /** Starlight Burst: harmonic arpeggio when star-cores burst + cascade chime. */
+  playStarBurst(burstCount: number, droppedCount = 0): void {
+    const synths = this.recordAndReady('star-burst');
+    const burstScale = ['C5', 'E5', 'G5', 'A5', 'C6', 'D6', 'E6', 'G6'];
+    const notesToPlay = Math.min(burstScale.length, Math.max(2, burstCount));
     if (synths) {
       for (let i = 0; i < notesToPlay; i += 1) {
-        synths.fm.triggerAttackRelease(popScale[i], 0.07, i * 0.04, 0.62, noteToFreq(popScale[i]) * 1.12);
+        synths.fm.triggerAttackRelease(burstScale[i], 0.07, i * 0.04, 0.62, noteToFreq(burstScale[i]) * 1.12);
       }
     }
     if (droppedCount > 0) {
-      const avSynths = this.recordAndReady('bubble-avalanche');
+      const avSynths = this.recordAndReady('star-cascade');
       if (avSynths) {
         avSynths.poly.triggerAttackRelease(['C5', 'E5', 'G5', 'B5'], 0.22, notesToPlay * 0.035, 0.62);
         avSynths.fm.triggerAttackRelease('C6', 0.18, notesToPlay * 0.035 + 0.06, 0.58, 'G6');
@@ -344,14 +344,14 @@ export class ArcadeSfx {
     }
   }
 
-  /** Puzzle Bobble: laser-whoosh when sending attack bubbles to the other side. */
+  /** Starlight Burst: laser-whoosh when sending attack orbs to the other side. */
   playGarbageSend(count: number): void {
     const synths = this.recordAndReady('garbage-send');
     if (!synths || count <= 0) return;
     synths.fm.triggerAttackRelease(380, 0.14, 0, 0.62, 860);
   }
 
-  /** Puzzle Bobble: deep rumble + rising triad when attack bubbles shoot up from the bottom. */
+  /** Starlight Burst: deep rumble + rising triad when attack orbs rise from below. */
   playGarbageRise(count: number): void {
     const synths = this.recordAndReady('garbage-rise');
     if (!synths || count <= 0) return;
@@ -362,7 +362,7 @@ export class ArcadeSfx {
     }
   }
 
-  /** Puzzle Bobble: victory fanfare or KO wah-wah. */
+  /** Starlight Burst: victory fanfare or KO wah-wah. */
   playRoundEnd(won: boolean): void {
     const synths = this.recordAndReady(won ? 'round-win' : 'round-lose');
     if (!synths) return;
@@ -379,26 +379,26 @@ export class ArcadeSfx {
     }
   }
 
-  /** Tetris: crisp FM blip on piece rotate. */
+  /** Prism Stack: crisp FM blip on piece rotate. */
   playRotate(): void {
-    const synths = this.recordAndReady('tetris-rotate');
+    const synths = this.recordAndReady('prism-rotate');
     if (!synths) return;
     synths.fm.triggerAttackRelease('D5', 0.045, 0, 0.55, 'A5');
   }
 
-  /** Tetris: punchy MembraneSynth thud when blocks drop/lock. */
+  /** Prism Stack: punchy MembraneSynth thud when prisms drop/lock. */
   playHardDrop(): void {
-    const synths = this.recordAndReady('tetris-drop');
+    const synths = this.recordAndReady('prism-drop');
     if (!synths) return;
     synths.membrane.triggerAttackRelease(62, 0.11, 0, { octaves: 3.0, pitchDecay: 0.03, velocity: 0.75 });
     synths.fm.triggerAttackRelease(180, 0.05, 0, 0.52, 90);
   }
 
-  /** Tetris: line clear chime (1–3 lines) or 4-line TETRIS fanfare! */
+  /** Prism Stack: line clear chime (1–3 lines) or 4-line quad-clear fanfare! */
   playLineClear(lines: number): void {
     if (lines <= 0) return;
     if (lines >= 4) {
-      const synths = this.recordAndReady('tetris-four-line');
+      const synths = this.recordAndReady('prism-quad-clear');
       if (!synths) return;
       const fanfare = ['E5', 'G#5', 'B5', 'E6'];
       fanfare.forEach((n, idx) => {
@@ -408,7 +408,7 @@ export class ArcadeSfx {
       synths.membrane.triggerAttackRelease(68, 0.14, 0.26, { octaves: 2.6, velocity: 0.75 });
       return;
     }
-    const synths = this.recordAndReady('tetris-line-clear');
+    const synths = this.recordAndReady('prism-line-clear');
     if (!synths) return;
     const arp = ['G4', 'B4', 'D5', 'G5'].slice(0, lines + 1);
     arp.forEach((n, idx) => {
@@ -417,9 +417,9 @@ export class ArcadeSfx {
     synths.poly.triggerAttackRelease(['G4', 'B4', 'D5'], 0.2, arp.length * 0.05, 0.58);
   }
 
-  /** Tetris: classic descending synth cadence on Game Over. */
+  /** Prism Stack: classic descending synth cadence on Game Over. */
   playGameOver(): void {
-    const synths = this.recordAndReady('tetris-over');
+    const synths = this.recordAndReady('prism-over');
     if (!synths) return;
     ['A4', 'G4', 'F4', 'E4'].forEach((n, idx) => {
       synths.fm.triggerAttackRelease(n, 0.18, idx * 0.15, 0.68);

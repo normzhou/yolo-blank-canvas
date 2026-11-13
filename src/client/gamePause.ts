@@ -1,7 +1,7 @@
 /**
- * Shared game pause & YOLO overlay coordinator (#237, #242, #296) so the
+ * Shared game pause & YOLO overlay coordinator (#237, #242, #296, #352) so the
  * universal YouTube-style bottom-right pause/resume icon (`button.pause-launcher`)
- * in `App.tsx`, the in-game Pause Menu overlay in `TetrisView` / `PuzzleBobbleView`,
+ * in `App.tsx`, the in-game Pause Menu overlay in `PrismStackView` / `StarlightBurstView`,
  * and the YOLO feedback overlay (`<yolo-feedback-v1>` / `<Panel>`) stay synchronized.
  */
 

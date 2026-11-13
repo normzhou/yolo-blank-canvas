@@ -48,8 +48,8 @@ export function fixtureIssues(): StubIssue[] {
     },
     {
       number: 4,
-      title: 'Tetris',
-      body: 'Add a Tetris game.',
+      title: 'Prism Stack',
+      body: 'Add a Prism Stack game.',
       state: 'closed',
       state_reason: 'completed',
       html_url: 'https://github.com/normzhou/yolo-blank-canvas/issues/4',

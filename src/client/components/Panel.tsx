@@ -102,7 +102,7 @@ export function Panel({
       }
     }
     // Bubble-phase listener on document stops key events before they reach
-    // window-level game listeners (Tetris / Puzzle Bobble) while allowing
+    // window-level game listeners (Prism Stack / Starlight Burst) while allowing
     // React onKeyDown handlers inside the panel (like ThemeSwitcher) to run.
     function stopAtDocumentBubble(event: KeyboardEvent) {
       event.stopPropagation();

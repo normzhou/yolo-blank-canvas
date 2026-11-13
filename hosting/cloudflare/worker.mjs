@@ -41,7 +41,7 @@ const SOCKET_INACTIVITY_TTL_MS = 90_000;
 const SYNC_LAG_THRESHOLD_MS = 2_500;
 const SYNC_TIMEOUT_MS = 15_000;
 const MAX_ROOM_EVENTS = 160;
-const VALID_GAMES = new Set(['tetris', 'puzzle-bobble']);
+const VALID_GAMES = new Set(['prism-stack', 'starlight-burst']);
 const VALID_STATUSES = new Set(['idle', 'inviting', 'playing_2p']);
 
 function cleanId(raw, maxLen = 64) {
@@ -424,7 +424,7 @@ export class NetplayHub {
       const isUserInput =
         action !== 'heartbeat' &&
         action !== 'poll' &&
-        !(action === 'room_event' && (body.kind === 'tetris_state' || body.kind === 'pb_state'));
+        !(action === 'room_event' && (body.kind === 'prism_state' || body.kind === 'starlight_state'));
       if (isUserInput || !prev.lastInputAt) {
         prev.lastInputAt = now;
       } else if (now - prev.lastInputAt > SOCKET_INACTIVITY_TTL_MS) {
@@ -490,7 +490,7 @@ export class NetplayHub {
     }
 
     if (action === 'invite') {
-      const gameId = typeof body.gameId === 'string' && VALID_GAMES.has(body.gameId) ? body.gameId : 'tetris';
+      const gameId = typeof body.gameId === 'string' && VALID_GAMES.has(body.gameId) ? body.gameId : 'prism-stack';
       if (player.roomId) {
         const oldRoomId = player.roomId;
         this.rooms.delete(oldRoomId);
@@ -633,7 +633,7 @@ export class NetplayHub {
       const room = roomId ? this.rooms.get(roomId) : null;
       if (!room) return {status: 404, payload: {error: {kind: 'room_not_found', message: 'Match room ended.'}}};
       const kind = typeof body.kind === 'string' ? body.kind.slice(0, 40) : 'state';
-      const isRadarTick = kind === 'tetris_state' || kind === 'pb_state';
+      const isRadarTick = kind === 'prism_state' || kind === 'starlight_state';
       if (isRadarTick) {
         room.events = room.events.filter(ev => !(ev.senderId === clientId && ev.kind === kind));
       }

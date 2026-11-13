@@ -4,16 +4,16 @@ import path from 'node:path';
 import {
   BACKGROUNDS,
   nextBackgroundIndex,
-} from '../src/shared/tetrisBackgrounds';
+} from '../src/shared/stageBackdrops';
 
-describe('tetris backgrounds', () => {
+describe('stage backdrops', () => {
   it('offers several distinct scenes', () => {
     expect(BACKGROUNDS.length).toBeGreaterThanOrEqual(3);
     const ids = new Set<string>();
     for (const art of BACKGROUNDS) {
       expect(art.id.length).toBeGreaterThan(0);
       expect(art.title.length).toBeGreaterThan(0);
-      expect(art.src).toMatch(/^tetris\/.+\.(png|jpg|gif|svg)$/);
+      expect(art.src).toMatch(/^backdrops\/.+\.(png|jpg|gif|svg)$/);
       expect(ids.has(art.id)).toBe(false);
       ids.add(art.id);
     }

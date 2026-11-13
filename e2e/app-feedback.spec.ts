@@ -11,7 +11,7 @@ import { startStubApp, type RunningStub } from './stub-server';
  * title or primary answer.
  */
 
-const APP_LINE = 'App: Tetris (?app=tetris)';
+const APP_LINE = 'App: Prism Stack (?app=prism-stack)';
 const APP_CONTEXT = `${APP_LINE}\n\n`;
 
 /** Idle keep-alive sockets can keep `server.close()` waiting past the test timeout. */
@@ -25,24 +25,24 @@ test('Feedback opens the guided composer with Share feedback, app context, and r
 }) => {
   const stub = await startStubApp();
   try {
-    await page.goto(`${stub.base}?app=tetris`);
-    const feedback = page.getByRole('button', { name: 'Feedback on Tetris' });
+    await page.goto(`${stub.base}?app=prism-stack`);
+    const feedback = page.getByRole('button', { name: 'Feedback on Prism Stack' });
     await feedback.click();
 
-    await expect(page).toHaveURL(/\?app=tetris&panel=new$/);
+    await expect(page).toHaveURL(/\?app=prism-stack&panel=new$/);
     await expect(page.getByLabel('Title')).toBeFocused();
     await expect(page.getByRole('radio', { name: /Share feedback/ })).toBeChecked();
     await expect(page.locator('.request-context-summary')).toContainText(APP_LINE);
 
     await page.getByLabel('Title').fill('Move the board left');
-    await page.getByLabel('What would you like us to know?').fill('A ten-wide board feels cramped.');
+    await page.getByLabel('What would you like us to know?').fill('A nine-wide board feels cozy.');
     await expect(page.getByLabel('Generated issue body')).toContainText(
-      `${APP_CONTEXT}Template: yolo.feedback@1.0.0\n\n## What would you like us to know?\nA ten-wide board feels cramped.`,
+      `${APP_CONTEXT}Template: yolo.feedback@1.0.0\n\n## What would you like us to know?\nA nine-wide board feels cozy.`,
     );
 
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog', { name: 'Requests' })).toHaveCount(0);
-    await expect(page).toHaveURL(/\?app=tetris$/);
+    await expect(page).toHaveURL(/\?app=prism-stack$/);
     await expect(feedback).toBeFocused();
   } finally {
     await closeStub(stub);
@@ -54,10 +54,10 @@ test('a submitted feedback request carries the context and marker, has no labels
 }) => {
   const stub = await startStubApp();
   try {
-    await page.goto(`${stub.base}?app=tetris`);
-    await page.getByRole('button', { name: 'Feedback on Tetris' }).click();
+    await page.goto(`${stub.base}?app=prism-stack`);
+    await page.getByRole('button', { name: 'Feedback on Prism Stack' }).click();
     await page.getByLabel('Title').fill('A wider board');
-    await page.getByLabel('What would you like us to know?').fill('Ten columns is tight.');
+    await page.getByLabel('What would you like us to know?').fill('Nine columns is crisp.');
 
     const preview = await page.getByLabel('Generated issue body').textContent();
     expect(preview?.startsWith(`${APP_CONTEXT}Template: yolo.feedback@1.0.0`)).toBe(true);
@@ -67,11 +67,11 @@ test('a submitted feedback request carries the context and marker, has no labels
     await expect(page.getByRole('heading', { name: /#100 A wider board/ })).toBeVisible();
     await expect(page.getByText(APP_LINE)).toBeVisible();
     await expect(page.getByText('Template: yolo.feedback@1.0.0')).toBeVisible();
-    await expect(page.getByText('Ten columns is tight.')).toBeVisible();
+    await expect(page.getByText('Nine columns is crisp.')).toBeVisible();
     await expect(page.getByText('Request open')).toBeVisible();
 
     await page.keyboard.press('Escape');
-    await page.getByRole('button', { name: 'Feedback on Tetris' }).click();
+    await page.getByRole('button', { name: 'Feedback on Prism Stack' }).click();
     await expect(page.getByLabel('Title')).toHaveValue('');
     await expect(page.getByLabel('What would you like us to know?')).toHaveValue('');
     await expect(page.locator('.request-context-summary')).toContainText(APP_LINE);
@@ -151,27 +151,27 @@ test('app and home drafts stay separate, v1 drafts migrate, and Requests -> New 
     await expect(page.getByLabel('Description')).toHaveValue('Legacy freeform body text.');
 
     // App draft is separate from the home draft.
-    await page.goto(`${stub.base}?app=tetris`);
-    await page.getByRole('button', { name: 'Feedback on Tetris' }).click();
+    await page.goto(`${stub.base}?app=prism-stack`);
+    await page.getByRole('button', { name: 'Feedback on Prism Stack' }).click();
     await page.getByRole('button', { name: 'Requests', exact: true }).click();
-    await expect(page).toHaveURL(/\?app=tetris&panel$/);
+    await expect(page).toHaveURL(/\?app=prism-stack&panel$/);
     await page.getByRole('button', { name: 'New request' }).first().click();
-    await expect(page).toHaveURL(/\?app=tetris&panel=new$/);
+    await expect(page).toHaveURL(/\?app=prism-stack&panel=new$/);
     await expect(page.getByRole('radio', { name: /Build or change/ })).toBeChecked();
     await expect(page.locator('.request-context-summary')).toContainText(APP_LINE);
 
     // Editable context line updates the generated body.
     await page.getByRole('button', { name: 'Edit context' }).dispatchEvent('click');
-    await page.getByLabel('Context line').fill('App: Tetris (?app=tetris) — level 5');
+    await page.getByLabel('Context line').fill('App: Prism Stack (?app=prism-stack) — level 5');
     await page.getByLabel('Title').fill('App-only draft');
     await page.getByLabel('What would you like to build or change?').fill('Add hold piece.');
     await expect(page.getByLabel('Generated issue body')).toContainText(
-      'App: Tetris (?app=tetris) — level 5\n\nTemplate: yolo.feature@1.0.0',
+      'App: Prism Stack (?app=prism-stack) — level 5\n\nTemplate: yolo.feature@1.0.0',
     );
     await page.keyboard.press('Escape');
 
     // Cold link back to app composer preserves the app draft; home composer keeps the migrated v1 draft.
-    await page.goto(`${stub.base}?app=tetris&panel=new`);
+    await page.goto(`${stub.base}?app=prism-stack&panel=new`);
     await expect(page.getByLabel('Title')).toHaveValue('App-only draft');
     await expect(page.getByLabel('What would you like to build or change?')).toHaveValue('Add hold piece.');
 

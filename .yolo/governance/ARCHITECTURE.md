@@ -85,10 +85,10 @@ truth. GitHub remains the source of truth for the request and its work. Any in-a
 not a GitHub record — such as a game's score — is explicitly local to the view, is never written
 back or presented as a repository record, and is lost when the view closes. Adding persistent
 content is an architecture and data-model change recorded here, not a quiet addition to a
-component; the first such content is the Tetris view (#4), now reached through the canvas gallery.
+component; the first such content is the Prism Stack view (#4, refactored for IP compliance in #352), now reached through the canvas gallery.
 
 The main canvas centers on the **game slide deck** (`src/client/App.tsx`, `src/client/apps/registry.ts`,
-with **Puzzle Bobble** first and **Tetris** second, #264), with no top header bar (#220, #228, #230).
+with **Starlight Burst** first and **Prism Stack** second, #264, #352), with no top header bar (#220, #228, #230).
 A unified bottom-right control strip (#313, #317) orders **Play/Pause** (`data-testid="pause-button"`, when a game is active) →
 **Sound (SFX)** (`data-testid="sfx-button"`, default on) → **Music** (`data-testid="sound-button"`, default on) →
 **Fullscreen** (`button.fullscreen-launcher`, opt-in with `isFullscreen = false` by default, `src/client/fullscreen.ts`) →
@@ -106,8 +106,8 @@ countdown without opening on the Pause menu, #198, #239, #264, #313, #333) as we
 The registry (`src/client/apps/registry.ts`) is a first-party modular list — never a third-party
 remote plugin surface, iframe, or marketplace — where only lightweight menu descriptors
 (`src/games/<id>/descriptor.ts` and `src/games/<id>/package.json#version`) are compiled into the
-~90 kB Home shell (#306). Each game's engine and view (`src/games/puzzle-bobble/entry.tsx` #181 and
-`src/games/tetris/entry.tsx` #4) compile into independent content-hashed ESM bundles
+~90 kB Home shell (#306). Each game's engine and view (`src/games/starlight-burst/entry.tsx` #181/#352 and
+`src/games/prism-stack/entry.tsx` #4/#352) compile into independent content-hashed ESM bundles
 (`/games/<id>-<hash>.js`, decoupled from `__CLIENT_BUILD__` so sibling-game or shell changes leave
 unchanged game hashes intact) indexed by `/games/manifest.json` (`schemaVersion: 1`, `{ id, version, hash, entry, chunks, sizeBytes }`).
 The Home menu loads `/games/manifest.json` (`Cache-Control: no-cache`) to track each game's required
@@ -123,8 +123,8 @@ guarded Worker (`run_worker_first: true`, `APP_VERSION` set to the released semv
 login + Tauri browser-handoff routes (`/auth/yolo/*`, `CLIENT_IDENTITY_ENABLED: "true"`, backed by
 `NetplayHub` Durable Object storage), while `hosting/yolo-identity/` retains the standalone local
 shared-identity preview package. When `/api/session` returns `503 Backend configuration unavailable`,
-the client enters `static_demo` mode (`isStaticDemo === true`), running the home slide deck, Puzzle Bobble,
-and Tetris with online netplay and `<yolo-feedback-v1>` shared feedback. Contextual feedback capture in local `<Panel>` mode is deliberately text-only: a request composed over an app
+the client enters `static_demo` mode (`isStaticDemo === true`), running the home slide deck, Starlight Burst,
+and Prism Stack with online netplay and `<yolo-feedback-v1>` shared feedback. Contextual feedback capture in local `<Panel>` mode is deliberately text-only: a request composed over an app
 starts with `App: <title> (?app=<id>)` in its body, and new-request drafts are scoped by app. The
 composer offers three direct intent lenses at the top of the form (**Share feedback**, **Build or
 change**, **Report a problem**) with a shared primary answer, the adopted `v0.1.0-alpha.33` YOLO
@@ -153,13 +153,14 @@ The durable observable contracts, verified by the test suite:
 | Draft preservation and v1→v2 migration across panel/refresh/reload | `src/client/drafts.ts` | `test/drafts.test.ts` |
 | Guided three-intent request templates, body rendering, app-context feedback line and app-scoped drafts | `src/client/requestTemplates.ts`, `src/client/feedback.ts`, `src/client/drafts.ts`, `src/client/views/NewRequestView.tsx` | `test/request-templates.test.ts`, `test/feedback.test.ts`, `test/drafts.test.ts`, `e2e/app-feedback.spec.ts` |
 | Canvas app registry and addressable `?app=` locations | `src/client/apps/registry.ts`, `src/client/route.ts` | `test/apps.test.ts`, `test/route.test.ts`, `e2e/canvas-gallery.spec.ts` |
-| Tetris rules, 1P / 2P Local side-by-side / 2P Online Versus garbage mechanics, centered end-of-round card, and board state (local to the view or ephemeral 2P room, not a GitHub record) | `src/shared/tetris.ts`, `src/client/views/TetrisView.tsx` | `test/tetris.test.ts`, `e2e/puzzle-bobble.spec.ts` |
-| Puzzle Bobble (Bust-A-Move) hex-grid, 1P / 2P Local / 2P Online versus rules, declarative rigged vector puppet mascots (`dragon`, `cat`, `dog`, `bunny` with 2-bone Bezier arm IK cranking across `normal`/`hurry`/`cheer`, cel-shaded volume, periodic blinks & secondary ear/tail motion, #342, #345), periodic plain-text tactical dialogue, and centered end-of-round `Next round` card with `Space`/`Enter` shortcut (#299, #313, #315, #337) | `src/shared/puzzleBobble.ts`, `src/games/puzzle-bobble/mascots.tsx`, `src/client/views/PuzzleBobbleView.tsx` | `test/puzzle-bobble.test.ts`, `e2e/puzzle-bobble.spec.ts` |
-| Multi-user 2P Online WebSocket push relay, presence pill, open corner invite toast, demand-driven idle/room sleep, and single-screen Opponent Mini-Radar (#236, #286, #288) | `server/netplay.js`, `hosting/cloudflare/worker.mjs`, `src/client/netplay.ts` | `test/netplay.test.ts`, `test/app-api.test.ts`, `e2e/puzzle-bobble.spec.ts` |
-| Bottom-right control strip (Pause, decoupled default-on SFX & Music, opt-in Fullscreen, YOLO mark), keyboard-navigable Pause/Mode/Stage/Audio menu, direct-start 22-language speaker-weighted neural TTS `"Ready… / Go!"` countdown with flag emojis & input lock, touch drag-release aiming, natural mobile deck swipe, and animated selector game previews (#242, #258, #268, #313, #317, #331, #333, #335) | `src/client/gamePause.ts`, `src/shared/countdownLanguages.ts`, `src/client/App.tsx`, `src/client/views/TetrisView.tsx`, `src/client/views/PuzzleBobbleView.tsx` | `test/tetris-music.test.ts`, `e2e/canvas-gallery.spec.ts`, `e2e/deterministic.spec.ts`, `e2e/puzzle-bobble.spec.ts` |
-| Tetris & whimsical Puzzle Bobble soundtracks, persistent `window.caches` (`yolo-arcade-audio-v2`) disk cache, crossfading, and Tone.js-style synth SFX (#260, #278, #326, #335) | `src/shared/tetrisMusic.ts`, `src/client/audio/tetrisMusic.ts`, `src/client/audio/toneSynth.ts` | `test/tetris-music.test.ts`, `e2e/deterministic.spec.ts`, `e2e/puzzle-bobble.spec.ts` |
+| Prism Stack 9×18 crystal polyomino rules, column guide rails + floor landing ticks, inline header upcoming-prism pill, 1P / 2P Local / 2P Online symmetric split-screen, and solid `'H'` Hazard Lock Bars shattered by adjacent line clears (local to the view or ephemeral 2P room, not a GitHub record; #352) | `src/shared/prismStack.ts`, `src/client/views/PrismStackView.tsx` | `test/prism-stack.test.ts`, `e2e/starlight-burst.spec.ts` |
+| Starlight Burst hex-grid, Astral Star-Cores, Celestial Starlight Sling + Orbital Focus Ring, non-reptilian Boy/Girl plush companions (`fox` Ren/Kiko, `cat` Yuzu/Mochi, `dog` Koro/Hana, `bunny` Poko/Momo with 2-bone Star-Wand IK and cross-side species exclusion, #342, #345, #347, #349, #352), tactical dialogue, and 1P / 2P Local / 2P Online symmetric split-screen | `src/shared/starlightBurst.ts`, `src/games/starlight-burst/companions.tsx`, `src/client/views/StarlightBurstView.tsx` | `test/starlight-burst.test.ts`, `e2e/starlight-burst.spec.ts` |
+| Multi-user 2P Online WebSocket push relay, presence pill, open corner invite toast, demand-driven idle/room sleep, and symmetric 50/50 split-screen live opponent stage (#236, #286, #288, #352) | `server/netplay.js`, `hosting/cloudflare/worker.mjs`, `src/client/netplay.ts` | `test/netplay.test.ts`, `test/app-api.test.ts`, `e2e/starlight-burst.spec.ts` |
+| Bottom-right control strip (Pause, decoupled default-on SFX & Music, opt-in Fullscreen, YOLO mark), keyboard-navigable Pause/Mode/Stage/Audio menu, direct-start 22-language speaker-weighted neural TTS `"Ready… / Go!"` countdown with flag emojis & input lock, touch drag-release aiming, natural mobile deck swipe, and animated selector game previews (#242, #258, #268, #313, #317, #331, #333, #335) | `src/client/gamePause.ts`, `src/shared/countdownLanguages.ts`, `src/client/App.tsx`, `src/client/views/PrismStackView.tsx`, `src/client/views/StarlightBurstView.tsx` | `test/arcade-music.test.ts`, `e2e/canvas-gallery.spec.ts`, `e2e/deterministic.spec.ts`, `e2e/starlight-burst.spec.ts` |
+| Selector, Prism Stack, & Starlight Burst soundtracks, persistent `window.caches` (`yolo-arcade-audio-v2`) disk cache, crossfading, and Tone.js-style synth SFX (#260, #278, #326, #335, #352) | `src/shared/arcadeMusic.ts`, `src/client/audio/arcadeAudio.ts`, `src/client/audio/toneSynth.ts` | `test/arcade-music.test.ts`, `e2e/deterministic.spec.ts`, `e2e/starlight-burst.spec.ts` |
 | Hosted `<yolo-feedback-v1>` dialog, `/auth/yolo/*` shared login & Tauri system-browser Passkey handoff, and environment-aware `yolo-arcade` download helper (#290, #292, #294, #296, #311, #321, #328) | `src/client/hostedFeedback.ts`, `src/client/arcadeDownload.ts`, `hosting/cloudflare/worker.mjs`, `src-tauri/src/lib.rs` | `test/hosted-feedback.test.ts`, `test/arcade-download.test.ts`, `test/yolo-mark.test.ts` |
-| Tetris backdrop scenes (bundled sourced art) and the four-line cycle | `src/shared/tetrisBackgrounds.ts` | `test/tetris-backgrounds.test.ts` |
+| Stage backdrop scenes (bundled sourced art in `public/backdrops/`) and the four-line cycle | `src/shared/stageBackdrops.ts` | `test/stage-backdrops.test.ts` |
+| Zero-trademark IP & trade-dress guardrail across `src/`, `server/`, `public/`, `hosting/`, and `src-tauri/` (#351, #352) | `test/ip-compliance.test.ts` | `test/ip-compliance.test.ts` |
 
 The app also presents the shared YOLO request-to-result vocabulary, and its behavior is
 contractual where it is in scope. Its observed gaps are listed under Decisions and limits.

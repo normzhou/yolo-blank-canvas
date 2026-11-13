@@ -9,24 +9,24 @@ import {
 } from '../src/shared/countdownLanguages';
 import {
   PLAYLIST,
-  PUZZLE_BOBBLE_PLAYLIST,
+  PRISM_STACK_PLAYLIST,
   SELECTOR_PLAYLIST,
-  TETRIS_PLAYLIST,
+  STARLIGHT_BURST_PLAYLIST,
   shuffledTracks,
   type Track,
-} from '../src/shared/tetrisMusic';
+} from '../src/shared/arcadeMusic';
 import {
+  ArcadeMusicPlayer,
   AUDIO_DISK_CACHE_NAME,
-   getSharedArcadeAudio,
+  getSharedArcadeAudio,
   getSharedMusicOn,
   getSharedSfxOn,
   MUSIC_GAIN,
   setSharedMusicOn,
   setSharedSfxOn,
-  TetrisMusic,
-} from '../src/client/audio/tetrisMusic';
+} from '../src/client/audio/arcadeAudio';
 
-describe('selector, tetris, and puzzle bobble playlists + Tone synth SFX (#232, #234, #252, #258, #262)', () => {
+describe('selector, prism stack, and starlight burst playlists + Tone synth SFX (#232, #234, #252, #258, #262, #352)', () => {
   it('reduces background music gain to 0.22 so sound effects stand out clearly (#252, #258)', () => {
     expect(MUSIC_GAIN).toBe(0.22);
   });
@@ -76,24 +76,24 @@ describe('selector, tetris, and puzzle bobble playlists + Tone synth SFX (#232, 
     expect(fs.statSync(voiceFile).size).toBeGreaterThan(150_000);
   });
 
-  it('offers distinct, game-specific playlists for Selector Screen, Tetris, and Puzzle Bobble', () => {
+  it('offers distinct, game-specific playlists for Selector Screen, Prism Stack, and Starlight Burst', () => {
     expect(SELECTOR_PLAYLIST.length).toBeGreaterThanOrEqual(2);
-    expect(TETRIS_PLAYLIST.length).toBeGreaterThanOrEqual(5);
-    expect(PUZZLE_BOBBLE_PLAYLIST.length).toBeGreaterThanOrEqual(5);
-    expect(PLAYLIST).toBe(TETRIS_PLAYLIST);
+    expect(PRISM_STACK_PLAYLIST.length).toBeGreaterThanOrEqual(5);
+    expect(STARLIGHT_BURST_PLAYLIST.length).toBeGreaterThanOrEqual(5);
+    expect(PLAYLIST).toBe(PRISM_STACK_PLAYLIST);
 
     const ids = new Set<string>();
-    for (const track of [...SELECTOR_PLAYLIST, ...TETRIS_PLAYLIST, ...PUZZLE_BOBBLE_PLAYLIST]) {
+    for (const track of [...SELECTOR_PLAYLIST, ...PRISM_STACK_PLAYLIST, ...STARLIGHT_BURST_PLAYLIST]) {
       expect(track.id.length).toBeGreaterThan(0);
       expect(track.title.length).toBeGreaterThan(0);
-      expect(track.src).toMatch(/^tetris\/.+\.(m4a|mp3|ogg|wav)$/);
+      expect(track.src).toMatch(/^audio\/.+\.(m4a|mp3|ogg|wav)$/);
       expect(ids.has(track.id)).toBe(false);
       ids.add(track.id);
     }
   });
 
   it('points at 12 bundled full-length (~2-minute) audio files that exist under public/', () => {
-    const allTracks = [...SELECTOR_PLAYLIST, ...TETRIS_PLAYLIST, ...PUZZLE_BOBBLE_PLAYLIST];
+    const allTracks = [...SELECTOR_PLAYLIST, ...PRISM_STACK_PLAYLIST, ...STARLIGHT_BURST_PLAYLIST];
     expect(allTracks).toHaveLength(12);
     for (const track of allTracks) {
       const file = path.resolve(__dirname, '../public', track.src);
@@ -108,13 +108,13 @@ describe('selector, tetris, and puzzle bobble playlists + Tone synth SFX (#232, 
     expect([...selectorShuffled].map((track) => track.id).sort()).toEqual(
       [...SELECTOR_PLAYLIST].map((track) => track.id).sort(),
     );
-    const tetrisShuffled = shuffledTracks(() => 0.42, TETRIS_PLAYLIST);
-    expect([...tetrisShuffled].map((track) => track.id).sort()).toEqual(
-      [...TETRIS_PLAYLIST].map((track) => track.id).sort(),
+    const prismShuffled = shuffledTracks(() => 0.42, PRISM_STACK_PLAYLIST);
+    expect([...prismShuffled].map((track) => track.id).sort()).toEqual(
+      [...PRISM_STACK_PLAYLIST].map((track) => track.id).sort(),
     );
-    const pbShuffled = shuffledTracks(() => 0.42, PUZZLE_BOBBLE_PLAYLIST);
-    expect([...pbShuffled].map((track) => track.id).sort()).toEqual(
-      [...PUZZLE_BOBBLE_PLAYLIST].map((track) => track.id).sort(),
+    const sbShuffled = shuffledTracks(() => 0.42, STARLIGHT_BURST_PLAYLIST);
+    expect([...sbShuffled].map((track) => track.id).sort()).toEqual(
+      [...STARLIGHT_BURST_PLAYLIST].map((track) => track.id).sort(),
     );
   });
 
@@ -196,7 +196,7 @@ describe('selector, tetris, and puzzle bobble playlists + Tone synth SFX (#232, 
 
     try {
       const seen: Track[] = [];
-      const player = new TetrisMusic((track) => seen.push(track), SELECTOR_PLAYLIST);
+      const player = new ArcadeMusicPlayer((track) => seen.push(track), SELECTOR_PLAYLIST);
       expect(player.ensureContext()).toBe(true);
       expect(audioSession.type).toBe('playback');
       expect(resume).toHaveBeenCalledTimes(1);
@@ -205,7 +205,7 @@ describe('selector, tetris, and puzzle bobble playlists + Tone synth SFX (#232, 
 
       // Before setActive(true), sound is off so SFX must not start any Web Audio synth nodes (#270).
       const nodesBeforeMutedSfx = startedNodes.length;
-      player.sfx.playBubbleShoot();
+      player.sfx.playStarShoot();
       expect(startedNodes.length).toBe(nodesBeforeMutedSfx);
       (winObj as { __yoloSfxLog?: string[] }).__yoloSfxLog = [];
 
@@ -213,16 +213,16 @@ describe('selector, tetris, and puzzle bobble playlists + Tone synth SFX (#232, 
       await new Promise((r) => setTimeout(r, 15));
       expect(startedNodes.length).toBe(2);
 
-      // Switching playlist from Selector Screen to Puzzle Bobble crossfades smoothly.
-      player.setPlaylist(PUZZLE_BOBBLE_PLAYLIST);
+      // Switching playlist from Selector Screen to Starlight Burst crossfades smoothly.
+      player.setPlaylist(STARLIGHT_BURST_PLAYLIST);
       await new Promise((r) => setTimeout(r, 15));
-      expect(PUZZLE_BOBBLE_PLAYLIST.some((t) => t.id === seen[seen.length - 1].id)).toBe(true);
+      expect(STARLIGHT_BURST_PLAYLIST.some((t) => t.id === seen[seen.length - 1].id)).toBe(true);
 
       // Trigger real-time Tone.js-style SFX (FMSynth, PolySynth, MembraneSynth).
       player.sfx.playCountdown(3);
       player.sfx.playCountdown(0);
-      player.sfx.playBubbleShoot();
-      player.sfx.playBubblePop(4, 2);
+      player.sfx.playStarShoot();
+      player.sfx.playStarBurst(4, 2);
       player.sfx.playGarbageRise(3);
       player.sfx.playRotate();
       player.sfx.playHardDrop();
@@ -235,13 +235,13 @@ describe('selector, tetris, and puzzle bobble playlists + Tone synth SFX (#232, 
       expect(metrics.sfxLog).toEqual([
         'countdown-tick',
         'countdown-go',
-        'bubble-shoot',
-        'bubble-pop',
-        'bubble-avalanche',
+        'star-shoot',
+        'star-burst',
+        'star-cascade',
         'garbage-rise',
-        'tetris-rotate',
-        'tetris-drop',
-        'tetris-four-line',
+        'prism-rotate',
+        'prism-drop',
+        'prism-quad-clear',
       ]);
       expect(createdOscillators.length).toBeGreaterThan(10);
       player.dispose();
@@ -342,7 +342,7 @@ describe('selector, tetris, and puzzle bobble playlists + Tone synth SFX (#232, 
 
     try {
       // Session 1: fetches from network and populates persistent Cache Storage
-      const session1 = new TetrisMusic();
+      const session1 = new ArcadeMusicPlayer();
       session1.ensureContext();
       session1.setActive(true);
       await new Promise((r) => setTimeout(r, 20));
@@ -360,7 +360,7 @@ describe('selector, tetris, and puzzle bobble playlists + Tone synth SFX (#232, 
 
       // Session 2 (simulating app restart): serves from diskEntries without any new fetch() call
       fakeFetch.mockClear();
-      const session2 = new TetrisMusic();
+      const session2 = new ArcadeMusicPlayer();
       session2.ensureContext();
       session2.setActive(true);
       await new Promise((r) => setTimeout(r, 20));

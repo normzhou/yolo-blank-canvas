@@ -34,35 +34,35 @@ describe('draft preservation', () => {
     const store = memoryStore();
     const fallback = createNewRequestDraft({ intent: 'change' });
     const draft = {
-      ...createNewRequestDraft({ intent: 'problem', context: 'App: Tetris (?app=tetris)' }),
+      ...createNewRequestDraft({ intent: 'problem', context: 'App: Prism Stack (?app=prism-stack)' }),
       title: 'Piece clips wall',
       details: 'Left arrow near the wall overlaps the border.',
       fields: {
         impact: '',
         approach: '',
-        reproduction: 'Hold left while rotating I-piece',
+        reproduction: 'Hold left while rotating bar piece',
         expected: 'Wall kick keeps the piece in bounds',
         notes: 'Observed in Dusk theme',
       },
     };
-    saveDraft(store, feedbackKey('tetris'), draft);
-    expect(loadNewRequestDraft(store, feedbackKey('tetris'), fallback)).toEqual(draft);
+    saveDraft(store, feedbackKey('prism-stack'), draft);
+    expect(loadNewRequestDraft(store, feedbackKey('prism-stack'), fallback)).toEqual(draft);
   });
 
   it('migrates a v1 {title, body} draft into freeform mode without data loss', () => {
     const store = memoryStore();
     store.setItem(
-      feedbackKey('tetris'),
+      feedbackKey('prism-stack'),
       JSON.stringify({
         title: 'Legacy feedback draft',
-        body: 'App: Tetris (?app=tetris)\n\nWritten before v2 existed.',
+        body: 'App: Prism Stack (?app=prism-stack)\n\nWritten before v2 existed.',
       }),
     );
     const fallback = createNewRequestDraft({
       intent: 'feedback',
-      context: 'App: Tetris (?app=tetris)',
+      context: 'App: Prism Stack (?app=prism-stack)',
     });
-    const migrated = loadNewRequestDraft(store, feedbackKey('tetris'), fallback);
+    const migrated = loadNewRequestDraft(store, feedbackKey('prism-stack'), fallback);
     expect(migrated).toEqual({
       version: 2,
       mode: 'freeform',
@@ -70,8 +70,8 @@ describe('draft preservation', () => {
       title: 'Legacy feedback draft',
       details: '',
       fields: { impact: '', approach: '', reproduction: '', expected: '', notes: '' },
-      context: 'App: Tetris (?app=tetris)',
-      body: 'App: Tetris (?app=tetris)\n\nWritten before v2 existed.',
+      context: 'App: Prism Stack (?app=prism-stack)',
+      body: 'App: Prism Stack (?app=prism-stack)\n\nWritten before v2 existed.',
     });
   });
 
@@ -87,17 +87,17 @@ describe('draft preservation', () => {
   it('keeps app feedback drafts separate from each other and the home draft', () => {
     const store = memoryStore();
     const homeFallback = createNewRequestDraft({ intent: 'change' });
-    const tetrisFallback = createNewRequestDraft({ intent: 'feedback', context: 'App: Tetris (?app=tetris)' });
+    const prismFallback = createNewRequestDraft({ intent: 'feedback', context: 'App: Prism Stack (?app=prism-stack)' });
     const otherFallback = createNewRequestDraft({ intent: 'feedback', context: 'App: Other (?app=other)' });
 
     saveDraft(store, NEW_REQUEST_KEY, { ...homeFallback, title: 'home', details: 'home details' });
-    saveDraft(store, feedbackKey('tetris'), { ...tetrisFallback, title: 'tetris', details: 'tetris details' });
+    saveDraft(store, feedbackKey('prism-stack'), { ...prismFallback, title: 'prism', details: 'prism details' });
     saveDraft(store, feedbackKey('other'), { ...otherFallback, title: 'other', details: 'other details' });
 
-    expect(feedbackKey('tetris')).toBe(`${FEEDBACK_KEY_PREFIX}tetris`);
-    expect(feedbackKey('tetris')).not.toBe(NEW_REQUEST_KEY);
+    expect(feedbackKey('prism-stack')).toBe(`${FEEDBACK_KEY_PREFIX}prism-stack`);
+    expect(feedbackKey('prism-stack')).not.toBe(NEW_REQUEST_KEY);
     expect(loadNewRequestDraft(store, NEW_REQUEST_KEY, homeFallback)?.title).toBe('home');
-    expect(loadNewRequestDraft(store, feedbackKey('tetris'), tetrisFallback)?.title).toBe('tetris');
+    expect(loadNewRequestDraft(store, feedbackKey('prism-stack'), prismFallback)?.title).toBe('prism');
     expect(loadNewRequestDraft(store, feedbackKey('other'), otherFallback)?.title).toBe('other');
   });
 

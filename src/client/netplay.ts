@@ -18,8 +18,8 @@
  *    - Exponential backoff (`2s -> 4s -> 8s -> ... -> 120s`) on network/Worker errors.
  */
 
-import type { Board } from '../shared/tetris';
-import type { BubbleColor, BubbleGrid } from '../shared/puzzleBobble';
+import type { Board, PolyId } from '../shared/prismStack';
+import type { MascotSelection, StarColor, StarGrid } from '../shared/starlightBurst';
 
 export const INVITE_TIMEOUT_MS = 20_000;
 export const SYNC_TIMEOUT_MS = 15_000;
@@ -32,7 +32,7 @@ export const HTTP_FALLBACK_ROOM_MS = 1_000;
 export const BACKOFF_BASE_MS = 2_000;
 export const BACKOFF_MAX_MS = 120_000;
 
-export type NetplayGameId = 'tetris' | 'puzzle-bobble';
+export type NetplayGameId = 'prism-stack' | 'starlight-burst';
 export type NetplayPlayerStatus = 'idle' | 'inviting' | 'playing_2p';
 
 export interface OnlinePlayerInfo {
@@ -78,54 +78,57 @@ export interface NetplayActiveRoom {
   opponent: NetplayRoomPlayer;
 }
 
-export interface TetrisRadarSnapshot {
+export interface PrismStackLiveSnapshot {
   board: Board;
   settledBoard?: Board;
   activePiece?: {
-    type: 'I' | 'O' | 'T' | 'S' | 'Z' | 'J' | 'L';
+    type: PolyId;
     x: number;
     y: number;
     rotation: number;
   } | null;
+  nextPiece?: PolyId;
   lastEvent?: {
     id: number;
     clearedLines: number;
-    sentGarbage: number;
-    risenGarbage: number;
+    sentHazard: number;
+    risenHazard: number;
   } | null;
   score: number;
   lines: number;
   level: number;
   status: 'playing' | 'over';
-  pendingGarbage: number;
+  pendingHazard: number;
 }
 
-export interface PuzzleBobbleRadarCellEvent {
+export interface StarlightBurstCellEvent {
   row: number;
   col: number;
   x: number;
   y: number;
-  color: BubbleColor;
+  color: StarColor;
 }
 
-export interface PuzzleBobbleRadarSnapshot {
-  grid: BubbleGrid;
+export interface StarlightBurstLiveSnapshot {
+  grid: StarGrid;
   ceilingDrop: number;
   score: number;
   status: 'playing' | 'won' | 'ko';
   incomingGarbage: number;
   aimAngle: number;
-  currentBubble: BubbleColor;
+  currentStar: StarColor;
+  nextStar?: StarColor;
+  mascot?: MascotSelection;
   flying?: {
     x: number;
     y: number;
-    color: BubbleColor;
+    color: StarColor;
   } | null;
   lastEvent?: {
     id: number;
-    popped: PuzzleBobbleRadarCellEvent[];
-    dropped: PuzzleBobbleRadarCellEvent[];
-    risenGarbage: PuzzleBobbleRadarCellEvent[];
+    popped: StarlightBurstCellEvent[];
+    dropped: StarlightBurstCellEvent[];
+    risenGarbage: StarlightBurstCellEvent[];
     sentGarbage: number;
   } | null;
 }
@@ -155,11 +158,11 @@ const HANDLE_ADJECTIVES = [
   'Hyper',
   'Retro',
   'Solar',
-  'lunar',
+  'Lunar',
 ];
 
 const HANDLE_NOUNS = [
-  'Dragon',
+  'Otter',
   'Falcon',
   'Comet',
   'Knight',
@@ -231,7 +234,7 @@ export class NetplayClient {
   private currentAppId: NetplayGameId | null = (() => {
     if (typeof window === 'undefined') return null;
     const raw = new URLSearchParams(window.location.search).get('app');
-    return raw === 'tetris' || raw === 'puzzle-bobble' ? raw : null;
+    return raw === 'prism-stack' || raw === 'starlight-burst' ? raw : null;
   })();
   private lastServerSeq = 0;
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
@@ -311,7 +314,7 @@ export class NetplayClient {
 
   setCurrentApp(appId: string | null): void {
     const valid: NetplayGameId | null =
-      appId === 'tetris' || appId === 'puzzle-bobble' ? appId : null;
+      appId === 'prism-stack' || appId === 'starlight-burst' ? appId : null;
     if (this.state.activeRoom && this.state.activeRoom.gameId !== valid) {
       void this.leaveRoom();
     }
@@ -733,7 +736,7 @@ export class NetplayClient {
       const status: NetplayPlayerStatus =
         msg.status === 'playing_2p' || msg.status === 'inviting' ? msg.status : 'idle';
       const appId: NetplayGameId | null =
-        msg.appId === 'tetris' || msg.appId === 'puzzle-bobble' ? msg.appId : null;
+        msg.appId === 'prism-stack' || msg.appId === 'starlight-burst' ? msg.appId : null;
       this.localPeers.set(fromId, { id: fromId, name: fromName, status, appId, updatedAt: now });
       this.reconcileLocalState();
       return;
@@ -899,7 +902,7 @@ export class NetplayClient {
             name: p.name,
             status:
               p.status === 'playing_2p' || p.status === 'inviting' ? p.status : 'idle',
-            appId: p.appId === 'tetris' || p.appId === 'puzzle-bobble' ? p.appId : null,
+            appId: p.appId === 'prism-stack' || p.appId === 'starlight-burst' ? p.appId : null,
           });
         }
       }

@@ -138,7 +138,7 @@ describe('Demand-driven WebSocket Netplay (#286)', () => {
       onlineCount: 2,
       players: [
         { id: client.getState().clientId, name: client.getState().clientName, status: 'idle', appId: null },
-        { id: 'p_other', name: 'Pixel Falcon #222', status: 'idle', appId: 'tetris' },
+        { id: 'p_other', name: 'Pixel Falcon #222', status: 'idle', appId: 'prism-stack' },
       ],
       openInvites: [],
       myPendingInvites: [],
@@ -194,14 +194,14 @@ describe('Demand-driven WebSocket Netplay (#286)', () => {
       type: 'snapshot',
       onlineCount: 2,
       players: [
-        { id: client.getState().clientId, name: client.getState().clientName, status: 'playing_2p', appId: 'tetris' },
-        { id: 'p_peer', name: 'Peer', status: 'playing_2p', appId: 'tetris' },
+        { id: client.getState().clientId, name: client.getState().clientName, status: 'playing_2p', appId: 'prism-stack' },
+        { id: 'p_peer', name: 'Peer', status: 'playing_2p', appId: 'prism-stack' },
       ],
       openInvites: [],
       myPendingInvites: [],
       activeRoom: {
         id: 'room_1',
-        gameId: 'tetris',
+        gameId: 'prism-stack',
         seed: 42,
         status: 'playing',
         players: [
@@ -229,7 +229,7 @@ describe('Demand-driven WebSocket Netplay (#286)', () => {
       action: 'invite',
       clientId: 'p_host',
       name: 'Host',
-      gameId: 'tetris',
+      gameId: 'prism-stack',
     });
     expect(r1.status).toBe(200);
     if ('myPendingInvites' in r1.payload) {
@@ -241,7 +241,7 @@ describe('Demand-driven WebSocket Netplay (#286)', () => {
       action: 'invite',
       clientId: 'p_guest',
       name: 'Guest',
-      gameId: 'tetris',
+      gameId: 'prism-stack',
     });
     expect(r2.status).toBe(200);
     if ('activeRoom' in r2.payload) {
@@ -258,11 +258,11 @@ describe('Demand-driven WebSocket Netplay (#286)', () => {
     hub.handleAction({
       action: 'room_event',
       clientId: 'p_host',
-      kind: 'tetris_attack',
-      payload: { lines: 4, holeColumn: 2 },
+      kind: 'prism_attack',
+      payload: { lines: 4 },
     });
     const guestSnap = hub.snapshotFor('p_guest', 0);
-    expect(guestSnap.activeRoom?.events.some((e: { kind: string }) => e.kind === 'tetris_attack')).toBe(
+    expect(guestSnap.activeRoom?.events.some((e: { kind: string }) => e.kind === 'prism_attack')).toBe(
       true,
     );
   });

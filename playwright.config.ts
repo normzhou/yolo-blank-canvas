@@ -11,7 +11,7 @@ import { defineConfig } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './e2e',
-  testMatch: /(deterministic|visual|motion|measure|determinism|crossfade|panel-push|summary-hierarchy|list-treatment|theme|route|canvas-gallery|app-feedback|puzzle-bobble|game-bundles)\.spec\.ts/,
+  testMatch: /(deterministic|visual|motion|measure|determinism|crossfade|panel-push|summary-hierarchy|list-treatment|theme|route|canvas-gallery|app-feedback|starlight-burst|game-bundles)\.spec\.ts/,
   testIgnore: process.env.YOLO_INCLUDE_REVIEW_CAPTURES ? undefined : /(visual|motion|measure|determinism)\.spec\.ts/,
   fullyParallel: false,
   workers: 1,
