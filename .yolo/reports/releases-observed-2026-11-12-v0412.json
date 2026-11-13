@@ -1,0 +1,75 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-12",
+  "observed_at": "2026-11-12",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#356",
+  "releases": [
+    {
+      "tag": "v0.41.2",
+      "commit": "eebecd56cfdab75c489ec41ef925f77458cf8363"
+    }
+  ],
+  "release": {
+    "tag": "v0.41.2",
+    "commit": "eebecd56cfdab75c489ec41ef925f77458cf8363",
+    "source_commit": "55057e04312031ca6c36000b595e519ed88d3400",
+    "assets_commit": "a994e83ac6e3b645190729f481625f251d2f3eab",
+    "native_version": "0.41.2",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-12T23:55:00Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.41.2",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/357"
+  },
+  "build_identity": {
+    "server_build_id": "55057e04312031ca6c36000b595e519ed88d3400",
+    "client_build_id": "55057e04312031ca6c36000b595e519ed88d3400",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "29 files, 187 tests passed (including test/ip-compliance.test.ts)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 47 passed (51.4s)",
+      "e2e_live": "npm run e2e:live — 5 passed (16.7s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.41.2 --no-open --port 4442 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (21.2s)",
+      "ci": "GitHub Actions CI/Test and type check green"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "4acc5de3-ace5-4c1b-ac44-b1b59f7e87dc",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.41.2",
+      "observed_build_id": "55057e04312031ca6c36000b595e519ed88d3400",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.1.1",
+          "entry": "/games/starlight-burst-U4Vc5EC-.js",
+          "hash": "e25c3a7b87ca2923bc9ea9e2086e02f8d2a33e6f1ddf99339958ce3ce4644f73",
+          "sizeBytes": 87391
+        },
+        "prism-stack": {
+          "version": "2.1.0",
+          "entry": "/games/prism-stack-BLel6y1B.js",
+          "hash": "8c5be45facad5ec27f4193206fce9db08e277dd2f67133f7009a5556328f985e",
+          "sizeBytes": 37312
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Restores the exact v0.40.1 ball SVG rendering, -sphere-shine and -sphere-shade radial gradients, rim stroke (var(--text)), inner rim light, subtle centered geometric emblems (opacity 0.45), specular highlight ellipse + pinpoint gleam, and STAR_TOKEN color mapping in Starlight Burst (@yolo-arcade/game-starlight-burst@2.1.1; @yolo-arcade/game-prism-stack@2.1.0 byte-unchanged) and Home deck preview."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #356"
+}
