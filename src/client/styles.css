@@ -38,7 +38,7 @@
      override part of the surface — the borders, badges, banner, field, error
      and board colours would have stayed light while everything else followed
      the theme. Three of them were not even new colours: `.comment-body pre`
-     restated `--field`, the Tetris empty cell was `--neutral-weak` at 74%,
+     restated `--field`, the board empty cell was `--neutral-weak` at 74%,
      and the panel scroll shadow was `--text` at 14%. */
   --border-hover: var(--n7);   /* interactive element hover border */
   --field-border: #c6ccd4;   /* text field boundary */
@@ -56,32 +56,32 @@
   --elevation-scroll-fade: rgba(31, 35, 40, 0);
   --surface-transparent: rgba(255, 255, 255, 0);
 
-  /* Game content rather than chrome: the board and the seven pieces. Tokenised
-     so a theme can reach them, but named apart from surface roles because they
-     are artwork, not interface. */
+  /* Game content rather than chrome: the playfield and the seven prism gems.
+     Tokenised so every theme reaches them cleanly (#110, #201, #352). */
   --board-gap: #c9ced6;
   --cell-empty: rgba(242, 244, 247, 0.74);   /* --neutral-weak at 74% */
-  --tetromino-i: #4dd0e1;
-  --tetromino-j: #5b8def;
-  --tetromino-l: #f2a03d;
-  --tetromino-o: #f6d743;
-  --tetromino-s: #5fc27e;
-  --tetromino-t: #b06bd8;
-  --tetromino-z: #e0605f;
+  --prism-1: #e0605f;
+  --prism-2: #b06bd8;
+  --prism-3: #5fc27e;
+  --prism-4: #f6d743;
+  --prism-5: #5b8def;
+  --prism-6: #f2a03d;
+  --prism-7: #4dd0e1;
+  --guide-rail-bg: rgba(91, 141, 239, 0.09);
+  --hazard-fill: #78350f;
+  --hazard-stripe: #f59e0b;
 
-  /* #215: Dedicated arcade cabinet bezel, playfield well, and plunger tokens
-     so the games feel like an authentic Neo-Geo / Taito arcade machine rather
-     than an enterprise form. */
-  --cabinet-bg: #0b0e17;
-  --cabinet-surface: #151b28;
-  --cabinet-well: #070a10;
-  --cabinet-slot: #101521;
-  --cabinet-border: #2d374d;
-  --cabinet-bezel: #3b4866;
-  --cabinet-text: #f0f6fc;
-  --cabinet-muted: #94a3b8;
-  --cabinet-empty-cell: rgba(15, 23, 42, 0.82);
-  --cabinet-grid: #1e293b;
+  /* Dark celestial game stage, playfield well, and touch tokens (#215, #352). */
+  --stage-bg: #0b0e17;
+  --stage-surface: #151b28;
+  --stage-well: #070a10;
+  --stage-slot: #101521;
+  --stage-border: #2d374d;
+  --stage-bezel: #3b4866;
+  --stage-text: #f0f6fc;
+  --stage-muted: #94a3b8;
+  --stage-empty-cell: rgba(15, 23, 42, 0.82);
+  --stage-grid: #1e293b;
   --arcade-fire: #ef4444;
   --arcade-fire-lip: #991b1b;
   --arcade-rocker: #2563eb;
@@ -114,8 +114,8 @@
      collapse to four role-named steps. Colour roles above are unchanged. */
   --text-xs: 12px;     /* metadata, badges, labels, notes, footer, identity */
   --text-base: 14px;   /* body copy, controls, banners, form labels */
-  --text-lg: 16px;     /* headings, panel title, Tetris title */
-  --text-display: clamp(18px, 5vw, 22px); /* canvas prompt, Tetris stat value */
+  --text-lg: 16px;     /* headings, panel title, stage title */
+  --text-display: clamp(18px, 5vw, 22px); /* canvas prompt, game stat value */
   --weight-regular: 400;
   --weight-semibold: 600;
   --font-arcade-display: ui-rounded, 'SF Pro Rounded', 'Arial Rounded MT Bold', 'Chalkboard SE', 'Marker Felt', 'Comic Sans MS', system-ui, sans-serif;
@@ -208,13 +208,13 @@
   --on-accent: #fffdfa;
   --board-gap: #cfc4b1;
   --cell-empty: rgba(241, 235, 224, 0.74);
-  --tetromino-i: #4fb8c9;
-  --tetromino-j: #5b8def;
-  --tetromino-l: #e09a3a;
-  --tetromino-o: #e6c53a;
-  --tetromino-s: #63b877;
-  --tetromino-t: #ad6bcf;
-  --tetromino-z: #d95f5e;
+  --prism-1: #d95f5e;
+  --prism-2: #ad6bcf;
+  --prism-3: #63b877;
+  --prism-4: #e6c53a;
+  --prism-5: #5b8def;
+  --prism-6: #e09a3a;
+  --prism-7: #4fb8c9;
   --elevation-scroll: rgba(43, 36, 27, 0.14);
   --elevation-scroll-fade: rgba(43, 36, 27, 0);
   --surface-transparent: rgba(255, 253, 250, 0);
@@ -266,13 +266,13 @@
   /* The empty cell lightens the grid rather than glowing on it: at the
      light-theme opacity over a mid-grey board it would read as a bright block. */
   --cell-empty: rgba(139, 148, 158, 0.35);
-  --tetromino-i: #39c5cf;
-  --tetromino-j: #5b8def;
-  --tetromino-l: #e09a3a;
-  --tetromino-o: #e6c53a;
-  --tetromino-s: #3fb950;
-  --tetromino-t: #bc8cff;
-  --tetromino-z: #f0655f;
+  --prism-1: #f0655f;
+  --prism-2: #bc8cff;
+  --prism-3: #3fb950;
+  --prism-4: #e6c53a;
+  --prism-5: #5b8def;
+  --prism-6: #e09a3a;
+  --prism-7: #39c5cf;
   --elevation-scroll: rgba(230, 237, 243, 0.16);
   --elevation-scroll-fade: rgba(230, 237, 243, 0);
   --surface-transparent: rgba(22, 27, 34, 0);
@@ -406,7 +406,7 @@ button.pause-launcher {
 button.pause-launcher[aria-pressed='true'],
 button.sfx-launcher[aria-pressed='true'],
 button.sound-launcher[aria-pressed='true'] {
-  color: var(--tetromino-o);
+  color: var(--prism-4);
   opacity: 0.95;
 }
 button.pause-launcher:hover:not(:disabled),
@@ -923,51 +923,51 @@ button.deck-stack-card:hover {
   justify-content: center;
   padding: 16px;
 }
-/* #240: Delayed fade-in animated gameplay preview inside the selector card. */
-.deck-tetris-falling-piece {
-  animation: deck-tetris-fall 2200ms steps(6, end) 450ms infinite;
+/* #240, #352: Delayed fade-in animated gameplay preview inside the selector card. */
+.deck-prism-falling-piece {
+  animation: deck-prism-fall 2200ms steps(6, end) 450ms infinite;
 }
-.deck-tetris-line-flash {
+.deck-prism-line-flash {
   opacity: 0;
-  animation: deck-tetris-flash 2200ms ease-in-out 450ms infinite;
+  animation: deck-prism-flash 2200ms ease-in-out 450ms infinite;
 }
-.deck-pb-aim-sweep {
+.deck-sb-aim-sweep {
   transform-origin: 110px 146px;
-  animation: deck-pb-sweep 2400ms ease-in-out 450ms infinite alternate;
+  animation: deck-sb-sweep 2400ms ease-in-out 450ms infinite alternate;
 }
-.deck-pb-flying-bubble {
+.deck-sb-flying-star {
   opacity: 0;
-  animation: deck-pb-shot 2400ms cubic-bezier(0.2, 0.85, 0.3, 1) 450ms infinite;
+  animation: deck-sb-shot 2400ms cubic-bezier(0.2, 0.85, 0.3, 1) 450ms infinite;
 }
-.deck-pb-pop-ring {
+.deck-sb-pop-ring {
   opacity: 0;
   transform-box: fill-box;
   transform-origin: center;
-  animation: deck-pb-pop 2400ms ease-out 450ms infinite;
+  animation: deck-sb-pop 2400ms ease-out 450ms infinite;
 }
-@keyframes deck-tetris-fall {
+@keyframes deck-prism-fall {
   0% { transform: translateY(0); opacity: 0; }
   12% { transform: translateY(0); opacity: 1; }
-  80% { transform: translateY(80px); opacity: 1; }
-  100% { transform: translateY(80px); opacity: 0.9; }
+  80% { transform: translateY(72px); opacity: 1; }
+  100% { transform: translateY(72px); opacity: 0.9; }
 }
-@keyframes deck-tetris-flash {
+@keyframes deck-prism-flash {
   0%, 75% { opacity: 0; }
   85% { opacity: 0.7; }
   100% { opacity: 0; }
 }
-@keyframes deck-pb-sweep {
+@keyframes deck-sb-sweep {
   from { transform: rotate(-18deg); }
   to { transform: rotate(22deg); }
 }
-@keyframes deck-pb-shot {
+@keyframes deck-sb-shot {
   0%, 15% { transform: translate(-22px, 62px); opacity: 0; }
   25% { transform: translate(-22px, 62px); opacity: 1; }
   55% { transform: translate(50px, 8px); opacity: 1; }
   80% { transform: translate(0, -18px); opacity: 1; }
   100% { transform: translate(0, -18px); opacity: 0; }
 }
-@keyframes deck-pb-pop {
+@keyframes deck-sb-pop {
   0%, 76% { transform: scale(0.6); opacity: 0; }
   86% { transform: scale(1.2); opacity: 0.9; }
   100% { transform: scale(1.65); opacity: 0; }
@@ -1156,7 +1156,7 @@ button.deck-fullscreen-button[aria-pressed="true"] {
 /* The app owns its interior; this wrapper only exists to receive focus after a
    navigation so the keyboard does not fall back to the document body. */
 .canvas-app { position: relative; z-index: 1; outline: none; width: 100%; display: flex; justify-content: center; }
-.canvas-app .tetris { margin-top: 0; }
+.canvas-app .stack-stage { margin-top: 0; }
 .canvas.is-playing .canvas-deck {
   width: 100%;
   height: 100%;
@@ -1626,26 +1626,24 @@ a:visited { color: var(--accent-weak-text); }
   .intent-card-hint { display: none; }
 }
 
-.tetris {
-  /* #215, #226: Scope the dark Neo-Geo / Taito arcade cabinet palette to the
-     game stage and scale the 10x20 matrix dynamically to fill the viewport. */
-  --surface: var(--cabinet-surface);
-  --field: var(--cabinet-slot);
-  --border: var(--cabinet-border);
-  --border-hover: var(--cabinet-bezel);
-  --text: var(--cabinet-text);
-  --muted: var(--cabinet-muted);
-  --cell-empty: var(--cabinet-empty-cell);
-  --board-gap: var(--cabinet-grid);
-  --tetris-cell-size: clamp(18px, min(calc((100dvh - 156px) / 20), calc((100vw - 156px) / 10)), 42px);
+.stack-stage {
+  --surface: var(--stage-surface);
+  --field: var(--stage-slot);
+  --border: var(--stage-border);
+  --border-hover: var(--stage-bezel);
+  --text: var(--stage-text);
+  --muted: var(--stage-muted);
+  --cell-empty: var(--stage-empty-cell);
+  --board-gap: var(--stage-grid);
+  --stack-cell-size: clamp(19px, min(calc((100dvh - 172px) / 18), calc((100vw - 156px) / 9)), 44px);
 
   position: relative;
   overflow: hidden;
   margin: 0;
   width: 100%;
   height: 100%;
-  background: var(--cabinet-bg);
-  color: var(--cabinet-text);
+  background: var(--stage-bg);
+  color: var(--stage-text);
   border: none;
   border-radius: 0;
   box-shadow: none;
@@ -1660,22 +1658,14 @@ a:visited { color: var(--accent-weak-text); }
   -webkit-user-select: none;
   overscroll-behavior: none;
 }
-.tetris-art {
-  /* The one place the crossfade length is written down. Removing the outgoing
-     layer is driven by the animation's own end (TetrisView), so this length is
-     never restated in JS. */
-  --tetris-art-fade: 700ms;
+.stack-art {
+  --stack-art-fade: 700ms;
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
 }
-.tetris-art-layer {
-  /* Resting strength of the backdrop. Declared here rather than left to the
-     fade-in's endpoint so it holds when no animation runs: under
-     `prefers-reduced-motion: reduce` the animation is cancelled, and an
-     endpoint-only value left the layer at its initial `1` — full-strength art
-     where `no-preference` shows 0.55. */
+.stack-art-layer {
   opacity: 0.55;
   position: absolute;
   inset: 0;
@@ -1683,28 +1673,27 @@ a:visited { color: var(--accent-weak-text); }
   height: 100%;
   object-fit: cover;
 }
-.tetris-art-layer.is-current { animation: tetris-art-in var(--tetris-art-fade) ease forwards; }
-.tetris-art-layer.is-past { animation: tetris-art-out var(--tetris-art-fade) ease forwards; }
-@keyframes tetris-art-in {
+.stack-art-layer.is-current { animation: stack-art-in var(--stack-art-fade) ease forwards; }
+.stack-art-layer.is-past { animation: stack-art-out var(--stack-art-fade) ease forwards; }
+@keyframes stack-art-in {
   from { opacity: 0; }
   to { opacity: 0.55; }
 }
-@keyframes tetris-art-out {
+@keyframes stack-art-out {
   from { opacity: 0.55; }
   to { opacity: 0; }
 }
 
-/* Honour the OS motion preference: cut between scenes instead of crossfading. */
 @media (prefers-reduced-motion: reduce) {
-  .tetris-art-layer.is-current,
-  .tetris-art-layer.is-past { animation: none; }
-  .tetris-art-layer.is-past { display: none; }
+  .stack-art-layer.is-current,
+  .stack-art-layer.is-past { animation: none; }
+  .stack-art-layer.is-past { display: none; }
 }
-.tetris-header, .tetris-body, .tetris-touch-bar, .tetris-over, .tetris-help, .tetris-scene {
+.stack-header, .stack-body, .stack-touch-bar, .stack-over, .stack-help, .stack-scene {
   position: relative;
   z-index: 1;
 }
-.tetris-header {
+.stack-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1714,7 +1703,7 @@ a:visited { color: var(--accent-weak-text); }
   padding: 2px 44px 2px 4px;
   box-shadow: none;
 }
-.tetris-header button {
+.stack-header button {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
@@ -1726,119 +1715,190 @@ a:visited { color: var(--accent-weak-text); }
   color: var(--muted);
   padding: 3px 7px;
 }
-.tetris-header button:hover:not(:disabled) {
+.stack-header button:hover:not(:disabled) {
   color: var(--touch-overlay-text);
   border-color: transparent;
 }
-.tetris-header button:active:not(:disabled) {
+.stack-header button:active:not(:disabled) {
   transform: scale(0.96);
-  color: var(--tetromino-o);
+  color: var(--prism-4);
 }
-.tetris-header button.primary,
-.tetris-header .filter-group button[aria-pressed="true"] {
+.stack-header button.primary,
+.stack-header .filter-group button[aria-pressed="true"] {
   background: transparent;
   border-color: transparent;
-  color: var(--tetromino-o);
+  color: var(--prism-4);
 }
-.tetris-header .filter-group button:first-child,
-.tetris-header .filter-group button:last-child {
+.stack-header .filter-group button:first-child,
+.stack-header .filter-group button:last-child {
   border-radius: var(--radius-xs);
   margin-left: 0;
 }
-.tetris-title {
+.stack-title {
   margin: 0;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--text-lg);
   font-weight: var(--weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  /* Also sits directly on the backdrop, and measured across the bundled scenes
-     it fell to 3.96:1 on the darkest ones. Same opaque rule as the lines below;
-     15px/600 is not large text, so the 4.5:1 floor applies. */
   background: var(--surface);
   padding: 2px 6px;
   border-radius: var(--radius-sm);
 }
-.tetris-body { flex: 1; display: flex; gap: 12px; align-items: center; justify-content: center; min-height: 0; }
-.tetris-body.is-local-2p { gap: 16px; }
-.tetris-player-lane { display: flex; gap: 10px; align-items: center; justify-content: center; min-height: 0; }
-.tetris[data-mode='2p'] {
-  --tetris-cell-size: clamp(12px, min(calc((100dvh - 156px) / 20), calc((50vw - 148px) / 10)), 32px);
-}
-.tetris-board {
-  display: grid;
-  grid-template-columns: repeat(10, var(--tetris-cell-size));
-  grid-auto-rows: var(--tetris-cell-size);
-  gap: 1px;
-  background: var(--board-gap);
-  border: 3px solid var(--text);
-  border-radius: var(--radius-sm);
-  padding: 3px;
-  box-shadow: var(--elevation-panel-centred);
-  touch-action: none;
-  user-select: none;
-}
-.tetris-cell { background: var(--cell-empty); border-radius: 2px; position: relative; }
-.tetris-cell.tetromino-i { background: var(--tetromino-i); }
-.tetris-cell.tetromino-j { background: var(--tetromino-j); }
-.tetris-cell.tetromino-l { background: var(--tetromino-l); }
-.tetris-cell.tetromino-o { background: var(--tetromino-o); }
-.tetris-cell.tetromino-s { background: var(--tetromino-s); }
-.tetris-cell.tetromino-t { background: var(--tetromino-t); }
-.tetris-cell.tetromino-z { background: var(--tetromino-z); }
-.tetris-cell.tetromino-g { background: var(--muted); }
-/* #185: Arcade 3D beveled mino facets and ghost landing outline. */
-.tetris-cell.tetromino-i:not(.is-ghost),
-.tetris-cell.tetromino-j:not(.is-ghost),
-.tetris-cell.tetromino-l:not(.is-ghost),
-.tetris-cell.tetromino-o:not(.is-ghost),
-.tetris-cell.tetromino-s:not(.is-ghost),
-.tetris-cell.tetromino-t:not(.is-ghost),
-.tetris-cell.tetromino-z:not(.is-ghost),
-.tetris-cell.tetromino-g:not(.is-ghost) {
-  border-top: 2px solid var(--on-accent);
-  border-left: 1px solid var(--on-accent);
-  border-right: 1px solid var(--border);
-  border-bottom: 2px solid var(--border);
-}
-.tetris-cell.tetromino-i:not(.is-ghost)::after,
-.tetris-cell.tetromino-j:not(.is-ghost)::after,
-.tetris-cell.tetromino-l:not(.is-ghost)::after,
-.tetris-cell.tetromino-o:not(.is-ghost)::after,
-.tetris-cell.tetromino-s:not(.is-ghost)::after,
-.tetris-cell.tetromino-t:not(.is-ghost)::after,
-.tetris-cell.tetromino-z:not(.is-ghost)::after,
-.tetris-cell.tetromino-g:not(.is-ghost)::after {
-  content: '';
-  position: absolute;
-  inset: 3px;
-  border-radius: 1px;
-  border: 1px solid var(--on-accent);
-  opacity: 0.45;
-  pointer-events: none;
-}
-.tetris-cell.is-ghost {
-  background: var(--cell-empty);
-  border: 1.5px dashed var(--text);
-  opacity: 0.55;
-}
-.tetris-side {
+.stack-body { flex: 1; display: flex; gap: 12px; align-items: center; justify-content: center; min-height: 0; }
+.stack-body.is-symmetric-2p { gap: 18px; }
+.stack-player-lane {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  min-width: 100px;
+  align-items: stretch;
+  justify-content: center;
+  min-height: 0;
+}
+.stack-lane-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 2px 4px;
+  min-height: 30px;
+}
+.stack-stage-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+}
+.stack-stage[data-mode='2p'] {
+  --stack-cell-size: clamp(13px, min(calc((100dvh - 176px) / 18), calc((50vw - 152px) / 9)), 34px);
+}
+.stack-board {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(9, var(--stack-cell-size));
+  grid-auto-rows: var(--stack-cell-size);
+  gap: 2px;
+  background: var(--stage-well);
+  border: 2px solid var(--stage-bezel);
+  border-radius: var(--radius);
+  padding: 4px;
+  box-shadow: var(--elevation-panel-centred);
+  touch-action: none;
+  user-select: none;
+  transition: opacity 280ms ease, transform 280ms ease;
+}
+.stack-board.is-dissolved {
+  opacity: 0.48;
+  transform: scale(0.985);
+}
+.stack-cell {
+  background: var(--cell-empty);
+  border-radius: var(--radius-xs);
+  position: relative;
+}
+/* Column landing guide rails & bottom floor target markers (replaces ghost piece, #352) */
+.stack-cell.is-guide-col {
+  background: var(--guide-rail-bg);
+}
+.stack-cell.is-landing-tick::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  bottom: 1px;
+  height: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--prism-4);
+  pointer-events: none;
+}
+
+/* Chamfered jewel/capsule prism tiles with non-Guideline palette (#352) */
+.stack-cell.prism-cell-1,
+.stack-next-mini-cell.prism-cell-1 { background: var(--prism-1); }
+.stack-cell.prism-cell-2,
+.stack-next-mini-cell.prism-cell-2 { background: var(--prism-2); }
+.stack-cell.prism-cell-3,
+.stack-next-mini-cell.prism-cell-3 { background: var(--prism-3); }
+.stack-cell.prism-cell-4,
+.stack-next-mini-cell.prism-cell-4 { background: var(--prism-4); }
+.stack-cell.prism-cell-5,
+.stack-next-mini-cell.prism-cell-5 { background: var(--prism-5); }
+.stack-cell.prism-cell-6,
+.stack-next-mini-cell.prism-cell-6 { background: var(--prism-6); }
+.stack-cell.prism-cell-7,
+.stack-next-mini-cell.prism-cell-7 { background: var(--prism-7); }
+
+/* Full-width solid Hazard Lock Bar cells (shattered by adjacent matches, #352) */
+.stack-cell.prism-cell-hazard {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--hazard-fill),
+    var(--hazard-fill) 5px,
+    var(--hazard-stripe) 5px,
+    var(--hazard-stripe) 8px
+  );
+  border-radius: 2px;
+  border-top: 1px solid var(--warning-border);
+  border-bottom: 1px solid var(--warning-border);
+}
+
+.stack-cell.prism-cell-1::before,
+.stack-cell.prism-cell-2::before,
+.stack-cell.prism-cell-3::before,
+.stack-cell.prism-cell-4::before,
+.stack-cell.prism-cell-5::before,
+.stack-cell.prism-cell-6::before,
+.stack-cell.prism-cell-7::before {
+  content: '';
+  position: absolute;
+  inset: 2px 3px auto 3px;
+  height: 32%;
+  border-radius: var(--radius-pill);
+  background: var(--on-accent);
+  opacity: 0.36;
+  pointer-events: none;
+}
+
+/* Inline header upcoming-prism pill (replaces right-rail Next box, #352) */
+.stack-next-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+}
+.stack-next-pill-label {
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.stack-next-mini {
+  display: grid;
+  grid-template-columns: repeat(4, 6px);
+  grid-auto-rows: 6px;
+  gap: 1px;
+}
+.stack-next-mini-cell {
+  border-radius: 2px;
+  background: transparent;
+}
+
+.stack-side {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 96px;
   padding: 8px;
   border-radius: var(--radius-sm);
   border: none;
   box-shadow: none;
-  /* Opaque, not a translucent veil. Measured against every bundled backdrop, a
-     60% white veil put the label at 1.06:1–2.38:1 against the darkest pixel of
-     the dark scenes, and raising the opacity made it worse: a veil pulls a
-     dark pixel toward mid-grey, exactly where mid-grey text has no contrast.
-     No alpha value works over arbitrary art. */
   background: var(--surface);
 }
-.tetris-stat {
+.stack-stat {
   display: flex;
   flex-direction: column;
   gap: 1px;
@@ -1847,7 +1907,7 @@ a:visited { color: var(--accent-weak-text); }
   border-radius: var(--radius-xs);
   padding: 2px 4px;
 }
-.tetris-label {
+.stack-label {
   color: var(--muted);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--text-xs);
@@ -1855,32 +1915,21 @@ a:visited { color: var(--accent-weak-text); }
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
-.tetris-value {
+.stack-value {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--text-display);
   font-weight: var(--weight-semibold);
   font-variant-numeric: tabular-nums;
 }
-.tetris-next {
-  display: grid;
-  grid-template-columns: repeat(4, 14px);
-  grid-auto-rows: 14px;
-  gap: 1px;
-  background: var(--board-gap);
-  border: 1.5px solid var(--text);
-  border-radius: var(--radius-xs);
-  padding: 2px;
-  width: fit-content;
-}
-.tetris:not(.pb-game) .tetris-header {
+.stack-stage:not(.sb-game) .stack-header {
   width: min(960px, 100%);
   max-width: min(960px, 100%);
 }
-.tetris:not(.pb-game) .tetris-touch-bar {
+.stack-stage:not(.sb-game) .stack-touch-bar {
   width: min(640px, 100%);
   max-width: min(640px, 100%);
 }
-.tetris-over {
+.stack-over {
   position: fixed;
   top: 50%;
   left: 50%;
@@ -1904,53 +1953,41 @@ a:visited { color: var(--accent-weak-text); }
   text-align: center;
   margin: 0;
 }
-.tetris-over button {
+.stack-over button {
   width: 100%;
   min-height: 40px;
   font-size: var(--text-base);
   font-weight: var(--weight-semibold);
 }
-.tetris-help, .tetris-scene {
+.stack-help, .stack-scene {
   color: var(--muted);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--text-xs);
   margin: 0;
-  /* Opaque for the same reason as `.tetris-side`: these lines sit directly on
-     the backdrop, and measured across every bundled scene the muted 12px text
-     landed between 1.28:1 and 3.90:1 against the worst pixel behind it — every
-     scene under the AA 4.5:1 floor. Same reasoning applies: a translucent fill
-     pulls an arbitrary pixel toward mid-grey, where mid-grey text has no
-     contrast. */
   background: var(--surface);
   border: none;
   padding: 2px 8px;
   border-radius: var(--radius-xs);
 }
 
-/* #181, #195, #215, #226: Puzzle Bobble (Bust-A-Move) 2-player and solo arcade view.
-   Every text plate over the backdrop art uses opaque `var(--surface)` so
-   contrast holds across all six scenes and all three themes.
-   Player cards, headers, boards, and sidebars scale dynamically to fill the
-   browser viewport (`--pb-board-w` derived from `vw` and `dvh`) while keeping
-   locked viewport-derived dimensions (#195) so neither board ever shifts width
-   or position during gameplay. */
-.pb-game {
-  --pb-side-w: 92px;
-  --pb-gap: 6px;
-  --pb-board-w: clamp(160px, min(calc(50vw - 114px), calc((100dvh - 148px) * 224 / 296)), 540px);
+/* Starlight Burst 2-player (Local & Online symmetric) and solo celestial stage (#352). */
+.sb-game {
+  --sb-side-w: 92px;
+  --sb-gap: 6px;
+  --sb-board-w: clamp(160px, min(calc(50vw - 114px), calc((100dvh - 148px) * 224 / 296)), 540px);
   width: 100%;
   height: 100%;
   max-width: 100%;
   gap: 6px;
 }
-.pb-game[data-mode='1p'] {
-  --pb-board-w: clamp(160px, min(calc(100vw - 116px), calc((100dvh - 148px) * 224 / 296)), 580px);
+.sb-game[data-mode='1p'] {
+  --sb-board-w: clamp(160px, min(calc(100vw - 116px), calc((100dvh - 148px) * 224 / 296)), 580px);
 }
-.pb-header {
+.sb-header {
   flex-wrap: wrap;
   width: min(1260px, 100%);
 }
-.pb-tally {
+.sb-tally {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   background: transparent;
   border: none;
@@ -1959,9 +1996,9 @@ a:visited { color: var(--accent-weak-text); }
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
   font-variant-numeric: tabular-nums;
-  color: var(--tetromino-o);
+  color: var(--prism-4);
 }
-.pb-boards {
+.sb-boards {
   flex: 1;
   width: 100%;
   min-height: 0;
@@ -1970,11 +2007,11 @@ a:visited { color: var(--accent-weak-text); }
   justify-content: center;
   gap: 12px;
 }
-.pb-player-card {
-  width: calc(var(--pb-board-w) + var(--pb-side-w) + var(--pb-gap));
-  min-width: calc(var(--pb-board-w) + var(--pb-side-w) + var(--pb-gap));
-  max-width: calc(var(--pb-board-w) + var(--pb-side-w) + var(--pb-gap));
-  flex: 0 0 calc(var(--pb-board-w) + var(--pb-side-w) + var(--pb-gap));
+.sb-player-card {
+  width: calc(var(--sb-board-w) + var(--sb-side-w) + var(--sb-gap));
+  min-width: calc(var(--sb-board-w) + var(--sb-side-w) + var(--sb-gap));
+  max-width: calc(var(--sb-board-w) + var(--sb-side-w) + var(--sb-gap));
+  flex: 0 0 calc(var(--sb-board-w) + var(--sb-side-w) + var(--sb-gap));
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -1983,7 +2020,7 @@ a:visited { color: var(--accent-weak-text); }
   border-radius: var(--radius);
   padding: 0;
 }
-.pb-player-header {
+.sb-player-header {
   width: 100%;
   height: 30px;
   flex-shrink: 0;
@@ -1997,34 +2034,27 @@ a:visited { color: var(--accent-weak-text); }
   box-shadow: none;
   overflow: hidden;
 }
-.pb-player-id {
+.sb-player-id {
   display: flex;
   align-items: center;
   gap: 8px;
   min-width: 0;
 }
-.pb-up-badge {
+.sb-slot-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 2px 6px;
+  padding: 2px 7px;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
   letter-spacing: 0.04em;
-  border: 1.5px solid var(--cabinet-bg);
-  border-radius: var(--radius-xs);
-  color: var(--cabinet-bg);
-  background: var(--tetromino-o);
+  border-radius: var(--radius-pill);
+  color: var(--stage-bg);
+  background: var(--prism-4);
   flex-shrink: 0;
 }
-.pb-up-badge.pb-up-1 {
-  background: var(--tetromino-s);
-}
-.pb-up-badge.pb-up-2 {
-  background: var(--tetromino-i);
-}
-.pb-status-pills {
+.sb-status-pills {
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -2032,38 +2062,38 @@ a:visited { color: var(--accent-weak-text); }
   flex-shrink: 0;
   white-space: nowrap;
 }
-.pb-status-pills .badge {
+.sb-status-pills .badge {
   border: none;
   background: transparent;
-  color: var(--tetromino-o);
+  color: var(--prism-4);
   padding: 1px 4px;
 }
-.pb-status-pills .badge.problem {
-  color: var(--tetromino-z);
+.sb-status-pills .badge.problem {
+  color: var(--prism-1);
 }
-.pb-orbs {
+.sb-orbs {
   display: inline-flex;
   align-items: center;
   gap: 3px;
   margin-left: 5px;
   vertical-align: middle;
 }
-.pb-orb {
+.sb-orb {
   display: inline-block;
   width: 8px;
   height: 8px;
   border-radius: var(--radius-pill);
   border: 1px solid var(--text);
 }
-.pb-orb-yellow {
-  background: var(--tetromino-o);
+.sb-orb-yellow {
+  background: var(--prism-4);
 }
-.pb-orb-red {
+.sb-orb-red {
   width: 10px;
   height: 10px;
-  background: var(--tetromino-z);
+  background: var(--prism-1);
 }
-.pb-player-title {
+.sb-player-title {
   display: block;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--text-base);
@@ -2073,93 +2103,35 @@ a:visited { color: var(--accent-weak-text); }
   color: var(--text);
   white-space: nowrap;
 }
-.pb-player-controls {
-  display: block;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: var(--text-xs);
-  color: var(--muted);
-  white-space: nowrap;
-}
-.pb-char-bar {
-  width: 100%;
-  height: 28px;
-  flex-shrink: 0;
+.sb-arena-row {
+  width: calc(var(--sb-board-w) + var(--sb-side-w) + var(--sb-gap));
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  padding: 0 4px;
-  background: transparent;
-  border: none;
-  overflow: hidden;
-  white-space: nowrap;
-}
-.pb-char-label {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: var(--text-xs);
-  color: var(--muted);
-  font-weight: var(--weight-semibold);
-  letter-spacing: 0.06em;
-}
-.pb-char-options {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-}
-.pb-char-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 3px 5px;
-  min-height: 22px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: var(--text-xs);
-  font-weight: var(--weight-semibold);
-  line-height: 1.1;
-  border-radius: var(--radius-xs);
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--text);
-  opacity: 0.55;
-}
-.pb-char-btn:hover {
-  border-color: transparent;
-  background: transparent;
-  opacity: 0.9;
-}
-.pb-char-btn.is-selected {
-  background: var(--touch-overlay-active-bg);
-  border-color: transparent;
-  color: var(--tetromino-o);
-  font-weight: var(--weight-semibold);
-  opacity: 1;
-}
-.pb-char-icon {
-  display: inline-block;
-  flex-shrink: 0;
-}
-.pb-arena-row {
-  width: calc(var(--pb-board-w) + var(--pb-side-w) + var(--pb-gap));
-  display: flex;
-  gap: var(--pb-gap);
+  gap: var(--sb-gap);
   align-items: stretch;
   justify-content: space-between;
 }
-.pb-board {
-  width: var(--pb-board-w);
-  height: calc(var(--pb-board-w) * 296 / 224);
-  flex: 0 0 var(--pb-board-w);
+.sb-board {
+  width: var(--sb-board-w);
+  height: calc(var(--sb-board-w) * 296 / 224);
+  flex: 0 0 var(--sb-board-w);
   display: block;
-  background: var(--cabinet-well);
-  border: 3px solid var(--cabinet-bezel);
-  border-radius: var(--radius-sm);
+  background: var(--stage-well);
+  border: 2px solid var(--stage-bezel);
+  border-radius: var(--radius);
   box-shadow: var(--elevation-panel-centred);
   touch-action: none;
   user-select: none;
   cursor: crosshair;
 }
-.pb-touch-bar,
-.tetris-touch-bar {
+.sb-touch-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding-top: 2px;
+}
+.sb-touch-bar,
+.stack-touch-bar {
   width: 100%;
   display: flex;
   align-items: center;
@@ -2173,11 +2145,11 @@ a:visited { color: var(--accent-weak-text); }
   padding: 2px 4px;
   box-shadow: none;
 }
-.pb-touch-bar {
+.sb-touch-bar {
   height: 48px;
   flex-shrink: 0;
 }
-.tetris-touch-bar {
+.stack-touch-bar {
   height: 52px;
 }
 .touch-cluster {
@@ -2186,7 +2158,7 @@ a:visited { color: var(--accent-weak-text); }
   gap: 8px;
   pointer-events: auto;
 }
-button.pb-touch-btn {
+button.sb-touch-btn {
   width: 44px;
   height: 44px;
   min-width: 44px;
@@ -2211,35 +2183,34 @@ button.pb-touch-btn {
   pointer-events: auto;
   transition: transform 90ms ease, background-color 90ms ease, border-color 90ms ease;
 }
-button.pb-touch-btn.pb-touch-rocker {
+button.sb-touch-btn.sb-touch-rocker {
   background: var(--touch-overlay-bg);
   border-color: var(--touch-overlay-border);
   color: var(--touch-overlay-text);
 }
-button.pb-touch-btn.pb-touch-rotate {
+button.sb-touch-btn.sb-touch-rotate {
   border-radius: var(--radius-pill);
   background: var(--touch-overlay-rotate-bg);
   border-color: var(--touch-overlay-rotate-border);
   color: var(--touch-overlay-text);
 }
-button.pb-touch-btn:active:not(:disabled) {
+button.sb-touch-btn:active:not(:disabled) {
   background: var(--touch-overlay-active-bg);
-  border-color: var(--tetromino-o);
-  color: var(--tetromino-o);
+  border-color: var(--prism-4);
+  color: var(--prism-4);
   transform: scale(1.1);
 }
-button.pb-touch-fire {
+button.sb-touch-fire {
   border-radius: var(--radius-pill);
   background: var(--touch-overlay-fire-bg);
   border: 1px solid var(--touch-overlay-fire-border);
   color: var(--touch-overlay-text);
 }
-.tetris .tetris-scene.sr-only {
+.stack-stage .stack-scene.sr-only {
   padding: 0;
   border: none;
   background: transparent;
 }
-/* #248, #252: 3, 2, 1 Arcade Countdown & HURRY UP! plain arcade text overlays. */
 .arcade-countdown-backdrop {
   position: fixed;
   inset: 0;
@@ -2261,10 +2232,7 @@ button.pb-touch-fire {
   white-space: nowrap;
   transform: scale(1.35);
 }
-.tetris-board {
-  position: relative;
-}
-.tetris-board .arcade-countdown-backdrop {
+.stack-board .arcade-countdown-backdrop {
   position: absolute;
   inset: 0;
 }
@@ -2275,7 +2243,7 @@ button.pb-touch-fire {
   padding: 0;
   border: none;
   background: transparent;
-  color: var(--tetromino-o);
+  color: var(--prism-4);
   font-family: var(--font-arcade-display);
   font-size: var(--text-display);
   font-weight: var(--weight-semibold);
@@ -2286,26 +2254,9 @@ button.pb-touch-fire {
   transform: scale(1.85);
 }
 .arcade-countdown-backdrop[data-phase='go'] .arcade-countdown-digit {
-  color: var(--tetromino-s);
+  color: var(--prism-3);
   transform: scale(2.05);
 }
-.arcade-center-text {
-  position: absolute;
-  inset: 0;
-  z-index: 6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  font-family: var(--font-arcade-display);
-  font-size: var(--text-display);
-  font-weight: var(--weight-semibold);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.06em;
-  color: var(--tetromino-z);
-  transform: scale(1.25);
-}
-/* #237, #248: In-game arcade Pause / Mode / Ready Menu modal overlay. */
 .game-pause-backdrop {
   position: fixed;
   inset: 0;
@@ -2346,7 +2297,7 @@ button.pb-touch-fire {
   font-weight: var(--weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--tetromino-o);
+  color: var(--prism-4);
 }
 .game-pause-copy {
   margin: 0;
@@ -2386,7 +2337,7 @@ button.pb-touch-fire {
   font-weight: var(--weight-semibold);
 }
 .netplay-ready-pill.is-ready {
-  color: var(--tetromino-s);
+  color: var(--prism-3);
 }
 .game-pause-actions {
   display: flex;
@@ -2404,63 +2355,39 @@ button.pb-touch-fire {
 }
 .game-pause-menu button.is-menu-focused,
 .game-pause-menu button[data-menu-focused='true'] {
-  outline: 2px solid var(--tetromino-o);
+  outline: 2px solid var(--prism-4);
   outline-offset: 2px;
-  border-color: var(--tetromino-o);
+  border-color: var(--prism-4);
   box-shadow: 0 0 0 3px var(--accent-weak);
 }
-.pb-side {
-  width: var(--pb-side-w);
-  min-width: var(--pb-side-w);
-  max-width: var(--pb-side-w);
-  height: calc(var(--pb-board-w) * 296 / 224);
-  flex: 0 0 var(--pb-side-w);
+.sb-side {
+  width: var(--sb-side-w);
+  min-width: var(--sb-side-w);
+  max-width: var(--sb-side-w);
+  height: calc(var(--sb-board-w) * 296 / 224);
+  flex: 0 0 var(--sb-side-w);
   padding: 6px;
   border: none;
   overflow: hidden;
   justify-content: space-between;
 }
-.pb-side .tetris-stat {
+.sb-side .stack-stat {
   padding: 2px 4px;
 }
-.pb-side .tetris-label {
+.sb-side .stack-label {
   letter-spacing: 0.02em;
 }
-.pb-score-slot {
+.sb-score-slot {
   border-color: transparent;
 }
-.pb-score-value {
-  color: var(--tetromino-o);
+.sb-score-value {
+  color: var(--prism-4);
 }
-.pb-next-dome {
+.sb-next-dome {
   align-items: center;
   padding: 2px 4px;
 }
-.pb-dino-coach {
-  display: flex;
-  align-items: flex-start;
-  padding: 2px 0;
-  border: none;
-  background: transparent;
-  box-shadow: none;
-}
-.pb-dino-coach-text {
-  font-size: var(--text-xs);
-  line-height: 1.35;
-  color: var(--muted);
-  word-break: break-word;
-}
-.pb-dino-coach-match .pb-dino-coach-text,
-.pb-dino-coach-combo .pb-dino-coach-text,
-.pb-dino-coach-win .pb-dino-coach-text {
-  color: var(--accent-weak-text);
-  font-weight: var(--weight-semibold);
-}
-.pb-dino-coach-danger .pb-dino-coach-text {
-  color: var(--problem);
-  font-weight: var(--weight-semibold);
-}
-.pb-next-orb-well {
+.sb-next-orb-well {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2470,194 +2397,156 @@ button.pb-touch-fire {
   background: transparent;
   border: none;
 }
-.pb-telemetry-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px;
-}
-.pb-stat-small {
+.sb-stat-small {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.pb-combo-bar {
-  width: 100%;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 4px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: var(--text-xs);
-  font-weight: var(--weight-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--tetromino-o);
-  background: transparent;
-  border: none;
-  border-radius: var(--radius-xs);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.pb-combo-bar.is-active {
-  font-weight: var(--weight-semibold);
-  color: var(--accent-weak-text);
-  background: var(--accent-weak);
-  border-color: var(--accent);
-}
-.pb-combo-bar.pb-combo-cry {
-  color: var(--problem);
-  background: var(--problem-weak);
-  border-color: var(--problem-border);
-}
-.pb-banner {
+.sb-banner {
   background: var(--surface);
   border-radius: var(--radius);
 }
-.pb-mascot {
+.sb-mascot {
   transform-box: fill-box;
   transform-origin: center bottom;
 }
-.pb-mascot-normal {
-  animation: pb-mascot-idle 1500ms ease-in-out infinite alternate;
+.sb-mascot-normal {
+  animation: sb-mascot-idle 1500ms ease-in-out infinite alternate;
 }
-.pb-mascot-cheer {
-  animation: pb-mascot-hop 340ms cubic-bezier(0.28, 0.85, 0.42, 1) infinite alternate;
+.sb-mascot-cheer {
+  animation: sb-mascot-hop 340ms cubic-bezier(0.28, 0.85, 0.42, 1) infinite alternate;
 }
-.pb-mascot-hurry {
-  animation: pb-mascot-panic 130ms linear infinite alternate;
+.sb-mascot-hurry {
+  animation: sb-mascot-panic 130ms linear infinite alternate;
 }
-.pb-mascot-celebrate {
-  animation: pb-mascot-victory 410ms cubic-bezier(0.25, 0.9, 0.35, 1) infinite alternate;
+.sb-mascot-celebrate {
+  animation: sb-mascot-victory 410ms cubic-bezier(0.25, 0.9, 0.35, 1) infinite alternate;
 }
-.pb-mascot-cry {
-  animation: pb-mascot-sob 320ms ease-in-out infinite alternate;
+.sb-mascot-cry {
+  animation: sb-mascot-sob 320ms ease-in-out infinite alternate;
 }
-.pb-mascot-tail {
-  animation: pb-tail-wag 920ms ease-in-out infinite alternate;
+.sb-mascot-tail {
+  animation: sb-tail-wag 920ms ease-in-out infinite alternate;
 }
-.pb-mascot-cheer .pb-mascot-tail,
-.pb-mascot-celebrate .pb-mascot-tail {
+.sb-mascot-cheer .sb-mascot-tail,
+.sb-mascot-celebrate .sb-mascot-tail {
   animation-duration: 280ms;
 }
-.pb-mascot-ear-left {
-  animation: pb-ear-bounce-left 1500ms ease-in-out infinite alternate;
+.sb-mascot-ear-left {
+  animation: sb-ear-bounce-left 1500ms ease-in-out infinite alternate;
 }
-.pb-mascot-ear-right {
-  animation: pb-ear-bounce-right 1500ms ease-in-out 180ms infinite alternate;
+.sb-mascot-ear-right {
+  animation: sb-ear-bounce-right 1500ms ease-in-out 180ms infinite alternate;
 }
-.pb-mascot-cheer-arm {
+.sb-mascot-cheer-arm {
   transform-box: fill-box;
   transform-origin: left bottom;
-  animation: pb-cheer-arm-pump 300ms ease-in-out infinite alternate;
+  animation: sb-cheer-arm-pump 300ms ease-in-out infinite alternate;
 }
-.pb-mascot-eyes-open {
-  animation: pb-eyes-open-cycle 4200ms steps(1, end) infinite;
+.sb-mascot-eyes-open {
+  animation: sb-eyes-open-cycle 4200ms steps(1, end) infinite;
 }
-.pb-mascot-eyes-blink {
+.sb-mascot-eyes-blink {
   opacity: 0;
-  animation: pb-eyes-blink-cycle 4200ms steps(1, end) infinite;
+  animation: sb-eyes-blink-cycle 4200ms steps(1, end) infinite;
 }
-.pb-mascot-sparkle {
+.sb-mascot-sparkle {
   transform-box: fill-box;
   transform-origin: center;
-  animation: pb-sparkle-twinkle 480ms ease-in-out infinite alternate;
+  animation: sb-sparkle-twinkle 480ms ease-in-out infinite alternate;
 }
-.pb-mascot-sparkle-2 {
+.sb-mascot-sparkle-2 {
   animation-delay: 180ms;
 }
-.pb-mascot-tear {
-  animation: pb-tear-fall 520ms linear infinite;
+.sb-mascot-tear {
+  animation: sb-tear-fall 520ms linear infinite;
 }
-.pb-mascot-tear-right {
+.sb-mascot-tear-right {
   animation-delay: 240ms;
 }
-.pb-mascot-tear-splash {
+.sb-mascot-tear-splash {
   animation-delay: 120ms;
 }
-.pb-mascot-sweat {
-  animation: pb-tear-fall 440ms linear infinite;
+.sb-mascot-sweat {
+  animation: sb-tear-fall 440ms linear infinite;
 }
-.pb-pop-ring {
+.sb-pop-ring {
   transform-box: fill-box;
   transform-origin: center;
-  animation: pb-pop-expand 380ms ease-out forwards;
+  animation: sb-pop-expand 380ms ease-out forwards;
 }
-.pb-drop-bubble {
-  animation: pb-bubble-fall 460ms ease-in forwards;
+.sb-drop-star {
+  animation: sb-star-fall 460ms ease-in forwards;
 }
-.pb-cluster-warning {
-  /* #186: half the magnitude (±0.5px) and double the frequency (90ms) for a
-     tight, high-frequency arcade tremor one shot before the ceiling descends. */
-  animation: pb-cluster-tremor 90ms linear infinite alternate;
+.sb-cluster-warning {
+  animation: sb-cluster-tremor 90ms linear infinite alternate;
 }
-.pb-incoming-preview-bubble {
-  animation: pb-incoming-bob 360ms ease-in-out infinite alternate;
+.sb-incoming-preview-star {
+  animation: sb-incoming-float 360ms ease-in-out infinite alternate;
 }
-.pb-rise-bubble {
-  --pb-rise-from: 180px;
-  animation: pb-bubble-rise 420ms cubic-bezier(0.2, 0.9, 0.25, 1) both;
+.sb-rise-star {
+  --sb-rise-from: 180px;
+  animation: sb-star-rise 420ms cubic-bezier(0.2, 0.9, 0.25, 1) both;
 }
-.pb-rise-trail {
+.sb-rise-trail {
   opacity: 0;
-  animation: pb-trail-flash 380ms ease-out forwards;
+  animation: sb-trail-flash 380ms ease-out forwards;
 }
-@keyframes pb-mascot-idle {
+@keyframes sb-mascot-idle {
   from { transform: translateY(0) scale(1.015, 0.985); }
   to { transform: translateY(-1.4px) scale(0.99, 1.02); }
 }
-@keyframes pb-mascot-hop {
+@keyframes sb-mascot-hop {
   from { transform: translateY(0.4px) scale(1.03, 0.97) rotate(-2deg); }
   to { transform: translateY(-2.4px) scale(0.98, 1.03) rotate(3deg); }
 }
-@keyframes pb-mascot-panic {
+@keyframes sb-mascot-panic {
   from { transform: translateX(-1.2px) translateY(0); }
   to { transform: translateX(1.2px) translateY(-1.5px); }
 }
-@keyframes pb-mascot-victory {
+@keyframes sb-mascot-victory {
   0% { transform: translateY(0) scale(1.04, 0.94) rotate(-5deg); }
   100% { transform: translateY(-7px) scale(0.97, 1.06) rotate(6deg); }
 }
-@keyframes pb-mascot-sob {
+@keyframes sb-mascot-sob {
   0% { transform: translateY(1.5px) scale(1.03, 0.94) rotate(-2deg); }
   100% { transform: translateY(3.2px) scale(0.98, 0.9) rotate(2deg); }
 }
-@keyframes pb-tail-wag {
+@keyframes sb-tail-wag {
   from { transform: rotate(-6deg); }
   to { transform: rotate(8deg); }
 }
-@keyframes pb-ear-bounce-left {
+@keyframes sb-ear-bounce-left {
   from { transform: rotate(-3.5deg); }
   to { transform: rotate(2.5deg); }
 }
-@keyframes pb-ear-bounce-right {
+@keyframes sb-ear-bounce-right {
   from { transform: rotate(3.5deg); }
   to { transform: rotate(-2.5deg); }
 }
-@keyframes pb-cheer-arm-pump {
+@keyframes sb-cheer-arm-pump {
   from { transform: rotate(-8deg) translateY(0.5px); }
   to { transform: rotate(10deg) translateY(-1.8px); }
 }
-@keyframes pb-eyes-open-cycle {
+@keyframes sb-eyes-open-cycle {
   0%, 93.9%, 97.6%, 100% { opacity: 1; }
   94%, 97.5% { opacity: 0; }
 }
-@keyframes pb-eyes-blink-cycle {
+@keyframes sb-eyes-blink-cycle {
   0%, 93.9%, 97.6%, 100% { opacity: 0; }
   94%, 97.5% { opacity: 1; }
 }
-@keyframes pb-sparkle-twinkle {
+@keyframes sb-sparkle-twinkle {
   from { transform: translateY(0) scale(0.82); opacity: 0.75; }
   to { transform: translateY(-3px) scale(1.18); opacity: 1; }
 }
-@keyframes pb-tear-fall {
+@keyframes sb-tear-fall {
   0% { transform: translateY(0); opacity: 0.95; }
   100% { transform: translateY(9px); opacity: 0.15; }
 }
-@keyframes pb-pop-expand {
+@keyframes sb-pop-expand {
   from {
     transform: scale(0.75);
     opacity: 0.95;
@@ -2667,7 +2556,7 @@ button.pb-touch-fire {
     opacity: 0;
   }
 }
-@keyframes pb-bubble-fall {
+@keyframes sb-star-fall {
   from {
     transform: translateY(0);
     opacity: 0.95;
@@ -2677,23 +2566,23 @@ button.pb-touch-fire {
     opacity: 0;
   }
 }
-@keyframes pb-cluster-tremor {
+@keyframes sb-cluster-tremor {
   from { transform: translateX(-0.5px); }
   to { transform: translateX(0.5px); }
 }
-@keyframes pb-incoming-bob {
+@keyframes sb-incoming-float {
   from { transform: translateY(1.5px); }
   to { transform: translateY(-1.5px); }
 }
-@keyframes pb-bubble-rise {
+@keyframes sb-star-rise {
   from {
-    transform: translateY(var(--pb-rise-from, 180px));
+    transform: translateY(var(--sb-rise-from, 180px));
   }
   to {
     transform: translateY(0);
   }
 }
-@keyframes pb-trail-flash {
+@keyframes sb-trail-flash {
   0% {
     opacity: 0.6;
   }
@@ -2702,48 +2591,47 @@ button.pb-touch-fire {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .pb-mascot-normal,
-  .pb-mascot-cheer,
-  .pb-mascot-hurry,
-  .pb-mascot-celebrate,
-  .pb-mascot-cry,
-  .pb-mascot-tail,
-  .pb-mascot-ear-left,
-  .pb-mascot-ear-right,
-  .pb-mascot-cheer-arm,
-  .pb-mascot-eyes-open,
-  .pb-mascot-eyes-blink,
-  .pb-mascot-sparkle,
-  .pb-mascot-tear,
-  .pb-mascot-sweat,
-  .pb-pop-ring,
-  .pb-drop-bubble,
-  .pb-cluster-warning,
-  .pb-incoming-preview-bubble,
-  .pb-rise-bubble,
-  .pb-rise-trail,
+  .sb-mascot-normal,
+  .sb-mascot-cheer,
+  .sb-mascot-hurry,
+  .sb-mascot-celebrate,
+  .sb-mascot-cry,
+  .sb-mascot-tail,
+  .sb-mascot-ear-left,
+  .sb-mascot-ear-right,
+  .sb-mascot-cheer-arm,
+  .sb-mascot-eyes-open,
+  .sb-mascot-eyes-blink,
+  .sb-mascot-sparkle,
+  .sb-mascot-tear,
+  .sb-mascot-sweat,
+  .sb-pop-ring,
+  .sb-drop-star,
+  .sb-cluster-warning,
+  .sb-incoming-preview-star,
+  .sb-rise-star,
+  .sb-rise-trail,
   .ambient-orb-1,
   .ambient-orb-2,
   .ambient-orb-3,
   .yolo-mark__motion,
   .deck-slide-card.is-sliding-next,
   .deck-slide-card.is-sliding-prev,
-  .deck-tetris-falling-piece,
-  .deck-tetris-line-flash,
-  .deck-pb-aim-sweep,
-  .deck-pb-flying-bubble,
-  .deck-pb-pop-ring {
+  .deck-prism-falling-piece,
+  .deck-prism-line-flash,
+  .deck-sb-aim-sweep,
+  .deck-sb-flying-star,
+  .deck-sb-pop-ring {
     animation: none;
   }
-  .pb-pop-ring,
-  .pb-drop-bubble,
-  .pb-rise-trail {
+  .sb-pop-ring,
+  .sb-drop-star,
+  .sb-rise-trail {
     display: none;
   }
 }
 
-/* #236: 2-Player Online Presence Pill, Corner Invite Toast, Tetris Garbage
-   Meter, and Opponent Mini-Radar. */
+/* #236, #352: 2-Player Online Presence Pill, Corner Invite Toast, and Prism Hazard Meter. */
 .arcade-download-dock {
   position: fixed;
   top: 14px;
@@ -2910,7 +2798,7 @@ button.passkey-handoff-copy-btn:hover {
 .canvas.is-playing .online-presence-pill {
   background: transparent;
   border-color: transparent;
-  color: var(--cabinet-text);
+  color: var(--stage-text);
 }
 .netplay-online-dot {
   display: inline-block;
@@ -3009,169 +2897,35 @@ button.passkey-handoff-copy-btn:hover {
   font-size: var(--text-xs);
   color: var(--muted);
 }
-.tetris-garbage-meter {
+.stack-hazard-meter {
   display: grid;
-  grid-template-rows: repeat(20, var(--tetris-cell-size));
+  grid-template-rows: repeat(18, var(--stack-cell-size));
   width: 10px;
-  gap: 1px;
-  padding: 3px 2px;
+  gap: 2px;
+  padding: 4px 2px;
   border-radius: var(--radius-xs);
   border: 1px solid var(--border);
-  background: var(--cabinet-well);
+  background: var(--stage-well);
   align-self: center;
 }
-.tetris-garbage-segment {
+.stack-hazard-segment {
   width: 100%;
   height: 100%;
   border-radius: 1px;
   background: var(--cell-empty);
 }
-.tetris-garbage-segment.is-active {
-  background: var(--tetromino-z);
-}
-.netplay-radar-card {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 5px;
-  border-radius: var(--radius-xs);
-  border: 1px solid var(--border);
-  background: var(--field);
-}
-.netplay-radar-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px;
-}
-.netplay-radar-name {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: var(--text-xs);
-  font-weight: var(--weight-semibold);
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.stack-hazard-segment.is-active {
+  background: var(--prism-1);
 }
 .netplay-radar-badge {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
-  color: var(--tetromino-s);
+  color: var(--prism-3);
   flex-shrink: 0;
 }
 .netplay-radar-badge.is-ko {
-  color: var(--tetromino-z);
-}
-.tetris-radar-grid {
-  position: relative;
-  overflow: hidden;
-  display: grid;
-  grid-template-columns: repeat(10, 6px);
-  grid-auto-rows: 5px;
-  gap: 1px;
-  padding: 2px;
-  border-radius: 2px;
-  border: 1px solid var(--border);
-  background: var(--cabinet-well);
-  align-self: center;
-  transition: border-color 220ms ease;
-}
-.tetris-radar-grid.is-clearing {
-  border-color: var(--tetromino-o);
-  animation: tetris-radar-flash 420ms ease-out;
-}
-.tetris-radar-grid.is-rising-garbage {
-  animation: tetris-radar-rise 420ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-@keyframes tetris-radar-flash {
-  0% { filter: brightness(1.85); }
-  100% { filter: brightness(1); }
-}
-@keyframes tetris-radar-rise {
-  0% { transform: translateY(8px); }
-  100% { transform: translateY(0); }
-}
-.tetris-radar-cell {
-  background: var(--cell-empty);
-  border-radius: 1px;
-  transition: background-color 180ms ease;
-}
-.tetris-radar-cell.tetromino-i,
-.tetris-radar-active-cell.tetromino-i { background: var(--tetromino-i); }
-.tetris-radar-cell.tetromino-j,
-.tetris-radar-active-cell.tetromino-j { background: var(--tetromino-j); }
-.tetris-radar-cell.tetromino-l,
-.tetris-radar-active-cell.tetromino-l { background: var(--tetromino-l); }
-.tetris-radar-cell.tetromino-o,
-.tetris-radar-active-cell.tetromino-o { background: var(--tetromino-o); }
-.tetris-radar-cell.tetromino-s,
-.tetris-radar-active-cell.tetromino-s { background: var(--tetromino-s); }
-.tetris-radar-cell.tetromino-t,
-.tetris-radar-active-cell.tetromino-t { background: var(--tetromino-t); }
-.tetris-radar-cell.tetromino-z,
-.tetris-radar-active-cell.tetromino-z { background: var(--tetromino-z); }
-.tetris-radar-cell.tetromino-g { background: var(--muted); }
-.tetris-radar-active-piece {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 27px;
-  height: 23px;
-  display: grid;
-  grid-template-columns: repeat(4, 6px);
-  grid-auto-rows: 5px;
-  gap: 1px;
-  pointer-events: none;
-  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-.tetris-radar-active-cell {
-  border-radius: 1px;
-}
-.pb-radar-card {
-  padding: 3px;
-  gap: 2px;
-}
-.pb-radar-svg {
-  width: 100%;
-  max-height: 82px;
-  display: block;
-  border-radius: 2px;
-  border: 1px solid var(--border);
-  background: var(--cabinet-well);
-}
-.pb-radar-aim-group {
-  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-.pb-radar-flying-bubble {
-  transition: cx 240ms linear, cy 240ms linear;
-}
-.pb-radar-pop-fx {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: pb-radar-pop 440ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.pb-radar-drop-fx {
-  animation: pb-radar-drop 480ms cubic-bezier(0.4, 0, 1, 1) forwards;
-}
-@keyframes pb-radar-pop {
-  0% { transform: scale(1); opacity: 1; }
-  45% { transform: scale(1.65); opacity: 0.85; }
-  100% { transform: scale(0.1); opacity: 0; }
-}
-@keyframes pb-radar-drop {
-  0% { transform: translateY(0); opacity: 1; }
-  100% { transform: translateY(38px); opacity: 0; }
-}
-.netplay-radar-stats {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: var(--text-xs);
-  font-variant-numeric: tabular-nums;
-  color: var(--tetromino-o);
+  color: var(--prism-1);
 }
 
 /* The theme control. A segmented group, so every option is visible rather than
@@ -3211,43 +2965,38 @@ button.passkey-handoff-copy-btn:hover {
   .canvas-prompt { white-space: normal; }
 }
 @media (max-width: 920px) {
-  /* #212, #222, #226: On tablet portrait (600x960, 744x1133, 768x1024, 820x1180),
-     scale both 2P player cards dynamically to fit side-by-side without wrapping. */
   .canvas { padding: 12px 6px; gap: 10px; }
-  .tetris.pb-game {
-    --pb-side-w: 84px;
-    --pb-gap: 4px;
-    --pb-board-w: clamp(148px, min(calc(50vw - 98px), calc((100dvh - 172px) * 224 / 296)), 520px);
+  .stack-stage.sb-game {
+    --sb-side-w: 84px;
+    --sb-gap: 4px;
+    --sb-board-w: clamp(148px, min(calc(50vw - 98px), calc((100dvh - 172px) * 224 / 296)), 520px);
     padding: 6px 4px;
     gap: 5px;
   }
-  .tetris.pb-game[data-mode='1p'] {
-    --pb-board-w: clamp(160px, min(calc(100vw - 104px), calc((100dvh - 172px) * 224 / 296)), 560px);
+  .stack-stage.sb-game[data-mode='1p'] {
+    --sb-board-w: clamp(160px, min(calc(100vw - 104px), calc((100dvh - 172px) * 224 / 296)), 560px);
   }
-  .pb-boards { gap: 6px; }
-  .pb-char-btn { padding: 2px 4px; }
+  .sb-boards { gap: 6px; }
 }
 @media (max-height: 540px) {
-  /* #222, #226: When browser toolbars (e.g. MS Edge tabs + address bar on a landscape tablet)
-     compress vertical viewport height, tighten vertical spacing and scale boards to fit. */
-  .tetris {
-    --tetris-cell-size: clamp(14px, min(calc((100dvh - 120px) / 20), calc((100vw - 156px) / 10)), 42px);
+  .stack-stage {
+    --stack-cell-size: clamp(14px, min(calc((100dvh - 136px) / 18), calc((100vw - 156px) / 9)), 42px);
     padding: 4px 8px;
     gap: 4px;
   }
-  .tetris.pb-game {
-    --pb-board-w: clamp(140px, min(calc(50vw - 108px), calc((100dvh - 122px) * 224 / 296)), 520px);
+  .stack-stage.sb-game {
+    --sb-board-w: clamp(140px, min(calc(50vw - 108px), calc((100dvh - 122px) * 224 / 296)), 520px);
   }
-  .tetris.pb-game[data-mode='1p'] {
-    --pb-board-w: clamp(140px, min(calc(100vw - 110px), calc((100dvh - 122px) * 224 / 296)), 560px);
+  .stack-stage.sb-game[data-mode='1p'] {
+    --sb-board-w: clamp(140px, min(calc(100vw - 110px), calc((100dvh - 122px) * 224 / 296)), 560px);
   }
-  .tetris-header { gap: 6px; padding: 2px 44px 2px 4px; }
-  .tetris-header .row { gap: 4px; }
-  .tetris-header button { padding: 2px 7px; }
-  .tetris-help,
-  .tetris-scene { display: none; }
-  .pb-touch-bar { height: 36px; }
-  button.pb-touch-btn { min-height: 32px; padding: 2px 8px; }
+  .stack-header { gap: 6px; padding: 2px 44px 2px 4px; }
+  .stack-header .row { gap: 4px; }
+  .stack-header button { padding: 2px 7px; }
+  .stack-help,
+  .stack-scene { display: none; }
+  .sb-touch-bar { height: 36px; }
+  button.sb-touch-btn { min-height: 32px; padding: 2px 8px; }
 }
 @media (max-width: 720px) {
   .deck-slide-card {
@@ -3262,34 +3011,37 @@ button.passkey-handoff-copy-btn:hover {
   .canvas-prompt {
     display: none;
   }
-  .tetris-help {
+  .stack-help {
     display: none;
   }
 }
 @media (max-width: 559px) {
   .canvas { padding: 8px 6px; gap: 8px; }
-  .tetris {
-    --tetris-cell-size: clamp(18px, min(calc((100dvh - 168px) / 20), calc((100vw - 132px) / 10)), 34px);
+  .stack-stage {
+    --stack-cell-size: clamp(18px, min(calc((100dvh - 184px) / 18), calc((100vw - 132px) / 9)), 34px);
     margin: 0;
     padding: 6px;
     gap: 4px;
     justify-content: space-between;
   }
-  .tetris.pb-game[data-mode='1p'] {
-    --pb-board-w: clamp(180px, min(calc(100vw - 16px), calc((100dvh - 224px) * 224 / 296)), 430px);
+  .stack-stage[data-mode='2p'] {
+    --stack-cell-size: clamp(10px, min(calc((100dvh - 200px) / 18), calc((50vw - 88px) / 9)), 20px);
   }
-  .tetris.pb-game[data-mode='1p'] .pb-player-card,
-  .tetris.pb-game[data-mode='1p'] .pb-arena-row {
-    width: var(--pb-board-w);
-    min-width: var(--pb-board-w);
-    max-width: var(--pb-board-w);
+  .stack-stage.sb-game[data-mode='1p'] {
+    --sb-board-w: clamp(180px, min(calc(100vw - 16px), calc((100dvh - 224px) * 224 / 296)), 430px);
+  }
+  .stack-stage.sb-game[data-mode='1p'] .sb-player-card,
+  .stack-stage.sb-game[data-mode='1p'] .sb-arena-row {
+    width: var(--sb-board-w);
+    min-width: var(--sb-board-w);
+    max-width: var(--sb-board-w);
     flex-basis: auto;
   }
-  .tetris.pb-game[data-mode='1p'] .pb-arena-row {
+  .stack-stage.sb-game[data-mode='1p'] .sb-arena-row {
     flex-direction: column-reverse;
     gap: 4px;
   }
-  .tetris.pb-game[data-mode='1p'] .pb-side {
+  .stack-stage.sb-game[data-mode='1p'] .sb-side {
     width: 100%;
     min-width: 100%;
     max-width: 100%;
@@ -3300,23 +3052,13 @@ button.passkey-handoff-copy-btn:hover {
     gap: 4px;
     padding: 4px 6px;
   }
-  .tetris.pb-game[data-mode='1p'] .pb-next-dome,
-  .tetris.pb-game[data-mode='1p'] .pb-dino-coach,
-  .tetris.pb-game[data-mode='1p'] .pb-combo-bar {
+  .stack-stage.sb-game[data-mode='1p'] .sb-next-dome {
     display: none;
   }
-  .tetris.pb-game[data-mode='1p'] .pb-telemetry-grid {
-    display: flex;
-    flex: 1;
-    gap: 4px;
-  }
-  .tetris.pb-game[data-mode='1p'] .pb-telemetry-grid .tetris-stat {
-    flex: 1;
-  }
-  .tetris-header { padding: 2px 44px 2px 4px; gap: 4px; width: 100%; }
-  .pb-boards { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; }
-  .pb-touch-bar,
-  .tetris:not(.pb-game) .tetris-touch-bar {
+  .stack-header { padding: 2px 44px 2px 4px; gap: 4px; width: 100%; }
+  .sb-boards { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; }
+  .sb-touch-bar,
+  .stack-stage:not(.sb-game) .stack-touch-bar {
     position: fixed;
     left: 12px;
     right: 12px;
@@ -3327,7 +3069,7 @@ button.passkey-handoff-copy-btn:hover {
     z-index: 8;
     pointer-events: none;
   }
-  button.pb-touch-btn {
+  button.sb-touch-btn {
     width: 48px;
     height: 48px;
     min-width: 48px;

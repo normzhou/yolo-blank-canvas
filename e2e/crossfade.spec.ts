@@ -3,7 +3,7 @@ import { test, expect } from './fixtures';
 import { startStubApp } from './stub-server';
 
 /**
- * The backdrop crossfade, measured in the running app (#76, #90, consolidated in #201).
+ * The backdrop crossfade, measured in the running app (#76, #90, #201, #352).
  */
 
 const REMOVED_AT_OR_BELOW = 0.05;
@@ -18,12 +18,12 @@ interface Sample {
 
 async function sampleCrossfade(page: Page, settleMs = SETTLE_MS): Promise<Sample[]> {
   return page.evaluate(async (settleMs: number) => {
-    const art = document.querySelector('.tetris-art');
-    if (!art) throw new Error('no .tetris-art');
+    const art = document.querySelector('.stack-art');
+    if (!art) throw new Error('no .stack-art');
     const samples: Array<{ t: number; layers: number; opacities: number[] }> = [];
     const start = performance.now();
     const sample = () => {
-      const layers = Array.from(art.querySelectorAll('.tetris-art-layer')) as HTMLElement[];
+      const layers = Array.from(art.querySelectorAll('.stack-art-layer')) as HTMLElement[];
       samples.push({
         t: Math.round(performance.now() - start),
         layers: layers.length,
@@ -31,7 +31,7 @@ async function sampleCrossfade(page: Page, settleMs = SETTLE_MS): Promise<Sample
       });
     };
     sample();
-    window.setTimeout(() => window.dispatchEvent(new Event('yolo:tetris:four-line-clear')), 50);
+    window.setTimeout(() => window.dispatchEvent(new Event('yolo:prism:quad-clear')), 50);
     await new Promise<void>((resolve) => {
       const loop = () => {
         sample();
@@ -58,9 +58,9 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
       try {
         await page.setViewportSize({ width: 1280, height: 900 });
         await page.goto(stub.base);
-        await page.getByRole('button', { name: 'Tetris', exact: true }).click();
+        await page.getByRole('button', { name: 'Prism Stack', exact: true }).click();
         await page.getByTestId('deck-slide-card').click();
-        await expect(page.locator('.tetris-scene')).toContainText('Scene 1/');
+        await expect(page.locator('.stack-scene')).toContainText('Scene 1/');
 
         const samples = await sampleCrossfade(page);
         expect(samples.length, 'no frames sampled').toBeGreaterThan(10);
@@ -83,10 +83,10 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
             lastPair.opacities[0],
             'the past layer should be at rest, not mid-fade, under reduce',
           ).toBeCloseTo(RESTING_ART_OPACITY, 2);
-          await expect(page.locator('.tetris-art-layer.is-past')).toBeHidden();
+          await expect(page.locator('.stack-art-layer.is-past')).toBeHidden();
         }
 
-        await expect(page.locator('.tetris-scene')).toContainText('Scene 2/');
+        await expect(page.locator('.stack-scene')).toContainText('Scene 2/');
       } finally {
         stub.server.close();
       }

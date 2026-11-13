@@ -1,14 +1,14 @@
 import pkg from './package.json';
 import type { GamePackageDescriptor } from '../types';
 
-export const tetrisDescriptor: GamePackageDescriptor = {
-  id: 'tetris',
+export const prismStackDescriptor: GamePackageDescriptor = {
+  id: 'prism-stack',
   packageName: pkg.name,
   version: pkg.version,
-  title: 'Tetris',
-  summary: 'Clear lines. The board is local to this view.',
+  title: 'Prism Stack',
+  summary: 'Stack 9×18 crystal prisms and shatter hazard bars. Local to this view.',
   modeBadge: '1P & 2P Online',
-  controlsLabel: 'Tetris controls',
+  controlsLabel: 'Prism Stack controls',
   controls: [
     { keys: ['←', '→'], label: 'Move' },
     { keys: ['↑'], label: 'Rotate' },

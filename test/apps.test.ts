@@ -21,17 +21,17 @@ describe('canvas app registry', () => {
   });
 
   it('resolves a known app and refuses everything else', () => {
-    expect(canvasAppById('tetris')?.title).toBe('Tetris');
-    expect(canvasAppById('puzzle-bobble')?.title).toBe('Puzzle Bobble');
+    expect(canvasAppById('prism-stack')?.title).toBe('Prism Stack');
+    expect(canvasAppById('starlight-burst')?.title).toBe('Starlight Burst');
     expect(canvasAppById('unknown')).toBeNull();
     expect(canvasAppById(null)).toBeNull();
     expect(canvasAppById(undefined)).toBeNull();
     expect(canvasAppById('')).toBeNull();
   });
 
-  it('starts with Puzzle Bobble as the first canvas app and includes Tetris (#264)', () => {
-    expect(CANVAS_APPS[0]?.id).toBe('puzzle-bobble');
-    expect(CANVAS_APPS.map((app) => app.id)).toEqual(['puzzle-bobble', 'tetris']);
+  it('starts with Starlight Burst as the first canvas app and includes Prism Stack (#264, #352)', () => {
+    expect(CANVAS_APPS[0]?.id).toBe('starlight-burst');
+    expect(CANVAS_APPS.map((app) => app.id)).toEqual(['starlight-burst', 'prism-stack']);
   });
 
   it('keeps the static Cloudflare Worker config and local shared-identity preview aligned (#199)', () => {

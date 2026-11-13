@@ -1,33 +1,35 @@
 {
   "schemaVersion": 1,
   "games": {
-    "puzzle-bobble": {
-      "id": "puzzle-bobble",
-      "packageName": "@yolo-arcade/game-puzzle-bobble",
-      "version": "1.2.1",
-      "hash": "fecb28b252ee06f7bbb4f5a1af60db81015664d1ee57db75bc92a7bb132330ae",
-      "entry": "/games/puzzle-bobble-B7vELGfF.js",
+    "starlight-burst": {
+      "id": "starlight-burst",
+      "packageName": "@yolo-arcade/game-starlight-burst",
+      "version": "2.0.0",
+      "hash": "e8a4abd8c3c48551391d943d7c74e3d416d20fbd575b1fbd45a388344dbf5403",
+      "entry": "/games/starlight-burst-Do8Y9b_1.js",
       "chunks": [
         "/assets/vendor-react-W1izUqcL.js",
-        "/assets/arcade-runtime-DCN9D7fI.js",
-        "/assets/tetrisBackgrounds-BOeC-She.js",
-        "/games/puzzle-bobble-B7vELGfF.js"
+        "/assets/arcade-runtime-Dn0AqKyO.js",
+        "/assets/stageBackdrops-weYOhPsk.js",
+        "/assets/descriptor-O7Wa2ZCB.js",
+        "/games/starlight-burst-Do8Y9b_1.js"
       ],
-      "sizeBytes": 88200
+      "sizeBytes": 86069
     },
-    "tetris": {
-      "id": "tetris",
-      "packageName": "@yolo-arcade/game-tetris",
-      "version": "1.0.0",
-      "hash": "47d30e6c9db89d24ade29150c7c9735a1577504600e78cff4018dd4530d29017",
-      "entry": "/games/tetris-BQl6pEES.js",
+    "prism-stack": {
+      "id": "prism-stack",
+      "packageName": "@yolo-arcade/game-prism-stack",
+      "version": "2.0.0",
+      "hash": "626e03dff01c9c35fc089e57a3eb1cadcbc22a457effaa073e66a8398be98b01",
+      "entry": "/games/prism-stack-CD4fqDvv.js",
       "chunks": [
         "/assets/vendor-react-W1izUqcL.js",
-        "/assets/arcade-runtime-DCN9D7fI.js",
-        "/assets/tetrisBackgrounds-BOeC-She.js",
-        "/games/tetris-BQl6pEES.js"
+        "/assets/arcade-runtime-Dn0AqKyO.js",
+        "/assets/stageBackdrops-weYOhPsk.js",
+        "/assets/descriptor-DyGo3oQ3.js",
+        "/games/prism-stack-CD4fqDvv.js"
       ],
-      "sizeBytes": 35628
+      "sizeBytes": 36793
     }
   }
 }

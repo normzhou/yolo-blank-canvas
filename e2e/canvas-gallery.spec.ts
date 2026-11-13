@@ -2,12 +2,7 @@ import { test, expect } from './fixtures';
 import { startStubApp, type RunningStub } from './stub-server';
 
 /**
- * Canvas content gallery (#165).
- *
- * The first modular canvas app, Tetris, is reachable from the home canvas, from
- * `?app=tetris`, and from a keyboard palette. The assertions below are about the
- * shell contract, not the game: navigation is addressable, the palette is
- * transient, and Escape belongs to the top overlay.
+ * Canvas content gallery (#165, #352).
  */
 
 async function openPalette(page: import('@playwright/test').Page) {
@@ -15,34 +10,31 @@ async function openPalette(page: import('@playwright/test').Page) {
   return page.getByRole('dialog', { name: 'Canvas apps' });
 }
 
-/** Idle keep-alive sockets can keep `server.close()` waiting past the test timeout. */
 async function closeStub(stub: RunningStub) {
   stub.server.closeAllConnections();
   await new Promise<void>((resolve) => stub.server.close(() => resolve()));
 }
 
-test('the home gallery opens Tetris and the Pause Menu exits to the canvas (#237)', async ({ page }) => {
+test('the home gallery opens Prism Stack and the Pause Menu exits to the canvas (#237, #352)', async ({ page }) => {
   const stub = await startStubApp();
   try {
     await page.goto(stub.base);
     await expect(page.getByRole('heading', { name: 'Blank canvas' })).toBeVisible();
 
     const gallery = page.getByRole('navigation', { name: 'Canvas gallery' });
-    await gallery.getByRole('button', { name: 'Tetris', exact: true }).click();
+    await gallery.getByRole('button', { name: 'Prism Stack', exact: true }).click();
     await page.getByTestId('deck-slide-card').click();
 
-    await expect(page).toHaveURL(/\?app=tetris$/);
-    await expect(page.getByRole('heading', { name: 'Tetris' })).toBeVisible();
-    await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
+    await expect(page).toHaveURL(/\?app=prism-stack$/);
+    await expect(page.getByRole('heading', { name: 'Prism Stack' })).toBeVisible();
+    await expect(page.getByRole('img', { name: 'Prism Stack board, 9 by 18' })).toBeVisible();
 
-    // Entering the game starts directly into the Ready/Go countdown (#313).
     await expect(page.getByTestId('arcade-countdown')).toBeVisible();
     await expect(page.getByTestId('game-pause-menu')).toHaveCount(0);
 
-    // Clicking the universal bottom-right YouTube-style Pause icon opens the Pause Menu (#237).
     await page.getByTestId('pause-button').click();
     await expect(page.getByTestId('game-pause-menu')).toBeVisible();
-    await page.getByRole('button', { name: 'Close Tetris' }).click();
+    await page.getByRole('button', { name: 'Close Prism Stack' }).click();
     await expect(page).toHaveURL((url) => url.pathname === '/' && url.search === '');
     await expect(page.getByRole('heading', { name: 'Blank canvas' })).toBeVisible();
   } finally {
@@ -53,19 +45,15 @@ test('the home gallery opens Tetris and the Pause Menu exits to the canvas (#237
 test('an app is a cold deep link, and back returns to the canvas', async ({ page }) => {
   const stub = await startStubApp();
   try {
-    await page.goto(`${stub.base}?app=tetris`);
-    await expect(page.getByRole('heading', { name: 'Tetris' })).toBeVisible();
-    await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
+    await page.goto(`${stub.base}?app=prism-stack`);
+    await expect(page.getByRole('heading', { name: 'Prism Stack' })).toBeVisible();
+    await expect(page.getByRole('img', { name: 'Prism Stack board, 9 by 18' })).toBeVisible();
 
-    // A cold link has no same-document entry behind it, so exercise Back from a
-    // real navigation instead of asserting that history invents a canvas.
     await page.goto(stub.base);
-    await page.getByRole('button', { name: 'Tetris', exact: true }).click();
+    await page.getByRole('button', { name: 'Prism Stack', exact: true }).click();
     await page.getByTestId('deck-slide-card').click();
-    await expect(page).toHaveURL(/\?app=tetris$/);
+    await expect(page).toHaveURL(/\?app=prism-stack$/);
 
-    // Evaluate in a task so the page's execution context survives the history
-    // navigation; awaiting `history.back()` directly can race the context swap.
     await page.evaluate(() => { window.setTimeout(() => history.back(), 0); });
     await expect(page.getByRole('heading', { name: 'Blank canvas' })).toBeVisible();
     await expect(page).toHaveURL((url) => url.pathname === '/' && url.search === '');
@@ -77,12 +65,12 @@ test('an app is a cold deep link, and back returns to the canvas', async ({ page
 test('the palette switches from an app and restores focus on close', async ({ page }) => {
   const stub = await startStubApp();
   try {
-    await page.goto(`${stub.base}?app=tetris`);
-    await expect(page.getByRole('heading', { name: 'Tetris' })).toBeVisible();
+    await page.goto(`${stub.base}?app=prism-stack`);
+    await expect(page.getByRole('heading', { name: 'Prism Stack' })).toBeVisible();
 
     const palette = await openPalette(page);
     await expect(palette).toBeVisible();
-    await expect(palette.getByRole('button', { name: 'Tetris', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expect(palette.getByRole('button', { name: 'Prism Stack', exact: true })).toHaveAttribute('aria-current', 'page');
 
     await palette.getByRole('button', { name: 'Blank canvas', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Blank canvas' })).toBeVisible();
@@ -100,8 +88,8 @@ test('the palette switches from an app and restores focus on close', async ({ pa
 test('Escape closes the palette before the app, and the tilde alias opens it', async ({ page }) => {
   const stub = await startStubApp();
   try {
-    await page.goto(`${stub.base}?app=tetris`);
-    await expect(page.getByRole('heading', { name: 'Tetris' })).toBeVisible();
+    await page.goto(`${stub.base}?app=prism-stack`);
+    await expect(page.getByRole('heading', { name: 'Prism Stack' })).toBeVisible();
     await expect(page.getByTestId('game-pause-menu')).toHaveCount(0);
 
     await page.keyboard.press('Shift+Backquote');
@@ -110,14 +98,12 @@ test('Escape closes the palette before the app, and the tilde alias opens it', a
 
     await page.keyboard.press('Escape');
     await expect(palette).toHaveCount(0);
-    // The first Escape belonged to the palette; the app is still where it was.
-    await expect(page.getByRole('heading', { name: 'Tetris' })).toBeVisible();
-    await expect(page).toHaveURL(/\?app=tetris$/);
+    await expect(page.getByRole('heading', { name: 'Prism Stack' })).toBeVisible();
+    await expect(page).toHaveURL(/\?app=prism-stack$/);
 
-    // The second Escape reaches the app and opens the in-game Pause Menu (#237).
     await page.keyboard.press('Escape');
     await expect(page.getByTestId('game-pause-menu')).toBeVisible();
-    await page.getByRole('button', { name: 'Close Tetris' }).click();
+    await page.getByRole('button', { name: 'Close Prism Stack' }).click();
     await expect(page.getByRole('heading', { name: 'Blank canvas' })).toBeVisible();
   } finally {
     await closeStub(stub);
@@ -133,13 +119,12 @@ test('mobile horizontal swipe gesture flips the game deck (#239) and selector ca
     await page.goto(stub.base);
 
     const card = page.getByTestId('deck-slide-card');
-    await expect(card).toHaveAttribute('data-slide-id', 'puzzle-bobble');
+    await expect(card).toHaveAttribute('data-slide-id', 'starlight-burst');
     await expect(page.getByTestId('deck-live-preview')).toHaveAttribute(
       'data-preview-game',
-      'puzzle-bobble',
+      'starlight-burst',
     );
 
-    // Swipe left across the deck card -> flips to Tetris and updates live preview.
     const box = await card.boundingBox();
     expect(box).not.toBeNull();
     await page.mouse.move(box!.x + box!.width * 0.8, box!.y + box!.height * 0.5);
@@ -147,10 +132,10 @@ test('mobile horizontal swipe gesture flips the game deck (#239) and selector ca
     await page.mouse.move(box!.x + box!.width * 0.2, box!.y + box!.height * 0.5);
     await page.mouse.up();
 
-    await expect(card).toHaveAttribute('data-slide-id', 'tetris');
+    await expect(card).toHaveAttribute('data-slide-id', 'prism-stack');
     await expect(page.getByTestId('deck-live-preview')).toHaveAttribute(
       'data-preview-game',
-      'tetris',
+      'prism-stack',
     );
   } finally {
     await closeStub(stub);
@@ -191,34 +176,32 @@ test('the tilde is not stolen from a text field', async ({ page }) => {
   }
 });
 
-test('the game slide deck flips between slides via carousel dots and launches active games (#187, #264)', async ({
+test('the game slide deck flips between slides via carousel dots and launches active games (#187, #264, #352)', async ({
   page,
 }) => {
   const stub = await startStubApp();
   try {
     await page.goto(stub.base);
     const card = page.getByTestId('deck-slide-card');
-    await expect(card).toHaveAttribute('data-slide-id', 'puzzle-bobble');
-    await expect(page.getByRole('button', { name: 'Play Puzzle Bobble', exact: true })).toBeVisible();
+    await expect(card).toHaveAttribute('data-slide-id', 'starlight-burst');
+    await expect(page.getByRole('button', { name: 'Play Starlight Burst', exact: true })).toBeVisible();
 
-    // Flip to the next slide (Tetris) using the horizontal carousel indicator dots (#264).
-    await page.getByTestId('carousel-dot-tetris').click();
-    await expect(card).toHaveAttribute('data-slide-id', 'tetris');
-    await expect(page.getByRole('button', { name: 'Play Tetris', exact: true })).toBeVisible();
+    await page.getByTestId('carousel-dot-prism-stack').click();
+    await expect(card).toHaveAttribute('data-slide-id', 'prism-stack');
+    await expect(page.getByRole('button', { name: 'Play Prism Stack', exact: true })).toBeVisible();
 
-    // Flip back to Puzzle Bobble via carousel dot, then launch it by clicking the card.
-    await page.getByTestId('carousel-dot-puzzle-bobble').click();
-    await expect(card).toHaveAttribute('data-slide-id', 'puzzle-bobble');
+    await page.getByTestId('carousel-dot-starlight-burst').click();
+    await expect(card).toHaveAttribute('data-slide-id', 'starlight-burst');
 
-    await page.getByRole('button', { name: 'Play Puzzle Bobble', exact: true }).click();
-    await expect(page).toHaveURL(/\?app=puzzle-bobble$/);
-    await expect(page.getByRole('heading', { name: 'Puzzle Bobble' })).toBeVisible();
+    await page.getByRole('button', { name: 'Play Starlight Burst', exact: true }).click();
+    await expect(page).toHaveURL(/\?app=starlight-burst$/);
+    await expect(page.getByRole('heading', { name: 'Starlight Burst' })).toBeVisible();
   } finally {
     await closeStub(stub);
   }
 });
 
-test('carousel indicator dots, directional slide animations, ambient visual effects, and keyboard navigation work on the home deck (#198, #264)', async ({
+test('carousel indicator dots, directional slide animations, ambient visual effects, and keyboard navigation work on the home deck (#198, #264, #352)', async ({
   page,
 }) => {
   const stub = await startStubApp();
@@ -227,31 +210,28 @@ test('carousel indicator dots, directional slide animations, ambient visual effe
     await expect(page.getByTestId('canvas-ambient')).toBeVisible();
 
     const card = page.getByTestId('deck-slide-card');
-    const pbDot = page.getByTestId('carousel-dot-puzzle-bobble');
-    const tetrisDot = page.getByTestId('carousel-dot-tetris');
+    const sbDot = page.getByTestId('carousel-dot-starlight-burst');
+    const prismDot = page.getByTestId('carousel-dot-prism-stack');
 
-    await expect(card).toHaveAttribute('data-slide-id', 'puzzle-bobble');
-    await expect(pbDot).toHaveAttribute('aria-current', 'true');
+    await expect(card).toHaveAttribute('data-slide-id', 'starlight-burst');
+    await expect(sbDot).toHaveAttribute('aria-current', 'true');
     await expect(page.locator('.deck-slide-actions')).toHaveCount(0);
 
-    // Clicking the second carousel dot flips to Tetris with 'next' direction.
-    await tetrisDot.click();
-    await expect(card).toHaveAttribute('data-slide-id', 'tetris');
+    await prismDot.click();
+    await expect(card).toHaveAttribute('data-slide-id', 'prism-stack');
     await expect(card).toHaveAttribute('data-slide-dir', 'next');
     await expect(card).toHaveClass(/is-sliding-next/);
-    await expect(tetrisDot).toHaveAttribute('aria-current', 'true');
+    await expect(prismDot).toHaveAttribute('aria-current', 'true');
 
-    // ArrowLeft flips back to Puzzle Bobble with 'prev' direction.
     await page.keyboard.press('ArrowLeft');
-    await expect(card).toHaveAttribute('data-slide-id', 'puzzle-bobble');
+    await expect(card).toHaveAttribute('data-slide-id', 'starlight-burst');
     await expect(card).toHaveAttribute('data-slide-dir', 'prev');
     await expect(card).toHaveClass(/is-sliding-prev/);
 
-    // Enter launches Puzzle Bobble when focus is on the body.
     await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
     await page.keyboard.press('Enter');
-    await expect(page).toHaveURL(/\?app=puzzle-bobble$/);
-    await expect(page.getByRole('heading', { name: 'Puzzle Bobble' })).toBeVisible();
+    await expect(page).toHaveURL(/\?app=starlight-burst$/);
+    await expect(page.getByRole('heading', { name: 'Starlight Burst' })).toBeVisible();
   } finally {
     await closeStub(stub);
   }
@@ -271,20 +251,16 @@ test('static preview mode runs games cleanly without a startup error banner and 
     );
     await page.goto(stub.base);
 
-    // No startup error alert blocks the home deck, and there is no top bar.
     await expect(page.locator('.canvas-header')).toHaveCount(0);
     await expect(page.getByRole('alert')).toHaveCount(0);
 
-    // Games launch and play normally in static preview mode.
-    await page.getByTestId('carousel-dot-tetris').click();
-    await page.getByRole('button', { name: 'Play Tetris', exact: true }).click();
-    await expect(page).toHaveURL(/\?app=tetris$/);
-    await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
+    await page.getByTestId('carousel-dot-prism-stack').click();
+    await page.getByRole('button', { name: 'Play Prism Stack', exact: true }).click();
+    await expect(page).toHaveURL(/\?app=prism-stack$/);
+    await expect(page.getByRole('img', { name: 'Prism Stack board, 9 by 18' })).toBeVisible();
     await expect(page.getByRole('alert')).toHaveCount(0);
 
-    // Clicking the wiggling YOLO icon mounts the shared <yolo-feedback-v1> modal (#290),
-    // and direct ?panel navigation still renders the truthful static-preview fallback notice (#199).
-    await page.getByRole('button', { name: 'Feedback on Tetris' }).click();
+    await page.getByRole('button', { name: 'Feedback on Prism Stack' }).click();
     await expect(page.locator('yolo-feedback-v1')).toHaveCount(1);
 
     await page.goto(`${stub.base}?panel`);
@@ -299,4 +275,3 @@ test('static preview mode runs games cleanly without a startup error banner and 
     await closeStub(stub);
   }
 });
-

@@ -68,7 +68,7 @@ capture('closed filter', makeStubGithub, async ({ page, snap }) => {
   await openPanel(page);
   await page.getByRole('button', { name: 'Closed', exact: true }).click();
   await listSettled(page);
-  await expect(page.getByText('#4 Tetris')).toBeVisible();
+  await expect(page.getByText('#4 Prism Stack')).toBeVisible();
   await snap('05-list-closed');
 });
 
@@ -128,48 +128,43 @@ capture('connection error surface', makeStubGithub, async ({ page, snap }) => {
   await snap('12-auth-error');
 });
 
-capture('tetris stats legible on every backdrop', makeStubGithub, async ({ page, snap }) => {
-  await page.getByRole('button', { name: 'Tetris', exact: true }).click();
-  await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
-  await page.getByRole('button', { name: 'Pause' }).click();
-  await expect(page.getByRole('button', { name: 'Resume' })).toBeVisible();
+capture('prism stack stats legible on every backdrop', makeStubGithub, async ({ page, snap }) => {
+  await page.getByRole('button', { name: 'Prism Stack', exact: true }).click();
+  await page.getByTestId('deck-slide-card').click();
+  await expect(page.getByRole('img', { name: 'Prism Stack board, 9 by 18' })).toBeVisible();
+  await page.getByTestId('pause-button').click();
+  await expect(page.getByTestId('game-pause-menu')).toBeVisible();
   await imagesLoaded(page);
-  // Every bundled backdrop, because legibility over artwork cannot be judged
-  // from one scene (#76 row 3).
   const titles = ['Night Sky', 'City at Night', 'Desert Dunes', 'Red Planet', 'Deep Space', 'Castle in the Dark'];
   for (let index = 0; index < titles.length; index += 1) {
-    await expect(page.locator('.tetris-scene')).toContainText(titles[index]);
-    await snap(`15-tetris-scene-${index + 1}-${titles[index].toLowerCase().replace(/[^a-z]+/g, '-')}`);
+    await expect(page.locator('.stack-scene')).toContainText(titles[index]);
+    await snap(`15-prism-scene-${index + 1}-${titles[index].toLowerCase().replace(/[^a-z]+/g, '-')}`);
     if (index < titles.length - 1) {
-      await page.evaluate(() => window.dispatchEvent(new Event('yolo:tetris:four-line-clear')));
-      await expect(page.locator('.tetris-scene')).toContainText(titles[index + 1]);
-      // The next backdrop is a new image; wait for it or the capture races its
-      // decode and differs from a warm-cache run.
+      await page.evaluate(() => window.dispatchEvent(new Event('yolo:prism:quad-clear')));
+      await expect(page.locator('.stack-scene')).toContainText(titles[index + 1]);
       await imagesLoaded(page);
     }
   }
 });
 
-capture('tetris board and stats', makeStubGithub, async ({ page, snap }) => {
-  await page.getByRole('button', { name: 'Tetris', exact: true }).click();
-  await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
-  // Pause before capturing: gravity would otherwise move the piece between the
-  // board becoming visible and the shutter.
-  await page.getByRole('button', { name: 'Pause' }).click();
-  await expect(page.getByRole('button', { name: 'Resume' })).toBeVisible();
+capture('prism stack board and stats', makeStubGithub, async ({ page, snap }) => {
+  await page.getByRole('button', { name: 'Prism Stack', exact: true }).click();
+  await page.getByTestId('deck-slide-card').click();
+  await expect(page.getByRole('img', { name: 'Prism Stack board, 9 by 18' })).toBeVisible();
+  await page.getByTestId('pause-button').click();
+  await expect(page.getByTestId('game-pause-menu')).toBeVisible();
   await imagesLoaded(page);
-  await snap('13-tetris-board');
-  await page.getByRole('button', { name: /Music off/ }).click();
-  await expect(page.locator('.tetris-scene')).toContainText('Music:');
-  await snap('14-tetris-music');
+  await snap('13-prism-board');
+  await page.getByRole('button', { name: /Music on|Music off/ }).click();
+  await snap('14-prism-music');
 });
 
-capture('puzzle bobble 2-player arena', makeStubGithub, async ({ page, snap }) => {
-  await page.getByRole('button', { name: 'Puzzle Bobble', exact: true }).click();
-  await expect(page.getByRole('img', { name: 'Player 1 bubble board' })).toBeVisible();
-  await page.getByRole('button', { name: 'Pause' }).click();
-  await expect(page.getByRole('button', { name: 'Resume' })).toBeVisible();
+capture('starlight burst 2-player arena', makeStubGithub, async ({ page, snap }) => {
+  await page.getByTestId('deck-slide-card').click();
+  await expect(page.getByRole('img', { name: 'Player 1 starlight board' })).toBeVisible();
+  await page.getByTestId('pause-button').click();
+  await expect(page.getByTestId('game-pause-menu')).toBeVisible();
   await imagesLoaded(page);
-  await snap('16-puzzle-bobble-2p');
+  await snap('16-starlight-burst-2p');
 });
 

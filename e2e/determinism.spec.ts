@@ -153,14 +153,14 @@ test.describe('review evidence is reproducible', () => {
       },
     },
     {
-      name: 'tetris board',
+      name: 'prism stack board',
       github: makeStubGithub,
       steps: async (page) => {
-        await page.getByRole('button', { name: 'Tetris', exact: true }).click();
-        await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
-        // Gravity would otherwise move the piece between visibility and capture.
-        await page.getByRole('button', { name: 'Pause' }).click();
-        await expect(page.getByRole('button', { name: 'Resume' })).toBeVisible();
+        await page.getByRole('button', { name: 'Prism Stack', exact: true }).click();
+        await page.getByTestId('deck-slide-card').click();
+        await expect(page.getByRole('img', { name: 'Prism Stack board, 9 by 18' })).toBeVisible();
+        await page.getByTestId('pause-button').click();
+        await expect(page.getByTestId('game-pause-menu')).toBeVisible();
       },
     },
   ];

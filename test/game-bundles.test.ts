@@ -77,18 +77,18 @@ function makeSampleEntry(id: string, version: string, code: string, hashSuffix =
 
 describe('per-game manifest validation and built bundle isolation (#306)', () => {
   it('validates canonical game manifests and rejects unsafe paths or invalid hashes', () => {
-    const pb = makeSampleEntry('puzzle-bobble', '1.0.0', 'export default function PB() {}');
+    const sb = makeSampleEntry('starlight-burst', '2.0.0', 'export default function SB() {}');
     const valid = validateGameManifest({
       schemaVersion: 1,
-      games: { 'puzzle-bobble': pb },
+      games: { 'starlight-burst': sb },
     });
-    expect(valid?.games['puzzle-bobble']?.hash).toBe(pb.hash);
+    expect(valid?.games['starlight-burst']?.hash).toBe(sb.hash);
 
     expect(
       validateGameManifest({
         schemaVersion: 1,
         games: {
-          'puzzle-bobble': { ...pb, entry: 'https://evil.example/puzzle-bobble-a1b2.js' },
+          'starlight-burst': { ...sb, entry: 'https://evil.example/starlight-burst-a1b2.js' },
         },
       }),
     ).toBeNull();
@@ -97,7 +97,7 @@ describe('per-game manifest validation and built bundle isolation (#306)', () =>
       validateGameManifest({
         schemaVersion: 1,
         games: {
-          'puzzle-bobble': { ...pb, entry: '/games/tetris-a1b2.js', chunks: ['/games/tetris-a1b2.js'] },
+          'starlight-burst': { ...sb, entry: '/games/prism-stack-a1b2.js', chunks: ['/games/prism-stack-a1b2.js'] },
         },
       }),
     ).toBeNull();
@@ -106,7 +106,7 @@ describe('per-game manifest validation and built bundle isolation (#306)', () =>
       validateGameManifest({
         schemaVersion: 1,
         games: {
-          'puzzle-bobble': { ...pb, hash: 'not-a-sha256' },
+          'starlight-burst': { ...sb, hash: 'not-a-sha256' },
         },
       }),
     ).toBeNull();
@@ -118,7 +118,7 @@ describe('per-game manifest validation and built bundle isolation (#306)', () =>
     const parsed = validateGameManifest(JSON.parse(fs.readFileSync(manifestPath, 'utf8')));
     expect(parsed).not.toBeNull();
 
-    for (const id of ['puzzle-bobble', 'tetris']) {
+    for (const id of ['starlight-burst', 'prism-stack']) {
       const entry = parsed!.games[id];
       expect(entry, `missing ${id} in manifest`).toBeDefined();
       const entryDiskPath = path.join(DIST_CLIENT, entry!.entry.slice(1));
@@ -134,8 +134,8 @@ describe('per-game manifest validation and built bundle isolation (#306)', () =>
 
     // Home index.html and shell index-*.js must NOT statically reference or modulepreload game bundles.
     const indexHtml = fs.readFileSync(path.join(DIST_CLIENT, 'index.html'), 'utf8');
-    expect(indexHtml).not.toContain('/games/puzzle-bobble-');
-    expect(indexHtml).not.toContain('/games/tetris-');
+    expect(indexHtml).not.toContain('/games/starlight-burst-');
+    expect(indexHtml).not.toContain('/games/prism-stack-');
 
     const assetsDir = path.join(DIST_CLIENT, 'assets');
     const shellBundleName = fs
@@ -143,10 +143,10 @@ describe('per-game manifest validation and built bundle isolation (#306)', () =>
       .find((name) => name.startsWith('index-') && name.endsWith('.js'));
     expect(shellBundleName).toBeDefined();
     const shellCode = fs.readFileSync(path.join(assetsDir, shellBundleName!), 'utf8');
-    expect(shellCode).not.toContain(parsed!.games['puzzle-bobble']!.entry);
-    expect(shellCode).not.toContain(parsed!.games['tetris']!.entry);
-    expect(shellCode).not.toContain(path.basename(parsed!.games['puzzle-bobble']!.entry));
-    expect(shellCode).not.toContain(path.basename(parsed!.games['tetris']!.entry));
+    expect(shellCode).not.toContain(parsed!.games['starlight-burst']!.entry);
+    expect(shellCode).not.toContain(parsed!.games['prism-stack']!.entry);
+    expect(shellCode).not.toContain(path.basename(parsed!.games['starlight-burst']!.entry));
+    expect(shellCode).not.toContain(path.basename(parsed!.games['prism-stack']!.entry));
   });
 });
 
@@ -155,19 +155,19 @@ describe('hash-verified local CacheStorage bundle manager (#306)', () => {
     const { cachesImpl, getBucket } = createMemoryCacheStorage();
     const storageImpl = createMemoryStorage();
 
-    const pbV1Code = 'export default function PuzzleBobbleV1() {}';
-    const pbV2Code = 'export default function PuzzleBobbleV2Updated() {}';
-    const tetrisCode = 'export default function TetrisV1() {}';
+    const sbV1Code = 'export default function StarlightBurstV1() {}';
+    const sbV2Code = 'export default function StarlightBurstV2Updated() {}';
+    const prismCode = 'export default function PrismStackV1() {}';
 
-    const pbV1 = makeSampleEntry('puzzle-bobble', '1.0.0', pbV1Code, 'v1hash');
-    const pbV2 = makeSampleEntry('puzzle-bobble', '1.1.0', pbV2Code, 'v2hash');
-    const tetrisV1 = makeSampleEntry('tetris', '1.0.0', tetrisCode, 'thash1');
+    const sbV1 = makeSampleEntry('starlight-burst', '2.0.0', sbV1Code, 'v1hash');
+    const sbV2 = makeSampleEntry('starlight-burst', '2.1.0', sbV2Code, 'v2hash');
+    const prismV1 = makeSampleEntry('prism-stack', '2.0.0', prismCode, 'phash1');
 
     const payloads: Record<string, string> = {
       '/assets/vendor-react-shared.js': 'export const React = {};',
-      [pbV1.entry]: pbV1Code,
-      [pbV2.entry]: pbV2Code,
-      [tetrisV1.entry]: tetrisCode,
+      [sbV1.entry]: sbV1Code,
+      [sbV2.entry]: sbV2Code,
+      [prismV1.entry]: prismCode,
     };
 
     const fetchSpy = vi.fn(async (input: RequestInfo | URL) => {
@@ -176,56 +176,53 @@ describe('hash-verified local CacheStorage bundle manager (#306)', () => {
       return new Response(payloads[url], { status: 200 });
     });
 
-    // 1. Cold load of Puzzle Bobble v1 + Tetris v1 caches both.
-    const resPb1 = await ensureGameBundleCached(pbV1, {
+    const resSb1 = await ensureGameBundleCached(sbV1, {
       fetchImpl: fetchSpy as unknown as typeof fetch,
       cachesImpl,
       storageImpl,
     });
-    expect(resPb1.fromCache).toBe(false);
-    expect(fetchSpy).toHaveBeenCalledTimes(2); // vendor-react + pbV1
+    expect(resSb1.fromCache).toBe(false);
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
 
-    const resTetris = await ensureGameBundleCached(tetrisV1, {
+    const resPrism = await ensureGameBundleCached(prismV1, {
       fetchImpl: fetchSpy as unknown as typeof fetch,
       cachesImpl,
       storageImpl,
     });
-    expect(resTetris.fromCache).toBe(false);
-    expect(fetchSpy).toHaveBeenCalledTimes(3); // vendor-react already cached, fetches only tetrisV1!
+    expect(resPrism.fromCache).toBe(false);
+    expect(fetchSpy).toHaveBeenCalledTimes(3);
 
-    // 2. Subsequent entry into Puzzle Bobble v1 with matching hash makes ZERO network calls.
     fetchSpy.mockClear();
-    const resPbHit = await ensureGameBundleCached(pbV1, {
+    const resSbHit = await ensureGameBundleCached(sbV1, {
       fetchImpl: fetchSpy as unknown as typeof fetch,
       cachesImpl,
       storageImpl,
     });
-    expect(resPbHit.fromCache).toBe(true);
+    expect(resSbHit.fromCache).toBe(true);
     expect(fetchSpy).not.toHaveBeenCalled();
 
-    // 3. Puzzle Bobble updates to v1.1.0 (pbV2): fetches ONLY pbV2, evicts pbV1, keeps Tetris v1 cached!
-    expect(await isGameCachedInStorage(pbV2, cachesImpl, storageImpl)).toBe(false);
-    const resPb2 = await ensureGameBundleCached(pbV2, {
+    expect(await isGameCachedInStorage(sbV2, cachesImpl, storageImpl)).toBe(false);
+    const resSb2 = await ensureGameBundleCached(sbV2, {
       fetchImpl: fetchSpy as unknown as typeof fetch,
       cachesImpl,
       storageImpl,
     });
-    expect(resPb2.fromCache).toBe(false);
+    expect(resSb2.fromCache).toBe(false);
     expect(fetchSpy).toHaveBeenCalledTimes(1);
-    expect(fetchSpy).toHaveBeenCalledWith(pbV2.entry, { credentials: 'same-origin' });
+    expect(fetchSpy).toHaveBeenCalledWith(sbV2.entry, { credentials: 'same-origin' });
 
     const bucket = getBucket(GAME_BUNDLE_CACHE_NAME);
-    expect(bucket.has(pbV1.entry)).toBe(false);
-    expect(bucket.has(pbV2.entry)).toBe(true);
-    expect(bucket.has(tetrisV1.entry)).toBe(true);
-    expect(readBundleIndex(storageImpl)['puzzle-bobble']?.version).toBe('1.1.0');
-    expect(readBundleIndex(storageImpl)['tetris']?.hash).toBe(tetrisV1.hash);
+    expect(bucket.has(sbV1.entry)).toBe(false);
+    expect(bucket.has(sbV2.entry)).toBe(true);
+    expect(bucket.has(prismV1.entry)).toBe(true);
+    expect(readBundleIndex(storageImpl)['starlight-burst']?.version).toBe('2.1.0');
+    expect(readBundleIndex(storageImpl)['prism-stack']?.hash).toBe(prismV1.hash);
   });
 
   it('rejects tampered bundle payloads on SHA-256 mismatch without poisoning CacheStorage', async () => {
     const { cachesImpl, getBucket } = createMemoryCacheStorage();
     const storageImpl = createMemoryStorage();
-    const pb = makeSampleEntry('puzzle-bobble', '1.0.0', 'export default function Genuine() {}', 'clean');
+    const sb = makeSampleEntry('starlight-burst', '2.0.0', 'export default function Genuine() {}', 'clean');
 
     const tamperedFetch = vi.fn(async (input: RequestInfo | URL) => {
       const url = typeof input === 'string' ? input : input.toString();
@@ -234,15 +231,15 @@ describe('hash-verified local CacheStorage bundle manager (#306)', () => {
     });
 
     await expect(
-      ensureGameBundleCached(pb, {
+      ensureGameBundleCached(sb, {
         fetchImpl: tamperedFetch as unknown as typeof fetch,
         cachesImpl,
         storageImpl,
       }),
     ).rejects.toThrow(/Integrity check failed/);
 
-    expect(getBucket(GAME_BUNDLE_CACHE_NAME).has(pb.entry)).toBe(false);
-    expect(readBundleIndex(storageImpl)['puzzle-bobble']).toBeUndefined();
+    expect(getBucket(GAME_BUNDLE_CACHE_NAME).has(sb.entry)).toBe(false);
+    expect(readBundleIndex(storageImpl)['starlight-burst']).toBeUndefined();
     const checkHex = await sha256Hex(new TextEncoder().encode('abc').buffer);
     expect(checkHex).toBe('ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');
   });
@@ -287,8 +284,8 @@ describe('hash-verified local CacheStorage bundle manager (#306)', () => {
         games: Record<string, { entry: string }>;
       };
 
-      const pbEntry = manifestJson.games['puzzle-bobble']!.entry;
-      const chunkRes = await fetch(`${base}${pbEntry}`);
+      const sbEntry = manifestJson.games['starlight-burst']!.entry;
+      const chunkRes = await fetch(`${base}${sbEntry}`);
       expect(chunkRes.status).toBe(200);
       expect(chunkRes.headers.get('cache-control')).toBe('public, max-age=31536000, immutable');
 

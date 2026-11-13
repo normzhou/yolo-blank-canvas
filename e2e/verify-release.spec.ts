@@ -53,19 +53,19 @@ async function openRequests(page: import('@playwright/test').Page) {
  * Tetris became a gallery entry in #165; before that it was a "Play Tetris"
  * control. Accept either so the suite can also verify an older installed tag.
  */
-async function openTetris(page: import('@playwright/test').Page) {
-  for (const name of ['Tetris', 'Play Tetris']) {
+async function openPrismStack(page: import('@playwright/test').Page) {
+  for (const name of ['Prism Stack', 'Play Prism Stack']) {
     const trigger = page.getByRole('button', { name, exact: true });
     if ((await trigger.count()) > 0) {
       await trigger.first().click();
-      if (!page.url().includes('?app=tetris')) {
+      if (!page.url().includes('?app=prism-stack')) {
         await page.getByTestId('deck-slide-card').click();
       }
-      await expect(page.locator('.tetris-side')).toBeVisible();
+      await expect(page.locator('.stack-side').first()).toBeVisible();
       return;
     }
   }
-  throw new Error('no Tetris trigger found: looked for buttons named "Tetris" and "Play Tetris"');
+  throw new Error('no Prism Stack trigger found: looked for buttons named "Prism Stack" and "Play Prism Stack"');
 }
 
 test('the released stylesheet clears WCAG AA for the reconciliation badge', async ({ page }) => {
@@ -145,11 +145,11 @@ test('text fields carry a fill distinct from the panel', async ({ page }) => {
   expect(fills.input, 'the released field still has no fill of its own').not.toBe(fills.panel);
 });
 
-test('the Tetris stats panel is opaque', async ({ page }) => {
+test('the Prism Stack stats panel is opaque', async ({ page }) => {
   await page.goto(BASE);
-  await openTetris(page);
+  await openPrismStack(page);
   const panel = await page.evaluate(() => {
-    const el = document.querySelector('.tetris-side') as HTMLElement;
+    const el = document.querySelector('.stack-side') as HTMLElement;
     const bg = getComputedStyle(el).backgroundColor;
     const m = bg.match(/rgba?\(([^)]+)\)/)!;
     const parts = m[1].split(',').map((n) => Number.parseFloat(n.trim()));
@@ -165,10 +165,10 @@ test('the crossfade is cut under prefers-reduced-motion', async ({ browser }) =>
     await page.goto(BASE);
     await session(page);
     await page.goto(BASE);
-    await openTetris(page);
-    await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
+    await openPrismStack(page);
+    await expect(page.getByRole('img', { name: 'Prism Stack board, 9 by 18' })).toBeVisible();
     const layers = await page.evaluate(() =>
-      Array.from(document.querySelectorAll('.tetris-art-layer')).map((el) => ({
+      Array.from(document.querySelectorAll('.stack-art-layer')).map((el) => ({
         cls: el.className,
         animation: getComputedStyle(el).animationName,
         display: getComputedStyle(el).display,
@@ -203,26 +203,25 @@ test('the released canvas gallery opens an app and keeps it under the palette', 
     test.skip(true, 'this release predates the canvas gallery (#165)');
   }
 
-  await gallery.getByRole('button', { name: 'Tetris', exact: true }).click();
-  if (!page.url().includes('?app=tetris')) {
+  await gallery.getByRole('button', { name: 'Prism Stack', exact: true }).click();
+  if (!page.url().includes('?app=prism-stack')) {
     await page.getByTestId('deck-slide-card').click();
   }
-  await expect(page).toHaveURL(/\?app=tetris$/);
-  await expect(page.getByRole('heading', { name: 'Tetris' })).toBeVisible();
+  await expect(page).toHaveURL(/\?app=prism-stack$/);
+  await expect(page.getByRole('heading', { name: 'Prism Stack' })).toBeVisible();
 
   await page.keyboard.press('Control+k');
   const palette = page.getByRole('dialog', { name: 'Canvas apps' });
   await expect(palette).toBeVisible();
-  await expect(palette.getByRole('button', { name: 'Tetris', exact: true })).toHaveAttribute(
+  await expect(palette.getByRole('button', { name: 'Prism Stack', exact: true })).toHaveAttribute(
     'aria-current',
     'page',
   );
 
-  // Escape belongs to the palette; the app stays mounted underneath it.
   await page.keyboard.press('Escape');
   await expect(palette).toHaveCount(0);
-  await expect(page.getByRole('heading', { name: 'Tetris' })).toBeVisible();
-  await expect(page).toHaveURL(/\?app=tetris$/);
+  await expect(page.getByRole('heading', { name: 'Prism Stack' })).toBeVisible();
+  await expect(page).toHaveURL(/\?app=prism-stack$/);
 });
 
 test('the released app carries the viewed app into feedback', async ({ page }) => {
@@ -234,31 +233,30 @@ test('the released app carries the viewed app into feedback', async ({ page }) =
   if ((await gallery.count()) === 0) {
     test.skip(true, 'this release predates the canvas gallery (#165)');
   }
-  await gallery.getByRole('button', { name: 'Tetris', exact: true }).click();
-  if (!page.url().includes('?app=tetris')) {
+  await gallery.getByRole('button', { name: 'Prism Stack', exact: true }).click();
+  if (!page.url().includes('?app=prism-stack')) {
     await page.getByTestId('deck-slide-card').click();
   }
-  await expect(page).toHaveURL(/\?app=tetris$/);
+  await expect(page).toHaveURL(/\?app=prism-stack$/);
 
-  const feedback = page.getByRole('button', { name: 'Feedback on Tetris' });
+  const feedback = page.getByRole('button', { name: 'Feedback on Prism Stack' });
   if ((await feedback.count()) === 0) {
     test.skip(true, 'this release predates contextual feedback (#169)');
   }
   await feedback.click();
-  await expect(page).toHaveURL(/\?app=tetris&panel=new$/);
+  await expect(page).toHaveURL(/\?app=prism-stack&panel=new$/);
   await expect(page.getByLabel('Title')).toBeFocused();
   const guidedRadio = page.getByRole('radio', { name: /Share feedback/ });
   if ((await guidedRadio.count()) > 0) {
     await expect(guidedRadio).toBeChecked();
-    await expect(page.locator('.request-context-summary')).toContainText('App: Tetris (?app=tetris)');
+    await expect(page.locator('.request-context-summary')).toContainText('App: Prism Stack (?app=prism-stack)');
     await expect(page.getByLabel('Generated issue body')).toContainText(
-      /App: Tetris \(\?app=tetris\)\n\nTemplate: (?:yolo\.feedback@1\.0\.0|blankcanvas\.feedback@1)/,
+      /App: Prism Stack \(\?app=prism-stack\)\n\nTemplate: (?:yolo\.feedback@1\.0\.0|blankcanvas\.feedback@1)/,
     );
   } else {
-    await expect(page.getByLabel('Description')).toHaveValue('App: Tetris (?app=tetris)\n\n');
+    await expect(page.getByLabel('Description')).toHaveValue('App: Prism Stack (?app=prism-stack)\n\n');
   }
 
-  // Read-only: close without submitting. Escape returns focus to Feedback.
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog', { name: 'Requests' })).toHaveCount(0);
   await expect(feedback).toBeFocused();
@@ -316,7 +314,7 @@ test('the released detail view surfaces ## YOLO request triage and navigates cov
   await expect(page.locator('.summary-box').getByRole('heading', { name: 'Reported summary', exact: true })).toBeVisible();
 });
 
-test('the released canvas gallery includes 2-player Puzzle Bobble with ASDF and Arrow controls', async ({
+test('the released canvas gallery includes 2-player Starlight Burst with ASDF and Arrow controls', async ({
   page,
 }) => {
   await page.goto(BASE);
@@ -327,19 +325,19 @@ test('the released canvas gallery includes 2-player Puzzle Bobble with ASDF and 
   if ((await gallery.count()) === 0) {
     test.skip(true, 'this release predates the canvas gallery (#165)');
   }
-  const pbButton = gallery.getByRole('button', { name: 'Puzzle Bobble', exact: true });
-  if ((await pbButton.count()) === 0) {
-    test.skip(true, 'this release predates Puzzle Bobble (#181)');
+  const sbButton = gallery.getByRole('button', { name: 'Starlight Burst', exact: true });
+  if ((await sbButton.count()) === 0) {
+    test.skip(true, 'this release predates Starlight Burst (#352)');
   }
 
-  await pbButton.click();
-  if (!page.url().includes('?app=puzzle-bobble')) {
+  await sbButton.click();
+  if (!page.url().includes('?app=starlight-burst')) {
     await page.getByTestId('deck-slide-card').click();
   }
-  await expect(page).toHaveURL(/\?app=puzzle-bobble$/);
-  await expect(page.getByRole('heading', { name: 'Puzzle Bobble' })).toBeVisible();
-  await expect(page.getByRole('img', { name: 'Player 1 bubble board' })).toBeVisible();
-  await expect(page.getByRole('img', { name: 'Player 2 bubble board' })).toBeVisible();
+  await expect(page).toHaveURL(/\?app=starlight-burst$/);
+  await expect(page.getByRole('heading', { name: 'Starlight Burst' })).toBeVisible();
+  await expect(page.getByRole('img', { name: 'Player 1 starlight board' })).toBeVisible();
+  await expect(page.getByRole('img', { name: 'Player 2 starlight board' })).toBeVisible();
 
   const pauseResume = page.getByTestId('pause-menu-resume');
   if ((await pauseResume.count()) > 0) {
@@ -355,7 +353,7 @@ test('the released canvas gallery includes 2-player Puzzle Bobble with ASDF and 
   await page.keyboard.press('Escape');
   const pauseMenu = page.getByTestId('game-pause-menu');
   if ((await pauseMenu.count()) > 0) {
-    await page.getByRole('button', { name: 'Close Puzzle Bobble' }).click();
+    await page.getByRole('button', { name: 'Close Starlight Burst' }).click();
   }
   await expect(page.getByRole('heading', { name: 'Blank canvas' })).toBeVisible();
 });

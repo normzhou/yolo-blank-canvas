@@ -8,21 +8,21 @@ describe('route parsing and formatting', () => {
     expect(readRoute('?panel')).toEqual({ open: true, target: { name: 'list' }, app: null });
     expect(readRoute('?panel=new')).toEqual({ open: true, target: { name: 'new' }, app: null });
     expect(readRoute('?panel=123')).toEqual({ open: true, target: { name: 'detail', number: 123 }, app: null });
-    expect(readRoute('?app=tetris')).toEqual({ open: false, target: { name: 'list' }, app: 'tetris' });
-    expect(readRoute('?app=tetris&panel=7')).toEqual({
+    expect(readRoute('?app=prism-stack')).toEqual({ open: false, target: { name: 'list' }, app: 'prism-stack' });
+    expect(readRoute('?app=prism-stack&panel=7')).toEqual({
       open: true,
       target: { name: 'detail', number: 7 },
-      app: 'tetris',
+      app: 'prism-stack',
     });
-    expect(readRoute('?panel=new&app=tetris')).toEqual({
+    expect(readRoute('?panel=new&app=prism-stack')).toEqual({
       open: true,
       target: { name: 'new' },
-      app: 'tetris',
+      app: 'prism-stack',
     });
   });
 
   it('rejects invalid app tokens and falls back to the open list on malformed panel values', () => {
-    for (const search of ['?app=', '?app=Tetris', '?app=../tetris', '?app=1tetris', '?app=tetris/x']) {
+    for (const search of ['?app=', '?app=PrismStack', '?app=../prism-stack', '?app=1prism', '?app=prism/x']) {
       expect(readRoute(search).app, search).toBeNull();
     }
     for (const search of ['?panel=', '?panel=abc', '?panel=0', '?panel=-1', '?panel=1.5', '?panel=007']) {
@@ -37,14 +37,14 @@ describe('route parsing and formatting', () => {
     expect(routeUrl({ name: 'detail', number: 42 })).toBe('/?panel=42');
     expect(routeUrl({ name: 'new' })).toBe('/?panel=new');
     expect(routeUrl({ name: 'list' })).toBe('/?panel');
-    expect(routeUrl(null, '/', 'tetris')).toBe('/?app=tetris');
-    expect(routeUrl({ name: 'detail', number: 42 }, '/', 'tetris')).toBe('/?app=tetris&panel=42');
-    expect(routeUrl({ name: 'list' }, '/', 'tetris')).toBe('/?app=tetris&panel');
+    expect(routeUrl(null, '/', 'prism-stack')).toBe('/?app=prism-stack');
+    expect(routeUrl({ name: 'detail', number: 42 }, '/', 'prism-stack')).toBe('/?app=prism-stack&panel=42');
+    expect(routeUrl({ name: 'list' }, '/', 'prism-stack')).toBe('/?app=prism-stack&panel');
     expect(routeUrl(null, '/', '')).toBe('/');
     expect(routeUrl({ name: 'list' }, '/', '')).toBe('/?panel');
 
     const targets = [{ name: 'list' } as const, { name: 'new' } as const, { name: 'detail', number: 7 } as const];
-    for (const app of [null, 'tetris'] as const) {
+    for (const app of [null, 'prism-stack'] as const) {
       for (const target of targets) {
         const url = routeUrl(target, '/', app);
         const query = url.slice(url.indexOf('?'));
@@ -56,7 +56,7 @@ describe('route parsing and formatting', () => {
   it('derives routeTarget across closed, open, and app-backed routes', () => {
     expect(routeTarget(readRoute(''))).toBeNull();
     expect(routeTarget(readRoute('?panel=9'))).toEqual({ name: 'detail', number: 9 });
-    expect(routeTarget(readRoute('?app=tetris'))).toBeNull();
-    expect(routeTarget(readRoute('?app=tetris&panel=new'))).toEqual({ name: 'new' });
+    expect(routeTarget(readRoute('?app=prism-stack'))).toBeNull();
+    expect(routeTarget(readRoute('?app=prism-stack&panel=new'))).toEqual({ name: 'new' });
   });
 });

@@ -4,6 +4,25 @@ Tested revision: see "Tested revision" below.
 Environment: macOS (darwin), Node v24.20.0, npm 11.19.0, GitHub CLI installed and authenticated as `normzhou`.
 Target repository for live checks: `normzhou/yolo-blank-canvas` (the app's own repository).
 
+## IP, Trademark, & Trade-Dress Compliance Refactor: Prism Stack & Starlight Burst (#351, #352 Phases 1–3) — 2026-11-12
+
+Implemented in `@yolo-arcade/game-starlight-burst@2.0.0` (`?app=starlight-burst`) and `@yolo-arcade/game-prism-stack@2.0.0` (`?app=prism-stack`) on branch `feat/ip-compliance-prism-starlight-352` (Phase 4 Audio & Music composition replacement held for later per maintainer direction).
+
+- **Starlight Burst (`src/shared/starlightBurst.ts`, `src/games/starlight-burst/companions.tsx`, `src/client/views/StarlightBurstView.tsx`):**
+  - Replaced reptilian `dragon` (`Bub` / `Bibi`) with **Fox** (Boy **`Ren`** / Girl **`Kiko`**) alongside **Cat** (`Yuzu` / `Mochi`), **Dog** (`Koro` / `Hana`), and **Bunny** (`Poko` / `Momo`).
+  - Replaced mechanical toothed gears, brass hand-crank wheel, Taito-style aiming arrow, and `1UP`/`2UP` cabinet bezels with a **Celestial Starlight Sling**, **Orbital Focus Ring** channeled by the companion's glowing Star-Wand (`solveTwoBoneIK`), and studio `P1`/`P2` Starlight badges.
+  - Replaced glossy soap bubbles with **Astral Star-Cores** (concentric orbital rings + faceted crystal hex + geometric inner constellation sigils).
+- **Prism Stack (`src/shared/prismStack.ts`, `src/games/prism-stack/`, `src/client/views/PrismStackView.tsx`, `src/client/styles.css`):**
+  - Changed playfield dimensions from `10×20` to **`9×18`** (`BOARD_WIDTH = 9`, `BOARD_HEIGHT = 18`).
+  - Replaced `--tetromino-*` Guideline color mapping and square bevels with a custom **`--prism-1..7` gem palette** (`bar` Coral-Ruby, `quad` Amethyst, `crest` Seafoam-Mint, `stepR` Solar-Gold, `stepL` Cobalt, `hookL` Tangerine, `hookR` Sky-Aqua) and chamfered crystal tiles.
+  - Replaced `ghostPiece` shadow silhouettes with **vertical column guide rails + floor landing target ticks**; moved upcoming preview into an **inline header `Upcoming` pill**; replaced 1-hole grey garbage rows with **full-width solid `'H'` Hazard Lock Bars** shattered by any adjacent horizontal line clear; and upgraded Online 2P across both games to **equal symmetric 50/50 split-screen** (removing miniature `Opponent Mini-Radar` side boxes).
+- **Zero-Trademark Guardrail (`test/ip-compliance.test.ts`):**
+  - Relocated `public/tetris/*` to `public/backdrops/` and `public/audio/`, cleaned `public/manifest.webmanifest` and `public/brand/yolo-arcade-icon.svg`, and added `test/ip-compliance.test.ts` scanning `src/`, `server/`, `public/`, `hosting/`, and `src-tauri/`.
+- `npm test`: 29 files, 187 tests passed (including `test/ip-compliance.test.ts`, `test/prism-stack.test.ts`, `test/starlight-burst.test.ts`, `test/theme-tokens.test.ts`, `test/theme-contrast.test.ts`, `test/csp.test.ts`).
+- `npx tsc --noEmit`: clean.
+- `npm run e2e`: 46 passed (55.8s, including symmetric Online 2P split-screen and 36-cell solid Hazard Lock Bars).
+- `npm run e2e:live`: 5 passed (12.9s, read-only).
+
 ## Distinct Mascot Characters Across Player Sides When Switching (#349) — 2026-11-11
 
 Delivered in `@yolo-arcade/game-puzzle-bobble@1.2.1` and published as `v0.40.1` on 2026-11-11 (`tetris@1.0.0` `/games/tetris-BQl6pEES.js` unchanged).

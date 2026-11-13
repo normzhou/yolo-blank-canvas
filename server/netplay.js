@@ -4,7 +4,7 @@
  *
  * Shared by the local Express server (`server/app.js`) and mirrored by the
  * Cloudflare Worker Durable Object (`hosting/cloudflare/worker.mjs`) so that
- * `Tetris` and `Puzzle Bobble` 2-player online matchmaking and gameplay work
+ * `Prism Stack` and `Starlight Burst` 2-player online matchmaking and gameplay work
  * identically over WebSockets (primary) and HTTP `/api/netplay` (fallback).
  */
 import crypto from 'node:crypto';
@@ -17,7 +17,7 @@ const SYNC_TIMEOUT_MS = 15_000;
 const MAX_ROOM_EVENTS = 160;
 const WS_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
 
-const VALID_GAMES = new Set(['tetris', 'puzzle-bobble']);
+const VALID_GAMES = new Set(['prism-stack', 'starlight-burst']);
 const VALID_STATUSES = new Set(['idle', 'inviting', 'playing_2p']);
 
 function cleanId(raw, maxLen = 64) {
@@ -417,7 +417,7 @@ export function createNetplayHub({ now = () => Date.now() } = {}) {
       const gameId =
         typeof body.gameId === 'string' && VALID_GAMES.has(body.appId || body.gameId)
           ? body.gameId || body.appId
-          : 'tetris';
+          : 'prism-stack';
       if (player.roomId) {
         const oldRoomId = player.roomId;
         rooms.delete(oldRoomId);
@@ -674,7 +674,7 @@ export function createNetplayHub({ now = () => Date.now() } = {}) {
       }
       const kind = typeof body.kind === 'string' ? body.kind.slice(0, 40) : 'state';
       const payload = body.payload ?? null;
-      if (kind === 'tetris_state' || kind === 'pb_state') {
+      if (kind === 'prism_state' || kind === 'starlight_state') {
         room.events = room.events.filter(
           (ev) => !(ev.senderId === clientId && ev.kind === kind),
         );

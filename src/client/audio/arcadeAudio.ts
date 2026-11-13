@@ -3,7 +3,7 @@ import {
   COUNTDOWN_VOICE_SPRITE_SRC,
   type CountdownLanguage,
 } from '../../shared/countdownLanguages';
-import { PLAYLIST, shuffledTracks, type Track } from '../../shared/tetrisMusic';
+import { PLAYLIST, shuffledTracks, type Track } from '../../shared/arcadeMusic';
 import { ArcadeSfx, type SfxEventName } from './toneSynth';
 
 type AudioContextConstructor = typeof AudioContext;
@@ -42,10 +42,10 @@ interface ActiveVoice {
 /**
  * Plays the background chiptune tracks and real-time `Tone.js`-style arcade
  * sound effects — with smooth `GainNode` crossfading between tracks and
- * between screens (`SELECTOR_PLAYLIST` <-> `TETRIS_PLAYLIST` <-> `PUZZLE_BOBBLE_PLAYLIST`,
- * #217, #232, #234).
+ * between screens (`SELECTOR_PLAYLIST` <-> `PRISM_STACK_PLAYLIST` <-> `STARLIGHT_BURST_PLAYLIST`,
+ * #217, #232, #234, #352).
  */
-export class TetrisMusic {
+export class ArcadeMusicPlayer {
   private onTrackChange?: (track: Track) => void;
   private playlist: ReadonlyArray<Track>;
   private ctx: AudioContext | null = null;
@@ -89,7 +89,7 @@ export class TetrisMusic {
   }
 
   /**
-   * Switches the active playlist (e.g. Selector Screen <-> Tetris <-> Puzzle Bobble).
+   * Switches the active playlist (e.g. Selector Screen <-> Prism Stack <-> Starlight Burst).
    * If a track from the previous playlist is currently playing, crossfades
    * smoothly (`CROSSFADE_SEC = 1.2s`) into a track from the new playlist (#234).
    */
@@ -251,7 +251,7 @@ export class TetrisMusic {
 
   /**
    * Plays the spoken voice audio of the selected language's "Ready…" or "Go!"
-   * phrase from `public/tetris/countdown-voices.m4a` (with Web Speech API fallback)
+   * phrase from `public/audio/countdown-voices.m4a` (with Web Speech API fallback)
    * without synthetic beep tones (#262, #276).
    */
   playCountdownPhrase(lang: CountdownLanguage, phase: 'ready' | 'go'): void {
@@ -633,10 +633,10 @@ export class TetrisMusic {
  * Shared singleton audio controller so the global sound effects (`sfx-button`)
  * and music (`sound-button`) controls in `App.tsx` and the in-game Pause Menu
  * drive music crossfades and real-time SFX independently across the Selector
- * Screen, Tetris, and Puzzle Bobble (#234, #313, #317).
+ * Screen, Prism Stack, and Starlight Burst (#234, #313, #317, #352).
  * Both Sound Effects and Music start ON by default and are 100% decoupled.
  */
-let sharedController: TetrisMusic | null = null;
+let sharedController: ArcadeMusicPlayer | null = null;
 let sharedMusicOn = true;
 let sharedSfxOn = true;
 const stateListeners = new Set<(musicOn: boolean, nowPlaying: string | null, sfxOn: boolean) => void>();
@@ -648,9 +648,9 @@ function notifySharedAudioListeners(): void {
   }
 }
 
-export function getSharedArcadeAudio(): TetrisMusic {
+export function getSharedArcadeAudio(): ArcadeMusicPlayer {
   if (!sharedController) {
-    sharedController = new TetrisMusic((track) => {
+    sharedController = new ArcadeMusicPlayer((track) => {
       for (const listener of stateListeners) {
         listener(sharedMusicOn, track.title, sharedSfxOn);
       }

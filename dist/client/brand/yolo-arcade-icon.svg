@@ -35,8 +35,8 @@
       <stop offset="100%" stop-color="#6a0000" />
     </radialGradient>
 
-    <!-- Glossy Electric-Cyan Puzzle Bobble Orb -->
-    <radialGradient id="cyanBubble" cx="34%" cy="28%" r="66%">
+    <!-- Luminous Electric-Cyan Astral Star-Core -->
+    <radialGradient id="cyanStarCore" cx="34%" cy="28%" r="66%">
       <stop offset="0%" stop-color="#e0f2fe" />
       <stop offset="40%" stop-color="#38bdf8" />
       <stop offset="85%" stop-color="#0284c7" />
@@ -55,24 +55,24 @@
     />
   </g>
 
-  <!-- 3. Floating 90s 3D Golden T-Tetromino (Upper Right) -->
+  <!-- 3. Floating 3D Golden Prism Cluster (Upper Right) -->
   <g transform="translate(722, 252) rotate(14)" stroke="#090d16" stroke-width="20" stroke-linejoin="round">
-    <rect x="-126" y="-42" width="84" height="84" rx="16" fill="#facc15" />
-    <rect x="-42" y="-42" width="84" height="84" rx="16" fill="#facc15" />
-    <rect x="42" y="-42" width="84" height="84" rx="16" fill="#facc15" />
-    <rect x="-42" y="-126" width="84" height="84" rx="16" fill="#fde047" />
-    <!-- 16-bit Specular Block Glints -->
+    <rect x="-126" y="-42" width="84" height="84" rx="22" fill="#facc15" />
+    <rect x="-42" y="-42" width="84" height="84" rx="22" fill="#facc15" />
+    <rect x="42" y="-42" width="84" height="84" rx="22" fill="#facc15" />
+    <rect x="-42" y="-126" width="84" height="84" rx="22" fill="#fde047" />
+    <!-- Specular Prism Glints -->
     <rect x="-24" y="-108" width="34" height="14" rx="7" fill="#ffffff" stroke="none" />
     <rect x="-108" y="-24" width="34" height="14" rx="7" fill="#ffffff" stroke="none" />
     <rect x="-24" y="-24" width="34" height="14" rx="7" fill="#ffffff" stroke="none" />
     <rect x="60" y="-24" width="34" height="14" rx="7" fill="#ffffff" stroke="none" />
   </g>
 
-  <!-- 4. Glossy Electric-Cyan Puzzle Bobble Orb (Middle Right) -->
+  <!-- 4. Astral Electric-Cyan Starlight Core (Middle Right) -->
   <g transform="translate(752, 504)">
-    <circle r="104" fill="url(#cyanBubble)" stroke="#090d16" stroke-width="22" />
-    <ellipse cx="-34" cy="-38" rx="34" ry="20" transform="rotate(-25 -34 -38)" fill="#ffffff" fill-opacity="0.92" />
-    <circle cx="-10" cy="-12" r="9" fill="#ffffff" fill-opacity="0.78" />
+    <circle r="104" fill="url(#cyanStarCore)" stroke="#090d16" stroke-width="22" />
+    <circle r="76" fill="none" stroke="#ffffff" stroke-width="10" stroke-opacity="0.72" />
+    <polygon points="0,-48 14,-14 48,0 14,14 0,48 -14,14 -48,0 -14,-14" fill="#ffffff" fill-opacity="0.92" />
   </g>
 
   <!-- 5. 90s 4-Point Arcade Pixel Sparkles -->

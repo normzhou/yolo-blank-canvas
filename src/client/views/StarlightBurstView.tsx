@@ -15,7 +15,7 @@ import {
   setSharedMusicOn,
   setSharedSfxOn,
   subscribeSharedAudio,
-} from '../audio/tetrisMusic';
+} from '../audio/arcadeAudio';
 import {
   getSharedGamePaused,
   getSharedOverlayOpen,
@@ -28,28 +28,27 @@ import {
   getSharedNetplay,
   INVITE_TIMEOUT_MS,
   type NetplayState,
-  type PuzzleBobbleRadarSnapshot,
+  type StarlightBurstLiveSnapshot,
 } from '../netplay';
 import {
   pickCountdownLanguage,
   type CountdownLanguage,
 } from '../../shared/countdownLanguages';
-import { PUZZLE_BOBBLE_PLAYLIST } from '../../shared/tetrisMusic';
-import { BACKGROUNDS, nextBackgroundIndex } from '../../shared/tetrisBackgrounds';
+import { STARLIGHT_BURST_PLAYLIST } from '../../shared/arcadeMusic';
+import { BACKGROUNDS, nextBackgroundIndex } from '../../shared/stageBackdrops';
 import {
   AIM_STEP_DEG,
   ARENA_HEIGHT,
   ARENA_WIDTH,
-  BUBBLE_RADIUS,
   DANGER_LINE_Y,
   LAUNCHER_X,
   LAUNCHER_Y,
   ROW_STEP,
+  STAR_RADIUS,
   aimAngleFromBoardPoint,
   aimGuidePoints,
   aimPlayer,
   aimVelocityDegPerSec,
-  bubbleCenter,
   characterDisplayName,
   colsForRow,
   createMatch,
@@ -60,7 +59,7 @@ import {
   deriveMascotAdvice,
   deriveMascotMood,
   fireAndResolvePlayer,
-  firePlayerBubble,
+  firePlayerStar,
   formatAimAngle,
   generateGarbageColors,
   hurryCountdownSeconds,
@@ -70,184 +69,179 @@ import {
   setPlayerAimAngle,
   shotsPerCeilingDrop,
   stageTitle,
+  starCenter,
   stepMatch,
   tickShotTimers,
   TOTAL_STAGES,
-  type BubbleColor,
   type CharacterId,
   type MascotAdvice,
   type MascotGender,
-  type MascotMood,
   type MascotSelection,
   type PlayerBoardState,
-  type PuzzleBobbleMatch,
-} from '../../shared/puzzleBobble';
+  type StarColor,
+  type StarlightBurstMatch,
+} from '../../shared/starlightBurst';
 import {
-  CharacterMascotSvg,
+  CompanionSvg,
   mascotPalette,
-} from '../../games/puzzle-bobble/mascots';
+} from '../../games/starlight-burst/companions';
 
-const BUBBLE_TOKEN: Record<BubbleColor, string> = {
-  ruby: 'var(--tetromino-z)',
-  amber: 'var(--tetromino-l)',
-  emerald: 'var(--tetromino-s)',
-  azure: 'var(--tetromino-j)',
-  amethyst: 'var(--tetromino-t)',
-  coral: 'var(--tetromino-i)',
+const STAR_TOKEN: Record<StarColor, string> = {
+  ruby: 'var(--prism-1)',
+  amber: 'var(--prism-4)',
+  emerald: 'var(--prism-3)',
+  azure: 'var(--prism-5)',
+  amethyst: 'var(--prism-2)',
+  coral: 'var(--prism-6)',
 };
 
 function eventSummary(player: PlayerBoardState): string | null {
   const ev = player.lastEvent;
   if (!ev) return null;
+  if (ev.clearBonus > 0) {
+    return `SKY CLEAR! +${ev.clearBonus.toLocaleString()} BONUS`;
+  }
+  if (ev.popped.length === 0 && ev.risenGarbage.length === 0) return null;
   const parts: string[] = [];
   if (ev.popped.length > 0) {
-    parts.push(`Popped ${ev.popped.length} (+${ev.popScore})`);
+    parts.push(`Burst ${ev.popped.length} (+${ev.popScore})`);
   }
   if (ev.dropped.length > 0) {
-    parts.push(`Avalanche ${ev.dropped.length} (+${ev.dropScore.toLocaleString()})`);
+    parts.push(`Cascade ${ev.dropped.length}! (+${ev.dropScore.toLocaleString()})`);
   }
   if (ev.sentGarbage > 0) {
-    parts.push(`Sent +${ev.sentGarbage} attack!`);
+    parts.push(`Sent ${ev.sentGarbage} stars!`);
   }
   if (ev.risenGarbage.length > 0) {
-    parts.push(`+${ev.risenGarbage.length} rose up`);
+    parts.push(`+${ev.risenGarbage.length} stars rose!`);
   }
-  return parts.length > 0 ? parts.join(' · ') : null;
+  return parts.join(' · ');
 }
 
 /**
- * Subtle inner emblem inside each bubble, inspired by the trapped bubble
- * spirits in Taito's arcade Puzzle Bobble (also aids colour-blind play).
+ * Distinct inner geometric constellation rune for each star-core color so
+ * players can distinguish all 6 elemental star-cores by shape as well as color.
  */
-function BubbleEmblem({ cx, cy, color, r }: { cx: number; cy: number; color: BubbleColor; r: number }) {
-  const s = r * 0.36;
+function StarCoreRune({ cx, cy, color, r }: { cx: number; cy: number; color: StarColor; r: number }) {
+  const s = r * 0.44;
   switch (color) {
     case 'ruby':
-      // 4-point star
       return (
         <polygon
-          points={`${cx},${cy - s} ${cx + s * 0.38},${cy - s * 0.38} ${cx + s},${cy} ${cx + s * 0.38},${cy + s * 0.38} ${cx},${cy + s} ${cx - s * 0.38},${cy + s * 0.38} ${cx - s},${cy} ${cx - s * 0.38},${cy - s * 0.38}`}
+          points={`${cx},${cy - s} ${cx + s * 0.36},${cy - s * 0.36} ${cx + s},${cy} ${cx + s * 0.36},${cy + s * 0.36} ${cx},${cy + s} ${cx - s * 0.36},${cy + s * 0.36} ${cx - s},${cy} ${cx - s * 0.36},${cy - s * 0.36}`}
           fill="var(--on-accent)"
-          opacity="0.45"
+          opacity="0.88"
         />
       );
     case 'amber':
-      // Triangle crest
       return (
         <polygon
-          points={`${cx},${cy - s * 0.9} ${cx + s * 0.85},${cy + s * 0.7} ${cx - s * 0.85},${cy + s * 0.7}`}
+          points={`${cx},${cy - s * 0.92} ${cx + s * 0.86},${cy + s * 0.68} ${cx - s * 0.86},${cy + s * 0.68}`}
           fill="var(--on-accent)"
-          opacity="0.45"
+          opacity="0.86"
         />
       );
     case 'emerald':
-      // Clover / plus
       return (
-        <g fill="var(--on-accent)" opacity="0.45">
-          <rect x={cx - s * 0.28} y={cy - s * 0.85} width={s * 0.56} height={s * 1.7} rx={1.5} />
-          <rect x={cx - s * 0.85} y={cy - s * 0.28} width={s * 1.7} height={s * 0.56} rx={1.5} />
+        <g fill="var(--on-accent)" opacity="0.86">
+          <rect x={cx - s * 0.24} y={cy - s * 0.88} width={s * 0.48} height={s * 1.76} rx={1.2} />
+          <rect x={cx - s * 0.88} y={cy - s * 0.24} width={s * 1.76} height={s * 0.48} rx={1.2} />
         </g>
       );
     case 'azure':
-      // Ring / moon orb
       return (
-        <circle
-          cx={cx}
-          cy={cy}
-          r={s * 0.65}
-          fill="none"
-          stroke="var(--on-accent)"
-          strokeWidth={1.6}
-          opacity="0.5"
-        />
+        <g opacity="0.88">
+          <circle
+            cx={cx}
+            cy={cy}
+            r={s * 0.68}
+            fill="none"
+            stroke="var(--on-accent)"
+            strokeWidth={1.65}
+          />
+          <circle cx={cx} cy={cy} r={s * 0.24} fill="var(--on-accent)" />
+        </g>
       );
     case 'amethyst':
-      // Diamond gem
       return (
         <polygon
-          points={`${cx},${cy - s} ${cx + s * 0.8},${cy} ${cx},${cy + s} ${cx - s * 0.8},${cy}`}
+          points={`${cx},${cy - s} ${cx + s * 0.78},${cy} ${cx},${cy + s} ${cx - s * 0.78},${cy}`}
           fill="var(--on-accent)"
-          opacity="0.45"
+          opacity="0.86"
         />
       );
     case 'coral':
-      // Twin dots
       return (
-        <g fill="var(--on-accent)" opacity="0.5">
-          <circle cx={cx - s * 0.42} cy={cy} r={s * 0.32} />
-          <circle cx={cx + s * 0.42} cy={cy} r={s * 0.32} />
+        <g stroke="var(--on-accent)" strokeWidth={1.55} strokeLinecap="round" opacity="0.88">
+          <line x1={cx} y1={cy - s * 0.86} x2={cx} y2={cy + s * 0.86} />
+          <line x1={cx - s * 0.74} y1={cy - s * 0.43} x2={cx + s * 0.74} y2={cy + s * 0.43} />
+          <line x1={cx - s * 0.74} y1={cy + s * 0.43} x2={cx + s * 0.74} y2={cy - s * 0.43} />
         </g>
       );
   }
 }
 
-function BubbleSvg({
+/**
+ * Faceted Astral Star-Core projectile (no soap-bubble specular crescents):
+ * dark astral rim + radiant crystal core + concentric orbital energy ring +
+ * faceted hexagon inner aura + geometric constellation sigil (#352).
+ */
+function StarCoreSvg({
   cx,
   cy,
   color,
-  radius = BUBBLE_RADIUS - 0.8,
+  radius = STAR_RADIUS - 0.8,
   className,
   style,
 }: {
   cx: number;
   cy: number;
-  color: BubbleColor;
+  color: StarColor;
   radius?: number;
   className?: string;
   style?: CSSProperties;
 }) {
+  const hexR = radius * 0.64;
+  const hexPoints = Array.from({ length: 6 }, (_, i) => {
+    const rad = ((i * 60 - 30) * Math.PI) / 180;
+    return `${(cx + Math.cos(rad) * hexR).toFixed(1)},${(cy + Math.sin(rad) * hexR).toFixed(1)}`;
+  }).join(' ');
   return (
     <g className={className} style={style}>
-      {/* Base colour sphere */}
       <circle
         cx={cx}
         cy={cy}
         r={radius}
-        fill={BUBBLE_TOKEN[color]}
-        stroke="var(--text)"
-        strokeWidth="1.2"
+        fill={STAR_TOKEN[color]}
+        stroke="var(--stage-well)"
+        strokeWidth="1.3"
       />
-      {/* 3D radial depth shading */}
-      <circle cx={cx} cy={cy} r={radius} fill="url(#pb-sphere-shade)" />
-      {/* Inner rim light */}
+      <circle cx={cx} cy={cy} r={radius} fill="url(#sb-core-depth)" />
+      {/* Concentric orbital energy ring */}
       <circle
         cx={cx}
         cy={cy}
-        r={radius - 1.8}
+        r={Math.max(2, radius - 2.6)}
         fill="none"
         stroke="var(--on-accent)"
-        strokeWidth="0.9"
-        opacity="0.35"
+        strokeWidth="0.95"
+        strokeDasharray="4.2 2.4"
+        opacity="0.62"
       />
-      {/* Trapped spirit emblem */}
-      <BubbleEmblem cx={cx} cy={cy + 0.5} color={color} r={radius} />
-      {/* 3D radial specular highlight + crisp arcade shine */}
-      <circle cx={cx} cy={cy} r={radius} fill="url(#pb-sphere-shine)" />
-      <ellipse
-        cx={cx - radius * 0.32}
-        cy={cy - radius * 0.34}
-        rx={radius * 0.28}
-        ry={radius * 0.17}
-        transform={`rotate(-28 ${cx - radius * 0.32} ${cy - radius * 0.34})`}
-        fill="var(--on-accent)"
-        opacity="0.88"
-      />
-      <circle
-        cx={cx - radius * 0.1}
-        cy={cy - radius * 0.52}
-        r={radius * 0.09}
-        fill="var(--on-accent)"
-        opacity="0.75"
-      />
+      {/* Faceted hexagonal crystal facet */}
+      <polygon points={hexPoints} fill="var(--on-accent)" opacity="0.2" />
+      <StarCoreRune cx={cx} cy={cy} color={color} r={radius} />
     </g>
   );
 }
 
 /**
- * Neo-Geo style mechanical catapult / pointer launcher with rotating toothed
- * gears, aiming arrow shaft, next-bubble cradle, and selectable cute mascot.
+ * Celestial Starlight Sling: levitating astral sanctuary platform, left on-deck
+ * star pedestal, twin-crescent prism emitter with rotating constellation halo,
+ * dual-prong crystal star-sight, right orbital focus ring, and selectable plush
+ * companion channeling the ring with a glowing Star-Wand (#352).
  */
-function LauncherMechanismSvg({
+function StarlightSlingSvg({
   player,
   playerNumber,
   mascot,
@@ -262,149 +256,175 @@ function LauncherMechanismSvg({
 }) {
   const { character, gender } = mascot;
   const palette = mascotPalette(character, gender);
-  const gearRotation = Math.round(player.aimAngle * 6 * 10) / 10;
-  const crankRotation = Math.round(-player.aimAngle * 18 * 10) / 10;
+  const haloRotation = Math.round(player.aimAngle * 6 * 10) / 10;
+  const orbitRotation = Math.round(-player.aimAngle * 18 * 10) / 10;
   const mood = deriveMascotMood(player);
 
   return (
     <g>
-      {/* Full-width launcher & mascot arcade pedestal base */}
+      {/* Floating celestial sanctuary platform */}
       <rect
-        x={LAUNCHER_X - 44}
+        x={LAUNCHER_X - 46}
         y={LAUNCHER_Y + 13}
-        width={106}
-        height={10}
-        rx={4}
-        fill="var(--cabinet-surface)"
-        stroke="var(--cabinet-border)"
-        strokeWidth="1.2"
+        width={112}
+        height={11}
+        rx={5.5}
+        fill="var(--stage-surface)"
+        stroke="var(--stage-border)"
+        strokeWidth="1.25"
+      />
+      <line
+        x1={LAUNCHER_X - 38}
+        y1={LAUNCHER_Y + 18.5}
+        x2={LAUNCHER_X + 58}
+        y2={LAUNCHER_Y + 18.5}
+        stroke="var(--prism-7)"
+        strokeWidth="1.1"
+        opacity="0.45"
       />
 
-      {/* Main toothed gear wheel (rotates briskly with aimAngle) */}
-      <g
-        data-testid={`p${playerNumber}-main-gear`}
-        data-gear-angle={Math.round(gearRotation)}
-        transform={`translate(${LAUNCHER_X}, ${LAUNCHER_Y}) rotate(${gearRotation})`}
-      >
-        {Array.from({ length: 12 }, (_, i) => (
-          <rect
-            key={i}
-            x={-2.5}
-            y={-24}
-            width={5}
-            height={6}
-            rx={1}
-            fill="var(--cabinet-bezel)"
-            stroke="var(--cabinet-well)"
-            strokeWidth="0.9"
-            transform={`rotate(${i * 30})`}
-          />
-        ))}
+      {/* Left On-Deck Star-Core Pedestal */}
+      <g transform={`translate(${LAUNCHER_X - 42}, ${LAUNCHER_Y + 8})`}>
+        <ellipse cx={0} cy={7} rx={12} ry={3} fill="var(--stage-well)" opacity="0.5" />
+        <path
+          d="M -11 5 Q 0 10 11 5 L 8 1 Q 0 4 -8 1 Z"
+          fill="var(--prism-2)"
+          stroke="var(--stage-well)"
+          strokeWidth="1"
+        />
+        <StarCoreSvg cx={0} cy={-5} color={player.nextStar} radius={10} />
+      </g>
+
+      {/* Center Rotating Constellation Halo (replaces mechanical gear teeth) */}
+      <g transform={`translate(${LAUNCHER_X}, ${LAUNCHER_Y}) rotate(${haloRotation})`}>
         <circle
           cx={0}
           cy={0}
           r={20}
-          fill="var(--cabinet-surface)"
-          stroke="var(--cabinet-bezel)"
-          strokeWidth="1.5"
+          fill="var(--stage-surface)"
+          stroke="var(--prism-5)"
+          strokeWidth="1.35"
+          opacity="0.88"
         />
         <circle
           cx={0}
           cy={0}
-          r={14}
+          r={16.5}
           fill="none"
-          stroke="var(--cabinet-border)"
-          strokeWidth="1.2"
-          strokeDasharray="4 3"
+          stroke="var(--prism-7)"
+          strokeWidth="0.9"
+          strokeDasharray="3 3"
+          opacity="0.65"
         />
-      </g>
-
-      {/* Secondary hand-crank gear wheel on the right (meshed with the mascot's cranking paw) */}
-      <g
-        data-testid={`p${playerNumber}-crank-gear`}
-        data-crank-angle={Math.round(crankRotation)}
-        transform={`translate(${LAUNCHER_X + 27}, ${LAUNCHER_Y + 6}) rotate(${crankRotation})`}
-      >
-        {Array.from({ length: 8 }, (_, i) => (
-          <rect
+        {Array.from({ length: 6 }, (_, i) => (
+          <polygon
             key={i}
-            x={-1.8}
-            y={-12}
-            width={3.6}
-            height={4}
-            fill="var(--tetromino-o)"
-            stroke="var(--cabinet-well)"
-            strokeWidth="0.8"
-            transform={`rotate(${i * 45})`}
+            points="0,-23.5 2.1,-20 0,-17.5 -2.1,-20"
+            fill="var(--prism-4)"
+            stroke="var(--stage-well)"
+            strokeWidth="0.7"
+            transform={`rotate(${i * 60})`}
           />
         ))}
-        <circle cx={0} cy={0} r={9.5} fill="var(--tetromino-o)" stroke="var(--cabinet-well)" strokeWidth="1.2" />
-        <circle cx={0} cy={0} r={7.2} fill="var(--cabinet-surface)" opacity="0.28" />
-        <line x1={-7.5} y1={0} x2={7.5} y2={0} stroke="var(--cabinet-well)" strokeWidth="1.0" opacity="0.45" />
-        <line x1={0} y1={-7.5} x2={0} y2={7.5} stroke="var(--cabinet-well)" strokeWidth="1.0" opacity="0.45" />
-        <circle cx={0} cy={0} r={3.2} fill="var(--cabinet-surface)" stroke="var(--cabinet-well)" strokeWidth="1" />
-        <circle cx={5.2} cy={0} r={2.3} fill="var(--warning)" stroke="var(--cabinet-well)" strokeWidth="0.95" />
       </g>
 
-      {/* Rotating ornate pointer arrow */}
+      {/* Right Orbital Starlight Focus Ring channeled by the companion's Star-Wand */}
+      <g
+        transform={`translate(${LAUNCHER_X + 27}, ${LAUNCHER_Y + 6}) rotate(${orbitRotation})`}
+        data-testid={`p${playerNumber}-sling-ring`}
+        data-sling-angle={orbitRotation}
+      >
+        <circle
+          cx={0}
+          cy={0}
+          r={9.6}
+          fill="var(--stage-well)"
+          opacity="0.55"
+        />
+        <circle
+          cx={0}
+          cy={0}
+          r={9.2}
+          fill="none"
+          stroke="var(--prism-2)"
+          strokeWidth="2.4"
+        />
+        <circle
+          cx={0}
+          cy={0}
+          r={6.2}
+          fill="none"
+          stroke="var(--prism-4)"
+          strokeWidth="1.0"
+          strokeDasharray="2.8 2.2"
+        />
+        {Array.from({ length: 4 }, (_, i) => (
+          <polygon
+            key={i}
+            points="0,-11.2 1.8,-9.2 0,-7.2 -1.8,-9.2"
+            fill="var(--prism-7)"
+            stroke="var(--stage-well)"
+            strokeWidth="0.65"
+            transform={`rotate(${i * 90})`}
+          />
+        ))}
+        <circle cx={0} cy={0} r={2.6} fill="var(--prism-4)" stroke="var(--stage-well)" strokeWidth="0.85" />
+      </g>
+
+      {/* Tilting Dual-Prong Crystal Starlight Emitter (replaces arrow pointer) */}
       <g transform={`translate(${LAUNCHER_X}, ${LAUNCHER_Y}) rotate(${player.aimAngle})`}>
-        {/* Pointer side wings */}
-        <polygon
-          points="-11,-8 -4,-28 4,-28 11,-8"
-          fill="var(--tetromino-i)"
-          stroke="var(--cabinet-well)"
+        {/* Left & right sweeping astral crescent wings */}
+        <path
+          d="M -14 2 C -17 -12, -10 -24, -4 -33 L -2 -20 C -6 -13, -8 -5, -7 2 Z"
+          fill="var(--prism-7)"
+          stroke="var(--stage-well)"
           strokeWidth="1.15"
+          strokeLinejoin="round"
         />
-        {/* Pointer main shaft */}
-        <rect
-          x={-3}
-          y={-42}
-          width={6}
-          height={28}
-          rx={2}
-          fill="var(--accent)"
-          stroke="var(--cabinet-well)"
+        <path
+          d="M 14 2 C 17 -12, 10 -24, 4 -33 L 2 -20 C 6 -13, 8 -5, 7 2 Z"
+          fill="var(--prism-7)"
+          stroke="var(--stage-well)"
           strokeWidth="1.15"
+          strokeLinejoin="round"
         />
-        {/* Ornate arrowhead tip */}
+        {/* Inner luminous beam conduit */}
+        <line
+          x1={0}
+          y1={-14}
+          x2={0}
+          y2={-41}
+          stroke="var(--prism-4)"
+          strokeWidth="2.4"
+          strokeLinecap="round"
+        />
+        {/* Floating 4-point astral focus diamond at emitter tip */}
         <polygon
-          points="0,-54 -9,-38 -3,-40 0,-43 3,-40 9,-38"
-          fill="var(--tetromino-o)"
-          stroke="var(--cabinet-well)"
-          strokeWidth="1.25"
+          points="0,-51 4.2,-43.5 0,-36 -4.2,-43.5"
+          fill="var(--prism-4)"
+          stroke="var(--stage-well)"
+          strokeWidth="1.15"
+          strokeLinejoin="round"
         />
+        <circle cx={0} cy={-43.5} r={1.4} fill="var(--on-accent)" />
       </g>
 
-      {/* Active bubble loaded in the launcher chamber */}
-      {player.flying === null ? (
-        <BubbleSvg cx={LAUNCHER_X} cy={LAUNCHER_Y} color={player.currentBubble} />
+      {/* Active Star-Core seated in the celestial cradle */}
+      {player.flying === null && player.status === 'playing' ? (
+        <StarCoreSvg cx={LAUNCHER_X} cy={LAUNCHER_Y} color={player.currentStar} />
       ) : (
         <circle
           cx={LAUNCHER_X}
           cy={LAUNCHER_Y}
-          r={BUBBLE_RADIUS - 3}
-          fill="var(--cabinet-slot)"
-          stroke="var(--cabinet-border)"
-          strokeDasharray="3 2"
+          r={STAR_RADIUS - 3}
+          fill="var(--stage-slot)"
+          stroke="var(--prism-5)"
+          strokeWidth={1.2}
         />
       )}
 
-      {/* On-deck NEXT bubble tray on the left of the catapult */}
-      <g transform={`translate(${LAUNCHER_X - 56}, ${LAUNCHER_Y + 6})`}>
-        <ellipse
-          cx={0}
-          cy={10}
-          rx={14}
-          ry={4}
-          fill="var(--cabinet-surface)"
-          stroke="var(--cabinet-border)"
-          strokeWidth="1"
-        />
-        <BubbleSvg cx={0} cy={-1} color={player.nextBubble} radius={BUBBLE_RADIUS - 3} />
-      </g>
-
-      {/* Selectable cute mascot turning the crank on the right — click for random other animal & gender (#204, #299, #313, #345, #347) */}
-      <CharacterMascotSvg
+      {/* Selectable plush companion channeling the Starlight Ring on the right */}
+      <CompanionSvg
         x={LAUNCHER_X + 44}
         y={LAUNCHER_Y + 6}
         playerNumber={playerNumber}
@@ -416,7 +436,7 @@ function LauncherMechanismSvg({
         onCycleCharacter={onCycleCharacter}
       />
 
-      {/* Plain-text character dialogue above the mascot without borders or background (#299, #303, #313, #315) */}
+      {/* Plain-text companion tactical callout above the companion without borders */}
       {(() => {
         const bangIdx = advice.bubbleText.indexOf('! ');
         const line1 =
@@ -427,22 +447,22 @@ function LauncherMechanismSvg({
           bangIdx > 0 && bangIdx < 28 ? advice.bubbleText.slice(bangIdx + 2) : '';
         const textFill =
           advice.kind === 'danger' || advice.kind === 'lose'
-            ? 'var(--tetromino-z)'
+            ? 'var(--prism-1)'
             : advice.kind === 'match' || advice.kind === 'combo' || advice.kind === 'win'
-              ? 'var(--tetromino-o)'
+              ? 'var(--prism-4)'
               : advice.kind === 'bank'
-                ? 'var(--tetromino-t)'
+                ? 'var(--prism-2)'
                 : palette.calloutText;
         return (
           <g
-            className={`pb-mascot-speech pb-mascot-speech-${advice.kind}`}
+            className={`sb-mascot-speech sb-mascot-speech-${advice.kind}`}
             data-testid={`p${playerNumber}-mascot-speech`}
             data-advice-kind={advice.kind}
             aria-hidden="true"
           >
             <text
-              x={170}
-              y={line2 ? 216 : 222}
+              x={168}
+              y={line2 ? DANGER_LINE_Y - 19 : DANGER_LINE_Y - 11}
               textAnchor="middle"
               fontSize="6.6"
               fontWeight="700"
@@ -450,12 +470,11 @@ function LauncherMechanismSvg({
               letterSpacing="0.04em"
               fill={textFill}
             >
-              <tspan x={170} dy={0}>
+              <tspan x={168} dy={0}>
                 {line1}
               </tspan>
               {line2 ? (
-                <tspan x={170} dy={8.2} fontSize="5.8">
-                  {' '}
+                <tspan x={168} dy={8.5}>
                   {line2}
                 </tspan>
               ) : null}
@@ -467,19 +486,13 @@ function LauncherMechanismSvg({
   );
 }
 
-/**
- * Renders the Neo-Geo yellow (1-bubble) and red (5-bubble) garbage warning orbs.
- */
-function GarbageOrbsRow({ count, label }: { count: number; label: string }) {
-  if (count <= 0) return null;
+function IncomingStarsRow({ count, label }: { count: number; label: string }) {
   const orbs = decomposeGarbageOrbs(count);
+  if (orbs.length === 0) return null;
   return (
-    <span className="pb-orbs" aria-label={label} title={label}>
-      {orbs.map((kind, idx) => (
-        <span
-          key={idx}
-          className={kind === 'red' ? 'pb-orb pb-orb-red' : 'pb-orb pb-orb-yellow'}
-        />
+    <span className="sb-orbs" role="img" aria-label={label}>
+      {orbs.map((kind, i) => (
+        <span key={i} className={`sb-orb sb-orb-${kind}`} />
       ))}
     </span>
   );
@@ -495,7 +508,10 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-function createRadarFromBoard(board: PlayerBoardState): PuzzleBobbleRadarSnapshot {
+function createSnapshotFromBoard(
+  board: PlayerBoardState,
+  mascot: MascotSelection,
+): StarlightBurstLiveSnapshot {
   return {
     grid: board.grid.map((row) => row.slice()),
     ceilingDrop: board.ceilingDrop,
@@ -503,7 +519,9 @@ function createRadarFromBoard(board: PlayerBoardState): PuzzleBobbleRadarSnapsho
     status: board.status,
     incomingGarbage: board.incomingGarbage,
     aimAngle: Math.round(board.aimAngle * 2) / 2,
-    currentBubble: board.currentBubble,
+    currentStar: board.currentStar,
+    nextStar: board.nextStar,
+    mascot,
     flying: board.flying
       ? {
           x: Math.round(board.flying.x),
@@ -523,268 +541,44 @@ function createRadarFromBoard(board: PlayerBoardState): PuzzleBobbleRadarSnapsho
   };
 }
 
-interface RadarTransientFx {
-  key: string;
-  x: number;
-  y: number;
-  color: BubbleColor;
-  kind: 'pop' | 'drop' | 'rise';
+function boardStateFromLiveSnapshot(snapshot: StarlightBurstLiveSnapshot): PlayerBoardState {
+  return {
+    grid: snapshot.grid,
+    aimAngle: snapshot.aimAngle,
+    currentStar: snapshot.currentStar,
+    nextStar: snapshot.nextStar ?? snapshot.currentStar,
+    flying: snapshot.flying
+      ? { x: snapshot.flying.x, y: snapshot.flying.y, vx: 0, vy: 0, color: snapshot.flying.color }
+      : null,
+    score: snapshot.score,
+    shotsFired: snapshot.lastEvent?.id ?? 0,
+    shotsSinceDrop: 0,
+    ceilingDrop: snapshot.ceilingDrop,
+    ceilingWarning: false,
+    attackStack: 0,
+    incomingGarbage: snapshot.incomingGarbage,
+    incomingQueue: [],
+    shotTimerMs: 10_000,
+    stageElapsedMs: 0,
+    stage: 1,
+    status: snapshot.status,
+    lastEvent: snapshot.lastEvent
+      ? {
+          id: snapshot.lastEvent.id,
+          popped: snapshot.lastEvent.popped,
+          dropped: snapshot.lastEvent.dropped,
+          risenGarbage: snapshot.lastEvent.risenGarbage,
+          popScore: 0,
+          dropScore: 0,
+          clearBonus: 0,
+          stackedGarbage: 0,
+          sentGarbage: snapshot.lastEvent.sentGarbage,
+        }
+      : null,
+  };
 }
 
-const OpponentBubbleRadar = memo(function OpponentBubbleRadar({
-  opponentName,
-  radar,
-}: {
-  opponentName: string;
-  radar: PuzzleBobbleRadarSnapshot;
-}) {
-  const ceilingY = radar.ceilingDrop * ROW_STEP;
-  const statusLabel =
-    radar.status === 'ko' ? 'KO' : radar.status === 'won' ? 'WIN' : 'LIVE';
-
-  const prevGridRef = useRef<PlayerBoardState['grid'] | null>(null);
-  const prevCeilingRef = useRef<number>(radar.ceilingDrop);
-  const prevEventIdRef = useRef<number>(0);
-  const fxSeqRef = useRef<number>(0);
-  const [transientFx, setTransientFx] = useState<RadarTransientFx[]>([]);
-  const [risenCoordKeys, setRisenCoordKeys] = useState<Set<string>>(() => new Set());
-
-  useEffect(() => {
-    const prevGrid = prevGridRef.current;
-    const prevCeiling = prevCeilingRef.current;
-    prevGridRef.current = radar.grid;
-    prevCeilingRef.current = radar.ceilingDrop;
-
-    const addedFx: RadarTransientFx[] = [];
-    const nextRisen = new Set<string>();
-    const ev = radar.lastEvent;
-
-    if (ev && ev.id !== prevEventIdRef.current) {
-      prevEventIdRef.current = ev.id;
-      for (const cell of ev.popped ?? []) {
-        addedFx.push({
-          key: `pop-${++fxSeqRef.current}`,
-          x: cell.x,
-          y: cell.y,
-          color: cell.color,
-          kind: 'pop',
-        });
-      }
-      for (const cell of ev.dropped ?? []) {
-        addedFx.push({
-          key: `drop-${++fxSeqRef.current}`,
-          x: cell.x,
-          y: cell.y,
-          color: cell.color,
-          kind: 'drop',
-        });
-      }
-      for (const cell of ev.risenGarbage ?? []) {
-        nextRisen.add(`${cell.row},${cell.col}`);
-        addedFx.push({
-          key: `rise-${++fxSeqRef.current}`,
-          x: cell.x,
-          y: cell.y,
-          color: cell.color,
-          kind: 'rise',
-        });
-      }
-    } else if (prevGrid) {
-      // Also diff grids directly when a raw pb_state snapshot arrives without lastEvent (#256).
-      for (let r = 0; r < Math.max(prevGrid.length, radar.grid.length); r += 1) {
-        const cols = colsForRow(r);
-        for (let c = 0; c < cols; c += 1) {
-          const before = prevGrid[r]?.[c] ?? null;
-          const after = radar.grid[r]?.[c] ?? null;
-          if (before && !after) {
-            const center = bubbleCenter(r, c, prevCeiling);
-            addedFx.push({
-              key: `diff-pop-${++fxSeqRef.current}`,
-              x: center.x,
-              y: center.y,
-              color: before,
-              kind: 'pop',
-            });
-          } else if (!before && after) {
-            const center = bubbleCenter(r, c, radar.ceilingDrop);
-            nextRisen.add(`${r},${c}`);
-            addedFx.push({
-              key: `diff-rise-${++fxSeqRef.current}`,
-              x: center.x,
-              y: center.y,
-              color: after,
-              kind: 'rise',
-            });
-          }
-        }
-      }
-    }
-
-    if (addedFx.length > 0 || nextRisen.size > 0) {
-      setRisenCoordKeys(nextRisen);
-      setTransientFx((cur) => [...cur.slice(-24), ...addedFx]);
-      const id = window.setTimeout(() => {
-        setTransientFx([]);
-        setRisenCoordKeys(new Set());
-      }, 520);
-      return () => window.clearTimeout(id);
-    }
-    return undefined;
-  }, [radar.grid, radar.ceilingDrop, radar.lastEvent]);
-
-  const stagingY = DANGER_LINE_Y + 12;
-
-  return (
-    <div
-      className="netplay-radar-card pb-radar-card"
-      data-testid="pb-opponent-radar"
-      aria-label={`Opponent ${opponentName} mini radar`}
-    >
-      <div className="netplay-radar-header">
-        <span className="netplay-radar-name" title={opponentName}>
-          VS {opponentName}
-        </span>
-        <span
-          className={
-            statusLabel === 'KO'
-              ? 'netplay-radar-badge is-ko'
-              : 'netplay-radar-badge'
-          }
-          data-testid="pb-opponent-status"
-        >
-          {statusLabel}
-        </span>
-      </div>
-      <svg
-        className="pb-radar-svg"
-        viewBox={`0 0 ${ARENA_WIDTH} ${ARENA_HEIGHT}`}
-        role="img"
-        aria-label={`${opponentName} bubble radar, score ${radar.score}`}
-      >
-        {ceilingY > 0 ? (
-          <rect
-            x={0}
-            y={0}
-            width={ARENA_WIDTH}
-            height={ceilingY}
-            fill="var(--closed-weak)"
-          />
-        ) : null}
-        <line
-          x1={4}
-          y1={DANGER_LINE_Y}
-          x2={ARENA_WIDTH - 4}
-          y2={DANGER_LINE_Y}
-          stroke="var(--tetromino-z)"
-          strokeWidth="2"
-          strokeDasharray="6 4"
-        />
-        {/* Rising garbage trails on opponent mini-radar (#256) */}
-        {transientFx
-          .filter((fx) => fx.kind === 'rise')
-          .map((fx) => (
-            <line
-              key={`trail-${fx.key}`}
-              className="pb-rise-trail"
-              x1={fx.x}
-              y1={stagingY}
-              x2={fx.x}
-              y2={fx.y}
-              stroke={BUBBLE_TOKEN[fx.color]}
-              strokeWidth="4"
-              strokeLinecap="round"
-            />
-          ))}
-        {radar.grid.map((row, r) =>
-          row.slice(0, colsForRow(r)).map((color, c) => {
-            if (!color) return null;
-            const center = bubbleCenter(r, c, radar.ceilingDrop);
-            const coordKey = `${r},${c}`;
-            const justRose = risenCoordKeys.has(coordKey);
-            return (
-              <circle
-                key={justRose ? `${coordKey}-rise` : coordKey}
-                className={justRose ? 'pb-rise-bubble' : undefined}
-                style={
-                  justRose
-                    ? ({ '--pb-rise-from': `${stagingY - center.y}px` } as CSSProperties)
-                    : undefined
-                }
-                cx={center.x}
-                cy={center.y}
-                r={BUBBLE_RADIUS - 1}
-                fill={BUBBLE_TOKEN[color]}
-                stroke="var(--text)"
-                strokeWidth="1.2"
-              />
-            );
-          }),
-        )}
-        {/* Popped & dropped (avalanche) bubble animations on opponent mini-radar (#256) */}
-        {transientFx
-          .filter((fx) => fx.kind === 'pop' || fx.kind === 'drop')
-          .map((fx) => (
-            <circle
-              key={fx.key}
-              className={fx.kind === 'pop' ? 'pb-radar-pop-fx' : 'pb-radar-drop-fx'}
-              cx={fx.x}
-              cy={fx.y}
-              r={BUBBLE_RADIUS - 1}
-              fill={BUBBLE_TOKEN[fx.color]}
-              stroke="var(--text)"
-              strokeWidth="1.2"
-            />
-          ))}
-        {/* Flying projectile bubble on opponent mini-radar (#256) */}
-        {radar.flying ? (
-          <circle
-            className="pb-radar-flying-bubble"
-            cx={radar.flying.x}
-            cy={radar.flying.y}
-            r={BUBBLE_RADIUS - 1}
-            fill={BUBBLE_TOKEN[radar.flying.color]}
-            stroke="var(--text)"
-            strokeWidth="1.2"
-          />
-        ) : null}
-        {/* Smoothly interpolated opponent aiming needle (#256) */}
-        <g
-          className="pb-radar-aim-group"
-          data-testid="pb-opponent-aim"
-          style={
-            {
-              transform: `rotate(${radar.aimAngle}deg)`,
-              transformOrigin: `${LAUNCHER_X}px ${LAUNCHER_Y}px`,
-            } as CSSProperties
-          }
-        >
-          <line
-            x1={LAUNCHER_X}
-            y1={LAUNCHER_Y}
-            x2={LAUNCHER_X}
-            y2={LAUNCHER_Y - 34}
-            stroke="var(--tetromino-o)"
-            strokeWidth="3"
-            strokeLinecap="round"
-          />
-        </g>
-        <circle
-          cx={LAUNCHER_X}
-          cy={LAUNCHER_Y}
-          r={BUBBLE_RADIUS - 2}
-          fill={BUBBLE_TOKEN[radar.currentBubble]}
-          stroke="var(--text)"
-          strokeWidth="1.2"
-        />
-      </svg>
-      <div className="netplay-radar-stats">
-        <span data-testid="pb-opponent-score">{radar.score} pts</span>
-      </div>
-    </div>
-  );
-});
-
-const SettledBubbleGridSvg = memo(function SettledBubbleGridSvg({
+const SettledStarGridSvg = memo(function SettledStarGridSvg({
   grid,
   ceilingDrop,
   ceilingWarning,
@@ -800,24 +594,24 @@ const SettledBubbleGridSvg = memo(function SettledBubbleGridSvg({
     (lastEvent?.risenGarbage ?? []).map((cell) => `${cell.row},${cell.col}`),
   );
   return (
-    <g className={ceilingWarning ? 'pb-cluster-warning' : undefined}>
+    <g className={ceilingWarning ? 'sb-cluster-warning' : undefined}>
       {grid.map((row, r) =>
         Array.from({ length: colsForRow(r) }, (_, c) => {
           const color = row[c];
           if (!color) return null;
-          const center = bubbleCenter(r, c, ceilingDrop);
+          const center = starCenter(r, c, ceilingDrop);
           const coordKey = `${r},${c}`;
           const justRose = risenKeySet.has(coordKey) && lastEvent !== null;
           return (
-            <BubbleSvg
+            <StarCoreSvg
               key={justRose ? `${coordKey}-rise-${lastEvent.id}` : coordKey}
               cx={center.x}
               cy={center.y}
               color={color}
-              className={justRose ? 'pb-rise-bubble' : undefined}
+              className={justRose ? 'sb-rise-star' : undefined}
               style={
                 justRose
-                  ? ({ '--pb-rise-from': `${stagingY - center.y}px` } as CSSProperties)
+                  ? ({ '--sb-rise-from': `${stagingY - center.y}px` } as CSSProperties)
                   : undefined
               }
             />
@@ -835,7 +629,7 @@ function PlayerArena({
   onRandomizeMascot,
   isTwoPlayer,
   showTouchControls,
-  onlineOpponent,
+  remoteOpponentName,
   disabled,
   onAimStep,
   onAimDirect,
@@ -846,24 +640,25 @@ function PlayerArena({
   player: PlayerBoardState;
   playerNumber: 1 | 2;
   mascot: MascotSelection;
-  onRandomizeMascot: () => void;
+  onRandomizeMascot?: () => void;
   isTwoPlayer: boolean;
   showTouchControls: boolean;
-  onlineOpponent?: { name: string; radar: PuzzleBobbleRadarSnapshot } | null;
+  remoteOpponentName?: string | null;
   disabled: boolean;
-  onAimStep: (deltaDeg: number) => void;
-  onAimDirect: (targetAngle: number) => void;
-  onFire: () => void;
-  onHoldAimStart: (keyId: string, deltaDeg: number) => void;
-  onHoldAimEnd: (keyId: string) => void;
+  onAimStep?: (deltaDeg: number) => void;
+  onAimDirect?: (targetAngle: number) => void;
+  onFire?: () => void;
+  onHoldAimStart?: (keyId: string, deltaDeg: number) => void;
+  onHoldAimEnd?: (keyId: string) => void;
 }) {
   const { character, gender } = mascot;
   const palette = mascotPalette(character, gender);
+  const isRemote = Boolean(remoteOpponentName);
   const dragPointerIdRef = useRef<number | null>(null);
   const boardSvgRef = useRef<SVGSVGElement | null>(null);
 
   const aimFromPointerEvent = (event: ReactPointerEvent<Element>) => {
-    if (disabled || player.status !== 'playing') return;
+    if (disabled || isRemote || player.status !== 'playing' || !onAimDirect) return;
     const svgEl = boardSvgRef.current ?? event.currentTarget;
     const rect = svgEl.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return;
@@ -877,9 +672,8 @@ function PlayerArena({
     return guide.map((pt) => `${pt.x},${pt.y}`).join(' ');
   }, [player.aimAngle, player.ceilingDrop]);
   const summary = eventSummary(player);
-  const hurrySeconds = hurryCountdownSeconds(player);
+  const hurrySeconds = isRemote ? null : hurryCountdownSeconds(player);
   const charName = characterDisplayName(character, gender);
-  const mood = deriveMascotMood(player);
   const adviceStateRef = useRef<{
     advice: MascotAdvice;
     updatedAt: number;
@@ -921,50 +715,61 @@ function PlayerArena({
         : summary;
 
   return (
-    <div className="pb-player-card" data-player={playerNumber}>
-      {/* Compact single-line arcade marquee (#215, #226, #313, #347 — click mascot for random other mascot + gender) */}
-      <div className="pb-player-header">
-        <div className="pb-player-id">
+    <div
+      className="sb-player-card"
+      data-player={playerNumber}
+      data-testid={isRemote ? 'sb-online-opponent-arena' : undefined}
+    >
+      {/* Studio Starlight player header (replaces 1UP/2UP arcade cabinet marquee) */}
+      <div className="sb-player-header">
+        <div className="sb-player-id">
           <span
-            className={`pb-up-badge pb-up-${playerNumber}`}
+            className={`sb-slot-badge sb-slot-${playerNumber}`}
             style={{ background: palette.badgeBg, color: palette.badgeFg }}
             aria-hidden="true"
           >
-            {playerNumber}UP
+            {isRemote ? 'VS' : `P${playerNumber}`}
           </span>
-          <span className="pb-player-title" data-testid={`p${playerNumber}-title`}>
-            {`${playerNumber}P · `}
+          <span className="sb-player-title" data-testid={`p${playerNumber}-title`}>
+            {isRemote ? `${remoteOpponentName} · ` : `${playerNumber}P · `}
             <span
               style={{
                 color: palette.calloutText,
-                textShadow: '0 1px 2px var(--cabinet-well), 0 0 6px var(--cabinet-well)',
+                textShadow: '0 1px 2px var(--stage-well), 0 0 6px var(--stage-well)',
               }}
             >
               {charName}
             </span>
           </span>
         </div>
-        <div className="pb-status-pills">
+        <div className="sb-status-pills">
           {player.incomingGarbage > 0 ? (
             <span className="badge waiting" role="status">
               ATK +{player.incomingGarbage}
             </span>
           ) : player.status !== 'playing' || player.ceilingWarning ? (
-            <span className={player.ceilingWarning ? 'badge waiting' : 'badge'}>
+            <span
+              className={player.ceilingWarning ? 'badge waiting' : 'badge'}
+              data-testid={isRemote ? 'sb-opponent-status' : undefined}
+            >
               {player.status === 'won'
                 ? 'WINNER!'
                 : player.status === 'ko'
                   ? 'KO'
-                  : 'DROP NEXT!'}
+                  : 'SKY DROP!'}
+            </span>
+          ) : isRemote ? (
+            <span className="badge" data-testid="sb-opponent-status">
+              LIVE
             </span>
           ) : null}
         </div>
       </div>
 
       <div
-        className="pb-arena-row"
+        className="sb-arena-row"
         onPointerDown={(event) => {
-          if (disabled || player.status !== 'playing') return;
+          if (disabled || isRemote || player.status !== 'playing') return;
           dragPointerIdRef.current = event.pointerId;
           if (event.currentTarget.setPointerCapture) {
             try {
@@ -982,9 +787,9 @@ function PlayerArena({
         onPointerUp={(event) => {
           if (dragPointerIdRef.current === event.pointerId) {
             dragPointerIdRef.current = null;
-            if (!disabled && player.status === 'playing') {
+            if (!disabled && !isRemote && player.status === 'playing') {
               aimFromPointerEvent(event);
-              onFire();
+              onFire?.();
             }
           }
         }}
@@ -996,59 +801,59 @@ function PlayerArena({
       >
         <svg
           ref={boardSvgRef}
-          className="pb-board"
+          className="sb-board"
           width={ARENA_WIDTH}
           height={ARENA_HEIGHT}
           viewBox={`0 0 ${ARENA_WIDTH} ${ARENA_HEIGHT}`}
           role="img"
-          aria-label={`Player ${playerNumber} bubble board`}
+          aria-label={
+            isRemote
+              ? `${remoteOpponentName} starlight board`
+              : `Player ${playerNumber} starlight board`
+          }
         >
           <defs>
-            <radialGradient id="pb-sphere-shine" cx="32%" cy="28%" r="55%">
-              <stop offset="0%" stopColor="var(--on-accent)" stopOpacity="0.55" />
-              <stop offset="55%" stopColor="var(--on-accent)" stopOpacity="0" />
-            </radialGradient>
-            <radialGradient id="pb-sphere-shade" cx="45%" cy="42%" r="60%">
-              <stop offset="60%" stopColor="var(--text)" stopOpacity="0" />
-              <stop offset="100%" stopColor="var(--text)" stopOpacity="0.28" />
+            <radialGradient id="sb-core-depth" cx="45%" cy="42%" r="60%">
+              <stop offset="55%" stopColor="var(--stage-well)" stopOpacity="0" />
+              <stop offset="100%" stopColor="var(--stage-well)" stopOpacity="0.28" />
             </radialGradient>
             <pattern
-              id={`pb-diamond-grid-${playerNumber}`}
-              width={BUBBLE_RADIUS * 2}
+              id={`sb-constellation-grid-${playerNumber}`}
+              width={STAR_RADIUS * 2}
               height={ROW_STEP}
               patternUnits="userSpaceOnUse"
             >
-              <path
-                d={`M ${BUBBLE_RADIUS} 0 L ${BUBBLE_RADIUS * 2} ${ROW_STEP / 2} L ${BUBBLE_RADIUS} ${ROW_STEP} L 0 ${ROW_STEP / 2} Z`}
-                fill="none"
-                stroke="var(--border)"
-                strokeWidth="0.6"
-                opacity="0.45"
+              <circle
+                cx={STAR_RADIUS}
+                cy={ROW_STEP / 2}
+                r={0.85}
+                fill="var(--border)"
+                opacity="0.55"
               />
             </pattern>
           </defs>
 
-          {/* Subtle arcade diamond backdrop grid aligned to bubble diameter & row step */}
+          {/* Subtle constellation star-dot grid */}
           <rect
             x={0}
             y={ceilingY}
             width={ARENA_WIDTH}
             height={DANGER_LINE_Y - ceilingY}
-            fill={`url(#pb-diamond-grid-${playerNumber})`}
+            fill={`url(#sb-constellation-grid-${playerNumber})`}
           />
 
-          {/* Side bounce rails */}
-          <rect x={0} y={0} width={3} height={ARENA_HEIGHT} fill="var(--border-hover)" opacity="0.55" />
+          {/* Side astral ricochet rails */}
+          <rect x={0} y={0} width={3} height={ARENA_HEIGHT} fill="var(--prism-5)" opacity="0.45" />
           <rect
             x={ARENA_WIDTH - 3}
             y={0}
             width={3}
             height={ARENA_HEIGHT}
-            fill="var(--border-hover)"
-            opacity="0.55"
+            fill="var(--prism-5)"
+            opacity="0.45"
           />
 
-          {/* Industrial arcade compressor pistons & beam when ceiling drops */}
+          {/* Celestial Nebula Sky Veil when the constellation ceiling descends */}
           {ceilingY > 0 ? (
             <g aria-hidden="true">
               <rect
@@ -1056,44 +861,15 @@ function PlayerArena({
                 y={0}
                 width={ARENA_WIDTH}
                 height={ceilingY}
-                fill="var(--neutral-weak)"
+                fill="var(--stage-surface)"
+                opacity="0.92"
               />
-              {/* Left and right mechanical piston shafts */}
-              <rect
-                x={36}
-                y={0}
-                width={18}
-                height={ceilingY}
-                fill="var(--closed-weak)"
-                stroke="var(--text)"
-                strokeWidth="1.2"
-              />
-              <rect
-                x={ARENA_WIDTH - 54}
-                y={0}
-                width={18}
-                height={ceilingY}
-                fill="var(--closed-weak)"
-                stroke="var(--text)"
-                strokeWidth="1.2"
-              />
-              {/* Compressor girder beam */}
-              <rect
-                x={0}
-                y={Math.max(0, ceilingY - 8)}
-                width={ARENA_WIDTH}
-                height={8}
-                fill="var(--closed-weak)"
-                stroke="var(--text)"
-                strokeWidth="1.2"
-              />
-              {Array.from({ length: 7 }, (_, i) => (
-                <circle
+              {Array.from({ length: 6 }, (_, i) => (
+                <polygon
                   key={i}
-                  cx={16 + i * 32}
-                  cy={Math.max(4, ceilingY - 4)}
-                  r={1.8}
-                  fill="var(--text)"
+                  points={`${22 + i * 36},${Math.max(4, ceilingY - 9)} ${24 + i * 36},${Math.max(6, ceilingY - 6)} ${22 + i * 36},${Math.max(8, ceilingY - 3)} ${20 + i * 36},${Math.max(6, ceilingY - 6)}`}
+                  fill="var(--prism-4)"
+                  opacity="0.8"
                 />
               ))}
             </g>
@@ -1104,122 +880,119 @@ function PlayerArena({
             y1={ceilingY}
             x2={ARENA_WIDTH}
             y2={ceilingY}
-            stroke="var(--text)"
-            strokeWidth={2}
+            stroke="var(--prism-7)"
+            strokeWidth={1.8}
           />
 
-          {/* Arcade deadline / danger line above the launcher */}
+          {/* Horizon danger threshold above the Starlight Sling */}
           <line
             x1={0}
             y1={DANGER_LINE_Y}
             x2={ARENA_WIDTH}
             y2={DANGER_LINE_Y}
             stroke="var(--problem-border)"
-            strokeWidth={2}
+            strokeWidth={1.8}
             strokeDasharray="6 4"
           />
 
-          {/* Multi-bounce aiming sight line */}
+          {/* Multi-bounce starlight trajectory guide */}
           {player.status === 'playing' ? (
             <polyline
               points={polylinePoints}
+              data-testid={isRemote ? 'sb-opponent-aim' : undefined}
               fill="none"
               stroke="var(--accent)"
-              strokeWidth={2}
-              strokeDasharray="4 4"
-              opacity={0.82}
+              strokeWidth={1.9}
+              strokeDasharray="3 4"
+              opacity={isRemote ? 0.55 : 0.84}
             />
           ) : null}
 
-          {/* Rising bubble motion trails when incoming attack bubbles shoot up from the bottom */}
+          {/* Rising starlight motion trails */}
           {lastEv && lastEv.risenGarbage.length > 0 ? (
             <g key={`rise-trails-${lastEv.id}`} aria-hidden="true">
               {lastEv.risenGarbage.map((cell, idx) => (
                 <line
                   key={`trail-${idx}`}
-                  className="pb-rise-trail"
+                  className="sb-rise-trail"
                   x1={cell.x}
                   y1={stagingY}
                   x2={cell.x}
                   y2={cell.y}
-                  stroke={BUBBLE_TOKEN[cell.color]}
-                  strokeWidth={6}
+                  stroke={STAR_TOKEN[cell.color]}
+                  strokeWidth={5}
                   strokeLinecap="round"
                 />
               ))}
             </g>
           ) : null}
 
-          {/* Settled hexagonal grid bubbles (trembles rapidly with 0.5px amplitude when ceilingWarning is active) */}
-          <SettledBubbleGridSvg
+          {/* Settled hexagonal constellation grid */}
+          <SettledStarGridSvg
             grid={player.grid}
             ceilingDrop={player.ceilingDrop}
             ceilingWarning={player.ceilingWarning}
             lastEvent={lastEv}
           />
 
-          {/* On-board indicator of attack bubbles sent from the other side and about to come up (#186) */}
+          {/* On-board indicator of incoming starlight orbs */}
           {player.incomingGarbage > 0 ? (
             <g
-              className="pb-incoming-tray"
+              className="sb-incoming-tray"
               data-testid={`p${playerNumber}-incoming-indicator`}
-              aria-label={`${player.incomingGarbage} incoming attack bubbles about to rise`}
+              aria-label={`${player.incomingGarbage} incoming star-cores about to rise`}
             >
-              {/* Side-rail Neo-Geo warning orb gauge (red = 5, yellow = 1) */}
               {orbList.map((orbKind, idx) => {
                 const orbY = DANGER_LINE_Y - 12 - idx * 14;
                 const isRed = orbKind === 'red';
                 return (
-                  <circle
+                  <polygon
                     key={`orb-${idx}`}
-                    cx={gaugeX}
-                    cy={orbY}
-                    r={isRed ? 5.5 : 4.2}
-                    fill={isRed ? 'var(--tetromino-z)' : 'var(--tetromino-o)'}
-                    stroke="var(--text)"
-                    strokeWidth="1.2"
+                    points={`${gaugeX},${orbY - (isRed ? 6 : 4.5)} ${gaugeX + (isRed ? 5 : 3.8)},${orbY} ${gaugeX},${orbY + (isRed ? 6 : 4.5)} ${gaugeX - (isRed ? 5 : 3.8)},${orbY}`}
+                    fill={isRed ? 'var(--prism-1)' : 'var(--prism-4)'}
+                    stroke="var(--stage-well)"
+                    strokeWidth="1.0"
                   />
                 );
               })}
 
-              {/* Bottom staging preview of the exact bubbles about to shoot up from the bottom */}
               {incomingPreview.map((color, idx) => {
                 const count = incomingPreview.length;
                 const span = Math.min(168, Math.max(36, (count - 1) * 28));
                 const startX = LAUNCHER_X - span / 2;
                 const bx = count === 1 ? LAUNCHER_X - 34 : startX + (idx * span) / (count - 1);
                 return (
-                  <g key={`stage-${idx}`} className="pb-incoming-preview-bubble">
+                  <g key={`stage-${idx}`} className="sb-incoming-preview-star">
                     <polygon
                       points={`${bx},${stagingY - 15} ${bx - 4},${stagingY - 9} ${bx + 4},${stagingY - 9}`}
                       fill="var(--problem)"
                     />
-                    <BubbleSvg cx={bx} cy={stagingY} color={color} radius={8.5} />
+                    <StarCoreSvg cx={bx} cy={stagingY} color={color} radius={8.5} />
                   </g>
                 );
               })}
             </g>
           ) : null}
 
-          {/* Pop burst rings & tumbling avalanche bubbles from the latest shot */}
+          {/* Starburst rings & cascading star-cores from the latest shot */}
           {lastEv && lastEv.popped.length > 0 ? (
             <g key={`fx-${lastEv.id}`} aria-hidden="true">
               {lastEv.popped.map((cell, idx) => (
                 <circle
                   key={`pop-${idx}`}
-                  className="pb-pop-ring"
+                  className="sb-pop-ring"
                   cx={cell.x}
                   cy={cell.y}
-                  r={BUBBLE_RADIUS}
+                  r={STAR_RADIUS}
                   fill="none"
-                  stroke={BUBBLE_TOKEN[cell.color]}
+                  stroke={STAR_TOKEN[cell.color]}
                   strokeWidth="2.5"
                 />
               ))}
               {lastEv.dropped.map((cell, idx) => (
-                <BubbleSvg
+                <StarCoreSvg
                   key={`drop-${idx}`}
-                  className="pb-drop-bubble"
+                  className="sb-drop-star"
                   cx={cell.x}
                   cy={cell.y}
                   color={cell.color}
@@ -1228,25 +1001,25 @@ function PlayerArena({
             </g>
           ) : null}
 
-          {/* In-flight bubble */}
+          {/* In-flight star-core */}
           {player.flying ? (
-            <BubbleSvg
+            <StarCoreSvg
               cx={player.flying.x}
               cy={player.flying.y}
               color={player.flying.color}
             />
           ) : null}
 
-          {/* Mechanical gear catapult, pointer arrow, on-deck bubble & selectable cute mascot */}
-          <LauncherMechanismSvg
+          {/* Celestial Starlight Sling, orbital focus ring, on-deck star-core & companion */}
+          <StarlightSlingSvg
             player={player}
             playerNumber={playerNumber}
             mascot={mascot}
             advice={advice}
-            onCycleCharacter={onRandomizeMascot}
+            onCycleCharacter={isRemote ? undefined : onRandomizeMascot}
           />
 
-          {/* In-board arcade win/lose marquee plaque (#215) */}
+          {/* In-board round win/lose banner */}
           {player.status !== 'playing' ? (
             <g aria-hidden="true">
               <rect
@@ -1254,31 +1027,29 @@ function PlayerArena({
                 y={104}
                 width={ARENA_WIDTH - 56}
                 height={44}
-                rx={8}
+                rx={10}
                 fill="var(--surface)"
                 stroke="var(--text)"
-                strokeWidth="2.5"
+                strokeWidth="2"
               />
               <rect
                 x={32}
                 y={108}
                 width={ARENA_WIDTH - 64}
                 height={36}
-                rx={5}
+                rx={7}
                 fill={player.status === 'won' ? 'var(--accent-weak)' : 'var(--problem-weak)'}
-                stroke={player.status === 'won' ? 'var(--accent)' : 'var(--problem-border)'}
-                strokeWidth="1.5"
               />
               <text
                 x={LAUNCHER_X}
                 y={131}
                 textAnchor="middle"
-                fontSize="16"
+                fontSize="15"
                 fontWeight="700"
-                fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+                fontFamily="var(--font-arcade-display)"
                 fill={player.status === 'won' ? 'var(--accent-weak-text)' : 'var(--problem)'}
               >
-                {player.status === 'won' ? '★ WINNER! ★' : '× GAME OVER ×'}
+                {player.status === 'won' ? '✦ STARLIGHT WIN! ✦' : '× SKY OVERFLOW ×'}
               </text>
             </g>
           ) : hurrySeconds !== null && player.status === 'playing' ? (
@@ -1291,7 +1062,7 @@ function PlayerArena({
               fontWeight="700"
               fontFamily="var(--font-arcade-display)"
               letterSpacing="0.05em"
-              fill="var(--tetromino-z)"
+              fill="var(--prism-1)"
               role="status"
               data-testid={`p${playerNumber}-hurry-overlay`}
             >
@@ -1300,40 +1071,36 @@ function PlayerArena({
           ) : null}
         </svg>
 
-        <aside className="tetris-side pb-side">
-          <div className="tetris-stat pb-score-slot">
-            <span className="tetris-label">Score</span>
-            <span className="tetris-value pb-score-value" aria-live="polite" data-testid={`p${playerNumber}-score`}>
+        <aside className="stack-side sb-side">
+          <div className="stack-stat sb-score-slot">
+            <span className="stack-label">Score</span>
+            <span
+              className="stack-value sb-score-value"
+              aria-live="polite"
+              data-testid={isRemote ? 'sb-opponent-score' : `p${playerNumber}-score`}
+            >
               {player.score.toLocaleString()}
             </span>
           </div>
 
-          {onlineOpponent ? (
-            <OpponentBubbleRadar
-              opponentName={onlineOpponent.name}
-              radar={onlineOpponent.radar}
-            />
-          ) : (
-            <div className="tetris-stat pb-next-dome">
-              <span className="tetris-label">Next</span>
-              <div className="pb-next-orb-well">
-                <svg
-                  width={BUBBLE_RADIUS * 2 + 6}
-                  height={BUBBLE_RADIUS * 2 + 6}
-                  viewBox={`0 0 ${BUBBLE_RADIUS * 2 + 10} ${BUBBLE_RADIUS * 2 + 10}`}
-                  aria-label={`Player ${playerNumber} next bubble ${player.nextBubble}`}
-                >
-                  <BubbleSvg
-                    cx={BUBBLE_RADIUS + 5}
-                    cy={BUBBLE_RADIUS + 5}
-                    color={player.nextBubble}
-                  />
-                </svg>
-              </div>
+          <div className="stack-stat sb-next-dome">
+            <span className="stack-label">Next</span>
+            <div className="sb-next-orb-well">
+              <svg
+                width={STAR_RADIUS * 2 + 6}
+                height={STAR_RADIUS * 2 + 6}
+                viewBox={`0 0 ${STAR_RADIUS * 2 + 10} ${STAR_RADIUS * 2 + 10}`}
+                aria-label={`Player ${playerNumber} next star ${player.nextStar}`}
+              >
+                <StarCoreSvg
+                  cx={STAR_RADIUS + 5}
+                  cy={STAR_RADIUS + 5}
+                  color={player.nextStar}
+                />
+              </svg>
             </div>
-          )}
+          </div>
 
-          {/* Screen-reader / test telemetry hooks kept invisible so the arcade cabinet stays uncluttered (#248) */}
           <span className="sr-only" data-testid={`p${playerNumber}-aim`}>
             {formatAimAngle(player.aimAngle)}
           </span>
@@ -1342,13 +1109,13 @@ function PlayerArena({
           </span>
 
           {isTwoPlayer ? (
-            <div className="tetris-stat">
-              <span className="tetris-label">Warn</span>
-              <span className="pb-stat-small" data-testid={`p${playerNumber}-incoming`}>
+            <div className="stack-stat">
+              <span className="stack-label">Warn</span>
+              <span className="sb-stat-small" data-testid={`p${playerNumber}-incoming`}>
                 {player.incomingGarbage}
-                <GarbageOrbsRow
+                <IncomingStarsRow
                   count={player.incomingGarbage}
-                  label={`${player.incomingGarbage} incoming attack bubbles`}
+                  label={`${player.incomingGarbage} incoming star-cores`}
                 />
               </span>
             </div>
@@ -1357,10 +1124,65 @@ function PlayerArena({
           <span className="sr-only" role={statusLine || hurrySeconds !== null ? 'status' : undefined}>
             {hurrySeconds !== null
               ? `HURRY! ${hurrySeconds}s`
-              : statusLine ?? (player.ceilingWarning ? 'DROP NEXT!' : `STAGE ${player.stage}`)}
+              : statusLine ?? (player.ceilingWarning ? 'SKY DROP!' : `STAGE ${player.stage}`)}
           </span>
         </aside>
       </div>
+
+      {/* Touch gamepad controls on coarse pointers (#212, #217) */}
+      {showTouchControls && !isRemote ? (
+        <div
+          className="sb-touch-controls"
+          data-testid={`p${playerNumber}-touch-controls`}
+          role="group"
+          aria-label={`Player ${playerNumber} touch controls`}
+        >
+          <button
+            type="button"
+            className="touch-pad-btn"
+            data-testid={`p${playerNumber}-touch-left`}
+            aria-label={`Player ${playerNumber} aim left`}
+            disabled={disabled || player.status !== 'playing'}
+            onPointerDown={(e) => {
+              e.preventDefault();
+              onHoldAimStart?.(`p${playerNumber}-left`, -AIM_STEP_DEG);
+            }}
+            onPointerUp={() => onHoldAimEnd?.(`p${playerNumber}-left`)}
+            onPointerCancel={() => onHoldAimEnd?.(`p${playerNumber}-left`)}
+            onPointerLeave={() => onHoldAimEnd?.(`p${playerNumber}-left`)}
+            onClick={() => onAimStep?.(-AIM_STEP_DEG)}
+          >
+            ◀
+          </button>
+          <button
+            type="button"
+            className="touch-pad-btn is-primary"
+            data-testid={`p${playerNumber}-touch-fire`}
+            aria-label={`Player ${playerNumber} launch star`}
+            disabled={disabled || player.status !== 'playing'}
+            onClick={() => onFire?.()}
+          >
+            LAUNCH
+          </button>
+          <button
+            type="button"
+            className="touch-pad-btn"
+            data-testid={`p${playerNumber}-touch-right`}
+            aria-label={`Player ${playerNumber} aim right`}
+            disabled={disabled || player.status !== 'playing'}
+            onPointerDown={(e) => {
+              e.preventDefault();
+              onHoldAimStart?.(`p${playerNumber}-right`, AIM_STEP_DEG);
+            }}
+            onPointerUp={() => onHoldAimEnd?.(`p${playerNumber}-right`)}
+            onPointerCancel={() => onHoldAimEnd?.(`p${playerNumber}-right`)}
+            onPointerLeave={() => onHoldAimEnd?.(`p${playerNumber}-right`)}
+            onClick={() => onAimStep?.(AIM_STEP_DEG)}
+          >
+            ▶
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -1374,15 +1196,6 @@ const PHONE_PORTRAIT_MAX_WIDTH = 560;
 const PHONE_LANDSCAPE_MAX_WIDTH = 900;
 const PHONE_LANDSCAPE_MAX_HEIGHT = 440;
 
-/**
- * Distinguishes phones from tablets (#212, #222):
- * - Phone portrait has `innerWidth < 560` (e.g. 360x640, 390x844, 430x932).
- * - Phone landscape has `innerWidth < 900 && innerHeight < 440` (e.g. 844x390).
- * - Tablets in MS Edge / Safari / Chrome (portrait >= 600px like 600x960, 712x1138,
- *   744x1133, 768x1024, or landscape >= 900px / height >= 440px even when browser
- *   tabs/address bars reduce innerHeight to ~460–540px) return `false` so 2 Players
- *   mode is available and selectable.
- */
 function isPhoneViewport(): boolean {
   if (typeof window === 'undefined') return false;
   const w = window.innerWidth;
@@ -1412,22 +1225,18 @@ function hasKeyboardAvailable(): boolean {
   return true;
 }
 
-function motionReduced(): boolean {
-  return typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
-
-export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
+export function StarlightBurstView({ onExit }: { onExit: () => void }) {
   const [phoneViewport, setPhoneViewport] = useState<boolean>(() => isPhoneViewport());
   const touchSeenRef = useRef<boolean>(detectTouchAvailable());
   const [touchAvailable, setTouchAvailable] = useState<boolean>(() => touchSeenRef.current);
   const [keyboardAvailable, setKeyboardAvailable] = useState<boolean>(() => hasKeyboardAvailable());
-  const [match, setMatch] = useState<PuzzleBobbleMatch>(() =>
+  const [match, setMatch] = useState<StarlightBurstMatch>(() =>
     createMatch(isPhoneViewport() ? '1p' : '2p'),
   );
   const [mascots, setMascots] = useState<[MascotSelection, MascotSelection]>(() =>
     createRandomMascotPair(),
   );
-  const [stagePreset, setStagePreset] = useState<number>(0); // 0 = random wave, 1..5 = classic Taito stages
+  const [stagePreset, setStagePreset] = useState<number>(0);
   const [paused, setPaused] = useState<boolean>(() => getSharedGamePaused());
   const [musicOn, setMusicOn] = useState<boolean>(() => getSharedMusicOn());
   const [sfxOn, setSfxOn] = useState<boolean>(() => getSharedSfxOn());
@@ -1436,8 +1245,8 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     () => getSharedArcadeAudio().getCurrentTrack()?.title ?? null,
   );
   const [netplay, setNetplay] = useState<NetplayState>(() => getSharedNetplay().getState());
-  const [opponentRadar, setOpponentRadar] = useState<PuzzleBobbleRadarSnapshot>(() =>
-    createRadarFromBoard(match.players[0]),
+  const [opponentSnapshot, setOpponentSnapshot] = useState<StarlightBurstLiveSnapshot>(() =>
+    createSnapshotFromBoard(match.players[0], mascots[1]),
   );
   const [countdown, setCountdown] = useState<number>(2);
   const [countdownKey, setCountdownKey] = useState<number>(0);
@@ -1478,6 +1287,8 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
 
   const matchRef = useRef(match);
   matchRef.current = match;
+  const mascotsRef = useRef(mascots);
+  mascotsRef.current = mascots;
   const countdownRef = useRef(countdown);
   countdownRef.current = countdown;
   const handleNextOrNewRoundRef = useRef<() => void>(() => {});
@@ -1490,105 +1301,86 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
   const prevEventIdsRef = useRef<[number, number]>([0, 0]);
   const prevMatchStatusRef = useRef(match.status);
 
-  const activePbRoom =
-    netplay.activeRoom && netplay.activeRoom.gameId === 'puzzle-bobble'
+  const activeSbRoom =
+    netplay.activeRoom && netplay.activeRoom.gameId === 'starlight-burst'
       ? netplay.activeRoom
       : null;
-  const isOnline2P = activePbRoom !== null;
-  const isReadyCheck = activePbRoom?.status === 'ready_check';
+  const isOnline2P = activeSbRoom !== null;
+  const isReadyCheck = activeSbRoom?.status === 'ready_check';
   const isNetworkPaused = Boolean(
     isOnline2P &&
-      activePbRoom?.status === 'playing' &&
-      activePbRoom?.syncStatus === 'paused',
+      activeSbRoom?.status === 'playing' &&
+      activeSbRoom?.syncStatus === 'paused',
   );
   const syncSecondsLeft = Math.max(
     0,
-    Math.ceil((activePbRoom?.syncRemainingMs ?? 15_000) / 1000),
+    Math.ceil((activeSbRoom?.syncRemainingMs ?? 15_000) / 1000),
   );
-  const isInviting = netplay.myPendingInvite?.gameId === 'puzzle-bobble';
-  const myRoomPlayer = activePbRoom?.players.find((p) => p.id === netplay.clientId);
+  const isInviting = netplay.myPendingInvite?.gameId === 'starlight-burst';
+  const myRoomPlayer = activeSbRoom?.players.find((p) => p.id === netplay.clientId);
   const myReady = Boolean(myRoomPlayer?.ready);
-  const oppReady = Boolean(activePbRoom?.opponent?.ready);
+  const oppReady = Boolean(activeSbRoom?.opponent?.ready);
 
+  const lastSnapshotDigestRef = useRef<string>('');
   useEffect(() => {
-    if (activePbRoom?.syncStatus === 'timeout') {
-      void getSharedNetplay().leaveRoom();
-      onExit();
+    if (!isOnline2P || isReadyCheck) {
+      lastSnapshotDigestRef.current = '';
+      return undefined;
     }
-  }, [activePbRoom?.syncStatus, onExit]);
-
-  // Continuous 2P keep-alive and live board radar push (#250, #254: deduplicated).
-  const lastRadarDigestRef = useRef<string>('');
-  useEffect(() => {
-    if (!isOnline2P || isReadyCheck || isNetworkPaused || match.status !== 'playing') return;
-    const pushRadar = () => {
+    const pushSnapshot = () => {
       const p0 = matchRef.current.players[0];
       if (!p0) return;
-      const snap = createRadarFromBoard(p0);
+      const snap = createSnapshotFromBoard(p0, mascotsRef.current[0]);
       const digest = JSON.stringify(snap);
-      if (digest === lastRadarDigestRef.current) return;
-      lastRadarDigestRef.current = digest;
-      void getSharedNetplay().sendRoomEvent('pb_state', snap);
+      if (digest === lastSnapshotDigestRef.current) return;
+      lastSnapshotDigestRef.current = digest;
+      void getSharedNetplay().sendRoomEvent('starlight_state', snap);
     };
-    pushRadar();
-    const id = window.setInterval(pushRadar, 500);
+    pushSnapshot();
+    const id = window.setInterval(pushSnapshot, 500);
     return () => window.clearInterval(id);
-  }, [isOnline2P, isReadyCheck, isNetworkPaused, match.status]);
+  }, [isOnline2P, isReadyCheck]);
 
-  const triggerFreshCountdown = useCallback(
-    (lang: CountdownLanguage = pickCountdownLanguage()) => {
-      countdownRef.current = 2;
-      setCountdownLang(lang);
-      setCountdown(2);
-      setCountdownKey((k) => k + 1);
-    },
-    [],
-  );
+  const triggerFreshCountdown = useCallback(() => {
+    setCountdownLang(pickCountdownLanguage());
+    setCountdown(2);
+    setCountdownKey((k) => k + 1);
+  }, []);
 
   const startOnlineRoundWithSeed = useCallback(
-    (seed: number, resetWins = false, preset = stagePreset) => {
+    (seed: number, resetWins: boolean, preset = 0) => {
       const rng = mulberry32(seed);
+      const grid = preset > 0 ? createStageGrid(preset, rng) : createMatch('1p', rng).players[0].grid;
+      const board = createPlayerBoard(rng, grid, preset > 0 ? preset : 1);
       prevShotsRef.current = [0, 0];
       prevEventIdsRef.current = [0, 0];
       prevMatchStatusRef.current = 'playing';
       onlineOutcomeSentRef.current = false;
-
-      let nextBoard: PlayerBoardState;
-      if (preset > 0) {
-        const grid = createStageGrid(preset, rng);
-        nextBoard = createPlayerBoard(rng, grid, preset);
-      } else {
-        const seeded = createMatch('1p', rng);
-        nextBoard = seeded.players[0];
-      }
-      const initialRadar = createRadarFromBoard(nextBoard);
-      setOpponentRadar(initialRadar);
-      setMatch((current) => ({
+      setMatch((cur) => ({
         mode: '1p',
-        players: [nextBoard],
+        players: [board],
         status: 'playing',
         winner: null,
-        wins: resetWins ? [0, 0] : current.wins,
+        wins: resetWins ? [0, 0] : cur.wins,
       }));
+      setOpponentSnapshot(createSnapshotFromBoard(board, mascotsRef.current[1]));
+      triggerFreshCountdown();
       setSharedGamePaused(false);
-      triggerFreshCountdown(pickCountdownLanguage(mulberry32((seed ^ 0x5a5a5a5a) >>> 0)));
-      getSharedArcadeAudio().startNewGameTrack();
     },
-    [stagePreset, triggerFreshCountdown],
+    [triggerFreshCountdown],
   );
 
-  // 20-second invite countdown timer (#248).
   useEffect(() => {
     const invite = netplay.myPendingInvite;
-    if (!invite || invite.gameId !== 'puzzle-bobble') {
+    if (!invite || invite.gameId !== 'starlight-burst') {
       setInviteSecondsLeft(20);
       return;
     }
     const updateTimer = () => {
       const elapsed = Date.now() - invite.createdAt;
-      const remaining = Math.max(0, Math.ceil((INVITE_TIMEOUT_MS - elapsed) / 1000));
-      setInviteSecondsLeft(remaining);
-      if (remaining <= 0) {
+      const rem = Math.max(0, Math.ceil((INVITE_TIMEOUT_MS - elapsed) / 1000));
+      setInviteSecondsLeft(rem);
+      if (rem <= 0) {
         void getSharedNetplay().cancelInvite();
       }
     };
@@ -1597,32 +1389,20 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     return () => window.clearInterval(id);
   }, [netplay.myPendingInvite]);
 
-  // "Ready…" -> "Go!" speaker-weighted 10-language start countdown with spoken voice audio (#262, #268, #303).
-  useEffect(() => {
-    if (countdown <= 0 || paused || isReadyCheck || isInviting || isNetworkPaused) return;
-    const phase = countdown >= 2 ? 'ready' : 'go';
-    getSharedArcadeAudio().playCountdownPhrase(countdownLang, phase);
-    const beatMs = phase === 'ready' ? COUNTDOWN_READY_MS : COUNTDOWN_GO_MS;
-    const id = window.setTimeout(() => {
-      setCountdown((c) => Math.max(0, c - 1));
-    }, beatMs);
-    return () => window.clearTimeout(id);
-  }, [countdown, countdownKey, countdownLang, paused, isReadyCheck, isInviting, isNetworkPaused]);
-
   useEffect(() => {
     const client = getSharedNetplay();
     const unsubState = client.subscribe((nextState) => {
       setNetplay(nextState);
       const room =
-        nextState.activeRoom && nextState.activeRoom.gameId === 'puzzle-bobble'
+        nextState.activeRoom && nextState.activeRoom.gameId === 'starlight-burst'
           ? nextState.activeRoom
           : null;
       if (room && activeRoomIdRef.current !== room.id) {
         activeRoomIdRef.current = room.id;
         setSharedGamePaused(false);
-        if (room.status === 'playing') {
+        if (room.status === 'playing' && activeRoomStartedRef.current !== room.id) {
           activeRoomStartedRef.current = room.id;
-          startOnlineRoundWithSeed(room.seed, true);
+          startOnlineRoundWithSeed(room.seed, true, 0);
         }
       } else if (
         room &&
@@ -1630,7 +1410,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         activeRoomStartedRef.current !== room.id
       ) {
         activeRoomStartedRef.current = room.id;
-        startOnlineRoundWithSeed(room.seed, true);
+        startOnlineRoundWithSeed(room.seed, true, 0);
       } else if (!room && activeRoomIdRef.current !== null) {
         activeRoomIdRef.current = null;
         activeRoomStartedRef.current = null;
@@ -1640,32 +1420,27 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     const unsubEvents = client.onRoomEvent((event) => {
       if (event.kind === 'match_start') {
         const payload = event.payload as { gameId?: string; seed?: number; id?: string; roomId?: string } | null;
-        if (payload && payload.gameId === 'puzzle-bobble') {
+        if (payload && payload.gameId === 'starlight-burst') {
           const rid = payload.id ?? payload.roomId ?? null;
           if (rid && activeRoomStartedRef.current !== rid) {
             activeRoomIdRef.current = rid;
             activeRoomStartedRef.current = rid;
-            startOnlineRoundWithSeed(payload.seed ?? 2026, true);
+            startOnlineRoundWithSeed(payload.seed ?? 2026, true, 0);
           }
         }
         return;
       }
 
-      if (event.kind === 'sync_resumed') {
-        triggerFreshCountdown();
-        return;
-      }
-
       if (event.kind === 'sync_timeout') {
-        void getSharedNetplay().leaveRoom();
+        void client.leaveRoom();
         onExit();
         return;
       }
 
       if (event.senderId === client.getState().clientId) return;
 
-      if (event.kind === 'pb_attack') {
-        const payload = event.payload as { count?: number; colors?: BubbleColor[] } | null;
+      if (event.kind === 'starlight_attack') {
+        const payload = event.payload as { count?: number; colors?: StarColor[] } | null;
         const colors = Array.isArray(payload?.colors)
           ? payload.colors
           : generateGarbageColors(payload?.count ?? 2, () => 0.3);
@@ -1680,199 +1455,183 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         return;
       }
 
-      if (event.kind === 'pb_state') {
-        const snapshot = event.payload as PuzzleBobbleRadarSnapshot | null;
+      if (event.kind === 'starlight_state') {
+        const snapshot = event.payload as StarlightBurstLiveSnapshot | null;
         if (snapshot && Array.isArray(snapshot.grid)) {
-          setOpponentRadar(snapshot);
+          setOpponentSnapshot(snapshot);
         }
         return;
       }
 
-      if (event.kind === 'pb_outcome') {
+      if (event.kind === 'starlight_outcome') {
         const payload = event.payload as { outcome?: 'cleared' | 'ko' } | null;
         if (payload?.outcome === 'ko') {
-          setOpponentRadar((prev) => ({ ...prev, status: 'ko' }));
+          setOpponentSnapshot((prev) => ({ ...prev, status: 'ko' }));
           setMatch((current) => {
             if (current.status === 'round_over') return current;
-            onlineOutcomeSentRef.current = true;
             return resolveMatchOutcome(current, 0);
           });
         } else if (payload?.outcome === 'cleared') {
-          setOpponentRadar((prev) => ({ ...prev, status: 'won' }));
+          setOpponentSnapshot((prev) => ({ ...prev, status: 'won' }));
           setMatch((current) => {
             if (current.status === 'round_over') return current;
-            onlineOutcomeSentRef.current = true;
             return resolveMatchOutcome(current, 1);
           });
         }
         return;
       }
 
-      if (event.kind === 'pb_rematch') {
+      if (event.kind === 'starlight_rematch') {
         const payload = event.payload as { seed?: number; preset?: number } | null;
         const nextPreset = typeof payload?.preset === 'number' ? payload.preset : stagePreset;
         if (nextPreset !== stagePreset) setStagePreset(nextPreset);
         startOnlineRoundWithSeed(payload?.seed ?? Date.now(), false, nextPreset);
-        return;
-      }
-
-      if (event.kind === 'player_left') {
-        setOpponentRadar((prev) => ({ ...prev, status: 'ko' }));
-        setMatch((current) => {
-          if (current.status === 'round_over') return current;
-          onlineOutcomeSentRef.current = true;
-          return resolveMatchOutcome(current, 0);
-        });
       }
     });
+
+    const cur = client.getState();
+    if (cur.activeRoom && cur.activeRoom.gameId === 'starlight-burst') {
+      activeRoomIdRef.current = cur.activeRoom.id;
+      if (cur.activeRoom.status === 'playing') {
+        activeRoomStartedRef.current = cur.activeRoom.id;
+        startOnlineRoundWithSeed(cur.activeRoom.seed, true, 0);
+      }
+    }
 
     return () => {
       unsubState();
       unsubEvents();
     };
-  }, [stagePreset, startOnlineRoundWithSeed]);
+  }, [onExit, stagePreset, startOnlineRoundWithSeed]);
 
   useEffect(() => {
     const audio = getSharedArcadeAudio();
-    audio.setPlaylist(PUZZLE_BOBBLE_PLAYLIST);
-    setNowPlaying(audio.getCurrentTrack()?.title ?? null);
-    return subscribeSharedAudio((nextOn, nextTitle, nextSfxOn) => {
-      setMusicOn(nextOn);
-      setNowPlaying(nextTitle);
+    audio.setPlaylist(STARLIGHT_BURST_PLAYLIST);
+    audio.setActive(getSharedMusicOn() && !paused);
+    const unsubscribe = subscribeSharedAudio((enabled, trackTitle, nextSfxOn) => {
+      setMusicOn(enabled);
+      setNowPlaying(trackTitle);
       setSfxOn(nextSfxOn);
     });
-  }, []);
-
-  // #217: Prevent browser viewport scroll or rubber-banding when dragging
-  // anywhere on the full-screen game stage on iOS Safari / Chrome.
-  useEffect(() => {
-    const el = gameSectionRef.current;
-    if (!el) return;
-    const onTouchMove = (event: TouchEvent) => {
-      event.preventDefault();
+    return () => {
+      unsubscribe();
     };
-    el.addEventListener('touchmove', onTouchMove, { passive: false });
-    return () => el.removeEventListener('touchmove', onTouchMove);
-  }, []);
+  }, [paused]);
 
-  // Audio playback follows active match state.
   useEffect(() => {
-    getSharedArcadeAudio().setActive(musicOn && match.status === 'playing');
-  }, [musicOn, match.status]);
+    if (paused || isReadyCheck || isInviting || isNetworkPaused || countdown <= 0) {
+      return undefined;
+    }
+    const audio = getSharedArcadeAudio();
+    if (countdown === 2) {
+      audio.playCountdownPhrase(countdownLang, 'ready');
+      const id = window.setTimeout(() => {
+        setCountdown(1);
+      }, COUNTDOWN_READY_MS);
+      return () => window.clearTimeout(id);
+    }
+    audio.playCountdownPhrase(countdownLang, 'go');
+    const id = window.setTimeout(() => {
+      setCountdown(0);
+    }, COUNTDOWN_GO_MS);
+    return () => window.clearTimeout(id);
+  }, [countdown, countdownKey, countdownLang, isInviting, isNetworkPaused, isReadyCheck, paused]);
 
-  // #234, #236: Trigger real-time Tone.js-style SFX when players shoot bubbles, pop
-  // clusters, send/receive rising attack bubbles, or finish a round, and relay
-  // 2P Online attacks, radar state, and round outcomes.
   useEffect(() => {
-    const sfx = getSharedArcadeAudio().sfx;
-    match.players.forEach((p, idx) => {
-      const i = idx as 0 | 1;
-      if (p.shotsFired > prevShotsRef.current[i]) {
-        sfx.playBubbleShoot();
+    const audio = getSharedArcadeAudio();
+    for (let i = 0; i < match.players.length; i += 1) {
+      const p = match.players[i];
+      if (!p) continue;
+      if (p.flying !== null && prevShotsRef.current[i] === 0) {
+        prevShotsRef.current[i] = 1;
+        audio.sfx.playStarShoot();
+      } else if (p.flying === null) {
+        prevShotsRef.current[i] = 0;
       }
-      prevShotsRef.current[i] = p.shotsFired;
 
       const ev = p.lastEvent;
       if (ev && ev.id !== prevEventIdsRef.current[i]) {
         prevEventIdsRef.current[i] = ev.id;
         if (ev.popped.length > 0) {
-          sfx.playBubblePop(ev.popped.length, ev.dropped.length);
+          audio.sfx.playStarBurst(ev.popped.length, ev.dropped.length);
         }
-        const onlineAttack =
-          isOnline2P && i === 0
-            ? Math.min(12, Math.max(0, ev.popped.length - 3) + ev.dropped.length)
-            : 0;
-        if (ev.sentGarbage > 0 || onlineAttack > 0) {
-          sfx.playGarbageSend(Math.max(ev.sentGarbage, onlineAttack));
+        const onlineAttack = Math.min(
+          12,
+          Math.max(0, ev.popped.length - 3) + ev.dropped.length,
+        );
+        if (ev.sentGarbage > 0 || (isOnline2P && onlineAttack > 0)) {
+          audio.sfx.playGarbageSend(isOnline2P ? onlineAttack : ev.sentGarbage);
         }
         if (ev.risenGarbage.length > 0) {
-          sfx.playGarbageRise(ev.risenGarbage.length);
+          audio.sfx.playGarbageRise(ev.risenGarbage.length);
         }
 
         if (isOnline2P && i === 0) {
           if (onlineAttack > 0) {
             const colors = generateGarbageColors(onlineAttack);
-            void getSharedNetplay().sendRoomEvent('pb_attack', {
+            void getSharedNetplay().sendRoomEvent('starlight_attack', {
               count: onlineAttack,
               colors,
             });
           }
           if (ev.clearBonus > 0 && !onlineOutcomeSentRef.current) {
             onlineOutcomeSentRef.current = true;
-            void getSharedNetplay().sendRoomEvent('pb_outcome', { outcome: 'cleared' });
-            setOpponentRadar((prev) => ({ ...prev, status: 'ko' }));
+            void getSharedNetplay().sendRoomEvent('starlight_outcome', { outcome: 'cleared' });
+            setOpponentSnapshot((prev) => ({ ...prev, status: 'ko' }));
             setMatch((cur) => (cur.status === 'round_over' ? cur : resolveMatchOutcome(cur, 0)));
           }
-          void getSharedNetplay().sendRoomEvent('pb_state', createRadarFromBoard(p));
+          void getSharedNetplay().sendRoomEvent(
+            'starlight_state',
+            createSnapshotFromBoard(p, mascotsRef.current[0]),
+          );
         }
       } else if (!ev) {
         prevEventIdsRef.current[i] = 0;
       }
-    });
+    }
 
     const p0 = match.players[0];
     if (isOnline2P && p0 && p0.status === 'ko' && !onlineOutcomeSentRef.current) {
       onlineOutcomeSentRef.current = true;
-      void getSharedNetplay().sendRoomEvent('pb_outcome', { outcome: 'ko' });
-      void getSharedNetplay().sendRoomEvent('pb_state', createRadarFromBoard(p0));
-      setOpponentRadar((prev) => ({ ...prev, status: 'won' }));
+      void getSharedNetplay().sendRoomEvent('starlight_outcome', { outcome: 'ko' });
+      void getSharedNetplay().sendRoomEvent(
+        'starlight_state',
+        createSnapshotFromBoard(p0, mascotsRef.current[0]),
+      );
+      setOpponentSnapshot((prev) => ({ ...prev, status: 'won' }));
       setMatch((cur) => (cur.status === 'round_over' ? cur : resolveMatchOutcome(cur, 1)));
     }
 
-    if (match.status === 'round_over' && prevMatchStatusRef.current === 'playing') {
-      sfx.playRoundEnd(match.winner !== null);
+    if (match.status === 'round_over' && prevMatchStatusRef.current !== 'round_over') {
+      prevMatchStatusRef.current = 'round_over';
+      audio.sfx.playRoundEnd(match.winner !== null);
+    } else if (match.status === 'playing') {
+      prevMatchStatusRef.current = 'playing';
     }
-    prevMatchStatusRef.current = match.status;
   }, [isOnline2P, match]);
 
-  // Advance flying bubbles and the 10s HURRY UP! shot clock at ~60fps (#254: skip React state allocation when no bubble is flying and hurrySeconds is unchanged).
-  useEffect(() => {
-    if (paused || isReadyCheck || isInviting || isNetworkPaused || match.status !== 'playing') return;
-    let lastTime = performance.now();
-    const id = window.setInterval(() => {
-      const now = performance.now();
-      const dtMs = Math.min(64, Math.max(0, now - lastTime));
-      lastTime = now;
-      setMatch((current) => {
-        const anyFlying = current.players.some((p) => p && p.flying !== null);
-        const stepped = anyFlying ? stepMatch(current) : current;
-        if (countdown > 0) return stepped;
+  const anyFlying = match.players.some((p) => p?.flying !== null);
 
-        let needsRender = stepped !== current;
-        for (const p of stepped.players) {
-          if (!p || p.status !== 'playing') continue;
-          if (p.flying !== null) {
-            p.stageElapsedMs += dtMs;
-            continue;
-          }
-          const prevHurry = hurryCountdownSeconds(p);
-          const nextRemaining = p.shotTimerMs - dtMs;
-          if (nextRemaining <= 0) {
-            needsRender = true;
-            break;
-          }
-          const nextHurry =
-            nextRemaining > 5000 ? null : Math.max(1, Math.ceil(nextRemaining / 1000));
-          if (nextHurry !== prevHurry) {
-            needsRender = true;
-            break;
-          }
-        }
-        if (!needsRender) {
-          for (const p of stepped.players) {
-            if (!p || p.status !== 'playing' || p.flying !== null) continue;
-            p.stageElapsedMs += dtMs;
-            p.shotTimerMs -= dtMs;
-          }
-          return current;
-        }
-        return tickShotTimers(stepped, dtMs);
-      });
+  useEffect(() => {
+    if (paused || isReadyCheck || isInviting || isNetworkPaused || countdown > 0 || match.status !== 'playing' || !anyFlying) {
+      return undefined;
+    }
+    const id = window.setInterval(() => {
+      setMatch((current) => stepMatch(current));
     }, 16);
     return () => window.clearInterval(id);
-  }, [match.status, paused, isReadyCheck, isInviting, isNetworkPaused, countdown]);
+  }, [anyFlying, countdown, isInviting, isNetworkPaused, isReadyCheck, match.status, paused]);
 
-  // Deterministic E2E / test hooks to resolve a player's shot or queue incoming attack bubbles.
+  useEffect(() => {
+    if (paused || isReadyCheck || isInviting || isNetworkPaused || countdown > 0 || match.status !== 'playing') {
+      return undefined;
+    }
+    const id = window.setInterval(() => {
+      setMatch((current) => tickShotTimers(current, 100));
+    }, 100);
+    return () => window.clearInterval(id);
+  }, [countdown, isInviting, isNetworkPaused, isReadyCheck, match.status, paused]);
+
   useEffect(() => {
     function onInstantResolve(event: Event) {
       const detail = (
@@ -1888,8 +1647,8 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         if (detail?.clearStage) {
           const target = current.players[idx];
           if (target) {
-            const emptyGrid = target.grid.map((r) => r.map(() => null as BubbleColor | null));
-            const color = target.currentBubble;
+            const emptyGrid = target.grid.map((r) => r.map(() => null as StarColor | null));
+            const color = target.currentStar;
             emptyGrid[0][3] = color;
             emptyGrid[0][4] = color;
             const updatedTarget: PlayerBoardState = { ...target, aimAngle: 0, grid: emptyGrid };
@@ -1906,9 +1665,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
           const target = current.players[idx];
           if (target) {
             const popGrid = target.grid.map((r) => r.slice());
-            const color = target.currentBubble;
-            // Create a 4-bubble matching cluster around the center frontier (row 3, cols 2..4)
-            // so a straight-up shot at 0° pops 5 bubbles -> sends 2+ garbage bubbles to opponent.
+            const color = target.currentStar;
             for (let r = 0; r < 3; r += 1) {
               for (let c = 0; c < popGrid[r].length; c += 1) {
                 if (popGrid[r][c] === null) popGrid[r][c] = color === 'ruby' ? 'azure' : 'ruby';
@@ -1937,11 +1694,10 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
           const target = current.players[idx];
           if (target) {
             const safeGrid = target.grid.map((r) => r.slice());
-            // Clear row 3 center neighbors so the test shot never accidentally pops 3 of a kind.
             for (let r = 2; r < safeGrid.length; r += 1) {
               for (let c = 2; c <= 5 && c < safeGrid[r].length; c += 1) {
-                if (safeGrid[r][c] === target.currentBubble) {
-                  safeGrid[r][c] = target.currentBubble === 'ruby' ? 'azure' : 'ruby';
+                if (safeGrid[r][c] === target.currentStar) {
+                  safeGrid[r][c] = target.currentStar === 'ruby' ? 'azure' : 'ruby';
                 }
               }
             }
@@ -1964,7 +1720,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
       });
     }
     function onQueueGarbage(event: Event) {
-      const detail = (event as CustomEvent<{ player?: 0 | 1; count?: number; colors?: BubbleColor[] }>).detail;
+      const detail = (event as CustomEvent<{ player?: 0 | 1; count?: number; colors?: StarColor[] }>).detail;
       const idx: 0 | 1 = detail?.player === 1 ? 1 : 0;
       const colors = detail?.colors ?? generateGarbageColors(detail?.count ?? 3, () => 0.2);
       setMatch((current) => {
@@ -1998,21 +1754,21 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         detail?.character === 'dog' ||
         detail?.character === 'bunny'
           ? detail.character
-          : 'dragon';
+          : 'fox';
       const gender: MascotGender = detail?.gender === 'girl' ? 'girl' : 'boy';
       setMascots((prev) =>
         idx === 0 ? [{ character, gender }, prev[1]] : [prev[0], { character, gender }],
       );
     }
-    window.addEventListener('yolo:puzzle-bobble:fire-resolve', onInstantResolve);
-    window.addEventListener('yolo:puzzle-bobble:queue-garbage', onQueueGarbage);
-    window.addEventListener('yolo:puzzle-bobble:round-outcome', onRoundOutcome);
-    window.addEventListener('yolo:puzzle-bobble:set-mascot', onSetMascot);
+    window.addEventListener('yolo:starlight:fire-resolve', onInstantResolve);
+    window.addEventListener('yolo:starlight:queue-garbage', onQueueGarbage);
+    window.addEventListener('yolo:starlight:round-outcome', onRoundOutcome);
+    window.addEventListener('yolo:starlight:set-mascot', onSetMascot);
     return () => {
-      window.removeEventListener('yolo:puzzle-bobble:fire-resolve', onInstantResolve);
-      window.removeEventListener('yolo:puzzle-bobble:queue-garbage', onQueueGarbage);
-      window.removeEventListener('yolo:puzzle-bobble:round-outcome', onRoundOutcome);
-      window.removeEventListener('yolo:puzzle-bobble:set-mascot', onSetMascot);
+      window.removeEventListener('yolo:starlight:fire-resolve', onInstantResolve);
+      window.removeEventListener('yolo:starlight:queue-garbage', onQueueGarbage);
+      window.removeEventListener('yolo:starlight:round-outcome', onRoundOutcome);
+      window.removeEventListener('yolo:starlight:set-mascot', onSetMascot);
     };
   }, []);
 
@@ -2059,9 +1815,6 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     [stagePreset, triggerFreshCountdown],
   );
 
-  // #212, #222: Enforce 1-Player mode on phone viewports while allowing
-  // 2-Player side-by-side play on all tablets (including 600–759px portrait and
-  // landscape with MS Edge toolbars) and desktops.
   useEffect(() => {
     function onResize() {
       const phone = isPhoneViewport();
@@ -2097,7 +1850,6 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     heldAimKeysRef.current.delete(keyId);
   }, []);
 
-  // Highlight Continue button when Pause Menu opens (#268).
   useEffect(() => {
     if (!paused || isReadyCheck || isInviting || isNetworkPaused) return;
     const menu = pauseMenuRef.current;
@@ -2116,12 +1868,6 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     });
   }, [paused, overlayOpen, isReadyCheck, isInviting, isNetworkPaused]);
 
-  // Smooth 60fps aiming + keyboard controls:
-  // - Single tap steps by `AIM_STEP_DEG = 0.5°` for high-precision bank shots.
-  // - Holding an aim key glides smoothly every frame (`requestAnimationFrame`),
-  //   starting at `38°/s` for micro-lining-up and ramping to `115°/s` for sweeps.
-  // - Player 1 (left board, or solo): A / D aim; S / F / W shoot.
-  // - Player 2 (right board in 2P, or solo fallback): ArrowLeft / ArrowRight aim; ArrowUp / ArrowDown / Space / Enter shoot.
   useEffect(() => {
     const held = heldAimKeysRef.current;
 
@@ -2231,7 +1977,6 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
       const p2Index: 0 | 1 = is2P ? 1 : 0;
 
       switch (event.key) {
-        // Player 1: ASDF (and W)
         case 'a':
         case 'A':
           event.preventDefault();
@@ -2255,10 +2000,9 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         case 'w':
         case 'W':
           event.preventDefault();
-          setMatch((current) => firePlayerBubble(current, 0));
+          setMatch((current) => firePlayerStar(current, 0));
           break;
 
-        // Player 2 (in 2P) or Player 1 (in 1P): Arrow keys
         case 'ArrowLeft':
           event.preventDefault();
           if (!held.has('ArrowLeft')) {
@@ -2279,7 +2023,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         case 'Spacebar':
         case 'Enter':
           event.preventDefault();
-          setMatch((current) => firePlayerBubble(current, p2Index));
+          setMatch((current) => firePlayerStar(current, p2Index));
           break;
         default:
           break;
@@ -2390,7 +2134,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
     if (isOnline2P) {
       const nextSeed = ((Date.now() & 0x7fffffff) ^ 0x6a09e667) >>> 0 || 2026;
       startOnlineRoundWithSeed(nextSeed, false, nextPreset);
-      void getSharedNetplay().sendRoomEvent('pb_rematch', {
+      void getSharedNetplay().sendRoomEvent('starlight_rematch', {
         seed: nextSeed,
         preset: nextPreset,
       });
@@ -2403,37 +2147,52 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
   const canSelectLocal2P = !phoneViewport && keyboardAvailable;
   const canSelectOnline2P = netplay.onlineCount > 1 || isOnline2P || isInviting;
 
+  const onlineOpponentBoard = useMemo(
+    () => boardStateFromLiveSnapshot(opponentSnapshot),
+    [opponentSnapshot],
+  );
+  const onlineOpponentMascot: MascotSelection = useMemo(() => {
+    if (
+      opponentSnapshot.mascot &&
+      opponentSnapshot.mascot.character !== mascots[0].character
+    ) {
+      return opponentSnapshot.mascot;
+    }
+    return mascots[1];
+  }, [mascots, opponentSnapshot.mascot]);
+
   return (
     <section
-      className="tetris pb-game"
-      data-mode={isOnline2P ? '1p' : match.mode}
-      aria-label="Puzzle Bobble game"
+      className="stack-stage sb-game"
+      data-mode={isOnline2P ? '2p' : match.mode}
+      aria-label="Starlight Burst game"
       ref={gameSectionRef}
     >
-      <div className="tetris-art" aria-hidden="true">
-        <img className="tetris-art-layer is-current" src={art.src} alt="" aria-hidden="true" />
+      <div className="stack-art" aria-hidden="true">
+        <img className="stack-art-layer is-current" src={art.src} alt="" aria-hidden="true" />
       </div>
 
-      <header className="tetris-header pb-header">
+      <header className="stack-header sb-header">
         <div className="row">
-          <h2 className="tetris-title">Puzzle Bobble</h2>
-          {isOnline2P && activePbRoom ? (
-            <span className="pb-tally" data-testid="pb-online-tally" aria-label="Online round wins">
-              YOU {match.wins[0]} – {match.wins[1]} {activePbRoom.opponent.name}
+          <h2 className="stack-title">Starlight Burst</h2>
+          {isOnline2P && activeSbRoom ? (
+            <span className="sb-tally" data-testid="sb-online-tally" aria-label="Online round wins">
+              YOU {match.wins[0]} – {match.wins[1]} {activeSbRoom.opponent.name}
             </span>
           ) : match.mode === '2p' ? (
-            <span className="pb-tally" aria-label="Round wins">
+            <span className="sb-tally" aria-label="Round wins">
               1P {match.wins[0]} – {match.wins[1]} 2P
             </span>
           ) : null}
-          <p className="tetris-scene sr-only" aria-live="polite">
+          <p className="stack-scene sr-only" aria-live="polite">
             Scene {backgroundIndex + 1}/{BACKGROUNDS.length}: {art.title}
             {musicOn && nowPlaying ? ` · Music: ${nowPlaying}` : ''}
           </p>
         </div>
       </header>
 
-      <div className="tetris-body pb-boards">
+      {/* Symmetric side-by-side stages for BOTH Local 2P and Online 2P (#352) */}
+      <div className="stack-body sb-boards">
         <PlayerArena
           player={match.players[0]}
           playerNumber={1}
@@ -2443,11 +2202,6 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
           }
           isTwoPlayer={match.mode === '2p' || isOnline2P}
           showTouchControls={touchAvailable}
-          onlineOpponent={
-            isOnline2P && activePbRoom
-              ? { name: activePbRoom.opponent.name, radar: opponentRadar }
-              : null
-          }
           disabled={
             paused ||
             isReadyCheck ||
@@ -2463,14 +2217,24 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
             setMatch((current) => setPlayerAimAngle(current, 0, angle));
           }}
           onFire={() => {
-            setMatch((current) => firePlayerBubble(current, 0));
+            setMatch((current) => firePlayerStar(current, 0));
           }}
           onHoldAimStart={(keyId, delta) => {
             handleHoldAimStart(0, keyId, delta);
           }}
           onHoldAimEnd={handleHoldAimEnd}
         />
-        {!isOnline2P && match.mode === '2p' && match.players[1] ? (
+        {isOnline2P && activeSbRoom ? (
+          <PlayerArena
+            player={onlineOpponentBoard}
+            playerNumber={2}
+            mascot={onlineOpponentMascot}
+            isTwoPlayer
+            showTouchControls={false}
+            remoteOpponentName={activeSbRoom.opponent.name}
+            disabled
+          />
+        ) : !isOnline2P && match.mode === '2p' && match.players[1] ? (
           <PlayerArena
             player={match.players[1]}
             playerNumber={2}
@@ -2495,7 +2259,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
               setMatch((current) => setPlayerAimAngle(current, 1, angle));
             }}
             onFire={() => {
-              setMatch((current) => firePlayerBubble(current, 1));
+              setMatch((current) => firePlayerStar(current, 1));
             }}
             onHoldAimStart={(keyId, delta) => {
               handleHoldAimStart(1, keyId, delta);
@@ -2533,7 +2297,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
             className="game-pause-menu"
             role="status"
             aria-live="polite"
-            data-testid="pb-invite-waiting"
+            data-testid="sb-invite-waiting"
           >
             <span className="game-pause-kicker">2P Online Matchmaking</span>
             <h3 className="game-pause-title">Waiting for player…</h3>
@@ -2543,7 +2307,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
             <div className="game-pause-actions">
               <button
                 type="button"
-                data-testid="pb-cancel-invite-btn"
+                data-testid="sb-cancel-invite-btn"
                 onClick={() => void getSharedNetplay().cancelInvite()}
               >
                 Cancel invite
@@ -2553,7 +2317,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         </div>
       ) : null}
 
-      {isOnline2P && isReadyCheck && activePbRoom ? (
+      {isOnline2P && isReadyCheck && activeSbRoom ? (
         <div className="game-pause-backdrop">
           <div
             className="game-pause-menu"
@@ -2562,7 +2326,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
             aria-label="2P Online Ready Check"
             data-testid="netplay-ready-modal"
           >
-            <span className="game-pause-kicker">2P Online Puzzle Bobble</span>
+            <span className="game-pause-kicker">2P Online Starlight Burst</span>
             <h3 className="game-pause-title">Players Ready?</h3>
             <div className="netplay-ready-roster">
               <div className="netplay-ready-row">
@@ -2572,7 +2336,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
                 </span>
               </div>
               <div className="netplay-ready-row">
-                <span>{activePbRoom.opponent.name}</span>
+                <span>{activeSbRoom.opponent.name}</span>
                 <span className={oppReady ? 'netplay-ready-pill is-ready' : 'netplay-ready-pill'}>
                   {oppReady ? 'READY ✓' : 'Waiting…'}
                 </span>
@@ -2599,7 +2363,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
         </div>
       ) : null}
 
-      {isNetworkPaused && activePbRoom ? (
+      {isNetworkPaused && activeSbRoom ? (
         <div className="game-pause-backdrop">
           <div
             className="game-pause-menu"
@@ -2612,8 +2376,8 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
             <p className="game-pause-copy">
               Waiting for{' '}
               <strong>
-                {activePbRoom.laggingPlayerNames?.length
-                  ? activePbRoom.laggingPlayerNames.join(', ')
+                {activeSbRoom.laggingPlayerNames?.length
+                  ? activeSbRoom.laggingPlayerNames.join(', ')
                   : 'both players'}
               </strong>{' '}
               to re-sync…
@@ -2647,10 +2411,10 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
             data-testid="game-pause-menu"
             ref={pauseMenuRef}
           >
-            <span className="game-pause-kicker">Puzzle Bobble</span>
+            <span className="game-pause-kicker">Starlight Burst</span>
             <h3 className="game-pause-title">Paused</h3>
             <div className="game-pause-section">
-              <span className="tetris-label">Game Mode</span>
+              <span className="stack-label">Game Mode</span>
               <div className="filter-group" role="group" aria-label="Player mode">
                 <button
                   type="button"
@@ -2678,12 +2442,12 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
                 ) : null}
                 <button
                   type="button"
-                  data-testid="pb-2p-online-btn"
+                  data-testid="sb-2p-online-btn"
                   aria-pressed={isOnline2P || isInviting}
                   disabled={!canSelectOnline2P}
                   title={
                     canSelectOnline2P
-                      ? 'Challenge online players to 2P Puzzle Bobble'
+                      ? 'Challenge online players to 2P Starlight Burst'
                       : 'Requires at least 2 players online'
                   }
                   onClick={() => {
@@ -2697,12 +2461,12 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
                         startNewRound('1p', false);
                       }
                       setSharedGamePaused(false);
-                      void getSharedNetplay().sendInvite('puzzle-bobble');
+                      void getSharedNetplay().sendInvite('starlight-burst');
                     }
                   }}
                 >
                   {isOnline2P
-                    ? `2P online (${activePbRoom.opponent.name})`
+                    ? `2P online (${activeSbRoom.opponent.name})`
                     : isInviting
                       ? `Waiting 2P… (${inviteSecondsLeft}s)`
                       : '2P online'}
@@ -2710,17 +2474,17 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
               </div>
             </div>
             <div className="game-pause-section">
-              <span className="tetris-label">Stage</span>
+              <span className="stack-label">Constellation</span>
               <div
-                className="filter-group pb-stage-stepper"
+                className="filter-group sb-stage-stepper"
                 role="group"
-                aria-label="Stage selection"
-                data-testid="pb-stage-selector"
+                aria-label="Constellation selection"
+                data-testid="sb-stage-selector"
               >
                 <button
                   type="button"
-                  aria-label="Previous stage"
-                  title="Previous stage"
+                  aria-label="Previous constellation"
+                  title="Previous constellation"
                   onClick={() => {
                     const totalOptions = TOTAL_STAGES + 1;
                     const prevPreset = (stagePreset - 1 + totalOptions) % totalOptions;
@@ -2732,13 +2496,13 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
                 </button>
                 <button
                   type="button"
-                  data-testid="pb-stage-button"
+                  data-testid="sb-stage-button"
                   onClick={() => {
                     const nextPreset = (stagePreset + 1) % (TOTAL_STAGES + 1);
                     setStagePreset(nextPreset);
                     startNewRound(match.mode, true, nextPreset);
                   }}
-                  title={`Cycle between random waves and ${TOTAL_STAGES} classic arcade stages`}
+                  title={`Cycle between random waves and ${TOTAL_STAGES} constellations`}
                 >
                   {stagePreset === 0
                     ? 'Wave: Random'
@@ -2746,8 +2510,8 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
                 </button>
                 <button
                   type="button"
-                  aria-label="Next stage"
-                  title="Next stage"
+                  aria-label="Next constellation"
+                  title="Next constellation"
                   onClick={() => {
                     const nextPreset = (stagePreset + 1) % (TOTAL_STAGES + 1);
                     setStagePreset(nextPreset);
@@ -2759,7 +2523,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
               </div>
             </div>
             <div className="game-pause-section">
-              <span className="tetris-label">Audio</span>
+              <span className="stack-label">Audio</span>
               <div className="filter-group" role="group" aria-label="Audio controls">
                 <button
                   type="button"
@@ -2776,7 +2540,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
                   data-testid="pause-menu-music-btn"
                   aria-pressed={musicOn}
                   onClick={() => {
-                    getSharedArcadeAudio().setPlaylist(PUZZLE_BOBBLE_PLAYLIST);
+                    getSharedArcadeAudio().setPlaylist(STARLIGHT_BURST_PLAYLIST);
                     setSharedMusicOn(!musicOn, true);
                   }}
                 >
@@ -2816,7 +2580,7 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
               <button
                 type="button"
                 data-testid="pause-menu-exit"
-                aria-label="Close Puzzle Bobble"
+                aria-label="Close Starlight Burst"
                 onClick={onExit}
               >
                 Exit to menu
@@ -2827,18 +2591,18 @@ export function PuzzleBobbleView({ onExit }: { onExit: () => void }) {
       ) : null}
 
       {!paused && match.status === 'round_over' ? (
-        <p className="tetris-over pb-banner" role="status" data-testid="pb-round-banner">
-          {isOnline2P && activePbRoom
+        <p className="stack-over sb-banner" role="status" data-testid="sb-round-banner">
+          {isOnline2P && activeSbRoom
             ? match.winner === 0
-              ? `YOU WIN! Beat ${activePbRoom.opponent.name} (${match.wins[0]}–${match.wins[1]}). `
-              : `${activePbRoom.opponent.name} wins the round! (${match.wins[0]}–${match.wins[1]}). `
+              ? `YOU WIN! Beat ${activeSbRoom.opponent.name} (${match.wins[0]}–${match.wins[1]}). `
+              : `${activeSbRoom.opponent.name} wins the round! (${match.wins[0]}–${match.wins[1]}). `
             : match.mode === '1p'
               ? match.winner === 0
-                ? `YOU WIN! Stage cleared — score ${match.players[0].score.toLocaleString()}. `
-                : `YOU LOSE — Game over — score ${match.players[0].score.toLocaleString()}. `
+                ? `YOU WIN! Sky cleared — score ${match.players[0].score.toLocaleString()}. `
+                : `YOU LOSE — Sky overflow — score ${match.players[0].score.toLocaleString()}. `
               : match.winner !== null
                 ? `Player ${match.winner + 1} wins the round! (${match.wins[0]}–${match.wins[1]}). `
-                : `Game over — score ${match.players[0].score.toLocaleString()}. `}
+                : `Sky overflow — score ${match.players[0].score.toLocaleString()}. `}
           <button type="button" className="primary" onClick={handleNextOrNewRound}>
             Next round
           </button>

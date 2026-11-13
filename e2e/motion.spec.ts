@@ -36,13 +36,12 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
       try {
         await page.setViewportSize({ width: 1280, height: 900 });
         await page.goto(stub.base);
-        await page.getByRole('button', { name: 'Tetris', exact: true }).click();
-        await expect(page.getByRole('img', { name: 'Tetris board, 10 by 20' })).toBeVisible();
-        await expect(page.locator('.tetris-scene')).toContainText('Scene 1/');
+        await page.getByRole('button', { name: 'Prism Stack', exact: true }).click();
+        await page.getByTestId('deck-slide-card').click();
+        await expect(page.getByRole('img', { name: 'Prism Stack board, 9 by 18' })).toBeVisible();
+        await expect(page.locator('.stack-scene')).toContainText('Scene 1/');
 
-        // Start the transition, then sample. Elapsed time is only as good as
-        // the sampling, so this is evidence about visible states, not timing.
-        await page.evaluate(() => window.dispatchEvent(new Event('yolo:tetris:four-line-clear')));
+        await page.evaluate(() => window.dispatchEvent(new Event('yolo:prism:quad-clear')));
         let previous = 0;
         for (const { at, label } of OFFSETS) {
           if (at > previous) await page.waitForTimeout(at - previous);
@@ -50,7 +49,7 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
           await snap(`motion/${reducedMotion}-${label}`);
         }
 
-        const scene = await page.locator('.tetris-scene').textContent();
+        const scene = await page.locator('.stack-scene').textContent();
         expect(scene).toContain('Scene 2/');
       } finally {
         stub.server.close();

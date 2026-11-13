@@ -44,7 +44,7 @@ describe('colour lives in tokens', () => {
       '--elevation-scroll',
       '--board-gap',
       '--cell-empty',
-      ...'ijlostz'.split('').map((t) => `--tetromino-${t}`),
+      ...[1, 2, 3, 4, 5, 6, 7].map((n) => `--prism-${n}`),
     ]) {
       expect(definedTokens.has(token), `${token} is not declared in :root`).toBe(true);
     }
@@ -74,15 +74,15 @@ describe('colour lives in tokens', () => {
   it('routes surface, field, link, button, and on-art text through semantic tokens and honours prefers-reduced-motion', () => {
     expect(bodyRules).toMatch(/\.comment-body pre\s*\{[^}]*background:\s*var\(--field\)/);
     expect(bodyRules).toMatch(/\.comment-body code\s*\{[^}]*background:\s*var\(--neutral-weak\)/);
-    expect(bodyRules).toMatch(/\.tetris-cell\s*\{[^}]*background:\s*var\(--cell-empty\)/);
+    expect(bodyRules).toMatch(/\.stack-cell\s*\{[^}]*background:\s*var\(--cell-empty\)/);
     expect(bodyRules).toContain('var(--elevation-scroll)');
     expect(bodyRules).toMatch(/input\[type="text"\], textarea\s*\{[^}]*background:\s*var\(--field\)/);
     expect(bodyRules).toMatch(/a\s*\{[^}]*color:\s*var\(--accent-weak-text\)/);
     expect(bodyRules).toMatch(/button\s*\{[^}]*background:\s*var\(--surface\)[^}]*color:\s*var\(--text\)/);
-    // Opaque surface backing for Tetris stats & on-art text (#76, #90).
-    expect(bodyRules).toMatch(/\.tetris-side\s*\{[^}]*background:\s*var\(--surface\)/);
-    expect(bodyRules).toMatch(/\.tetris-title\s*\{[^}]*background:\s*var\(--surface\)/);
-    expect(bodyRules).toMatch(/\.tetris-help,\s*\.tetris-scene\s*\{[^}]*background:\s*var\(--surface\)/);
+    // Opaque surface backing for Prism Stack stats & on-art text (#76, #90, #352).
+    expect(bodyRules).toMatch(/\.stack-side\s*\{[^}]*background:\s*var\(--surface\)/);
+    expect(bodyRules).toMatch(/\.stack-title\s*\{[^}]*background:\s*var\(--surface\)/);
+    expect(bodyRules).toMatch(/\.stack-help,\s*\.stack-scene\s*\{[^}]*background:\s*var\(--surface\)/);
     // Reduced-motion block disables animations (#76, #186, #198).
     const reducedBlock = css.match(/@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\n\}/);
     expect(reducedBlock).not.toBeNull();

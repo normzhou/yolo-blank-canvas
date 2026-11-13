@@ -1,25 +1,25 @@
 /**
- * Puzzle Bobble (Bust-A-Move) arcade rules as pure functions (#181, #183, #186).
+ * Starlight Burst — aimed astral star-core matching engine (#181, #183, #186, #352).
  *
- * Implements the 1994 Taito / Neo-Geo arcade mechanics:
+ * Pure functional state machine:
  * - Fine sub-degree tap aiming (`0.5°`) + smooth 60fps continuous sweep
- * - Exponential dropped-bubble scoring (`20 * 2^(n-1)`, capped at `1,310,720` for 17+)
- * - 2-Player Versus attack transfer (`popped - 3` on 4+ pops plus all dropped
- *   hanging bubbles) into the opponent's `incomingQueue` with on-board preview
- *   and bottom-up rising placement (`risenGarbage`)
- * - Dynamic ceiling drop interval scaled by the number of remaining bubble colours,
- *   with a 1-shot pre-drop compressor tremor warning
- * - 10-second shot timer with 5-second `HURRY UP!` countdown and auto-fire
- * - Classic arcade stage formations and fast-clear stage bonus
+ * - Exponential cascade scoring (`20 * 2^(n-1)`, capped at `1,310,720` for 17+)
+ * - 2-Player Versus starlight attack transfer (`burst - 3` on 4+ matches plus all
+ *   dropped unanchored star-cores) into the opponent's `incomingQueue` with
+ *   on-board preview and bottom-up rising placement (`risenGarbage`)
+ * - Dynamic sky-descent interval scaled by the number of remaining star-core colors,
+ *   with a 1-shot pre-drop tremor warning
+ * - 10-second launch timer with 5-second `HURRY UP!` countdown and auto-launch
+ * - 15 constellation formations and fast-clear stage bonus
  *
  * All game state is local to the canvas view and is never written to GitHub.
  */
 
-export type BubbleColor = 'ruby' | 'amber' | 'emerald' | 'azure' | 'amethyst' | 'coral';
-export type BubbleCell = BubbleColor | null;
-export type BubbleGrid = BubbleCell[][];
+export type StarColor = 'ruby' | 'amber' | 'emerald' | 'azure' | 'amethyst' | 'coral';
+export type StarCell = StarColor | null;
+export type StarGrid = StarCell[][];
 
-export type CharacterId = 'dragon' | 'cat' | 'dog' | 'bunny';
+export type CharacterId = 'fox' | 'cat' | 'dog' | 'bunny';
 export type MascotGender = 'boy' | 'girl';
 export type MascotMood = 'normal' | 'cheer' | 'hurry' | 'celebrate' | 'cry';
 
@@ -38,7 +38,7 @@ export interface CharacterOption {
 }
 
 export const CHARACTER_OPTIONS: readonly CharacterOption[] = [
-  { id: 'dragon', label: 'Dragon', boyName: 'Bub', girlName: 'Bibi', p1Name: 'Bub', p2Name: 'Bibi' },
+  { id: 'fox', label: 'Fox', boyName: 'Ren', girlName: 'Kiko', p1Name: 'Ren', p2Name: 'Kiko' },
   { id: 'cat', label: 'Cat', boyName: 'Yuzu', girlName: 'Mochi', p1Name: 'Yuzu', p2Name: 'Mochi' },
   { id: 'dog', label: 'Dog', boyName: 'Koro', girlName: 'Hana', p1Name: 'Koro', p2Name: 'Hana' },
   { id: 'bunny', label: 'Bunny', boyName: 'Poko', girlName: 'Momo', p1Name: 'Poko', p2Name: 'Momo' },
@@ -107,7 +107,7 @@ export function pickRandomOtherMascot(
   };
 }
 
-export const BUBBLE_COLORS: readonly BubbleColor[] = [
+export const STAR_COLORS: readonly StarColor[] = [
   'ruby',
   'amber',
   'emerald',
@@ -116,8 +116,8 @@ export const BUBBLE_COLORS: readonly BubbleColor[] = [
   'coral',
 ];
 
-export const BUBBLE_RADIUS = 14;
-export const BUBBLE_DIAMETER = BUBBLE_RADIUS * 2; // 28
+export const STAR_RADIUS = 14;
+export const STAR_DIAMETER = STAR_RADIUS * 2; // 28
 export const EVEN_COLS = 8;
 export const ODD_COLS = 7;
 export const ROW_STEP = 24;
@@ -125,8 +125,8 @@ export const MAX_ROWS = 12;
 export const DANGER_ROW = 9;
 export const INITIAL_ROWS = 4;
 
-export const ARENA_WIDTH = EVEN_COLS * BUBBLE_DIAMETER; // 224
-export const DANGER_LINE_Y = BUBBLE_RADIUS + DANGER_ROW * ROW_STEP; // 230
+export const ARENA_WIDTH = EVEN_COLS * STAR_DIAMETER; // 224
+export const DANGER_LINE_Y = STAR_RADIUS + DANGER_ROW * ROW_STEP; // 230
 export const LAUNCHER_X = ARENA_WIDTH / 2; // 112
 export const LAUNCHER_Y = 268;
 export const ARENA_HEIGHT = 296;
@@ -135,19 +135,19 @@ export const MIN_AIM_ANGLE = -75;
 export const MAX_AIM_ANGLE = 75;
 /** Fine single-tap micro-adjustment in degrees (`0.5°` per tap). */
 export const AIM_STEP_DEG = 0.5;
-export const BUBBLE_SPEED = 14;
+export const STAR_SPEED = 14;
 export const CEILING_DROP_SHOTS = 8;
 
 export const SHOT_TIME_LIMIT_MS = 10_000;
 export const HURRY_WARNING_MS = 5_000;
 export const MAX_DROP_SCORE = 1_310_720;
 
-export interface FlyingBubble {
+export interface FlyingStarCore {
   x: number;
   y: number;
   vx: number;
   vy: number;
-  color: BubbleColor;
+  color: StarColor;
 }
 
 export interface GridCoord {
@@ -156,7 +156,7 @@ export interface GridCoord {
 }
 
 export interface ColoredCell extends GridCoord {
-  color: BubbleColor;
+  color: StarColor;
   x: number;
   y: number;
 }
@@ -165,7 +165,7 @@ export interface ShotEvent {
   id: number;
   popped: ColoredCell[];
   dropped: ColoredCell[];
-  /** Attack bubbles that just rose from the bottom onto this player's grid. */
+  /** Attack star-cores that just rose from the bottom onto this player's grid. */
   risenGarbage: ColoredCell[];
   popScore: number;
   dropScore: number;
@@ -175,32 +175,32 @@ export interface ShotEvent {
 }
 
 export interface PlayerBoardState {
-  grid: BubbleGrid;
+  grid: StarGrid;
   aimAngle: number;
-  currentBubble: BubbleColor;
-  nextBubble: BubbleColor;
-  flying: FlyingBubble | null;
+  currentStar: StarColor;
+  nextStar: StarColor;
+  flying: FlyingStarCore | null;
   score: number;
   shotsFired: number;
   shotsSinceDrop: number;
   ceilingDrop: number;
   ceilingWarning: boolean;
-  /** Bubbles stored in this player's attack stack. */
+  /** Star-cores stored in this player's attack stack. */
   attackStack: number;
-  /** Count of attack bubbles queued to rise onto this player's playfield. */
+  /** Count of attack star-cores queued to rise onto this player's playfield. */
   incomingGarbage: number;
-  /** Exact colors of the queued attack bubbles staged at the bottom of this player's board. */
-  incomingQueue: BubbleColor[];
-  /** Remaining milliseconds before the launcher auto-fires (`10_000` down to `0`). */
+  /** Exact colors of the queued attack star-cores staged at the bottom of this player's board. */
+  incomingQueue: StarColor[];
+  /** Remaining milliseconds before the sling auto-launches (`10_000` down to `0`). */
   shotTimerMs: number;
-  /** Elapsed milliseconds in the current stage, used for the arcade speed bonus. */
+  /** Elapsed milliseconds in the current stage, used for the speed bonus. */
   stageElapsedMs: number;
   stage: number;
   status: 'playing' | 'won' | 'ko';
   lastEvent: ShotEvent | null;
 }
 
-export interface PuzzleBobbleMatch {
+export interface StarlightBurstMatch {
   mode: '2p' | '1p';
   players: [PlayerBoardState] | [PlayerBoardState, PlayerBoardState];
   status: 'playing' | 'round_over';
@@ -213,20 +213,20 @@ export function colsForRow(row: number): number {
   return row % 2 === 0 ? EVEN_COLS : ODD_COLS;
 }
 
-export function createEmptyGrid(rows = MAX_ROWS): BubbleGrid {
-  return Array.from({ length: rows }, (_, row) => Array<BubbleCell>(colsForRow(row)).fill(null));
+export function createEmptyGrid(rows = MAX_ROWS): StarGrid {
+  return Array.from({ length: rows }, (_, row) => Array<StarCell>(colsForRow(row)).fill(null));
 }
 
-export function cloneGrid(grid: BubbleGrid): BubbleGrid {
+export function cloneGrid(grid: StarGrid): StarGrid {
   return grid.map((row) => row.slice());
 }
 
 /** Pixel center `(x, y)` of a hexagonal grid cell. */
-export function bubbleCenter(row: number, col: number, ceilingDrop = 0): { x: number; y: number } {
-  const stagger = row % 2 === 1 ? BUBBLE_RADIUS : 0;
+export function starCenter(row: number, col: number, ceilingDrop = 0): { x: number; y: number } {
+  const stagger = row % 2 === 1 ? STAR_RADIUS : 0;
   return {
-    x: BUBBLE_RADIUS + col * BUBBLE_DIAMETER + stagger,
-    y: BUBBLE_RADIUS + (row + ceilingDrop) * ROW_STEP,
+    x: STAR_RADIUS + col * STAR_DIAMETER + stagger,
+    y: STAR_RADIUS + (row + ceilingDrop) * ROW_STEP,
   };
 }
 
@@ -249,40 +249,40 @@ export function hexNeighbors(row: number, col: number, totalRows = MAX_ROWS): Gr
 }
 
 /** Colors currently present on a grid; falls back to the full palette when empty. */
-export function activeColorsOnGrid(grid: BubbleGrid): BubbleColor[] {
-  const present = new Set<BubbleColor>();
+export function activeColorsOnGrid(grid: StarGrid): StarColor[] {
+  const present = new Set<StarColor>();
   for (const row of grid) {
     for (const cell of row) {
       if (cell !== null) present.add(cell);
     }
   }
-  return present.size > 0 ? BUBBLE_COLORS.filter((c) => present.has(c)) : [...BUBBLE_COLORS];
+  return present.size > 0 ? STAR_COLORS.filter((c) => present.has(c)) : [...STAR_COLORS];
 }
 
-export function pickBubbleColor(grid: BubbleGrid, rng: () => number = Math.random): BubbleColor {
+export function pickStarColor(grid: StarGrid, rng: () => number = Math.random): StarColor {
   const pool = activeColorsOnGrid(grid);
   const index = Math.min(pool.length - 1, Math.max(0, Math.floor(rng() * pool.length)));
   return pool[index];
 }
 
 /**
- * Authentic Neo-Geo scoring:
- * - Each popped bubble scores 10 points (`30` for a triple, `40` for a quad, etc.).
- * - Dropped bubbles score exponentially: `1 -> 20`, `2 -> 40`, `3 -> 80`, ...,
- *   `20 * 2^(n - 1)`, capped at `1,310,720` for `17` or more bubbles dropped at once.
+ * Starlight Burst scoring:
+ * - Each burst star-core scores 10 points (`30` for a triple, `40` for a quad, etc.).
+ * - Unanchored cascade star-cores score exponentially: `1 -> 20`, `2 -> 40`, `3 -> 80`, ...,
+ *   `20 * 2^(n - 1)`, capped at `1,310,720` for `17` or more dropped at once.
  */
-export function scoreForPop(poppedCount: number): number {
+export function scoreForBurst(poppedCount: number): number {
   return poppedCount >= 3 ? poppedCount * 10 : 0;
 }
 
-export function scoreForDroppedBubbles(droppedCount: number): number {
+export function scoreForDroppedStars(droppedCount: number): number {
   if (droppedCount <= 0) return 0;
   if (droppedCount >= 17) return MAX_DROP_SCORE;
   return 20 * 2 ** (droppedCount - 1);
 }
 
 /**
- * Arcade stage clear speed bonus:
+ * Constellation clear speed bonus:
  * - `0..5` seconds: `50,000` points
  * - `6..64` seconds: steps down from `49,160` (`6s`) to `440` (`64s`)
  * - `65+` seconds: `0` points
@@ -295,18 +295,17 @@ export function scoreForStageClearBonus(elapsedMs: number): number {
 }
 
 /**
- * Dynamic ceiling drop interval based on how many distinct bubble colours
- * remain on the playfield (fewer colours remaining = faster ceiling drops,
- * matching the Neo-Geo arcade rule).
+ * Dynamic sky-descent interval based on how many distinct star-core colors
+ * remain on the playfield (fewer colors remaining = faster descent).
  */
-export function shotsPerCeilingDrop(grid: BubbleGrid): number {
+export function shotsPerCeilingDrop(grid: StarGrid): number {
   const colorCount = activeColorsOnGrid(grid).length;
   return Math.max(4, Math.min(CEILING_DROP_SHOTS, 3 + colorCount));
 }
 
 /**
- * Decomposes an attack/garbage bubble count into Neo-Geo indicator orbs:
- * red orbs represent 5 bubbles, yellow orbs represent 1 bubble.
+ * Decomposes an incoming star-core count into side-rail flare markers:
+ * ruby flares represent 5 star-cores, gold flares represent 1 star-core.
  */
 export function decomposeGarbageOrbs(count: number): Array<'red' | 'yellow'> {
   const safe = Math.max(0, Math.min(20, Math.floor(count)));
@@ -322,9 +321,8 @@ export interface StageDefinition {
 }
 
 /**
- * 15 classic Taito / Neo-Geo arcade stage formations (#183, #210)
- * with distinct geometry, bank-shot channels, and hanging avalanche anchors.
- * Every cell in every template has a connected path to row 0 (ceiling).
+ * 15 constellation formations with distinct geometry, ricochet channels,
+ * and cascade anchors. Every cell in every template connects to row 0.
  */
 export const STAGE_CATALOG: readonly StageDefinition[] = [
   {
@@ -515,19 +513,19 @@ const TEMPLATE_COLOR_MAP: Record<string, number> = {
   C: 5,
 };
 
-export function createStageGrid(stage = 1, rng: () => number = Math.random): BubbleGrid {
+export function createStageGrid(stage = 1, rng: () => number = Math.random): StarGrid {
   if (stage <= 0) return createInitialGrid(rng);
   const templateIndex = (stage - 1) % STAGE_TEMPLATES.length;
   const template = STAGE_TEMPLATES[templateIndex];
   const grid = createEmptyGrid();
-  const offset = Math.floor(rng() * BUBBLE_COLORS.length);
+  const offset = Math.floor(rng() * STAR_COLORS.length);
   for (let row = 0; row < template.length && row < MAX_ROWS; row += 1) {
     const line = template[row];
     for (let col = 0; col < line.length && col < colsForRow(row); col += 1) {
       const token = line[col];
       if (token in TEMPLATE_COLOR_MAP) {
-        const colorIdx = (TEMPLATE_COLOR_MAP[token] + offset) % BUBBLE_COLORS.length;
-        grid[row][col] = BUBBLE_COLORS[colorIdx];
+        const colorIdx = (TEMPLATE_COLOR_MAP[token] + offset) % STAR_COLORS.length;
+        grid[row][col] = STAR_COLORS[colorIdx];
       }
     }
   }
@@ -535,19 +533,17 @@ export function createStageGrid(stage = 1, rng: () => number = Math.random): Bub
 }
 
 /**
- * Generates an initial arcade puzzle wave in the top `INITIAL_ROWS` rows.
- * Pairs are grouped along rows while avoiding giant monochrome blobs so the
- * opening board is varied and rewards both bank shots and avalanche drops.
+ * Generates an initial constellation wave in the top `INITIAL_ROWS` rows.
  */
-export function createInitialGrid(rng: () => number = Math.random): BubbleGrid {
+export function createInitialGrid(rng: () => number = Math.random): StarGrid {
   const grid = createEmptyGrid();
-  const palette = BUBBLE_COLORS.slice(0, 5);
+  const palette = STAR_COLORS.slice(0, 5);
   for (let row = 0; row < INITIAL_ROWS; row += 1) {
     const cols = colsForRow(row);
     let col = 0;
     while (col < cols) {
       const rawIndex = Math.min(palette.length - 1, Math.max(0, Math.floor(rng() * palette.length)));
-      const neighborColors = new Set<BubbleColor>();
+      const neighborColors = new Set<StarColor>();
       for (const n of hexNeighbors(row, col, INITIAL_ROWS)) {
         const c = grid[n.row]?.[n.col];
         if (c) neighborColors.add(c);
@@ -579,17 +575,17 @@ export function createInitialGrid(rng: () => number = Math.random): BubbleGrid {
 
 export function createPlayerBoard(
   rng: () => number = Math.random,
-  initialGrid?: BubbleGrid,
+  initialGrid?: StarGrid,
   stage = 1,
 ): PlayerBoardState {
   const grid = initialGrid ? cloneGrid(initialGrid) : createInitialGrid(rng);
-  const currentBubble = pickBubbleColor(grid, rng);
-  const nextBubble = pickBubbleColor(grid, rng);
+  const currentStar = pickStarColor(grid, rng);
+  const nextStar = pickStarColor(grid, rng);
   return {
     grid,
     aimAngle: 0,
-    currentBubble,
-    nextBubble,
+    currentStar,
+    nextStar,
     flying: null,
     score: 0,
     shotsFired: 0,
@@ -609,13 +605,13 @@ export function createPlayerBoard(
 
 /**
  * Creates a 2-player (or 1-player) match. In 2-player mode, both boards start
- * with the identical opening wave and opening bubbles for a fair match.
+ * with the identical opening constellation and star-cores for a fair match.
  */
 export function createMatch(
   mode: '2p' | '1p' = '2p',
   rng: () => number = Math.random,
   wins: [number, number] = [0, 0],
-): PuzzleBobbleMatch {
+): StarlightBurstMatch {
   const sharedGrid = createInitialGrid(rng);
   const first = createPlayerBoard(rng, sharedGrid, 1);
   if (mode === '1p') {
@@ -666,10 +662,10 @@ export function aimVelocityDegPerSec(holdDurationMs: number): number {
 }
 
 export function aimPlayer(
-  match: PuzzleBobbleMatch,
+  match: StarlightBurstMatch,
   playerIndex: 0 | 1,
   deltaDeg: number,
-): PuzzleBobbleMatch {
+): StarlightBurstMatch {
   if (match.status !== 'playing') return match;
   const player = match.players[playerIndex];
   if (!player || player.status !== 'playing') return match;
@@ -683,10 +679,10 @@ export function aimPlayer(
  * quantized to 0.5° increments within `[-75°, +75°]`.
  */
 export function setPlayerAimAngle(
-  match: PuzzleBobbleMatch,
+  match: StarlightBurstMatch,
   playerIndex: 0 | 1,
   targetAngle: number,
-): PuzzleBobbleMatch {
+): StarlightBurstMatch {
   if (match.status !== 'playing') return match;
   const player = match.players[playerIndex];
   if (!player || player.status !== 'playing') return match;
@@ -696,7 +692,7 @@ export function setPlayerAimAngle(
 }
 
 /**
- * Computes the launcher aim angle in degrees (`[-75°, +75°]`, quantized to `0.5°`)
+ * Computes the sling aim angle in degrees (`[-75°, +75°]`, quantized to `0.5°`)
  * from a pointer position `(svgX, svgY)` in the `224 × 296` board coordinate space (#212).
  */
 export function aimAngleFromBoardPoint(svgX: number, svgY: number): number {
@@ -707,8 +703,8 @@ export function aimAngleFromBoardPoint(svgX: number, svgY: number): number {
 }
 
 /**
- * Computes a multi-segment aiming sight line from the launcher, including up to
- * two wall bounces, so players can line up narrow bank shots accurately.
+ * Computes a multi-segment aiming sight line from the starlight sling, including up to
+ * two wall bounces, so players can line up narrow ricochet shots accurately.
  */
 export function aimGuidePoints(
   aimAngle: number,
@@ -717,7 +713,7 @@ export function aimGuidePoints(
   const rad = (clampAimAngle(aimAngle) * Math.PI) / 180;
   let dx = Math.sin(rad);
   const dy = -Math.cos(rad);
-  const topY = BUBBLE_RADIUS + ceilingDrop * ROW_STEP;
+  const topY = STAR_RADIUS + ceilingDrop * ROW_STEP;
   const points: Array<{ x: number; y: number }> = [{ x: LAUNCHER_X, y: LAUNCHER_Y }];
 
   if (Math.abs(dx) < 1e-4) {
@@ -730,12 +726,12 @@ export function aimGuidePoints(
   let remainingLength = 340;
 
   for (let bounce = 0; bounce < 2 && remainingLength > 0 && curY > topY; bounce += 1) {
-    const wallX = dx > 0 ? ARENA_WIDTH - BUBBLE_RADIUS : BUBBLE_RADIUS;
+    const wallX = dx > 0 ? ARENA_WIDTH - STAR_RADIUS : STAR_RADIUS;
     const tWall = (wallX - curX) / dx;
     const tTop = (topY - curY) / dy;
     const tStep = Math.min(tWall, tTop, remainingLength);
 
-    curX = Math.max(BUBBLE_RADIUS, Math.min(ARENA_WIDTH - BUBBLE_RADIUS, curX + dx * tStep));
+    curX = Math.max(STAR_RADIUS, Math.min(ARENA_WIDTH - STAR_RADIUS, curX + dx * tStep));
     curY = Math.max(topY, curY + dy * tStep);
     points.push({ x: Math.round(curX * 10) / 10, y: Math.round(curY * 10) / 10 });
 
@@ -750,22 +746,22 @@ export function aimGuidePoints(
   return points;
 }
 
-/** Fires the active bubble from the player's launcher if no bubble is already in flight. */
-export function firePlayerBubble(
-  match: PuzzleBobbleMatch,
+/** Launches the active star-core from the player's sling if none is already in flight. */
+export function firePlayerStar(
+  match: StarlightBurstMatch,
   playerIndex: 0 | 1,
-): PuzzleBobbleMatch {
+): StarlightBurstMatch {
   if (match.status !== 'playing') return match;
   const player = match.players[playerIndex];
   if (!player || player.status !== 'playing' || player.flying !== null) return match;
 
   const rad = (player.aimAngle * Math.PI) / 180;
-  const flying: FlyingBubble = {
+  const flying: FlyingStarCore = {
     x: LAUNCHER_X,
     y: LAUNCHER_Y,
-    vx: Math.sin(rad) * BUBBLE_SPEED,
-    vy: -Math.cos(rad) * BUBBLE_SPEED,
-    color: player.currentBubble,
+    vx: Math.sin(rad) * STAR_SPEED,
+    vy: -Math.cos(rad) * STAR_SPEED,
+    color: player.currentStar,
   };
   return replacePlayer(match, playerIndex, {
     ...player,
@@ -776,14 +772,14 @@ export function firePlayerBubble(
 
 /**
  * Advances each player's 10-second shot countdown timer and stage clock.
- * In the Neo-Geo arcade game, if a player waits more than 10 seconds without
- * shooting (after a 5-second `HURRY UP!` countdown), the bubble is auto-fired.
+ * If a player waits more than 10 seconds without launching (after a 5-second
+ * `HURRY UP!` countdown), the star-core is auto-launched.
  */
 export function tickShotTimers(
-  match: PuzzleBobbleMatch,
+  match: StarlightBurstMatch,
   deltaMs: number,
   rng: () => number = Math.random,
-): PuzzleBobbleMatch {
+): StarlightBurstMatch {
   if (match.status !== 'playing' || deltaMs <= 0) return match;
   let current = match;
 
@@ -805,7 +801,7 @@ export function tickShotTimers(
         stageElapsedMs,
         shotTimerMs: SHOT_TIME_LIMIT_MS,
       });
-      current = firePlayerBubble(withClock, playerIndex);
+      current = firePlayerStar(withClock, playerIndex);
     } else {
       current = replacePlayer(current, playerIndex, {
         ...player,
@@ -830,42 +826,42 @@ export type MascotAdviceKind = 'tip' | 'bank' | 'match' | 'danger' | 'combo' | '
 
 export interface MascotAdvice {
   kind: MascotAdviceKind;
-  /** Short 1-line callout for the on-board speech bubble above the mascot. */
+  /** Short callout above the companion. */
   bubbleText: string;
-  /** Full tactical coaching line for the side HUD and accessibility readout. */
+  /** Tactical coaching line for accessibility readout. */
   coachText: string;
 }
 
-export const BUBBLE_COLOR_LABELS: Readonly<Record<BubbleColor, string>> = {
-  ruby: 'RED',
-  amber: 'YELLOW',
-  emerald: 'GREEN',
-  azure: 'BLUE',
-  amethyst: 'PURPLE',
-  coral: 'ORANGE',
+export const STAR_COLOR_LABELS: Readonly<Record<StarColor, string>> = {
+  ruby: 'RUBY',
+  amber: 'GOLD',
+  emerald: 'MINT',
+  azure: 'AZURE',
+  amethyst: 'VIOLET',
+  coral: 'CORAL',
 };
 
 /**
  * Derives real-time tactical dialogue and aiming advice from the player's board
- * state, active/next bubble colors, multi-bounce sight line, and selected animal
- * mascot (`dragon`, `cat`, `dog`, `bunny`, #299, #313).
+ * state, active/next star-core colors, ricochet sight line, and selected animal
+ * companion (`fox`, `cat`, `dog`, `bunny`, #299, #313, #352).
  */
 export function deriveMascotAdvice(
   player: PlayerBoardState,
-  character: CharacterId = 'dragon',
+  character: CharacterId = 'fox',
 ): MascotAdvice {
-  const curLabel = BUBBLE_COLOR_LABELS[player.currentBubble] ?? player.currentBubble.toUpperCase();
-  const nextLabel = BUBBLE_COLOR_LABELS[player.nextBubble] ?? player.nextBubble.toUpperCase();
+  const curLabel = STAR_COLOR_LABELS[player.currentStar] ?? player.currentStar.toUpperCase();
+  const nextLabel = STAR_COLOR_LABELS[player.nextStar] ?? player.nextStar.toUpperCase();
 
   if (player.status === 'won') {
     const winBubble =
       character === 'cat'
-        ? 'PURR-FECT! STAGE CLEAR, MEOW!'
+        ? 'PURR-FECT! SKY CLEAR, MEOW!'
         : character === 'dog'
-          ? 'WOOF! PAW-SOME STAGE CLEAR!'
+          ? 'WOOF! PAW-SOME SKY CLEAR!'
           : character === 'bunny'
             ? 'YIPPEE! SOME-BUNNY CLEARED IT!'
-            : 'RAWR! STAGE CLEAR! DINO-MITE!';
+            : 'YIP! STARLIGHT CLEAR, FOXY!';
     return {
       kind: 'win',
       bubbleText: winBubble,
@@ -875,12 +871,12 @@ export function deriveMascotAdvice(
   if (player.status === 'ko') {
     const loseBubble =
       character === 'cat'
-        ? 'HISS! WATCH THE LINE, MEW!'
+        ? 'HISS! WATCH THE HORIZON, MEW!'
         : character === 'dog'
           ? 'WHINE… RUFF BREAK ON THE LINE!'
           : character === 'bunny'
-            ? 'EEK! HARE-RAISING LINE DROP!'
-            : 'GASP! SCALES ON THE LINE!';
+            ? 'EEK! HARE-RAISING STAR DROP!'
+            : 'GASP! TAIL OVER THE LINE!';
     return {
       kind: 'lose',
       bubbleText: loseBubble,
@@ -897,7 +893,7 @@ export function deriveMascotAdvice(
           ? `ARF! ${hurrySecs}S—FETCH ${curLabel}!`
           : character === 'bunny'
             ? `HOP TO IT! ${hurrySecs}S FOR ${curLabel}!`
-            : `ROAR! ${hurrySecs}S—FIRE ${curLabel}!`;
+            : `YIP! ${hurrySecs}S—SLING ${curLabel}!`;
     return {
       kind: 'danger',
       bubbleText: hurryBubble,
@@ -907,12 +903,12 @@ export function deriveMascotAdvice(
   if (player.ceilingWarning) {
     const warnBubble =
       character === 'cat'
-        ? 'HISS! CEILING DROPPING, MEW!'
+        ? 'HISS! SKY DESCENDING, MEW!'
         : character === 'dog'
-          ? 'GRRR-UFF! CEILING DROPPING!'
+          ? 'GRRR-UFF! SKY DESCENDING!'
           : character === 'bunny'
-            ? 'THUMP! CEILING DROPPING!'
-            : 'GRRR! CEILING DROPPING!';
+            ? 'THUMP! SKY DESCENDING!'
+            : 'YIP-YIP! SKY DESCENDING!';
     return {
       kind: 'danger',
       bubbleText: warnBubble,
@@ -928,12 +924,12 @@ export function deriveMascotAdvice(
       const n = player.lastEvent.dropped.length;
       const dropBubble =
         character === 'cat'
-          ? `CAT-ASTROPHE! ${n} DROPPED, MEOW!`
+          ? `CAT-ASTROPHE! ${n} FELL, MEOW!`
           : character === 'dog'
-            ? `PAW-SOME! ${n} DROPPED, WOOF!`
+            ? `PAW-SOME! ${n} FELL, WOOF!`
             : character === 'bunny'
-              ? `BUN-BELIEVABLE! ${n} DROPPED!`
-              : `DINO-MITE! ${n} DROPPED!`;
+              ? `BUN-BELIEVABLE! ${n} FELL!`
+              : `FOXY! ${n} STARS SHOWERED!`;
       return {
         kind: 'combo',
         bubbleText: dropBubble,
@@ -943,12 +939,12 @@ export function deriveMascotAdvice(
     const poppedCount = player.lastEvent.popped.length;
     const popBubble =
       character === 'cat'
-        ? `MEOW-VELOUS ${poppedCount}X COMBO!`
+        ? `MEOW-VELOUS ${poppedCount}X BURST!`
         : character === 'dog'
           ? `WOOF! ${poppedCount}X BARK-TACULAR!`
           : character === 'bunny'
-            ? `BOING! ${poppedCount}X CARROT COMBO!`
-            : `ROAR! ${poppedCount}X POP COMBO!`;
+            ? `BOING! ${poppedCount}X STAR BURST!`
+            : `SWISH! ${poppedCount}X STAR BURST!`;
     return {
       kind: 'combo',
       bubbleText: popBubble,
@@ -962,8 +958,7 @@ export function deriveMascotAdvice(
   for (let r = 0; r < player.grid.length; r += 1) {
     const cols = colsForRow(r);
     for (let c = 0; c < cols; c += 1) {
-      if (player.grid[r]?.[c] !== player.currentBubble) continue;
-      // Check if exposed (bottom of column or has at least one empty lower/side neighbor)
+      if (player.grid[r]?.[c] !== player.currentStar) continue;
       const neighbors = hexNeighbors(r, c, player.grid.length);
       const hasOpenBelowOrSide =
         r === player.grid.length - 1 ||
@@ -972,21 +967,21 @@ export function deriveMascotAdvice(
         );
       if (!hasOpenBelowOrSide) continue;
       const sameColorNeighbors = neighbors.filter(
-        (nb) => player.grid[nb.row]?.[nb.col] === player.currentBubble,
+        (nb) => player.grid[nb.row]?.[nb.col] === player.currentStar,
       ).length;
-      const center = bubbleCenter(r, c, player.ceilingDrop);
+      const center = starCenter(r, c, player.ceilingDrop);
       const score = (sameColorNeighbors >= 1 ? 100 : 0) + sameColorNeighbors * 25 + r * 12;
       exposedTargets.push({ row: r, col: c, x: center.x, y: center.y, score });
     }
   }
 
-  // Bank-shot trajectory (bounces off left or right wall)
+  // Ricochet trajectory (bounces off left or right wall)
   if (guide.length >= 3) {
     const endPt = guide[guide.length - 1]!;
     const hitsMatchingCluster = exposedTargets.some((t) => {
       const dx = t.x - endPt.x;
       const dy = t.y - endPt.y;
-      return dx * dx + dy * dy <= (BUBBLE_DIAMETER * 1.75) ** 2;
+      return dx * dx + dy * dy <= (STAR_DIAMETER * 1.75) ** 2;
     });
     if (hitsMatchingCluster) {
       const bankMatch =
@@ -996,7 +991,7 @@ export function deriveMascotAdvice(
             ? `ARF! FETCH ${curLabel} OFF WALL!`
             : character === 'bunny'
               ? `BOING! HOP-SHOT ON ${curLabel}!`
-              : `CHOMP! BANK SHOT ON ${curLabel}!`;
+              : `SWISH! RICOCHET ON ${curLabel}!`;
       return {
         kind: 'bank',
         bubbleText: bankMatch,
@@ -1005,12 +1000,12 @@ export function deriveMascotAdvice(
     }
     const bankAngle =
       character === 'cat'
-        ? 'MEW! BOUNCE OFF THE WALL!'
+        ? 'MEW! RICOCHET OFF THE WALL!'
         : character === 'dog'
           ? 'RUFF ANGLE! BANK IT, WOOF!'
           : character === 'bunny'
             ? 'BOING! BOUNCE OFF THE WALL!'
-            : 'RAWR! WALL BANK ANGLE!';
+            : 'YIP! WALL RICOCHET ANGLE!';
     return {
       kind: 'bank',
       bubbleText: bankAngle,
@@ -1031,12 +1026,12 @@ export function deriveMascotAdvice(
     if (Math.abs(diff) <= 6.5) {
       const lockedText =
         character === 'cat'
-          ? `PURR-FECT! FIRE AT ${curLabel}!`
+          ? `PURR-FECT! LAUNCH AT ${curLabel}!`
           : character === 'dog'
-            ? `WOOF! BARKING UP ${curLabel}—FIRE!`
+            ? `WOOF! BARKING UP ${curLabel}—LAUNCH!`
             : character === 'bunny'
               ? `SOME-BUNNY LOCKED ON ${curLabel}!`
-              : `DINO-MITE! LOCKED ON ${curLabel}! FIRE!`;
+              : `FOXY! LOCKED ON ${curLabel}! LAUNCH!`;
       return {
         kind: 'match',
         bubbleText: lockedText,
@@ -1053,22 +1048,22 @@ export function deriveMascotAdvice(
           ? `WOOF! FETCH ${curLabel} ${dir}!`
           : character === 'bunny'
             ? `HOP ${dir} FOR ${curLabel}, BUN!`
-            : `RAWR! CRANK ${dir} FOR ${curLabel}!`;
+            : `YIP! TILT ${dir} FOR ${curLabel}!`;
     return {
       kind: 'tip',
       bubbleText: tipBubble,
-      coachText: `Crank the gears ${dirLower} toward the ${zone} ${curLabel} cluster (next: ${nextLabel})!`,
+      coachText: `Tilt the starlight ring ${dirLower} toward the ${zone} ${curLabel} cluster (next: ${nextLabel})!`,
     };
   }
 
   const setupBubble =
     character === 'cat'
-      ? `MEW! TEE UP ${nextLabel} NEXT!`
+      ? `MEW! LINE UP ${nextLabel} NEXT!`
       : character === 'dog'
         ? `ARF! DIG UP ${nextLabel} NEXT!`
         : character === 'bunny'
           ? `BOING! LINE UP ${nextLabel} NEXT!`
-          : `RAWR! SET UP ${nextLabel} NEXT!`;
+          : `YIP! SET UP ${nextLabel} NEXT!`;
   return {
     kind: 'tip',
     bubbleText: setupBubble,
@@ -1077,12 +1072,12 @@ export function deriveMascotAdvice(
 }
 
 /**
- * Derives the character mascot's animation mood from the player's board state (#204):
+ * Derives the companion's animation mood from the player's board state (#204):
  * - `'celebrate'` when the player wins the round (`status === 'won'`)
  * - `'cry'` when the player loses the round (`status === 'ko'`)
  * - `'hurry'` during the 5-second `HURRY UP!` shot countdown
- * - `'cheer'` after popping 3+ bubbles or dropping an avalanche cluster
- * - `'normal'` during ordinary aiming and firing
+ * - `'cheer'` after bursting 3+ star-cores or dropping a cascade cluster
+ * - `'normal'` during ordinary aiming and launching
  */
 export function deriveMascotMood(player: PlayerBoardState): MascotMood {
   if (player.status === 'won') return 'celebrate';
@@ -1102,9 +1097,9 @@ export function deriveMascotMood(player: PlayerBoardState): MascotMood {
  * winning player's status to `'won'` and the losing player's status to `'ko'`.
  */
 export function resolveMatchOutcome(
-  match: PuzzleBobbleMatch,
+  match: StarlightBurstMatch,
   winner: 0 | 1 | null,
-): PuzzleBobbleMatch {
+): StarlightBurstMatch {
   const wins: [number, number] = [match.wins[0], match.wins[1]];
   if (winner === 0 || winner === 1) {
     wins[winner] += 1;
@@ -1146,7 +1141,7 @@ export function resolveMatchOutcome(
  * Connected same-color cluster starting from `(startRow, startCol)`.
  */
 export function findConnectedColorCluster(
-  grid: BubbleGrid,
+  grid: StarGrid,
   startRow: number,
   startCol: number,
 ): GridCoord[] {
@@ -1173,9 +1168,9 @@ export function findConnectedColorCluster(
 }
 
 /**
- * Finds all occupied cells that are no longer anchored to the ceiling (`row === 0`).
+ * Finds all occupied cells that are no longer anchored to the top sky (`row === 0`).
  */
-export function findFloatingBubbles(grid: BubbleGrid): GridCoord[] {
+export function findFloatingStars(grid: StarGrid): GridCoord[] {
   const anchored = new Set<string>();
   const queue: GridCoord[] = [];
 
@@ -1211,10 +1206,10 @@ export function findFloatingBubbles(grid: BubbleGrid): GridCoord[] {
 
 /**
  * Chooses the nearest valid empty hexagonal cell to `(x, y)`.
- * Prefers empty cells that touch the ceiling (`row === 0`) or an existing bubble.
+ * Prefers empty cells that touch `row === 0` or an existing star-core.
  */
 export function findSnapCell(
-  grid: BubbleGrid,
+  grid: StarGrid,
   x: number,
   y: number,
   ceilingDrop = 0,
@@ -1228,10 +1223,10 @@ export function findSnapCell(
       const coord = { row, col };
       allEmpty.push(coord);
       const touchesCeiling = row === 0;
-      const touchesBubble = hexNeighbors(row, col, grid.length).some(
+      const touchesStar = hexNeighbors(row, col, grid.length).some(
         (n) => grid[n.row]?.[n.col] !== null,
       );
-      if (touchesCeiling || touchesBubble) {
+      if (touchesCeiling || touchesStar) {
         attachedCandidates.push(coord);
       }
     }
@@ -1242,7 +1237,7 @@ export function findSnapCell(
   let bestDistSq = Number.POSITIVE_INFINITY;
 
   for (const candidate of pool) {
-    const center = bubbleCenter(candidate.row, candidate.col, ceilingDrop);
+    const center = starCenter(candidate.row, candidate.col, ceilingDrop);
     const dx = center.x - x;
     const dy = center.y - y;
     const distSq = dx * dx + dy * dy;
@@ -1254,11 +1249,11 @@ export function findSnapCell(
   return best;
 }
 
-export function isBoardEmpty(grid: BubbleGrid): boolean {
+export function isBoardEmpty(grid: StarGrid): boolean {
   return grid.every((row) => row.every((cell) => cell === null));
 }
 
-export function hasCrossedDangerLine(grid: BubbleGrid, ceilingDrop: number): boolean {
+export function hasCrossedDangerLine(grid: StarGrid, ceilingDrop: number): boolean {
   for (let row = 0; row < grid.length; row += 1) {
     if (grid[row].some((cell) => cell !== null)) {
       if (row + ceilingDrop >= DANGER_ROW) return true;
@@ -1268,27 +1263,25 @@ export function hasCrossedDangerLine(grid: BubbleGrid, ceilingDrop: number): boo
 }
 
 /**
- * Generates `count` incoming attack bubble colors from the full 6-colour palette.
+ * Generates `count` incoming attack star-core colors from the full 6-color palette.
  */
 export function generateGarbageColors(
   count: number,
   rng: () => number = Math.random,
-): BubbleColor[] {
+): StarColor[] {
   const safe = Math.max(0, Math.min(12, Math.floor(count)));
   return Array.from({ length: safe }, () => {
-    const idx = Math.min(BUBBLE_COLORS.length - 1, Math.max(0, Math.floor(rng() * BUBBLE_COLORS.length)));
-    return BUBBLE_COLORS[idx];
+    const idx = Math.min(STAR_COLORS.length - 1, Math.max(0, Math.floor(rng() * STAR_COLORS.length)));
+    return STAR_COLORS[idx];
   });
 }
 
 /**
- * Sends `count` (or explicit `colors`) attack bubbles into a player's incoming
- * queue so they are staged at the bottom of that player's board, ready to rise
- * up on their next non-clearing shot.
+ * Sends `colors` attack star-cores into a player's incoming queue staged at the bottom.
  */
 export function queueIncomingGarbage(
   player: PlayerBoardState,
-  colors: BubbleColor[],
+  colors: StarColor[],
 ): PlayerBoardState {
   if (colors.length === 0) return player;
   const nextQueue = [...player.incomingQueue, ...colors].slice(0, 12);
@@ -1300,17 +1293,15 @@ export function queueIncomingGarbage(
 }
 
 /**
- * Launches up to 6 queued attack bubbles from the bottom of the playfield onto
- * open frontier cells of `grid`, returning the updated grid, the exact
- * `ColoredCell[]` that rose into place (for the bottom-up rising animation),
- * and any remaining queued colors.
+ * Launches up to 6 queued attack star-cores from the bottom of the playfield onto
+ * open frontier cells of `grid`.
  */
 export function launchIncomingGarbage(
-  grid: BubbleGrid,
-  queue: BubbleColor[],
+  grid: StarGrid,
+  queue: StarColor[],
   ceilingDrop = 0,
   rng: () => number = Math.random,
-): { grid: BubbleGrid; placed: ColoredCell[]; remainingQueue: BubbleColor[] } {
+): { grid: StarGrid; placed: ColoredCell[]; remainingQueue: StarColor[] } {
   if (queue.length === 0) {
     return { grid, placed: [], remainingQueue: [] };
   }
@@ -1333,7 +1324,7 @@ export function launchIncomingGarbage(
     if (candidates.length === 0) break;
     const chosen = candidates[Math.min(candidates.length - 1, Math.floor(rng() * candidates.length))];
     next[chosen.row][chosen.col] = color;
-    const center = bubbleCenter(chosen.row, chosen.col, ceilingDrop);
+    const center = starCenter(chosen.row, chosen.col, ceilingDrop);
     placed.push({
       row: chosen.row,
       col: chosen.col,
@@ -1347,30 +1338,29 @@ export function launchIncomingGarbage(
 }
 
 /**
- * Compatibility helper for tests that apply a numeric count of incoming garbage.
+ * Compatibility helper for tests that apply a numeric count of incoming star-cores.
  */
 export function applyIncomingGarbage(
-  grid: BubbleGrid,
+  grid: StarGrid,
   count: number,
   rng: () => number = Math.random,
-): BubbleGrid {
+): StarGrid {
   const colors = generateGarbageColors(count, rng);
   return launchIncomingGarbage(grid, colors, 0, rng).grid;
 }
 
 /**
- * Places a bubble at `(row, col)` and resolves matches, floating drops,
- * exponential scoring, 2P attack transfer + rising garbage, dynamic ceiling
- * drops, and win/KO state.
+ * Places a star-core at `(row, col)` and resolves bursts, cascade drops,
+ * exponential scoring, 2P attack transfer + rising orbs, sky descent, and win/KO.
  */
-export function settleBubbleAt(
-  match: PuzzleBobbleMatch,
+export function settleStarAt(
+  match: StarlightBurstMatch,
   playerIndex: 0 | 1,
   row: number,
   col: number,
-  color: BubbleColor,
+  color: StarColor,
   rng: () => number = Math.random,
-): PuzzleBobbleMatch {
+): StarlightBurstMatch {
   const player = match.players[playerIndex];
   if (!player || player.status !== 'playing') return match;
 
@@ -1384,36 +1374,27 @@ export function settleBubbleAt(
   if (matched.length >= 3) {
     for (const cell of matched) {
       const cellColor = grid[cell.row][cell.col] ?? color;
-      const center = bubbleCenter(cell.row, cell.col, player.ceilingDrop);
+      const center = starCenter(cell.row, cell.col, player.ceilingDrop);
       popped.push({ ...cell, color: cellColor, x: center.x, y: center.y });
       grid[cell.row][cell.col] = null;
     }
-    const floating = findFloatingBubbles(grid);
+    const floating = findFloatingStars(grid);
     for (const cell of floating) {
       const cellColor = grid[cell.row][cell.col] ?? color;
-      const center = bubbleCenter(cell.row, cell.col, player.ceilingDrop);
+      const center = starCenter(cell.row, cell.col, player.ceilingDrop);
       dropped.push({ ...cell, color: cellColor, x: center.x, y: center.y });
       grid[cell.row][cell.col] = null;
     }
   }
 
-  const popScore = scoreForPop(popped.length);
-  const dropScore = scoreForDroppedBubbles(dropped.length);
+  const popScore = scoreForBurst(popped.length);
+  const dropScore = scoreForDroppedStars(dropped.length);
 
-  // 2P versus attack transfer:
-  // - Popping 4+ bubbles generates `popped.length - 3` bonus attack bubbles.
-  // - Dropping hanging bubbles generates `dropped.length` attack bubbles.
-  // - Any generated attack bubbles (plus any legacy `attackStack`) are immediately
-  //   sent to the opponent's `incomingQueue` so the opponent sees them staged at
-  //   the bottom of their playfield, ready to rise up!
   const extraFromQuad = Math.max(0, popped.length - 3);
   const totalAttack = player.attackStack + extraFromQuad + dropped.length;
   const sentGarbage = match.mode === '2p' && totalAttack > 0 ? Math.min(12, totalAttack) : 0;
   const attackStack = 0;
 
-  // If this player did NOT pop a cluster on this shot and has incoming attack
-  // bubbles waiting at the bottom of their playfield, those bubbles now shoot
-  // upward from the bottom onto open frontier cells!
   let risenGarbage: ColoredCell[] = [];
   const activeQueue =
     player.incomingQueue.length > 0
@@ -1456,14 +1437,14 @@ export function settleBubbleAt(
     playerStatus = 'ko';
   }
 
-  const currentBubble = player.nextBubble;
-  const nextBubble = pickBubbleColor(grid, rng);
+  const currentStar = player.nextStar;
+  const nextStar = pickStarColor(grid, rng);
 
   const updatedPlayer: PlayerBoardState = {
     ...player,
     grid,
-    currentBubble,
-    nextBubble,
+    currentStar,
+    nextStar,
     flying: null,
     score,
     shotsFired,
@@ -1492,7 +1473,6 @@ export function settleBubbleAt(
 
   let nextMatch = replacePlayer(match, playerIndex, updatedPlayer);
 
-  // Deliver newly generated attack bubbles to the opponent's bottom incoming tray in 2P mode.
   if (match.mode === '2p' && sentGarbage > 0) {
     const opponentIndex: 0 | 1 = playerIndex === 0 ? 1 : 0;
     const opponent = nextMatch.players[opponentIndex];
@@ -1548,20 +1528,20 @@ export function settleBubbleAt(
   return nextMatch;
 }
 
-function collidesWithCeilingOrBubble(
-  grid: BubbleGrid,
+function collidesWithCeilingOrStar(
+  grid: StarGrid,
   x: number,
   y: number,
   ceilingDrop: number,
 ): boolean {
-  const topY = BUBBLE_RADIUS + ceilingDrop * ROW_STEP;
+  const topY = STAR_RADIUS + ceilingDrop * ROW_STEP;
   if (y <= topY) return true;
 
-  const hitThresholdSq = (BUBBLE_DIAMETER * 0.88) ** 2;
+  const hitThresholdSq = (STAR_DIAMETER * 0.88) ** 2;
   for (let row = 0; row < grid.length; row += 1) {
     for (let col = 0; col < colsForRow(row); col += 1) {
       if (grid[row][col] === null) continue;
-      const center = bubbleCenter(row, col, ceilingDrop);
+      const center = starCenter(row, col, ceilingDrop);
       const dx = center.x - x;
       const dy = center.y - y;
       if (dx * dx + dy * dy <= hitThresholdSq) {
@@ -1573,13 +1553,13 @@ function collidesWithCeilingOrBubble(
 }
 
 /**
- * Advances flying projectiles for one frame (substepped so high-speed shots
- * never tunnel past a wall or bubble).
+ * Advances flying star-cores for one frame (substepped so high-speed shots
+ * never tunnel past a wall or star-core).
  */
 export function stepMatch(
-  match: PuzzleBobbleMatch,
+  match: StarlightBurstMatch,
   rng: () => number = Math.random,
-): PuzzleBobbleMatch {
+): StarlightBurstMatch {
   if (match.status !== 'playing') return match;
   let current = match;
 
@@ -1597,15 +1577,15 @@ export function stepMatch(
       x += vx / substeps;
       y += vy / substeps;
 
-      if (x < BUBBLE_RADIUS) {
-        x = BUBBLE_RADIUS + (BUBBLE_RADIUS - x);
+      if (x < STAR_RADIUS) {
+        x = STAR_RADIUS + (STAR_RADIUS - x);
         vx = Math.abs(vx);
-      } else if (x > ARENA_WIDTH - BUBBLE_RADIUS) {
-        x = ARENA_WIDTH - BUBBLE_RADIUS - (x - (ARENA_WIDTH - BUBBLE_RADIUS));
+      } else if (x > ARENA_WIDTH - STAR_RADIUS) {
+        x = ARENA_WIDTH - STAR_RADIUS - (x - (ARENA_WIDTH - STAR_RADIUS));
         vx = -Math.abs(vx);
       }
 
-      if (collidesWithCeilingOrBubble(player.grid, x, y, player.ceilingDrop)) {
+      if (collidesWithCeilingOrStar(player.grid, x, y, player.ceilingDrop)) {
         landed = true;
         break;
       }
@@ -1613,7 +1593,7 @@ export function stepMatch(
 
     if (landed) {
       const snap = findSnapCell(player.grid, x, y, player.ceilingDrop);
-      current = settleBubbleAt(current, playerIndex, snap.row, snap.col, color, rng);
+      current = settleStarAt(current, playerIndex, snap.row, snap.col, color, rng);
       if (current.status !== 'playing') break;
     } else {
       current = replacePlayer(current, playerIndex, {
@@ -1627,15 +1607,15 @@ export function stepMatch(
 }
 
 /**
- * Fires and steps a player's shot to completion (useful for deterministic tests
+ * Launches and steps a player's shot to completion (useful for deterministic tests
  * and instant resolution).
  */
 export function fireAndResolvePlayer(
-  match: PuzzleBobbleMatch,
+  match: StarlightBurstMatch,
   playerIndex: 0 | 1,
   rng: () => number = Math.random,
-): PuzzleBobbleMatch {
-  let state = firePlayerBubble(match, playerIndex);
+): StarlightBurstMatch {
+  let state = firePlayerStar(match, playerIndex);
   let safety = 0;
   while (state.status === 'playing' && state.players[playerIndex]?.flying !== null && safety < 120) {
     state = stepMatch(state, rng);
@@ -1645,10 +1625,10 @@ export function fireAndResolvePlayer(
 }
 
 function replacePlayer(
-  match: PuzzleBobbleMatch,
+  match: StarlightBurstMatch,
   playerIndex: 0 | 1,
   nextPlayer: PlayerBoardState,
-): PuzzleBobbleMatch {
+): StarlightBurstMatch {
   if (match.players.length === 1) {
     return { ...match, players: [nextPlayer] };
   }

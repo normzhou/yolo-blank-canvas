@@ -80,8 +80,8 @@ function inlineScriptHash(): Plugin {
 }
 
 const GAME_PACKAGES = [
-  { id: 'puzzle-bobble', dir: 'src/games/puzzle-bobble' },
-  { id: 'tetris', dir: 'src/games/tetris' },
+  { id: 'starlight-burst', dir: 'src/games/starlight-burst' },
+  { id: 'prism-stack', dir: 'src/games/prism-stack' },
 ] as const;
 
 /**
@@ -195,12 +195,12 @@ export default defineConfig({
       preserveEntrySignatures: 'exports-only',
       input: {
         index: path.resolve(process.cwd(), 'index.html'),
-        'puzzle-bobble': path.resolve(process.cwd(), 'src/games/puzzle-bobble/entry.tsx'),
-        tetris: path.resolve(process.cwd(), 'src/games/tetris/entry.tsx'),
+        'starlight-burst': path.resolve(process.cwd(), 'src/games/starlight-burst/entry.tsx'),
+        'prism-stack': path.resolve(process.cwd(), 'src/games/prism-stack/entry.tsx'),
       },
       output: {
         entryFileNames: (chunkInfo) => {
-          if (chunkInfo.name === 'puzzle-bobble' || chunkInfo.name === 'tetris') {
+          if (chunkInfo.name === 'starlight-burst' || chunkInfo.name === 'prism-stack') {
             return 'games/[name]-[hash].js';
           }
           return 'assets/[name]-[hash].js';
@@ -233,7 +233,7 @@ export default defineConfig({
             normalized.endsWith('/src/client/netplay.ts') ||
             normalized.endsWith('/src/client/hostedFeedback.ts') ||
             normalized.includes('/src/client/audio/') ||
-            normalized.endsWith('/src/shared/tetrisMusic.ts') ||
+            normalized.endsWith('/src/shared/arcadeMusic.ts') ||
             normalized.endsWith('/src/shared/countdownLanguages.ts')
           ) {
             return 'arcade-runtime';

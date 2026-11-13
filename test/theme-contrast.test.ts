@@ -124,7 +124,7 @@ const COLOUR_ROLES = new Set([
   '--closed', '--closed-weak', '--neutral-weak', '--summary-bg',
   '--board-gap', '--cell-empty',
   '--elevation-scroll', '--elevation-scroll-fade', '--surface-transparent',
-  ...'ijlostz'.split('').map((t) => `--tetromino-${t}`),
+  ...[1, 2, 3, 4, 5, 6, 7].map((n) => `--prism-${n}`),
 ]);
 
 const THEMES = ['slate', 'sand', 'dusk'] as const;
