@@ -327,15 +327,16 @@
         "v0.37.4": "85af2ebab501abc157ab290a8d480ef311ceafe0",
         "v0.38.0": "ff888647effa8decc04c6dd6a71c39ceb798510c",
         "v0.39.0": "fd19dfbb131e15fdf20c624d6cca76e17d82504c",
-        "v0.40.0": "f82809e0678a8ff896d20957a5859010325dc458"
+        "v0.40.0": "f82809e0678a8ff896d20957a5859010325dc458",
+        "v0.40.1": "50b9df58fc1689e9fb59e66acca8d2d2e929f3b4"
       },
       "published": {
-        "tag": "v0.40.1",
-        "commit": "50b9df58fc1689e9fb59e66acca8d2d2e929f3b4",
-        "source_commit": "c16f8be87025865263cccbf460898cb7c5a6f0d2",
-        "published_at": "2026-11-12T19:12:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-11-v0401.json",
-        "note": "Patch UX release (#349, PR #350). Ensures the two Puzzle Bobble player sides never share the same mascot character (@yolo-arcade/game-puzzle-bobble@1.2.1; @yolo-arcade/game-tetris@1.0.0 byte-unchanged) by excluding both the active side's character and the opposite side's character in pickRandomOtherMascot; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: a464d293-cef6-4836-afba-9dcad22d9bd2)."
+        "tag": "v0.41.0",
+        "commit": "7b80c509de0171fbc8809c5977b18b362b2f28b6",
+        "source_commit": "9908c425d6fa6d883f0e7b15c99ebf9d8dd89d00",
+        "published_at": "2026-11-12T21:14:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-12-v0410.json",
+        "note": "Minor IP, trademark, and trade-dress compliance release (#351 Phases 1-3, #352, PR #353). Refactors games into Starlight Burst (@yolo-arcade/game-starlight-burst@2.0.0: Fox Ren/Kiko + Cat/Dog/Bunny, Celestial Starlight Sling + Orbital Focus Ring, Astral Star-Cores) and Prism Stack (@yolo-arcade/game-prism-stack@2.0.0: 9x18 matrix, --prism-1..7 crystal tiles, column guide rails + floor ticks, inline Upcoming pill, solid 'H' Hazard Lock Bars, symmetric 50/50 Online 2P) with test/ip-compliance.test.ts; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 260253d1-5be5-43ac-be80-c1934176b68f)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -423,7 +424,8 @@
         ".yolo/reports/releases-observed-2026-11-10-v0380.json",
         ".yolo/reports/releases-observed-2026-11-11-v0390.json",
         ".yolo/reports/releases-observed-2026-11-11-v0400.json",
-        ".yolo/reports/releases-observed-2026-11-11-v0401.json"
+        ".yolo/reports/releases-observed-2026-11-11-v0401.json",
+        ".yolo/reports/releases-observed-2026-11-12-v0410.json"
       ]
     }
   },

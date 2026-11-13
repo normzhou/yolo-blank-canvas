@@ -1,0 +1,79 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-12",
+  "observed_at": "2026-11-12",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#352",
+  "releases": [
+    {
+      "tag": "v0.41.0",
+      "commit": "7b80c509de0171fbc8809c5977b18b362b2f28b6"
+    }
+  ],
+  "release": {
+    "tag": "v0.41.0",
+    "commit": "7b80c509de0171fbc8809c5977b18b362b2f28b6",
+    "source_commit": "9908c425d6fa6d883f0e7b15c99ebf9d8dd89d00",
+    "assets_commit": "4b23c60b96077f0a28b8ac9cce5d0f2ed8d5107f",
+    "native_version": "0.41.0",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-12T21:14:00Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.41.0",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/353"
+  },
+  "build_identity": {
+    "server_build_id": "9908c425d6fa6d883f0e7b15c99ebf9d8dd89d00",
+    "client_build_id": "9908c425d6fa6d883f0e7b15c99ebf9d8dd89d00",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "29 files, 187 tests passed (including test/ip-compliance.test.ts)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 46 passed (55.8s, including symmetric Online 2P split-screen and 36-cell solid Hazard Lock Bars)",
+      "e2e_live": "npm run e2e:live — 5 passed (12.9s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.41.0 --no-open --port 4439 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (19.5s)",
+      "ci": "GitHub Actions CI/Test and type check green"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "260253d1-5be5-43ac-be80-c1934176b68f",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.41.0",
+      "observed_build_id": "9908c425d6fa6d883f0e7b15c99ebf9d8dd89d00",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.0.0",
+          "entry": "/games/starlight-burst-Do8Y9b_1.js",
+          "hash": "e8a4abd8c3c48551391d943d7c74e3d416d20fbd575b1fbd45a388344dbf5403",
+          "sizeBytes": 86069
+        },
+        "prism-stack": {
+          "version": "2.0.0",
+          "entry": "/games/prism-stack-CD4fqDvv.js",
+          "hash": "626e03dff01c9c35fc089e57a3eb1cadcbc22a457effaa073e66a8398be98b01",
+          "sizeBytes": 36793
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Refactors games into Starlight Burst (?app=starlight-burst, @yolo-arcade/game-starlight-burst@2.0.0) and Prism Stack (?app=prism-stack, @yolo-arcade/game-prism-stack@2.0.0) for IP, trademark, and trade-dress compliance (#351 Phases 1-3, #352).",
+    "Replaces Dragon (Bub/Bibi) with Fox (Ren/Kiko), replaces gears/crank/aiming arrow/1UP-2UP bezels with the Celestial Starlight Sling and Orbital Focus Ring + Star-Wand IK, and replaces glossy soap bubbles with Astral Star-Cores.",
+    "Changes Prism Stack to a 9x18 playfield with non-Guideline --prism-1..7 crystal tiles, vertical column guide rails + floor landing ticks, inline header Upcoming pill, solid full-width 'H' Hazard Lock Bars shattered by adjacent line clears, and symmetric 50/50 Online 2P split-screen across both games.",
+    "Adds deterministic test/ip-compliance.test.ts scanning src/, server/, public/, hosting/, and src-tauri/."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub.",
+    "Phase 4 of #351 (bespoke musical composition replacement) remains deferred per maintainer direction."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #352"
+}
