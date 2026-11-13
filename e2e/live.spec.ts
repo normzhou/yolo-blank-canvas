@@ -118,13 +118,13 @@ test('the Closed filter paginates against the real issue volume', async ({ page,
 });
 
 test('mid-session auth loss surfaces the explicit retry state (no writes)', async ({ page, errors, snap }) => {
-  await page.goto(base);
   await page.route('**/api/issues**', async (route) => {
     await route.fulfill({
       status: 401,
       json: { error: { kind: 'auth_required', message: 'GitHub CLI is not authenticated.', loginCommand: 'gh auth login --hostname github.com --web --skip-ssh-key' } },
     });
   });
+  await page.goto(base);
   await page.getByRole('button', { name: 'Open requests', exact: true }).click();
   await expect(page.getByText('GitHub CLI is not authenticated.')).toBeVisible();
   await expect(page.getByText('gh auth login --hostname github.com --web --skip-ssh-key')).toBeVisible();

@@ -681,8 +681,9 @@ test('3D Star-Orb lighting and clean Prism Stack solo Upcoming alignment without
     await page.goto(`${stub.base}?app=starlight-burst`);
     const p1Svg = page.getByRole('img', { name: 'Player 1 starlight board' });
     await expect(p1Svg).toBeVisible();
-    await expect(p1Svg.locator('radialGradient#sb-p1-orb-3d')).toHaveCount(1);
-    await expect(p1Svg.locator('circle[fill="url(#sb-p1-orb-3d)"]').first()).toBeVisible();
+    await expect(p1Svg.locator('radialGradient#sb-p1-sphere-shine')).toHaveCount(1);
+    await expect(p1Svg.locator('radialGradient#sb-p1-sphere-shade')).toHaveCount(1);
+    await expect(p1Svg.locator('circle[fill="url(#sb-p1-sphere-shine)"]').first()).toBeVisible();
 
     await page.goto(`${stub.base}?app=prism-stack`);
     const board = page.getByTestId('prism-p1-board');
