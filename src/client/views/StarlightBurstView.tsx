@@ -88,11 +88,11 @@ import {
 
 const STAR_TOKEN: Record<StarColor, string> = {
   ruby: 'var(--prism-1)',
-  amber: 'var(--prism-4)',
+  amber: 'var(--prism-6)',
   emerald: 'var(--prism-3)',
   azure: 'var(--prism-5)',
   amethyst: 'var(--prism-2)',
-  coral: 'var(--prism-6)',
+  coral: 'var(--prism-7)',
 };
 
 function eventSummary(player: PlayerBoardState): string | null {
@@ -118,39 +118,85 @@ function eventSummary(player: PlayerBoardState): string | null {
   return parts.join(' · ');
 }
 
-/**
- * Shared SVG <defs> for lush 3D glass/crystal spherical lighting on Star-Orbs (#354).
- */
 function StarOrbDefs({ idPrefix }: { idPrefix: string }) {
   return (
     <>
-      <radialGradient id={`${idPrefix}-orb-3d`} cx="30%" cy="24%" r="74%">
-        <stop offset="0%" stopColor="var(--on-accent)" stopOpacity="0.68" />
-        <stop offset="24%" stopColor="var(--on-accent)" stopOpacity="0.14" />
-        <stop offset="64%" stopColor="var(--stage-well)" stopOpacity="0.06" />
-        <stop offset="100%" stopColor="var(--stage-well)" stopOpacity="0.56" />
+      <radialGradient id={`${idPrefix}-sphere-shine`} cx="32%" cy="28%" r="55%">
+        <stop offset="0%" stopColor="var(--on-accent)" stopOpacity="0.55" />
+        <stop offset="55%" stopColor="var(--on-accent)" stopOpacity="0" />
       </radialGradient>
-      <radialGradient id={`${idPrefix}-orb-core`} cx="56%" cy="58%" r="44%">
-        <stop offset="0%" stopColor="var(--on-accent)" stopOpacity="0.28" />
-        <stop offset="70%" stopColor="var(--on-accent)" stopOpacity="0.03" />
-        <stop offset="100%" stopColor="var(--on-accent)" stopOpacity="0" />
+      <radialGradient id={`${idPrefix}-sphere-shade`} cx="45%" cy="42%" r="60%">
+        <stop offset="60%" stopColor="var(--text)" stopOpacity="0" />
+        <stop offset="100%" stopColor="var(--text)" stopOpacity="0.28" />
       </radialGradient>
     </>
   );
 }
 
 /**
- * Lush 3D glass/crystal Starlight Orb (#354):
- * - Deep saturated jewel sphere with 3D radial dome shading (`-orb-3d`)
- * - Subtle inner starlight luminescence + dainty jewel-gleam sparkle
- * - Lower-right subsurface bounce-light crescent arc
- * - Curved upper-left glass specular gleam + pinpoint sparkle
+ * Subtle inner geometric emblem inside each orb (also aids colour-blind play).
  */
+function StarEmblem({ cx, cy, color, r }: { cx: number; cy: number; color: StarColor; r: number }) {
+  const s = r * 0.36;
+  switch (color) {
+    case 'ruby':
+      return (
+        <polygon
+          points={`${cx},${cy - s} ${cx + s * 0.38},${cy - s * 0.38} ${cx + s},${cy} ${cx + s * 0.38},${cy + s * 0.38} ${cx},${cy + s} ${cx - s * 0.38},${cy + s * 0.38} ${cx - s},${cy} ${cx - s * 0.38},${cy - s * 0.38}`}
+          fill="var(--on-accent)"
+          opacity="0.45"
+        />
+      );
+    case 'amber':
+      return (
+        <polygon
+          points={`${cx},${cy - s * 0.9} ${cx + s * 0.85},${cy + s * 0.7} ${cx - s * 0.85},${cy + s * 0.7}`}
+          fill="var(--on-accent)"
+          opacity="0.45"
+        />
+      );
+    case 'emerald':
+      return (
+        <g fill="var(--on-accent)" opacity="0.45">
+          <rect x={cx - s * 0.28} y={cy - s * 0.85} width={s * 0.56} height={s * 1.7} rx={1.5} />
+          <rect x={cx - s * 0.85} y={cy - s * 0.28} width={s * 1.7} height={s * 0.56} rx={1.5} />
+        </g>
+      );
+    case 'azure':
+      return (
+        <circle
+          cx={cx}
+          cy={cy}
+          r={s * 0.65}
+          fill="none"
+          stroke="var(--on-accent)"
+          strokeWidth={1.6}
+          opacity="0.5"
+        />
+      );
+    case 'amethyst':
+      return (
+        <polygon
+          points={`${cx},${cy - s} ${cx + s * 0.8},${cy} ${cx},${cy + s} ${cx - s * 0.8},${cy}`}
+          fill="var(--on-accent)"
+          opacity="0.45"
+        />
+      );
+    case 'coral':
+      return (
+        <g fill="var(--on-accent)" opacity="0.5">
+          <circle cx={cx - s * 0.42} cy={cy} r={s * 0.32} />
+          <circle cx={cx + s * 0.42} cy={cy} r={s * 0.32} />
+        </g>
+      );
+  }
+}
+
 function StarCoreSvg({
   cx,
   cy,
   color,
-  radius = STAR_RADIUS - 0.7,
+  radius = STAR_RADIUS - 0.8,
   defsPrefix = 'sb-p1',
   className,
   style,
@@ -163,64 +209,48 @@ function StarCoreSvg({
   className?: string;
   style?: CSSProperties;
 }) {
-  const glintX = cx - radius * 0.32;
-  const glintY = cy - radius * 0.35;
-  const starX = cx + radius * 0.22;
-  const starY = cy + radius * 0.2;
-  const s = radius * 0.19;
-  const bounceR = Math.max(2, radius * 0.77);
-  const bx1 = cx - bounceR * 0.36;
-  const by1 = cy + bounceR * 0.91;
-  const bx2 = cx + bounceR * 0.91;
-  const by2 = cy + bounceR * 0.36;
-
   return (
     <g className={className} style={style}>
-      {/* Base jewel sphere + crisp ink rim */}
+      {/* Base colour sphere */}
       <circle
         cx={cx}
         cy={cy}
         r={radius}
         fill={STAR_TOKEN[color]}
-        stroke="var(--stage-well)"
-        strokeWidth="1.25"
+        stroke="var(--text)"
+        strokeWidth="1.2"
       />
-      {/* 3D spherical lighting & shadow dome */}
-      <circle cx={cx} cy={cy} r={Math.max(1, radius - 0.5)} fill={`url(#${defsPrefix}-orb-3d)`} />
-      {/* Soft inner subsurface luminescence */}
-      <circle cx={cx} cy={cy} r={radius * 0.65} fill={`url(#${defsPrefix}-orb-core)`} />
-      {/* Lower-right subsurface bounce-light rim arc */}
-      <path
-        d={`M ${bx1.toFixed(1)} ${by1.toFixed(1)} A ${bounceR.toFixed(1)} ${bounceR.toFixed(1)} 0 0 0 ${bx2.toFixed(1)} ${by2.toFixed(1)}`}
+      {/* 3D radial depth shading */}
+      <circle cx={cx} cy={cy} r={radius} fill={`url(#${defsPrefix}-sphere-shade)`} />
+      {/* Inner rim light */}
+      <circle
+        cx={cx}
+        cy={cy}
+        r={radius - 1.8}
         fill="none"
         stroke="var(--on-accent)"
-        strokeWidth={Math.max(0.85, radius * 0.095)}
-        strokeLinecap="round"
-        opacity="0.42"
+        strokeWidth="0.9"
+        opacity="0.35"
       />
-      {/* Dainty starlight crystal glisten nestled inside the lower-right glow */}
-      <polygon
-        points={`${starX},${starY - s} ${starX + s * 0.26},${starY - s * 0.26} ${starX + s},${starY} ${starX + s * 0.26},${starY + s * 0.26} ${starX},${starY + s} ${starX - s * 0.26},${starY + s * 0.26} ${starX - s},${starY} ${starX - s * 0.26},${starY - s * 0.26}`}
-        fill="var(--on-accent)"
-        opacity="0.34"
-      />
-      {/* Curved upper-left 3D glass specular highlight */}
+      {/* Inner emblem */}
+      <StarEmblem cx={cx} cy={cy + 0.5} color={color} r={radius} />
+      {/* 3D radial specular highlight + crisp arcade shine */}
+      <circle cx={cx} cy={cy} r={radius} fill={`url(#${defsPrefix}-sphere-shine)`} />
       <ellipse
-        cx={glintX}
-        cy={glintY}
-        rx={radius * 0.34}
-        ry={radius * 0.18}
-        transform={`rotate(-32 ${glintX.toFixed(1)} ${glintY.toFixed(1)})`}
+        cx={cx - radius * 0.32}
+        cy={cy - radius * 0.34}
+        rx={radius * 0.28}
+        ry={radius * 0.17}
+        transform={`rotate(-28 ${cx - radius * 0.32} ${cy - radius * 0.34})`}
         fill="var(--on-accent)"
         opacity="0.88"
       />
-      {/* Pinpoint secondary starlight glint */}
       <circle
-        cx={cx - radius * 0.08}
-        cy={cy - radius * 0.55}
-        r={Math.max(0.75, radius * 0.088)}
+        cx={cx - radius * 0.1}
+        cy={cy - radius * 0.52}
+        r={radius * 0.09}
         fill="var(--on-accent)"
-        opacity="0.76"
+        opacity="0.75"
       />
     </g>
   );

@@ -226,37 +226,29 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
         viewBox="0 0 220 180"
         aria-hidden="true"
       >
-        <defs>
-          <radialGradient id="deck-orb-3d" cx="30%" cy="24%" r="74%">
-            <stop offset="0%" stopColor="var(--on-accent)" stopOpacity="0.64" />
-            <stop offset="28%" stopColor="var(--on-accent)" stopOpacity="0.16" />
-            <stop offset="68%" stopColor="var(--stage-well)" stopOpacity="0.08" />
-            <stop offset="100%" stopColor="var(--stage-well)" stopOpacity="0.5" />
-          </radialGradient>
-        </defs>
         <rect
           x="26"
           y="12"
           width="168"
           height="156"
-          rx="7"
-          fill="var(--stage-well)"
-          stroke="var(--stage-bezel)"
-          strokeWidth="1.6"
+          rx="6"
+          fill="var(--surface)"
+          stroke="var(--border)"
+          strokeWidth="1.5"
         />
-        {/* Hexagonal 3D glass/crystal Star-Orbs */}
-        <g>
+        {/* Hexagonal wave with glossy highlights (exact v0.40.1 ball look) */}
+        <g stroke="var(--text)" strokeWidth="1.1">
           {[
             { cx: 52, cy: 30, fill: 'var(--prism-1)' },
             { cx: 72, cy: 30, fill: 'var(--prism-1)' },
-            { cx: 92, cy: 30, fill: 'var(--prism-4)' },
-            { cx: 112, cy: 30, fill: 'var(--prism-4)' },
+            { cx: 92, cy: 30, fill: 'var(--prism-6)' },
+            { cx: 112, cy: 30, fill: 'var(--prism-6)' },
             { cx: 132, cy: 30, fill: 'var(--prism-3)' },
             { cx: 152, cy: 30, fill: 'var(--prism-5)' },
             { cx: 172, cy: 30, fill: 'var(--prism-5)' },
             { cx: 62, cy: 48, fill: 'var(--prism-1)' },
             { cx: 82, cy: 48, fill: 'var(--prism-2)' },
-            { cx: 102, cy: 48, fill: 'var(--prism-4)' },
+            { cx: 102, cy: 48, fill: 'var(--prism-6)' },
             { cx: 122, cy: 48, fill: 'var(--prism-3)' },
             { cx: 142, cy: 48, fill: 'var(--prism-3)' },
             { cx: 162, cy: 48, fill: 'var(--prism-7)' },
@@ -264,21 +256,16 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
             { cx: 132, cy: 66, fill: 'var(--prism-7)' },
           ].map((b, idx) => (
             <g key={idx}>
-              <circle cx={b.cx} cy={b.cy} r="9.8" fill={b.fill} stroke="var(--stage-well)" strokeWidth="1.1" />
-              <circle cx={b.cx} cy={b.cy} r="9.3" fill="url(#deck-orb-3d)" />
+              <circle cx={b.cx} cy={b.cy} r="10" fill={b.fill} />
               <ellipse
                 cx={b.cx - 3.2}
                 cy={b.cy - 3.4}
-                rx="3.1"
+                rx="2.8"
                 ry="1.7"
-                transform={`rotate(-32 ${b.cx - 3.2} ${b.cy - 3.4})`}
+                transform={`rotate(-28 ${b.cx - 3.2} ${b.cy - 3.4})`}
                 fill="var(--on-accent)"
-                opacity="0.86"
-              />
-              <polygon
-                points={`${b.cx + 1.4},${b.cy - 1.2} ${b.cx + 2.1},${b.cy + 0.7} ${b.cx + 4},${b.cy + 1.4} ${b.cx + 2.1},${b.cy + 2.1} ${b.cx + 1.4},${b.cy + 4} ${b.cx + 0.7},${b.cy + 2.1} ${b.cx - 1.2},${b.cy + 1.4} ${b.cx + 0.7},${b.cy + 0.7}`}
-                fill="var(--on-accent)"
-                opacity="0.45"
+                stroke="none"
+                opacity="0.85"
               />
             </g>
           ))}
@@ -291,12 +278,16 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
           strokeWidth="1.8"
           strokeDasharray="4 3"
         />
-        {/* Animated flying 3D star-orb & starburst ring */}
-        <g className="deck-sb-flying-star">
-          <circle cx="132" cy="84" r="9.5" fill="var(--prism-7)" stroke="var(--stage-well)" strokeWidth="1.1" />
-          <circle cx="132" cy="84" r="9.0" fill="url(#deck-orb-3d)" />
-          <ellipse cx="129" cy="80.8" rx="3" ry="1.6" transform="rotate(-32 129 80.8)" fill="var(--on-accent)" opacity="0.86" />
-        </g>
+        {/* Animated flying orb & starburst ring */}
+        <circle
+          className="deck-sb-flying-star"
+          cx="132"
+          cy="84"
+          r="9.5"
+          fill="var(--prism-7)"
+          stroke="var(--text)"
+          strokeWidth="1.1"
+        />
         <circle
           className="deck-sb-pop-ring"
           cx="132"
@@ -306,15 +297,14 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
           stroke="var(--prism-4)"
           strokeWidth="2"
         />
-        {/* Sculpted 3D Celestial Sling & golden star-compass pointer */}
+        {/* Sculpted Celestial Sling & golden star-compass pointer */}
         <circle cx="110" cy="146" r="14.5" fill="var(--stage-surface)" stroke="var(--prism-5)" strokeWidth="1.3" />
         <g className="deck-sb-aim-sweep">
           <polygon points="110,120 106.5,131 110,129.5" fill="var(--prism-4)" stroke="var(--stage-well)" strokeWidth="0.9" />
           <polygon points="110,120 113.5,131 110,129.5" fill="var(--prism-6)" stroke="var(--stage-well)" strokeWidth="0.9" />
         </g>
-        <circle cx="110" cy="146" r="9.5" fill="var(--prism-7)" stroke="var(--stage-well)" strokeWidth="1.1" />
-        <circle cx="110" cy="146" r="9.0" fill="url(#deck-orb-3d)" />
-        <ellipse cx="107" cy="142.8" rx="3" ry="1.6" transform="rotate(-32 107 142.8)" fill="var(--on-accent)" opacity="0.86" />
+        <circle cx="110" cy="146" r="9.5" fill="var(--prism-7)" stroke="var(--text)" strokeWidth="1.1" />
+        <ellipse cx="107" cy="142.8" rx="2.6" ry="1.5" transform="rotate(-28 107 142.8)" fill="var(--on-accent)" opacity="0.85" />
         {/* Cute Boy Fox (Ren) & Girl Cat (Mochi) companions flanking the Starlight Sling */}
         <g transform="translate(72, 149)" stroke="var(--stage-well)" strokeWidth="0.95">
           <path d="M -6 4 Q -13 2 -11 -5 Q -8 -7 -6 -2" fill="var(--prism-6)" />
