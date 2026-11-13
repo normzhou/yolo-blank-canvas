@@ -6,7 +6,7 @@ export const starlightBurstDescriptor: GamePackageDescriptor = {
   packageName: pkg.name,
   version: pkg.version,
   title: 'Starlight Burst',
-  summary: '2-player celestial star-core battle (ASDF vs Arrows). Local to this view.',
+  summary: 'Aim, bank off stardust walls, and pop 3D star-orbs solo or head-to-head.',
   modeBadge: '2P Online, Versus & Solo',
   controlsLabel: 'Starlight Burst controls',
   controls: [

@@ -669,3 +669,38 @@ test('2P Online networking (#236, #352): 2 independent browser sessions join via
     await closeStub(stub);
   }
 });
+
+test('3D Star-Orb lighting and clean Prism Stack solo Upcoming alignment without matrix-size jargon (#354)', async ({
+  page,
+}) => {
+  const stub = await startStubApp();
+  try {
+    await page.goto(stub.base);
+    await expect(page.getByText(/9\s*[×x]\s*18/i)).toHaveCount(0);
+
+    await page.goto(`${stub.base}?app=starlight-burst`);
+    const p1Svg = page.getByRole('img', { name: 'Player 1 starlight board' });
+    await expect(p1Svg).toBeVisible();
+    await expect(p1Svg.locator('radialGradient#sb-p1-orb-3d')).toHaveCount(1);
+    await expect(p1Svg.locator('circle[fill="url(#sb-p1-orb-3d)"]').first()).toBeVisible();
+
+    await page.goto(`${stub.base}?app=prism-stack`);
+    const board = page.getByTestId('prism-p1-board');
+    const nextPill = page.getByTestId('prism-p1-next');
+    await expect(board).toBeVisible();
+    await expect(nextPill).toBeVisible();
+    await expect(page.getByText(/9\s*[×x]\s*18/i)).toHaveCount(0);
+
+    const boardBox = await board.boundingBox();
+    const pillBox = await nextPill.boundingBox();
+    expect(boardBox).not.toBeNull();
+    expect(pillBox).not.toBeNull();
+    // Solo Upcoming pill is centered cleanly over the board rather than floating over the sidebar.
+    const boardCenterX = boardBox!.x + boardBox!.width / 2;
+    const pillCenterX = pillBox!.x + pillBox!.width / 2;
+    expect(Math.abs(pillCenterX - boardCenterX)).toBeLessThanOrEqual(4);
+  } finally {
+    await closeStub(stub);
+  }
+});
+

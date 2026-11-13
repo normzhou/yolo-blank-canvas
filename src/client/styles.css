@@ -67,9 +67,17 @@
   --prism-5: #5b8def;
   --prism-6: #f2a03d;
   --prism-7: #4dd0e1;
-  --guide-rail-bg: rgba(91, 141, 239, 0.09);
-  --hazard-fill: #78350f;
-  --hazard-stripe: #f59e0b;
+  --guide-rail-bg: rgba(148, 197, 255, 0.06);
+  --block-bevel-top: rgba(255, 255, 255, 0.56);
+  --block-bevel-left: rgba(255, 255, 255, 0.34);
+  --block-bevel-bottom: rgba(7, 10, 16, 0.46);
+  --block-bevel-right: rgba(7, 10, 16, 0.32);
+  --block-sheen-top: rgba(255, 255, 255, 0.34);
+  --block-sheen-mid: rgba(255, 255, 255, 0.04);
+  --block-shadow-bottom: rgba(7, 10, 16, 0.24);
+  --lock-cell-top: #334155;
+  --lock-cell-bottom: #1e293b;
+  --lock-cell-rim: #475569;
 
   /* Dark celestial game stage, playfield well, and touch tokens (#215, #352). */
   --stage-bg: #0b0e17;
@@ -1755,13 +1763,27 @@ a:visited { color: var(--accent-weak-text); }
   justify-content: center;
   min-height: 0;
 }
+.stack-board-column {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 .stack-lane-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 2px 4px;
-  min-height: 30px;
+  gap: 8px;
+  padding: 2px 0;
+  min-height: 36px;
+  width: 0;
+  min-width: 100%;
+}
+.stack-lane-bar .sb-player-id {
+  min-width: 0;
+  overflow: hidden;
+}
+.stack-lane-bar.is-solo {
+  justify-content: center;
 }
 .stack-stage-row {
   display: flex;
@@ -1770,7 +1792,7 @@ a:visited { color: var(--accent-weak-text); }
   justify-content: center;
 }
 .stack-stage[data-mode='2p'] {
-  --stack-cell-size: clamp(13px, min(calc((100dvh - 176px) / 18), calc((50vw - 152px) / 9)), 34px);
+  --stack-cell-size: clamp(13px, min(calc((100dvh - 184px) / 18), calc((50vw - 152px) / 9)), 34px);
 }
 .stack-board {
   position: relative;
@@ -1778,10 +1800,10 @@ a:visited { color: var(--accent-weak-text); }
   grid-template-columns: repeat(9, var(--stack-cell-size));
   grid-auto-rows: var(--stack-cell-size);
   gap: 2px;
-  background: var(--stage-well);
-  border: 2px solid var(--stage-bezel);
+  background: var(--board-gap);
+  border: 2px solid var(--border);
   border-radius: var(--radius);
-  padding: 4px;
+  padding: 5px;
   box-shadow: var(--elevation-panel-centred);
   touch-action: none;
   user-select: none;
@@ -1793,10 +1815,11 @@ a:visited { color: var(--accent-weak-text); }
 }
 .stack-cell {
   background: var(--cell-empty);
-  border-radius: var(--radius-xs);
+  border-radius: 5px;
   position: relative;
+  overflow: hidden;
 }
-/* Column landing guide rails & bottom floor target markers (replaces ghost piece, #352) */
+/* Column landing guide rails & glowing floor target markers (#352, #354) */
 .stack-cell.is-guide-col {
   background: var(--guide-rail-bg);
 }
@@ -1806,42 +1829,51 @@ a:visited { color: var(--accent-weak-text); }
   left: 2px;
   right: 2px;
   bottom: 1px;
-  height: 3px;
+  height: 3.5px;
   border-radius: var(--radius-pill);
   background: var(--prism-4);
+  box-shadow: 0 0 6px var(--prism-4);
   pointer-events: none;
 }
 
-/* Chamfered jewel/capsule prism tiles with non-Guideline palette (#352) */
+/* Lush 3D beveled jewel prism blocks (#354) */
 .stack-cell.prism-cell-1,
-.stack-next-mini-cell.prism-cell-1 { background: var(--prism-1); }
+.stack-next-mini-cell.prism-cell-1 { background-color: var(--prism-1); }
 .stack-cell.prism-cell-2,
-.stack-next-mini-cell.prism-cell-2 { background: var(--prism-2); }
+.stack-next-mini-cell.prism-cell-2 { background-color: var(--prism-2); }
 .stack-cell.prism-cell-3,
-.stack-next-mini-cell.prism-cell-3 { background: var(--prism-3); }
+.stack-next-mini-cell.prism-cell-3 { background-color: var(--prism-3); }
 .stack-cell.prism-cell-4,
-.stack-next-mini-cell.prism-cell-4 { background: var(--prism-4); }
+.stack-next-mini-cell.prism-cell-4 { background-color: var(--prism-4); }
 .stack-cell.prism-cell-5,
-.stack-next-mini-cell.prism-cell-5 { background: var(--prism-5); }
+.stack-next-mini-cell.prism-cell-5 { background-color: var(--prism-5); }
 .stack-cell.prism-cell-6,
-.stack-next-mini-cell.prism-cell-6 { background: var(--prism-6); }
+.stack-next-mini-cell.prism-cell-6 { background-color: var(--prism-6); }
 .stack-cell.prism-cell-7,
-.stack-next-mini-cell.prism-cell-7 { background: var(--prism-7); }
+.stack-next-mini-cell.prism-cell-7 { background-color: var(--prism-7); }
 
-/* Full-width solid Hazard Lock Bar cells (shattered by adjacent matches, #352) */
-.stack-cell.prism-cell-hazard {
-  background: repeating-linear-gradient(
-    -45deg,
-    var(--hazard-fill),
-    var(--hazard-fill) 5px,
-    var(--hazard-stripe) 5px,
-    var(--hazard-stripe) 8px
+.stack-cell.prism-cell-1,
+.stack-cell.prism-cell-2,
+.stack-cell.prism-cell-3,
+.stack-cell.prism-cell-4,
+.stack-cell.prism-cell-5,
+.stack-cell.prism-cell-6,
+.stack-cell.prism-cell-7,
+.stack-next-mini-cell.is-filled {
+  background-image: linear-gradient(
+    145deg,
+    var(--block-sheen-top) 0%,
+    var(--block-sheen-mid) 46%,
+    var(--block-shadow-bottom) 100%
   );
-  border-radius: 2px;
-  border-top: 1px solid var(--warning-border);
-  border-bottom: 1px solid var(--warning-border);
+  box-shadow:
+    inset 0 2px 0 var(--block-bevel-top),
+    inset 2px 0 0 var(--block-bevel-left),
+    inset 0 -3px 0 var(--block-bevel-bottom),
+    inset -2px 0 0 var(--block-bevel-right);
 }
 
+/* Inner crystal facet dome + upper-left specular glint */
 .stack-cell.prism-cell-1::before,
 .stack-cell.prism-cell-2::before,
 .stack-cell.prism-cell-3::before,
@@ -1851,20 +1883,59 @@ a:visited { color: var(--accent-weak-text); }
 .stack-cell.prism-cell-7::before {
   content: '';
   position: absolute;
-  inset: 2px 3px auto 3px;
-  height: 32%;
+  inset: 3px 4px auto 4px;
+  height: 30%;
   border-radius: var(--radius-pill);
   background: var(--on-accent);
-  opacity: 0.36;
+  opacity: 0.44;
+  pointer-events: none;
+}
+.stack-cell.prism-cell-1::after,
+.stack-cell.prism-cell-2::after,
+.stack-cell.prism-cell-3::after,
+.stack-cell.prism-cell-4::after,
+.stack-cell.prism-cell-5::after,
+.stack-cell.prism-cell-6::after,
+.stack-cell.prism-cell-7::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 3px;
+  border: 1px solid var(--block-bevel-left);
+  opacity: 0.5;
   pointer-events: none;
 }
 
-/* Inline header upcoming-prism pill (replaces right-rail Next box, #352) */
+/* Sleek 3D armored steel-obsidian Hazard Lock Bar cells with glowing amber-ruby core (#354) */
+.stack-cell.prism-cell-hazard {
+  background: linear-gradient(180deg, var(--lock-cell-top) 0%, var(--lock-cell-bottom) 100%);
+  border-radius: 4px;
+  box-shadow:
+    inset 0 2px 0 var(--lock-cell-rim),
+    inset 0 -2.5px 0 var(--stage-well);
+}
+.stack-cell.prism-cell-hazard::before {
+  content: '';
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  top: 50%;
+  height: 3px;
+  transform: translateY(-50%);
+  border-radius: var(--radius-pill);
+  background: var(--prism-6);
+  box-shadow: 0 0 5px var(--prism-4);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* Enlarged, centered 3D upcoming-piece header pill (#354) */
 .stack-next-pill {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 3px 9px;
+  gap: 10px;
+  padding: 5px 12px;
+  min-height: 34px;
   border-radius: var(--radius-pill);
   background: var(--surface);
 }
@@ -1878,12 +1949,14 @@ a:visited { color: var(--accent-weak-text); }
 }
 .stack-next-mini {
   display: grid;
-  grid-template-columns: repeat(4, 6px);
-  grid-auto-rows: 6px;
-  gap: 1px;
+  gap: 2px;
+  align-items: center;
+  justify-content: center;
 }
 .stack-next-mini-cell {
-  border-radius: 2px;
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
   background: transparent;
 }
 
@@ -2900,22 +2973,29 @@ button.passkey-handoff-copy-btn:hover {
 .stack-hazard-meter {
   display: grid;
   grid-template-rows: repeat(18, var(--stack-cell-size));
-  width: 10px;
+  width: 6px;
   gap: 2px;
-  padding: 4px 2px;
-  border-radius: var(--radius-xs);
-  border: 1px solid var(--border);
-  background: var(--stage-well);
-  align-self: center;
+  padding: 4px 1px;
+  border-radius: var(--radius-pill);
+  border: none;
+  background: var(--surface);
+  align-self: flex-end;
+  margin-bottom: 1px;
+  opacity: 0.36;
+  transition: opacity 180ms ease;
+}
+.stack-hazard-meter.has-hazard {
+  opacity: 1;
 }
 .stack-hazard-segment {
   width: 100%;
   height: 100%;
-  border-radius: 1px;
+  border-radius: var(--radius-pill);
   background: var(--cell-empty);
 }
 .stack-hazard-segment.is-active {
   background: var(--prism-1);
+  box-shadow: 0 0 6px var(--prism-6);
 }
 .netplay-radar-badge {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
