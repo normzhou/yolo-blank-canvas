@@ -88,8 +88,9 @@ interface HudTelemetry {
   driftCharge: number;
   boostTimer: number;
   boostKind: string;
-  leftOn: boolean;
-  rightOn: boolean;
+  turnLeftOn: boolean;
+  turnRightOn: boolean;
+  brakeOn: boolean;
   bestLapMs: number | null;
   finishMs: number | null;
 }
@@ -194,8 +195,9 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     driftCharge: 0,
     boostTimer: 0,
     boostKind: 'none',
-    leftOn: false,
-    rightOn: false,
+    turnLeftOn: false,
+    turnRightOn: false,
+    brakeOn: false,
     bestLapMs: null,
     finishMs: null,
   });
@@ -206,8 +208,9 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     driftCharge: 0,
     boostTimer: 0,
     boostKind: 'none',
-    leftOn: false,
-    rightOn: false,
+    turnLeftOn: false,
+    turnRightOn: false,
+    brakeOn: false,
     bestLapMs: null,
     finishMs: null,
   });
@@ -233,9 +236,9 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
   const cam2Ref = useRef<ChaseCamera>(createChaseCamera());
   const synthRef = useRef<MicroKartSynth | null>(null);
   const pressedKeysRef = useRef<Set<string>>(new Set());
-  const activePointersRef = useRef<Map<number, { player: 0 | 1; side: 'left' | 'right' }>>(
-    new Map(),
-  );
+  const activePointersRef = useRef<
+    Map<number, { player: 0 | 1; zone: 'left' | 'right' | 'brake' }>
+  >(new Map());
   const countdownRef = useRef(countdown);
   countdownRef.current = countdown;
   const activeRoomIdRef = useRef<string | null>(null);
@@ -255,8 +258,9 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       driftCharge: k0.driftCharge,
       boostTimer: k0.boostTimer,
       boostKind: k0.boostKind,
-      leftOn: k0.leftThruster,
-      rightOn: k0.rightThruster,
+      turnLeftOn: k0.driftDir === -1 || (!k0.leftThruster && k0.rightThruster),
+      turnRightOn: k0.driftDir === 1 || (k0.leftThruster && !k0.rightThruster),
+      brakeOn: k0.braking,
       bestLapMs: k0.bestLapMs,
       finishMs: k0.finishMs,
     });
@@ -268,8 +272,9 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         driftCharge: k1.driftCharge,
         boostTimer: k1.boostTimer,
         boostKind: k1.boostKind,
-        leftOn: k1.leftThruster,
-        rightOn: k1.rightThruster,
+        turnLeftOn: k1.driftDir === -1 || (!k1.leftThruster && k1.rightThruster),
+        turnRightOn: k1.driftDir === 1 || (k1.leftThruster && !k1.rightThruster),
+        brakeOn: k1.braking,
         bestLapMs: k1.bestLapMs,
         finishMs: k1.finishMs,
       });
@@ -533,17 +538,22 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       if (
         code === 'KeyA' ||
         code === 'KeyD' ||
+        code === 'KeyS' ||
         code === 'ArrowLeft' ||
         code === 'ArrowRight' ||
+        code === 'ArrowDown' ||
         e.key === 'a' ||
         e.key === 'A' ||
         e.key === 'd' ||
-        e.key === 'D'
+        e.key === 'D' ||
+        e.key === 's' ||
+        e.key === 'S'
       ) {
         e.preventDefault();
         pressedKeysRef.current.add(code);
         if (e.key === 'a' || e.key === 'A') pressedKeysRef.current.add('KeyA');
         if (e.key === 'd' || e.key === 'D') pressedKeysRef.current.add('KeyD');
+        if (e.key === 's' || e.key === 'S') pressedKeysRef.current.add('KeyS');
       }
     };
     const onKeyUp = (e: KeyboardEvent) => {
@@ -551,6 +561,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       pressedKeysRef.current.delete(code);
       if (e.key === 'a' || e.key === 'A') pressedKeysRef.current.delete('KeyA');
       if (e.key === 'd' || e.key === 'D') pressedKeysRef.current.delete('KeyD');
+      if (e.key === 's' || e.key === 'S') pressedKeysRef.current.delete('KeyS');
     };
     const onBlur = () => {
       pressedKeysRef.current.clear();
@@ -598,26 +609,48 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     const keys = pressedKeysRef.current;
     let p1Left = keys.has('KeyA') || (!isSplit2P && keys.has('ArrowLeft'));
     let p1Right = keys.has('KeyD') || (!isSplit2P && keys.has('ArrowRight'));
+    let p1Brake = keys.has('KeyS') || (!isSplit2P && keys.has('ArrowDown'));
+
     let p2Left = isSplit2P && keys.has('ArrowLeft');
     let p2Right = isSplit2P && keys.has('ArrowRight');
+    let p2Brake = isSplit2P && keys.has('ArrowDown');
+
+    let p1TouchL = false;
+    let p1TouchR = false;
+    let p2TouchL = false;
+    let p2TouchR = false;
 
     for (const ptr of activePointersRef.current.values()) {
       if (ptr.player === 0) {
-        if (ptr.side === 'left') p1Left = true;
-        else p1Right = true;
+        if (ptr.zone === 'brake') p1Brake = true;
+        else if (ptr.zone === 'left') p1TouchL = true;
+        else p1TouchR = true;
       } else {
-        if (ptr.side === 'left') p2Left = true;
-        else p2Right = true;
+        if (ptr.zone === 'brake') p2Brake = true;
+        else if (ptr.zone === 'left') p2TouchL = true;
+        else p2TouchR = true;
       }
+    }
+
+    // Holding both left & right touch halves simultaneously also triggers Brake on mobile!
+    if (p1TouchL && p1TouchR) p1Brake = true;
+    else {
+      if (p1TouchL) p1Left = true;
+      if (p1TouchR) p1Right = true;
+    }
+    if (p2TouchL && p2TouchR) p2Brake = true;
+    else {
+      if (p2TouchL) p2Left = true;
+      if (p2TouchR) p2Right = true;
     }
 
     const myOnlineSlot = isOnline2P && activeKartRoom ? activeKartRoom.mySlot : 0;
     if (isOnline2P) {
-      return { [myOnlineSlot]: { left: p1Left, right: p1Right } };
+      return { [myOnlineSlot]: { left: p1Left, right: p1Right, brake: p1Brake } };
     }
     return {
-      0: { left: p1Left, right: p1Right },
-      1: { left: p2Left, right: p2Right },
+      0: { left: p1Left, right: p1Right, brake: p1Brake },
+      1: { left: p2Left, right: p2Right, brake: p2Brake },
     };
   }, [activeKartRoom, isOnline2P, isSplit2P]);
 
@@ -748,14 +781,34 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     syncHudFromRace,
   ]);
 
+  const classifyTouchZone = (
+    relX: number,
+    relY: number,
+    w: number,
+    h: number,
+    split: boolean,
+  ): { player: 0 | 1; zone: 'left' | 'right' | 'brake' } => {
+    const player: 0 | 1 = split && relY > h / 2 ? 1 : 0;
+    const vpH = split ? h / 2 : h;
+    const localY = split && player === 1 ? relY - h / 2 : relY;
+    const nx = relX / Math.max(1, w);
+    const ny = localY / Math.max(1, vpH);
+    const zone: 'left' | 'right' | 'brake' =
+      nx >= 0.37 && nx <= 0.63 && ny >= 0.65 ? 'brake' : nx < 0.5 ? 'left' : 'right';
+    return { player, zone };
+  };
+
   const handleStagePointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (paused || overlayOpen || raceStatus === 'finished') return;
     const rect = e.currentTarget.getBoundingClientRect();
-    const relX = e.clientX - rect.left;
-    const relY = e.clientY - rect.top;
-    const player: 0 | 1 = isSplit2P && relY > rect.height / 2 ? 1 : 0;
-    const side: 'left' | 'right' = relX < rect.width / 2 ? 'left' : 'right';
-    activePointersRef.current.set(e.pointerId, { player, side });
+    const hit = classifyTouchZone(
+      e.clientX - rect.left,
+      e.clientY - rect.top,
+      rect.width,
+      rect.height,
+      isSplit2P,
+    );
+    activePointersRef.current.set(e.pointerId, hit);
     try {
       e.currentTarget.setPointerCapture(e.pointerId);
     } catch {
@@ -767,8 +820,14 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     const existing = activePointersRef.current.get(e.pointerId);
     if (!existing) return;
     const rect = e.currentTarget.getBoundingClientRect();
-    const relX = e.clientX - rect.left;
-    existing.side = relX < rect.width / 2 ? 'left' : 'right';
+    const hit = classifyTouchZone(
+      e.clientX - rect.left,
+      e.clientY - rect.top,
+      rect.width,
+      rect.height,
+      isSplit2P,
+    );
+    existing.zone = hit.zone;
   };
 
   const handleStagePointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -787,10 +846,10 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       };
     }
     if (hud.driftCharge >= ULTRA_TURBO_CHARGE_SEC) {
-      return { text: 'BOTH THRUSTERS → ULTRA!', tone: 'is-ultra' };
+      return { text: 'RELEASE TURN → ULTRA!', tone: 'is-ultra' };
     }
     if (hud.driftCharge >= MINI_TURBO_CHARGE_SEC) {
-      return { text: 'BOTH THRUSTERS → TURBO!', tone: 'is-cyan' };
+      return { text: 'RELEASE TURN → TURBO!', tone: 'is-cyan' };
     }
     return null;
   };
@@ -870,16 +929,22 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
 
         <div className="kart-thruster-row">
           <span
-            className={p1Hud.leftOn ? 'kart-thruster-pill is-firing' : 'kart-thruster-pill'}
-            data-testid="kart-p1-left-thruster"
+            className={p1Hud.turnLeftOn ? 'kart-thruster-pill is-firing' : 'kart-thruster-pill'}
+            data-testid="kart-p1-turn-left"
           >
-            ◀ L THRUSTER · {isSplit2P ? 'A' : 'A / ←'}
+            ◀ TURN L · {isSplit2P ? 'A' : 'A / ←'}
           </span>
           <span
-            className={p1Hud.rightOn ? 'kart-thruster-pill is-firing' : 'kart-thruster-pill'}
-            data-testid="kart-p1-right-thruster"
+            className={p1Hud.brakeOn ? 'kart-thruster-pill is-braking' : 'kart-thruster-pill'}
+            data-testid="kart-p1-brake"
           >
-            {isSplit2P ? 'D' : 'D / →'} · R THRUSTER ▶
+            ▼ BRAKE · {isSplit2P ? 'S' : 'S / ↓'}
+          </span>
+          <span
+            className={p1Hud.turnRightOn ? 'kart-thruster-pill is-firing' : 'kart-thruster-pill'}
+            data-testid="kart-p1-turn-right"
+          >
+            {isSplit2P ? 'D' : 'D / →'} · TURN R ▶
           </span>
         </div>
       </div>
@@ -911,11 +976,14 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
           </div>
           {p2Banner ? <div className={`kart-boost-callout ${p2Banner.tone}`}>{p2Banner.text}</div> : null}
           <div className="kart-thruster-row">
-            <span className={p2Hud.leftOn ? 'kart-thruster-pill is-firing' : 'kart-thruster-pill'}>
-              ◀ P2 L THRUSTER · ←
+            <span className={p2Hud.turnLeftOn ? 'kart-thruster-pill is-firing' : 'kart-thruster-pill'}>
+              ◀ P2 TURN L · ←
             </span>
-            <span className={p2Hud.rightOn ? 'kart-thruster-pill is-firing' : 'kart-thruster-pill'}>
-              → · P2 R THRUSTER ▶
+            <span className={p2Hud.brakeOn ? 'kart-thruster-pill is-braking' : 'kart-thruster-pill'}>
+              ▼ BRAKE · ↓
+            </span>
+            <span className={p2Hud.turnRightOn ? 'kart-thruster-pill is-firing' : 'kart-thruster-pill'}>
+              → · P2 TURN R ▶
             </span>
           </div>
         </div>

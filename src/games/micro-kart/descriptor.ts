@@ -6,12 +6,12 @@ export const microKartDescriptor: GamePackageDescriptor = {
   packageName: pkg.name,
   version: pkg.version,
   title: 'Micro Kart',
-  summary: 'Carve 3D circuits with dual-thruster drifts and mini-turbo boosts.',
+  summary: 'Auto-accelerate through 3D circuits — carve corners to charge mini-turbos.',
   modeBadge: '1P, Split-Screen & Online',
   controlsLabel: 'Micro Kart controls',
   controls: [
-    { keys: ['A', '+', 'D'], label: 'Both · Full Thrust' },
-    { keys: ['A', '/', 'D'], label: 'One · Drift & Charge' },
-    { keys: ['←', '→'], label: '1P Alt / 2P Split' },
+    { keys: ['A', 'D'], label: 'Turn & Drift (Auto-Gas)' },
+    { keys: ['S'], label: 'Brake' },
+    { keys: ['←', '↓', '→'], label: '1P Alt / 2P Split' },
   ],
 };

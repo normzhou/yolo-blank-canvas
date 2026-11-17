@@ -564,10 +564,22 @@ function emitKartMesh(proj: CameraProjector, kart: KartState, timeMs: number): v
   emitBox(proj, xf, -1.05, 0.54, -0.82, -0.64, 0.61, 0.55, livery.accent, -0.46);
   emitBox(proj, xf, 0.64, 0.54, -0.82, 1.05, 0.61, 0.55, livery.accent, -0.46);
 
-  // Rear Engine Deck + Rear Diffuser Bumper + Glowing Crimson LED Tail-Strip
+  // Rear Engine Deck + Rear Diffuser Bumper + Glowing Crimson LED Tail/Brake Strip
   emitBox(proj, xf, -0.78, 0.24, -1.58, 0.78, 0.76, -0.35, livery.primary, -0.48);
   emitBox(proj, xf, -0.88, 0.16, -1.66, 0.88, 0.34, -1.54, darkMetal, -0.5);
-  emitBox(proj, xf, -0.68, 0.66, -1.61, 0.68, 0.74, -1.56, [255, 72, 88], -0.52, true);
+  emitBox(
+    proj,
+    xf,
+    kart.braking ? -0.76 : -0.66,
+    kart.braking ? 0.62 : 0.66,
+    -1.62,
+    kart.braking ? 0.76 : 0.66,
+    kart.braking ? 0.78 : 0.73,
+    -1.56,
+    kart.braking ? [255, 36, 56] : [220, 64, 80],
+    -0.52,
+    true,
+  );
 
   // 4. Cockpit Rim + Pilot Racing Suit Shoulders + Rounded Low-Poly Helmet
   emitBox(proj, xf, -0.52, 0.56, -0.35, 0.52, 0.82, 0.48, darkMetal, -0.5);
@@ -593,24 +605,25 @@ function emitKartMesh(proj: CameraProjector, kart: KartState, timeMs: number): v
   //   Even clearer for players: light the held side nozzle brightly AND keep a smaller pilot glow on the opposite!
   const flicker = 0.86 + Math.sin(timeMs * 0.045 + kart.slot) * 0.18;
   const isBoosting = kart.boostTimer > 0;
+  const throttleScale = kart.braking ? 0 : Math.min(1, 0.22 + kart.speed / 38);
   const leftPower = isBoosting
     ? 1.55
-    : kart.leftThruster && kart.rightThruster
-      ? 1.05
-      : kart.leftThruster
-        ? 1.15
-        : kart.rightThruster
-          ? 0.25
-          : 0;
+    : kart.braking
+      ? 0
+      : kart.leftThruster && kart.rightThruster
+        ? 1.0 * throttleScale
+        : kart.leftThruster
+          ? 1.15 * throttleScale
+          : 0.28 * throttleScale;
   const rightPower = isBoosting
     ? 1.55
-    : kart.leftThruster && kart.rightThruster
-      ? 1.05
-      : kart.rightThruster
-        ? 1.15
-        : kart.leftThruster
-          ? 0.25
-          : 0;
+    : kart.braking
+      ? 0
+      : kart.leftThruster && kart.rightThruster
+        ? 1.0 * throttleScale
+        : kart.rightThruster
+          ? 1.15 * throttleScale
+          : 0.28 * throttleScale;
 
   const flameColor: [number, number, number] = isBoosting
     ? kart.boostKind === 'ultra'

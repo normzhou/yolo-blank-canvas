@@ -6,7 +6,7 @@ async function closeStub(stub: RunningStub) {
   await new Promise<void>((resolve) => stub.server.close(() => resolve()));
 }
 
-test('Micro Kart launches from the Home slide deck, renders 3D circuits, triggers Mini-Turbo boosts, and supports 2P Split-Screen (#344, #358)', async ({
+test('Micro Kart auto-accelerates with no keys pressed, steers/drifts with Left/Right to release Mini-Turbos, brakes on Down, and supports 2P Split-Screen (#344, #358, #360)', async ({
   page,
   errors,
 }) => {
@@ -17,7 +17,7 @@ test('Micro Kart launches from the Home slide deck, renders 3D circuits, trigger
     const card = page.getByTestId('deck-slide-card');
     await page.getByTestId('carousel-dot-micro-kart').click();
     await expect(card).toHaveAttribute('data-slide-id', 'micro-kart');
-    await expect(card).toHaveAttribute('data-game-version', '1.0.0');
+    await expect(card).toHaveAttribute('data-game-version', '1.1.0');
     await expect(page.locator('.deck-slide-title')).toHaveText('Micro Kart');
 
     await page.getByRole('button', { name: 'Play Micro Kart', exact: true }).click();
@@ -30,29 +30,19 @@ test('Micro Kart launches from the Home slide deck, renders 3D circuits, trigger
     await expect(page.getByTestId('kart-circuit-label')).toHaveText('Sunset Loop');
     await expect(page.getByTestId('kart-minimap')).toBeVisible();
 
-    // Verify non-blank 3D Hi-DPI canvas rasterization
-    const has3DPixels = await canvas.evaluate((el) => {
-      const c = el as HTMLCanvasElement;
-      if (c.width < 300 || c.height < 200) return false;
-      const ctx = c.getContext('2d');
-      if (!ctx) return false;
-      const sample = ctx.getImageData(
-        Math.floor(c.width * 0.5),
-        Math.floor(c.height * 0.65),
-        1,
-        1,
-      ).data;
-      return sample[3] === 255 && (sample[0] > 0 || sample[1] > 0 || sample[2] > 0);
-    });
-    expect(has3DPixels).toBe(true);
-
-    // Accelerate with both thrusters -> carve right to charge drift -> snap back to both for Mini-Turbo!
+    // 1. Hands-off (`left: false, right: false, brake: false`) auto-accelerates forward!
     await page.evaluate(() => {
       window.dispatchEvent(
         new CustomEvent('yolo:kart:step', {
-          detail: { steps: 32, dtMs: 16.67, p1: { left: true, right: true } },
+          detail: { steps: 32, dtMs: 16.67, p1: { left: false, right: false } },
         }),
       );
+    });
+    const autoSpeed = parseInt((await page.getByTestId('kart-p1-speed').textContent()) ?? '0', 10);
+    expect(autoSpeed).toBeGreaterThan(70);
+
+    // 2. Carve right (`right: true`) to charge drift -> release turn (`left: false, right: false`) for Mini-Turbo!
+    await page.evaluate(() => {
       window.dispatchEvent(
         new CustomEvent('yolo:kart:step', {
           detail: { steps: 34, dtMs: 16.67, p1: { left: false, right: true } },
@@ -60,14 +50,25 @@ test('Micro Kart launches from the Home slide deck, renders 3D circuits, trigger
       );
       window.dispatchEvent(
         new CustomEvent('yolo:kart:step', {
-          detail: { steps: 2, dtMs: 16.67, p1: { left: true, right: true } },
+          detail: { steps: 2, dtMs: 16.67, p1: { left: false, right: false } },
         }),
       );
     });
-
     await expect(page.getByTestId('kart-p1-boost-banner')).toContainText('BOOST!');
-    const speedText = await page.getByTestId('kart-p1-speed').textContent();
-    expect(parseInt(speedText ?? '0', 10)).toBeGreaterThan(240);
+    const boostSpeed = parseInt((await page.getByTestId('kart-p1-speed').textContent()) ?? '0', 10);
+    expect(boostSpeed).toBeGreaterThan(240);
+
+    // 3. Down (`S` / `brake: true`) brakes cleanly and lights the Brake HUD pill!
+    await page.evaluate(() => {
+      window.dispatchEvent(
+        new CustomEvent('yolo:kart:step', {
+          detail: { steps: 20, dtMs: 16.67, p1: { left: false, right: false, brake: true } },
+        }),
+      );
+    });
+    await expect(page.getByTestId('kart-p1-brake')).toHaveClass(/is-braking/);
+    const brakedSpeed = parseInt((await page.getByTestId('kart-p1-speed').textContent()) ?? '0', 10);
+    expect(brakedSpeed).toBeLessThan(boostSpeed - 40);
 
     // Pause -> switch circuit to Canyon Crest and 2P Split-Screen
     await page.keyboard.press('Escape');

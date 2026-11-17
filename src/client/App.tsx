@@ -182,7 +182,7 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
           />
         </svg>
         <div className="deck-preview-hud">
-          <span>Dual-Thruster Drift</span>
+          <span>Auto-Throttle Drift</span>
           <span>3 Circuits · 60fps 3D</span>
         </div>
       </div>

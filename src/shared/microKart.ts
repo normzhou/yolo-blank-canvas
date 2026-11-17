@@ -17,6 +17,7 @@ export interface Vec3 {
 export interface ThrusterInput {
   readonly left: boolean;
   readonly right: boolean;
+  readonly brake?: boolean;
 }
 
 export interface SceneryProp {
@@ -161,7 +162,8 @@ export interface KartState {
   maxUnwrappedS: number;
   leftThruster: boolean;
   rightThruster: boolean;
-  /** Seconds spent continuously carving on a single thruster (`0 .. 2.0`). */
+  braking: boolean;
+  /** Seconds spent continuously carving a turn (`0 .. 2.0`). */
   driftCharge: number;
   driftDir: -1 | 0 | 1;
   boostTimer: number;
@@ -210,6 +212,7 @@ export interface KartNetSnapshot {
   unwrappedS: number;
   leftThruster: boolean;
   rightThruster: boolean;
+  braking?: boolean;
   boostTimer: number;
   boostKind: BoostKind;
   bestLapMs: number | null;
@@ -682,8 +685,9 @@ export function createRaceState(
       lap: 1,
       unwrappedS: -grid.backMeters,
       maxUnwrappedS: -grid.backMeters,
-      leftThruster: false,
-      rightThruster: false,
+      leftThruster: true,
+      rightThruster: true,
+      braking: false,
       driftCharge: 0,
       driftDir: 0,
       boostTimer: 0,
@@ -716,9 +720,10 @@ export function createRaceState(
 }
 
 /**
- * Dual-thruster AI pilot: reads a lookahead point on the circuit spline, steers
- * toward boost strips when nearby, and drives through the exact same `{ left, right }`
- * thruster interface as human karts.
+ * Turn-based AI pilot with auto-throttle (#360): steers left/right toward a
+ * lookahead point on the circuit spline (aiming for boost strips when nearby),
+ * straightens out on straights (`left: false, right: false` = full auto-throttle),
+ * and taps brake only for extreme overspeed hairpins.
  */
 function computeAiThrusters(
   kart: KartState,
@@ -726,7 +731,7 @@ function computeAiThrusters(
   leaderUnwrappedS: number,
 ): ThrusterInput {
   if (kart.finishMs !== null) {
-    return { left: false, right: false };
+    return { left: false, right: false, brake: false };
   }
   const lookahead = clamp(16 + kart.speed * 0.34, 16, 42);
   const aheadSample = sampleCircuitAtS(circuit, kart.s + lookahead);
@@ -738,21 +743,17 @@ function computeAiThrusters(
   const desiredYaw = Math.atan2(tx - kart.x, tz - kart.z);
   const yawError = wrapAngle(desiredYaw - kart.yaw);
 
-  // Gentle rubber-banding: if trailing far behind, hold full twin-thruster more aggressively
   const gapBehind = leaderUnwrappedS - kart.unwrappedS;
   const steerDeadband = gapBehind > 45 ? 0.13 : 0.095;
+  const needHairpinBrake = Math.abs(yawError) > 0.72 && kart.speed > 64;
 
-  if (Math.abs(yawError) > 0.55 && kart.speed > 58) {
-    // Tight hairpin air-brake feather
-    return yawError < 0 ? { left: true, right: false } : { left: false, right: true };
-  }
   if (yawError < -steerDeadband) {
-    return { left: true, right: false };
+    return { left: true, right: false, brake: needHairpinBrake };
   }
   if (yawError > steerDeadband) {
-    return { left: false, right: true };
+    return { left: false, right: true, brake: needHairpinBrake };
   }
-  return { left: true, right: true };
+  return { left: false, right: false, brake: false };
 }
 
 function stepSingleKart(
@@ -772,17 +773,22 @@ function stepSingleKart(
       ? computeAiThrusters(kart, circuit, kart.unwrappedS)
       : input;
 
-  const left = activeInput.left;
-  const right = activeInput.right;
-  const both = left && right;
-  const onlyLeft = left && !right;
-  const onlyRight = !left && right;
+  const braking = Boolean(activeInput.brake);
+  const steerLeft = activeInput.left && !activeInput.right;
+  const steerRight = activeInput.right && !activeInput.left;
+  const turning = steerLeft || steerRight;
+  const straightAutoThrottle = !turning && !braking;
 
-  kart.leftThruster = left;
-  kart.rightThruster = right;
+  kart.braking = braking;
+  // Visual rear thruster flames:
+  // - Braking cuts both thrusters
+  // - Straight auto-throttle fires both thrusters evenly
+  // - Turning Left/Right vectors outer thruster brightly while inner feathers
+  kart.leftThruster = !braking && !steerLeft;
+  kart.rightThruster = !braking && !steerRight;
 
-  // 1. Drift release -> Mini-Turbo / Ultra-Turbo exit boost!
-  if (both && kart.driftCharge >= MINI_TURBO_CHARGE_SEC) {
+  // 1. Drift release -> straightening out (`!turning && !braking`) after charging a turn unleashes Mini-Turbo!
+  if (straightAutoThrottle && kart.driftCharge >= MINI_TURBO_CHARGE_SEC) {
     const isUltra = kart.driftCharge >= ULTRA_TURBO_CHARGE_SEC;
     kart.boostTimer = Math.max(kart.boostTimer, isUltra ? 1.35 : 0.82);
     kart.boostKind = isUltra ? 'ultra' : 'mini';
@@ -790,11 +796,11 @@ function stepSingleKart(
     events.boostTriggered.push({ slot: kart.slot, kind: kart.boostKind });
   }
 
-  if (both || (!left && !right)) {
+  if (!turning || braking) {
     kart.driftCharge = 0;
     kart.driftDir = 0;
   } else {
-    const dir: -1 | 1 = onlyLeft ? -1 : 1;
+    const dir: -1 | 1 = steerLeft ? -1 : 1;
     if (kart.driftDir !== 0 && kart.driftDir !== dir) {
       kart.driftCharge = 0;
     }
@@ -812,34 +818,32 @@ function stepSingleKart(
     }
   }
 
-  // 3. Longitudinal acceleration / air-brake
-  const topSpeedBase =
-    kart.boostTimer > 0
+  // 3. Longitudinal auto-throttle acceleration vs turning cruise vs Down brake
+  const topSpeedBase = braking
+    ? 0
+    : kart.boostTimer > 0
       ? MAX_BOOST_SPEED
-      : both
-        ? MAX_STRAIGHT_SPEED
-        : onlyLeft || onlyRight
-          ? MAX_DRIFT_SPEED
-          : 0;
+      : turning
+        ? MAX_DRIFT_SPEED
+        : MAX_STRAIGHT_SPEED;
   const topSpeed = topSpeedBase * aiSpeedScale;
 
-  if (both) {
+  if (braking) {
+    kart.speed = Math.max(0, kart.speed - 54 * dt);
+  } else if (!turning) {
     const accel = kart.boostTimer > 0 ? 78 : 48;
     if (kart.speed < topSpeed) {
       kart.speed = Math.min(topSpeed, kart.speed + accel * dt);
     } else {
       kart.speed = Math.max(topSpeed, kart.speed - 24 * dt);
     }
-  } else if (onlyLeft || onlyRight) {
-    const accel = kart.boostTimer > 0 ? 64 : 34;
+  } else {
+    const accel = kart.boostTimer > 0 ? 64 : 36;
     if (kart.speed < topSpeed) {
       kart.speed = Math.min(topSpeed, kart.speed + accel * dt);
     } else {
       kart.speed = Math.max(topSpeed, kart.speed - 18 * dt);
     }
-  } else {
-    // Air-brake when both thrusters are released
-    kart.speed = Math.max(0, kart.speed - 46 * dt);
   }
 
   // Off-curb grass/shoulder drag if slightly outside roadHalfWidth
@@ -847,10 +851,10 @@ function stepSingleKart(
     kart.speed = Math.max(0, kart.speed - 22 * dt);
   }
 
-  // 4. Differential thruster yaw rate + drift slip + chassis body roll
+  // 4. Turn steering yaw rate + drift slip + chassis body roll (allows trail-braking!)
   const speedTurnFactor = clamp(0.45 + (kart.speed / MAX_STRAIGHT_SPEED) * 0.72, 0.45, 1.18);
-  const turnDir = onlyLeft ? -1 : onlyRight ? 1 : 0;
-  const baseTurnRate = 1.62; // rad/s — crisp, responsive carving without twitchiness
+  const turnDir = steerLeft ? -1 : steerRight ? 1 : 0;
+  const baseTurnRate = braking ? 1.85 : 1.62;
   kart.yaw = wrapAngle(kart.yaw + turnDir * baseTurnRate * speedTurnFactor * dt);
 
   const targetDriftYaw = turnDir * (kart.speed > 24 ? 0.24 : 0.08);
@@ -901,8 +905,8 @@ function stepSingleKart(
     events.boostTriggered.push({ slot: kart.slot, kind: 'pad' });
   }
 
-  // 8. Record tire skid marks while drifting on asphalt
-  if ((onlyLeft || onlyRight) && kart.speed > 28) {
+  // 8. Record tire skid marks while drifting or braking hard on asphalt
+  if ((turning || braking) && kart.speed > 28) {
     const totalVisualYaw = kart.yaw + kart.driftYaw;
     const rx = Math.cos(totalVisualYaw);
     const rz = -Math.sin(totalVisualYaw);
@@ -1056,6 +1060,7 @@ export function applyRemoteKartSnapshot(kart: KartState, snap: KartNetSnapshot):
   kart.unwrappedS = snap.unwrappedS;
   kart.leftThruster = snap.leftThruster;
   kart.rightThruster = snap.rightThruster;
+  kart.braking = Boolean(snap.braking);
   kart.boostTimer = snap.boostTimer;
   kart.boostKind = snap.boostKind;
   kart.bestLapMs = snap.bestLapMs;
@@ -1078,6 +1083,7 @@ export function toKartNetSnapshot(kart: KartState): KartNetSnapshot {
     unwrappedS: Math.round(kart.unwrappedS * 10) / 10,
     leftThruster: kart.leftThruster,
     rightThruster: kart.rightThruster,
+    braking: kart.braking,
     boostTimer: Math.round(kart.boostTimer * 100) / 100,
     boostKind: kart.boostKind,
     bestLapMs: kart.bestLapMs,
