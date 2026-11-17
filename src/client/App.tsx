@@ -108,6 +108,87 @@ function composerFor(
  * with a delayed fade-in animated gameplay loop showing the game being played.
  */
 function DeckPreviewGraphic({ appId }: { appId: string }) {
+  if (appId === 'micro-kart') {
+    return (
+      <div
+        className="deck-preview-stage is-live-preview"
+        data-testid="deck-live-preview"
+        data-preview-game="micro-kart"
+      >
+        <img className="deck-preview-bg" src={BACKGROUNDS[2].src} alt="" aria-hidden="true" />
+        <svg className="deck-preview-svg" viewBox="0 0 220 180" aria-hidden="true">
+          <defs>
+            <linearGradient id="deck-kart-sky" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="var(--stage-bg)" />
+              <stop offset="100%" stopColor="var(--prism-6)" stopOpacity="0.82" />
+            </linearGradient>
+          </defs>
+          {/* Sunset horizon sky & low-poly mountain silhouette */}
+          <defs>
+            <clipPath id="deck-kart-clip">
+              <rect x="14" y="10" width="192" height="158" rx="7" />
+            </clipPath>
+          </defs>
+          <g clipPath="url(#deck-kart-clip)">
+            <rect x="14" y="10" width="192" height="76" fill="url(#deck-kart-sky)" />
+            <polygon
+              points="14,86 42,58 68,74 98,46 128,70 158,50 184,68 206,56 206,86"
+              fill="var(--stage-surface)"
+            />
+            {/* Emerald ground & sweeping 3D perspective asphalt track + red/white curbs */}
+            <rect x="14" y="86" width="192" height="82" fill="var(--stage-well)" />
+            <rect x="14" y="86" width="192" height="82" fill="var(--prism-3)" opacity="0.34" />
+            <polygon points="94,86 126,86 196,168 24,168" fill="var(--stage-surface)" />
+            <polygon points="90,86 94,86 34,168 18,168" fill="var(--prism-1)" />
+            <polygon points="126,86 130,86 202,168 186,168" fill="var(--prism-1)" />
+            <polygon points="81,98 85,98 62,130 53,130" fill="var(--on-accent)" />
+            <polygon points="135,98 139,98 167,130 158,130" fill="var(--on-accent)" />
+            <polygon points="103,104 117,104 123,115 97,115" fill="var(--prism-7)" opacity="0.9" />
+            <line
+              x1="110"
+              y1="88"
+              x2="110"
+              y2="164"
+              stroke="var(--on-accent)"
+              strokeWidth="2"
+              strokeDasharray="6 6"
+              opacity="0.65"
+            />
+            <g transform="translate(122, 108) scale(0.64)">
+              <rect x="-15" y="4" width="30" height="8" rx="2" fill="var(--prism-1)" stroke="var(--stage-well)" strokeWidth="1.2" />
+              <rect x="-17" y="-2" width="34" height="4" rx="1" fill="var(--prism-4)" stroke="var(--stage-well)" strokeWidth="1" />
+              <circle cx="0" cy="-2" r="5" fill="var(--on-accent)" stroke="var(--stage-well)" strokeWidth="1" />
+            </g>
+            <g className="deck-kart-hero" transform="translate(106, 141)">
+              <ellipse cx="0" cy="12" rx="24" ry="5" fill="var(--stage-well)" opacity="0.65" />
+              <rect x="-22" y="-1" width="6" height="11" rx="2" fill="var(--stage-well)" />
+              <rect x="16" y="-1" width="6" height="11" rx="2" fill="var(--stage-well)" />
+              <polygon points="-16,9 16,9 12,-4 -12,-4" fill="var(--prism-7)" stroke="var(--stage-well)" strokeWidth="1.2" />
+              <circle cx="0" cy="-7" r="5.5" fill="var(--on-accent)" stroke="var(--stage-well)" strokeWidth="1.1" />
+              <rect x="-18" y="-5" width="36" height="4.2" rx="1.2" fill="var(--prism-4)" stroke="var(--stage-well)" strokeWidth="1.1" />
+              <polygon points="-9,9 -5,9 -7,20" fill="var(--prism-4)" />
+              <polygon points="5,9 9,9 7,20" fill="var(--prism-7)" />
+            </g>
+          </g>
+          <rect
+            x="14"
+            y="10"
+            width="192"
+            height="158"
+            rx="7"
+            fill="none"
+            stroke="var(--border)"
+            strokeWidth="1.5"
+          />
+        </svg>
+        <div className="deck-preview-hud">
+          <span>Dual-Thruster Drift</span>
+          <span>3 Circuits · 60fps 3D</span>
+        </div>
+      </div>
+    );
+  }
+
   if (appId === 'prism-stack') {
     const blocks: Array<{ x: number; y: number; fill: string }> = [
       { x: 56, y: 140, fill: 'var(--prism-1)' },
@@ -1439,7 +1520,11 @@ export function App() {
         >
           {netplay.openInvites.slice(0, 2).map((invite) => {
             const gameTitle =
-              invite.gameId === 'starlight-burst' ? 'Starlight Burst' : 'Prism Stack';
+              invite.gameId === 'starlight-burst'
+                ? 'Starlight Burst'
+                : invite.gameId === 'micro-kart'
+                  ? 'Micro Kart'
+                  : 'Prism Stack';
             return (
               <div key={invite.id} className="netplay-toast" role="status">
                 <div className="netplay-toast-copy">

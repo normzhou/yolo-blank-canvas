@@ -32,7 +32,11 @@ export const HTTP_FALLBACK_ROOM_MS = 1_000;
 export const BACKOFF_BASE_MS = 2_000;
 export const BACKOFF_MAX_MS = 120_000;
 
-export type NetplayGameId = 'prism-stack' | 'starlight-burst';
+export type NetplayGameId = 'prism-stack' | 'starlight-burst' | 'micro-kart';
+
+function asNetplayGameId(raw: unknown): NetplayGameId | null {
+  return raw === 'prism-stack' || raw === 'starlight-burst' || raw === 'micro-kart' ? raw : null;
+}
 export type NetplayPlayerStatus = 'idle' | 'inviting' | 'playing_2p';
 
 export interface OnlinePlayerInfo {
@@ -234,7 +238,7 @@ export class NetplayClient {
   private currentAppId: NetplayGameId | null = (() => {
     if (typeof window === 'undefined') return null;
     const raw = new URLSearchParams(window.location.search).get('app');
-    return raw === 'prism-stack' || raw === 'starlight-burst' ? raw : null;
+    return asNetplayGameId(raw);
   })();
   private lastServerSeq = 0;
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
@@ -313,8 +317,7 @@ export class NetplayClient {
   }
 
   setCurrentApp(appId: string | null): void {
-    const valid: NetplayGameId | null =
-      appId === 'prism-stack' || appId === 'starlight-burst' ? appId : null;
+    const valid: NetplayGameId | null = asNetplayGameId(appId);
     if (this.state.activeRoom && this.state.activeRoom.gameId !== valid) {
       void this.leaveRoom();
     }
@@ -735,8 +738,7 @@ export class NetplayClient {
     if (msg.type === 'presence') {
       const status: NetplayPlayerStatus =
         msg.status === 'playing_2p' || msg.status === 'inviting' ? msg.status : 'idle';
-      const appId: NetplayGameId | null =
-        msg.appId === 'prism-stack' || msg.appId === 'starlight-burst' ? msg.appId : null;
+      const appId: NetplayGameId | null = asNetplayGameId(msg.appId);
       this.localPeers.set(fromId, { id: fromId, name: fromName, status, appId, updatedAt: now });
       this.reconcileLocalState();
       return;
@@ -902,7 +904,7 @@ export class NetplayClient {
             name: p.name,
             status:
               p.status === 'playing_2p' || p.status === 'inviting' ? p.status : 'idle',
-            appId: p.appId === 'prism-stack' || p.appId === 'starlight-burst' ? p.appId : null,
+            appId: asNetplayGameId(p.appId),
           });
         }
       }

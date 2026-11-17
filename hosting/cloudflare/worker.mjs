@@ -41,7 +41,7 @@ const SOCKET_INACTIVITY_TTL_MS = 90_000;
 const SYNC_LAG_THRESHOLD_MS = 2_500;
 const SYNC_TIMEOUT_MS = 15_000;
 const MAX_ROOM_EVENTS = 160;
-const VALID_GAMES = new Set(['prism-stack', 'starlight-burst']);
+const VALID_GAMES = new Set(['prism-stack', 'starlight-burst', 'micro-kart']);
 const VALID_STATUSES = new Set(['idle', 'inviting', 'playing_2p']);
 
 function cleanId(raw, maxLen = 64) {

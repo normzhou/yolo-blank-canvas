@@ -1,0 +1,10 @@
+{
+  "name": "@yolo-arcade/game-micro-kart",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./entry.tsx",
+    "./descriptor": "./descriptor.ts"
+  }
+}
