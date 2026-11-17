@@ -3340,4 +3340,9 @@ button.passkey-handoff-copy-btn:hover {
   color: var(--stage-well);
   transform: scale(1.05);
 }
+.kart-thruster-pill.is-braking {
+  background: var(--prism-1);
+  color: var(--stage-well);
+  transform: scale(1.05);
+}
 
