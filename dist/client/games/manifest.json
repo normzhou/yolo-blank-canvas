@@ -5,14 +5,14 @@
       "id": "starlight-burst",
       "packageName": "@yolo-arcade/game-starlight-burst",
       "version": "2.1.1",
-      "hash": "e25c3a7b87ca2923bc9ea9e2086e02f8d2a33e6f1ddf99339958ce3ce4644f73",
-      "entry": "/games/starlight-burst-U4Vc5EC-.js",
+      "hash": "ae47ea141cb5a80187f757d29ac53fc5fbebe6a5f56fb24398576ebb981e2aff",
+      "entry": "/games/starlight-burst-gzvkDq66.js",
       "chunks": [
         "/assets/vendor-react-W1izUqcL.js",
-        "/assets/arcade-runtime-Dn0AqKyO.js",
+        "/assets/arcade-runtime-DVS2KsUJ.js",
         "/assets/stageBackdrops-weYOhPsk.js",
         "/assets/descriptor-Dn6AgY7a.js",
-        "/games/starlight-burst-U4Vc5EC-.js"
+        "/games/starlight-burst-gzvkDq66.js"
       ],
       "sizeBytes": 87391
     },
@@ -20,16 +20,29 @@
       "id": "prism-stack",
       "packageName": "@yolo-arcade/game-prism-stack",
       "version": "2.1.0",
-      "hash": "8c5be45facad5ec27f4193206fce9db08e277dd2f67133f7009a5556328f985e",
-      "entry": "/games/prism-stack-BLel6y1B.js",
+      "hash": "0cfb49b5622f02e8acaf231b54bb14077cda3a6463c9ed8e3ba3ac479b446652",
+      "entry": "/games/prism-stack-C3_5uZlA.js",
       "chunks": [
         "/assets/vendor-react-W1izUqcL.js",
-        "/assets/arcade-runtime-Dn0AqKyO.js",
+        "/assets/arcade-runtime-DVS2KsUJ.js",
         "/assets/stageBackdrops-weYOhPsk.js",
         "/assets/descriptor-DE_vI4CJ.js",
-        "/games/prism-stack-BLel6y1B.js"
+        "/games/prism-stack-C3_5uZlA.js"
       ],
       "sizeBytes": 37312
+    },
+    "micro-kart": {
+      "id": "micro-kart",
+      "packageName": "@yolo-arcade/game-micro-kart",
+      "version": "1.0.0",
+      "hash": "20ad2f8cc21c6925941ffebf2e2c99cfd11b49d87cb5527d37a38bb9f8aa9580",
+      "entry": "/games/micro-kart-Da6vvq8F.js",
+      "chunks": [
+        "/assets/vendor-react-W1izUqcL.js",
+        "/assets/arcade-runtime-DVS2KsUJ.js",
+        "/games/micro-kart-Da6vvq8F.js"
+      ],
+      "sizeBytes": 45959
     }
   }
 }
