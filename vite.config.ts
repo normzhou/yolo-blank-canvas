@@ -82,6 +82,7 @@ function inlineScriptHash(): Plugin {
 const GAME_PACKAGES = [
   { id: 'starlight-burst', dir: 'src/games/starlight-burst' },
   { id: 'prism-stack', dir: 'src/games/prism-stack' },
+  { id: 'micro-kart', dir: 'src/games/micro-kart' },
 ] as const;
 
 /**
@@ -197,10 +198,15 @@ export default defineConfig({
         index: path.resolve(process.cwd(), 'index.html'),
         'starlight-burst': path.resolve(process.cwd(), 'src/games/starlight-burst/entry.tsx'),
         'prism-stack': path.resolve(process.cwd(), 'src/games/prism-stack/entry.tsx'),
+        'micro-kart': path.resolve(process.cwd(), 'src/games/micro-kart/entry.tsx'),
       },
       output: {
         entryFileNames: (chunkInfo) => {
-          if (chunkInfo.name === 'starlight-burst' || chunkInfo.name === 'prism-stack') {
+          if (
+            chunkInfo.name === 'starlight-burst' ||
+            chunkInfo.name === 'prism-stack' ||
+            chunkInfo.name === 'micro-kart'
+          ) {
             return 'games/[name]-[hash].js';
           }
           return 'assets/[name]-[hash].js';

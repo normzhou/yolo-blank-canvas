@@ -2,6 +2,7 @@ import type { ComponentType } from 'react';
 import type { CanvasAppProps, GameEntryModule, GamePackageDescriptor } from '../../games/types';
 import { starlightBurstDescriptor } from '../../games/starlight-burst/descriptor';
 import { prismStackDescriptor } from '../../games/prism-stack/descriptor';
+import { microKartDescriptor } from '../../games/micro-kart/descriptor';
 import { createLazyGameElement, loadGameComponent } from '../gameBundles';
 
 export type { CanvasAppProps } from '../../games/types';
@@ -32,9 +33,15 @@ const devPrismStackLoader: () => Promise<GameEntryModule> =
     ? () => import('../../games/prism-stack/entry')
     : () => Promise.reject(new Error('Production builds load game bundles via /games/manifest.json'));
 
+const devMicroKartLoader: () => Promise<GameEntryModule> =
+  import.meta.env.DEV || import.meta.env.MODE === 'test'
+    ? () => import('../../games/micro-kart/entry')
+    : () => Promise.reject(new Error('Production builds load game bundles via /games/manifest.json'));
+
 export const CANVAS_APPS: readonly CanvasApp[] = [
   defineLazyCanvasApp(starlightBurstDescriptor, devStarlightBurstLoader),
   defineLazyCanvasApp(prismStackDescriptor, devPrismStackLoader),
+  defineLazyCanvasApp(microKartDescriptor, devMicroKartLoader),
 ];
 
 /** Resolve a route token to an app. Unknown or absent ids are the canvas. */

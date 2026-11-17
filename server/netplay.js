@@ -17,7 +17,7 @@ const SYNC_TIMEOUT_MS = 15_000;
 const MAX_ROOM_EVENTS = 160;
 const WS_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
 
-const VALID_GAMES = new Set(['prism-stack', 'starlight-burst']);
+const VALID_GAMES = new Set(['prism-stack', 'starlight-burst', 'micro-kart']);
 const VALID_STATUSES = new Set(['idle', 'inviting', 'playing_2p']);
 
 function cleanId(raw, maxLen = 64) {

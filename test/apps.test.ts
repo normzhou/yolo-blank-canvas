@@ -23,15 +23,16 @@ describe('canvas app registry', () => {
   it('resolves a known app and refuses everything else', () => {
     expect(canvasAppById('prism-stack')?.title).toBe('Prism Stack');
     expect(canvasAppById('starlight-burst')?.title).toBe('Starlight Burst');
+    expect(canvasAppById('micro-kart')?.title).toBe('Micro Kart');
     expect(canvasAppById('unknown')).toBeNull();
     expect(canvasAppById(null)).toBeNull();
     expect(canvasAppById(undefined)).toBeNull();
     expect(canvasAppById('')).toBeNull();
   });
 
-  it('starts with Starlight Burst as the first canvas app and includes Prism Stack (#264, #352)', () => {
+  it('starts with Starlight Burst as the first canvas app and includes Prism Stack and Micro Kart (#264, #352, #358)', () => {
     expect(CANVAS_APPS[0]?.id).toBe('starlight-burst');
-    expect(CANVAS_APPS.map((app) => app.id)).toEqual(['starlight-burst', 'prism-stack']);
+    expect(CANVAS_APPS.map((app) => app.id)).toEqual(['starlight-burst', 'prism-stack', 'micro-kart']);
   });
 
   it('keeps the static Cloudflare Worker config and local shared-identity preview aligned (#199)', () => {

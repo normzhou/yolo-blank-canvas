@@ -1,0 +1,1186 @@
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from 'react';
+import {
+  getSharedArcadeAudio,
+  getSharedMusicOn,
+  getSharedSfxOn,
+  setSharedMusicOn,
+  setSharedSfxOn,
+  subscribeSharedAudio,
+} from '../audio/arcadeAudio';
+import {
+  getSharedGamePaused,
+  getSharedOverlayOpen,
+  setSharedGamePaused,
+  subscribeSharedGamePause,
+  subscribeSharedOverlayOpen,
+  toggleSharedGamePaused,
+} from '../gamePause';
+import {
+  getSharedNetplay,
+  INVITE_TIMEOUT_MS,
+  type NetplayState,
+} from '../netplay';
+import {
+  pickCountdownLanguage,
+  type CountdownLanguage,
+} from '../../shared/countdownLanguages';
+import { STARLIGHT_BURST_PLAYLIST } from '../../shared/arcadeMusic';
+import {
+  applyRemoteKartSnapshot,
+  CIRCUIT_LIST,
+  CIRCUITS,
+  createRaceState,
+  formatRaceClock,
+  KART_LIVERIES,
+  MINI_TURBO_CHARGE_SEC,
+  ordinalPlace,
+  stepRaceState,
+  toKartNetSnapshot,
+  TOTAL_LAPS,
+  ULTRA_TURBO_CHARGE_SEC,
+  type CircuitId,
+  type KartNetSnapshot,
+  type KartRaceMode,
+  type KartRaceState,
+  type ThrusterInput,
+} from '../../shared/microKart';
+import {
+  createChaseCamera,
+  renderKartViewport,
+  updateChaseCamera,
+  type ChaseCamera,
+} from '../../games/micro-kart/renderer3d';
+import { MicroKartSynth } from '../../games/micro-kart/kartAudio';
+
+const COUNTDOWN_READY_MS =
+  typeof navigator !== 'undefined' && navigator.webdriver ? 180 : 950;
+const COUNTDOWN_GO_MS =
+  typeof navigator !== 'undefined' && navigator.webdriver ? 140 : 600;
+
+function mulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function isEditableElement(target: EventTarget | null): boolean {
+  if (!target || !(target instanceof HTMLElement)) return false;
+  const tag = target.tagName;
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable;
+}
+
+interface HudTelemetry {
+  place: number;
+  lap: number;
+  kmh: number;
+  driftCharge: number;
+  boostTimer: number;
+  boostKind: string;
+  leftOn: boolean;
+  rightOn: boolean;
+  bestLapMs: number | null;
+  finishMs: number | null;
+}
+
+const CircuitMiniMap = memo(function CircuitMiniMap({
+  circuitId,
+  dots,
+}: {
+  circuitId: CircuitId;
+  dots: ReadonlyArray<{ x: number; z: number; color: string; isFocus: boolean }>;
+}) {
+  const circuit = CIRCUITS[circuitId];
+  const { pathD, startPt, scalePoint } = useMemo(() => {
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minZ = Infinity;
+    let maxZ = -Infinity;
+    for (const n of circuit.nodes) {
+      if (n.x < minX) minX = n.x;
+      if (n.x > maxX) maxX = n.x;
+      if (n.z < minZ) minZ = n.z;
+      if (n.z > maxZ) maxZ = n.z;
+    }
+    const span = Math.max(maxX - minX, maxZ - minZ, 1);
+    const pad = 10;
+    const size = 96 - pad * 2;
+    const cx = (minX + maxX) * 0.5;
+    const cz = (minZ + maxZ) * 0.5;
+    const toSvg = (wx: number, wz: number) => ({
+      sx: 48 + ((wx - cx) / span) * size,
+      sy: 48 - ((wz - cz) / span) * size,
+    });
+    const d =
+      circuit.nodes
+        .map((n, idx) => {
+          const p = toSvg(n.x, n.z);
+          return `${idx === 0 ? 'M' : 'L'} ${p.sx.toFixed(1)} ${p.sy.toFixed(1)}`;
+        })
+        .join(' ') + ' Z';
+    const n0 = circuit.nodes[0]!;
+    return {
+      pathD: d,
+      startPt: toSvg(n0.x, n0.z),
+      scalePoint: toSvg,
+    };
+  }, [circuit]);
+
+  return (
+    <svg
+      className="kart-minimap"
+      viewBox="0 0 96 96"
+      aria-label={`${circuit.name} circuit map`}
+      data-testid="kart-minimap"
+    >
+      <path d={pathD} fill="none" stroke="var(--stage-well)" strokeWidth="6.5" opacity="0.78" />
+      <path d={pathD} fill="none" stroke="var(--on-accent)" strokeWidth="2.4" opacity="0.58" />
+      <circle cx={startPt.sx} cy={startPt.sy} r="3.4" fill="var(--prism-4)" />
+      {dots.map((dot, idx) => {
+        const pt = scalePoint(dot.x, dot.z);
+        return (
+          <circle
+            key={idx}
+            cx={pt.sx}
+            cy={pt.sy}
+            r={dot.isFocus ? 4.2 : 3.0}
+            fill={dot.color}
+            stroke="var(--stage-well)"
+            strokeWidth={dot.isFocus ? 1.4 : 1.0}
+          />
+        );
+      })}
+    </svg>
+  );
+});
+
+export interface MicroKartViewProps {
+  onExit: () => void;
+}
+
+export function MicroKartView({ onExit }: MicroKartViewProps) {
+  const [circuitId, setCircuitId] = useState<CircuitId>('sunset-loop');
+  const [localMode, setLocalMode] = useState<'1p' | '2p-local'>('1p');
+  const [netplay, setNetplay] = useState<NetplayState>(() => getSharedNetplay().getState());
+  const [inviteSecondsLeft, setInviteSecondsLeft] = useState(20);
+  const [paused, setPaused] = useState<boolean>(() => getSharedGamePaused());
+  const [overlayOpen, setOverlayOpen] = useState<boolean>(() => getSharedOverlayOpen());
+  const [musicOn, setMusicOn] = useState<boolean>(() => getSharedMusicOn());
+  const [sfxOn, setSfxOn] = useState<boolean>(() => getSharedSfxOn());
+  const [countdown, setCountdown] = useState<number>(2);
+  const [countdownKey, setCountdownKey] = useState<number>(0);
+  const [countdownLang, setCountdownLang] = useState<CountdownLanguage>(() =>
+    pickCountdownLanguage(),
+  );
+  const [wins, setWins] = useState<[number, number]>([0, 0]);
+  const [raceStatus, setRaceStatus] = useState<'racing' | 'finished'>('racing');
+  const [winnerSlot, setWinnerSlot] = useState<number | null>(null);
+  const [elapsedHudMs, setElapsedHudMs] = useState(0);
+  const [p1Hud, setP1Hud] = useState<HudTelemetry>({
+    place: 1,
+    lap: 1,
+    kmh: 0,
+    driftCharge: 0,
+    boostTimer: 0,
+    boostKind: 'none',
+    leftOn: false,
+    rightOn: false,
+    bestLapMs: null,
+    finishMs: null,
+  });
+  const [p2Hud, setP2Hud] = useState<HudTelemetry>({
+    place: 2,
+    lap: 1,
+    kmh: 0,
+    driftCharge: 0,
+    boostTimer: 0,
+    boostKind: 'none',
+    leftOn: false,
+    rightOn: false,
+    bestLapMs: null,
+    finishMs: null,
+  });
+  const [mapDots, setMapDots] = useState<
+    Array<{ x: number; z: number; color: string; isFocus: boolean }>
+  >([]);
+
+  const activeKartRoom =
+    netplay.activeRoom && netplay.activeRoom.gameId === 'micro-kart'
+      ? netplay.activeRoom
+      : null;
+  const isOnline2P = activeKartRoom !== null;
+  const isReadyCheck = activeKartRoom?.status === 'ready_check';
+  const isNetworkPaused = activeKartRoom?.syncStatus === 'paused';
+  const isInviting = netplay.myPendingInvite?.gameId === 'micro-kart';
+  const effectiveMode: KartRaceMode = isOnline2P ? '2p-online' : localMode;
+  const isSplit2P = effectiveMode === '2p-local';
+
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const pauseMenuRef = useRef<HTMLDivElement | null>(null);
+  const raceRef = useRef<KartRaceState>(createRaceState('sunset-loop', '1p', 1));
+  const cam1Ref = useRef<ChaseCamera>(createChaseCamera());
+  const cam2Ref = useRef<ChaseCamera>(createChaseCamera());
+  const synthRef = useRef<MicroKartSynth | null>(null);
+  const pressedKeysRef = useRef<Set<string>>(new Set());
+  const activePointersRef = useRef<Map<number, { player: 0 | 1; side: 'left' | 'right' }>>(
+    new Map(),
+  );
+  const countdownRef = useRef(countdown);
+  countdownRef.current = countdown;
+  const activeRoomIdRef = useRef<string | null>(null);
+  const activeRoomStartedRef = useRef<string | null>(null);
+  const finishAwardedRef = useRef(false);
+
+  const syncHudFromRace = useCallback((race: KartRaceState, focusLocalSlot = 0) => {
+    const k0 = race.karts[focusLocalSlot] ?? race.karts[0]!;
+    const k1 = race.karts[1];
+    setElapsedHudMs(Math.round(race.elapsedMs));
+    setRaceStatus(race.status);
+    setWinnerSlot(race.winnerSlot);
+    setP1Hud({
+      place: k0.place,
+      lap: Math.min(TOTAL_LAPS, k0.lap),
+      kmh: Math.round(k0.speed * 3.2),
+      driftCharge: k0.driftCharge,
+      boostTimer: k0.boostTimer,
+      boostKind: k0.boostKind,
+      leftOn: k0.leftThruster,
+      rightOn: k0.rightThruster,
+      bestLapMs: k0.bestLapMs,
+      finishMs: k0.finishMs,
+    });
+    if (k1) {
+      setP2Hud({
+        place: k1.place,
+        lap: Math.min(TOTAL_LAPS, k1.lap),
+        kmh: Math.round(k1.speed * 3.2),
+        driftCharge: k1.driftCharge,
+        boostTimer: k1.boostTimer,
+        boostKind: k1.boostKind,
+        leftOn: k1.leftThruster,
+        rightOn: k1.rightThruster,
+        bestLapMs: k1.bestLapMs,
+        finishMs: k1.finishMs,
+      });
+    }
+    setMapDots(
+      race.karts.map((k) => ({
+        x: k.x,
+        z: k.z,
+        color: KART_LIVERIES[k.liveryIndex % KART_LIVERIES.length]!.glow,
+        isFocus: k.slot === focusLocalSlot,
+      })),
+    );
+  }, []);
+
+  const triggerFreshCountdown = useCallback(
+    (lang: CountdownLanguage = pickCountdownLanguage()) => {
+      countdownRef.current = 2;
+      setCountdownLang(lang);
+      setCountdown(2);
+      setCountdownKey((k) => k + 1);
+    },
+    [],
+  );
+
+  const resetRace = useCallback(
+    (
+      nextCircuit: CircuitId,
+      nextMode: KartRaceMode,
+      seed = Math.floor(Math.random() * 1_000_000) + 1,
+      names?: { p1?: string; p2?: string },
+      lang?: CountdownLanguage,
+    ) => {
+      const fresh = createRaceState(nextCircuit, nextMode, seed, names);
+      // In 2P Online, mark our assigned slot as local human and opponent slot as remote!
+      if (nextMode === '2p-online' && activeKartRoom) {
+        const mySlot = activeKartRoom.mySlot;
+        const oppSlot = mySlot === 0 ? 1 : 0;
+        const myKart = fresh.karts[mySlot]!;
+        const oppKart = fresh.karts[oppSlot]!;
+        (myKart as { isHuman: boolean; isRemote: boolean }).isHuman = true;
+        (myKart as { isHuman: boolean; isRemote: boolean }).isRemote = false;
+        (oppKart as { isHuman: boolean; isRemote: boolean }).isHuman = false;
+        (oppKart as { isHuman: boolean; isRemote: boolean }).isRemote = true;
+      }
+      raceRef.current = fresh;
+      cam1Ref.current = createChaseCamera();
+      cam2Ref.current = createChaseCamera();
+      const focusSlot = nextMode === '2p-online' && activeKartRoom ? activeKartRoom.mySlot : 0;
+      updateChaseCamera(cam1Ref.current, fresh.karts[focusSlot]!, 1);
+      if (fresh.karts[1]) {
+        updateChaseCamera(cam2Ref.current, fresh.karts[1], 1);
+      }
+      finishAwardedRef.current = false;
+      pressedKeysRef.current.clear();
+      activePointersRef.current.clear();
+      syncHudFromRace(fresh, focusSlot);
+      setSharedGamePaused(false);
+      triggerFreshCountdown(lang);
+      getSharedArcadeAudio().startNewGameTrack();
+    },
+    [activeKartRoom, syncHudFromRace, triggerFreshCountdown],
+  );
+
+  // Audio & shared pause subscriptions
+  useEffect(() => {
+    const audio = getSharedArcadeAudio();
+    audio.setPlaylist(STARLIGHT_BURST_PLAYLIST);
+    if (getSharedMusicOn()) {
+      audio.setActive(true);
+    }
+    const synth = new MicroKartSynth();
+    synthRef.current = synth;
+    const unsubAudio = subscribeSharedAudio((mOn, _now, sOn) => {
+      setMusicOn(mOn);
+      setSfxOn(sOn);
+    });
+    const unsubPause = subscribeSharedGamePause(setPaused);
+    const unsubOverlay = subscribeSharedOverlayOpen(setOverlayOpen);
+
+    // Initialize camera & HUD on mount
+    updateChaseCamera(cam1Ref.current, raceRef.current.karts[0]!, 1);
+    syncHudFromRace(raceRef.current, 0);
+
+    return () => {
+      unsubAudio();
+      unsubPause();
+      unsubOverlay();
+      synth.dispose();
+      synthRef.current = null;
+    };
+  }, [syncHudFromRace]);
+
+  // Netplay presence & room lifecycle
+  useEffect(() => {
+    const client = getSharedNetplay();
+    client.setCurrentApp('micro-kart');
+    const unsubState = client.subscribe((nextState) => {
+      setNetplay(nextState);
+      const room =
+        nextState.activeRoom && nextState.activeRoom.gameId === 'micro-kart'
+          ? nextState.activeRoom
+          : null;
+      if (room && activeRoomIdRef.current !== room.id) {
+        activeRoomIdRef.current = room.id;
+        if (room.status === 'playing') {
+          activeRoomStartedRef.current = room.id;
+          const p0Name = room.players[0]?.name ?? 'P1';
+          const p1Name = room.players[1]?.name ?? 'P2';
+          resetRace(
+            circuitId,
+            '2p-online',
+            room.seed,
+            { p1: p0Name, p2: p1Name },
+            pickCountdownLanguage(mulberry32((room.seed ^ 0x5a5a5a5a) >>> 0)),
+          );
+          setWins([0, 0]);
+        }
+      } else if (
+        room &&
+        room.status === 'playing' &&
+        activeRoomStartedRef.current !== room.id
+      ) {
+        activeRoomStartedRef.current = room.id;
+        const p0Name = room.players[0]?.name ?? 'P1';
+        const p1Name = room.players[1]?.name ?? 'P2';
+        resetRace(
+          circuitId,
+          '2p-online',
+          room.seed,
+          { p1: p0Name, p2: p1Name },
+          pickCountdownLanguage(mulberry32((room.seed ^ 0x5a5a5a5a) >>> 0)),
+        );
+      } else if (!room && activeRoomIdRef.current !== null) {
+        activeRoomIdRef.current = null;
+        activeRoomStartedRef.current = null;
+        resetRace(circuitId, localMode, 1);
+      }
+    });
+
+    const unsubEvents = client.onRoomEvent((event) => {
+      if (event.kind === 'match_start') {
+        const payload = event.payload as { gameId?: string; seed?: number; id?: string; roomId?: string } | null;
+        if (payload && payload.gameId === 'micro-kart') {
+          const rid = payload.id ?? payload.roomId ?? null;
+          if (rid && activeRoomStartedRef.current !== rid) {
+            activeRoomIdRef.current = rid;
+            activeRoomStartedRef.current = rid;
+            resetRace(
+              circuitId,
+              '2p-online',
+              payload.seed ?? 1337,
+              undefined,
+              pickCountdownLanguage(mulberry32(((payload.seed ?? 1337) ^ 0x5a5a5a5a) >>> 0)),
+            );
+          }
+        }
+        return;
+      }
+      if (event.kind === 'sync_resumed') {
+        triggerFreshCountdown();
+        return;
+      }
+      if (event.kind === 'sync_timeout') {
+        void getSharedNetplay().leaveRoom();
+        onExit();
+        return;
+      }
+      if (event.senderId === client.getState().clientId) return;
+      if (event.kind === 'kart_state') {
+        const payload = event.payload as { slot?: number; snap?: KartNetSnapshot } | null;
+        if (payload && payload.snap && typeof payload.slot === 'number') {
+          const target = raceRef.current.karts[payload.slot];
+          if (target && target.isRemote) {
+            applyRemoteKartSnapshot(target, payload.snap);
+            if (payload.snap.finishMs !== null && raceRef.current.status === 'racing') {
+              raceRef.current.status = 'finished';
+              raceRef.current.winnerSlot = payload.slot;
+              syncHudFromRace(raceRef.current, activeKartRoom?.mySlot ?? 0);
+            }
+          }
+        }
+      }
+    });
+
+    return () => {
+      unsubState();
+      unsubEvents();
+    };
+  }, [activeKartRoom?.mySlot, circuitId, localMode, onExit, resetRace, syncHudFromRace, triggerFreshCountdown]);
+
+  // Invite countdown timer
+  useEffect(() => {
+    const invite = netplay.myPendingInvite;
+    if (!invite || invite.gameId !== 'micro-kart') {
+      setInviteSecondsLeft(20);
+      return;
+    }
+    const tickInvite = () => {
+      const remaining = Math.max(
+        0,
+        Math.ceil((INVITE_TIMEOUT_MS - (Date.now() - invite.createdAt)) / 1000),
+      );
+      setInviteSecondsLeft(remaining);
+      if (remaining <= 0) {
+        void getSharedNetplay().cancelInvite();
+      }
+    };
+    tickInvite();
+    const id = window.setInterval(tickInvite, 250);
+    return () => window.clearInterval(id);
+  }, [netplay.myPendingInvite]);
+
+  // 22-language neural TTS "Ready… / Go!" countdown
+  useEffect(() => {
+    if (countdown <= 0 || paused || isReadyCheck || isInviting || isNetworkPaused) return;
+    const phase = countdown >= 2 ? 'ready' : 'go';
+    getSharedArcadeAudio().playCountdownPhrase(countdownLang, phase);
+    const beatMs = phase === 'ready' ? COUNTDOWN_READY_MS : COUNTDOWN_GO_MS;
+    const id = window.setTimeout(() => {
+      setCountdown((c) => Math.max(0, c - 1));
+    }, beatMs);
+    return () => window.clearTimeout(id);
+  }, [countdown, countdownKey, countdownLang, paused, isReadyCheck, isInviting, isNetworkPaused]);
+
+  // Live 25Hz netplay kart state broadcast in Online 2P
+  useEffect(() => {
+    if (!isOnline2P || !activeKartRoom || isReadyCheck || isNetworkPaused || countdown > 0) return;
+    const mySlot = activeKartRoom.mySlot;
+    const pushState = () => {
+      const myKart = raceRef.current.karts[mySlot];
+      if (!myKart) return;
+      void getSharedNetplay().sendRoomEvent('kart_state', {
+        slot: mySlot,
+        snap: toKartNetSnapshot(myKart),
+      });
+    };
+    const id = window.setInterval(pushState, 45);
+    return () => window.clearInterval(id);
+  }, [activeKartRoom, countdown, isNetworkPaused, isOnline2P, isReadyCheck]);
+
+  // Keyboard listeners + deterministic E2E test hook (`yolo:kart:step`)
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (overlayOpen || isEditableElement(e.target)) return;
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        toggleSharedGamePaused();
+        return;
+      }
+      if (paused) return;
+      if (raceRef.current.status === 'finished' && (e.key === ' ' || e.key === 'Enter')) {
+        e.preventDefault();
+        if (isOnline2P && activeKartRoom) {
+          resetRace(circuitId, '2p-online', activeKartRoom.seed + 1);
+        } else {
+          resetRace(circuitId, localMode);
+        }
+        return;
+      }
+      const code = e.code || e.key;
+      if (
+        code === 'KeyA' ||
+        code === 'KeyD' ||
+        code === 'ArrowLeft' ||
+        code === 'ArrowRight' ||
+        e.key === 'a' ||
+        e.key === 'A' ||
+        e.key === 'd' ||
+        e.key === 'D'
+      ) {
+        e.preventDefault();
+        pressedKeysRef.current.add(code);
+        if (e.key === 'a' || e.key === 'A') pressedKeysRef.current.add('KeyA');
+        if (e.key === 'd' || e.key === 'D') pressedKeysRef.current.add('KeyD');
+      }
+    };
+    const onKeyUp = (e: KeyboardEvent) => {
+      const code = e.code || e.key;
+      pressedKeysRef.current.delete(code);
+      if (e.key === 'a' || e.key === 'A') pressedKeysRef.current.delete('KeyA');
+      if (e.key === 'd' || e.key === 'D') pressedKeysRef.current.delete('KeyD');
+    };
+    const onBlur = () => {
+      pressedKeysRef.current.clear();
+      activePointersRef.current.clear();
+    };
+    const onDeterministicStep = (ev: Event) => {
+      const detail = (ev as CustomEvent<{
+        steps?: number;
+        dtMs?: number;
+        p1?: ThrusterInput;
+        p2?: ThrusterInput;
+      }>).detail;
+      const steps = Math.max(1, Math.min(600, detail?.steps ?? 1));
+      const dtMs = detail?.dtMs ?? 16.67;
+      for (let i = 0; i < steps; i += 1) {
+        stepRaceState(
+          raceRef.current,
+          {
+            0: detail?.p1 ?? { left: false, right: false },
+            1: detail?.p2 ?? { left: false, right: false },
+          },
+          dtMs,
+        );
+        updateChaseCamera(cam1Ref.current, raceRef.current.karts[0]!, dtMs / 1000);
+        if (raceRef.current.karts[1]) {
+          updateChaseCamera(cam2Ref.current, raceRef.current.karts[1], dtMs / 1000);
+        }
+      }
+      syncHudFromRace(raceRef.current, activeKartRoom?.mySlot ?? 0);
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+    window.addEventListener('blur', onBlur);
+    window.addEventListener('yolo:kart:step', onDeterministicStep as EventListener);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
+      window.removeEventListener('blur', onBlur);
+      window.removeEventListener('yolo:kart:step', onDeterministicStep as EventListener);
+    };
+  }, [activeKartRoom, circuitId, isOnline2P, localMode, overlayOpen, paused, resetRace, syncHudFromRace]);
+
+  const readCurrentHumanInputs = useCallback((): Record<number, ThrusterInput> => {
+    const keys = pressedKeysRef.current;
+    let p1Left = keys.has('KeyA') || (!isSplit2P && keys.has('ArrowLeft'));
+    let p1Right = keys.has('KeyD') || (!isSplit2P && keys.has('ArrowRight'));
+    let p2Left = isSplit2P && keys.has('ArrowLeft');
+    let p2Right = isSplit2P && keys.has('ArrowRight');
+
+    for (const ptr of activePointersRef.current.values()) {
+      if (ptr.player === 0) {
+        if (ptr.side === 'left') p1Left = true;
+        else p1Right = true;
+      } else {
+        if (ptr.side === 'left') p2Left = true;
+        else p2Right = true;
+      }
+    }
+
+    const myOnlineSlot = isOnline2P && activeKartRoom ? activeKartRoom.mySlot : 0;
+    if (isOnline2P) {
+      return { [myOnlineSlot]: { left: p1Left, right: p1Right } };
+    }
+    return {
+      0: { left: p1Left, right: p1Right },
+      1: { left: p2Left, right: p2Right },
+    };
+  }, [activeKartRoom, isOnline2P, isSplit2P]);
+
+  // Main 60fps 3D simulation & canvas render loop
+  useEffect(() => {
+    let rafId = 0;
+    let lastTime = performance.now();
+    let hudThrottleMs = 0;
+
+    const frame = (now: number) => {
+      const rawDt = now - lastTime;
+      lastTime = now;
+      const dtMs = Math.min(40, Math.max(0, rawDt));
+
+      const race = raceRef.current;
+      const focusSlot = isOnline2P && activeKartRoom ? activeKartRoom.mySlot : 0;
+      const canAdvance =
+        !paused && !overlayOpen && !isReadyCheck && !isInviting && !isNetworkPaused && countdown <= 0;
+
+      if (canAdvance) {
+        const inputs = readCurrentHumanInputs();
+        stepRaceState(race, inputs, dtMs);
+
+        // Trigger procedural Web Audio events
+        const synth = synthRef.current;
+        if (synth) {
+          for (const b of race.lastEvents.boostTriggered) {
+            if (b.slot === focusSlot || (isSplit2P && b.slot === 1)) {
+              synth.playBoost(b.kind);
+            }
+          }
+          for (const l of race.lastEvents.lapCompleted) {
+            if (l.slot === focusSlot || (isSplit2P && l.slot === 1)) {
+              synth.playLap(l.finished);
+            }
+          }
+          if (race.lastEvents.bumped) {
+            synth.playBump();
+          }
+          const fk = race.karts[focusSlot]!;
+          synth.updateEngine(
+            fk.speed,
+            fk.boostTimer > 0,
+            fk.driftCharge > 0.08,
+            race.status === 'racing',
+          );
+        }
+
+        if (race.status === 'finished' && !finishAwardedRef.current) {
+          finishAwardedRef.current = true;
+          if ((isSplit2P || isOnline2P) && (race.winnerSlot === 0 || race.winnerSlot === 1)) {
+            const winIdx = race.winnerSlot;
+            setWins((prev) => (winIdx === 0 ? [prev[0] + 1, prev[1]] : [prev[0], prev[1] + 1]));
+          }
+          syncHudFromRace(race, focusSlot);
+        }
+      } else {
+        synthRef.current?.updateEngine(0, false, false, false);
+      }
+
+      updateChaseCamera(cam1Ref.current, race.karts[focusSlot]!, Math.max(0.008, dtMs / 1000));
+      if (isSplit2P && race.karts[1]) {
+        updateChaseCamera(cam2Ref.current, race.karts[1], Math.max(0.008, dtMs / 1000));
+      }
+
+      // Render 3D viewport(s) onto Hi-DPI canvas
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const rect = canvas.getBoundingClientRect();
+        const cssW = Math.max(320, Math.round(rect.width));
+        const cssH = Math.max(220, Math.round(rect.height));
+        const dpr = Math.min(2.5, window.devicePixelRatio || 1);
+        const targetW = Math.round(cssW * dpr);
+        const targetH = Math.round(cssH * dpr);
+        if (canvas.width !== targetW || canvas.height !== targetH) {
+          canvas.width = targetW;
+          canvas.height = targetH;
+        }
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.save();
+          ctx.scale(dpr, dpr);
+          if (isSplit2P) {
+            const halfH = Math.floor(cssH / 2);
+            renderKartViewport(ctx, race, 0, cam1Ref.current, 0, 0, cssW, halfH - 1, now);
+            renderKartViewport(
+              ctx,
+              race,
+              1,
+              cam2Ref.current,
+              0,
+              halfH + 1,
+              cssW,
+              cssH - halfH - 1,
+              now,
+            );
+            ctx.fillStyle = '#070a10';
+            ctx.fillRect(0, halfH - 1, cssW, 2);
+          } else {
+            renderKartViewport(ctx, race, focusSlot, cam1Ref.current, 0, 0, cssW, cssH, now);
+          }
+          ctx.restore();
+        }
+      }
+
+      hudThrottleMs += dtMs;
+      if (hudThrottleMs >= 65) {
+        hudThrottleMs = 0;
+        syncHudFromRace(race, focusSlot);
+      }
+
+      rafId = window.requestAnimationFrame(frame);
+    };
+
+    rafId = window.requestAnimationFrame(frame);
+    return () => window.cancelAnimationFrame(rafId);
+  }, [
+    activeKartRoom,
+    countdown,
+    isInviting,
+    isNetworkPaused,
+    isOnline2P,
+    isReadyCheck,
+    isSplit2P,
+    overlayOpen,
+    paused,
+    readCurrentHumanInputs,
+    syncHudFromRace,
+  ]);
+
+  const handleStagePointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (paused || overlayOpen || raceStatus === 'finished') return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const relX = e.clientX - rect.left;
+    const relY = e.clientY - rect.top;
+    const player: 0 | 1 = isSplit2P && relY > rect.height / 2 ? 1 : 0;
+    const side: 'left' | 'right' = relX < rect.width / 2 ? 'left' : 'right';
+    activePointersRef.current.set(e.pointerId, { player, side });
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // Synthetic pointer events in tests may omit active pointer registration
+    }
+  };
+
+  const handleStagePointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const existing = activePointersRef.current.get(e.pointerId);
+    if (!existing) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const relX = e.clientX - rect.left;
+    existing.side = relX < rect.width / 2 ? 'left' : 'right';
+  };
+
+  const handleStagePointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
+    activePointersRef.current.delete(e.pointerId);
+  };
+
+  const canSelectOnline2P =
+    isOnline2P || isInviting || netplay.onlineCount >= 2;
+  const activeCircuit = CIRCUITS[circuitId];
+
+  const driftStatusLabel = (hud: HudTelemetry): { text: string; tone: string } | null => {
+    if (hud.boostTimer > 0) {
+      return {
+        text: hud.boostKind === 'ultra' ? 'ULTRA BOOST!' : 'TURBO BOOST!',
+        tone: hud.boostKind === 'ultra' ? 'is-ultra' : 'is-cyan',
+      };
+    }
+    if (hud.driftCharge >= ULTRA_TURBO_CHARGE_SEC) {
+      return { text: 'BOTH THRUSTERS → ULTRA!', tone: 'is-ultra' };
+    }
+    if (hud.driftCharge >= MINI_TURBO_CHARGE_SEC) {
+      return { text: 'BOTH THRUSTERS → TURBO!', tone: 'is-cyan' };
+    }
+    return null;
+  };
+
+  const p1Banner = driftStatusLabel(p1Hud);
+  const p2Banner = driftStatusLabel(p2Hud);
+
+  return (
+    <div
+      className="kart-stage"
+      data-testid="micro-kart-stage"
+      data-mode={effectiveMode}
+      data-circuit={circuitId}
+      onPointerDown={handleStagePointerDown}
+      onPointerMove={handleStagePointerMove}
+      onPointerUp={handleStagePointerUp}
+      onPointerCancel={handleStagePointerUp}
+    >
+      <canvas
+        ref={canvasRef}
+        className="kart-canvas"
+        data-testid="kart-canvas"
+        role="img"
+        aria-label={`Micro Kart 3D circuit ${activeCircuit.name}, mode ${effectiveMode}`}
+      />
+
+      {/* Top header strip matching sibling games */}
+      <header className="kart-header">
+        <div className="row">
+          <h2 className="stack-title">Micro Kart</h2>
+          <span className="kart-circuit-pill" data-testid="kart-circuit-label">
+            {activeCircuit.name}
+          </span>
+          {isSplit2P || isOnline2P ? (
+            <span className="sb-tally" aria-live="polite">
+              P1 {wins[0]} — {wins[1]} P2
+            </span>
+          ) : null}
+        </div>
+      </header>
+
+      {/* Primary Viewport HUD (Full screen in 1P / Online 2P, Top half in 2P Split-Screen) */}
+      <div className={isSplit2P ? 'kart-hud-layer is-top-half' : 'kart-hud-layer'}>
+        <div className="kart-hud-top-right">
+          <div className="kart-telemetry-card" data-testid="kart-p1-telemetry">
+            <span
+              className={p1Hud.place === 1 ? 'kart-place-badge is-first' : 'kart-place-badge'}
+              data-testid="kart-p1-place"
+            >
+              {ordinalPlace(p1Hud.place)}
+            </span>
+            <div className="kart-telemetry-item">
+              <span className="stack-label">Lap</span>
+              <span className="kart-telemetry-val" data-testid="kart-p1-lap">
+                {p1Hud.lap}/{TOTAL_LAPS}
+              </span>
+            </div>
+            <div className="kart-telemetry-item">
+              <span className="stack-label">Speed</span>
+              <span className="kart-telemetry-val" data-testid="kart-p1-speed">
+                {p1Hud.kmh} <small>km/h</small>
+              </span>
+            </div>
+            <div className="kart-telemetry-item">
+              <span className="stack-label">Time</span>
+              <span className="kart-telemetry-val">{formatRaceClock(elapsedHudMs)}</span>
+            </div>
+          </div>
+          {!isSplit2P ? <CircuitMiniMap circuitId={circuitId} dots={mapDots} /> : null}
+        </div>
+
+        {p1Banner ? (
+          <div className={`kart-boost-callout ${p1Banner.tone}`} data-testid="kart-p1-boost-banner">
+            {p1Banner.text}
+          </div>
+        ) : null}
+
+        <div className="kart-thruster-row">
+          <span
+            className={p1Hud.leftOn ? 'kart-thruster-pill is-firing' : 'kart-thruster-pill'}
+            data-testid="kart-p1-left-thruster"
+          >
+            ◀ L THRUSTER · {isSplit2P ? 'A' : 'A / ←'}
+          </span>
+          <span
+            className={p1Hud.rightOn ? 'kart-thruster-pill is-firing' : 'kart-thruster-pill'}
+            data-testid="kart-p1-right-thruster"
+          >
+            {isSplit2P ? 'D' : 'D / →'} · R THRUSTER ▶
+          </span>
+        </div>
+      </div>
+
+      {/* Bottom Viewport HUD in 2P Local Split-Screen */}
+      {isSplit2P ? (
+        <div className="kart-hud-layer is-bottom-half" data-testid="kart-p2-hud">
+          <div className="kart-hud-top-right">
+            <div className="kart-telemetry-card" data-testid="kart-p2-telemetry">
+              <span
+                className={p2Hud.place === 1 ? 'kart-place-badge is-first' : 'kart-place-badge'}
+                data-testid="kart-p2-place"
+              >
+                {ordinalPlace(p2Hud.place)}
+              </span>
+              <div className="kart-telemetry-item">
+                <span className="stack-label">Lap</span>
+                <span className="kart-telemetry-val" data-testid="kart-p2-lap">
+                  {p2Hud.lap}/{TOTAL_LAPS}
+                </span>
+              </div>
+              <div className="kart-telemetry-item">
+                <span className="stack-label">Speed</span>
+                <span className="kart-telemetry-val" data-testid="kart-p2-speed">
+                  {p2Hud.kmh} <small>km/h</small>
+                </span>
+              </div>
+            </div>
+          </div>
+          {p2Banner ? <div className={`kart-boost-callout ${p2Banner.tone}`}>{p2Banner.text}</div> : null}
+          <div className="kart-thruster-row">
+            <span className={p2Hud.leftOn ? 'kart-thruster-pill is-firing' : 'kart-thruster-pill'}>
+              ◀ P2 L THRUSTER · ←
+            </span>
+            <span className={p2Hud.rightOn ? 'kart-thruster-pill is-firing' : 'kart-thruster-pill'}>
+              → · P2 R THRUSTER ▶
+            </span>
+          </div>
+        </div>
+      ) : null}
+
+      {/* 22-language neural TTS "Ready… / Go!" countdown */}
+      {!paused && !isReadyCheck && !isInviting && countdown > 0 ? (
+        <div
+          className="arcade-countdown-backdrop"
+          data-testid="arcade-countdown"
+          data-lang={countdownLang.id}
+          data-phase={countdown >= 2 ? 'ready' : 'go'}
+          role="status"
+          aria-live="polite"
+        >
+          <span className="arcade-countdown-flags" data-testid="arcade-countdown-flags" aria-hidden="true">
+            {countdownLang.flags}
+          </span>
+          <span className="arcade-countdown-digit">
+            {countdown >= 2 ? countdownLang.readyText : countdownLang.goText}
+          </span>
+        </div>
+      ) : null}
+
+      {/* Finish Podium Card */}
+      {!paused && raceStatus === 'finished' ? (
+        <div
+          className="stack-over"
+          role="status"
+          aria-live="polite"
+          data-testid="kart-finish-card"
+        >
+          <div>
+            {isSplit2P || isOnline2P
+              ? winnerSlot === (isOnline2P && activeKartRoom ? activeKartRoom.mySlot : 0)
+                ? '1st Place Victory!'
+                : `${raceRef.current.karts[winnerSlot ?? 0]?.name ?? 'Rival'} Wins!`
+              : `${ordinalPlace(p1Hud.place)} Place · ${formatRaceClock(p1Hud.finishMs)}`}
+          </div>
+          {p1Hud.bestLapMs !== null ? (
+            <div className="muted">Best Lap · {formatRaceClock(p1Hud.bestLapMs)}</div>
+          ) : null}
+          <button
+            type="button"
+            className="primary"
+            data-testid="kart-race-again-btn"
+            onClick={() => {
+              if (isOnline2P && activeKartRoom) {
+                resetRace(circuitId, '2p-online', activeKartRoom.seed + 1);
+              } else {
+                resetRace(circuitId, localMode);
+              }
+            }}
+          >
+            Race again
+          </button>
+        </div>
+      ) : null}
+
+      {/* 2P Online Matchmaking Waiting Card */}
+      {isInviting ? (
+        <div className="game-pause-backdrop">
+          <div className="game-pause-menu" role="status" aria-live="polite" data-testid="kart-invite-waiting">
+            <span className="game-pause-kicker">2P Online Circuit</span>
+            <h3 className="game-pause-title">Waiting for racer…</h3>
+            <p className="game-pause-copy">
+              Invite broadcast to online players ({inviteSecondsLeft}s remaining).
+            </p>
+            <div className="game-pause-actions">
+              <button
+                type="button"
+                onClick={() => {
+                  void getSharedNetplay().cancelInvite();
+                }}
+              >
+                Cancel invite
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {/* 2P Online Ready Check */}
+      {isReadyCheck && activeKartRoom ? (
+        <div className="game-pause-backdrop">
+          <div className="game-pause-menu" role="dialog" aria-modal="true" aria-label="2P Ready Check">
+            <span className="game-pause-kicker">2P Online Micro Kart</span>
+            <h3 className="game-pause-title">vs. {activeKartRoom.opponent.name}</h3>
+            <div className="game-pause-actions">
+              <button
+                type="button"
+                className="primary"
+                data-testid="kart-ready-btn"
+                disabled={Boolean(activeKartRoom.players[activeKartRoom.mySlot]?.ready)}
+                onClick={() => {
+                  void getSharedNetplay().setReady();
+                }}
+              >
+                {activeKartRoom.players[activeKartRoom.mySlot]?.ready ? 'Waiting for rival…' : 'Ready to Race!'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  void getSharedNetplay().leaveRoom();
+                }}
+              >
+                Leave room
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Pause Menu */}
+      {paused ? (
+        <div className="game-pause-backdrop">
+          <div
+            className="game-pause-menu"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Game paused"
+            data-testid="game-pause-menu"
+            ref={pauseMenuRef}
+          >
+            <span className="game-pause-kicker">Micro Kart</span>
+            <h3 className="game-pause-title">Paused</h3>
+
+            <div className="game-pause-section">
+              <span className="stack-label">Race Mode</span>
+              <div className="filter-group" role="group" aria-label="Micro Kart player mode">
+                <button
+                  type="button"
+                  data-testid="kart-1p-btn"
+                  aria-pressed={!isSplit2P && !isOnline2P && !isInviting}
+                  onClick={() => {
+                    if (isOnline2P) void getSharedNetplay().leaveRoom();
+                    setLocalMode('1p');
+                    resetRace(circuitId, '1p');
+                  }}
+                >
+                  1P Grand Prix
+                </button>
+                <button
+                  type="button"
+                  data-testid="kart-2p-local-btn"
+                  aria-pressed={isSplit2P}
+                  onClick={() => {
+                    if (isOnline2P) void getSharedNetplay().leaveRoom();
+                    setLocalMode('2p-local');
+                    resetRace(circuitId, '2p-local');
+                  }}
+                >
+                  2P Split-Screen
+                </button>
+                <button
+                  type="button"
+                  data-testid="kart-2p-online-btn"
+                  aria-pressed={isOnline2P || isInviting}
+                  disabled={!canSelectOnline2P}
+                  onClick={() => {
+                    if (isOnline2P) {
+                      void getSharedNetplay().leaveRoom();
+                    } else if (isInviting) {
+                      void getSharedNetplay().cancelInvite();
+                    } else if (canSelectOnline2P) {
+                      setLocalMode('1p');
+                      setSharedGamePaused(false);
+                      void getSharedNetplay().sendInvite('micro-kart');
+                    }
+                  }}
+                >
+                  {isOnline2P && activeKartRoom
+                    ? `2P online (${activeKartRoom.opponent.name})`
+                    : isInviting
+                      ? `Waiting 2P… (${inviteSecondsLeft}s)`
+                      : '2P online'}
+                </button>
+              </div>
+            </div>
+
+            <div className="game-pause-section">
+              <span className="stack-label">Circuit</span>
+              <div className="filter-group" role="group" aria-label="Circuit selection">
+                {CIRCUIT_LIST.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    data-testid={`kart-circuit-${c.id}`}
+                    aria-pressed={circuitId === c.id}
+                    onClick={() => {
+                      setCircuitId(c.id);
+                      resetRace(c.id, effectiveMode);
+                    }}
+                  >
+                    {c.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="game-pause-section">
+              <span className="stack-label">Audio</span>
+              <div className="filter-group" role="group" aria-label="Audio controls">
+                <button
+                  type="button"
+                  data-testid="pause-menu-sfx-btn"
+                  aria-pressed={sfxOn}
+                  onClick={() => setSharedSfxOn(!sfxOn)}
+                >
+                  {sfxOn ? 'Sound: On' : 'Sound: Off'}
+                </button>
+                <button
+                  type="button"
+                  data-testid="pause-menu-music-btn"
+                  aria-pressed={musicOn}
+                  onClick={() => {
+                    getSharedArcadeAudio().setPlaylist(STARLIGHT_BURST_PLAYLIST);
+                    setSharedMusicOn(!musicOn, true);
+                  }}
+                >
+                  {musicOn ? 'Music: On' : 'Music: Off'}
+                </button>
+              </div>
+            </div>
+
+            <div className="game-pause-actions">
+              <button
+                type="button"
+                className="primary"
+                data-testid="pause-menu-resume"
+                aria-label="Continue game"
+                onClick={() => {
+                  if (getSharedMusicOn()) {
+                    getSharedArcadeAudio().ensureContext();
+                  }
+                  if (countdown > 0) {
+                    triggerFreshCountdown();
+                  }
+                  setSharedGamePaused(false);
+                }}
+              >
+                Continue
+              </button>
+              <button
+                type="button"
+                data-testid="pause-menu-restart"
+                onClick={() => resetRace(circuitId, effectiveMode)}
+              >
+                Restart race
+              </button>
+              <button
+                type="button"
+                data-testid="pause-menu-exit"
+                onClick={() => {
+                  if (isOnline2P) void getSharedNetplay().leaveRoom();
+                  setSharedGamePaused(false);
+                  onExit();
+                }}
+              >
+                Exit to Home
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}

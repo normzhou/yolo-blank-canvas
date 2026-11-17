@@ -118,7 +118,7 @@ describe('per-game manifest validation and built bundle isolation (#306)', () =>
     const parsed = validateGameManifest(JSON.parse(fs.readFileSync(manifestPath, 'utf8')));
     expect(parsed).not.toBeNull();
 
-    for (const id of ['starlight-burst', 'prism-stack']) {
+    for (const id of ['starlight-burst', 'prism-stack', 'micro-kart']) {
       const entry = parsed!.games[id];
       expect(entry, `missing ${id} in manifest`).toBeDefined();
       const entryDiskPath = path.join(DIST_CLIENT, entry!.entry.slice(1));
@@ -136,6 +136,7 @@ describe('per-game manifest validation and built bundle isolation (#306)', () =>
     const indexHtml = fs.readFileSync(path.join(DIST_CLIENT, 'index.html'), 'utf8');
     expect(indexHtml).not.toContain('/games/starlight-burst-');
     expect(indexHtml).not.toContain('/games/prism-stack-');
+    expect(indexHtml).not.toContain('/games/micro-kart-');
 
     const assetsDir = path.join(DIST_CLIENT, 'assets');
     const shellBundleName = fs
@@ -145,8 +146,10 @@ describe('per-game manifest validation and built bundle isolation (#306)', () =>
     const shellCode = fs.readFileSync(path.join(assetsDir, shellBundleName!), 'utf8');
     expect(shellCode).not.toContain(parsed!.games['starlight-burst']!.entry);
     expect(shellCode).not.toContain(parsed!.games['prism-stack']!.entry);
+    expect(shellCode).not.toContain(parsed!.games['micro-kart']!.entry);
     expect(shellCode).not.toContain(path.basename(parsed!.games['starlight-burst']!.entry));
     expect(shellCode).not.toContain(path.basename(parsed!.games['prism-stack']!.entry));
+    expect(shellCode).not.toContain(path.basename(parsed!.games['micro-kart']!.entry));
   });
 });
 

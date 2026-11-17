@@ -88,7 +88,7 @@ content is an architecture and data-model change recorded here, not a quiet addi
 component; the first such content is the Prism Stack view (#4, refactored for IP compliance in #352), now reached through the canvas gallery.
 
 The main canvas centers on the **game slide deck** (`src/client/App.tsx`, `src/client/apps/registry.ts`,
-with **Starlight Burst** first and **Prism Stack** second, #264, #352), with no top header bar (#220, #228, #230).
+with **Starlight Burst** first, **Prism Stack** second, and **Micro Kart** third, #264, #352, #358), with no top header bar (#220, #228, #230).
 A unified bottom-right control strip (#313, #317) orders **Play/Pause** (`data-testid="pause-button"`, when a game is active) →
 **Sound (SFX)** (`data-testid="sfx-button"`, default on) → **Music** (`data-testid="sound-button"`, default on) →
 **Fullscreen** (`button.fullscreen-launcher`, opt-in with `isFullscreen = false` by default, `src/client/fullscreen.ts`) →
@@ -106,8 +106,8 @@ countdown without opening on the Pause menu, #198, #239, #264, #313, #333) as we
 The registry (`src/client/apps/registry.ts`) is a first-party modular list — never a third-party
 remote plugin surface, iframe, or marketplace — where only lightweight menu descriptors
 (`src/games/<id>/descriptor.ts` and `src/games/<id>/package.json#version`) are compiled into the
-~90 kB Home shell (#306). Each game's engine and view (`src/games/starlight-burst/entry.tsx` #181/#352 and
-`src/games/prism-stack/entry.tsx` #4/#352) compile into independent content-hashed ESM bundles
+~90 kB Home shell (#306). Each game's engine and view (`src/games/starlight-burst/entry.tsx` #181/#352,
+`src/games/prism-stack/entry.tsx` #4/#352, and `src/games/micro-kart/entry.tsx` #344/#358) compile into independent content-hashed ESM bundles
 (`/games/<id>-<hash>.js`, decoupled from `__CLIENT_BUILD__` so sibling-game or shell changes leave
 unchanged game hashes intact) indexed by `/games/manifest.json` (`schemaVersion: 1`, `{ id, version, hash, entry, chunks, sizeBytes }`).
 The Home menu loads `/games/manifest.json` (`Cache-Control: no-cache`) to track each game's required
