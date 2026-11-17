@@ -154,18 +154,32 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
               strokeDasharray="6 6"
               opacity="0.65"
             />
-            <g transform="translate(122, 108) scale(0.64)">
+            {/* Rival Berry-Pink Bunny (Momo) ahead */}
+            <g transform="translate(122, 108) scale(0.66)">
               <rect x="-15" y="4" width="30" height="8" rx="2" fill="var(--prism-1)" stroke="var(--stage-well)" strokeWidth="1.2" />
-              <rect x="-17" y="-2" width="34" height="4" rx="1" fill="var(--prism-4)" stroke="var(--stage-well)" strokeWidth="1" />
-              <circle cx="0" cy="-2" r="5" fill="var(--on-accent)" stroke="var(--stage-well)" strokeWidth="1" />
+              {/* Tall pink bunny ears */}
+              <ellipse cx="-4" cy="-12" rx="2.3" ry="7.5" fill="var(--prism-1)" stroke="var(--stage-well)" strokeWidth="1" />
+              <ellipse cx="4" cy="-12" rx="2.3" ry="7.5" fill="var(--prism-1)" stroke="var(--stage-well)" strokeWidth="1" />
+              <circle cx="0" cy="-3" r="6" fill="var(--prism-1)" stroke="var(--stage-well)" strokeWidth="1" />
+              <circle cx="0" cy="4" r="3.4" fill="var(--on-accent)" stroke="var(--stage-well)" strokeWidth="0.9" />
             </g>
+            {/* Hero Ren the Fox in Open-Cockpit Cyan-Gold Twin-Winglet Kart */}
             <g className="deck-kart-hero" transform="translate(106, 141)">
               <ellipse cx="0" cy="12" rx="24" ry="5" fill="var(--stage-well)" opacity="0.65" />
               <rect x="-22" y="-1" width="6" height="11" rx="2" fill="var(--stage-well)" />
               <rect x="16" y="-1" width="6" height="11" rx="2" fill="var(--stage-well)" />
-              <polygon points="-16,9 16,9 12,-4 -12,-4" fill="var(--prism-7)" stroke="var(--stage-well)" strokeWidth="1.2" />
-              <circle cx="0" cy="-7" r="5.5" fill="var(--on-accent)" stroke="var(--stage-well)" strokeWidth="1.1" />
-              <rect x="-18" y="-5" width="36" height="4.2" rx="1.2" fill="var(--prism-4)" stroke="var(--stage-well)" strokeWidth="1.1" />
+              {/* Twin side winglets */}
+              <polygon points="-16,2 -21,-6 -18,-6 -13,2" fill="var(--prism-4)" stroke="var(--stage-well)" strokeWidth="1" />
+              <polygon points="16,2 21,-6 18,-6 13,2" fill="var(--prism-4)" stroke="var(--stage-well)" strokeWidth="1" />
+              {/* Open-cockpit chassis */}
+              <polygon points="-16,9 16,9 12,-2 -12,-2" fill="var(--prism-7)" stroke="var(--stage-well)" strokeWidth="1.2" />
+              {/* Ren the Fox plush head + pointed fox ears + cobalt scarf + snow-tipped brush tail */}
+              <polygon points="-8,-10 -12,-19 -3,-13" fill="var(--prism-6)" stroke="var(--stage-well)" strokeWidth="1" />
+              <polygon points="8,-10 12,-19 3,-13" fill="var(--prism-6)" stroke="var(--stage-well)" strokeWidth="1" />
+              <ellipse cx="0" cy="-8" rx="7.5" ry="6.5" fill="var(--prism-6)" stroke="var(--stage-well)" strokeWidth="1.1" />
+              <path d="M -5 -2 L 5 -2 L 8 4 L 3 3 L -2 5 Z" fill="var(--prism-5)" stroke="var(--stage-well)" strokeWidth="0.8" />
+              <path d="M 0 2 Q 7 -1 11 -6 Q 13 -2 8 6 Z" fill="var(--prism-6)" stroke="var(--stage-well)" strokeWidth="0.9" />
+              <circle cx="10.5" cy="-4.5" r="2.6" fill="var(--on-accent)" stroke="var(--stage-well)" strokeWidth="0.8" />
               <polygon points="-9,9 -5,9 -7,20" fill="var(--prism-4)" />
               <polygon points="5,9 9,9 7,20" fill="var(--prism-7)" />
             </g>

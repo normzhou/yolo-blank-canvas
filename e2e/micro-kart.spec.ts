@@ -17,7 +17,7 @@ test('Micro Kart auto-accelerates with no keys pressed, steers/drifts with Left/
     const card = page.getByTestId('deck-slide-card');
     await page.getByTestId('carousel-dot-micro-kart').click();
     await expect(card).toHaveAttribute('data-slide-id', 'micro-kart');
-    await expect(card).toHaveAttribute('data-game-version', '1.1.0');
+    await expect(card).toHaveAttribute('data-game-version', '1.2.0');
     await expect(page.locator('.deck-slide-title')).toHaveText('Micro Kart');
 
     await page.getByRole('button', { name: 'Play Micro Kart', exact: true }).click();
@@ -28,6 +28,7 @@ test('Micro Kart auto-accelerates with no keys pressed, steers/drifts with Left/
     await expect(canvas).toBeVisible();
     await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });
     await expect(page.getByTestId('kart-circuit-label')).toHaveText('Sunset Loop');
+    await expect(page.getByTestId('kart-p1-driver')).toHaveText('Ren');
     await expect(page.getByTestId('kart-minimap')).toBeVisible();
 
     // 1. Hands-off (`left: false, right: false, brake: false`) auto-accelerates forward!
@@ -70,9 +71,14 @@ test('Micro Kart auto-accelerates with no keys pressed, steers/drifts with Left/
     const brakedSpeed = parseInt((await page.getByTestId('kart-p1-speed').textContent()) ?? '0', 10);
     expect(brakedSpeed).toBeLessThan(boostSpeed - 40);
 
-    // Pause -> switch circuit to Canyon Crest and 2P Split-Screen
+    // Pause -> switch Starlight Burst driver to Mochi (Cat), circuit to Canyon Crest, and 2P Split-Screen
     await page.keyboard.press('Escape');
     await expect(page.getByTestId('game-pause-menu')).toBeVisible();
+    await page.getByTestId('kart-driver-cat').click();
+    await expect(page.getByTestId('kart-p1-driver')).toHaveText('Mochi');
+    await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });
+
+    await page.keyboard.press('Escape');
     await page.getByTestId('kart-circuit-canyon-crest').click();
     await expect(page.getByTestId('kart-circuit-label')).toHaveText('Canyon Crest');
     await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });

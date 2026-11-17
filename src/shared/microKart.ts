@@ -7,6 +7,75 @@
 export type CircuitId = 'sunset-loop' | 'canyon-crest' | 'starlight-ring';
 export type KartRaceMode = '1p' | '2p-local' | '2p-online';
 export type BoostKind = 'none' | 'mini' | 'ultra' | 'pad';
+export type DriverCharacterId = 'fox' | 'cat' | 'dog' | 'bunny';
+
+export interface KartDriverSpec {
+  readonly id: DriverCharacterId;
+  readonly speciesLabel: string;
+  readonly driverName: string;
+  readonly furPrimary: [number, number, number];
+  readonly furSecondary: [number, number, number];
+  readonly furCream: [number, number, number];
+  readonly scarfRgb: [number, number, number];
+  readonly kartPrimary: [number, number, number];
+  readonly kartAccent: [number, number, number];
+  readonly mapGlow: string;
+}
+
+export const KART_DRIVERS: readonly KartDriverSpec[] = [
+  {
+    id: 'fox',
+    speciesLabel: 'Fox',
+    driverName: 'Ren',
+    furPrimary: [242, 142, 48],
+    furSecondary: [40, 36, 46],
+    furCream: [255, 247, 234],
+    scarfRgb: [47, 118, 236],
+    kartPrimary: [57, 197, 207],
+    kartAccent: [246, 215, 67],
+    mapGlow: '#39c5cf',
+  },
+  {
+    id: 'cat',
+    speciesLabel: 'Cat',
+    driverName: 'Mochi',
+    furPrimary: [188, 134, 248],
+    furSecondary: [244, 92, 132],
+    furCream: [253, 245, 255],
+    scarfRgb: [244, 72, 116],
+    kartPrimary: [148, 98, 232],
+    kartAccent: [252, 211, 77],
+    mapGlow: '#bc8cff',
+  },
+  {
+    id: 'dog',
+    speciesLabel: 'Dog',
+    driverName: 'Koro',
+    furPrimary: [244, 198, 58],
+    furSecondary: [192, 108, 36],
+    furCream: [255, 251, 235],
+    scarfRgb: [47, 118, 236],
+    kartPrimary: [63, 185, 80],
+    kartAccent: [238, 252, 168],
+    mapGlow: '#3fb950',
+  },
+  {
+    id: 'bunny',
+    speciesLabel: 'Bunny',
+    driverName: 'Momo',
+    furPrimary: [244, 114, 142],
+    furSecondary: [252, 211, 77],
+    furCream: [255, 250, 252],
+    scarfRgb: [250, 204, 21],
+    kartPrimary: [240, 101, 95],
+    kartAccent: [254, 240, 138],
+    mapGlow: '#f0655f',
+  },
+];
+
+export function getKartDriverSpec(character: DriverCharacterId): KartDriverSpec {
+  return KART_DRIVERS.find((d) => d.id === character) ?? KART_DRIVERS[0]!;
+}
 
 export interface Vec3 {
   readonly x: number;
@@ -135,6 +204,7 @@ export const KART_LIVERIES: readonly KartLiveries[] = [
 export interface KartState {
   readonly slot: 0 | 1 | 2 | 3;
   readonly name: string;
+  readonly character: DriverCharacterId;
   readonly isHuman: boolean;
   readonly isRemote: boolean;
   readonly liveryIndex: number;
@@ -198,6 +268,7 @@ export interface KartRaceState {
 }
 
 export interface KartNetSnapshot {
+  character?: DriverCharacterId;
   x: number;
   y: number;
   z: number;
@@ -633,11 +704,31 @@ export function createRaceState(
   circuitId: CircuitId = 'sunset-loop',
   mode: KartRaceMode = '1p',
   seed = 1,
-  playerNames?: { p1?: string; p2?: string },
+  options?: {
+    p1?: string;
+    p2?: string;
+    p1Character?: DriverCharacterId;
+    p2Character?: DriverCharacterId;
+  },
 ): KartRaceState {
   const circuit = CIRCUITS[circuitId];
   const rng = mulberry32(seed);
   const L = circuit.totalLength;
+
+  const allChars: DriverCharacterId[] = ['fox', 'cat', 'dog', 'bunny'];
+  const p1Char: DriverCharacterId = options?.p1Character ?? 'fox';
+  const remainingAfterP1 = allChars.filter((c) => c !== p1Char);
+  const p2Char: DriverCharacterId =
+    options?.p2Character && options.p2Character !== p1Char
+      ? options.p2Character
+      : remainingAfterP1[0]!;
+  const aiChars = allChars.filter((c) => c !== p1Char && c !== p2Char);
+  const slotCharacters: DriverCharacterId[] = [
+    p1Char,
+    p2Char,
+    aiChars[0] ?? 'dog',
+    aiChars[1] ?? 'bunny',
+  ];
 
   // Staggered 2x2 starting grid behind the start/finish arch:
   // Rivals (`slot 2, 3`) start on row 1 (`11m` behind line) and human karts (`slot 0, 1`)
@@ -656,22 +747,26 @@ export function createRaceState(
     const grid = gridOffsets[slot]!;
     const startS = L - grid.backMeters;
     const sample = sampleCircuitAtS(circuit, startS);
+    const charId = slotCharacters[slot]!;
+    const driverSpec = getKartDriverSpec(charId);
+    const liveryIndex = KART_DRIVERS.findIndex((d) => d.id === charId);
     const isHuman =
       slot === 0 || (slot === 1 && mode === '2p-local');
     const isRemote = slot === 1 && mode === '2p-online';
     const defaultName =
       slot === 0
-        ? playerNames?.p1 ?? 'P1'
+        ? options?.p1 ?? driverSpec.driverName
         : slot === 1 && (mode === '2p-local' || mode === '2p-online')
-          ? playerNames?.p2 ?? 'P2'
-          : KART_LIVERIES[slot]!.name;
+          ? options?.p2 ?? driverSpec.driverName
+          : driverSpec.driverName;
 
     karts.push({
       slot: slot as 0 | 1 | 2 | 3,
       name: defaultName,
+      character: charId,
       isHuman,
       isRemote,
-      liveryIndex: slot,
+      liveryIndex: liveryIndex >= 0 ? liveryIndex : slot,
       x: sample.x + sample.rx * grid.lat,
       y: sample.y,
       z: sample.z + sample.rz * grid.lat,
@@ -1046,6 +1141,9 @@ export function stepRaceState(
 }
 
 export function applyRemoteKartSnapshot(kart: KartState, snap: KartNetSnapshot): void {
+  if (snap.character) {
+    (kart as { character: DriverCharacterId }).character = snap.character;
+  }
   kart.x = snap.x;
   kart.y = snap.y;
   kart.z = snap.z;
@@ -1069,6 +1167,7 @@ export function applyRemoteKartSnapshot(kart: KartState, snap: KartNetSnapshot):
 
 export function toKartNetSnapshot(kart: KartState): KartNetSnapshot {
   return {
+    character: kart.character,
     x: Math.round(kart.x * 100) / 100,
     y: Math.round(kart.y * 100) / 100,
     z: Math.round(kart.z * 100) / 100,
