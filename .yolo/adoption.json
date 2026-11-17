@@ -330,15 +330,16 @@
         "v0.40.0": "f82809e0678a8ff896d20957a5859010325dc458",
         "v0.40.1": "50b9df58fc1689e9fb59e66acca8d2d2e929f3b4",
         "v0.41.0": "7b80c509de0171fbc8809c5977b18b362b2f28b6",
-        "v0.41.1": "8a407bd66739a4bc161b2f6e4d51d94b2a1a90a3"
+        "v0.41.1": "8a407bd66739a4bc161b2f6e4d51d94b2a1a90a3",
+        "v0.41.2": "eebecd56cfdab75c489ec41ef925f77458cf8363"
       },
       "published": {
-        "tag": "v0.41.2",
-        "commit": "eebecd56cfdab75c489ec41ef925f77458cf8363",
-        "source_commit": "55057e04312031ca6c36000b595e519ed88d3400",
-        "published_at": "2026-11-12T23:55:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-12-v0412.json",
-        "note": "Patch visual restore release (#356, PR #357). Restores the exact pre-refactor (v0.40.1) ball SVG rendering, -sphere-shine and -sphere-shade radial gradients, rim stroke (var(--text)), inner rim light, subtle centered emblems, specular ellipse + pinpoint gleam, and STAR_TOKEN color mapping in Starlight Burst (@yolo-arcade/game-starlight-burst@2.1.1; @yolo-arcade/game-prism-stack@2.1.0 byte-unchanged); verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 4acc5de3-ace5-4c1b-ac44-b1b59f7e87dc)."
+        "tag": "v0.42.0",
+        "commit": "4825348150fc513cd6ff5a5a5738b14ec358ea7d",
+        "source_commit": "139db7cf16e523addd7f80c50ddb79bbfe360f65",
+        "published_at": "2026-11-17T06:40:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-17-v0420.json",
+        "note": "Minor feature release (#358, covering #344, PR #359). Introduces Micro Kart (?app=micro-kart, @yolo-arcade/game-micro-kart@1.0.0), a zero-asset 16.4 kB gzipped low-poly flat-shaded 3D arcade circuit racer with dual-thruster differential steering, drift mini-turbo boosts, 3 circuits with 3D elevation (Sunset Loop, Canyon Crest, Starlight Ring), spline AI rivals, 1P Grand Prix, 2P Local Split-Screen, and 2P Online netplay; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: a6c96fe8-06d1-4304-826d-a3b8fc61ec51)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -429,7 +430,8 @@
         ".yolo/reports/releases-observed-2026-11-11-v0401.json",
         ".yolo/reports/releases-observed-2026-11-12-v0410.json",
         ".yolo/reports/releases-observed-2026-11-12-v0411.json",
-        ".yolo/reports/releases-observed-2026-11-12-v0412.json"
+        ".yolo/reports/releases-observed-2026-11-12-v0412.json",
+        ".yolo/reports/releases-observed-2026-11-17-v0420.json"
       ]
     }
   },

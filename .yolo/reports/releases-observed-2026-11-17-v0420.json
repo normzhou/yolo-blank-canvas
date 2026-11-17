@@ -1,0 +1,81 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-17",
+  "observed_at": "2026-11-17",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#358",
+  "releases": [
+    {
+      "tag": "v0.42.0",
+      "commit": "4825348150fc513cd6ff5a5a5738b14ec358ea7d"
+    }
+  ],
+  "release": {
+    "tag": "v0.42.0",
+    "commit": "4825348150fc513cd6ff5a5a5738b14ec358ea7d",
+    "source_commit": "139db7cf16e523addd7f80c50ddb79bbfe360f65",
+    "assets_commit": "562c573dae1c355be2e6316a962c0cd089c1bec0",
+    "native_version": "0.42.0",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-17T06:40:00Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.42.0",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/359"
+  },
+  "build_identity": {
+    "server_build_id": "139db7cf16e523addd7f80c50ddb79bbfe360f65",
+    "client_build_id": "139db7cf16e523addd7f80c50ddb79bbfe360f65",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "30 files, 191 tests passed (including test/micro-kart.test.ts, test/game-bundles.test.ts, and test/ip-compliance.test.ts)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 49 passed (including e2e/micro-kart.spec.ts)",
+      "e2e_live": "npm run e2e:live — 5 passed (13.1s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.42.0 --no-open --port 4444 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (18.0s)",
+      "ci": "GitHub Actions CI/Test and type check green"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "a6c96fe8-06d1-4304-826d-a3b8fc61ec51",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.42.0",
+      "observed_build_id": "139db7cf16e523addd7f80c50ddb79bbfe360f65",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.1.1",
+          "entry": "/games/starlight-burst-gzvkDq66.js",
+          "hash": "ae47ea141cb5a80187f757d29ac53fc5fbebe6a5f56fb24398576ebb981e2aff",
+          "sizeBytes": 87391
+        },
+        "prism-stack": {
+          "version": "2.1.0",
+          "entry": "/games/prism-stack-C3_5uZlA.js",
+          "hash": "0cfb49b5622f02e8acaf231b54bb14077cda3a6463c9ed8e3ba3ac479b446652",
+          "sizeBytes": 37312
+        },
+        "micro-kart": {
+          "version": "1.0.0",
+          "entry": "/games/micro-kart-Da6vvq8F.js",
+          "hash": "20ad2f8cc21c6925941ffebf2e2c99cfd11b49d87cb5527d37a38bb9f8aa9580",
+          "sizeBytes": 45959
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Introduces Micro Kart (?app=micro-kart, @yolo-arcade/game-micro-kart@1.0.0), a zero-asset 16.4 kB gzipped low-poly flat-shaded 3D arcade circuit racer with dual-thruster differential steering, drift mini-turbo boosts, 3 circuits with 3D elevation (Sunset Loop, Canyon Crest, Starlight Ring), spline AI rivals, 1P Grand Prix, 2P Local Split-Screen, and 2P Online netplay."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #358"
+}
