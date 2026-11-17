@@ -1,0 +1,81 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-17",
+  "observed_at": "2026-11-17",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#360",
+  "releases": [
+    {
+      "tag": "v0.42.1",
+      "commit": "7d5a694ebb07c0acd1f974efcbb0072c146c270a"
+    }
+  ],
+  "release": {
+    "tag": "v0.42.1",
+    "commit": "7d5a694ebb07c0acd1f974efcbb0072c146c270a",
+    "source_commit": "29439f56baea76e9319c5ab7040a5513d17c26ad",
+    "assets_commit": "36d341966af888c2e6879de6de983ff9f8ad3e78",
+    "native_version": "0.42.1",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-17T13:06:00Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.42.1",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/361"
+  },
+  "build_identity": {
+    "server_build_id": "29439f56baea76e9319c5ab7040a5513d17c26ad",
+    "client_build_id": "29439f56baea76e9319c5ab7040a5513d17c26ad",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "30 files, 191 tests passed",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 49 passed",
+      "e2e_live": "npm run e2e:live — 5 passed (13.5s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.42.1 --no-open --port 4445 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (20.6s)",
+      "ci": "GitHub Actions CI/Test and type check green"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "1378108d-7e0e-4e9e-877c-774638f25d3f",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.42.1",
+      "observed_build_id": "29439f56baea76e9319c5ab7040a5513d17c26ad",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.1.1",
+          "entry": "/games/starlight-burst-gzvkDq66.js",
+          "hash": "ae47ea141cb5a80187f757d29ac53fc5fbebe6a5f56fb24398576ebb981e2aff",
+          "sizeBytes": 87391
+        },
+        "prism-stack": {
+          "version": "2.1.0",
+          "entry": "/games/prism-stack-C3_5uZlA.js",
+          "hash": "0cfb49b5622f02e8acaf231b54bb14077cda3a6463c9ed8e3ba3ac479b446652",
+          "sizeBytes": 37312
+        },
+        "micro-kart": {
+          "version": "1.1.0",
+          "entry": "/games/micro-kart-CHvSGRHP.js",
+          "hash": "f4571cc772dbec8532717f8c84aff0f3c4a3c86cd30dc2148b6ee71ea841ecf8",
+          "sizeBytes": 47209
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Switches Micro Kart (@yolo-arcade/game-micro-kart@1.1.0) to auto-throttle forward when no keys are pressed, Left/Right turn & drift charge (A/D, ArrowLeft/ArrowRight) releasing Mini-Turbo boosts on straightening out, and Down brake (S/ArrowDown) with rear red LED brake flare; sibling game bundles remain byte-unchanged."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #360"
+}
