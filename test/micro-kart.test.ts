@@ -3,6 +3,7 @@ import {
   CIRCUIT_LIST,
   CIRCUITS,
   createRaceState,
+  KART_DRIVERS,
   MAX_STRAIGHT_SPEED,
   MINI_TURBO_CHARGE_SEC,
   projectOntoCircuit,
@@ -11,7 +12,23 @@ import {
   TOTAL_LAPS,
 } from '../src/shared/microKart';
 
-describe('Micro Kart 3D circuits, auto-throttle, turn drift & Down brake (#344, #358, #360)', () => {
+describe('Micro Kart 3D circuits, Starlight Burst drivers, auto-throttle & Down brake (#344, #358, #360, #362)', () => {
+  it('populates the 4 karts with the 4 Starlight Burst companions (Ren, Mochi, Koro, Momo) with no duplicates', () => {
+    expect(KART_DRIVERS.map((d) => `${d.id}:${d.driverName}`)).toEqual([
+      'fox:Ren',
+      'cat:Mochi',
+      'dog:Koro',
+      'bunny:Momo',
+    ]);
+    const defaultRace = createRaceState('sunset-loop', '1p', 1);
+    expect(defaultRace.karts.map((k) => k.character)).toEqual(['fox', 'cat', 'dog', 'bunny']);
+
+    const bunnyLead = createRaceState('sunset-loop', '1p', 1, { p1Character: 'bunny' });
+    expect(bunnyLead.karts[0]!.character).toBe('bunny');
+    expect(bunnyLead.karts[0]!.name).toBe('Momo');
+    expect(new Set(bunnyLead.karts.map((k) => k.character)).size).toBe(4);
+  });
+
   it('builds 3 seamless closed-loop 3D circuits with positive elevation relief and boost pads', () => {
     expect(CIRCUIT_LIST.map((c) => c.id)).toEqual([
       'sunset-loop',

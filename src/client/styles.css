@@ -3202,6 +3202,12 @@ button.passkey-handoff-copy-btn:hover {
   z-index: 5;
   pointer-events: none;
 }
+.kart-header .stack-title {
+  padding: 3px 10px;
+  border-radius: var(--radius-xs);
+  background: var(--yolo-fab-bg);
+  color: var(--stage-text);
+}
 
 .kart-circuit-pill {
   display: inline-flex;

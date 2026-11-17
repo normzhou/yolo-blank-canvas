@@ -9,7 +9,7 @@
 
 import {
   CIRCUITS,
-  KART_LIVERIES,
+  getKartDriverSpec,
   MINI_TURBO_CHARGE_SEC,
   ULTRA_TURBO_CHARGE_SEC,
   type CircuitDefinition,
@@ -17,6 +17,7 @@ import {
   type KartState,
   type SceneryProp,
 } from '../../shared/microKart';
+import { emitAnimalDriverMesh } from './driver3d';
 
 export interface ChaseCamera {
   x: number;
@@ -26,6 +27,9 @@ export interface ChaseCamera {
   pitch: number;
   fovScale: number;
   initialized: boolean;
+  orbitYawOffset?: number;
+  orbitDist?: number;
+  orbitHeight?: number;
 }
 
 export function createChaseCamera(): ChaseCamera {
@@ -48,6 +52,20 @@ function wrapAngle(a: number): number {
 }
 
 export function updateChaseCamera(cam: ChaseCamera, target: KartState, dtSec: number): void {
+  if (cam.orbitYawOffset !== undefined) {
+    const dist = cam.orbitDist ?? 5.4;
+    const h = cam.orbitHeight ?? 2.35;
+    const angleFromKart = target.yaw + cam.orbitYawOffset;
+    cam.x = target.x + Math.sin(angleFromKart) * dist;
+    cam.z = target.z + Math.cos(angleFromKart) * dist;
+    cam.y = target.y + h;
+    cam.yaw = Math.atan2(target.x - cam.x, target.z - cam.z);
+    cam.pitch = -Math.atan2(h - 0.95, dist);
+    cam.fovScale = 1.08;
+    cam.initialized = true;
+    return;
+  }
+
   const chaseDist = target.boostTimer > 0 ? 9.6 : 8.6;
   const chaseHeight = 3.85;
   const desiredYaw = target.yaw;
@@ -507,7 +525,11 @@ function emitBox(
  * independent Left & Right plasma thruster flames, and drift-charge sparks!
  */
 function emitKartMesh(proj: CameraProjector, kart: KartState, timeMs: number): void {
-  const livery = KART_LIVERIES[kart.liveryIndex % KART_LIVERIES.length]!;
+  const driverSpec = getKartDriverSpec(kart.character);
+  const livery = {
+    primary: driverSpec.kartPrimary,
+    accent: driverSpec.kartAccent,
+  };
   const xf = makeKartTransform(kart);
   const darkMetal: [number, number, number] = [28, 34, 46];
   const tireDark: [number, number, number] = [20, 23, 30];
@@ -533,7 +555,7 @@ function emitKartMesh(proj: CameraProjector, kart: KartState, timeMs: number): v
     19.5,
   );
 
-  // 2. Four chunky 3D racing slicks + bright wheel rim hubs
+  // 2. Four chunky 3D racing slicks
   const wheelCoords: ReadonlyArray<[number, number]> = [
     [-1.16, 1.15],
     [1.16, 1.15],
@@ -541,62 +563,77 @@ function emitKartMesh(proj: CameraProjector, kart: KartState, timeMs: number): v
     [1.24, -1.12],
   ];
   for (const [wx, wz] of wheelCoords) {
-    emitBox(proj, xf, wx - 0.25, 0.06, wz - 0.42, wx + 0.25, 0.7, wz + 0.42, tireDark, -0.3);
+    emitBox(proj, xf, wx - 0.25, 0.06, wz - 0.42, wx + 0.25, 0.7, wz + 0.42, tireDark, -0.36);
   }
 
-  // 3. Sculpted Wedge Nose & Center Tub (`z: -1.55 .. +2.05`)
+  // 3. Sculpted Wedge Nose & Low Open-Cockpit Tub (`z: -1.55 .. +2.05`)
   const nTipL = xf(-0.46, 0.22, 2.08);
   const nTipR = xf(0.46, 0.22, 2.08);
   const nTopL = xf(-0.46, 0.42, 2.02);
   const nTopR = xf(0.46, 0.42, 2.02);
-  const cMidL = xf(-0.74, 0.66, 0.55);
-  const cMidR = xf(0.74, 0.66, 0.55);
+  const cMidL = xf(-0.74, 0.62, 0.55);
+  const cMidR = xf(0.74, 0.62, 0.55);
   const cBotL = xf(-0.74, 0.2, 0.55);
   const cBotR = xf(0.74, 0.2, 0.55);
-  pushWorldPoly(proj, [nTopL, nTopR, cMidR, cMidL], livery.primary, -0.45);
-  pushWorldPoly(proj, [nTipR, nTipL, nTopL, nTopR], livery.accent, -0.45);
-  pushWorldPoly(proj, [nTipL, cBotL, cMidL, nTopL], livery.primary, -0.42);
-  pushWorldPoly(proj, [cBotR, nTipR, nTopR, cMidR], livery.primary, -0.42);
+  pushWorldPoly(proj, [nTopL, nTopR, cMidR, cMidL], livery.primary, -0.4);
+  pushWorldPoly(proj, [nTipR, nTipL, nTopL, nTopR], livery.accent, -0.4);
+  pushWorldPoly(proj, [nTipL, cBotL, cMidL, nTopL], livery.primary, -0.4);
+  pushWorldPoly(proj, [cBotR, nTipR, nTopR, cMidR], livery.primary, -0.4);
 
   // Left & Right Sculpted Side Pods (`accent` top stripe)
-  emitBox(proj, xf, -1.04, 0.2, -0.95, -0.62, 0.58, 0.68, livery.primary, -0.44);
-  emitBox(proj, xf, 0.62, 0.2, -0.95, 1.04, 0.58, 0.68, livery.primary, -0.44);
-  emitBox(proj, xf, -1.05, 0.54, -0.82, -0.64, 0.61, 0.55, livery.accent, -0.46);
-  emitBox(proj, xf, 0.64, 0.54, -0.82, 1.05, 0.61, 0.55, livery.accent, -0.46);
+  emitBox(proj, xf, -1.04, 0.2, -0.95, -0.58, 0.56, 0.68, livery.primary, -0.4);
+  emitBox(proj, xf, 0.58, 0.2, -0.95, 1.04, 0.56, 0.68, livery.primary, -0.4);
+  emitBox(proj, xf, -1.05, 0.52, -0.82, -0.6, 0.59, 0.55, livery.accent, -0.41);
+  emitBox(proj, xf, 0.6, 0.52, -0.82, 1.05, 0.59, 0.55, livery.accent, -0.41);
 
-  // Rear Engine Deck + Rear Diffuser Bumper + Glowing Crimson LED Tail/Brake Strip
-  emitBox(proj, xf, -0.78, 0.24, -1.58, 0.78, 0.76, -0.35, livery.primary, -0.48);
-  emitBox(proj, xf, -0.88, 0.16, -1.66, 0.88, 0.34, -1.54, darkMetal, -0.5);
+  // Low Rear Engine Deck (`y <= 0.64` so animal tails & scarves sit cleanly above it!)
+  emitBox(proj, xf, -0.78, 0.22, -1.58, 0.78, 0.62, -0.48, livery.primary, -0.4);
+  emitBox(proj, xf, -0.88, 0.16, -1.66, 0.88, 0.32, -1.54, darkMetal, -0.41);
   emitBox(
     proj,
     xf,
     kart.braking ? -0.76 : -0.66,
-    kart.braking ? 0.62 : 0.66,
-    -1.62,
+    kart.braking ? 0.54 : 0.56,
+    -1.63,
     kart.braking ? 0.76 : 0.66,
-    kart.braking ? 0.78 : 0.73,
+    kart.braking ? 0.68 : 0.63,
     -1.56,
     kart.braking ? [255, 36, 56] : [220, 64, 80],
-    -0.52,
+    -0.42,
     true,
   );
 
-  // 4. Cockpit Rim + Pilot Racing Suit Shoulders + Rounded Low-Poly Helmet
-  emitBox(proj, xf, -0.52, 0.56, -0.35, 0.52, 0.82, 0.48, darkMetal, -0.5);
-  emitBox(proj, xf, -0.42, 0.76, -0.28, 0.42, 0.96, 0.18, livery.accent, -0.53);
-  emitBox(proj, xf, -0.29, 0.94, -0.2, 0.29, 1.36, 0.28, livery.helmet, -0.56);
-  emitBox(proj, xf, -0.3, 1.06, 0.12, 0.3, 1.22, 0.3, [15, 23, 42], -0.58);
+  // Open Cockpit Tub Floor + Low Contoured Seat Cushion (`y <= 0.70`)
+  emitBox(proj, xf, -0.54, 0.34, -0.52, 0.54, 0.58, 0.48, darkMetal, -0.39);
+  emitBox(proj, xf, -0.44, 0.54, -0.56, 0.44, 0.72, -0.38, darkMetal, -0.4);
 
-  // 5. Elevated Rear Wing Spoiler + Endplates (super readable from chase camera!)
-  emitBox(proj, xf, -0.54, 0.74, -1.52, -0.42, 1.18, -1.32, darkMetal, -0.55);
-  emitBox(proj, xf, 0.42, 0.74, -1.52, 0.54, 1.18, -1.32, darkMetal, -0.55);
-  emitBox(proj, xf, -1.16, 1.14, -1.66, 1.16, 1.25, -1.18, livery.accent, -0.6);
-  emitBox(proj, xf, -1.2, 1.02, -1.7, -1.12, 1.34, -1.14, livery.primary, -0.62);
-  emitBox(proj, xf, 1.12, 1.02, -1.7, 1.2, 1.34, -1.14, livery.primary, -0.62);
+  // 4. Twin Canted Outer Side Winglets (`x = ±1.02` — frames the driver with ZERO center obstruction!)
+  for (const side of [-1, 1] as const) {
+    const wxIn = side * 0.84;
+    const wxOut = side * 1.12;
+    const f0 = xf(wxIn, 0.58, -0.92);
+    const f1 = xf(wxIn, 0.62, -1.54);
+    const t0 = xf(wxOut, 1.08, -1.16);
+    const t1 = xf(wxOut, 1.14, -1.68);
+    pushWorldPoly(proj, [f0, f1, t1, t0], livery.accent, -0.42);
+    // Winglet tip stripe
+    const s0 = xf(wxOut, 1.0, -1.14);
+    const s1 = xf(wxOut, 1.06, -1.68);
+    pushWorldPoly(proj, [s0, s1, t1, t0], livery.primary, -0.43);
+  }
+
+  // 5. Sculpted 360° Low-Poly 3D Starlight Burst Animal Driver!
+  emitAnimalDriverMesh(
+    (verts, rgb, bias = -0.4, emissive = false) =>
+      pushWorldPoly(proj, verts, rgb, bias, emissive),
+    xf,
+    kart,
+    timeMs,
+  );
 
   // 6. Twin Rear Thruster Nozzles (`x = -0.44` and `x = +0.44`)
-  emitBox(proj, xf, -0.62, 0.34, -1.84, -0.26, 0.66, -1.54, nozzleSteel, -0.58);
-  emitBox(proj, xf, 0.26, 0.34, -1.84, 0.62, 0.66, -1.54, nozzleSteel, -0.58);
+  emitBox(proj, xf, -0.62, 0.28, -1.84, -0.26, 0.56, -1.54, nozzleSteel, -0.42);
+  emitBox(proj, xf, 0.26, 0.28, -1.84, 0.62, 0.56, -1.54, nozzleSteel, -0.42);
 
   // 7. Live Flickering 3D Plasma Flame Pyramids from Active Thrusters!
   // Physical differential detail:
@@ -635,17 +672,17 @@ function emitKartMesh(proj: CameraProjector, kart: KartState, timeMs: number): v
     if (power <= 0.05) return;
     const len = (1.1 + power * 1.45) * flicker;
     const r = 0.2 * Math.min(1.3, 0.7 + power * 0.4);
-    const cy = 0.5;
+    const cy = 0.42;
     const zBase = -1.84;
     const apex = xf(cx, cy, zBase - len);
     const b0 = xf(cx - r, cy - r, zBase);
     const b1 = xf(cx + r, cy - r, zBase);
     const b2 = xf(cx + r, cy + r, zBase);
     const b3 = xf(cx - r, cy + r, zBase);
-    pushWorldPoly(proj, [b0, b1, apex], flameColor, -0.68, true);
-    pushWorldPoly(proj, [b1, b2, apex], [255, 245, 200], -0.69, true);
-    pushWorldPoly(proj, [b2, b3, apex], flameColor, -0.68, true);
-    pushWorldPoly(proj, [b3, b0, apex], flameColor, -0.68, true);
+    pushWorldPoly(proj, [b0, b1, apex], flameColor, -0.48, true);
+    pushWorldPoly(proj, [b1, b2, apex], [255, 245, 200], -0.49, true);
+    pushWorldPoly(proj, [b2, b3, apex], flameColor, -0.48, true);
+    pushWorldPoly(proj, [b3, b0, apex], flameColor, -0.48, true);
   };
 
   emitFlame(-0.44, leftPower);

@@ -39,7 +39,8 @@ import {
   CIRCUITS,
   createRaceState,
   formatRaceClock,
-  KART_LIVERIES,
+  getKartDriverSpec,
+  KART_DRIVERS,
   MINI_TURBO_CHARGE_SEC,
   ordinalPlace,
   stepRaceState,
@@ -47,6 +48,7 @@ import {
   TOTAL_LAPS,
   ULTRA_TURBO_CHARGE_SEC,
   type CircuitId,
+  type DriverCharacterId,
   type KartNetSnapshot,
   type KartRaceMode,
   type KartRaceState,
@@ -82,6 +84,7 @@ function isEditableElement(target: EventTarget | null): boolean {
 }
 
 interface HudTelemetry {
+  driverName: string;
   place: number;
   lap: number;
   kmh: number;
@@ -172,6 +175,7 @@ export interface MicroKartViewProps {
 
 export function MicroKartView({ onExit }: MicroKartViewProps) {
   const [circuitId, setCircuitId] = useState<CircuitId>('sunset-loop');
+  const [p1Character, setP1Character] = useState<DriverCharacterId>('fox');
   const [localMode, setLocalMode] = useState<'1p' | '2p-local'>('1p');
   const [netplay, setNetplay] = useState<NetplayState>(() => getSharedNetplay().getState());
   const [inviteSecondsLeft, setInviteSecondsLeft] = useState(20);
@@ -189,6 +193,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
   const [winnerSlot, setWinnerSlot] = useState<number | null>(null);
   const [elapsedHudMs, setElapsedHudMs] = useState(0);
   const [p1Hud, setP1Hud] = useState<HudTelemetry>({
+    driverName: 'Ren',
     place: 1,
     lap: 1,
     kmh: 0,
@@ -202,6 +207,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     finishMs: null,
   });
   const [p2Hud, setP2Hud] = useState<HudTelemetry>({
+    driverName: 'Mochi',
     place: 2,
     lap: 1,
     kmh: 0,
@@ -252,6 +258,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     setRaceStatus(race.status);
     setWinnerSlot(race.winnerSlot);
     setP1Hud({
+      driverName: getKartDriverSpec(k0.character).driverName,
       place: k0.place,
       lap: Math.min(TOTAL_LAPS, k0.lap),
       kmh: Math.round(k0.speed * 3.2),
@@ -266,6 +273,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     });
     if (k1) {
       setP2Hud({
+        driverName: getKartDriverSpec(k1.character).driverName,
         place: k1.place,
         lap: Math.min(TOTAL_LAPS, k1.lap),
         kmh: Math.round(k1.speed * 3.2),
@@ -283,7 +291,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       race.karts.map((k) => ({
         x: k.x,
         z: k.z,
-        color: KART_LIVERIES[k.liveryIndex % KART_LIVERIES.length]!.glow,
+        color: getKartDriverSpec(k.character).mapGlow,
         isFocus: k.slot === focusLocalSlot,
       })),
     );
@@ -306,8 +314,13 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       seed = Math.floor(Math.random() * 1_000_000) + 1,
       names?: { p1?: string; p2?: string },
       lang?: CountdownLanguage,
+      overrideP1Char?: DriverCharacterId,
     ) => {
-      const fresh = createRaceState(nextCircuit, nextMode, seed, names);
+      const chosenChar = overrideP1Char ?? p1Character;
+      const fresh = createRaceState(nextCircuit, nextMode, seed, {
+        ...names,
+        p1Character: chosenChar,
+      });
       // In 2P Online, mark our assigned slot as local human and opponent slot as remote!
       if (nextMode === '2p-online' && activeKartRoom) {
         const mySlot = activeKartRoom.mySlot;
@@ -335,7 +348,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       triggerFreshCountdown(lang);
       getSharedArcadeAudio().startNewGameTrack();
     },
-    [activeKartRoom, syncHudFromRace, triggerFreshCountdown],
+    [activeKartRoom, p1Character, syncHudFromRace, triggerFreshCountdown],
   );
 
   // Audio & shared pause subscriptions
@@ -593,15 +606,33 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       syncHudFromRace(raceRef.current, activeKartRoom?.mySlot ?? 0);
     };
 
+    const onCameraOrbit = (ev: Event) => {
+      const detail = (ev as CustomEvent<{
+        orbitYawOffset?: number | null;
+        orbitDist?: number;
+        orbitHeight?: number;
+      }>).detail;
+      if (detail?.orbitYawOffset === null || detail?.orbitYawOffset === undefined) {
+        cam1Ref.current.orbitYawOffset = undefined;
+      } else {
+        cam1Ref.current.orbitYawOffset = detail.orbitYawOffset;
+        cam1Ref.current.orbitDist = detail.orbitDist;
+        cam1Ref.current.orbitHeight = detail.orbitHeight;
+      }
+      updateChaseCamera(cam1Ref.current, raceRef.current.karts[0]!, 1);
+    };
+
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
     window.addEventListener('blur', onBlur);
     window.addEventListener('yolo:kart:step', onDeterministicStep as EventListener);
+    window.addEventListener('yolo:kart:camera', onCameraOrbit as EventListener);
     return () => {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
       window.removeEventListener('blur', onBlur);
       window.removeEventListener('yolo:kart:step', onDeterministicStep as EventListener);
+      window.removeEventListener('yolo:kart:camera', onCameraOrbit as EventListener);
     };
   }, [activeKartRoom, circuitId, isOnline2P, localMode, overlayOpen, paused, resetRace, syncHudFromRace]);
 
@@ -902,6 +933,12 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
               {ordinalPlace(p1Hud.place)}
             </span>
             <div className="kart-telemetry-item">
+              <span className="stack-label">Driver</span>
+              <span className="kart-telemetry-val" data-testid="kart-p1-driver">
+                {p1Hud.driverName}
+              </span>
+            </div>
+            <div className="kart-telemetry-item">
               <span className="stack-label">Lap</span>
               <span className="kart-telemetry-val" data-testid="kart-p1-lap">
                 {p1Hud.lap}/{TOTAL_LAPS}
@@ -960,6 +997,12 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
               >
                 {ordinalPlace(p2Hud.place)}
               </span>
+              <div className="kart-telemetry-item">
+                <span className="stack-label">Driver</span>
+                <span className="kart-telemetry-val" data-testid="kart-p2-driver">
+                  {p2Hud.driverName}
+                </span>
+              </div>
               <div className="kart-telemetry-item">
                 <span className="stack-label">Lap</span>
                 <span className="kart-telemetry-val" data-testid="kart-p2-lap">
@@ -1161,6 +1204,26 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                       ? `Waiting 2P… (${inviteSecondsLeft}s)`
                       : '2P online'}
                 </button>
+              </div>
+            </div>
+
+            <div className="game-pause-section">
+              <span className="stack-label">Driver</span>
+              <div className="filter-group" role="group" aria-label="Driver selection">
+                {KART_DRIVERS.map((drv) => (
+                  <button
+                    key={drv.id}
+                    type="button"
+                    data-testid={`kart-driver-${drv.id}`}
+                    aria-pressed={p1Character === drv.id}
+                    onClick={() => {
+                      setP1Character(drv.id);
+                      resetRace(circuitId, effectiveMode, undefined, undefined, undefined, drv.id);
+                    }}
+                  >
+                    {drv.driverName} · {drv.speciesLabel}
+                  </button>
+                ))}
               </div>
             </div>
 
