@@ -1,0 +1,81 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-17",
+  "observed_at": "2026-11-17",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#362",
+  "releases": [
+    {
+      "tag": "v0.42.2",
+      "commit": "efa6c4bf91441eead38f4d4332544b0d041e3c28"
+    }
+  ],
+  "release": {
+    "tag": "v0.42.2",
+    "commit": "efa6c4bf91441eead38f4d4332544b0d041e3c28",
+    "source_commit": "877af61874dabdb0e27c3fd7ce841de38835382f",
+    "assets_commit": "f593a3cbee9d74fa65c79fa47355d90b355c314a",
+    "native_version": "0.42.2",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-17T14:21:00Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.42.2",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/363"
+  },
+  "build_identity": {
+    "server_build_id": "877af61874dabdb0e27c3fd7ce841de38835382f",
+    "client_build_id": "877af61874dabdb0e27c3fd7ce841de38835382f",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "30 files, 192 tests passed (including test/micro-kart.test.ts and test/ip-compliance.test.ts)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 49 passed",
+      "e2e_live": "npm run e2e:live — 5 passed (16.1s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.42.2 --no-open --port 4446 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (23.0s)",
+      "ci": "GitHub Actions CI/Test and type check green"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "55d7fefb-63b3-485f-b8dd-b01d0b758595",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.42.2",
+      "observed_build_id": "877af61874dabdb0e27c3fd7ce841de38835382f",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.1.1",
+          "entry": "/games/starlight-burst-gzvkDq66.js",
+          "hash": "ae47ea141cb5a80187f757d29ac53fc5fbebe6a5f56fb24398576ebb981e2aff",
+          "sizeBytes": 87391
+        },
+        "prism-stack": {
+          "version": "2.1.0",
+          "entry": "/games/prism-stack-C3_5uZlA.js",
+          "hash": "0cfb49b5622f02e8acaf231b54bb14077cda3a6463c9ed8e3ba3ac479b446652",
+          "sizeBytes": 37312
+        },
+        "micro-kart": {
+          "version": "1.2.0",
+          "entry": "/games/micro-kart-cZzTOJea.js",
+          "hash": "8f553356b466d9d92cd2dbbd2a5096566e66c4f943b0b291b907869ca92e2403",
+          "sizeBytes": 56680
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Brings the 4 Starlight Burst companions (Ren the Fox, Mochi the Cat, Koro the Dog, Momo the Bunny) into Micro Kart (@yolo-arcade/game-micro-kart@1.2.0, 19.9 kB gzipped) as sculpted 360-degree faceted low-poly 3D open-cockpit drivers with twin-winglet karts, sparkling eyes, forehead goggles, wind-fluttering scarves, animated ears, species-specific 3D tails, and a Pause-menu Driver Selector."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #362"
+}
