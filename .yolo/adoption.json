@@ -334,15 +334,16 @@
         "v0.41.2": "eebecd56cfdab75c489ec41ef925f77458cf8363",
         "v0.42.0": "4825348150fc513cd6ff5a5a5738b14ec358ea7d",
         "v0.42.1": "7d5a694ebb07c0acd1f974efcbb0072c146c270a",
-        "v0.42.2": "efa6c4bf91441eead38f4d4332544b0d041e3c28"
+        "v0.42.2": "efa6c4bf91441eead38f4d4332544b0d041e3c28",
+        "v0.43.0": "f94c2439ed45d280647e707946c0bdec27f8897f"
       },
       "published": {
-        "tag": "v0.43.0",
-        "commit": "f94c2439ed45d280647e707946c0bdec27f8897f",
-        "source_commit": "6664210b3af9757e08771daa1bed9f52908b8c69",
-        "published_at": "2026-11-17T18:05:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-17-v0430.json",
-        "note": "Minor rendering upgrade release (#364, PR #365). Upgrades Micro Kart (@yolo-arcade/game-micro-kart@1.3.0, 29.0 kB gzipped) with a zero-dependency static-VBO WebGL2 renderer (load-time smooth 24x14 plush Starlight Burst companions + 20-gon tires, per-pixel Phong + Fresnel velvet rim + fog shaders, hardware Z-buffer, webglcontextlost recovery, and automatic 2D canvas fallback); sibling game bundles remain byte-unchanged; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 9f429b5b-ac0c-4d97-aca7-925f3a2e60b0)."
+        "tag": "v0.43.1",
+        "commit": "caac7e77797adb596cfe8ed520adff59cfbe967e",
+        "source_commit": "e35db0acb195f1479f31a82c8d8f34d918ba2632",
+        "published_at": "2026-11-17T19:37:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-17-v0431.json",
+        "note": "Patch countdown weighting release (#366, PR #367). Rebalances the 22-language Ready/Go countdown probabilities from raw L1+L2 totals (6,758M) to 1/N global multilingual person-equivalent weights (4,555M) so speakers of k languages (including non-top-22 local languages) count 1/k per spoken language while preserving all 22 languages; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 7e0b7aff-07eb-4663-b87b-e57e2d32856c)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -437,7 +438,8 @@
         ".yolo/reports/releases-observed-2026-11-17-v0420.json",
         ".yolo/reports/releases-observed-2026-11-17-v0421.json",
         ".yolo/reports/releases-observed-2026-11-17-v0422.json",
-        ".yolo/reports/releases-observed-2026-11-17-v0430.json"
+        ".yolo/reports/releases-observed-2026-11-17-v0430.json",
+        ".yolo/reports/releases-observed-2026-11-17-v0431.json"
       ]
     }
   },

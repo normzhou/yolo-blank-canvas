@@ -1,0 +1,81 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-17",
+  "observed_at": "2026-11-17",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#366",
+  "releases": [
+    {
+      "tag": "v0.43.1",
+      "commit": "caac7e77797adb596cfe8ed520adff59cfbe967e"
+    }
+  ],
+  "release": {
+    "tag": "v0.43.1",
+    "commit": "caac7e77797adb596cfe8ed520adff59cfbe967e",
+    "source_commit": "e35db0acb195f1479f31a82c8d8f34d918ba2632",
+    "assets_commit": "b64cea5aaa0eef4f81e125d761f3340caf5ae78c",
+    "native_version": "0.43.1",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-17T19:37:00Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.43.1",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/367"
+  },
+  "build_identity": {
+    "server_build_id": "e35db0acb195f1479f31a82c8d8f34d918ba2632",
+    "client_build_id": "e35db0acb195f1479f31a82c8d8f34d918ba2632",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "30 files, 192 tests passed (including test/arcade-music.test.ts and test/ip-compliance.test.ts)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 50 passed",
+      "e2e_live": "npm run e2e:live — 5 passed (13.7s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.43.1 --no-open --port 4448 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (21.1s)",
+      "ci": "GitHub Actions CI/Test and type check green"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "7e0b7aff-07eb-4663-b87b-e57e2d32856c",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.43.1",
+      "observed_build_id": "e35db0acb195f1479f31a82c8d8f34d918ba2632",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.1.2",
+          "entry": "/games/starlight-burst-CThzxYZN.js",
+          "hash": "20f67fbd8675e2efad88c6783db683046b1cba73b03309f8369d8a753b4ee36f",
+          "sizeBytes": 87391
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-03UfQ4Az.js",
+          "hash": "b694c3b723da1ca0c1f42c8cce99d586b1dacf40ce9a739cdf514642ed0c6e20",
+          "sizeBytes": 37312
+        },
+        "micro-kart": {
+          "version": "1.3.1",
+          "entry": "/games/micro-kart-_vKtHdgR.js",
+          "hash": "1878026b85af617cb303803f40a9f3fa6aa0d549341351aa06e229b8260be184",
+          "sizeBytes": 86677
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Rebalances the 22-language Ready/Go countdown probabilities from raw L1+L2 speaker totals (6,758M) to 1/N global multilingual fractional person-equivalent weights (4,555M) so multilingual speakers of k languages (including non-top-22 local languages) contribute 1/k toward each spoken language while keeping all 22 languages intact."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #366"
+}
