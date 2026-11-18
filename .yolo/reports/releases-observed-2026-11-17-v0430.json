@@ -1,0 +1,81 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-17",
+  "observed_at": "2026-11-17",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#364",
+  "releases": [
+    {
+      "tag": "v0.43.0",
+      "commit": "f94c2439ed45d280647e707946c0bdec27f8897f"
+    }
+  ],
+  "release": {
+    "tag": "v0.43.0",
+    "commit": "f94c2439ed45d280647e707946c0bdec27f8897f",
+    "source_commit": "6664210b3af9757e08771daa1bed9f52908b8c69",
+    "assets_commit": "b771bd8de26798d684ff2b495ccf9954a9c57c07",
+    "native_version": "0.43.0",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-17T18:05:00Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.43.0",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/365"
+  },
+  "build_identity": {
+    "server_build_id": "6664210b3af9757e08771daa1bed9f52908b8c69",
+    "client_build_id": "6664210b3af9757e08771daa1bed9f52908b8c69",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "30 files, 192 tests passed (including test/micro-kart.test.ts and test/ip-compliance.test.ts)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 50 passed (including WebGL2 default + ?renderer=2d fallback E2E)",
+      "e2e_live": "npm run e2e:live — 5 passed (13.6s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.43.0 --no-open --port 4447 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (21.4s)",
+      "ci": "GitHub Actions CI/Test and type check green"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "9f429b5b-ac0c-4d97-aca7-925f3a2e60b0",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.43.0",
+      "observed_build_id": "6664210b3af9757e08771daa1bed9f52908b8c69",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.1.1",
+          "entry": "/games/starlight-burst-gzvkDq66.js",
+          "hash": "ae47ea141cb5a80187f757d29ac53fc5fbebe6a5f56fb24398576ebb981e2aff",
+          "sizeBytes": 87391
+        },
+        "prism-stack": {
+          "version": "2.1.0",
+          "entry": "/games/prism-stack-C3_5uZlA.js",
+          "hash": "0cfb49b5622f02e8acaf231b54bb14077cda3a6463c9ed8e3ba3ac479b446652",
+          "sizeBytes": 37312
+        },
+        "micro-kart": {
+          "version": "1.3.0",
+          "entry": "/games/micro-kart-hOImWSWN.js",
+          "hash": "336a1b2460382f96f41354138c6ca6f41449a0df81b51711cd0ca7513ffdaeeb",
+          "sizeBytes": 86677
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Upgrades Micro Kart (@yolo-arcade/game-micro-kart@1.3.0, 29.0 kB gzipped) with a zero-dependency static-VBO WebGL2 renderer featuring load-time smooth-subdivided (24x14 plush ellipsoids, 20-gon tires) Starlight Burst companions, per-pixel Phong + Fresnel velvet rim + atmospheric fog shaders, hardware Z-buffer + MSAA, webglcontextlost recovery, and automatic 2D canvas fallback."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #364"
+}
