@@ -17,7 +17,7 @@ test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Bu
     const card = page.getByTestId('deck-slide-card');
     await page.getByTestId('carousel-dot-micro-kart').click();
     await expect(card).toHaveAttribute('data-slide-id', 'micro-kart');
-    await expect(card).toHaveAttribute('data-game-version', '1.3.0');
+    await expect(card).toHaveAttribute('data-game-version', '1.3.1');
     await expect(page.locator('.deck-slide-title')).toHaveText('Micro Kart');
 
     await page.getByRole('button', { name: 'Play Micro Kart', exact: true }).click();
