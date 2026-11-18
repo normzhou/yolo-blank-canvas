@@ -31,37 +31,45 @@ describe('selector, prism stack, and starlight burst playlists + Tone synth SFX 
     expect(MUSIC_GAIN).toBe(0.22);
   });
 
-  it('samples Ready/Go countdown phrases across the 22 most spoken languages weighted linearly by speaker count with major-country flag emojis (#262, #331, #333)', () => {
+  it('samples Ready/Go countdown phrases across the 22 most spoken languages weighted linearly by 1/N multilingual person-equivalents with major-country flag emojis (#262, #331, #333, #366)', () => {
     expect(COUNTDOWN_LANGUAGES).toHaveLength(22);
-    expect(TOTAL_COUNTDOWN_SPEAKERS_MILLIONS).toBe(6758);
+    expect(TOTAL_COUNTDOWN_SPEAKERS_MILLIONS).toBe(4555);
+    const rawSum = COUNTDOWN_LANGUAGES.reduce((s, l) => s + l.rawTotalMillions, 0);
+    expect(rawSum).toBe(6758);
     for (let i = 0; i < COUNTDOWN_LANGUAGES.length; i += 1) {
       const lang = COUNTDOWN_LANGUAGES[i]!;
       expect(lang.flags.trim().length).toBeGreaterThan(0);
       expect(lang.spriteIndex).toBe(i);
+      expect(lang.l1Millions + lang.l2Millions).toBe(lang.rawTotalMillions);
+      expect(lang.speakersMillions).toBeGreaterThan(0);
+      expect(lang.speakersMillions).toBeLessThanOrEqual(lang.rawTotalMillions);
     }
     expect(COUNTDOWN_LANGUAGES[0]).toMatchObject({
       id: 'en',
+      speakersMillions: 805,
       flags: '🇺🇸 🇬🇧 🇨🇦 🇦🇺',
       readyText: 'READY…',
       goText: 'GO!',
     });
     expect(COUNTDOWN_LANGUAGES[1]).toMatchObject({
       id: 'zh',
+      speakersMillions: 955,
       readyText: '预备…',
       goText: '齐！',
     });
     expect(COUNTDOWN_LANGUAGES[21]).toMatchObject({
       id: 'ko',
+      speakersMillions: 77,
       flags: '🇰🇷',
       readyText: '준비…',
       goText: '시작!',
     });
 
-    // Verify exact speaker-ratio quantile boundaries
+    // Verify exact 1/N person-equivalent quantile boundaries
     expect(pickCountdownLanguage(() => 0.0).id).toBe('en');
-    expect(pickCountdownLanguage(() => 1514 / 6758).id).toBe('en');
-    expect(pickCountdownLanguage(() => 1516 / 6758).id).toBe('zh');
-    expect(pickCountdownLanguage(() => (1515 + 1140 + 1) / 6758).id).toBe('hi');
+    expect(pickCountdownLanguage(() => 804 / 4555).id).toBe('en');
+    expect(pickCountdownLanguage(() => 806 / 4555).id).toBe('zh');
+    expect(pickCountdownLanguage(() => (805 + 955 + 1) / 4555).id).toBe('hi');
     expect(pickCountdownLanguage(() => 0.999).id).toBe('ko');
 
     // Verify interactive linear sampling never repeats back-to-back (#276, #331, #333)

@@ -1,12 +1,18 @@
 /**
- * Top 22 most spoken languages in the world (by total speakers, Ethnologue ~2025/2026)
- * for the arcade "Ready…" -> "Go!" ("预备…" -> "齐！", etc.) start countdown (#262, #331, #333).
+ * Top 22 most spoken languages in the world for the arcade "Ready…" -> "Go!"
+ * ("预备…" -> "齐！", etc.) start countdown (#262, #331, #333, #366).
  *
- * Each language's selection probability is strictly linear in its total speaker count
- * (`speakersMillions / TOTAL_COUNTDOWN_SPEAKERS_MILLIONS`), and its spoken audio
- * is bundled in `public/audio/countdown-voices.m4a` at 1.5s sprite slots:
- * - Ready clip: `(spriteIndex * 2) * 1.5s` (duration 1.4s)
- * - Go! clip:   `(spriteIndex * 2 + 1) * 1.5s` (duration 1.4s)
+ * Weighting model (`1/N` Global Multilingual Fractional Person-Equivalents, #366):
+ * - Raw `L1 + L2` speaker totals (`6,758M`) double- or triple-count multilingual speakers
+ *   (e.g. a speaker of Marathi + Hindi + English, or Javanese + Indonesian, or Yoruba +
+ *   Nigerian Pidgin + English).
+ * - Instead, each speaker of `k` languages globally (including non-top-22 local languages
+ *   such as Javanese, Punjabi, Pashto, regional Sinitic, and African L1s) contributes `1/k`
+ *   person-equivalents toward each spoken language (`speakersMillions`, summing to `4,555M`).
+ * - Selection probability is strictly linear in `speakersMillions / TOTAL_COUNTDOWN_SPEAKERS_MILLIONS`,
+ *   and spoken audio is bundled in `public/audio/countdown-voices.m4a` at 1.5s sprite slots:
+ *   - Ready clip: `(spriteIndex * 2) * 1.5s` (duration 1.4s)
+ *   - Go! clip:   `(spriteIndex * 2 + 1) * 1.5s` (duration 1.4s)
  */
 
 export type CountdownLanguageId =
@@ -40,8 +46,17 @@ export interface CountdownLanguage {
   name: string;
   /** BCP-47 locale tag for Web Speech API fallback. */
   bcp47: string;
-  /** Total speakers in millions (used as linear sampling probability weight). */
+  /**
+   * `1/N` multilingual-adjusted person-equivalent speakers in millions
+   * (used as linear sampling probability weight, #366).
+   */
   speakersMillions: number;
+  /** Unadjusted Ethnologue L1 + L2 total speakers in millions (for reference). */
+  rawTotalMillions: number;
+  /** Ethnologue first-language (L1) speakers in millions. */
+  l1Millions: number;
+  /** Ethnologue second/additional-language (L2+) speakers in millions. */
+  l2Millions: number;
   /** Flag emojis of the major countries where the language is spoken (#331, #333). */
   flags: string;
   /** On-screen text for the "Ready" phase. */
@@ -60,7 +75,10 @@ export const COUNTDOWN_LANGUAGES: ReadonlyArray<CountdownLanguage> = [
     id: 'en',
     name: 'English',
     bcp47: 'en-US',
-    speakersMillions: 1515,
+    speakersMillions: 805,
+    rawTotalMillions: 1515,
+    l1Millions: 380,
+    l2Millions: 1135,
     flags: '🇺🇸 🇬🇧 🇨🇦 🇦🇺',
     readyText: 'READY…',
     goText: 'GO!',
@@ -70,7 +88,10 @@ export const COUNTDOWN_LANGUAGES: ReadonlyArray<CountdownLanguage> = [
     id: 'zh',
     name: 'Mandarin Chinese',
     bcp47: 'zh-CN',
-    speakersMillions: 1140,
+    speakersMillions: 955,
+    rawTotalMillions: 1140,
+    l1Millions: 940,
+    l2Millions: 200,
     flags: '🇨🇳 🇸🇬',
     readyText: '预备…',
     goText: '齐！',
@@ -80,7 +101,10 @@ export const COUNTDOWN_LANGUAGES: ReadonlyArray<CountdownLanguage> = [
     id: 'hi',
     name: 'Hindi',
     bcp47: 'hi-IN',
-    speakersMillions: 609,
+    speakersMillions: 365,
+    rawTotalMillions: 609,
+    l1Millions: 345,
+    l2Millions: 264,
     flags: '🇮🇳',
     readyText: 'तैयार…',
     goText: 'शुरू!',
@@ -90,7 +114,10 @@ export const COUNTDOWN_LANGUAGES: ReadonlyArray<CountdownLanguage> = [
     id: 'es',
     name: 'Spanish',
     bcp47: 'es-ES',
-    speakersMillions: 560,
+    speakersMillions: 470,
+    rawTotalMillions: 560,
+    l1Millions: 485,
+    l2Millions: 75,
     flags: '🇪🇸 🇲🇽 🇦🇷 🇨🇴',
     readyText: '¡LISTOS…',
     goText: '¡YA!',
@@ -100,7 +127,10 @@ export const COUNTDOWN_LANGUAGES: ReadonlyArray<CountdownLanguage> = [
     id: 'fr',
     name: 'French',
     bcp47: 'fr-FR',
-    speakersMillions: 312,
+    speakersMillions: 155,
+    rawTotalMillions: 312,
+    l1Millions: 74,
+    l2Millions: 238,
     flags: '🇫🇷 🇨🇦 🇧🇪 🇨🇭',
     readyText: 'PRÊTS…',
     goText: 'PARTEZ !',
@@ -110,7 +140,10 @@ export const COUNTDOWN_LANGUAGES: ReadonlyArray<CountdownLanguage> = [
     id: 'ar',
     name: 'Standard Arabic',
     bcp47: 'ar-SA',
-    speakersMillions: 274,
+    speakersMillions: 175,
+    rawTotalMillions: 274,
+    l1Millions: 0,
+    l2Millions: 274,
     flags: '🇸🇦 🇪🇬 🇦🇪 🇲🇦',
     readyText: 'استعد…',
     goText: 'انطلق!',
@@ -120,7 +153,10 @@ export const COUNTDOWN_LANGUAGES: ReadonlyArray<CountdownLanguage> = [
     id: 'bn',
     name: 'Bengali',
     bcp47: 'bn-IN',
-    speakersMillions: 272,
+    speakersMillions: 220,
+    rawTotalMillions: 272,
+    l1Millions: 234,
+    l2Millions: 38,
     flags: '🇧🇩 🇮🇳',
     readyText: 'প্রস্তুত…',
     goText: 'শুরু!',
@@ -130,7 +166,10 @@ export const COUNTDOWN_LANGUAGES: ReadonlyArray<CountdownLanguage> = [
     id: 'pt',
     name: 'Portuguese',
     bcp47: 'pt-BR',
-    speakersMillions: 264,
+    speakersMillions: 232,
+    rawTotalMillions: 264,
+    l1Millions: 236,
+    l2Millions: 28,
     flags: '🇧🇷 🇵🇹',
     readyText: 'PRONTOS…',
     goText: 'JÁ!',
@@ -140,7 +179,10 @@ export const COUNTDOWN_LANGUAGES: ReadonlyArray<CountdownLanguage> = [
     id: 'ru',
     name: 'Russian',
     bcp47: 'ru-RU',
-    speakersMillions: 255,
+    speakersMillions: 180,
+    rawTotalMillions: 255,
+    l1Millions: 148,
+    l2Millions: 107,
     flags: '🇷🇺 🇰🇿',
     readyText: 'НА СТАРТ…',
     goText: 'МАРШ!',
@@ -150,7 +192,10 @@ export const COUNTDOWN_LANGUAGES: ReadonlyArray<CountdownLanguage> = [
     id: 'ur',
     name: 'Urdu',
     bcp47: 'ur-PK',
-    speakersMillions: 232,
+    speakersMillions: 92,
+    rawTotalMillions: 232,
+    l1Millions: 78,
+    l2Millions: 154,
     flags: '🇵🇰 🇮🇳',
     readyText: 'تیار…',
     goText: 'چلو!',
@@ -160,7 +205,10 @@ export const COUNTDOWN_LANGUAGES: ReadonlyArray<CountdownLanguage> = [
     id: 'id',
     name: 'Indonesian',
     bcp47: 'id-ID',
-    speakersMillions: 200,
+    speakersMillions: 112,
+    rawTotalMillions: 200,
+    l1Millions: 44,
+    l2Millions: 156,
     flags: '🇮🇩',
     readyText: 'SIAP…',
     goText: 'MULAI!',
@@ -170,7 +218,10 @@ export const COUNTDOWN_LANGUAGES: ReadonlyArray<CountdownLanguage> = [
     id: 'de',
     name: 'German',
     bcp47: 'de-DE',
-    speakersMillions: 134,
+    speakersMillions: 88,
+    rawTotalMillions: 134,
+    l1Millions: 76,
+    l2Millions: 58,
     flags: '🇩🇪 🇦🇹 🇨🇭',
     readyText: 'BEREIT…',
     goText: 'LOS!',
@@ -180,7 +231,10 @@ export const COUNTDOWN_LANGUAGES: ReadonlyArray<CountdownLanguage> = [
     id: 'ja',
     name: 'Japanese',
     bcp47: 'ja-JP',
-    speakersMillions: 123,
+    speakersMillions: 118,
+    rawTotalMillions: 123,
+    l1Millions: 122,
+    l2Millions: 1,
     flags: '🇯🇵',
     readyText: '用意…',
     goText: '始め！',
@@ -190,7 +244,10 @@ export const COUNTDOWN_LANGUAGES: ReadonlyArray<CountdownLanguage> = [
     id: 'pcm',
     name: 'Nigerian Pidgin',
     bcp47: 'en-NG',
-    speakersMillions: 121,
+    speakersMillions: 46,
+    rawTotalMillions: 121,
+    l1Millions: 5,
+    l2Millions: 116,
     flags: '🇳🇬',
     readyText: 'OYA SET…',
     goText: 'OYA MOVE!',
@@ -200,7 +257,10 @@ export const COUNTDOWN_LANGUAGES: ReadonlyArray<CountdownLanguage> = [
     id: 'sw',
     name: 'Swahili',
     bcp47: 'sw-TZ',
-    speakersMillions: 121,
+    speakersMillions: 48,
+    rawTotalMillions: 121,
+    l1Millions: 16,
+    l2Millions: 105,
     flags: '🇹🇿 🇰🇪',
     readyText: 'TAYARI…',
     goText: 'TWENDE!',
@@ -210,7 +270,10 @@ export const COUNTDOWN_LANGUAGES: ReadonlyArray<CountdownLanguage> = [
     id: 'mr',
     name: 'Marathi',
     bcp47: 'mr-IN',
-    speakersMillions: 99,
+    speakersMillions: 68,
+    rawTotalMillions: 99,
+    l1Millions: 83,
+    l2Millions: 16,
     flags: '🇮🇳',
     readyText: 'तयार…',
     goText: 'सुरू!',
@@ -220,7 +283,10 @@ export const COUNTDOWN_LANGUAGES: ReadonlyArray<CountdownLanguage> = [
     id: 'te',
     name: 'Telugu',
     bcp47: 'te-IN',
-    speakersMillions: 96,
+    speakersMillions: 72,
+    rawTotalMillions: 96,
+    l1Millions: 83,
+    l2Millions: 13,
     flags: '🇮🇳',
     readyText: 'సిద్ధం…',
     goText: 'పద!',
@@ -230,7 +296,10 @@ export const COUNTDOWN_LANGUAGES: ReadonlyArray<CountdownLanguage> = [
     id: 'tr',
     name: 'Turkish',
     bcp47: 'tr-TR',
-    speakersMillions: 90,
+    speakersMillions: 80,
+    rawTotalMillions: 90,
+    l1Millions: 84,
+    l2Millions: 6,
     flags: '🇹🇷',
     readyText: 'HAZIR…',
     goText: 'BAŞLA!',
@@ -240,7 +309,10 @@ export const COUNTDOWN_LANGUAGES: ReadonlyArray<CountdownLanguage> = [
     id: 'ta',
     name: 'Tamil',
     bcp47: 'ta-IN',
-    speakersMillions: 87,
+    speakersMillions: 68,
+    rawTotalMillions: 87,
+    l1Millions: 79,
+    l2Millions: 8,
     flags: '🇮🇳 🇱🇰 🇸🇬',
     readyText: 'தயார்…',
     goText: 'போ!',
@@ -250,7 +322,10 @@ export const COUNTDOWN_LANGUAGES: ReadonlyArray<CountdownLanguage> = [
     id: 'yue',
     name: 'Yue Chinese (Cantonese)',
     bcp47: 'zh-HK',
-    speakersMillions: 86,
+    speakersMillions: 48,
+    rawTotalMillions: 86,
+    l1Millions: 85,
+    l2Millions: 1,
     flags: '🇭🇰 🇲🇴 🇨🇳',
     readyText: '準備…',
     goText: '去啦！',
@@ -260,7 +335,10 @@ export const COUNTDOWN_LANGUAGES: ReadonlyArray<CountdownLanguage> = [
     id: 'vi',
     name: 'Vietnamese',
     bcp47: 'vi-VN',
-    speakersMillions: 86,
+    speakersMillions: 81,
+    rawTotalMillions: 86,
+    l1Millions: 85,
+    l2Millions: 1,
     flags: '🇻🇳',
     readyText: 'SẴN SÀNG…',
     goText: 'BẮT ĐẦU!',
@@ -270,7 +348,10 @@ export const COUNTDOWN_LANGUAGES: ReadonlyArray<CountdownLanguage> = [
     id: 'ko',
     name: 'Korean',
     bcp47: 'ko-KR',
-    speakersMillions: 82,
+    speakersMillions: 77,
+    rawTotalMillions: 82,
+    l1Millions: 81,
+    l2Millions: 1,
     flags: '🇰🇷',
     readyText: '준비…',
     goText: '시작!',
@@ -287,11 +368,12 @@ let lastPickedId: CountdownLanguage['id'] | null = null;
 
 /**
  * Selects one of the 22 most spoken languages with probability strictly
- * linear in its total speaker population (`speakersMillions / 6758`, #262, #331, #333).
+ * linear in its `1/N` multilingual-adjusted person-equivalent weight
+ * (`speakersMillions / 4555`, #262, #331, #333, #366).
  *
  * - When a custom deterministic `rng` is supplied (unit tests, 2P Online seeds),
  *   uses direct linear quantile lookup against `TOTAL_COUNTDOWN_SPEAKERS_MILLIONS`.
- * - In interactive play (`rng === Math.random`), uses direct linear speaker-count
+ * - In interactive play (`rng === Math.random`), uses direct linear weight
  *   sampling with back-to-back anti-repeat (`l.id !== lastPickedId`).
  */
 export function pickCountdownLanguage(
