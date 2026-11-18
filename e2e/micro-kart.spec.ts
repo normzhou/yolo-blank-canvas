@@ -6,7 +6,7 @@ async function closeStub(stub: RunningStub) {
   await new Promise<void>((resolve) => stub.server.close(() => resolve()));
 }
 
-test('Micro Kart auto-accelerates with no keys pressed, steers/drifts with Left/Right to release Mini-Turbos, brakes on Down, and supports 2P Split-Screen (#344, #358, #360)', async ({
+test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Burst drivers, auto-throttle, turn Mini-Turbos, Down brake, and 2P Split-Screen (#344, #358, #360, #362, #364)', async ({
   page,
   errors,
 }) => {
@@ -17,7 +17,7 @@ test('Micro Kart auto-accelerates with no keys pressed, steers/drifts with Left/
     const card = page.getByTestId('deck-slide-card');
     await page.getByTestId('carousel-dot-micro-kart').click();
     await expect(card).toHaveAttribute('data-slide-id', 'micro-kart');
-    await expect(card).toHaveAttribute('data-game-version', '1.2.0');
+    await expect(card).toHaveAttribute('data-game-version', '1.3.0');
     await expect(page.locator('.deck-slide-title')).toHaveText('Micro Kart');
 
     await page.getByRole('button', { name: 'Play Micro Kart', exact: true }).click();
@@ -26,6 +26,7 @@ test('Micro Kart auto-accelerates with no keys pressed, steers/drifts with Left/
 
     const canvas = page.getByTestId('kart-canvas');
     await expect(canvas).toBeVisible();
+    await expect(canvas).toHaveAttribute('data-renderer', 'webgl2');
     await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });
     await expect(page.getByTestId('kart-circuit-label')).toHaveText('Sunset Loop');
     await expect(page.getByTestId('kart-p1-driver')).toHaveText('Ren');
@@ -88,6 +89,32 @@ test('Micro Kart auto-accelerates with no keys pressed, steers/drifts with Left/
     await expect(page.getByTestId('micro-kart-stage')).toHaveAttribute('data-mode', '2p-local');
     await expect(page.getByTestId('kart-p2-hud')).toBeVisible();
 
+    expect(errors).toEqual([]);
+  } finally {
+    await closeStub(stub);
+  }
+});
+
+test('Micro Kart falls back cleanly to the 2D canvas renderer when WebGL2 is unavailable (#364)', async ({
+  page,
+  errors,
+}) => {
+  const stub = await startStubApp();
+  try {
+    await page.goto(`${stub.base}?app=micro-kart&renderer=2d`);
+    const canvas = page.getByTestId('kart-canvas');
+    await expect(canvas).toBeVisible();
+    await expect(canvas).toHaveAttribute('data-renderer', 'canvas2d');
+    await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });
+
+    const has2DPixels = await canvas.evaluate((el) => {
+      const c = el as HTMLCanvasElement;
+      const ctx = c.getContext('2d');
+      if (!ctx || c.width < 300) return false;
+      const px = ctx.getImageData(Math.floor(c.width * 0.5), Math.floor(c.height * 0.65), 1, 1).data;
+      return px[3] === 255 && (px[0] > 0 || px[1] > 0 || px[2] > 0);
+    });
+    expect(has2DPixels).toBe(true);
     expect(errors).toEqual([]);
   } finally {
     await closeStub(stub);

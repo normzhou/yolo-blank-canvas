@@ -107,7 +107,7 @@ The registry (`src/client/apps/registry.ts`) is a first-party modular list — n
 remote plugin surface, iframe, or marketplace — where only lightweight menu descriptors
 (`src/games/<id>/descriptor.ts` and `src/games/<id>/package.json#version`) are compiled into the
 ~90 kB Home shell (#306). Each game's engine and view (`src/games/starlight-burst/entry.tsx` #181/#352,
-`src/games/prism-stack/entry.tsx` #4/#352, and `src/games/micro-kart/entry.tsx` #344/#358) compile into independent content-hashed ESM bundles
+`src/games/prism-stack/entry.tsx` #4/#352, and `src/games/micro-kart/entry.tsx` with static-VBO `WebGL2` Phong/Fresnel rendering + automatic 2D `<canvas>` fallback #344/#358/#364) compile into independent content-hashed ESM bundles
 (`/games/<id>-<hash>.js`, decoupled from `__CLIENT_BUILD__` so sibling-game or shell changes leave
 unchanged game hashes intact) indexed by `/games/manifest.json` (`schemaVersion: 1`, `{ id, version, hash, entry, chunks, sizeBytes }`).
 The Home menu loads `/games/manifest.json` (`Cache-Control: no-cache`) to track each game's required
