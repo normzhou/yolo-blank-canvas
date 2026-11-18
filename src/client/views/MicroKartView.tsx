@@ -60,6 +60,7 @@ import {
   updateChaseCamera,
   type ChaseCamera,
 } from '../../games/micro-kart/renderer3d';
+import { MicroKartWebGL2Renderer } from '../../games/micro-kart/rendererWebGL2';
 import { MicroKartSynth } from '../../games/micro-kart/kartAudio';
 
 const COUNTDOWN_READY_MS =
@@ -169,11 +170,27 @@ const CircuitMiniMap = memo(function CircuitMiniMap({
   );
 });
 
+function detectInitialRendererBackend(): 'webgl2' | 'canvas2d' {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return 'canvas2d';
+  const param = new URLSearchParams(window.location.search).get('renderer');
+  if (param === '2d' || param === 'canvas2d') return 'canvas2d';
+  try {
+    const probe = document.createElement('canvas');
+    const gl = probe.getContext('webgl2');
+    return gl ? 'webgl2' : 'canvas2d';
+  } catch {
+    return 'canvas2d';
+  }
+}
+
 export interface MicroKartViewProps {
   onExit: () => void;
 }
 
 export function MicroKartView({ onExit }: MicroKartViewProps) {
+  const [rendererBackend, setRendererBackend] = useState<'webgl2' | 'canvas2d'>(() =>
+    detectInitialRendererBackend(),
+  );
   const [circuitId, setCircuitId] = useState<CircuitId>('sunset-loop');
   const [p1Character, setP1Character] = useState<DriverCharacterId>('fox');
   const [localMode, setLocalMode] = useState<'1p' | '2p-local'>('1p');
@@ -236,6 +253,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
   const isSplit2P = effectiveMode === '2p-local';
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const webglRendererRef = useRef<MicroKartWebGL2Renderer | null>(null);
   const pauseMenuRef = useRef<HTMLDivElement | null>(null);
   const raceRef = useRef<KartRaceState>(createRaceState('sunset-loop', '1p', 1));
   const cam1Ref = useRef<ChaseCamera>(createChaseCamera());
@@ -685,6 +703,34 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     };
   }, [activeKartRoom, isOnline2P, isSplit2P]);
 
+  // WebGL2 renderer lifecycle (with automatic fallback to 2D canvas if unavailable or unrecoverable)
+  useEffect(() => {
+    if (rendererBackend !== 'webgl2') {
+      webglRendererRef.current?.dispose();
+      webglRendererRef.current = null;
+      return;
+    }
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    let fellBack = false;
+    const glRenderer = new MicroKartWebGL2Renderer(canvas, () => {
+      fellBack = true;
+      setRendererBackend('canvas2d');
+    });
+    if (!fellBack && glRenderer.isReady) {
+      webglRendererRef.current = glRenderer;
+    } else if (!fellBack) {
+      glRenderer.dispose();
+      setRendererBackend('canvas2d');
+    }
+    return () => {
+      glRenderer.dispose();
+      if (webglRendererRef.current === glRenderer) {
+        webglRendererRef.current = null;
+      }
+    };
+  }, [rendererBackend]);
+
   // Main 60fps 3D simulation & canvas render loop
   useEffect(() => {
     let rafId = 0;
@@ -747,7 +793,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         updateChaseCamera(cam2Ref.current, race.karts[1], Math.max(0.008, dtMs / 1000));
       }
 
-      // Render 3D viewport(s) onto Hi-DPI canvas
+      // Render 3D viewport(s) onto Hi-DPI canvas (WebGL2 primary, automatic 2D fallback)
       const canvas = canvasRef.current;
       if (canvas) {
         const rect = canvas.getBoundingClientRect();
@@ -760,30 +806,51 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
           canvas.width = targetW;
           canvas.height = targetH;
         }
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.save();
-          ctx.scale(dpr, dpr);
+
+        const glRenderer = rendererBackend === 'webgl2' ? webglRendererRef.current : null;
+        if (glRenderer && glRenderer.isReady) {
           if (isSplit2P) {
-            const halfH = Math.floor(cssH / 2);
-            renderKartViewport(ctx, race, 0, cam1Ref.current, 0, 0, cssW, halfH - 1, now);
-            renderKartViewport(
-              ctx,
+            const halfPx = Math.floor(targetH / 2);
+            glRenderer.renderViewport(race, 0, cam1Ref.current, 0, 0, targetW, halfPx - 1, now);
+            glRenderer.renderViewport(
               race,
               1,
               cam2Ref.current,
               0,
-              halfH + 1,
-              cssW,
-              cssH - halfH - 1,
+              halfPx + 1,
+              targetW,
+              targetH - halfPx - 1,
               now,
             );
-            ctx.fillStyle = '#070a10';
-            ctx.fillRect(0, halfH - 1, cssW, 2);
           } else {
-            renderKartViewport(ctx, race, focusSlot, cam1Ref.current, 0, 0, cssW, cssH, now);
+            glRenderer.renderViewport(race, focusSlot, cam1Ref.current, 0, 0, targetW, targetH, now);
           }
-          ctx.restore();
+        } else if (rendererBackend === 'canvas2d') {
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.save();
+            ctx.scale(dpr, dpr);
+            if (isSplit2P) {
+              const halfH = Math.floor(cssH / 2);
+              renderKartViewport(ctx, race, 0, cam1Ref.current, 0, 0, cssW, halfH - 1, now);
+              renderKartViewport(
+                ctx,
+                race,
+                1,
+                cam2Ref.current,
+                0,
+                halfH + 1,
+                cssW,
+                cssH - halfH - 1,
+                now,
+              );
+              ctx.fillStyle = '#070a10';
+              ctx.fillRect(0, halfH - 1, cssW, 2);
+            } else {
+              renderKartViewport(ctx, race, focusSlot, cam1Ref.current, 0, 0, cssW, cssH, now);
+            }
+            ctx.restore();
+          }
         }
       }
 
@@ -809,6 +876,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     overlayOpen,
     paused,
     readCurrentHumanInputs,
+    rendererBackend,
     syncHudFromRace,
   ]);
 
@@ -900,9 +968,11 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       onPointerCancel={handleStagePointerUp}
     >
       <canvas
+        key={rendererBackend}
         ref={canvasRef}
         className="kart-canvas"
         data-testid="kart-canvas"
+        data-renderer={rendererBackend}
         role="img"
         aria-label={`Micro Kart 3D circuit ${activeCircuit.name}, mode ${effectiveMode}`}
       />
