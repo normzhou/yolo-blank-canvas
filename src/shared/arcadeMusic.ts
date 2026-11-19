@@ -43,12 +43,12 @@ export const STARLIGHT_BURST_PLAYLIST: ReadonlyArray<Track> = [
   { id: 'starlight-track-5', title: 'Csikós Post & Gladiators Galop', src: 'audio/starlight-track-5.m4a' },
 ];
 
-/** Micro Kart high-energy classic-arcade racing playlist (~2 minutes per track, #372). */
+/** Micro Kart high-energy classic-arcade racing playlist (~2 minutes per track, #372, #374). */
 export const MICRO_KART_PLAYLIST: ReadonlyArray<Track> = [
-  { id: 'kart-track-1', title: 'Sunset Turbo & Bumblebee Drift', src: 'audio/kart-track-1.m4a' },
-  { id: 'kart-track-2', title: 'Canyon Stampede & Toreador Rush', src: 'audio/kart-track-2.m4a' },
-  { id: 'kart-track-3', title: 'Starlight Hyperdrive & Summer Presto', src: 'audio/kart-track-3.m4a' },
-  { id: 'kart-track-4', title: 'Carnival Sprint & Hungarian Friska', src: 'audio/kart-track-4.m4a' },
+  { id: 'kart-track-1', title: "Beethoven's 5th & Valkyries Turbo", src: 'audio/kart-track-1.m4a' },
+  { id: 'kart-track-2', title: 'Trepak Sprint & Carmen Overture', src: 'audio/kart-track-2.m4a' },
+  { id: 'kart-track-3', title: 'Eine Kleine Turbo & Barber of Seville', src: 'audio/kart-track-3.m4a' },
+  { id: 'kart-track-4', title: 'Toccata Hyperdrive & Badinerie', src: 'audio/kart-track-4.m4a' },
 ];
 
 /**

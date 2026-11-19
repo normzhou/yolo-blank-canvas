@@ -17,7 +17,7 @@ test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Bu
     const card = page.getByTestId('deck-slide-card');
     await page.getByTestId('carousel-dot-micro-kart').click();
     await expect(card).toHaveAttribute('data-slide-id', 'micro-kart');
-    await expect(card).toHaveAttribute('data-game-version', '1.5.0');
+    await expect(card).toHaveAttribute('data-game-version', '1.5.1');
     await expect(page.locator('.deck-slide-title')).toHaveText('Micro Kart');
 
     await page.getByRole('button', { name: 'Play Micro Kart', exact: true }).click();
@@ -61,6 +61,7 @@ test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Bu
     expect(boostSpeed).toBeGreaterThan(240);
 
     // 3. Down (`S` / `brake: true`) brakes cleanly and lights the Brake HUD pill!
+    await page.keyboard.down('ArrowDown');
     await page.evaluate(() => {
       window.dispatchEvent(
         new CustomEvent('yolo:kart:step', {
@@ -70,6 +71,7 @@ test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Bu
     });
     await expect(page.getByTestId('kart-p1-brake')).toHaveClass(/is-braking/);
     const brakedSpeed = parseInt((await page.getByTestId('kart-p1-speed').textContent()) ?? '0', 10);
+    await page.keyboard.up('ArrowDown');
     expect(brakedSpeed).toBeLessThan(boostSpeed - 40);
 
     // Pause -> switch Starlight Burst driver to Mochi (Cat), circuit to Canyon Crest, and 2P Split-Screen
