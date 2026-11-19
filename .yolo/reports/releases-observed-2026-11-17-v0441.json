@@ -1,0 +1,81 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-17",
+  "observed_at": "2026-11-17",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#374",
+  "releases": [
+    {
+      "tag": "v0.44.1",
+      "commit": "55c595a55bbc286d0733ba01cf2bdccd0d9f4bca"
+    }
+  ],
+  "release": {
+    "tag": "v0.44.1",
+    "commit": "55c595a55bbc286d0733ba01cf2bdccd0d9f4bca",
+    "source_commit": "9e72e32efbed9ad9fd8f8239874dbd1c38792b88",
+    "assets_commit": "7dd7bccdcd88f999309ffc9ae781ce1ced81f4ce",
+    "native_version": "0.44.1",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-17T23:55:00Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.44.1",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/375"
+  },
+  "build_identity": {
+    "server_build_id": "9e72e32efbed9ad9fd8f8239874dbd1c38792b88",
+    "client_build_id": "9e72e32efbed9ad9fd8f8239874dbd1c38792b88",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "30 files, 192 tests passed (including test/arcade-music.test.ts and test/ip-compliance.test.ts)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 50 passed (hardened ArrowDown brake check in e2e/micro-kart.spec.ts)",
+      "e2e_live": "npm run e2e:live — 5 passed (14.5s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.44.1 --no-open --port 4452 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (18.7s)",
+      "ci": "GitHub Actions CI/Test and type check green"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "58b8d060-f99e-4680-b060-58507a213ca1",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.44.1",
+      "observed_build_id": "9e72e32efbed9ad9fd8f8239874dbd1c38792b88",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.2.0",
+          "entry": "/games/starlight-burst-CWEqozIn.js",
+          "hash": "b16455254b1291bc086708bce53836e461a35c162b22d5cfbd59df9d6c6ad043",
+          "sizeBytes": 86740
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-BokxUxLe.js",
+          "hash": "da384fc6cfe77fef1a8bedcbbd0419e784b8da17900aae0f85a75a3ad28dcf4c",
+          "sizeBytes": 37312
+        },
+        "micro-kart": {
+          "version": "1.5.1",
+          "entry": "/games/micro-kart-FWpLZhFI.js",
+          "hash": "2368fe93fdf0e17f9115c1fa956ae77959b871b8e2e497eb037b8ccf1a3e8c0e",
+          "sizeBytes": 89854
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Replaces the 4 Micro Kart soundtrack tracks (@yolo-arcade/game-micro-kart@1.5.1) with crisp, note-accurate 16-bit classic-arcade remixes of 8 universally recognizable pre-1925 public-domain melodies: Beethoven's 5th & Ride of the Valkyries, Trepak & Carmen Overture, Eine Kleine Nachtmusik & Barber of Seville, and Toccata in D Minor & Badinerie."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #374"
+}
