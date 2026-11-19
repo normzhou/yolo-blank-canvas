@@ -3330,9 +3330,13 @@ button.passkey-handoff-copy-btn:hover {
   gap: 14px;
   padding: 7px 14px;
   border-radius: var(--radius);
-  background: var(--yolo-fab-bg);
+  background: color-mix(in srgb, var(--stage-well) 78%, transparent);
   color: var(--stage-text);
   backdrop-filter: blur(8px);
+}
+.kart-telemetry-card .stage-eyebrow {
+  color: var(--stage-text);
+  opacity: 0.74;
 }
 
 .kart-place-badge {
