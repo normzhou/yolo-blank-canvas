@@ -119,11 +119,11 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
         <svg className="deck-preview-svg" viewBox="0 0 220 180" aria-hidden="true">
           <defs>
             <linearGradient id="deck-kart-sky" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="var(--stage-bg)" />
-              <stop offset="100%" stopColor="var(--prism-6)" stopOpacity="0.82" />
+              <stop offset="0%" stopColor="var(--prism-5)" />
+              <stop offset="100%" stopColor="var(--prism-4)" stopOpacity="0.88" />
             </linearGradient>
           </defs>
-          {/* Sunset horizon sky & low-poly mountain silhouette */}
+          {/* Sunny coastal sky, fluffy clouds & rolling pastel hills */}
           <defs>
             <clipPath id="deck-kart-clip">
               <rect x="14" y="10" width="192" height="158" rx="7" />
@@ -131,57 +131,66 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
           </defs>
           <g clipPath="url(#deck-kart-clip)">
             <rect x="14" y="10" width="192" height="76" fill="url(#deck-kart-sky)" />
-            <polygon
-              points="14,86 42,58 68,74 98,46 128,70 158,50 184,68 206,56 206,86"
-              fill="var(--stage-surface)"
+            {/* Fluffy clouds + cheerful carnival balloon */}
+            <ellipse cx="48" cy="30" rx="16" ry="7" fill="var(--on-accent)" opacity="0.85" />
+            <ellipse cx="58" cy="28" rx="11" ry="6" fill="var(--on-accent)" opacity="0.85" />
+            <ellipse cx="164" cy="34" rx="15" ry="6.5" fill="var(--on-accent)" opacity="0.82" />
+            <ellipse cx="176" cy="32" rx="10" ry="5.5" fill="var(--on-accent)" opacity="0.82" />
+            <ellipse cx="136" cy="40" rx="6" ry="7.5" fill="var(--prism-1)" stroke="var(--stage-well)" strokeWidth="0.8" />
+            <path d="M 136 32.5 Q 139 40 136 47.5" fill="none" stroke="var(--prism-4)" strokeWidth="1.6" />
+            <rect x="134" y="48.5" width="4" height="3" fill="var(--prism-6)" />
+            <path
+              d="M 14 86 Q 48 56, 86 72 Q 124 48, 162 70 Q 186 58, 206 72 L 206 86 Z"
+              fill="var(--prism-2)"
+              opacity="0.62"
             />
-            {/* Emerald ground & sweeping 3D perspective asphalt track + red/white curbs */}
-            <rect x="14" y="86" width="192" height="82" fill="var(--stage-well)" />
-            <rect x="14" y="86" width="192" height="82" fill="var(--prism-3)" opacity="0.34" />
+            {/* Bright park meadow & sweeping perspective road with candy curbs */}
+            <rect x="14" y="86" width="192" height="82" fill="var(--prism-3)" />
             <polygon points="94,86 126,86 196,168 24,168" fill="var(--stage-surface)" />
             <polygon points="90,86 94,86 34,168 18,168" fill="var(--prism-1)" />
             <polygon points="126,86 130,86 202,168 186,168" fill="var(--prism-1)" />
             <polygon points="81,98 85,98 62,130 53,130" fill="var(--on-accent)" />
             <polygon points="135,98 139,98 167,130 158,130" fill="var(--on-accent)" />
-            <polygon points="103,104 117,104 123,115 97,115" fill="var(--prism-7)" opacity="0.9" />
+            <polygon points="103,104 117,104 123,115 97,115" fill="var(--prism-7)" opacity="0.95" />
             <line
               x1="110"
               y1="88"
               x2="110"
               y2="164"
-              stroke="var(--on-accent)"
+              stroke="var(--prism-4)"
               strokeWidth="2"
               strokeDasharray="6 6"
-              opacity="0.65"
+              opacity="0.85"
             />
-            {/* Rival Berry-Pink Bunny (Momo) ahead */}
-            <g transform="translate(122, 108) scale(0.66)">
-              <rect x="-15" y="4" width="30" height="8" rx="2" fill="var(--prism-1)" stroke="var(--stage-well)" strokeWidth="1.2" />
-              {/* Tall pink bunny ears */}
-              <ellipse cx="-4" cy="-12" rx="2.3" ry="7.5" fill="var(--prism-1)" stroke="var(--stage-well)" strokeWidth="1" />
-              <ellipse cx="4" cy="-12" rx="2.3" ry="7.5" fill="var(--prism-1)" stroke="var(--stage-well)" strokeWidth="1" />
-              <circle cx="0" cy="-3" r="6" fill="var(--prism-1)" stroke="var(--stage-well)" strokeWidth="1" />
-              <circle cx="0" cy="4" r="3.4" fill="var(--on-accent)" stroke="var(--stage-well)" strokeWidth="0.9" />
+            {/* Rival Berry-Pink Bunny (Momo) with folded right ear in pastel-orchid toy kart */}
+            <g transform="translate(124, 108) scale(0.68)">
+              <rect x="-16" y="4" width="32" height="9" rx="4.5" fill="var(--prism-2)" stroke="var(--stage-well)" strokeWidth="1.2" />
+              <ellipse cx="-4.2" cy="-12.5" rx="2.4" ry="7.6" fill="var(--prism-1)" stroke="var(--stage-well)" strokeWidth="1" />
+              <path d="M 2 -6 C 1 -14, 5 -18, 9 -15 C 12 -12, 10 -8, 6 -9 Z" fill="var(--prism-1)" stroke="var(--stage-well)" strokeWidth="1" />
+              <circle cx="0" cy="-3" r="6.4" fill="var(--prism-1)" stroke="var(--stage-well)" strokeWidth="1" />
+              <circle cx="0" cy="4.2" r="3.6" fill="var(--on-accent)" stroke="var(--stage-well)" strokeWidth="0.9" />
             </g>
-            {/* Hero Ren the Fox in Open-Cockpit Cyan-Gold Twin-Winglet Kart */}
+            {/* Hero Ren the Fox in Chunky Toy Bumper-Kart with Pastel Roll-Hoop & Cartoon Tires */}
             <g className="deck-kart-hero" transform="translate(106, 141)">
-              <ellipse cx="0" cy="12" rx="24" ry="5" fill="var(--stage-well)" opacity="0.65" />
-              <rect x="-22" y="-1" width="6" height="11" rx="2" fill="var(--stage-well)" />
-              <rect x="16" y="-1" width="6" height="11" rx="2" fill="var(--stage-well)" />
-              {/* Twin side winglets */}
-              <polygon points="-16,2 -21,-6 -18,-6 -13,2" fill="var(--prism-4)" stroke="var(--stage-well)" strokeWidth="1" />
-              <polygon points="16,2 21,-6 18,-6 13,2" fill="var(--prism-4)" stroke="var(--stage-well)" strokeWidth="1" />
-              {/* Open-cockpit chassis */}
-              <polygon points="-16,9 16,9 12,-2 -12,-2" fill="var(--prism-7)" stroke="var(--stage-well)" strokeWidth="1.2" />
-              {/* Ren the Fox plush head + pointed fox ears + cobalt scarf + snow-tipped brush tail */}
-              <polygon points="-8,-10 -12,-19 -3,-13" fill="var(--prism-6)" stroke="var(--stage-well)" strokeWidth="1" />
-              <polygon points="8,-10 12,-19 3,-13" fill="var(--prism-6)" stroke="var(--stage-well)" strokeWidth="1" />
-              <ellipse cx="0" cy="-8" rx="7.5" ry="6.5" fill="var(--prism-6)" stroke="var(--stage-well)" strokeWidth="1.1" />
-              <path d="M -5 -2 L 5 -2 L 8 4 L 3 3 L -2 5 Z" fill="var(--prism-5)" stroke="var(--stage-well)" strokeWidth="0.8" />
-              <path d="M 0 2 Q 7 -1 11 -6 Q 13 -2 8 6 Z" fill="var(--prism-6)" stroke="var(--stage-well)" strokeWidth="0.9" />
-              <circle cx="10.5" cy="-4.5" r="2.6" fill="var(--on-accent)" stroke="var(--stage-well)" strokeWidth="0.8" />
-              <polygon points="-9,9 -5,9 -7,20" fill="var(--prism-4)" />
-              <polygon points="5,9 9,9 7,20" fill="var(--prism-7)" />
+              <ellipse cx="0" cy="13" rx="26" ry="5.5" fill="var(--stage-well)" opacity="0.48" />
+              {/* Chunky cartoon rear tires with sunny rim accents */}
+              <rect x="-24" y="-1" width="7.5" height="12.5" rx="3.2" fill="var(--stage-well)" />
+              <rect x="16.5" y="-1" width="7.5" height="12.5" rx="3.2" fill="var(--stage-well)" />
+              {/* Cheerful pastel rear roll-hoop arch */}
+              <path d="M -16 2 C -17 -7, 17 -7, 16 2" fill="none" stroke="var(--stage-well)" strokeWidth="4.4" strokeLinecap="round" />
+              <path d="M -16 2 C -17 -7, 17 -7, 16 2" fill="none" stroke="var(--prism-4)" strokeWidth="2.5" strokeLinecap="round" />
+              {/* Rounded toy bumper-kart body */}
+              <rect x="-17" y="-2" width="34" height="12" rx="5.5" fill="var(--prism-7)" stroke="var(--stage-well)" strokeWidth="1.2" />
+              <rect x="-18.5" y="7" width="37" height="4.2" rx="2.1" fill="var(--stage-well)" />
+              {/* Ren the Fox plush head + leaf fox ears + cobalt neckerchief + snow-tipped brush tail */}
+              <path d="M -8 -10 C -11 -16, -9 -20, -4 -18 C -2 -16, -2 -12, -3 -10 Z" fill="var(--prism-6)" stroke="var(--stage-well)" strokeWidth="1" />
+              <path d="M 8 -10 C 11 -16, 9 -20, 4 -18 C 2 -16, 2 -12, 3 -10 Z" fill="var(--prism-6)" stroke="var(--stage-well)" strokeWidth="1" />
+              <ellipse cx="0" cy="-8" rx="8.2" ry="6.8" fill="var(--prism-6)" stroke="var(--stage-well)" strokeWidth="1.1" />
+              <path d="M -5.5 -2 L 5.5 -2 L 8.5 4 L 3 3 L -2 5 Z" fill="var(--prism-5)" stroke="var(--stage-well)" strokeWidth="0.85" />
+              <path d="M 0 2 Q 7 -1 11.5 -6 Q 13.5 -2 8 6 Z" fill="var(--prism-6)" stroke="var(--stage-well)" strokeWidth="0.9" />
+              <circle cx="11" cy="-4.5" r="2.8" fill="var(--on-accent)" stroke="var(--stage-well)" strokeWidth="0.8" />
+              <polygon points="-9,10 -5,10 -7,20" fill="var(--prism-4)" />
+              <polygon points="5,10 9,10 7,20" fill="var(--prism-7)" />
             </g>
           </g>
           <rect
