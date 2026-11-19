@@ -1,0 +1,81 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-17",
+  "observed_at": "2026-11-17",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#372",
+  "releases": [
+    {
+      "tag": "v0.44.0",
+      "commit": "cd1bb42c4f7574ed956cae20ffb158990833b900"
+    }
+  ],
+  "release": {
+    "tag": "v0.44.0",
+    "commit": "cd1bb42c4f7574ed956cae20ffb158990833b900",
+    "source_commit": "9f97475da69eb3a304d8d091167c3fec343e7bd5",
+    "assets_commit": "180c148ab4130eb58fe5a65d3c2c3fe1065b7cba",
+    "native_version": "0.44.0",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-17T23:05:00Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.44.0",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/373"
+  },
+  "build_identity": {
+    "server_build_id": "9f97475da69eb3a304d8d091167c3fec343e7bd5",
+    "client_build_id": "9f97475da69eb3a304d8d091167c3fec343e7bd5",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "30 files, 192 tests passed (including test/arcade-music.test.ts verifying all 16 bundled tracks and test/ip-compliance.test.ts)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 50 passed",
+      "e2e_live": "npm run e2e:live — 5 passed (read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.44.0 --no-open --port 4451 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (17.7s)",
+      "ci": "GitHub Actions CI/Test and type check green"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "cedf04dc-8683-462c-9a53-e3e4a5fb47b4",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.44.0",
+      "observed_build_id": "9f97475da69eb3a304d8d091167c3fec343e7bd5",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.2.0",
+          "entry": "/games/starlight-burst-DuG2PtQH.js",
+          "hash": "95192bc99f2ce01a9495780e0c99f3e7f39f94a5698689cd9f7a2f35349161ed",
+          "sizeBytes": 86740
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-B5pyJjA9.js",
+          "hash": "85da062f468fa8286755d41422d8713667b3285491b8463f0c8b99550a90dde5",
+          "sizeBytes": 37312
+        },
+        "micro-kart": {
+          "version": "1.5.0",
+          "entry": "/games/micro-kart-Jeih_83U.js",
+          "hash": "26935759f2ece60e7eb66e9f2e6ec02d374a27bfcaa1705408917237b9c24737",
+          "sizeBytes": 89854
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Composes, synthesizes, masters, and integrates a dedicated 4-track high-energy classic-arcade racing soundtrack (MICRO_KART_PLAYLIST, 164-172 BPM stereo 44.1 kHz AAC-LC .m4a) for Micro Kart (@yolo-arcade/game-micro-kart@1.5.0), blending original arcade hooks with verified pre-1925 public-domain classical speed remixes (Flight of the Bumblebee, Toreador March & Hungarian Dance No. 5, Summer Presto, and Hungarian Rhapsody No. 2 Friska)."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #372"
+}

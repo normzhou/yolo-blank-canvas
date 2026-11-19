@@ -337,15 +337,16 @@
         "v0.42.2": "efa6c4bf91441eead38f4d4332544b0d041e3c28",
         "v0.43.0": "f94c2439ed45d280647e707946c0bdec27f8897f",
         "v0.43.1": "caac7e77797adb596cfe8ed520adff59cfbe967e",
-        "v0.43.2": "90d8f89140b9e7871f88f3465569957451b7eb86"
+        "v0.43.2": "90d8f89140b9e7871f88f3465569957451b7eb86",
+        "v0.43.3": "39858df4056045dd0d060e2ccff928a57788de61"
       },
       "published": {
-        "tag": "v0.43.3",
-        "commit": "39858df4056045dd0d060e2ccff928a57788de61",
-        "source_commit": "e546d77a4a2e405b1aee5ea89269e1720f630ab1",
-        "published_at": "2026-11-17T22:10:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-17-v0433.json",
-        "note": "Patch visual polish release (#370, PR #371). Re-styles Micro Kart (@yolo-arcade/game-micro-kart@1.4.0, 30.4 kB gzipped) with playful low-poly toy arcade bumper-karts, 100% Starlight Burst character consistency (Ren/Mochi/Koro/Momo with 16x10 Phong heads & 14-gon pinwheel tires), bright festive circuits (puffy clouds, hot-air balloons, carnival pennants, cartoon cacti, floating Starlight stars), and crisp sunny-sky HUD legibility; sibling bundles remain byte-unchanged; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 85e78b62-3a74-445e-8a42-425968055d89)."
+        "tag": "v0.44.0",
+        "commit": "cd1bb42c4f7574ed956cae20ffb158990833b900",
+        "source_commit": "9f97475da69eb3a304d8d091167c3fec343e7bd5",
+        "published_at": "2026-11-17T23:05:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-17-v0440.json",
+        "note": "Minor soundtrack release (#372, PR #373). Composes, synthesizes, and integrates a dedicated 4-track high-energy classic-arcade racing soundtrack (MICRO_KART_PLAYLIST, 164-172 BPM stereo 44.1 kHz AAC-LC .m4a) for Micro Kart (@yolo-arcade/game-micro-kart@1.5.0) blending original arcade hooks with verified pre-1925 public-domain classical speed remixes; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: cedf04dc-8683-462c-9a53-e3e4a5fb47b4)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -443,7 +444,8 @@
         ".yolo/reports/releases-observed-2026-11-17-v0430.json",
         ".yolo/reports/releases-observed-2026-11-17-v0431.json",
         ".yolo/reports/releases-observed-2026-11-17-v0432.json",
-        ".yolo/reports/releases-observed-2026-11-17-v0433.json"
+        ".yolo/reports/releases-observed-2026-11-17-v0433.json",
+        ".yolo/reports/releases-observed-2026-11-17-v0440.json"
       ]
     }
   },
