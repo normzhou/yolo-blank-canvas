@@ -401,40 +401,43 @@ function DeckPreviewGraphic({ appId }: { appId: string }) {
         <circle cx="110" cy="146" r="9.5" fill="var(--prism-7)" stroke="var(--text)" strokeWidth="1.1" />
         <ellipse cx="107" cy="142.8" rx="2.6" ry="1.5" transform="rotate(-28 107 142.8)" fill="var(--on-accent)" opacity="0.85" />
         {/* Cute Boy Fox (Ren) & Girl Cat (Mochi) companions flanking the Starlight Sling */}
-        <g transform="translate(72, 149)" stroke="var(--stage-well)" strokeWidth="0.95">
-          <path d="M -6 4 Q -13 2 -11 -5 Q -8 -7 -6 -2" fill="var(--prism-6)" />
-          <circle cx="-10.5" cy="-4.5" r="2.2" fill="var(--on-accent)" strokeWidth="0.7" />
-          <polygon points="-5,-10 -3,-16 0,-10" fill="var(--prism-6)" />
-          <polygon points="1,-10 4,-16 6,-10" fill="var(--prism-6)" />
-          <ellipse cx="0" cy="2" rx="6.5" ry="7" fill="var(--prism-6)" />
-          <ellipse cx="1.2" cy="3" rx="3.8" ry="4.5" fill="var(--on-accent)" stroke="none" opacity="0.92" />
-          <polygon points="-3.5,-1.5 4.2,-1.5 1.2,1.8" fill="var(--prism-5)" strokeWidth="0.7" />
-          <circle cx="0" cy="-6" r="5.8" fill="var(--prism-6)" />
-          <ellipse cx="0.6" cy="-4.3" rx="4.6" ry="2.2" fill="var(--on-accent)" stroke="none" opacity="0.92" />
-          <circle cx="-1" cy="-6.8" r="1.45" fill="var(--on-accent)" stroke="var(--stage-well)" strokeWidth="0.6" />
-          <circle cx="-0.8" cy="-6.8" r="0.85" fill="var(--stage-well)" stroke="none" />
-          <circle cx="2.5" cy="-6.8" r="1.45" fill="var(--on-accent)" stroke="var(--stage-well)" strokeWidth="0.6" />
-          <circle cx="2.7" cy="-6.8" r="0.85" fill="var(--stage-well)" stroke="none" />
+        <g transform="translate(72, 149)" stroke="var(--stage-well)" strokeWidth="0.9">
+          <path d="M -5.5 4.2 C -12.5 5.4, -14.8 -1.2, -11.2 -5.4 C -8.8 -7.8, -6.2 -5.2, -5.8 -1.2 Z" fill="var(--prism-6)" />
+          <path d="M -11.2 -5.2 C -8.8 -7.4, -6.6 -5.0, -7.2 -2.6 C -8.8 -2.8, -10.2 -3.6, -11.2 -5.2 Z" fill="var(--on-accent)" strokeWidth="0.65" />
+          <path d="M -5.4 -10.2 C -6.8 -14.8, -4.6 -17.8, -2.2 -17.2 C -0.4 -16.8, 0.2 -13.2, -0.2 -10.6 Z" fill="var(--prism-6)" />
+          <path d="M 1.0 -10.6 C 1.2 -13.2, 2.2 -16.8, 4.2 -17.2 C 6.4 -17.8, 7.8 -14.8, 6.2 -10.2 Z" fill="var(--prism-6)" />
+          <ellipse cx="0.4" cy="2.2" rx="6.2" ry="6.8" fill="var(--prism-6)" />
+          <ellipse cx="0.8" cy="3.0" rx="3.7" ry="4.4" fill="var(--on-accent)" stroke="none" opacity="0.94" />
+          <polygon points="-3.6,-1.6 4.4,-1.6 0.6,2.0" fill="var(--prism-5)" strokeWidth="0.68" />
+          <path d="M -5.8 -6.6 C -6.0 -11.2, -3.0 -12.6, 0.4 -12.6 C 3.8 -12.6, 6.8 -11.2, 6.6 -6.6 C 7.4 -2.8, 4.8 -0.8, 0.4 -0.8 C -4.0 -0.8, -6.6 -2.8, -5.8 -6.6 Z" fill="var(--prism-6)" />
+          <path d="M -5.4 -4.6 C -3.0 -5.6, -1.0 -5.0, 0.4 -5.6 C 1.8 -5.0, 3.8 -5.6, 6.2 -4.6 C 5.4 -1.8, 3.4 -0.9, 0.4 -0.9 C -2.6 -0.9, -4.6 -1.8, -5.4 -4.6 Z" fill="var(--on-accent)" stroke="none" opacity="0.94" />
+          <ellipse cx="-2.4" cy="-6.6" rx="1.45" ry="1.75" fill="var(--stage-well)" stroke="none" />
+          <circle cx="-2.9" cy="-7.2" r="0.62" fill="var(--on-accent)" stroke="none" />
+          <ellipse cx="3.2" cy="-6.6" rx="1.45" ry="1.75" fill="var(--stage-well)" stroke="none" />
+          <circle cx="2.7" cy="-7.2" r="0.62" fill="var(--on-accent)" stroke="none" />
+          <ellipse cx="-4.2" cy="-4.6" rx="1.35" ry="0.8" fill="var(--prism-1)" stroke="none" opacity="0.68" />
+          <ellipse cx="5.0" cy="-4.6" rx="1.35" ry="0.8" fill="var(--prism-1)" stroke="none" opacity="0.68" />
+          <path d="M -1.0 -3.8 Q -0.2 -2.9, 0.4 -3.6 Q 1.0 -2.9, 1.8 -3.8" fill="none" stroke="var(--stage-well)" strokeWidth="0.7" strokeLinecap="round" />
         </g>
-        <g transform="translate(148, 149)" stroke="var(--stage-well)" strokeWidth="0.95">
-          <path d="M 6 4 Q 12 2 11 -4" fill="none" stroke="var(--stage-well)" strokeWidth="3.2" strokeLinecap="round" />
-          <path d="M 6 4 Q 12 2 11 -4" fill="none" stroke="var(--prism-2)" strokeWidth="2.1" strokeLinecap="round" />
-          <polygon points="-4,-10 -2,-15 1,-10" fill="var(--prism-2)" />
-          <polygon points="1,-10 4,-15 6,-10" fill="var(--prism-2)" />
-          <ellipse cx="0" cy="2" rx="6.5" ry="7" fill="var(--prism-2)" />
-          <ellipse cx="-1.2" cy="3" rx="3.8" ry="4.5" fill="var(--on-accent)" stroke="none" opacity="0.92" />
-          <circle cx="0" cy="-6" r="5.8" fill="var(--prism-2)" />
-          <ellipse cx="3.0" cy="-11.0" rx="2.0" ry="1.1" transform="rotate(-15 3.0 -11.0)" fill="var(--prism-1)" strokeWidth="0.65" />
-          <ellipse cx="5.8" cy="-9.8" rx="2.0" ry="1.1" transform="rotate(28 5.8 -9.8)" fill="var(--prism-1)" strokeWidth="0.65" />
-          <circle cx="4.4" cy="-10.3" r="0.95" fill="var(--prism-4)" strokeWidth="0.6" />
-          <line x1="-3.7" y1="-7.6" x2="-4.8" y2="-8.6" stroke="var(--stage-well)" strokeWidth="0.75" />
-          <line x1="2.4" y1="-7.6" x2="3.5" y2="-8.6" stroke="var(--stage-well)" strokeWidth="0.75" />
-          <circle cx="-2.4" cy="-6.8" r="1.45" fill="var(--on-accent)" stroke="var(--stage-well)" strokeWidth="0.6" />
-          <circle cx="-2.6" cy="-6.8" r="0.85" fill="var(--stage-well)" stroke="none" />
-          <circle cx="1.1" cy="-6.8" r="1.45" fill="var(--on-accent)" stroke="var(--stage-well)" strokeWidth="0.6" />
-          <circle cx="0.9" cy="-6.8" r="0.85" fill="var(--stage-well)" stroke="none" />
-          <ellipse cx="-3.9" cy="-5.1" rx="1.25" ry="0.75" fill="var(--prism-1)" stroke="none" opacity="0.75" />
-          <ellipse cx="2.5" cy="-5.1" rx="1.25" ry="0.75" fill="var(--prism-1)" stroke="none" opacity="0.75" />
+        <g transform="translate(148, 149)" stroke="var(--stage-well)" strokeWidth="0.9">
+          <path d="M 5.8 4.2 Q 12.6 2.6, 11.4 -4.2" fill="none" stroke="var(--stage-well)" strokeWidth="3.2" strokeLinecap="round" />
+          <path d="M 5.8 4.2 Q 12.6 2.6, 11.4 -4.2" fill="none" stroke="var(--prism-2)" strokeWidth="2.0" strokeLinecap="round" />
+          <path d="M -5.4 -10.0 C -6.4 -14.2, -4.4 -16.8, -2.2 -16.4 C -0.4 -16.0, 0.2 -12.8, -0.2 -10.4 Z" fill="var(--prism-2)" />
+          <path d="M 1.0 -10.4 C 1.2 -12.8, 2.2 -16.0, 4.2 -16.4 C 6.4 -16.8, 7.6 -14.2, 6.2 -10.0 Z" fill="var(--prism-2)" />
+          <ellipse cx="0.2" cy="2.2" rx="6.2" ry="6.8" fill="var(--prism-2)" />
+          <ellipse cx="-0.2" cy="3.0" rx="3.7" ry="4.4" fill="var(--on-accent)" stroke="none" opacity="0.94" />
+          <circle cx="0.2" cy="-0.4" r="1.4" fill="var(--prism-4)" strokeWidth="0.65" />
+          <path d="M -6.0 -6.6 C -6.2 -11.2, -3.2 -12.6, 0.2 -12.6 C 3.6 -12.6, 6.6 -11.2, 6.4 -6.6 C 7.2 -2.8, 4.6 -0.8, 0.2 -0.8 C -4.2 -0.8, -6.8 -2.8, -6.0 -6.6 Z" fill="var(--prism-2)" />
+          <ellipse cx="3.0" cy="-11.4" rx="2.1" ry="1.2" transform="rotate(-16 3.0 -11.4)" fill="var(--prism-1)" strokeWidth="0.65" />
+          <ellipse cx="5.9" cy="-10.2" rx="2.1" ry="1.2" transform="rotate(26 5.9 -10.2)" fill="var(--prism-1)" strokeWidth="0.65" />
+          <circle cx="4.5" cy="-10.8" r="1.0" fill="var(--prism-4)" strokeWidth="0.6" />
+          <ellipse cx="-2.8" cy="-6.6" rx="1.45" ry="1.75" fill="var(--stage-well)" stroke="none" />
+          <circle cx="-3.3" cy="-7.2" r="0.62" fill="var(--on-accent)" stroke="none" />
+          <ellipse cx="2.8" cy="-6.6" rx="1.45" ry="1.75" fill="var(--stage-well)" stroke="none" />
+          <circle cx="2.3" cy="-7.2" r="0.62" fill="var(--on-accent)" stroke="none" />
+          <ellipse cx="-4.6" cy="-4.6" rx="1.45" ry="0.85" fill="var(--prism-1)" stroke="none" opacity="0.78" />
+          <ellipse cx="4.6" cy="-4.6" rx="1.45" ry="0.85" fill="var(--prism-1)" stroke="none" opacity="0.78" />
+          <path d="M -1.4 -3.8 Q -0.6 -2.9, 0.0 -3.6 Q 0.6 -2.9, 1.4 -3.8" fill="none" stroke="var(--stage-well)" strokeWidth="0.7" strokeLinecap="round" />
         </g>
       </svg>
       <div className="deck-preview-hud">
