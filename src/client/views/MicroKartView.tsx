@@ -32,7 +32,7 @@ import {
   pickCountdownLanguage,
   type CountdownLanguage,
 } from '../../shared/countdownLanguages';
-import { STARLIGHT_BURST_PLAYLIST } from '../../shared/arcadeMusic';
+import { MICRO_KART_PLAYLIST } from '../../shared/arcadeMusic';
 import {
   applyRemoteKartSnapshot,
   CIRCUIT_LIST,
@@ -372,7 +372,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
   // Audio & shared pause subscriptions
   useEffect(() => {
     const audio = getSharedArcadeAudio();
-    audio.setPlaylist(STARLIGHT_BURST_PLAYLIST);
+    audio.setPlaylist(MICRO_KART_PLAYLIST);
     if (getSharedMusicOn()) {
       audio.setActive(true);
     }
@@ -1333,7 +1333,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                   data-testid="pause-menu-music-btn"
                   aria-pressed={musicOn}
                   onClick={() => {
-                    getSharedArcadeAudio().setPlaylist(STARLIGHT_BURST_PLAYLIST);
+                    getSharedArcadeAudio().setPlaylist(MICRO_KART_PLAYLIST);
                     setSharedMusicOn(!musicOn, true);
                   }}
                 >

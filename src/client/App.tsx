@@ -42,6 +42,7 @@ import { useGameBundleSnapshot } from './gameBundles';
 import { getSharedNetplay, type NetplayState } from './netplay';
 import { BACKGROUNDS } from '../shared/stageBackdrops';
 import {
+  MICRO_KART_PLAYLIST,
   PRISM_STACK_PLAYLIST,
   SELECTOR_PLAYLIST,
   STARLIGHT_BURST_PLAYLIST,
@@ -914,11 +915,13 @@ export function App() {
   useEffect(() => {
     const audio = getSharedArcadeAudio();
     const targetPlaylist =
-      activeMusicGameId === 'starlight-burst'
-        ? STARLIGHT_BURST_PLAYLIST
-        : activeMusicGameId === 'prism-stack'
-          ? PRISM_STACK_PLAYLIST
-          : SELECTOR_PLAYLIST;
+      activeMusicGameId === 'micro-kart'
+        ? MICRO_KART_PLAYLIST
+        : activeMusicGameId === 'starlight-burst'
+          ? STARLIGHT_BURST_PLAYLIST
+          : activeMusicGameId === 'prism-stack'
+            ? PRISM_STACK_PLAYLIST
+            : SELECTOR_PLAYLIST;
     audio.setPlaylist(targetPlaylist);
     if (appId === null) {
       audio.setActive(getSharedMusicOn());
@@ -1470,11 +1473,13 @@ export function App() {
             }
             onClick={() => {
               const targetPlaylist =
-                activeMusicGameId === 'starlight-burst'
-                  ? STARLIGHT_BURST_PLAYLIST
-                  : activeMusicGameId === 'prism-stack'
-                    ? PRISM_STACK_PLAYLIST
-                    : SELECTOR_PLAYLIST;
+                activeMusicGameId === 'micro-kart'
+                  ? MICRO_KART_PLAYLIST
+                  : activeMusicGameId === 'starlight-burst'
+                    ? STARLIGHT_BURST_PLAYLIST
+                    : activeMusicGameId === 'prism-stack'
+                      ? PRISM_STACK_PLAYLIST
+                      : SELECTOR_PLAYLIST;
               getSharedArcadeAudio().setPlaylist(targetPlaylist);
               setSharedMusicOn(!musicOn, true);
             }}
