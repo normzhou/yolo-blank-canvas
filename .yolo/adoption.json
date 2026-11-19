@@ -335,15 +335,16 @@
         "v0.42.0": "4825348150fc513cd6ff5a5a5738b14ec358ea7d",
         "v0.42.1": "7d5a694ebb07c0acd1f974efcbb0072c146c270a",
         "v0.42.2": "efa6c4bf91441eead38f4d4332544b0d041e3c28",
-        "v0.43.0": "f94c2439ed45d280647e707946c0bdec27f8897f"
+        "v0.43.0": "f94c2439ed45d280647e707946c0bdec27f8897f",
+        "v0.43.1": "caac7e77797adb596cfe8ed520adff59cfbe967e"
       },
       "published": {
-        "tag": "v0.43.1",
-        "commit": "caac7e77797adb596cfe8ed520adff59cfbe967e",
-        "source_commit": "e35db0acb195f1479f31a82c8d8f34d918ba2632",
-        "published_at": "2026-11-17T19:37:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-17-v0431.json",
-        "note": "Patch countdown weighting release (#366, PR #367). Rebalances the 22-language Ready/Go countdown probabilities from raw L1+L2 totals (6,758M) to 1/N global multilingual person-equivalent weights (4,555M) so speakers of k languages (including non-top-22 local languages) count 1/k per spoken language while preserving all 22 languages; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 7e0b7aff-07eb-4663-b87b-e57e2d32856c)."
+        "tag": "v0.43.2",
+        "commit": "90d8f89140b9e7871f88f3465569957451b7eb86",
+        "source_commit": "4568922ad78b2398571c145afca48c8457df9205",
+        "published_at": "2026-11-17T21:00:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-17-v0432.json",
+        "note": "Patch character art & animation release (#368, PR #369). Delivers a 3-pass closed-loop storybook-plush artistic redesign of all 8 Starlight Burst companions (@yolo-arcade/game-starlight-burst@2.2.0) and Home preview mascots with squishy pear silhouettes, wide-set glossy kawaii jewel eyes, airbrushed radial rosy cheeks, twinkling Star-Wand, and lively squash-and-stretch animations; sibling bundles remain byte-unchanged; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 039a1a71-2f28-486e-9e34-c75e87a61e59)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -439,7 +440,8 @@
         ".yolo/reports/releases-observed-2026-11-17-v0421.json",
         ".yolo/reports/releases-observed-2026-11-17-v0422.json",
         ".yolo/reports/releases-observed-2026-11-17-v0430.json",
-        ".yolo/reports/releases-observed-2026-11-17-v0431.json"
+        ".yolo/reports/releases-observed-2026-11-17-v0431.json",
+        ".yolo/reports/releases-observed-2026-11-17-v0432.json"
       ]
     }
   },

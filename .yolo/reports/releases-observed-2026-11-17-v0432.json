@@ -1,0 +1,81 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-17",
+  "observed_at": "2026-11-17",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#368",
+  "releases": [
+    {
+      "tag": "v0.43.2",
+      "commit": "90d8f89140b9e7871f88f3465569957451b7eb86"
+    }
+  ],
+  "release": {
+    "tag": "v0.43.2",
+    "commit": "90d8f89140b9e7871f88f3465569957451b7eb86",
+    "source_commit": "4568922ad78b2398571c145afca48c8457df9205",
+    "assets_commit": "233ed3c354547182045b11540d5af47edd06ca65",
+    "native_version": "0.43.2",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-17T21:00:00Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.43.2",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/369"
+  },
+  "build_identity": {
+    "server_build_id": "4568922ad78b2398571c145afca48c8457df9205",
+    "client_build_id": "4568922ad78b2398571c145afca48c8457df9205",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "30 files, 192 tests passed (including test/starlight-burst.test.ts and test/ip-compliance.test.ts)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 50 passed",
+      "e2e_live": "npm run e2e:live — 5 passed (13.1s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.43.2 --no-open --port 4449 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (17.3s)",
+      "ci": "GitHub Actions CI/Test and type check green"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "039a1a71-2f28-486e-9e34-c75e87a61e59",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.43.2",
+      "observed_build_id": "4568922ad78b2398571c145afca48c8457df9205",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.2.0",
+          "entry": "/games/starlight-burst-DDKq0FDP.js",
+          "hash": "bf8e16267ceb951e1c05c0aefe6359e3a2d030fa70fb4701a8e19a48107844de",
+          "sizeBytes": 86740
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-03UfQ4Az.js",
+          "hash": "b694c3b723da1ca0c1f42c8cce99d586b1dacf40ce9a739cdf514642ed0c6e20",
+          "sizeBytes": 37312
+        },
+        "micro-kart": {
+          "version": "1.3.1",
+          "entry": "/games/micro-kart-_vKtHdgR.js",
+          "hash": "1878026b85af617cb303803f40a9f3fa6aa0d549341351aa06e229b8260be184",
+          "sizeBytes": 86677
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Delivers a 3-pass closed-loop storybook-plush redesign of all 8 Starlight Burst companions (@yolo-arcade/game-starlight-burst@2.2.0) and Home card previews with squishy pear-mochi silhouettes, soulful glossy kawaii jewel eyes, airbrushed radial rosy cheeks, folded bunny ear tips, happy puppy blep tongues, tucked plush channeling paws + twinkling Star-Wand, and lively squash-and-stretch animations (independent head sway, asymmetric ear wiggles, firing pop, floating hearts, and starry-eyed celebration jumps)."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #368"
+}
