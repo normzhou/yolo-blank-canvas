@@ -86,8 +86,8 @@ export class MicroKartSynth {
     }
 
     const now = ctx.currentTime;
-    const normSpeed = Math.min(1.35, speed / 76);
-    const baseHz = 56 + normSpeed * 112 + (boosting ? 28 : 0);
+    const normSpeed = Math.min(1.35, speed / 100);
+    const baseHz = 56 + normSpeed * 118 + (boosting ? 28 : 0);
     this.engineOsc.frequency.setTargetAtTime(baseHz, now, 0.04);
     this.subOsc.frequency.setTargetAtTime(baseHz * 0.5, now, 0.04);
     this.engineFilter.frequency.setTargetAtTime(

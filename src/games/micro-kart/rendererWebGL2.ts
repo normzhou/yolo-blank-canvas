@@ -1889,32 +1889,11 @@ export class MicroKartWebGL2Renderer {
       if (this.flameMesh) {
         const flicker = 0.86 + Math.sin(timeMs * 0.045 + kart.slot) * 0.18;
         const isBoosting = kart.boostTimer > 0;
-        const throttleScale = kart.braking ? 0 : Math.min(1, 0.24 + kart.speed / 38);
+        const speedBase = Math.min(1, 0.3 + kart.speed / 45);
+        const boostGain = isBoosting ? 1.55 : 1.15;
         const powers: ReadonlyArray<[number, number]> = [
-          [
-            -0.49,
-            isBoosting
-              ? 1.55
-              : kart.braking
-                ? 0
-                : kart.leftThruster && kart.rightThruster
-                  ? 1.0 * throttleScale
-                  : kart.leftThruster
-                    ? 1.15 * throttleScale
-                    : 0.28 * throttleScale,
-          ],
-          [
-            0.49,
-            isBoosting
-              ? 1.55
-              : kart.braking
-                ? 0
-                : kart.leftThruster && kart.rightThruster
-                  ? 1.0 * throttleScale
-                  : kart.rightThruster
-                    ? 1.15 * throttleScale
-                    : 0.28 * throttleScale,
-          ],
+          [-0.49, kart.leftThrottle * boostGain * (isBoosting ? 1 : speedBase)],
+          [0.49, kart.rightThrottle * boostGain * (isBoosting ? 1 : speedBase)],
         ];
         const [fr, fg, fb] = isBoosting
           ? kart.boostKind === 'ultra'

@@ -87,6 +87,12 @@ export interface ThrusterInput {
   readonly left: boolean;
   readonly right: boolean;
   readonly brake?: boolean;
+  /**
+   * Optional continuous analog steering in `-1 .. +1` (used by touchscreen drag slider
+   * and AI pilots): `-1` cuts left thruster to 0%, `0` fires both at 100%, `+1` cuts
+   * right thruster to 0%.
+   */
+  readonly steerAnalog?: number;
 }
 
 export interface SceneryProp {
@@ -219,8 +225,15 @@ export interface KartState {
   driftYaw: number;
   /** Visual chassis roll in radians. */
   bodyRoll: number;
-  /** Forward ground speed in m/s. */
+  /** Forward ground speed in m/s (`v_fwd`, signed projection along kart heading). */
   speed: number;
+  /** World horizontal velocity components in m/s (rigid-body 2D momentum). */
+  vx: number;
+  vz: number;
+  /** Angular yaw velocity in rad/s (`+` turning right, `-` turning left). */
+  yawRate: number;
+  /** Signed lateral slip speed in m/s relative to kart right vector (`+` sliding right). */
+  lateralSlip: number;
   /** Nearest spline arc-length coordinate `0 .. totalLength`. */
   s: number;
   /** Signed lateral offset from track centerline (`-` left, `+` right). */
@@ -230,6 +243,9 @@ export interface KartState {
   /** Unwrapped monotonic arc distance traveled since race start. */
   unwrappedS: number;
   maxUnwrappedS: number;
+  /** Continuous left/right thruster output levels (`0.0 .. 1.0`). */
+  leftThrottle: number;
+  rightThrottle: number;
   leftThruster: boolean;
   rightThruster: boolean;
   braking: boolean;
@@ -277,6 +293,12 @@ export interface KartNetSnapshot {
   driftYaw: number;
   bodyRoll: number;
   speed: number;
+  vx?: number;
+  vz?: number;
+  yawRate?: number;
+  lateralSlip?: number;
+  leftThrottle?: number;
+  rightThrottle?: number;
   s: number;
   lat: number;
   lap: number;
@@ -292,9 +314,42 @@ export interface KartNetSnapshot {
 
 export const TOTAL_LAPS = 3;
 export const TRACK_SEGMENTS = 192;
-export const MAX_STRAIGHT_SPEED = 76;
-export const MAX_DRIFT_SPEED = 66;
-export const MAX_BOOST_SPEED = 102;
+
+// F1-calibrated dual-thruster rigid-body physics constants (#384):
+// - Mass m = 800 kg, F1 top speed v_max = 100 m/s (360 km/h)
+// - In zero air drag, full dual thrust reaches v_max in exactly 3.0 seconds
+// - Quadratic aero drag + rolling resistance equilibrate full dual thrust at v_max = 100 m/s
+export const KART_MASS_KG = 800;
+export const GRAVITY_MPS2 = 9.81;
+export const MAX_STRAIGHT_SPEED = 100;
+export const VACUUM_ACCEL_TIME_SEC = 3.0;
+export const MAX_TOTAL_THRUST_N = (KART_MASS_KG * MAX_STRAIGHT_SPEED) / VACUUM_ACCEL_TIME_SEC;
+export const PER_THRUSTER_MAX_N = MAX_TOTAL_THRUST_N * 0.5;
+export const ASPHALT_ROLLING_DRAG_N = 480;
+export const AERO_DRAG_COEFF =
+  (MAX_TOTAL_THRUST_N - ASPHALT_ROLLING_DRAG_N) / (MAX_STRAIGHT_SPEED * MAX_STRAIGHT_SPEED);
+export const BRAKE_FORCE_N = 38_000;
+export const OFFROAD_EXTRA_DRAG_N = 14_000;
+
+/** Linear ramp time (seconds) for keyboard 100% <-> 0% thruster modulation (PWM-friendly). */
+export const THRUSTER_RAMP_SEC = 0.65;
+export const ANALOG_RAMP_SEC = 0.06;
+export const BRAKE_CUT_RAMP_SEC = 0.12;
+
+// Rotational dynamics (differential thrust torque vs angular inertia & yaw damping)
+export const THRUSTER_HALF_SPAN_M = 0.78;
+export const KART_YAW_INERTIA = 1350;
+export const YAW_DAMPING = 4800;
+
+// Lateral tire friction + F1 speed-squared aerodynamic downforce (grippy F1 feel, moderate slide when overspeeding)
+export const TIRE_LATERAL_MU = 3.6;
+export const AERO_DOWNFORCE_COEFF = 0.0052;
+export const TIRE_CORNERING_STIFFNESS = 12.5;
+export const SLIP_SELF_ALIGN_TORQUE = 120;
+
+/** Approximate single-thruster equilibrium (~71% top speed) & boosted equilibrium (~128 m/s). */
+export const MAX_DRIFT_SPEED = Math.round(MAX_STRAIGHT_SPEED * Math.SQRT1_2);
+export const MAX_BOOST_SPEED = 128;
 export const MINI_TURBO_CHARGE_SEC = 0.42;
 export const ULTRA_TURBO_CHARGE_SEC = 1.1;
 
@@ -335,21 +390,20 @@ const CIRCUIT_SPECS: readonly CircuitSpec[] = [
     id: 'sunset-loop',
     name: 'Sunset Loop',
     subtitle: 'Wide coastal sweepers & rolling crests',
-    roadHalfWidth: 14.5,
-    // Driven clockwise as u increases: x = R(u)*sin(u), z = R(u)*cos(u) -> wait:
-    // At u = 0: x = 0, z = R(0). dx/du = R(0) > 0 (+x), so at u=0 tangent points +x (yaw = pi/2).
-    // If instead x = -R(u)*cos(u), z = R(u)*sin(u): at u = 0, x = -R(0), z = 0, dx/du = 0, dz/du = +R(0) (yaw = 0, straight +z!).
+    roadHalfWidth: 16.5,
+    // Driven clockwise as u increases: x = -R(u)*cos(u), z = R(u)*sin(u) -> at u=0 tangent points +z (yaw = 0).
+    // Scaled ~1.35x for 360 km/h F1 thruster speeds & smooth lateral slides (~1,740m lap).
     evalPoint: (u) => {
-      const r = 185 + 28 * Math.sin(2 * u + 0.4) + 18 * Math.cos(3 * u - 0.3);
+      const r = 250 + 36 * Math.sin(2 * u + 0.4) + 22 * Math.cos(3 * u - 0.3);
       return {
         x: -r * Math.cos(u),
-        y: 6.5 * Math.sin(2 * u) + 3.5 * Math.cos(3 * u + 0.6),
+        y: 8.5 * Math.sin(2 * u) + 4.5 * Math.cos(3 * u + 0.6),
         z: r * Math.sin(u) * 1.18,
       };
     },
     boostSegments: [
-      { seg: 28, lat: -3.5 },
-      { seg: 92, lat: 3.5 },
+      { seg: 28, lat: -4.0 },
+      { seg: 92, lat: 4.0 },
       { seg: 152, lat: 0 },
     ],
     theme: {
@@ -371,19 +425,19 @@ const CIRCUIT_SPECS: readonly CircuitSpec[] = [
     id: 'canyon-crest',
     name: 'Canyon Crest',
     subtitle: 'Sunny toy-mesa climbs & drift hairpins',
-    roadHalfWidth: 13.8,
+    roadHalfWidth: 16.0,
     evalPoint: (u) => {
-      const r = 192 + 38 * Math.cos(3 * u - 0.35) + 14 * Math.sin(2 * u);
+      const r = 260 + 48 * Math.cos(3 * u - 0.35) + 18 * Math.sin(2 * u);
       return {
         x: -r * Math.cos(u),
-        y: 11.5 * Math.sin(2 * u - 0.4) + 6.0 * Math.sin(3 * u + 0.8),
+        y: 14.5 * Math.sin(2 * u - 0.4) + 7.5 * Math.sin(3 * u + 0.8),
         z: r * Math.sin(u) * 1.12,
       };
     },
     boostSegments: [
-      { seg: 22, lat: 3.0 },
-      { seg: 74, lat: -3.0 },
-      { seg: 124, lat: 2.5 },
+      { seg: 22, lat: 3.5 },
+      { seg: 74, lat: -3.5 },
+      { seg: 124, lat: 3.0 },
       { seg: 168, lat: 0 },
     ],
     theme: {
@@ -405,20 +459,20 @@ const CIRCUIT_SPECS: readonly CircuitSpec[] = [
     id: 'starlight-ring',
     name: 'Starlight Ring',
     subtitle: 'Cosmic starlight skyway & five turbo strips',
-    roadHalfWidth: 13.5,
+    roadHalfWidth: 15.8,
     evalPoint: (u) => {
-      const r = 198 + 30 * Math.cos(2 * u + 0.2) + 22 * Math.sin(4 * u - 0.5);
+      const r = 268 + 38 * Math.cos(2 * u + 0.2) + 26 * Math.sin(4 * u - 0.5);
       return {
         x: -r * Math.cos(u),
-        y: 7.5 * Math.cos(2 * u - 0.2) + 4.5 * Math.sin(4 * u),
+        y: 9.5 * Math.cos(2 * u - 0.2) + 5.5 * Math.sin(4 * u),
         z: r * Math.sin(u) * 1.15,
       };
     },
     boostSegments: [
       { seg: 18, lat: 0 },
-      { seg: 56, lat: -3.2 },
-      { seg: 96, lat: 3.2 },
-      { seg: 136, lat: -3.2 },
+      { seg: 56, lat: -3.6 },
+      { seg: 96, lat: 3.6 },
+      { seg: 136, lat: -3.6 },
       { seg: 172, lat: 0 },
     ],
     theme: {
@@ -775,11 +829,17 @@ export function createRaceState(
       driftYaw: 0,
       bodyRoll: 0,
       speed: 0,
+      vx: 0,
+      vz: 0,
+      yawRate: 0,
+      lateralSlip: 0,
       s: startS,
       lat: grid.lat,
       lap: 1,
       unwrappedS: -grid.backMeters,
       maxUnwrappedS: -grid.backMeters,
+      leftThrottle: 1,
+      rightThrottle: 1,
       leftThruster: true,
       rightThruster: true,
       braking: false,
@@ -791,8 +851,8 @@ export function createRaceState(
       bestLapMs: null,
       finishMs: null,
       place: slot + 1,
-      aiTargetLat: (rng() - 0.5) * 9,
-      aiBaseSkill: 0.91 + slot * 0.025 + rng() * 0.03,
+      aiTargetLat: (rng() - 0.5) * 10,
+      aiBaseSkill: 0.92 + slot * 0.025 + rng() * 0.03,
       skidMarks: [],
     });
   }
@@ -814,21 +874,23 @@ export function createRaceState(
   };
 }
 
+function moveToward(current: number, target: number, maxDelta: number): number {
+  if (current < target) return Math.min(target, current + maxDelta);
+  if (current > target) return Math.max(target, current - maxDelta);
+  return target;
+}
+
 /**
- * Turn-based AI pilot with auto-throttle (#360): steers left/right toward a
- * lookahead point on the circuit spline (aiming for boost strips when nearby),
- * straightens out on straights (`left: false, right: false` = full auto-throttle),
- * and taps brake only for extreme overspeed hairpins.
+ * Predictive F1 AI pilot (#384): uses speed-scaled lookahead + proportional analog
+ * differential steering (`steerAnalog`) and upcoming corner-curvature braking so AI
+ * rivals carry real racing lines at 360 km/h without understeering into barriers.
  */
 function computeAiThrusters(
   kart: KartState,
   circuit: CircuitDefinition,
   leaderUnwrappedS: number,
 ): ThrusterInput {
-  if (kart.finishMs !== null) {
-    return { left: false, right: false, brake: false };
-  }
-  const lookahead = clamp(16 + kart.speed * 0.34, 16, 42);
+  const lookahead = clamp(18 + kart.speed * 0.28, 18, 46);
   const aheadSample = sampleCircuitAtS(circuit, kart.s + lookahead);
   const aheadNode = circuit.nodes[aheadSample.nodeIndex]!;
   const targetLat = aheadNode.hasBoostPad ? aheadNode.boostLat : kart.aiTargetLat;
@@ -836,19 +898,36 @@ function computeAiThrusters(
   const tx = aheadSample.x + aheadSample.rx * targetLat;
   const tz = aheadSample.z + aheadSample.rz * targetLat;
   const desiredYaw = Math.atan2(tx - kart.x, tz - kart.z);
-  const yawError = wrapAngle(desiredYaw - kart.yaw);
+  const travelYaw =
+    kart.speed > 12 ? Math.atan2(kart.vx, kart.vz) : kart.yaw;
+  const headingBlendYaw = wrapAngle(kart.yaw + wrapAngle(travelYaw - kart.yaw) * 0.45);
+  const yawError = wrapAngle(desiredYaw - headingBlendYaw);
 
+  // Sample upcoming curvature slightly further ahead for smooth corner-entry braking
+  const brakeLookahead = clamp(28 + kart.speed * 0.42, 28, 72);
+  const curveSample = sampleCircuitAtS(circuit, kart.s + brakeLookahead);
+  const curveNode = circuit.nodes[curveSample.nodeIndex]!;
+  const absCurv = Math.abs(curveNode.curvature);
+  const maxLatAccel = TIRE_LATERAL_MU * GRAVITY_MPS2 + AERO_DOWNFORCE_COEFF * kart.speed * kart.speed;
+  const safeCornerSpeed =
+    absCurv > 0.003 ? Math.sqrt((maxLatAccel * 0.92) / absCurv) : MAX_STRAIGHT_SPEED;
+
+  // PD steering controller: proportional yaw error minus angular rate damping
   const gapBehind = leaderUnwrappedS - kart.unwrappedS;
-  const steerDeadband = gapBehind > 45 ? 0.13 : 0.095;
-  const needHairpinBrake = Math.abs(yawError) > 0.72 && kart.speed > 64;
+  const steerGain = gapBehind > 60 ? 2.8 : 2.5;
+  const rawSteer = clamp(yawError * steerGain - kart.yawRate * 0.22, -1, 1);
+  const steerAnalog = Math.abs(rawSteer) < 0.03 ? 0 : rawSteer;
 
-  if (yawError < -steerDeadband) {
-    return { left: true, right: false, brake: needHairpinBrake };
-  }
-  if (yawError > steerDeadband) {
-    return { left: false, right: true, brake: needHairpinBrake };
-  }
-  return { left: false, right: false, brake: false };
+  const needCornerBrake =
+    (kart.speed > safeCornerSpeed * 1.08 && absCurv > 0.0055) ||
+    (Math.abs(yawError) > 0.65 && kart.speed > 68);
+
+  return {
+    left: steerAnalog < -0.18,
+    right: steerAnalog > 0.18,
+    brake: needCornerBrake,
+    steerAnalog,
+  };
 }
 
 function stepSingleKart(
@@ -862,32 +941,74 @@ function stepSingleKart(
 ): void {
   if (kart.isRemote) return;
 
-  // Finished karts cruise gently on AI autopilot so the finish camera stays cinematic
+  // Finished karts cruise cleanly on AI autopilot so the finish camera stays cinematic
   const activeInput =
     kart.finishMs !== null
       ? computeAiThrusters(kart, circuit, kart.unwrappedS)
       : input;
 
   const braking = Boolean(activeInput.brake);
-  const steerLeft = activeInput.left && !activeInput.right;
-  const steerRight = activeInput.right && !activeInput.left;
+  const hasAnalog =
+    typeof activeInput.steerAnalog === 'number' && Number.isFinite(activeInput.steerAnalog);
+  const analogVal = hasAnalog ? clamp(activeInput.steerAnalog!, -1, 1) : 0;
+
+  const digitalLeft = activeInput.left && !activeInput.right;
+  const digitalRight = activeInput.right && !activeInput.left;
+  const steerIntent = hasAnalog
+    ? analogVal
+    : digitalLeft
+      ? -1
+      : digitalRight
+        ? 1
+        : 0;
+
+  const steerLeft = steerIntent < -0.05;
+  const steerRight = steerIntent > 0.05;
   const turning = steerLeft || steerRight;
   const straightAutoThrottle = !turning && !braking;
 
-  kart.braking = braking;
-  // Visual rear thruster flames:
-  // - Braking cuts both thrusters
-  // - Straight auto-throttle fires both thrusters evenly
-  // - Turning Left/Right vectors outer thruster brightly while inner feathers
-  kart.leftThruster = !braking && !steerLeft;
-  kart.rightThruster = !braking && !steerRight;
+  // 1. Update continuous per-thruster throttle levels (`0.0 .. 1.0`):
+  //    - Braking cuts both thrusters quickly (`BRAKE_CUT_RAMP_SEC`)
+  //    - Analog touch slider / AI smoothly tracks continuous inner thruster reduction
+  //    - Keyboard digital keys linearly ramp 100% <-> 0% over `THRUSTER_RAMP_SEC` (0.65s)
+  //      so players can PWM-tap keys smoothly or hold for full-cut hairpins!
+  let targetLeft = 1;
+  let targetRight = 1;
+  if (braking) {
+    targetLeft = 0;
+    targetRight = 0;
+  } else if (steerIntent < 0) {
+    targetLeft = 1 + steerIntent; // -1 -> 0.0 (full cut), -0.4 -> 0.6
+    targetRight = 1;
+  } else if (steerIntent > 0) {
+    targetLeft = 1;
+    targetRight = 1 - steerIntent; // +1 -> 0.0 (full cut), +0.4 -> 0.6
+  }
 
-  // 1. Drift release -> straightening out (`!turning && !braking`) after charging a turn unleashes Mini-Turbo!
+  const rampSec = braking
+    ? BRAKE_CUT_RAMP_SEC
+    : hasAnalog
+      ? ANALOG_RAMP_SEC
+      : THRUSTER_RAMP_SEC;
+  const maxThrottleDelta = dt / rampSec;
+  kart.leftThrottle = moveToward(kart.leftThrottle, targetLeft, maxThrottleDelta);
+  kart.rightThrottle = moveToward(kart.rightThrottle, targetRight, maxThrottleDelta);
+
+  kart.braking = braking;
+  kart.leftThruster = kart.leftThrottle > 0.35;
+  kart.rightThruster = kart.rightThrottle > 0.35;
+
+  // 2. Drift Mini-Turbo / Ultra-Turbo charge & release (force-based boost + impulse kick)
+  const throttleDiff = Math.abs(kart.leftThrottle - kart.rightThrottle);
   if (straightAutoThrottle && kart.driftCharge >= MINI_TURBO_CHARGE_SEC) {
     const isUltra = kart.driftCharge >= ULTRA_TURBO_CHARGE_SEC;
-    kart.boostTimer = Math.max(kart.boostTimer, isUltra ? 1.35 : 0.82);
+    kart.boostTimer = Math.max(kart.boostTimer, isUltra ? 1.4 : 0.9);
     kart.boostKind = isUltra ? 'ultra' : 'mini';
-    kart.speed = Math.max(kart.speed, isUltra ? MAX_BOOST_SPEED * 0.96 : MAX_BOOST_SPEED * 0.88);
+    const fx0 = Math.sin(kart.yaw);
+    const fz0 = Math.cos(kart.yaw);
+    const impulseSpeed = isUltra ? 16 : 10;
+    kart.vx += fx0 * impulseSpeed;
+    kart.vz += fz0 * impulseSpeed;
     events.boostTriggered.push({ slot: kart.slot, kind: kart.boostKind });
   }
 
@@ -900,12 +1021,13 @@ function stepSingleKart(
       kart.driftCharge = 0;
     }
     kart.driftDir = dir;
-    if (kart.speed > 20) {
-      kart.driftCharge = Math.min(2.0, kart.driftCharge + dt);
+    if (kart.speed > 20 && (throttleDiff > 0.12 || Math.abs(steerIntent) > 0.25)) {
+      const slipBonus = 1 + clamp(Math.abs(kart.lateralSlip) / 10, 0, 0.45);
+      kart.driftCharge = Math.min(2.0, kart.driftCharge + dt * slipBonus);
     }
   }
 
-  // 2. Boost decay
+  // Boost timer decay
   if (kart.boostTimer > 0) {
     kart.boostTimer = Math.max(0, kart.boostTimer - dt);
     if (kart.boostTimer === 0) {
@@ -913,55 +1035,109 @@ function stepSingleKart(
     }
   }
 
-  // 3. Longitudinal auto-throttle acceleration vs turning cruise vs Down brake
-  const topSpeedBase = braking
-    ? 0
-    : kart.boostTimer > 0
-      ? MAX_BOOST_SPEED
-      : turning
-        ? MAX_DRIFT_SPEED
-        : MAX_STRAIGHT_SPEED;
-  const topSpeed = topSpeedBase * aiSpeedScale;
+  // 3. Dual-thruster forces, rotational torque, angular inertia & yaw damping
+  const boostMult =
+    kart.boostTimer > 0
+      ? kart.boostKind === 'ultra'
+        ? 1.65
+        : kart.boostKind === 'pad'
+          ? 1.6
+          : 1.45
+      : 1.0;
 
-  if (braking) {
-    kart.speed = Math.max(0, kart.speed - 54 * dt);
-  } else if (!turning) {
-    const accel = kart.boostTimer > 0 ? 78 : 48;
-    if (kart.speed < topSpeed) {
-      kart.speed = Math.min(topSpeed, kart.speed + accel * dt);
-    } else {
-      kart.speed = Math.max(topSpeed, kart.speed - 24 * dt);
-    }
-  } else {
-    const accel = kart.boostTimer > 0 ? 64 : 36;
-    if (kart.speed < topSpeed) {
-      kart.speed = Math.min(topSpeed, kart.speed + accel * dt);
-    } else {
-      kart.speed = Math.max(topSpeed, kart.speed - 18 * dt);
-    }
+  const fLeft = kart.leftThrottle * PER_THRUSTER_MAX_N * boostMult * aiSpeedScale;
+  const fRight = kart.rightThrottle * PER_THRUSTER_MAX_N * boostMult * aiSpeedScale;
+  const fThrust = fLeft + fRight;
+
+  // Left thruster pushing forward creates +yaw (right turn); cutting left creates -yaw (left turn)
+  const torqueThrust = (fLeft - fRight) * THRUSTER_HALF_SPAN_M;
+
+  // Trail-braking front-wheel steering torque when braking + steering so hairpins remain controllable
+  const torqueBrakeSteer =
+    braking && Math.abs(steerIntent) > 0.05
+      ? steerIntent * 6800 * clamp(kart.speed / 22, 0.25, 1.0)
+      : 0;
+
+  // Body-frame decomposition of current velocity before yaw step (for caster self-alignment)
+  const preFx = Math.sin(kart.yaw);
+  const preFz = Math.cos(kart.yaw);
+  const preRx = Math.cos(kart.yaw);
+  const preRz = -Math.sin(kart.yaw);
+  const preVLat = kart.vx * preRx + kart.vz * preRz;
+  const preVFwd = kart.vx * preFx + kart.vz * preFz;
+
+  // Positive coefficient * vLat aligns nose smoothly back toward travel direction
+  const torqueAlign = SLIP_SELF_ALIGN_TORQUE * preVLat * clamp(preVFwd / 30, 0.2, 1.0);
+  const yawAccel =
+    (torqueThrust + torqueBrakeSteer + torqueAlign - YAW_DAMPING * kart.yawRate) / KART_YAW_INERTIA;
+  kart.yawRate = clamp(kart.yawRate + yawAccel * dt, -3.2, 3.2);
+  kart.yaw = wrapAngle(kart.yaw + kart.yawRate * dt);
+
+  // 4. 2D Rigid-Body Linear Forces: Thrust, Quadratic Aero Drag, Rolling Resistance,
+  //    Slope Gravity, Braking & Moderate F1 Lateral Tire Friction + Aero Downforce
+  const fx = Math.sin(kart.yaw);
+  const fz = Math.cos(kart.yaw);
+  const rx = Math.cos(kart.yaw);
+  const rz = -Math.sin(kart.yaw);
+
+  const vFwd = kart.vx * fx + kart.vz * fz;
+  const vLat = kart.vx * rx + kart.vz * rz;
+  const vMag = Math.hypot(kart.vx, kart.vz);
+
+  const offroad = Math.abs(kart.lat) > circuit.roadHalfWidth && kart.boostTimer <= 0;
+  const fAeroFwd = -AERO_DRAG_COEFF * vMag * vFwd;
+  const fRoll = vFwd > 0.05 ? -ASPHALT_ROLLING_DRAG_N : vFwd < -0.05 ? ASPHALT_ROLLING_DRAG_N : 0;
+  const fOffroad = offroad
+    ? -Math.sign(vFwd) * (OFFROAD_EXTRA_DRAG_N + 120 * Math.abs(vFwd))
+    : 0;
+  const fGravity = -KART_MASS_KG * GRAVITY_MPS2 * Math.sin(kart.pitch);
+  const fBrake = braking && vFwd > 0.05 ? -BRAKE_FORCE_N : 0;
+
+  // Lateral tire friction capped by mechanical grip + F1 speed-squared aero downforce
+  const muEff = offroad ? TIRE_LATERAL_MU * 0.72 : TIRE_LATERAL_MU;
+  const aLatMax = muEff * GRAVITY_MPS2 + AERO_DOWNFORCE_COEFF * vFwd * vFwd;
+  const aLatDesired = -TIRE_CORNERING_STIFFNESS * vLat;
+  const aLatTire = clamp(aLatDesired, -aLatMax, aLatMax);
+  const aAeroLat = -(AERO_DRAG_COEFF * vMag * vLat) / KART_MASS_KG;
+
+  // Induced cornering tire-scrub drag when sliding laterally
+  const aScrub =
+    vFwd > 0.5
+      ? -0.14 * Math.abs(aLatTire) * clamp(Math.abs(vLat) / 10, 0, 1)
+      : 0;
+
+  const aFwd =
+    (fThrust + fAeroFwd + fRoll + fOffroad + fGravity + fBrake) / KART_MASS_KG + aScrub;
+  const aLat = aLatTire + aAeroLat;
+
+  let nextVFwd = vFwd + aFwd * dt;
+  if (vFwd >= 0 && nextVFwd < 0) {
+    nextVFwd = 0;
+  }
+  nextVFwd = Math.max(0, nextVFwd);
+
+  let nextVLat = vLat + aLat * dt;
+  if (Math.abs(aLatDesired) <= aLatMax && vLat !== 0 && Math.sign(nextVLat) !== Math.sign(vLat)) {
+    nextVLat = 0;
   }
 
-  // Off-curb grass/shoulder drag if slightly outside roadHalfWidth
-  if (Math.abs(kart.lat) > circuit.roadHalfWidth && kart.boostTimer <= 0) {
-    kart.speed = Math.max(0, kart.speed - 22 * dt);
-  }
+  kart.vx = fx * nextVFwd + rx * nextVLat;
+  kart.vz = fz * nextVFwd + rz * nextVLat;
+  kart.speed = nextVFwd;
+  kart.lateralSlip = nextVLat;
 
-  // 4. Turn steering yaw rate + drift slip + chassis body roll (allows trail-braking!)
-  const speedTurnFactor = clamp(0.45 + (kart.speed / MAX_STRAIGHT_SPEED) * 0.72, 0.45, 1.18);
-  const turnDir = steerLeft ? -1 : steerRight ? 1 : 0;
-  const baseTurnRate = braking ? 1.85 : 1.62;
-  kart.yaw = wrapAngle(kart.yaw + turnDir * baseTurnRate * speedTurnFactor * dt);
-
-  const targetDriftYaw = turnDir * (kart.speed > 24 ? 0.24 : 0.08);
-  const targetRoll = turnDir * (kart.speed > 18 ? 0.19 : 0.06);
-  const blend = Math.min(1, dt * 9.5);
+  // Visual slip yaw & chassis roll reflect real angular velocity + lateral slide angle
+  const realSlipAngle = Math.atan2(-nextVLat, Math.max(18, nextVFwd));
+  const targetDriftYaw = clamp(realSlipAngle * 1.15 + kart.yawRate * 0.06, -0.34, 0.34);
+  const targetRoll = clamp(kart.yawRate * 0.11 + realSlipAngle * 0.25, -0.24, 0.24);
+  const blend = Math.min(1, dt * 10.5);
   kart.driftYaw += (targetDriftYaw - kart.driftYaw) * blend;
   kart.bodyRoll += (targetRoll - kart.bodyRoll) * blend;
 
-  // 5. Advance 3D position along heading
+  // 5. Advance 3D position along real 2D velocity vector
   const prevS = kart.s;
-  kart.x += Math.sin(kart.yaw) * kart.speed * dt;
-  kart.z += Math.cos(kart.yaw) * kart.speed * dt;
+  kart.x += kart.vx * dt;
+  kart.z += kart.vz * dt;
 
   // 6. Project onto circuit spline, snap altitude to 3D road surface, and enforce cushioned barriers
   const proj = projectOntoCircuit(circuit, kart.x, kart.z, prevS);
@@ -980,40 +1156,63 @@ function stepSingleKart(
   kart.y = proj.groundY;
   kart.pitch += (proj.pitch - kart.pitch) * Math.min(1, dt * 12);
 
-  // Cushioned energy barrier at wallHalfWidth: slides smoothly along wall instead of dead-stopping
+  // Cushioned energy barrier at wallHalfWidth: resolves normal vs tangential 2D velocity
   if (Math.abs(kart.lat) > circuit.wallHalfWidth) {
-    const clampedLat = Math.sign(kart.lat) * circuit.wallHalfWidth;
+    const outSign = Math.sign(kart.lat);
+    const clampedLat = outSign * circuit.wallHalfWidth;
     const sample = sampleCircuitAtS(circuit, kart.s);
     kart.x = sample.x + sample.rx * clampedLat;
     kart.z = sample.z + sample.rz * clampedLat;
     kart.lat = clampedLat;
-    kart.yaw = wrapAngle(kart.yaw + wrapAngle(sample.yaw - kart.yaw) * 0.65);
-    kart.speed *= 0.86;
+
+    const stx = Math.sin(sample.yaw);
+    const stz = Math.cos(sample.yaw);
+    const vTang = kart.vx * stx + kart.vz * stz;
+    const vOut = (kart.vx * sample.rx + kart.vz * sample.rz) * outSign;
+    const impactRatio = clamp(Math.max(0, vOut) / 40, 0, 1);
+    const newVTang = Math.max(0, vTang * (0.94 - 0.14 * impactRatio));
+    const newVOut = vOut > 0 ? -vOut * 0.16 : vOut;
+
+    kart.vx = stx * newVTang + sample.rx * outSign * newVOut;
+    kart.vz = stz * newVTang + sample.rz * outSign * newVOut;
+    kart.yawRate *= 0.45;
+    kart.yaw = wrapAngle(kart.yaw + wrapAngle(sample.yaw - kart.yaw) * 0.35);
+
+    const nFx = Math.sin(kart.yaw);
+    const nFz = Math.cos(kart.yaw);
+    const nRx = Math.cos(kart.yaw);
+    const nRz = -Math.sin(kart.yaw);
+    kart.speed = Math.max(0, kart.vx * nFx + kart.vz * nFz);
+    kart.lateralSlip = kart.vx * nRx + kart.vz * nRz;
   }
 
-  // 7. Track surface Boost Pad detection
+  // 7. Track surface Boost Pad detection (adds thrust multiplier + immediate impulse)
   const node = circuit.nodes[proj.nodeIndex]!;
-  if (node.hasBoostPad && Math.abs(kart.lat - node.boostLat) < 4.0 && kart.boostKind !== 'pad') {
-    kart.boostTimer = Math.max(kart.boostTimer, 1.05);
+  if (node.hasBoostPad && Math.abs(kart.lat - node.boostLat) < 4.2 && kart.boostKind !== 'pad') {
+    kart.boostTimer = Math.max(kart.boostTimer, 1.1);
     kart.boostKind = 'pad';
-    kart.speed = Math.max(kart.speed, MAX_BOOST_SPEED * 0.95);
+    const bFx = Math.sin(kart.yaw);
+    const bFz = Math.cos(kart.yaw);
+    kart.vx += bFx * 15;
+    kart.vz += bFz * 15;
+    kart.speed = Math.max(0, kart.vx * bFx + kart.vz * bFz);
     events.boostTriggered.push({ slot: kart.slot, kind: 'pad' });
   }
 
-  // 8. Record tire skid marks while drifting or braking hard on asphalt
-  if ((turning || braking) && kart.speed > 28) {
+  // 8. Record tire skid marks while sliding laterally or braking hard on asphalt
+  if ((Math.abs(kart.lateralSlip) > 2.4 || braking) && kart.speed > 26) {
     const totalVisualYaw = kart.yaw + kart.driftYaw;
-    const rx = Math.cos(totalVisualYaw);
-    const rz = -Math.sin(totalVisualYaw);
+    const srx = Math.cos(totalVisualYaw);
+    const srz = -Math.sin(totalVisualYaw);
     const backX = kart.x - Math.sin(totalVisualYaw) * 1.4;
     const backZ = kart.z - Math.cos(totalVisualYaw) * 1.4;
     kart.skidMarks.push({
-      lx: backX - rx * 0.95,
+      lx: backX - srx * 0.95,
       ly: kart.y + 0.08,
-      lz: backZ - rz * 0.95,
-      rx: backX + rx * 0.95,
+      lz: backZ - srz * 0.95,
+      rx: backX + srx * 0.95,
       ry: kart.y + 0.08,
-      rz: backZ + rz * 0.95,
+      rz: backZ + srz * 0.95,
     });
     if (kart.skidMarks.length > 38) {
       kart.skidMarks.shift();
@@ -1044,7 +1243,7 @@ function stepSingleKart(
 
 /**
  * Advances the entire race by `dtMs` milliseconds (clamped for tab-switch safety),
- * resolving dual-thruster physics, AI rivals, kart-to-kart bumping, and standings.
+ * resolving dual-thruster rigid-body physics, AI rivals, kart-to-kart bumping, and standings.
  */
 export function stepRaceState(
   race: KartRaceState,
@@ -1076,7 +1275,7 @@ export function stepRaceState(
     } else {
       // Gentle arcade rubber-banding keeps AI competitive without unfair runaway leads
       const deltaToLeader = leaderUnwrappedS - kart.unwrappedS;
-      const rubberBand = clamp(1 + deltaToLeader * 0.0014, 0.88, 1.07);
+      const rubberBand = clamp(1 + deltaToLeader * 0.0011, 0.88, 1.08);
       const aiInput = computeAiThrusters(kart, circuit, leaderUnwrappedS);
       stepSingleKart(
         kart,
@@ -1090,7 +1289,7 @@ export function stepRaceState(
     }
   }
 
-  // Kart-to-kart elastic sphere bumping (`KART_RADIUS = 1.65m`)
+  // Kart-to-kart elastic sphere bumping with real 2D momentum exchange (`KART_RADIUS = 1.65m`)
   const minDist = 3.2;
   for (let i = 0; i < race.karts.length; i += 1) {
     for (let j = i + 1; j < race.karts.length; j += 1) {
@@ -1103,13 +1302,19 @@ export function stepRaceState(
         const overlap = (minDist - dist) * 0.52;
         const nx = dx / dist;
         const nz = dz / dist;
+        const relVelNormal = (b.vx - a.vx) * nx + (b.vz - a.vz) * nz;
+        const impulse = relVelNormal < 0 ? -0.68 * relVelNormal : 0;
         if (!a.isRemote) {
           a.x -= nx * overlap;
           a.z -= nz * overlap;
+          a.vx -= nx * impulse;
+          a.vz -= nz * impulse;
         }
         if (!b.isRemote) {
           b.x += nx * overlap;
           b.z += nz * overlap;
+          b.vx += nx * impulse;
+          b.vz += nz * impulse;
         }
         events.bumped = true;
       }
@@ -1152,6 +1357,12 @@ export function applyRemoteKartSnapshot(kart: KartState, snap: KartNetSnapshot):
   kart.driftYaw = snap.driftYaw;
   kart.bodyRoll = snap.bodyRoll;
   kart.speed = snap.speed;
+  kart.vx = snap.vx ?? Math.sin(snap.yaw) * snap.speed;
+  kart.vz = snap.vz ?? Math.cos(snap.yaw) * snap.speed;
+  kart.yawRate = snap.yawRate ?? 0;
+  kart.lateralSlip = snap.lateralSlip ?? 0;
+  kart.leftThrottle = snap.leftThrottle ?? (snap.leftThruster ? 1 : 0);
+  kart.rightThrottle = snap.rightThrottle ?? (snap.rightThruster ? 1 : 0);
   kart.s = snap.s;
   kart.lat = snap.lat;
   kart.lap = snap.lap;
@@ -1176,6 +1387,12 @@ export function toKartNetSnapshot(kart: KartState): KartNetSnapshot {
     driftYaw: Math.round(kart.driftYaw * 1000) / 1000,
     bodyRoll: Math.round(kart.bodyRoll * 1000) / 1000,
     speed: Math.round(kart.speed * 10) / 10,
+    vx: Math.round(kart.vx * 10) / 10,
+    vz: Math.round(kart.vz * 10) / 10,
+    yawRate: Math.round(kart.yawRate * 1000) / 1000,
+    lateralSlip: Math.round(kart.lateralSlip * 10) / 10,
+    leftThrottle: Math.round(kart.leftThrottle * 100) / 100,
+    rightThrottle: Math.round(kart.rightThrottle * 100) / 100,
     s: Math.round(kart.s * 10) / 10,
     lat: Math.round(kart.lat * 100) / 100,
     lap: kart.lap,

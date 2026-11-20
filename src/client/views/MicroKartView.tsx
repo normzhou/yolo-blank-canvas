@@ -92,6 +92,8 @@ interface HudTelemetry {
   driftCharge: number;
   boostTimer: number;
   boostKind: string;
+  leftPct: number;
+  rightPct: number;
   turnLeftOn: boolean;
   turnRightOn: boolean;
   brakeOn: boolean;
@@ -217,6 +219,8 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     driftCharge: 0,
     boostTimer: 0,
     boostKind: 'none',
+    leftPct: 100,
+    rightPct: 100,
     turnLeftOn: false,
     turnRightOn: false,
     brakeOn: false,
@@ -231,12 +235,15 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     driftCharge: 0,
     boostTimer: 0,
     boostKind: 'none',
+    leftPct: 100,
+    rightPct: 100,
     turnLeftOn: false,
     turnRightOn: false,
     brakeOn: false,
     bestLapMs: null,
     finishMs: null,
   });
+  const [analogSteerUi, setAnalogSteerUi] = useState<number>(0);
   const [mapDots, setMapDots] = useState<
     Array<{ x: number; z: number; color: string; isFocus: boolean }>
   >([]);
@@ -263,6 +270,8 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
   const activePointersRef = useRef<
     Map<number, { player: 0 | 1; zone: 'left' | 'right' | 'brake' }>
   >(new Map());
+  const analogSteerRef = useRef<number | null>(null);
+  const analogPointerIdRef = useRef<number | null>(null);
   const countdownRef = useRef(countdown);
   countdownRef.current = countdown;
   const activeRoomIdRef = useRef<string | null>(null);
@@ -279,12 +288,14 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       driverName: getKartDriverSpec(k0.character).driverName,
       place: k0.place,
       lap: Math.min(TOTAL_LAPS, k0.lap),
-      kmh: Math.round(k0.speed * 3.2),
+      kmh: Math.round(k0.speed * 3.6),
       driftCharge: k0.driftCharge,
       boostTimer: k0.boostTimer,
       boostKind: k0.boostKind,
-      turnLeftOn: k0.driftDir === -1 || (!k0.leftThruster && k0.rightThruster),
-      turnRightOn: k0.driftDir === 1 || (k0.leftThruster && !k0.rightThruster),
+      leftPct: Math.round(k0.leftThrottle * 100),
+      rightPct: Math.round(k0.rightThrottle * 100),
+      turnLeftOn: k0.driftDir === -1 || k0.leftThrottle < k0.rightThrottle - 0.08,
+      turnRightOn: k0.driftDir === 1 || k0.rightThrottle < k0.leftThrottle - 0.08,
       brakeOn: k0.braking,
       bestLapMs: k0.bestLapMs,
       finishMs: k0.finishMs,
@@ -294,12 +305,14 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         driverName: getKartDriverSpec(k1.character).driverName,
         place: k1.place,
         lap: Math.min(TOTAL_LAPS, k1.lap),
-        kmh: Math.round(k1.speed * 3.2),
+        kmh: Math.round(k1.speed * 3.6),
         driftCharge: k1.driftCharge,
         boostTimer: k1.boostTimer,
         boostKind: k1.boostKind,
-        turnLeftOn: k1.driftDir === -1 || (!k1.leftThruster && k1.rightThruster),
-        turnRightOn: k1.driftDir === 1 || (k1.leftThruster && !k1.rightThruster),
+        leftPct: Math.round(k1.leftThrottle * 100),
+        rightPct: Math.round(k1.rightThrottle * 100),
+        turnLeftOn: k1.driftDir === -1 || k1.leftThrottle < k1.rightThrottle - 0.08,
+        turnRightOn: k1.driftDir === 1 || k1.rightThrottle < k1.leftThrottle - 0.08,
         brakeOn: k1.braking,
         bestLapMs: k1.bestLapMs,
         finishMs: k1.finishMs,
@@ -693,12 +706,18 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       if (p2TouchR) p2Right = true;
     }
 
+    const p1Analog = analogSteerRef.current;
+    const p1Input: ThrusterInput =
+      p1Analog !== null
+        ? { left: p1Analog < -0.1, right: p1Analog > 0.1, brake: p1Brake, steerAnalog: p1Analog }
+        : { left: p1Left, right: p1Right, brake: p1Brake };
+
     const myOnlineSlot = isOnline2P && activeKartRoom ? activeKartRoom.mySlot : 0;
     if (isOnline2P) {
-      return { [myOnlineSlot]: { left: p1Left, right: p1Right, brake: p1Brake } };
+      return { [myOnlineSlot]: p1Input };
     }
     return {
-      0: { left: p1Left, right: p1Right, brake: p1Brake },
+      0: p1Input,
       1: { left: p2Left, right: p2Right, brake: p2Brake },
     };
   }, [activeKartRoom, isOnline2P, isSplit2P]);
@@ -933,6 +952,43 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     activePointersRef.current.delete(e.pointerId);
   };
 
+  const updateAnalogSliderFromPointer = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    if (rect.width <= 0) return;
+    const norm = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    const clamped = Math.max(-1, Math.min(1, norm));
+    // Gentle center deadzone so releasing near center feels crisp
+    const val = Math.abs(clamped) < 0.05 ? 0 : clamped;
+    analogSteerRef.current = val;
+    setAnalogSteerUi(val);
+  };
+
+  const handleSliderPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    if (paused || overlayOpen || raceStatus === 'finished') return;
+    analogPointerIdRef.current = e.pointerId;
+    updateAnalogSliderFromPointer(e);
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // Synthetic pointer events in tests may omit active pointer registration
+    }
+  };
+
+  const handleSliderPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (analogPointerIdRef.current !== e.pointerId) return;
+    e.stopPropagation();
+    updateAnalogSliderFromPointer(e);
+  };
+
+  const handleSliderPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (analogPointerIdRef.current !== e.pointerId) return;
+    e.stopPropagation();
+    analogPointerIdRef.current = null;
+    analogSteerRef.current = null;
+    setAnalogSteerUi(0);
+  };
+
   const canSelectOnline2P =
     isOnline2P || isInviting || netplay.onlineCount >= 2;
   const activeCircuit = CIRCUITS[circuitId];
@@ -1034,25 +1090,60 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
           </div>
         ) : null}
 
-        <div className="kart-thruster-row">
-          <span
-            className={p1Hud.turnLeftOn ? 'kart-thruster-pill is-firing' : 'kart-thruster-pill'}
-            data-testid="kart-p1-turn-left"
-          >
-            ◀ TURN L · {isSplit2P ? 'A' : 'A / ←'}
-          </span>
-          <span
-            className={p1Hud.brakeOn ? 'kart-thruster-pill is-braking' : 'kart-thruster-pill'}
-            data-testid="kart-p1-brake"
-          >
-            ▼ BRAKE · {isSplit2P ? 'S' : 'S / ↓'}
-          </span>
-          <span
-            className={p1Hud.turnRightOn ? 'kart-thruster-pill is-firing' : 'kart-thruster-pill'}
-            data-testid="kart-p1-turn-right"
-          >
-            {isSplit2P ? 'D' : 'D / →'} · TURN R ▶
-          </span>
+        <div className="kart-controls-dock">
+          {!isSplit2P ? (
+            <div
+              className="kart-steer-slider"
+              data-testid="kart-p1-steer-slider"
+              role="slider"
+              aria-label="Analog differential thruster steering"
+              aria-valuemin={-100}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(analogSteerUi * 100)}
+              onPointerDown={handleSliderPointerDown}
+              onPointerMove={handleSliderPointerMove}
+              onPointerUp={handleSliderPointerUp}
+              onPointerCancel={handleSliderPointerUp}
+            >
+              <div className="kart-steer-slider-track">
+                <div className="kart-steer-slider-center" />
+                <div
+                  className="kart-steer-slider-thumb"
+                  style={{ left: `${((analogSteerUi + 1) * 50).toFixed(1)}%` }}
+                />
+              </div>
+              <span className="kart-steer-slider-label">DRAG STEER</span>
+            </div>
+          ) : null}
+
+          <div className="kart-thruster-row">
+            <span
+              className={p1Hud.turnLeftOn ? 'kart-thruster-pill is-firing' : 'kart-thruster-pill'}
+              data-testid="kart-p1-turn-left"
+              data-throttle={p1Hud.leftPct}
+            >
+              <span className="kart-thruster-fill" style={{ width: `${p1Hud.leftPct}%` }} />
+              <span className="kart-thruster-text">
+                ◀ L {p1Hud.leftPct}% · {isSplit2P ? 'A' : 'A / ←'}
+              </span>
+            </span>
+            <span
+              className={p1Hud.brakeOn ? 'kart-thruster-pill is-braking' : 'kart-thruster-pill'}
+              data-testid="kart-p1-brake"
+            >
+              <span className="kart-thruster-text">▼ BRAKE · {isSplit2P ? 'S' : 'S / ↓'}</span>
+            </span>
+            <span
+              className={p1Hud.turnRightOn ? 'kart-thruster-pill is-firing' : 'kart-thruster-pill'}
+              data-testid="kart-p1-turn-right"
+              data-throttle={p1Hud.rightPct}
+            >
+              <span className="kart-thruster-fill" style={{ width: `${p1Hud.rightPct}%` }} />
+              <span className="kart-thruster-text">
+                {isSplit2P ? 'D' : 'D / →'} · R {p1Hud.rightPct}% ▶
+              </span>
+            </span>
+          </div>
         </div>
       </div>
 
