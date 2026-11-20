@@ -5,14 +5,14 @@
       "id": "starlight-burst",
       "packageName": "@yolo-arcade/game-starlight-burst",
       "version": "2.2.0",
-      "hash": "b16455254b1291bc086708bce53836e461a35c162b22d5cfbd59df9d6c6ad043",
-      "entry": "/games/starlight-burst-CWEqozIn.js",
+      "hash": "5b9ba017fa1c738375a912f2d1277f0471978ca463f27655a4576b2df602322e",
+      "entry": "/games/starlight-burst-BjrLXnGt.js",
       "chunks": [
         "/assets/vendor-react-W1izUqcL.js",
-        "/assets/arcade-runtime-DTnwkwmz.js",
+        "/assets/arcade-runtime-DziB4yvK.js",
         "/assets/stageBackdrops-weYOhPsk.js",
         "/assets/descriptor-otXLwx6o.js",
-        "/games/starlight-burst-CWEqozIn.js"
+        "/games/starlight-burst-BjrLXnGt.js"
       ],
       "sizeBytes": 86740
     },
@@ -20,27 +20,27 @@
       "id": "prism-stack",
       "packageName": "@yolo-arcade/game-prism-stack",
       "version": "2.1.1",
-      "hash": "da384fc6cfe77fef1a8bedcbbd0419e784b8da17900aae0f85a75a3ad28dcf4c",
-      "entry": "/games/prism-stack-BokxUxLe.js",
+      "hash": "5e2a11e795802a943fd2a15e5b430af9d6419a1b30fe18a446e5c92cf0943274",
+      "entry": "/games/prism-stack-BBCRC58C.js",
       "chunks": [
         "/assets/vendor-react-W1izUqcL.js",
-        "/assets/arcade-runtime-DTnwkwmz.js",
+        "/assets/arcade-runtime-DziB4yvK.js",
         "/assets/stageBackdrops-weYOhPsk.js",
         "/assets/descriptor-C-yYDHXq.js",
-        "/games/prism-stack-BokxUxLe.js"
+        "/games/prism-stack-BBCRC58C.js"
       ],
       "sizeBytes": 37312
     },
     "micro-kart": {
       "id": "micro-kart",
       "packageName": "@yolo-arcade/game-micro-kart",
-      "version": "1.5.1",
-      "hash": "2368fe93fdf0e17f9115c1fa956ae77959b871b8e2e497eb037b8ccf1a3e8c0e",
-      "entry": "/games/micro-kart-FWpLZhFI.js",
+      "version": "1.5.2",
+      "hash": "72e9a1c3701cba5b8b7dead36f0fd1bc2202fea943c4e75dfbdff436e6efa9d3",
+      "entry": "/games/micro-kart-DL0SBbCm.js",
       "chunks": [
         "/assets/vendor-react-W1izUqcL.js",
-        "/assets/arcade-runtime-DTnwkwmz.js",
-        "/games/micro-kart-FWpLZhFI.js"
+        "/assets/arcade-runtime-DziB4yvK.js",
+        "/games/micro-kart-DL0SBbCm.js"
       ],
       "sizeBytes": 89854
     }
