@@ -26,6 +26,7 @@ import {
   type KartRaceState,
   type SceneryProp,
 } from '../../shared/microKart';
+import { computeDriverPose } from './driverPose';
 import type { ChaseCamera } from './renderer3d';
 
 const FLOATS_PER_VERT = 11; // pos(3) + norm(3) + color(3) + flags(2: matKind, emissive)
@@ -524,48 +525,65 @@ function buildKartChassisMesh(spec: KartDriverSpec): MeshBuilder {
     );
   }
 
+  // Dashboard steering wheel bolted to the cockpit so the plush driver can lean freely!
+  emitSmoothEllipsoid(mb, 0, 0.92, 0.32, 0.25, 0.22, 0.055, 12, 6, () => [42, 48, 64], MAT_GLOSSY);
+  emitSmoothEllipsoid(mb, 0, 0.92, 0.35, 0.085, 0.085, 0.04, 8, 6, () => spec.kartAccent, MAT_GLOSSY);
+
   return mb;
 }
 
 /**
- * Bakes cozy plush Torso + Round Steering Wheel + Chubby Paws + Neckerchief (`kart` space).
+ * Bakes cozy plush Torso + Chubby Arms/Paws + Neckerchief centered around the seat hip pivot
+ * `(0, 0.62, -0.16)` so the driver visibly leans into tight turns and ducks into high-speed wind!
  */
 function buildDriverTorsoMesh(spec: KartDriverSpec): MeshBuilder {
   const mb = new MeshBuilder();
+  const py = 0.62;
+  const pz = -0.16;
   emitSmoothSpineTube(
     mb,
     [
-      { x: 0, y: 0.62, z: -0.18, rx: 0.35, ry: 0.27, rgb: spec.furPrimary },
-      { x: 0, y: 0.82, z: -0.16, rx: 0.34, ry: 0.26, rgb: spec.furPrimary },
-      { x: 0, y: 1.02, z: -0.14, rx: 0.28, ry: 0.22, rgb: spec.furPrimary },
+      { x: 0, y: 0.62 - py, z: -0.18 - pz, rx: 0.35, ry: 0.27, rgb: spec.furPrimary },
+      { x: 0, y: 0.82 - py, z: -0.16 - pz, rx: 0.34, ry: 0.26, rgb: spec.furPrimary },
+      { x: 0, y: 1.02 - py, z: -0.14 - pz, rx: 0.28, ry: 0.22, rgb: spec.furPrimary },
     ],
     12,
     MAT_PLUSH,
   );
   // Cozy cream plush tummy patch visible from the front!
-  emitSmoothEllipsoid(mb, 0, 0.8, 0.08, 0.21, 0.2, 0.1, 10, 6, () => spec.furCream, MAT_PLUSH);
+  emitSmoothEllipsoid(mb, 0, 0.8 - py, 0.08 - pz, 0.21, 0.2, 0.1, 10, 6, () => spec.furCream, MAT_PLUSH);
   // Cozy Starlight Burst neckerchief collar (+ Mochi's golden jingle bell / Ren's star badge!)
-  emitSmoothEllipsoid(mb, 0, 1.0, -0.14, 0.34, 0.085, 0.28, 14, 6, () => spec.scarfRgb, MAT_PLUSH);
+  emitSmoothEllipsoid(mb, 0, 1.0 - py, -0.14 - pz, 0.34, 0.085, 0.28, 14, 6, () => spec.scarfRgb, MAT_PLUSH);
   if (spec.id === 'cat') {
-    emitSmoothEllipsoid(mb, 0, 0.96, 0.16, 0.085, 0.085, 0.085, 8, 6, () => [246, 215, 67], MAT_GLOSSY);
+    emitSmoothEllipsoid(mb, 0, 0.96 - py, 0.16 - pz, 0.085, 0.085, 0.085, 8, 6, () => [246, 215, 67], MAT_GLOSSY);
   } else if (spec.id === 'fox') {
-    emitStarCrystal(mb, 0, 0.94, 0.17, 0.095, [246, 215, 67], 1);
+    emitStarCrystal(mb, 0, 0.94 - py, 0.17 - pz, 0.095, [246, 215, 67], 1);
   }
 
-  // Cheerful chunky steering wheel + plush arms + chubby cream paws!
-  emitSmoothEllipsoid(mb, 0, 0.92, 0.32, 0.25, 0.22, 0.055, 12, 6, () => [42, 48, 64], MAT_GLOSSY);
-  emitSmoothEllipsoid(mb, 0, 0.92, 0.35, 0.085, 0.085, 0.04, 8, 6, () => spec.kartAccent, MAT_GLOSSY);
+  // Plush arms + chubby cream paws reaching toward the steering wheel!
   for (const side of [-1, 1] as const) {
     emitSmoothSpineTube(
       mb,
       [
-        { x: side * 0.26, y: 0.93, z: -0.08, rx: 0.095, ry: 0.095, rgb: spec.furPrimary },
-        { x: side * 0.23, y: 0.92, z: 0.28, rx: 0.085, ry: 0.085, rgb: spec.furPrimary },
+        { x: side * 0.26, y: 0.93 - py, z: -0.08 - pz, rx: 0.095, ry: 0.095, rgb: spec.furPrimary },
+        { x: side * 0.23, y: 0.92 - py, z: 0.28 - pz, rx: 0.085, ry: 0.085, rgb: spec.furPrimary },
       ],
       8,
       MAT_PLUSH,
     );
-    emitSmoothEllipsoid(mb, side * 0.22, 0.92, 0.31, 0.095, 0.09, 0.095, 10, 6, () => spec.furCream, MAT_PLUSH);
+    emitSmoothEllipsoid(
+      mb,
+      side * 0.22,
+      0.92 - py,
+      0.31 - pz,
+      0.095,
+      0.09,
+      0.095,
+      10,
+      6,
+      () => spec.furCream,
+      MAT_PLUSH,
+    );
   }
   return mb;
 }
@@ -664,22 +682,10 @@ function buildDriverHeadMesh(charId: DriverCharacterId): MeshBuilder {
     emitSmoothEllipsoid(mb, side * 0.32, -0.085, 0.33, 0.085, 0.052, 0.038, 8, 6, () => cheekRgb, MAT_PLUSH);
   }
 
-  // 4. Species-Specific Starlight Burst Smooth Low-Poly Ears & Accessories!
+  // 4. Species-Specific Static Head Accessories (whiskers, cheek tufts, satin bows);
+  //    articulated left/right ears are baked in `buildDriverEarMeshes` so they blow back in the wind!
   if (charId === 'fox') {
     for (const side of [-1, 1] as const) {
-      // Soft leaf-curved warm amber fox ears with cream inner hollows (matching Starlight Burst Ren!)
-      emitSmoothSpineTube(
-        mb,
-        [
-          { x: side * 0.24, y: 0.27, z: -0.01, rx: 0.155, ry: 0.1, rgb: spec.furPrimary },
-          { x: side * 0.37, y: 0.56, z: -0.01, rx: 0.115, ry: 0.072, rgb: spec.furPrimary },
-          { x: side * 0.45, y: 0.78, z: -0.01, rx: 0.052, ry: 0.038, rgb: spec.furPrimary },
-          { x: side * 0.48, y: 0.88, z: -0.01, rx: 0.014, ry: 0.012, rgb: spec.furPrimary },
-        ],
-        10,
-        MAT_PLUSH,
-        (ringIdx, theta, defRgb) => (ringIdx < 2 && Math.sin(theta) < -0.25 ? spec.furCream : defRgb),
-      );
       // Adorable fluffy side cheek tufts!
       emitSmoothSpineTube(
         mb,
@@ -694,17 +700,6 @@ function buildDriverHeadMesh(charId: DriverCharacterId): MeshBuilder {
     }
   } else if (charId === 'cat') {
     for (const side of [-1, 1] as const) {
-      emitSmoothSpineTube(
-        mb,
-        [
-          { x: side * 0.22, y: 0.28, z: 0.0, rx: 0.145, ry: 0.092, rgb: spec.furPrimary },
-          { x: side * 0.32, y: 0.56, z: 0.0, rx: 0.092, ry: 0.06, rgb: spec.furPrimary },
-          { x: side * 0.38, y: 0.78, z: 0.0, rx: 0.016, ry: 0.014, rgb: spec.furPrimary },
-        ],
-        10,
-        MAT_PLUSH,
-        (_ringIdx, theta, defRgb) => (Math.sin(theta) < -0.28 ? spec.furSecondary : defRgb),
-      );
       // Cute dainty cat whiskers
       for (const wy of [-0.04, -0.11]) {
         mb.addBox(
@@ -723,51 +718,7 @@ function buildDriverHeadMesh(charId: DriverCharacterId): MeshBuilder {
     emitSmoothEllipsoid(mb, 0.27, 0.37, -0.04, 0.062, 0.062, 0.062, 8, 6, () => [246, 215, 67], MAT_GLOSSY);
     emitSmoothEllipsoid(mb, 0.14, 0.39, -0.04, 0.11, 0.075, 0.055, 8, 6, () => spec.scarfRgb, MAT_PLUSH);
     emitSmoothEllipsoid(mb, 0.4, 0.35, -0.04, 0.11, 0.075, 0.055, 8, 6, () => spec.scarfRgb, MAT_PLUSH);
-  } else if (charId === 'dog') {
-    // Big Velvety Tangerine Floppy Puppy Ears (100% Starlight Burst Koro!)
-    for (const side of [-1, 1] as const) {
-      emitSmoothSpineTube(
-        mb,
-        [
-          { x: side * 0.32, y: 0.25, z: -0.02, rx: 0.12, ry: 0.085, rgb: spec.furSecondary },
-          { x: side * 0.54, y: 0.18, z: -0.03, rx: 0.145, ry: 0.095, rgb: spec.furSecondary },
-          { x: side * 0.62, y: -0.04, z: -0.04, rx: 0.135, ry: 0.085, rgb: spec.furSecondary },
-          { x: side * 0.6, y: -0.25, z: -0.04, rx: 0.052, ry: 0.042, rgb: spec.furSecondary },
-        ],
-        10,
-        MAT_PLUSH,
-      );
-    }
-  } else {
-    // Momo (`bunny`): Tall Perky Left Ear + ADORABLE FOLDED RIGHT BUNNY EAR + Golden Satin Bow!
-    emitSmoothSpineTube(
-      mb,
-      [
-        { x: -0.17, y: 0.32, z: -0.02, rx: 0.105, ry: 0.065, rgb: spec.furPrimary },
-        { x: -0.24, y: 0.72, z: -0.08, rx: 0.125, ry: 0.068, rgb: spec.furPrimary },
-        { x: -0.28, y: 1.08, z: -0.15, rx: 0.102, ry: 0.055, rgb: spec.furPrimary },
-        { x: -0.3, y: 1.32, z: -0.2, rx: 0.025, ry: 0.02, rgb: spec.furPrimary },
-      ],
-      10,
-      MAT_PLUSH,
-      (ringIdx, theta, defRgb) => (ringIdx < 2 && Math.sin(theta) < -0.32 ? spec.furCream : defRgb),
-    );
-    // Cute folded right bunny ear: smooth rising base + plush round bend + drooping tip!
-    emitSmoothSpineTube(
-      mb,
-      [
-        { x: 0.18, y: 0.32, z: -0.02, rx: 0.07, ry: 0.105, rgb: spec.furPrimary },
-        { x: 0.28, y: 0.68, z: -0.06, rx: 0.072, ry: 0.118, rgb: spec.furPrimary },
-        { x: 0.39, y: 0.89, z: -0.09, rx: 0.068, ry: 0.105, rgb: spec.furPrimary },
-        { x: 0.52, y: 0.8, z: -0.11, rx: 0.066, ry: 0.102, rgb: spec.furPrimary },
-        { x: 0.58, y: 0.54, z: -0.14, rx: 0.056, ry: 0.088, rgb: spec.furPrimary },
-        { x: 0.56, y: 0.42, z: -0.15, rx: 0.022, ry: 0.028, rgb: spec.furPrimary },
-      ],
-      10,
-      MAT_PLUSH,
-      (ringIdx, theta, defRgb) => (ringIdx < 2 && Math.cos(theta) > 0.32 ? spec.furCream : defRgb),
-      { x: 0, y: 0, z: 1 },
-    );
+  } else if (charId === 'bunny') {
     // Sunny Golden Satin Ear Bow!
     emitSmoothEllipsoid(mb, 0.24, 0.39, -0.04, 0.06, 0.06, 0.06, 8, 6, () => [255, 250, 224], MAT_GLOSSY);
     emitSmoothEllipsoid(mb, 0.12, 0.41, -0.04, 0.105, 0.072, 0.052, 8, 6, () => spec.scarfRgb, MAT_PLUSH);
@@ -775,6 +726,131 @@ function buildDriverHeadMesh(charId: DriverCharacterId): MeshBuilder {
   }
 
   return mb;
+}
+
+interface DriverEarMeshes {
+  left: MeshBuilder;
+  right: MeshBuilder;
+  leftAnchor: readonly [number, number, number];
+  rightAnchor: readonly [number, number, number];
+}
+
+function buildDriverEarMeshes(charId: DriverCharacterId): DriverEarMeshes {
+  const spec = getKartDriverSpec(charId);
+  const left = new MeshBuilder();
+  const right = new MeshBuilder();
+
+  const emitRel = (
+    mb: MeshBuilder,
+    anchor: readonly [number, number, number],
+    spine: readonly TubeSpineNode[],
+    colorOverride?: (
+      ringIdx: number,
+      theta: number,
+      defaultRgb: readonly [number, number, number],
+    ) => readonly [number, number, number],
+    fixedRefAxis?: Vec3Mut,
+  ) => {
+    const [ax, ay, az] = anchor;
+    emitSmoothSpineTube(
+      mb,
+      spine.map((n) => ({ ...n, x: n.x - ax, y: n.y - ay, z: n.z - az })),
+      10,
+      MAT_PLUSH,
+      colorOverride,
+      fixedRefAxis,
+    );
+  };
+
+  if (charId === 'fox') {
+    const leftAnchor = [-0.24, 0.27, -0.01] as const;
+    const rightAnchor = [0.24, 0.27, -0.01] as const;
+    for (const [side, mb, anchor] of [
+      [-1, left, leftAnchor],
+      [1, right, rightAnchor],
+    ] as const) {
+      emitRel(
+        mb,
+        anchor,
+        [
+          { x: side * 0.24, y: 0.27, z: -0.01, rx: 0.155, ry: 0.1, rgb: spec.furPrimary },
+          { x: side * 0.37, y: 0.56, z: -0.01, rx: 0.115, ry: 0.072, rgb: spec.furPrimary },
+          { x: side * 0.45, y: 0.78, z: -0.01, rx: 0.052, ry: 0.038, rgb: spec.furPrimary },
+          { x: side * 0.48, y: 0.88, z: -0.01, rx: 0.014, ry: 0.012, rgb: spec.furPrimary },
+        ],
+        (ringIdx, theta, defRgb) => (ringIdx < 2 && Math.sin(theta) < -0.25 ? spec.furCream : defRgb),
+      );
+    }
+    return { left, right, leftAnchor, rightAnchor };
+  }
+
+  if (charId === 'cat') {
+    const leftAnchor = [-0.22, 0.28, 0.0] as const;
+    const rightAnchor = [0.22, 0.28, 0.0] as const;
+    for (const [side, mb, anchor] of [
+      [-1, left, leftAnchor],
+      [1, right, rightAnchor],
+    ] as const) {
+      emitRel(
+        mb,
+        anchor,
+        [
+          { x: side * 0.22, y: 0.28, z: 0.0, rx: 0.145, ry: 0.092, rgb: spec.furPrimary },
+          { x: side * 0.32, y: 0.56, z: 0.0, rx: 0.092, ry: 0.06, rgb: spec.furPrimary },
+          { x: side * 0.38, y: 0.78, z: 0.0, rx: 0.016, ry: 0.014, rgb: spec.furPrimary },
+        ],
+        (_ringIdx, theta, defRgb) => (Math.sin(theta) < -0.28 ? spec.furSecondary : defRgb),
+      );
+    }
+    return { left, right, leftAnchor, rightAnchor };
+  }
+
+  if (charId === 'dog') {
+    const leftAnchor = [-0.32, 0.25, -0.02] as const;
+    const rightAnchor = [0.32, 0.25, -0.02] as const;
+    for (const [side, mb, anchor] of [
+      [-1, left, leftAnchor],
+      [1, right, rightAnchor],
+    ] as const) {
+      emitRel(mb, anchor, [
+        { x: side * 0.32, y: 0.25, z: -0.02, rx: 0.12, ry: 0.085, rgb: spec.furSecondary },
+        { x: side * 0.54, y: 0.18, z: -0.03, rx: 0.145, ry: 0.095, rgb: spec.furSecondary },
+        { x: side * 0.62, y: -0.04, z: -0.04, rx: 0.135, ry: 0.085, rgb: spec.furSecondary },
+        { x: side * 0.6, y: -0.25, z: -0.04, rx: 0.052, ry: 0.042, rgb: spec.furSecondary },
+      ]);
+    }
+    return { left, right, leftAnchor, rightAnchor };
+  }
+
+  // Momo (`bunny`): tall perky left ear + adorable folded right ear!
+  const leftAnchor = [-0.17, 0.32, -0.02] as const;
+  const rightAnchor = [0.18, 0.32, -0.02] as const;
+  emitRel(
+    left,
+    leftAnchor,
+    [
+      { x: -0.17, y: 0.32, z: -0.02, rx: 0.105, ry: 0.065, rgb: spec.furPrimary },
+      { x: -0.24, y: 0.72, z: -0.08, rx: 0.125, ry: 0.068, rgb: spec.furPrimary },
+      { x: -0.28, y: 1.08, z: -0.15, rx: 0.102, ry: 0.055, rgb: spec.furPrimary },
+      { x: -0.3, y: 1.32, z: -0.2, rx: 0.025, ry: 0.02, rgb: spec.furPrimary },
+    ],
+    (ringIdx, theta, defRgb) => (ringIdx < 2 && Math.sin(theta) < -0.32 ? spec.furCream : defRgb),
+  );
+  emitRel(
+    right,
+    rightAnchor,
+    [
+      { x: 0.18, y: 0.32, z: -0.02, rx: 0.07, ry: 0.105, rgb: spec.furPrimary },
+      { x: 0.28, y: 0.68, z: -0.06, rx: 0.072, ry: 0.118, rgb: spec.furPrimary },
+      { x: 0.39, y: 0.89, z: -0.09, rx: 0.068, ry: 0.105, rgb: spec.furPrimary },
+      { x: 0.52, y: 0.8, z: -0.11, rx: 0.066, ry: 0.102, rgb: spec.furPrimary },
+      { x: 0.58, y: 0.54, z: -0.14, rx: 0.056, ry: 0.088, rgb: spec.furPrimary },
+      { x: 0.56, y: 0.42, z: -0.15, rx: 0.022, ry: 0.028, rgb: spec.furPrimary },
+    ],
+    (ringIdx, theta, defRgb) => (ringIdx < 2 && Math.cos(theta) > 0.32 ? spec.furCream : defRgb),
+    { x: 0, y: 0, z: 1 },
+  );
+  return { left, right, leftAnchor, rightAnchor };
 }
 
 function buildDriverTailMesh(charId: DriverCharacterId): MeshBuilder {
@@ -1172,6 +1248,10 @@ interface DriverGpuRig {
   chassis: StaticGpuMesh;
   torso: StaticGpuMesh;
   head: StaticGpuMesh;
+  leftEar: StaticGpuMesh;
+  rightEar: StaticGpuMesh;
+  leftEarAnchor: readonly [number, number, number];
+  rightEarAnchor: readonly [number, number, number];
   tail: StaticGpuMesh;
   scarf: StaticGpuMesh;
 }
@@ -1403,6 +1483,7 @@ export class MicroKartWebGL2Renderer {
   private readonly kartBasis = new Float32Array(9);
   private readonly localBasis = new Float32Array(9);
   private readonly worldPartBasis = new Float32Array(9);
+  private readonly headWorldBasis = new Float32Array(9);
   private readonly dynamicScratch = new Float32Array(4096 * FLOATS_PER_VERT);
 
   private uniforms: Record<string, WebGLUniformLocation | null> = {};
@@ -1569,10 +1650,15 @@ export class MicroKartWebGL2Renderer {
     gl.bindVertexArray(null);
 
     for (const drv of KART_DRIVERS) {
+      const ears = buildDriverEarMeshes(drv.id);
       this.driverRigs.set(drv.id, {
         chassis: this.uploadStaticMesh(gl, buildKartChassisMesh(drv)),
         torso: this.uploadStaticMesh(gl, buildDriverTorsoMesh(drv)),
         head: this.uploadStaticMesh(gl, buildDriverHeadMesh(drv.id)),
+        leftEar: this.uploadStaticMesh(gl, ears.left),
+        rightEar: this.uploadStaticMesh(gl, ears.right),
+        leftEarAnchor: ears.leftAnchor,
+        rightEarAnchor: ears.rightAnchor,
         tail: this.uploadStaticMesh(gl, buildDriverTailMesh(drv.id)),
         scarf: this.uploadStaticMesh(gl, buildScarfTailMesh(drv)),
       });
@@ -1798,12 +1884,25 @@ export class MicroKartWebGL2Renderer {
     gl.bindVertexArray(this.worldVao);
     for (const kart of race.karts) {
       const rig = this.driverRigs.get(kart.character) ?? this.driverRigs.get('fox')!;
+      const pose = computeDriverPose(kart, timeMs);
       // Subtle playful suspension hop when racing fast!
-      const bounceY = Math.abs(Math.sin(timeMs * 0.015 + kart.slot * 1.7)) * Math.min(0.055, kart.speed * 0.0008);
+      const bounceY = Math.abs(Math.sin(timeMs * 0.015 + kart.slot * 1.7)) * Math.min(0.055, kart.speed * 0.0006);
       eulerToBasis3(this.kartBasis, kart.yaw + kart.driftYaw, kart.pitch, -kart.bodyRoll);
 
       this.drawStaticMesh(gl, rig.chassis, kart.x, kart.y + bounceY, kart.z, this.kartBasis);
-      this.drawStaticMesh(gl, rig.torso, kart.x, kart.y + bounceY, kart.z, this.kartBasis);
+
+      // Dynamic plush torso leaning into tight turns and ducking forward at top speed!
+      eulerToBasis3(this.localBasis, 0, pose.torsoPitch, pose.torsoRoll);
+      mulBasis3(this.worldPartBasis, this.kartBasis, this.localBasis);
+      const torsoOff = transformOffsetByBasis(this.kartBasis, pose.torsoShiftX * 0.45, 0.62, -0.16);
+      this.drawStaticMesh(
+        gl,
+        rig.torso,
+        kart.x + torsoOff.x,
+        kart.y + bounceY + torsoOff.y,
+        kart.z + torsoOff.z,
+        this.worldPartBasis,
+      );
 
       // Cheerful glowing rear brake/tail lamps
       if (this.unitBoxMesh) {
@@ -1824,43 +1923,51 @@ export class MicroKartWebGL2Renderer {
         );
       }
 
-      // Expressive corner-leaning head
-      const steerDir =
-        kart.driftDir !== 0
-          ? kart.driftDir
-          : !kart.leftThruster && kart.rightThruster
-            ? -1
-            : kart.leftThruster && !kart.rightThruster
-              ? 1
-              : 0;
-      const speedRatio = Math.min(1.25, kart.speed / 76);
-      const headYaw = steerDir * 0.34;
-      const headRoll = -steerDir * 0.18;
-      const headPitch =
-        (kart.braking ? 0.14 : -0.04 * speedRatio) +
-        Math.sin(timeMs * 0.013 + kart.slot) * 0.035;
-      eulerToBasis3(this.localBasis, headYaw, headPitch, headRoll);
-      mulBasis3(this.worldPartBasis, this.kartBasis, this.localBasis);
-      const headOff = transformOffsetByBasis(this.kartBasis, 0, 1.3, -0.14);
+      // Expressive corner-leaning, wind-ducking head + wind-blown articulated ears!
+      eulerToBasis3(this.localBasis, pose.headYaw, pose.headPitch, pose.headRoll);
+      mulBasis3(this.headWorldBasis, this.kartBasis, this.localBasis);
+      const headOff = transformOffsetByBasis(
+        this.kartBasis,
+        pose.headShiftX,
+        1.3 + pose.headDuckY,
+        -0.14 + pose.headDuckZ,
+      );
+      const headWx = kart.x + headOff.x;
+      const headWy = kart.y + bounceY + headOff.y;
+      const headWz = kart.z + headOff.z;
+      this.drawStaticMesh(gl, rig.head, headWx, headWy, headWz, this.headWorldBasis);
+
+      // Left & right ears blow back in high-speed wind and tilt slightly outward in tight turns!
+      const [lax, lay, laz] = rig.leftEarAnchor;
+      const leftEarOff = transformOffsetByBasis(this.headWorldBasis, lax, lay, laz);
+      eulerToBasis3(this.localBasis, 0, pose.leftEarPitch, pose.leftEarRoll);
+      mulBasis3(this.worldPartBasis, this.headWorldBasis, this.localBasis);
       this.drawStaticMesh(
         gl,
-        rig.head,
-        kart.x + headOff.x,
-        kart.y + bounceY + headOff.y,
-        kart.z + headOff.z,
+        rig.leftEar,
+        headWx + leftEarOff.x,
+        headWy + leftEarOff.y,
+        headWz + leftEarOff.z,
         this.worldPartBasis,
       );
 
-      // Wagging / swishing species tail
-      const wagFreq = kart.character === 'dog' ? (kart.boostTimer > 0 ? 0.036 : 0.018) : 0.01;
-      const tailYaw =
-        Math.sin(timeMs * wagFreq + kart.slot) * (kart.character === 'dog' ? 0.28 : 0.18) -
-        kart.driftYaw * 0.5;
-      const tailHop =
-        kart.character === 'bunny' ? Math.abs(Math.sin(timeMs * 0.018 + kart.slot)) * 0.06 : 0;
-      eulerToBasis3(this.localBasis, tailYaw, 0, 0);
+      const [rax, ray, raz] = rig.rightEarAnchor;
+      const rightEarOff = transformOffsetByBasis(this.headWorldBasis, rax, ray, raz);
+      eulerToBasis3(this.localBasis, 0, pose.rightEarPitch, pose.rightEarRoll);
+      mulBasis3(this.worldPartBasis, this.headWorldBasis, this.localBasis);
+      this.drawStaticMesh(
+        gl,
+        rig.rightEar,
+        headWx + rightEarOff.x,
+        headWy + rightEarOff.y,
+        headWz + rightEarOff.z,
+        this.worldPartBasis,
+      );
+
+      // Wagging / swishing species tail reacting to speed and corner G-force
+      eulerToBasis3(this.localBasis, pose.tailYaw, pose.tailPitch, 0);
       mulBasis3(this.worldPartBasis, this.kartBasis, this.localBasis);
-      const tailOff = transformOffsetByBasis(this.kartBasis, 0, 0.7 + tailHop, -0.46);
+      const tailOff = transformOffsetByBasis(this.kartBasis, 0, 0.7 + pose.tailHop, -0.46);
       this.drawStaticMesh(
         gl,
         rig.tail,
@@ -1870,12 +1977,15 @@ export class MicroKartWebGL2Renderer {
         this.worldPartBasis,
       );
 
-      // Fluttering neckerchief tails
-      const scarfYaw = Math.sin(timeMs * 0.017 + kart.slot) * (0.07 + speedRatio * 0.15);
-      const scarfPitch = 0.07 + speedRatio * 0.13;
-      eulerToBasis3(this.localBasis, scarfYaw, scarfPitch, 0);
+      // Fluttering neckerchief tails anchored to leaning/ducking collar
+      eulerToBasis3(this.localBasis, pose.scarfYaw, pose.scarfPitch, pose.torsoRoll * 0.6);
       mulBasis3(this.worldPartBasis, this.kartBasis, this.localBasis);
-      const scarfOff = transformOffsetByBasis(this.kartBasis, 0, 1.0, -0.34);
+      const scarfOff = transformOffsetByBasis(
+        this.kartBasis,
+        pose.headShiftX * 0.68,
+        1.0 + pose.headDuckY * 0.65,
+        -0.34 + pose.headDuckZ * 0.65,
+      );
       this.drawStaticMesh(
         gl,
         rig.scarf,
@@ -1966,6 +2076,8 @@ export class MicroKartWebGL2Renderer {
         gl.deleteBuffer(r.chassis.vbo);
         gl.deleteBuffer(r.torso.vbo);
         gl.deleteBuffer(r.head.vbo);
+        gl.deleteBuffer(r.leftEar.vbo);
+        gl.deleteBuffer(r.rightEar.vbo);
         gl.deleteBuffer(r.tail.vbo);
         gl.deleteBuffer(r.scarf.vbo);
       }

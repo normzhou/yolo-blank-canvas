@@ -17,6 +17,7 @@ import {
   TOTAL_LAPS,
   VACUUM_ACCEL_TIME_SEC,
 } from '../src/shared/microKart';
+import { computeDriverPose } from '../src/games/micro-kart/driverPose';
 
 describe('Micro Kart 3D circuits, F1 dual-thruster physics, PWM ramp, lateral slip & Starlight Burst drivers (#344, #358, #360, #362, #384)', () => {
   it('populates the 4 karts with the 4 Starlight Burst companions (Ren, Mochi, Koro, Momo) with no duplicates', () => {
@@ -170,5 +171,62 @@ describe('Micro Kart 3D circuits, F1 dual-thruster physics, PWM ramp, lateral sl
     expect(race.karts[0]!.lap).toBe(TOTAL_LAPS + 1);
     expect(race.karts[0]!.bestLapMs).not.toBeNull();
     expect(race.karts[1]!.unwrappedS).toBeGreaterThan(circuit.totalLength * 2.5);
+  });
+
+  it('animates driver corner lean, high-speed wind duck, and species-specific wind-blown ears from speed and yawRate (#386)', () => {
+    const race = createRaceState('sunset-loop', '1p', 12);
+    const fox = race.karts[0]!;
+    const cat = race.karts[1]!;
+    const dog = race.karts[2]!;
+    const bunny = race.karts[3]!;
+
+    // 1. At standstill: upright neutral posture, minimal wind tuck and gentle ears
+    const idleFox = computeDriverPose(fox, 0);
+    expect(idleFox.aeroTuck).toBe(0);
+    expect(Math.abs(idleFox.torsoRoll)).toBeLessThan(0.01);
+    expect(Math.abs(idleFox.headDuckZ)).toBeLessThan(0.01);
+
+    // 2. Tight left vs right turn (`yawRate`): torso & head lean opposite directions into the turn
+    fox.speed = 70;
+    fox.yawRate = -1.6;
+    fox.leftThrottle = 0;
+    fox.rightThrottle = 1;
+    const leftTurn = computeDriverPose(fox, 100);
+
+    fox.yawRate = 1.6;
+    fox.leftThrottle = 1;
+    fox.rightThrottle = 0;
+    const rightTurn = computeDriverPose(fox, 100);
+
+    expect(leftTurn.torsoRoll).toBeGreaterThan(0.2); // leans left (+roll)
+    expect(rightTurn.torsoRoll).toBeLessThan(-0.2); // leans right (-roll)
+    expect(leftTurn.torsoShiftX).toBeLessThan(-0.1);
+    expect(rightTurn.torsoShiftX).toBeGreaterThan(0.1);
+    expect(leftTurn.headYaw).toBeLessThan(-0.3);
+    expect(rightTurn.headYaw).toBeGreaterThan(0.3);
+
+    // 3. Top speed (100 m/s) & boost: driver ducks head forward/down and blows ears back for all 4 species!
+    for (const k of [fox, cat, dog, bunny]) {
+      k.speed = 98;
+      k.yawRate = 0;
+      k.leftThrottle = 1;
+      k.rightThrottle = 1;
+      k.boostTimer = 0.6;
+    }
+    const fastFox = computeDriverPose(fox, 200);
+    const fastCat = computeDriverPose(cat, 200);
+    const fastDog = computeDriverPose(dog, 200);
+    const fastBunny = computeDriverPose(bunny, 200);
+
+    expect(fastFox.aeroTuck).toBeGreaterThan(1.0);
+    expect(fastFox.torsoPitch).toBeGreaterThan(0.2);
+    expect(fastFox.headDuckZ).toBeGreaterThan(0.14);
+    expect(fastFox.headDuckY).toBeLessThan(-0.09);
+
+    // Upright ears (`fox`, `cat`, `bunny`) sweep back with negative pitch; floppy `dog` ears sweep back with positive pitch!
+    expect(fastFox.leftEarPitch).toBeLessThan(-0.55);
+    expect(fastCat.leftEarPitch).toBeLessThan(-0.45);
+    expect(fastBunny.leftEarPitch).toBeLessThan(-0.95);
+    expect(fastDog.leftEarPitch).toBeGreaterThan(0.75);
   });
 });

@@ -17,6 +17,7 @@ import {
   getKartDriverSpec,
   type KartState,
 } from '../../shared/microKart';
+import { computeDriverPose } from './driverPose';
 
 export interface DriverPt3 {
   x: number;
@@ -94,10 +95,13 @@ function makeHeadTransform(
   headYaw: number,
   headRoll: number,
   headPitch: number,
+  offsetX = 0,
+  offsetY = 0,
+  offsetZ = 0,
 ): KartSpaceTransform {
-  const pivotX = 0;
-  const pivotY = 1.23;
-  const pivotZ = -0.14;
+  const pivotX = offsetX;
+  const pivotY = 1.23 + offsetY;
+  const pivotZ = -0.14 + offsetZ;
   const cy = Math.cos(headYaw);
   const sy = Math.sin(headYaw);
   const cr = Math.cos(headRoll);
@@ -130,49 +134,55 @@ export function emitAnimalDriverMesh(
   timeMs: number,
 ): void {
   const spec = getKartDriverSpec(kart.character);
-  const diffSteer = kart.leftThrottle - kart.rightThrottle;
-  const steerDir =
-    Math.abs(diffSteer) > 0.04
-      ? Math.max(-1, Math.min(1, diffSteer))
-      : kart.driftDir;
+  const pose = computeDriverPose(kart, timeMs);
+  const speedRatio = pose.speedRatio;
+  const steerDir = pose.turnLean;
 
-  // Dynamic head look-into-turn & joyful speed nod
-  const speedRatio = Math.min(1.28, kart.speed / 100);
-  const headYaw = steerDir * 0.3;
-  const headRoll = -steerDir * 0.16;
-  const headPitch = (kart.braking ? 0.12 : -0.04 * speedRatio) + Math.sin(timeMs * 0.012 + kart.slot) * 0.025;
-  const hxf = makeHeadTransform(kartXf, headYaw, headRoll, headPitch);
+  // Dynamic corner-leaning & high-speed wind-ducking head transform
+  const hxf = makeHeadTransform(
+    kartXf,
+    pose.headYaw,
+    pose.headRoll,
+    pose.headPitch,
+    pose.headShiftX,
+    pose.headDuckY,
+    pose.headDuckZ,
+  );
 
   const darkCharcoal: [number, number, number] = [24, 28, 38];
   const goggleCyan: [number, number, number] = [96, 232, 255];
   const goggleRim: [number, number, number] = [248, 212, 76];
 
-  // 1. Open-Cockpit Steering Column, Racing Wheel & Driver Torso + Paws
+  // 1. Open-Cockpit Steering Column, Racing Wheel & Leaning/Ducking Driver Torso + Paws
   const steerWheelRoll = -steerDir * 0.48;
   const swCos = Math.cos(steerWheelRoll);
   const swSin = Math.sin(steerWheelRoll);
-  // Plush torso in seat (`z = -0.18`, `y = 0.56 .. 0.96`)
+  const neckX = pose.torsoShiftX;
+  const neckY = 0.95 + pose.headDuckY * 0.6;
+  const neckZ = -0.16 + pose.headDuckZ * 0.7;
+
+  // Plush torso leaning into corners & ducking forward into high-speed wind!
   emitTubeSegment(
     pushPoly,
     kartXf,
     [0, 0.56, -0.2],
     0.34,
     0.26,
-    [0, 0.95, -0.16],
+    [neckX, neckY, neckZ],
     0.29,
     0.23,
     spec.furPrimary,
     spec.furCream,
     -0.4,
   );
-  // Neck scarf / satin collar ring (`y = 0.94 .. 1.03`)
+  // Neck scarf / satin collar ring riding with leaning torso
   emitTubeSegment(
     pushPoly,
     kartXf,
-    [0, 0.92, -0.15],
+    [neckX * 0.9, neckY - 0.03, neckZ + 0.01],
     0.33,
     0.26,
-    [0, 1.01, -0.15],
+    [neckX, neckY + 0.06, neckZ + 0.01],
     0.31,
     0.25,
     spec.scarfRgb,
@@ -180,17 +190,18 @@ export function emitAnimalDriverMesh(
     -0.42,
   );
 
-  // Fluttering twin 3D scarf tails streaming behind the neck in the wind!
-  const windAmp = 0.04 + speedRatio * 0.11;
+  // Fluttering twin 3D scarf tails streaming behind the neck & swinging outward in turns!
+  const windAmp = 0.04 + speedRatio * 0.12;
+  const cornerWindX = -steerDir * 0.16;
   for (const side of [-1, 1] as const) {
     const wave1 = Math.sin(timeMs * 0.016 + side * 0.9 + kart.slot) * windAmp;
     const wave2 = Math.sin(timeMs * 0.016 - 1.1 + side * 0.9 + kart.slot) * windAmp * 1.5;
-    const sx0 = side * 0.13;
-    const s0L = kartXf(sx0 - 0.07, 0.96, -0.36);
-    const s0R = kartXf(sx0 + 0.07, 0.96, -0.36);
-    const s1L = kartXf(sx0 * 1.35 + wave1 - 0.065, 0.93 + speedRatio * 0.05, -0.72);
-    const s1R = kartXf(sx0 * 1.35 + wave1 + 0.065, 0.93 + speedRatio * 0.05, -0.72);
-    const sTip = kartXf(sx0 * 1.6 + wave2, 0.89 + speedRatio * 0.08, -1.08 - speedRatio * 0.16);
+    const sx0 = neckX + side * 0.13;
+    const s0L = kartXf(sx0 - 0.07, neckY + 0.01, neckZ - 0.2);
+    const s0R = kartXf(sx0 + 0.07, neckY + 0.01, neckZ - 0.2);
+    const s1L = kartXf(sx0 + side * 0.04 + wave1 + cornerWindX * 0.5 - 0.065, neckY - 0.02 + speedRatio * 0.06, neckZ - 0.56);
+    const s1R = kartXf(sx0 + side * 0.04 + wave1 + cornerWindX * 0.5 + 0.065, neckY - 0.02 + speedRatio * 0.06, neckZ - 0.56);
+    const sTip = kartXf(sx0 + side * 0.08 + wave2 + cornerWindX, neckY - 0.06 + speedRatio * 0.1, neckZ - 0.92 - speedRatio * 0.2);
     pushPoly([s0L, s0R, s1R, s1L], spec.scarfRgb, -0.43);
     pushPoly([s1L, s1R, sTip], spec.scarfRgb, -0.43);
   }
@@ -206,9 +217,9 @@ export function emitAnimalDriverMesh(
   for (const side of [-1, 1] as const) {
     const px = side * swR * swCos;
     const py = 0.86 + side * swR * swSin * 0.85;
-    // Arm from shoulder to paw on steering wheel
-    const shL = kartXf(side * 0.26, 0.88, -0.1);
-    const shU = kartXf(side * 0.26, 0.96, -0.1);
+    // Arm from leaning shoulder to paw on steering wheel
+    const shL = kartXf(neckX + side * 0.26, neckY - 0.07, neckZ + 0.06);
+    const shU = kartXf(neckX + side * 0.26, neckY + 0.01, neckZ + 0.06);
     const pwU = kartXf(px, py + 0.05, 0.26);
     const pwL = kartXf(px, py - 0.05, 0.26);
     pushPoly([shL, shU, pwU, pwL], spec.furPrimary, -0.41);
@@ -352,18 +363,23 @@ export function emitAnimalDriverMesh(
   }
 
   // 5. Species-Specific 3D Ears, Accessories & Animated Rear Tails!
+  const earWind = pose.earWindRatio;
+  const earGShiftX = -pose.turnLean * 0.09;
   if (kart.character === 'fox') {
-    // Wide-set pointed Fox Ears with dark charcoal tips + fluffy side cheek tufts!
+    // Wide-set pointed Fox Ears swept backward by high-speed wind + fluffy side cheek tufts!
+    const sweepMidZ = -earWind * 0.16;
+    const sweepTipZ = -earWind * 0.36;
+    const sweepDropY = -earWind * 0.14;
     for (const side of [-1, 1] as const) {
       const b0 = hxf(side * 0.15, 0.28, -0.08);
       const b1 = hxf(side * 0.38, 0.2, -0.08);
       const b2 = hxf(side * 0.36, 0.22, 0.1);
       const b3 = hxf(side * 0.15, 0.3, 0.08);
-      const mid0 = hxf(side * 0.28, 0.56, -0.05);
-      const mid1 = hxf(side * 0.46, 0.51, -0.04);
-      const mid2 = hxf(side * 0.44, 0.52, 0.05);
-      const mid3 = hxf(side * 0.28, 0.57, 0.04);
-      const tip = hxf(side * 0.49, 0.82, -0.01);
+      const mid0 = hxf(side * 0.28 + earGShiftX * 0.5, 0.56 + sweepDropY * 0.4, -0.05 + sweepMidZ);
+      const mid1 = hxf(side * 0.46 + earGShiftX * 0.5, 0.51 + sweepDropY * 0.4, -0.04 + sweepMidZ);
+      const mid2 = hxf(side * 0.44 + earGShiftX * 0.5, 0.52 + sweepDropY * 0.4, 0.05 + sweepMidZ);
+      const mid3 = hxf(side * 0.28 + earGShiftX * 0.5, 0.57 + sweepDropY * 0.4, 0.04 + sweepMidZ);
+      const tip = hxf(side * 0.49 + earGShiftX, 0.82 + sweepDropY, -0.01 + sweepTipZ);
 
       pushPoly([b0, b1, mid1, mid0], spec.furPrimary, -0.41);
       pushPoly([b1, b2, mid2, mid1], spec.furPrimary, -0.41);
@@ -414,13 +430,15 @@ export function emitAnimalDriverMesh(
   }
 
   if (kart.character === 'cat') {
-    // Perked upright Cat Ears with rose-pink inner facets + sculpted 3D Rose Satin Ear Bow!
+    // Perked Cat Ears swept back by rushing wind + sculpted 3D Rose Satin Ear Bow!
+    const catSweepZ = -earWind * 0.28;
+    const catDropY = -earWind * 0.1;
     for (const side of [-1, 1] as const) {
       const b0 = hxf(side * 0.13, 0.3, -0.08);
       const b1 = hxf(side * 0.35, 0.23, -0.08);
       const b2 = hxf(side * 0.33, 0.25, 0.09);
       const b3 = hxf(side * 0.13, 0.31, 0.08);
-      const tip = hxf(side * 0.36, 0.78, 0.0);
+      const tip = hxf(side * 0.36 + earGShiftX, 0.78 + catDropY, catSweepZ);
       pushPoly([b0, b1, tip], spec.furPrimary, -0.41);
       pushPoly([b1, b2, tip], spec.furPrimary, -0.41);
       pushPoly([b2, b3, tip], spec.furSecondary, -0.42);
@@ -527,8 +545,10 @@ export function emitAnimalDriverMesh(
   }
 
   if (kart.character === 'dog') {
-    // Fuller 2-Segment Bouncy Floppy Puppy Ears framing Koro's golden Shiba head!
-    const bounce = Math.sin(timeMs * 0.018 + kart.slot) * 0.04 * (0.4 + speedRatio);
+    // Fuller 2-Segment Bouncy Floppy Puppy Ears streaming backward in high-speed wind!
+    const bounce = Math.sin(timeMs * 0.02 + kart.slot) * (0.04 + earWind * 0.05);
+    const dogBackZ = -earWind * 0.34;
+    const dogLiftY = earWind * 0.12;
     for (const side of [-1, 1] as const) {
       emitTubeSegment(
         pushPoly,
@@ -536,18 +556,18 @@ export function emitAnimalDriverMesh(
         [side * 0.25, 0.26, -0.02],
         0.11,
         0.075,
-        [side * 0.52, 0.21 + bounce, -0.03],
+        [side * 0.52 + earGShiftX * 0.4, 0.21 + bounce + dogLiftY * 0.4, -0.03 + dogBackZ * 0.45],
         0.13,
         0.075,
         spec.furSecondary,
         spec.furSecondary,
         -0.42,
       );
-      const e0 = hxf(side * 0.44, 0.22 + bounce, -0.14);
-      const e1 = hxf(side * 0.6, 0.18 + bounce, -0.14);
-      const e2 = hxf(side * 0.6, 0.18 + bounce, 0.08);
-      const e3 = hxf(side * 0.44, 0.22 + bounce, 0.08);
-      const tip = hxf(side * 0.58, -0.15 + bounce, -0.05 - speedRatio * 0.08);
+      const e0 = hxf(side * 0.44 + earGShiftX * 0.4, 0.22 + bounce + dogLiftY * 0.4, -0.14 + dogBackZ * 0.45);
+      const e1 = hxf(side * 0.6 + earGShiftX * 0.4, 0.18 + bounce + dogLiftY * 0.4, -0.14 + dogBackZ * 0.45);
+      const e2 = hxf(side * 0.6 + earGShiftX * 0.4, 0.18 + bounce + dogLiftY * 0.4, 0.08 + dogBackZ * 0.45);
+      const e3 = hxf(side * 0.44 + earGShiftX * 0.4, 0.22 + bounce + dogLiftY * 0.4, 0.08 + dogBackZ * 0.45);
+      const tip = hxf(side * 0.58 + earGShiftX, -0.15 + bounce + dogLiftY, -0.05 + dogBackZ);
       emitPyramid(pushPoly, e0, e1, e2, e3, tip, spec.furSecondary, -0.43);
     }
 
@@ -583,13 +603,14 @@ export function emitAnimalDriverMesh(
     return;
   }
 
-  // `bunny` (`Momo`): Tall iconic 2-segment Berry-Pink Bunny Ears with inset Golden Inner-Ear Strips + Snow Pom-Pom Tail!
-  const streamBack = 0.08 + speedRatio * 0.24 + (kart.boostTimer > 0 ? 0.15 : 0);
+  // `bunny` (`Momo`): Tall iconic 2-segment Berry-Pink Bunny Ears streaming dramatically back in high-speed wind!
+  const streamBack = 0.08 + earWind * 0.56;
+  const earDropY = -earWind * 0.26;
   for (const side of [-1, 1] as const) {
     const xBase = side * 0.15;
-    const xMid = side * 0.22;
-    const xTip = side * 0.25;
-    const zMid = -0.04 - streamBack * 0.45;
+    const xMid = side * 0.22 + earGShiftX * 0.5;
+    const xTip = side * 0.25 + earGShiftX;
+    const zMid = -0.04 - streamBack * 0.48;
     const zTip = -0.1 - streamBack;
     // Lower berry-pink ear blade (`y = 0.30 -> 0.80`)
     emitTubeSegment(
@@ -598,7 +619,7 @@ export function emitAnimalDriverMesh(
       [xBase, 0.3, -0.03],
       0.1,
       0.055,
-      [xMid, 0.8, zMid],
+      [xMid, 0.8 + earDropY * 0.45, zMid],
       0.115,
       0.055,
       spec.furPrimary,
@@ -606,11 +627,11 @@ export function emitAnimalDriverMesh(
       -0.42,
     );
     // Upper berry-pink ear tip (`y = 0.80 -> 1.26`)
-    const u0 = hxf(xMid - 0.11, 0.8, zMid - 0.055);
-    const u1 = hxf(xMid + 0.11, 0.8, zMid - 0.055);
-    const u2 = hxf(xMid + 0.1, 0.8, zMid + 0.055);
-    const u3 = hxf(xMid - 0.1, 0.8, zMid + 0.055);
-    const earTip = hxf(xTip, 1.26, zTip);
+    const u0 = hxf(xMid - 0.11, 0.8 + earDropY * 0.45, zMid - 0.055);
+    const u1 = hxf(xMid + 0.11, 0.8 + earDropY * 0.45, zMid - 0.055);
+    const u2 = hxf(xMid + 0.1, 0.8 + earDropY * 0.45, zMid + 0.055);
+    const u3 = hxf(xMid - 0.1, 0.8 + earDropY * 0.45, zMid + 0.055);
+    const earTip = hxf(xTip, 1.26 + earDropY, zTip);
     emitPyramid(pushPoly, u0, u1, u2, u3, earTip, spec.furPrimary, -0.43);
 
     // Inset Golden Inner-Ear Diamond Strip on front of ear!
@@ -618,17 +639,17 @@ export function emitAnimalDriverMesh(
       [
         hxf(xBase - 0.05, 0.36, 0.035),
         hxf(xBase + 0.05, 0.36, 0.035),
-        hxf(xMid + 0.055, 0.78, zMid + 0.062),
-        hxf(xMid - 0.055, 0.78, zMid + 0.062),
+        hxf(xMid + 0.055, 0.78 + earDropY * 0.45, zMid + 0.062),
+        hxf(xMid - 0.055, 0.78 + earDropY * 0.45, zMid + 0.062),
       ],
       spec.furSecondary,
       -0.45,
     );
     pushPoly(
       [
-        hxf(xMid - 0.055, 0.78, zMid + 0.062),
-        hxf(xMid + 0.055, 0.78, zMid + 0.062),
-        hxf(xTip, 1.12, zTip + 0.03),
+        hxf(xMid - 0.055, 0.78 + earDropY * 0.45, zMid + 0.062),
+        hxf(xMid + 0.055, 0.78 + earDropY * 0.45, zMid + 0.062),
+        hxf(xTip, 1.12 + earDropY, zTip + 0.03),
       ],
       spec.furSecondary,
       -0.45,
