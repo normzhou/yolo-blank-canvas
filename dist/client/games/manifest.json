@@ -34,7 +34,7 @@
     "micro-kart": {
       "id": "micro-kart",
       "packageName": "@yolo-arcade/game-micro-kart",
-      "version": "1.5.4",
+      "version": "1.5.5",
       "hash": "e2856d18ca4ddfc803764000daa0c44cf02cb323185083c010d4e4ce8d11c118",
       "entry": "/games/micro-kart-BV5lwOVe.js",
       "chunks": [
