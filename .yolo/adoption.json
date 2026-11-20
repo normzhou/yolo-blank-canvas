@@ -339,15 +339,16 @@
         "v0.43.1": "caac7e77797adb596cfe8ed520adff59cfbe967e",
         "v0.43.2": "90d8f89140b9e7871f88f3465569957451b7eb86",
         "v0.43.3": "39858df4056045dd0d060e2ccff928a57788de61",
-        "v0.44.0": "cd1bb42c4f7574ed956cae20ffb158990833b900"
+        "v0.44.0": "cd1bb42c4f7574ed956cae20ffb158990833b900",
+        "v0.44.1": "55c595a55bbc286d0733ba01cf2bdccd0d9f4bca"
       },
       "published": {
-        "tag": "v0.44.1",
-        "commit": "55c595a55bbc286d0733ba01cf2bdccd0d9f4bca",
-        "source_commit": "9e72e32efbed9ad9fd8f8239874dbd1c38792b88",
-        "published_at": "2026-11-17T23:55:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-17-v0441.json",
-        "note": "Patch soundtrack release (#374, PR #375). Replaces the 4 Micro Kart tracks (@yolo-arcade/game-micro-kart@1.5.1) with crisp, note-accurate 16-bit classic-arcade remixes of 8 universally recognizable pre-1925 public-domain melodies (Beethoven's 5th & Valkyries, Trepak & Carmen Overture, Eine Kleine Nachtmusik & Barber of Seville, Toccata in D Minor & Badinerie); verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 58b8d060-f99e-4680-b060-58507a213ca1)."
+        "tag": "v0.44.2",
+        "commit": "a72de11996ac966d4c5bd637b05b72dc31e88ff4",
+        "source_commit": "e84906092e46df034e6fc676521249ecc4e6c530",
+        "published_at": "2026-11-18T00:35:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-17-v0442.json",
+        "note": "Patch soundtrack release (#376, PR #377). Archives the 4 classical remixes to assets/audio-backup/ for future games and replaces Micro Kart's soundtrack (@yolo-arcade/game-micro-kart@1.5.2) with 4 non-classical Rock, Power-Metal, Ska-Punk & Electronic/Eurobeat tracks (Drunken Sailor Skate-Punk Turbo, La Cucaracha & Camptown Highway Rock, Bella Ciao Hyper-Eurobeat, Saints Go Racing Ska-Metal); verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -447,7 +448,8 @@
         ".yolo/reports/releases-observed-2026-11-17-v0432.json",
         ".yolo/reports/releases-observed-2026-11-17-v0433.json",
         ".yolo/reports/releases-observed-2026-11-17-v0440.json",
-        ".yolo/reports/releases-observed-2026-11-17-v0441.json"
+        ".yolo/reports/releases-observed-2026-11-17-v0441.json",
+        ".yolo/reports/releases-observed-2026-11-17-v0442.json"
       ]
     }
   },

@@ -1,0 +1,80 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-17",
+  "observed_at": "2026-11-17",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#376",
+  "releases": [
+    {
+      "tag": "v0.44.2",
+      "commit": "a72de11996ac966d4c5bd637b05b72dc31e88ff4"
+    }
+  ],
+  "release": {
+    "tag": "v0.44.2",
+    "commit": "a72de11996ac966d4c5bd637b05b72dc31e88ff4",
+    "source_commit": "e84906092e46df034e6fc676521249ecc4e6c530",
+    "assets_commit": "c3a08daaa0a2b45ba0a450f57badaf9b36c39656",
+    "native_version": "0.44.2",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-18T00:35:00Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.44.2",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/377"
+  },
+  "build_identity": {
+    "server_build_id": "e84906092e46df034e6fc676521249ecc4e6c530",
+    "client_build_id": "e84906092e46df034e6fc676521249ecc4e6c530",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "30 files, 192 tests passed (including test/arcade-music.test.ts and test/ip-compliance.test.ts)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 50 passed",
+      "e2e_live": "npm run e2e:live — 5 passed (read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.44.2 --no-open --port 4453 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (40.5s)",
+      "ci": "GitHub Actions CI/Test and type check green"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.44.2",
+      "observed_build_id": "e84906092e46df034e6fc676521249ecc4e6c530",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.2.0",
+          "entry": "/games/starlight-burst-BjrLXnGt.js",
+          "hash": "5b9ba017fa1c738375a912f2d1277f0471978ca463f27655a4576b2df602322e",
+          "sizeBytes": 86740
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-BBCRC58C.js",
+          "hash": "5e2a11e795802a943fd2a15e5b430af9d6419a1b30fe18a446e5c92cf0943274",
+          "sizeBytes": 37312
+        },
+        "micro-kart": {
+          "version": "1.5.2",
+          "entry": "/games/micro-kart-DL0SBbCm.js",
+          "hash": "72e9a1c3701cba5b8b7dead36f0fd1bc2202fea943c4e75dfbdff436e6efa9d3",
+          "sizeBytes": 89854
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Archives the 4 previous classical remixes safely under assets/audio-backup/ for future games and replaces Micro Kart's soundtrack (@yolo-arcade/game-micro-kart@1.5.2) with 4 non-classical Rock, Power-Metal, Ska-Punk, and Electronic/Eurobeat racing tracks built on recognizable public-domain melodies: Drunken Sailor Skate-Punk Turbo, La Cucaracha & Camptown Highway Rock, Bella Ciao Hyper-Eurobeat, and Saints Go Racing Ska-Metal."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #376"
+}
