@@ -1,0 +1,81 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-19",
+  "observed_at": "2026-11-19",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#386",
+  "releases": [
+    {
+      "tag": "v0.45.1",
+      "commit": "17b27c054f156cba67f6416b223481385667a0d3"
+    }
+  ],
+  "release": {
+    "tag": "v0.45.1",
+    "commit": "17b27c054f156cba67f6416b223481385667a0d3",
+    "source_commit": "9acf9edb4f4fa27e20b97df30c9a443b4c416663",
+    "assets_commit": "8400c0b4983f5d8318b2295af82523b03e50772c",
+    "native_version": "0.45.1",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-20T23:33:36Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.45.1",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/387"
+  },
+  "build_identity": {
+    "server_build_id": "9acf9edb4f4fa27e20b97df30c9a443b4c416663",
+    "client_build_id": "9acf9edb4f4fa27e20b97df30c9a443b4c416663",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "30 files, 193 tests passed (including computeDriverPose lean, wind-duck, and species ear blowback tests in test/micro-kart.test.ts)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 50 passed (58.0s)",
+      "e2e_live": "npm run e2e:live — 5 passed (13.5s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.45.1 --no-open --port 4455 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (16.3s)",
+      "ci": "GitHub Actions CI/Test and type check green (28s)"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "93b3bce8-c851-4f83-ae22-d6f88ab861d8",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.45.1",
+      "observed_build_id": "9acf9edb4f4fa27e20b97df30c9a443b4c416663",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.2.0",
+          "entry": "/games/starlight-burst-DEm4-yuf.js",
+          "hash": "b113ae31f74a8615fef8e1bdaaa10a8cc3203a3485e2dbc0e495fa53423a86bd",
+          "sizeBytes": 86740
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-ByBmNLhB.js",
+          "hash": "031daa023f44113c92076ff38dad8561481a042db328e9b46a837521d57cbe36",
+          "sizeBytes": 37312
+        },
+        "micro-kart": {
+          "version": "1.6.1",
+          "entry": "/games/micro-kart-CK7NZ-vM.js",
+          "hash": "6b2f21ff3ac85c9cd7177b366c17f562eacf702810cae0db6263562ceb3d8ad8",
+          "sizeBytes": 97388
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Adds speed- and angular-rate-driven character animations across all 4 Micro Kart drivers (@yolo-arcade/game-micro-kart@1.6.1): corner body lean, high-speed aero wind duck, and articulated wind-blown ears in both WebGL2 and Canvas 2D renderers."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #386"
+}
