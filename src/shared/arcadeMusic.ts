@@ -43,10 +43,10 @@ export const STARLIGHT_BURST_PLAYLIST: ReadonlyArray<Track> = [
   { id: 'starlight-track-5', title: 'Csikós Post & Gladiators Galop', src: 'audio/starlight-track-5.m4a' },
 ];
 
-/** Micro Kart high-energy Rock, Metal & Electronic racing playlist (~2 minutes per track, #372, #376). */
+/** Micro Kart high-energy Rock, Metal & Electronic racing playlist (~2 minutes per track, #372, #376, #378). */
 export const MICRO_KART_PLAYLIST: ReadonlyArray<Track> = [
-  { id: 'kart-track-1', title: 'Drunken Sailor Skate-Punk Turbo', src: 'audio/kart-track-1.m4a' },
-  { id: 'kart-track-2', title: 'La Cucaracha & Camptown Highway Rock', src: 'audio/kart-track-2.m4a' },
+  { id: 'kart-track-1', title: 'Funiculì Turbo Ska-Rock', src: 'audio/kart-track-1.m4a' },
+  { id: 'kart-track-2', title: 'Rising Sun Cyber-Eurobeat', src: 'audio/kart-track-2.m4a' },
   { id: 'kart-track-3', title: 'Bella Ciao Hyper-Eurobeat', src: 'audio/kart-track-3.m4a' },
   { id: 'kart-track-4', title: 'Saints Go Racing Ska-Metal', src: 'audio/kart-track-4.m4a' },
 ];
