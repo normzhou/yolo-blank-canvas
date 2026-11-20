@@ -635,32 +635,13 @@ function emitKartMesh(proj: CameraProjector, kart: KartState, timeMs: number): v
   emitBox(proj, xf, -0.62, 0.28, -1.84, -0.26, 0.56, -1.54, nozzleSteel, -0.42);
   emitBox(proj, xf, 0.26, 0.28, -1.84, 0.62, 0.56, -1.54, nozzleSteel, -0.42);
 
-  // 7. Live Flickering 3D Plasma Flame Pyramids from Active Thrusters!
-  // Physical differential detail:
-  // - Both held: BOTH nozzles roar equally!
-  // - Carving Left (`leftThruster && !rightThruster`): Left input fires thrust with extra outer-right vectoring!
-  //   Even clearer for players: light the held side nozzle brightly AND keep a smaller pilot glow on the opposite!
+  // 7. Live Flickering 3D Plasma Flame Pyramids proportional to continuous left/right thrust!
   const flicker = 0.86 + Math.sin(timeMs * 0.045 + kart.slot) * 0.18;
   const isBoosting = kart.boostTimer > 0;
-  const throttleScale = kart.braking ? 0 : Math.min(1, 0.22 + kart.speed / 38);
-  const leftPower = isBoosting
-    ? 1.55
-    : kart.braking
-      ? 0
-      : kart.leftThruster && kart.rightThruster
-        ? 1.0 * throttleScale
-        : kart.leftThruster
-          ? 1.15 * throttleScale
-          : 0.28 * throttleScale;
-  const rightPower = isBoosting
-    ? 1.55
-    : kart.braking
-      ? 0
-      : kart.leftThruster && kart.rightThruster
-        ? 1.0 * throttleScale
-        : kart.rightThruster
-          ? 1.15 * throttleScale
-          : 0.28 * throttleScale;
+  const speedBase = Math.min(1, 0.3 + kart.speed / 45);
+  const boostGain = isBoosting ? 1.55 : 1.15;
+  const leftPower = kart.leftThrottle * boostGain * (isBoosting ? 1 : speedBase);
+  const rightPower = kart.rightThrottle * boostGain * (isBoosting ? 1 : speedBase);
 
   const flameColor: [number, number, number] = isBoosting
     ? kart.boostKind === 'ultra'

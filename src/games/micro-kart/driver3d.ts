@@ -130,17 +130,14 @@ export function emitAnimalDriverMesh(
   timeMs: number,
 ): void {
   const spec = getKartDriverSpec(kart.character);
+  const diffSteer = kart.leftThrottle - kart.rightThrottle;
   const steerDir =
-    kart.driftDir !== 0
-      ? kart.driftDir
-      : !kart.leftThruster && kart.rightThruster
-        ? -1
-        : kart.leftThruster && !kart.rightThruster
-          ? 1
-          : 0;
+    Math.abs(diffSteer) > 0.04
+      ? Math.max(-1, Math.min(1, diffSteer))
+      : kart.driftDir;
 
   // Dynamic head look-into-turn & joyful speed nod
-  const speedRatio = Math.min(1.25, kart.speed / 76);
+  const speedRatio = Math.min(1.28, kart.speed / 100);
   const headYaw = steerDir * 0.3;
   const headRoll = -steerDir * 0.16;
   const headPitch = (kart.braking ? 0.12 : -0.04 * speedRatio) + Math.sin(timeMs * 0.012 + kart.slot) * 0.025;
