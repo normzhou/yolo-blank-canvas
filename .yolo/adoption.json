@@ -342,15 +342,16 @@
         "v0.44.0": "cd1bb42c4f7574ed956cae20ffb158990833b900",
         "v0.44.1": "55c595a55bbc286d0733ba01cf2bdccd0d9f4bca",
         "v0.44.2": "a72de11996ac966d4c5bd637b05b72dc31e88ff4",
-        "v0.44.3": "3a4e3d4406aab60d67116ce662f15b82cef5f8d3"
+        "v0.44.3": "3a4e3d4406aab60d67116ce662f15b82cef5f8d3",
+        "v0.44.4": "a6f46ec672e56b3468eebd5e6f874d3050c741d1"
       },
       "published": {
-        "tag": "v0.44.4",
-        "commit": "a6f46ec672e56b3468eebd5e6f874d3050c741d1",
-        "source_commit": "b48c354e5afcb508d14f7f46534d1845960a3a31",
-        "published_at": "2026-11-18T02:35:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-17-v0444.json",
-        "note": "Patch soundtrack polish release (#380, PR #381). Eliminates foreground melody pauses across all 4 Micro Kart tracks (@yolo-arcade/game-micro-kart@1.5.4) with continuous 8th/16th-note phrasing and call-and-response fills, and dresses up Tracks 3 & 4 backgrounds with moving chords, sidechained stereo 16th eurobeat arps, 909 handclaps, walking ska bass, Hammond ska organ bubbles, and twin-tracked power-metal guitars; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 95d5db95-0208-44e3-8bfa-cdf8fab216e4)."
+        "tag": "v0.44.5",
+        "commit": "d3bac5c1c29ee66846887f17deab115dcaf9e339",
+        "source_commit": "0949be90083dd85a1544a46311dab1bfc066c070",
+        "published_at": "2026-11-20T05:43:07Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-19-v0445.json",
+        "note": "Patch soundtrack rework release (#382, PR #383). Replaces chirpy/buried foreground leads across all 4 Micro Kart tracks (@yolo-arcade/game-micro-kart@1.5.5) with singing legato sustain, phase-staggered unison brass/supersaw/guitar voices, dedicated harmonic and answering counter-melodies, and studio EQ-balanced backing (lead band raised from 0.9–2.8 to 4.7–7.7, crest reduced from 4.03–10.81 to 1.39–1.64); verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: c5e1d814-f412-4755-a28f-a49556463900)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -453,7 +454,8 @@
         ".yolo/reports/releases-observed-2026-11-17-v0441.json",
         ".yolo/reports/releases-observed-2026-11-17-v0442.json",
         ".yolo/reports/releases-observed-2026-11-17-v0443.json",
-        ".yolo/reports/releases-observed-2026-11-17-v0444.json"
+        ".yolo/reports/releases-observed-2026-11-17-v0444.json",
+        ".yolo/reports/releases-observed-2026-11-19-v0445.json"
       ]
     }
   },

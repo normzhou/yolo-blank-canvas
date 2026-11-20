@@ -1,0 +1,82 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-19",
+  "observed_at": "2026-11-19",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#382",
+  "releases": [
+    {
+      "tag": "v0.44.5",
+      "commit": "d3bac5c1c29ee66846887f17deab115dcaf9e339"
+    }
+  ],
+  "release": {
+    "tag": "v0.44.5",
+    "commit": "d3bac5c1c29ee66846887f17deab115dcaf9e339",
+    "source_commit": "0949be90083dd85a1544a46311dab1bfc066c070",
+    "assets_commit": "75388fe630fc75dfaa9514e9c3280528b3783fd9",
+    "native_version": "0.44.5",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-20T05:43:07Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.44.5",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/383"
+  },
+  "build_identity": {
+    "server_build_id": "0949be90083dd85a1544a46311dab1bfc066c070",
+    "client_build_id": "0949be90083dd85a1544a46311dab1bfc066c070",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "30 files, 192 tests passed (including test/arcade-music.test.ts and test/ip-compliance.test.ts)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 50 passed (58.5s)",
+      "e2e_live": "npm run e2e:live — 5 passed (14.8s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.44.5 --no-open --port 4455 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (17.0s)",
+      "ci": "GitHub Actions CI/Test and type check green (34s)",
+      "dsp_audio_audit": "All 4 decoded AAC-LC tracks passed quantitative DSP gate: sustain retention 0.98–1.33, foreground active 99.7–100.0%, lead band 4.7–7.7 (up from 0.9–2.8), lead crest 1.39–1.64 (down from 4.03–10.81), RMS 0.190, peak 0.791–0.841"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "c5e1d814-f412-4755-a28f-a49556463900",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.44.5",
+      "observed_build_id": "0949be90083dd85a1544a46311dab1bfc066c070",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.2.0",
+          "entry": "/games/starlight-burst-DEm4-yuf.js",
+          "hash": "b113ae31f74a8615fef8e1bdaaa10a8cc3203a3485e2dbc0e495fa53423a86bd",
+          "sizeBytes": 86740
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-ByBmNLhB.js",
+          "hash": "031daa023f44113c92076ff38dad8561481a042db328e9b46a837521d57cbe36",
+          "sizeBytes": 37312
+        },
+        "micro-kart": {
+          "version": "1.5.5",
+          "entry": "/games/micro-kart-BV5lwOVe.js",
+          "hash": "e2856d18ca4ddfc803764000daa0c44cf02cb323185083c010d4e4ce8d11c118",
+          "sizeBytes": 89854
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Reworks foreground melodies with singing legato sustain (zero chirps, staggered unison phases, delayed vibrato) and adds dedicated harmonic/answering counter-melodies across all 4 Micro Kart racing tracks (@yolo-arcade/game-micro-kart@1.5.5), with studio EQ-pocketed backing so the lead and counter-melodies sit clearly on top."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #382"
+}
