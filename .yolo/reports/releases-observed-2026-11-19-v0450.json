@@ -1,0 +1,81 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-19",
+  "observed_at": "2026-11-19",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#384",
+  "releases": [
+    {
+      "tag": "v0.45.0",
+      "commit": "79aa7b39585c866e95cf81509e9a5739f0a48beb"
+    }
+  ],
+  "release": {
+    "tag": "v0.45.0",
+    "commit": "79aa7b39585c866e95cf81509e9a5739f0a48beb",
+    "source_commit": "2d2d3d8d7a2225419bf0c9df393a4403f099e2e0",
+    "assets_commit": "85ae57288e9a883f52db1755a041f9ed9d7950e2",
+    "native_version": "0.45.0",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-20T21:56:54Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.45.0",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/385"
+  },
+  "build_identity": {
+    "server_build_id": "2d2d3d8d7a2225419bf0c9df393a4403f099e2e0",
+    "client_build_id": "2d2d3d8d7a2225419bf0c9df393a4403f099e2e0",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "30 files, 192 tests passed (including test/micro-kart.test.ts F1 thruster/drag/PWM/slip physics and test/theme-discipline.test.ts)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 50 passed (1.1m)",
+      "e2e_live": "npm run e2e:live — 5 passed (15.0s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.45.0 --no-open --port 4455 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (18.2s)",
+      "ci": "GitHub Actions CI/Test and type check green (36s)"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "66ab060d-4bd4-45f0-96e8-24ad8fa96b80",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.45.0",
+      "observed_build_id": "2d2d3d8d7a2225419bf0c9df393a4403f099e2e0",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.2.0",
+          "entry": "/games/starlight-burst-DEm4-yuf.js",
+          "hash": "b113ae31f74a8615fef8e1bdaaa10a8cc3203a3485e2dbc0e495fa53423a86bd",
+          "sizeBytes": 86740
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-ByBmNLhB.js",
+          "hash": "031daa023f44113c92076ff38dad8561481a042db328e9b46a837521d57cbe36",
+          "sizeBytes": 37312
+        },
+        "micro-kart": {
+          "version": "1.6.0",
+          "entry": "/games/micro-kart-BxpWHnOV.js",
+          "hash": "94f83fc91e1e77115dce6d89f069849e114c4e3baf536a04c01588e5be94b630",
+          "sizeBytes": 94154
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Replaces Micro Kart kinematic speed caps with F1 dual-thruster rigid-body physics (800 kg mass, 3s vacuum launch to 360 km/h, quadratic aero drag equilibrium at 100 m/s, full-cut differential turning with 0.65s keyboard PWM ramp, moderate 2D lateral slip with F1 aero downforce, F1-scaled widened circuits, proportional 3D/WebGL2 flames, live L/R thruster gauges, and analog touch steering slider; @yolo-arcade/game-micro-kart@1.6.0)."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #384"
+}

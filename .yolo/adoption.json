@@ -343,15 +343,16 @@
         "v0.44.1": "55c595a55bbc286d0733ba01cf2bdccd0d9f4bca",
         "v0.44.2": "a72de11996ac966d4c5bd637b05b72dc31e88ff4",
         "v0.44.3": "3a4e3d4406aab60d67116ce662f15b82cef5f8d3",
-        "v0.44.4": "a6f46ec672e56b3468eebd5e6f874d3050c741d1"
+        "v0.44.4": "a6f46ec672e56b3468eebd5e6f874d3050c741d1",
+        "v0.44.5": "d3bac5c1c29ee66846887f17deab115dcaf9e339"
       },
       "published": {
-        "tag": "v0.44.5",
-        "commit": "d3bac5c1c29ee66846887f17deab115dcaf9e339",
-        "source_commit": "0949be90083dd85a1544a46311dab1bfc066c070",
-        "published_at": "2026-11-20T05:43:07Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-19-v0445.json",
-        "note": "Patch soundtrack rework release (#382, PR #383). Replaces chirpy/buried foreground leads across all 4 Micro Kart tracks (@yolo-arcade/game-micro-kart@1.5.5) with singing legato sustain, phase-staggered unison brass/supersaw/guitar voices, dedicated harmonic and answering counter-melodies, and studio EQ-balanced backing (lead band raised from 0.9–2.8 to 4.7–7.7, crest reduced from 4.03–10.81 to 1.39–1.64); verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: c5e1d814-f412-4755-a28f-a49556463900)."
+        "tag": "v0.45.0",
+        "commit": "79aa7b39585c866e95cf81509e9a5739f0a48beb",
+        "source_commit": "2d2d3d8d7a2225419bf0c9df393a4403f099e2e0",
+        "published_at": "2026-11-20T21:56:54Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-19-v0450.json",
+        "note": "Minor gameplay physics release (#384, PR #385). Implements F1 dual-thruster rigid-body physics for Micro Kart (@yolo-arcade/game-micro-kart@1.6.0): 800 kg mass, 3s vacuum launch to 360 km/h (100 m/s), quadratic aero drag equilibrium, full-cut differential turning with 0.65s keyboard PWM ramp, 2D lateral velocity with moderate F1 aero downforce slide, F1-scaled widened circuits, proportional thruster flames, live L/R thruster gauges, and analog touch steer slider; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 66ab060d-4bd4-45f0-96e8-24ad8fa96b80)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -455,7 +456,8 @@
         ".yolo/reports/releases-observed-2026-11-17-v0442.json",
         ".yolo/reports/releases-observed-2026-11-17-v0443.json",
         ".yolo/reports/releases-observed-2026-11-17-v0444.json",
-        ".yolo/reports/releases-observed-2026-11-19-v0445.json"
+        ".yolo/reports/releases-observed-2026-11-19-v0445.json",
+        ".yolo/reports/releases-observed-2026-11-19-v0450.json"
       ]
     }
   },
