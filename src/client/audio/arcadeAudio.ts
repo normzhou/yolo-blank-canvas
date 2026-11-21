@@ -13,6 +13,7 @@ export const MUSIC_GAIN = 0.22;
 export const AUDIO_DISK_CACHE_NAME = 'yolo-arcade-audio-v2';
 
 export interface AudioOutputMetrics {
+  active: boolean;
   rms: number;
   peak: number;
   activeBins: number;
@@ -209,6 +210,7 @@ export class ArcadeMusicPlayer {
         if (freqBins[i] > 16) activeBins += 1;
       }
       return {
+        active: this.active,
         rms,
         peak,
         activeBins,
@@ -222,6 +224,7 @@ export class ArcadeMusicPlayer {
     }
 
     return {
+      active: this.active,
       rms: 0,
       peak: 0,
       activeBins: 0,
@@ -514,7 +517,7 @@ export class ArcadeMusicPlayer {
     return task;
   }
 
-  private async playDecodedTrack(
+  private playDecodedTrack(
     track: Track,
     offsetSec: number,
     crossfade: boolean,
@@ -522,8 +525,26 @@ export class ArcadeMusicPlayer {
     this.playToken += 1;
     const token = this.playToken;
 
-    const buffer = await this.loadBuffer(track);
-    if (!buffer || !this.active || !this.ctx || token !== this.playToken) return;
+    const cached = this.bufferCache.get(track.id);
+    if (cached) {
+      this.startBufferVoice(track, cached, offsetSec, crossfade, token);
+      return Promise.resolve();
+    }
+
+    return this.loadBuffer(track).then((buffer) => {
+      if (!buffer) return;
+      this.startBufferVoice(track, buffer, offsetSec, crossfade, token);
+    });
+  }
+
+  private startBufferVoice(
+    track: Track,
+    buffer: AudioBuffer,
+    offsetSec: number,
+    crossfade: boolean,
+    token: number,
+  ): void {
+    if (!this.active || !this.ctx || token !== this.playToken) return;
 
     if (this.currentVoice) {
       if (crossfade) {

@@ -868,8 +868,8 @@ export function PrismStackView({ onExit }: { onExit: () => void }) {
     (isOnline2P && roundOutcome !== 'playing');
 
   useEffect(() => {
-    getSharedArcadeAudio().setActive(musicOn && !matchEnded);
-  }, [musicOn, matchEnded]);
+    getSharedArcadeAudio().setActive(musicOn && !matchEnded && !paused);
+  }, [musicOn, matchEnded, paused]);
 
   useEffect(() => {
     if (paused || matchEnded || isReadyCheck || isInviting || isNetworkPaused || countdown > 0) return;
@@ -1646,7 +1646,7 @@ export function PrismStackView({ onExit }: { onExit: () => void }) {
                   aria-pressed={musicOn}
                   onClick={() => {
                     getSharedArcadeAudio().setPlaylist(PRISM_STACK_PLAYLIST);
-                    setSharedMusicOn(!musicOn, true);
+                    setSharedMusicOn(!musicOn, !paused);
                   }}
                 >
                   {musicOn ? 'Music: On' : 'Music: Off'}

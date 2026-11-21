@@ -849,7 +849,7 @@ export function App() {
       if (!getSharedMusicOn() && !getSharedSfxOn()) return;
       const audio = getSharedArcadeAudio();
       audio.ensureContext();
-      if (getSharedMusicOn()) {
+      if (getSharedMusicOn() && !getSharedGamePaused() && !document.hidden) {
         audio.setActive(true);
       }
     }
@@ -858,6 +858,39 @@ export function App() {
     return () => {
       window.removeEventListener('pointerdown', unlockDefaultAudioOnGesture);
       window.removeEventListener('keydown', unlockDefaultAudioOnGesture);
+    };
+  }, []);
+
+  // Auto-pause active games (bringing up the Pause Menu) and pause background music
+  // whenever the window or tab loses focus (#392).
+  const appIdRef = useRef<string | null>(appId);
+  appIdRef.current = appId;
+  useEffect(() => {
+    const pauseOnFocusLoss = () => {
+      if (appIdRef.current !== null) {
+        setSharedGamePaused(true);
+      }
+      getSharedArcadeAudio().setActive(false);
+    };
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        pauseOnFocusLoss();
+      } else if (appIdRef.current === null && getSharedMusicOn()) {
+        getSharedArcadeAudio().setActive(true);
+      }
+    };
+    const handleWindowFocus = () => {
+      if (appIdRef.current === null && !document.hidden && getSharedMusicOn()) {
+        getSharedArcadeAudio().setActive(true);
+      }
+    };
+    window.addEventListener('blur', pauseOnFocusLoss);
+    window.addEventListener('focus', handleWindowFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      window.removeEventListener('blur', pauseOnFocusLoss);
+      window.removeEventListener('focus', handleWindowFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
@@ -1481,7 +1514,7 @@ export function App() {
                       ? PRISM_STACK_PLAYLIST
                       : SELECTOR_PLAYLIST;
               getSharedArcadeAudio().setPlaylist(targetPlaylist);
-              setSharedMusicOn(!musicOn, true);
+              setSharedMusicOn(!musicOn, !(appId !== null && gamePaused));
             }}
           >
             <MusicNoteIcon isMuted={!musicOn} />

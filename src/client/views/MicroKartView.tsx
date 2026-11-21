@@ -593,9 +593,6 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
   useEffect(() => {
     const audio = getSharedArcadeAudio();
     audio.setPlaylist(MICRO_KART_PLAYLIST);
-    if (getSharedMusicOn()) {
-      audio.setActive(true);
-    }
     const synth = new MicroKartSynth();
     synthRef.current = synth;
     const unsubAudio = subscribeSharedAudio((mOn, _now, sOn) => {
@@ -617,6 +614,11 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       synthRef.current = null;
     };
   }, [syncHudFromRace]);
+
+  // Keep background music synchronized with Music toggle and Pause state (#392)
+  useEffect(() => {
+    getSharedArcadeAudio().setActive(musicOn && !paused);
+  }, [musicOn, paused]);
 
   // Netplay presence & room lifecycle
   useEffect(() => {
@@ -817,6 +819,9 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     const onBlur = () => {
       pressedKeysRef.current.clear();
       activePointersRef.current.clear();
+      analogPointerIdRef.current = null;
+      analogSteerRef.current = null;
+      setAnalogSteerUi(0);
     };
     const onDeterministicStep = (ev: Event) => {
       const detail = (ev as CustomEvent<{
@@ -1633,7 +1638,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                   aria-pressed={musicOn}
                   onClick={() => {
                     getSharedArcadeAudio().setPlaylist(MICRO_KART_PLAYLIST);
-                    setSharedMusicOn(!musicOn, true);
+                    setSharedMusicOn(!musicOn, !paused);
                   }}
                 >
                   {musicOn ? 'Music: On' : 'Music: Off'}
