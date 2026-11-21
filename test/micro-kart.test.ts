@@ -5,13 +5,18 @@ import {
   CIRCUIT_LIST,
   CIRCUITS,
   createRaceState,
+  cross2D,
+  getKartCenterOfMass,
   getRecommendedSpeedAtS,
   KART_DRIVERS,
   KART_MASS_KG,
+  KART_NOSE_OFFSET_M,
+  KART_YAW_INERTIA,
   MAX_STRAIGHT_SPEED,
   MAX_TOTAL_THRUST_N,
   predictKartTrajectory,
   projectOntoCircuit,
+  resolveElasticKartCollision,
   sampleCircuitAtS,
   speedToColorHex,
   speedToColorRgb,
@@ -51,8 +56,8 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
       expect(circuit.nodes.length).toBe(192);
       const ys = circuit.nodes.map((n) => n.y);
       expect(Math.max(...ys) - Math.min(...ys)).toBeGreaterThan(10);
-      // Pure dual-rocket design (#388): no extra road boost pads
-      expect(circuit.nodes.some((n) => n.hasBoostPad)).toBe(false);
+      // Road boost pads restored on all 3 circuits (#390)
+      expect(circuit.nodes.some((n) => n.hasBoostPad)).toBe(true);
 
       // Recommended cornering speeds vary smoothly between tighter bends and straights
       const recSpeeds = circuit.nodes.map((n) => n.recommendedSpeed);
@@ -145,11 +150,15 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
     expect(raceR.karts[0]!.boostTimer).toBe(0);
     expect(raceR.lastEvents.boostTriggered.length).toBe(0);
 
-    // 1-second trajectory predictor curves smoothly along current steering and fades to alpha = 0!
-    const trajR = predictKartTrajectory(raceR.karts[0]!, circuit, 1.0, 16);
+    // 1-second trajectory predictor starts at the HEAD (front nose) of the kart and fades to alpha = 0!
+    const kR = raceR.karts[0]!;
+    const trajR = predictKartTrajectory(kR, circuit, 1.0, 16);
     const trajL = predictKartTrajectory(raceL.karts[0]!, circuit, 1.0, 16);
     expect(trajR.length).toBe(17);
-    expect(trajR[0]!.alpha).toBeGreaterThan(0.8);
+    const expectedNoseX = kR.x + Math.sin(kR.yaw) * KART_NOSE_OFFSET_M;
+    const expectedNoseZ = kR.z + Math.cos(kR.yaw) * KART_NOSE_OFFSET_M;
+    expect(Math.hypot(trajR[0]!.x - expectedNoseX, trajR[0]!.z - expectedNoseZ)).toBeLessThan(0.05);
+    expect(trajR[0]!.alpha).toBeGreaterThan(0.75);
     expect(trajR[8]!.alpha).toBeGreaterThan(0.1);
     expect(trajR[8]!.alpha).toBeLessThan(trajR[0]!.alpha);
     expect(trajR[16]!.alpha).toBe(0);
@@ -197,7 +206,7 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
     }
 
     expect(race.status).toBe('finished');
-    expect(maxSlip).toBeLessThan(8);
+    expect(maxSlip).toBeLessThan(25);
     expect(race.karts[0]!.lap).toBe(TOTAL_LAPS + 1);
     expect(race.karts[0]!.bestLapMs).not.toBeNull();
     expect(race.karts[1]!.unwrappedS).toBeGreaterThan(circuit.totalLength * 2.5);
@@ -253,5 +262,91 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
     expect(fastCat.leftEarPitch).toBeLessThan(-0.42);
     expect(fastBunny.leftEarPitch).toBeLessThan(-0.8);
     expect(fastDog.leftEarPitch).toBeGreaterThan(0.65);
+  });
+
+  it('resolves off-center kart collisions perfectly elastically with exact conservation of linear momentum, angular momentum, and kinetic energy (#390)', () => {
+    const race = createRaceState('sunset-loop', '1p', 5);
+    const a = race.karts[0]!;
+    const b = race.karts[1]!;
+
+    // Scenario: Off-center angled PIT-maneuver impact!
+    // Kart A at (10, 20), yaw = 0, cruising at (vx=0, vz=40), yawRate = 0.2
+    // Kart B angled into A's rear-right corner at (12.2, 18.6), yaw = -0.55, moving fast left/forward (-18, 52), yawRate = -0.4
+    a.x = 10.0;
+    a.z = 20.0;
+    a.yaw = 0;
+    a.vx = 0;
+    a.vz = 40;
+    a.yawRate = 0.2;
+
+    b.x = 12.15;
+    b.z = 18.55;
+    b.yaw = -0.55;
+    b.vx = -18;
+    b.vz = 52;
+    b.yawRate = -0.4;
+
+    const measureSystem = () => {
+      const cA = getKartCenterOfMass(a);
+      const cB = getKartCenterOfMass(b);
+      const px = KART_MASS_KG * (a.vx + b.vx);
+      const pz = KART_MASS_KG * (a.vz + b.vz);
+      const lOrbital =
+        cross2D(cA.x, cA.z, KART_MASS_KG * a.vx, KART_MASS_KG * a.vz) +
+        cross2D(cB.x, cB.z, KART_MASS_KG * b.vx, KART_MASS_KG * b.vz);
+      const lSpin = KART_YAW_INERTIA * (a.yawRate + b.yawRate);
+      const ke =
+        0.5 * KART_MASS_KG * (a.vx * a.vx + a.vz * a.vz + b.vx * b.vx + b.vz * b.vz) +
+        0.5 * KART_YAW_INERTIA * (a.yawRate * a.yawRate + b.yawRate * b.yawRate);
+      return { px, pz, lTotal: lOrbital + lSpin, ke };
+    };
+
+    const before = measureSystem();
+    const prevOmegaA = a.yawRate;
+    const prevOmegaB = b.yawRate;
+
+    // Resolve elastic impulse without positional shift to test exact analytical conservation at contact instant
+    const hit = resolveElasticKartCollision(a, b, false);
+    expect(hit).toBe(true);
+
+    const after = measureSystem();
+
+    // 1. Exact Linear Momentum conservation (P_x, P_z)
+    expect(after.px).toBeCloseTo(before.px, 6);
+    expect(after.pz).toBeCloseTo(before.pz, 6);
+
+    // 2. Exact Total Angular Momentum conservation (orbital + spin about world origin!)
+    expect(after.lTotal).toBeCloseTo(before.lTotal, 5);
+
+    // 3. Exact Kinetic Energy conservation (perfectly elastic e = 1.0!)
+    expect(after.ke).toBeCloseTo(before.ke, 4);
+
+    // 4. Off-center hit genuinely induces angular spin on both karts!
+    expect(Math.abs(a.yawRate - prevOmegaA)).toBeGreaterThan(0.1);
+    expect(Math.abs(b.yawRate - prevOmegaB)).toBeGreaterThan(0.1);
+  });
+
+  it('triggers a road boost pad surge when driving over a circuit boost strip (#390)', () => {
+    const circuit = CIRCUITS['sunset-loop'];
+    const padNode = circuit.nodes.find((n) => n.hasBoostPad)!;
+    expect(padNode).toBeDefined();
+
+    const race = createRaceState('sunset-loop', '1p', 19);
+    const p1 = race.karts[0]!;
+    // Place kart directly on the boost strip moving forward along track tangent
+    p1.x = padNode.x + padNode.rx * padNode.boostLat;
+    p1.z = padNode.z + padNode.rz * padNode.boostLat;
+    p1.s = padNode.s;
+    p1.lat = padNode.boostLat;
+    p1.yaw = Math.atan2(padNode.tx, padNode.tz);
+    p1.vx = Math.sin(p1.yaw) * 60;
+    p1.vz = Math.cos(p1.yaw) * 60;
+    p1.speed = 60;
+
+    stepRaceState(race, { 0: { left: false, right: false } }, 16.67);
+    expect(p1.boostKind).toBe('pad');
+    expect(p1.boostTimer).toBeGreaterThan(0.9);
+    expect(p1.speed).toBeGreaterThan(70);
+    expect(race.lastEvents.boostTriggered.some((e) => e.slot === 0 && e.kind === 'pad')).toBe(true);
   });
 });

@@ -1901,21 +1901,19 @@ export class MicroKartWebGL2Renderer {
     };
 
     for (const kart of race.karts) {
-      if (kart.slot !== _focusSlot) {
-        const shYaw = kart.yaw + kart.driftYaw;
-        const srx = Math.cos(shYaw) * 1.44;
-        const srz = -Math.sin(shYaw) * 1.44;
-        const sfx = Math.sin(shYaw) * 2.15;
-        const sfz = Math.cos(shYaw) * 2.15;
-        const sy = kart.y + 0.05;
-        pushDynQuad(
-          kart.x - srx - sfx, sy, kart.z - srz - sfz,
-          kart.x + srx - sfx, sy, kart.z + srz - sfz,
-          kart.x + srx + sfx, sy, kart.z + srz + sfz,
-          kart.x - srx + sfx, sy, kart.z - srz + sfz,
-          0.08, 0.1, 0.14,
-        );
-      }
+      const shYaw = kart.yaw + kart.driftYaw;
+      const srx = Math.cos(shYaw) * 1.44;
+      const srz = -Math.sin(shYaw) * 1.44;
+      const sfx = Math.sin(shYaw) * 2.15;
+      const sfz = Math.cos(shYaw) * 2.15;
+      const sy = kart.y + 0.05;
+      pushDynQuad(
+        kart.x - srx - sfx, sy, kart.z - srz - sfz,
+        kart.x + srx - sfx, sy, kart.z + srz - sfz,
+        kart.x + srx + sfx, sy, kart.z + srz + sfz,
+        kart.x - srx + sfx, sy, kart.z - srz + sfz,
+        0.08, 0.1, 0.14,
+      );
 
       const marks = kart.skidMarks;
       for (let i = 1; i < marks.length; i += 1) {
@@ -1954,12 +1952,11 @@ export class MicroKartWebGL2Renderer {
       gl.disable(gl.POLYGON_OFFSET_FILL);
     }
 
-    // 3b. Curved 1-Second Predicted Trajectory Shadow in Driver's Theme Color (solid beneath car -> transparent at 1s!)
+    // 3b. Curved 1-Second Predicted Trajectory Path starting from the HEAD (front nose) of the kart!
     const focusKart = race.karts[_focusSlot];
     if (focusKart && this.shadowProg && this.shadowVao && this.shadowVbo) {
       const traj = predictKartTrajectory(focusKart, circuit, 1.0, 16);
       const spec = getKartDriverSpec(focusKart.character);
-      // Rich theme-colored shadow tint (`kartPrimary`)
       const tr = spec.kartPrimary[0] / 255;
       const tg = spec.kartPrimary[1] / 255;
       const tb = spec.kartPrimary[2] / 255;
@@ -1989,28 +1986,13 @@ export class MicroKartWebGL2Renderer {
         pushShVert(x3, y3, z3, tr, tg, tb, a3);
       };
 
-      // Solid contact-shadow footprint directly beneath the rear/center of the kart (`z = -2.0m .. 0`)
-      const kFx = Math.sin(focusKart.yaw);
-      const kFz = Math.cos(focusKart.yaw);
-      const kRx = Math.cos(focusKart.yaw);
-      const kRz = -Math.sin(focusKart.yaw);
-      const p0 = traj[0]!;
-      const backX = p0.x - kFx * 2.05;
-      const backZ = p0.z - kFz * 2.05;
-      const baseW = 1.62;
-      pushShQuad(
-        backX - kRx * baseW, p0.y, backZ - kRz * baseW, 0.88,
-        backX + kRx * baseW, p0.y, backZ + kRz * baseW, 0.88,
-        p0.x + p0.rx * baseW, p0.y, p0.z + p0.rz * baseW, 0.85,
-        p0.x - p0.rx * baseW, p0.y, p0.z - p0.rz * baseW, 0.85,
-      );
-
-      // Curved 1-second predicted trajectory ribbon tapering & fading smoothly to alpha = 0!
+      // Curved 1-second predicted path extending forward from the kart's nose (`t = 0 .. 1s`)
+      const baseW = 1.48;
       for (let i = 0; i < traj.length - 1; i += 1) {
         const a = traj[i]!;
         const b = traj[i + 1]!;
-        const wA = baseW * (1 - (a.t / 1.0) * 0.42);
-        const wB = baseW * (1 - (b.t / 1.0) * 0.42);
+        const wA = baseW * (1 - (a.t / 1.0) * 0.45);
+        const wB = baseW * (1 - (b.t / 1.0) * 0.45);
         pushShQuad(
           a.x - a.rx * wA, a.y, a.z - a.rz * wA, a.alpha,
           a.x + a.rx * wA, a.y, a.z + a.rz * wA, a.alpha,
@@ -2162,16 +2144,18 @@ export class MicroKartWebGL2Renderer {
       // Pure Dual-Rocket Exhaust Flames scaled strictly in proportion to each thruster's output (`0..1`)!
       if (this.flameMesh) {
         const flicker = 0.88 + Math.sin(timeMs * 0.045 + kart.slot) * 0.14;
+        const padBoost = kart.boostTimer > 0 && kart.boostKind === 'pad';
         const powers: ReadonlyArray<[number, number]> = [
           [-0.49, kart.leftThrottle],
           [0.49, kart.rightThrottle],
         ];
-        const [fr, fg, fb] = [1.0, 0.68, 0.22];
+        const [fr, fg, fb] = padBoost ? [0.24, 0.94, 1.0] : [1.0, 0.68, 0.22];
 
         for (const [cx, throttle] of powers) {
           if (throttle <= 0.02) continue;
-          const len = (0.35 + throttle * 2.15) * flicker;
-          const radScale = 0.42 + throttle * 0.72;
+          const boostLen = padBoost ? 1.32 : 1.0;
+          const len = (0.35 + throttle * 2.15) * boostLen * flicker;
+          const radScale = (0.42 + throttle * 0.72) * (padBoost ? 1.12 : 1.0);
           const fOff = transformOffsetByBasis(this.kartBasis, cx, 0.52, -1.9);
           this.drawStaticMesh(
             gl,

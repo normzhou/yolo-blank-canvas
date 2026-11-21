@@ -350,10 +350,16 @@ export const THRUSTER_RAMP_SEC = 0.55;
 export const ANALOG_RAMP_SEC = 0.06;
 export const BRAKE_CUT_RAMP_SEC = 0.11;
 
-// Rotational dynamics (differential rocket torque vs angular inertia & yaw damping)
+// Rotational dynamics & 2D rigid-body bumper footprint (#384, #388, #390)
 export const THRUSTER_HALF_SPAN_M = 0.68;
 export const KART_YAW_INERTIA = 1400;
 export const YAW_DAMPING = 6500;
+/** Center of mass offset along kart forward axis (slightly rear-biased toward the rockets). */
+export const KART_COM_Z_OFFSET = -0.22;
+export const KART_HALF_WIDTH = 1.25;
+export const KART_HALF_LENGTH = 2.05;
+/** Forward offset from kart center to the front bumper nose where the trajectory path starts. */
+export const KART_NOSE_OFFSET_M = 2.15;
 
 // Planted F1 lateral tire friction + speed-squared downforce (controlled, low-skid feel)
 export const TIRE_LATERAL_MU = 4.6;
@@ -361,9 +367,9 @@ export const AERO_DOWNFORCE_COEFF = 0.0024;
 export const TIRE_CORNERING_STIFFNESS = 18.0;
 export const SLIP_SELF_ALIGN_TORQUE = 180;
 
-/** Approximate single-thruster equilibrium (~71% top speed). */
+/** Approximate single-thruster equilibrium (~71% top speed) & road boost pad surge (~125 m/s). */
 export const MAX_DRIFT_SPEED = Math.round(MAX_STRAIGHT_SPEED * Math.SQRT1_2);
-export const MAX_BOOST_SPEED = MAX_STRAIGHT_SPEED;
+export const MAX_BOOST_SPEED = 125;
 export const MINI_TURBO_CHARGE_SEC = 0.42;
 export const ULTRA_TURBO_CHARGE_SEC = 1.1;
 
@@ -550,6 +556,12 @@ function buildCircuit(spec: CircuitSpec): CircuitDefinition {
     return { u, ...spec.evalPoint(u) };
   });
 
+  const boostMap = new Map<number, number>();
+  for (const b of spec.boostSegments) {
+    boostMap.set(((b.seg % N) + N) % N, b.lat);
+    boostMap.set((((b.seg + 1) % N) + N) % N, b.lat);
+  }
+
   let cumS = 0;
   const sArr: number[] = [0];
   for (let i = 0; i < N; i += 1) {
@@ -629,11 +641,12 @@ function buildCircuit(spec: CircuitSpec): CircuitDefinition {
     const curSpd = lookaheadSpeeds[i]!;
     const nextSpd = lookaheadSpeeds[(i + 1) % N]!;
     const smoothed = prevSpd * 0.22 + curSpd * 0.56 + nextSpd * 0.22;
+    const boostLat = boostMap.get(i);
     return {
       ...n,
       recommendedSpeed: Math.round(smoothed * 10) / 10,
-      hasBoostPad: false,
-      boostLat: 0,
+      hasBoostPad: boostLat !== undefined,
+      boostLat: boostLat ?? 0,
     };
   });
 
@@ -1069,15 +1082,20 @@ function stepSingleKart(
   kart.leftThruster = kart.leftThrottle > 0.35;
   kart.rightThruster = kart.rightThrottle > 0.35;
 
-  // Pure dual-rocket propulsion (#388): no extra drift mini-turbo or boost pads!
+  // Pure dual-rocket propulsion + road boost pads (#388, #390): no artificial drift mini-turbo!
   kart.driftCharge = 0;
   kart.driftDir = turning && !braking ? (steerLeft ? -1 : 1) : 0;
-  kart.boostTimer = 0;
-  kart.boostKind = 'none';
+  if (kart.boostTimer > 0) {
+    kart.boostTimer = Math.max(0, kart.boostTimer - dt);
+    if (kart.boostTimer === 0) {
+      kart.boostKind = 'none';
+    }
+  }
 
-  // 2. Dual-rocket forces, rotational torque, angular inertia & yaw damping
-  const fLeft = kart.leftThrottle * PER_THRUSTER_MAX_N * aiSpeedScale;
-  const fRight = kart.rightThrottle * PER_THRUSTER_MAX_N * aiSpeedScale;
+  // 2. Dual-rocket forces (amplified temporarily on road boost pads), rotational torque & yaw damping
+  const boostMult = kart.boostTimer > 0 && kart.boostKind === 'pad' ? 1.55 : 1.0;
+  const fLeft = kart.leftThrottle * PER_THRUSTER_MAX_N * boostMult * aiSpeedScale;
+  const fRight = kart.rightThrottle * PER_THRUSTER_MAX_N * boostMult * aiSpeedScale;
   const fThrust = fLeft + fRight;
 
   // Left thruster pushing forward creates +yaw (right turn); cutting left creates -yaw (left turn)
@@ -1217,7 +1235,20 @@ function stepSingleKart(
     kart.lateralSlip = kart.vx * nRx + kart.vz * nRz;
   }
 
-  // 7. Record tire skid marks only when actually slipping laterally or braking hard on asphalt
+  // 7. Road Boost Pad detection (#390): amplifies the 2 main rockets + adds a crisp launch kick
+  const node = circuit.nodes[proj.nodeIndex]!;
+  if (node.hasBoostPad && Math.abs(kart.lat - node.boostLat) < 4.2 && kart.boostKind !== 'pad') {
+    kart.boostTimer = Math.max(kart.boostTimer, 1.1);
+    kart.boostKind = 'pad';
+    const bFx = Math.sin(kart.yaw);
+    const bFz = Math.cos(kart.yaw);
+    kart.vx += bFx * 14;
+    kart.vz += bFz * 14;
+    kart.speed = Math.max(0, kart.vx * bFx + kart.vz * bFz);
+    events.boostTriggered.push({ slot: kart.slot, kind: 'pad' });
+  }
+
+  // 8. Record tire skid marks only when actually slipping laterally or braking hard on asphalt
   if ((Math.abs(kart.lateralSlip) > 3.2 || braking) && kart.speed > 28) {
     const totalVisualYaw = kart.yaw + kart.driftYaw;
     const srx = Math.cos(totalVisualYaw);
@@ -1307,33 +1338,12 @@ export function stepRaceState(
     }
   }
 
-  // Kart-to-kart elastic sphere bumping with real 2D momentum exchange (`KART_RADIUS = 1.65m`)
-  const minDist = 3.2;
+  // Perfectly elastic 2D rigid-body kart-to-kart collisions conserving linear & angular momentum (#390)
   for (let i = 0; i < race.karts.length; i += 1) {
     for (let j = i + 1; j < race.karts.length; j += 1) {
       const a = race.karts[i]!;
       const b = race.karts[j]!;
-      const dx = b.x - a.x;
-      const dz = b.z - a.z;
-      const dist = Math.hypot(dx, dz);
-      if (dist > 0.001 && dist < minDist) {
-        const overlap = (minDist - dist) * 0.52;
-        const nx = dx / dist;
-        const nz = dz / dist;
-        const relVelNormal = (b.vx - a.vx) * nx + (b.vz - a.vz) * nz;
-        const impulse = relVelNormal < 0 ? -0.68 * relVelNormal : 0;
-        if (!a.isRemote) {
-          a.x -= nx * overlap;
-          a.z -= nz * overlap;
-          a.vx -= nx * impulse;
-          a.vz -= nz * impulse;
-        }
-        if (!b.isRemote) {
-          b.x += nx * overlap;
-          b.z += nz * overlap;
-          b.vx += nx * impulse;
-          b.vz += nz * impulse;
-        }
+      if (resolveElasticKartCollision(a, b, true)) {
         events.bumped = true;
       }
     }
@@ -1425,16 +1435,201 @@ export function toKartNetSnapshot(kart: KartState): KartNetSnapshot {
   };
 }
 
+/**
+ * Returns a kart's world-space 2D Center of Mass (slightly rear-biased toward the rockets).
+ */
+export function getKartCenterOfMass(kart: Pick<KartState, 'x' | 'z' | 'yaw'>): { x: number; z: number } {
+  return {
+    x: kart.x + Math.sin(kart.yaw) * KART_COM_Z_OFFSET,
+    z: kart.z + Math.cos(kart.yaw) * KART_COM_Z_OFFSET,
+  };
+}
+
+/**
+ * 2D cross-product torque / angular momentum in `(x, z)` where `+yaw` rotates `+z` toward `+x`:
+ * `cross2D(r, v) = r.z * v.x - r.x * v.z` (matching `v_rot = (+w * r.z, -w * r.x)`).
+ */
+export function cross2D(rx: number, rz: number, vx: number, vz: number): number {
+  return rz * vx - rx * vz;
+}
+
+function getObbCorners(kart: Pick<KartState, 'x' | 'z' | 'yaw'>): Array<{ x: number; z: number }> {
+  const rx = Math.cos(kart.yaw) * KART_HALF_WIDTH;
+  const rz = -Math.sin(kart.yaw) * KART_HALF_WIDTH;
+  const fx = Math.sin(kart.yaw) * KART_HALF_LENGTH;
+  const fz = Math.cos(kart.yaw) * KART_HALF_LENGTH;
+  return [
+    { x: kart.x - rx - fx, z: kart.z - rz - fz },
+    { x: kart.x + rx - fx, z: kart.z + rz - fz },
+    { x: kart.x + rx + fx, z: kart.z + rz + fz },
+    { x: kart.x - rx + fx, z: kart.z - rz + fz },
+  ];
+}
+
+/**
+ * Resolves a perfectly elastic (`e = 1.0`) 2D rigid-body collision between two oriented
+ * karts using Separating Axis Theorem (SAT) contact detection and each kart's Center of Mass.
+ *
+ * Strictly conserves:
+ * - Total linear momentum: `m_A * v_A + m_B * v_B`
+ * - Total angular momentum: `sum(cross2D(c_i, m_i * v_i) + I_i * yawRate_i)`
+ * - Total kinetic energy: `sum(0.5 * m_i * |v_i|^2 + 0.5 * I_i * yawRate_i^2)`
+ */
+export function resolveElasticKartCollision(
+  a: KartState,
+  b: KartState,
+  separate = true,
+): boolean {
+  // Fast broad-phase circle reject (`2 * hypot(halfW, halfL) ≈ 4.82m`)
+  const dx = b.x - a.x;
+  const dz = b.z - a.z;
+  if (dx * dx + dz * dz > 24.5) return false;
+
+  const aRx = Math.cos(a.yaw);
+  const aRz = -Math.sin(a.yaw);
+  const aFx = Math.sin(a.yaw);
+  const aFz = Math.cos(a.yaw);
+  const bRx = Math.cos(b.yaw);
+  const bRz = -Math.sin(b.yaw);
+  const bFx = Math.sin(b.yaw);
+  const bFz = Math.cos(b.yaw);
+
+  const axes: ReadonlyArray<{ ax: number; az: number; refIsA: boolean }> = [
+    { ax: aRx, az: aRz, refIsA: true },
+    { ax: aFx, az: aFz, refIsA: true },
+    { ax: bRx, az: bRz, refIsA: false },
+    { ax: bFx, az: bFz, refIsA: false },
+  ];
+
+  let minOverlap = Infinity;
+  let nx = 1;
+  let nz = 0;
+  let refIsA = true;
+
+  for (const cand of axes) {
+    const projA =
+      KART_HALF_WIDTH * Math.abs(aRx * cand.ax + aRz * cand.az) +
+      KART_HALF_LENGTH * Math.abs(aFx * cand.ax + aFz * cand.az);
+    const projB =
+      KART_HALF_WIDTH * Math.abs(bRx * cand.ax + bRz * cand.az) +
+      KART_HALF_LENGTH * Math.abs(bFx * cand.ax + bFz * cand.az);
+    const centerDist = dx * cand.ax + dz * cand.az;
+    const overlap = projA + projB - Math.abs(centerDist);
+    if (overlap <= 0) return false;
+    if (overlap < minOverlap) {
+      minOverlap = overlap;
+      const sign = centerDist >= 0 ? 1 : -1;
+      nx = cand.ax * sign;
+      nz = cand.az * sign;
+      refIsA = cand.refIsA;
+    }
+  }
+
+  // Exact world contact point: deepest penetrating corner(s) of the incident OBB
+  const incidentCorners = refIsA ? getObbCorners(b) : getObbCorners(a);
+  let bestProj = refIsA ? Infinity : -Infinity;
+  for (const pt of incidentCorners) {
+    const p = pt.x * nx + pt.z * nz;
+    if (refIsA ? p < bestProj : p > bestProj) {
+      bestProj = p;
+    }
+  }
+  let cpX = 0;
+  let cpZ = 0;
+  let cpCount = 0;
+  for (const pt of incidentCorners) {
+    const p = pt.x * nx + pt.z * nz;
+    if (Math.abs(p - bestProj) <= 0.08) {
+      cpX += pt.x;
+      cpZ += pt.z;
+      cpCount += 1;
+    }
+  }
+  cpX /= Math.max(1, cpCount);
+  cpZ /= Math.max(1, cpCount);
+
+  // Lever arms from each kart's Center of Mass to the shared contact point
+  const comA = getKartCenterOfMass(a);
+  const comB = getKartCenterOfMass(b);
+  const rAx = cpX - comA.x;
+  const rAz = cpZ - comA.z;
+  const rBx = cpX - comB.x;
+  const rBz = cpZ - comB.z;
+
+  // Rigid-body velocities at contact point: v_p = v_com + (+w * r_z, -w * r_x)
+  const vApX = a.vx + a.yawRate * rAz;
+  const vApZ = a.vz - a.yawRate * rAx;
+  const vBpX = b.vx + b.yawRate * rBz;
+  const vBpZ = b.vz - b.yawRate * rBx;
+
+  const vRelNormal = (vBpX - vApX) * nx + (vBpZ - vApZ) * nz;
+  if (vRelNormal < 0) {
+    const rACrossN = cross2D(rAx, rAz, nx, nz);
+    const rBCrossN = cross2D(rBx, rBz, nx, nz);
+
+    const invMA = a.isRemote ? 0 : 1 / KART_MASS_KG;
+    const invMB = b.isRemote ? 0 : 1 / KART_MASS_KG;
+    const invIA = a.isRemote ? 0 : 1 / KART_YAW_INERTIA;
+    const invIB = b.isRemote ? 0 : 1 / KART_YAW_INERTIA;
+
+    const denom =
+      invMA +
+      invMB +
+      rACrossN * rACrossN * invIA +
+      rBCrossN * rBCrossN * invIB;
+
+    if (denom > 1e-12) {
+      // Perfectly elastic (`e = 1.0`) normal impulse conserving linear, angular momentum & kinetic energy!
+      const j = (-2.0 * vRelNormal) / denom;
+      const jx = j * nx;
+      const jz = j * nz;
+
+      if (!a.isRemote) {
+        a.vx -= jx * invMA;
+        a.vz -= jz * invMA;
+        a.yawRate -= rACrossN * j * invIA;
+        a.speed = Math.max(0, a.vx * aFx + a.vz * aFz);
+        a.lateralSlip = a.vx * aRx + a.vz * aRz;
+      }
+      if (!b.isRemote) {
+        b.vx += jx * invMB;
+        b.vz += jz * invMB;
+        b.yawRate += rBCrossN * j * invIB;
+        b.speed = Math.max(0, b.vx * bFx + b.vz * bFz);
+        b.lateralSlip = b.vx * bRx + b.vz * bRz;
+      }
+    }
+  }
+
+  // Minimal positional separation beyond tiny contact slop so karts never interpenetrate
+  if (separate && minOverlap > 0.02) {
+    const corr = minOverlap - 0.01;
+    if (!a.isRemote && !b.isRemote) {
+      a.x -= nx * corr * 0.5;
+      a.z -= nz * corr * 0.5;
+      b.x += nx * corr * 0.5;
+      b.z += nz * corr * 0.5;
+    } else if (!a.isRemote) {
+      a.x -= nx * corr;
+      a.z -= nz * corr;
+    } else if (!b.isRemote) {
+      b.x += nx * corr;
+      b.z += nz * corr;
+    }
+  }
+
+  return true;
+}
+
 export function getRecommendedSpeedAtS(circuit: CircuitDefinition, s: number): number {
   const sample = sampleCircuitAtS(circuit, s);
   return circuit.nodes[sample.nodeIndex]?.recommendedSpeed ?? MAX_STRAIGHT_SPEED;
 }
 
 /**
- * Predicts the kart's curved ground trajectory over the next `durationSec` seconds
- * (default `1.0s`) assuming the driver holds their current steering & thruster levels.
- * Used to draw the solid-to-transparent theme-colored trajectory shadow beneath and ahead
- * of the kart (#388).
+ * Predicts the curved ground trajectory starting from the **head (front nose)** of the kart
+ * over the next `durationSec` seconds (default `1.0s`) assuming the driver holds their current
+ * steering & rocket thrust levels (#388, #390).
  */
 export function predictKartTrajectory(
   kart: KartState,
@@ -1452,22 +1647,29 @@ export function predictKartTrajectory(
   let yawRate = kart.yawRate;
   let curS = kart.s;
 
-  const fLeft = kart.leftThrottle * PER_THRUSTER_MAX_N;
-  const fRight = kart.rightThrottle * PER_THRUSTER_MAX_N;
+  const boostMult = kart.boostTimer > 0 && kart.boostKind === 'pad' ? 1.55 : 1.0;
+  const fLeft = kart.leftThrottle * PER_THRUSTER_MAX_N * boostMult;
+  const fRight = kart.rightThrottle * PER_THRUSTER_MAX_N * boostMult;
   const fThrust = fLeft + fRight;
   const torqueThrust = (fLeft - fRight) * THRUSTER_HALF_SPAN_M;
   const steerDir = kart.leftThrottle - kart.rightThrottle;
   const braking = kart.braking;
 
+  const initFx = Math.sin(yaw);
+  const initFz = Math.cos(yaw);
+  const noseStartX = x + initFx * KART_NOSE_OFFSET_M;
+  const noseStartZ = z + initFz * KART_NOSE_OFFSET_M;
+  const noseStartProj = projectOntoCircuit(circuit, noseStartX, noseStartZ, curS);
+
   const pts: TrajectoryPoint[] = [
     {
-      x,
-      y: y + 0.06,
-      z,
+      x: noseStartX,
+      y: noseStartProj.groundY + 0.06,
+      z: noseStartZ,
       rx: Math.cos(yaw),
       rz: -Math.sin(yaw),
       t: 0,
-      alpha: 0.85,
+      alpha: 0.82,
     },
   ];
 
@@ -1521,16 +1723,18 @@ export function predictKartTrajectory(
     x += vx * dt;
     z += vz * dt;
 
-    const proj = projectOntoCircuit(circuit, x, z, curS);
+    const noseX = x + fx * KART_NOSE_OFFSET_M;
+    const noseZ = z + fz * KART_NOSE_OFFSET_M;
+    const proj = projectOntoCircuit(circuit, noseX, noseZ, curS);
     curS = proj.s;
     y = proj.groundY;
 
     const frac = i / steps;
-    const alpha = i === steps ? 0 : 0.85 * Math.pow(1 - frac, 1.55);
+    const alpha = i === steps ? 0 : 0.82 * Math.pow(1 - frac, 1.55);
     pts.push({
-      x,
+      x: noseX,
       y: y + 0.06,
-      z,
+      z: noseZ,
       rx,
       rz,
       t: frac * durationSec,
