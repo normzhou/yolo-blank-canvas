@@ -40,13 +40,14 @@ import {
   createRaceState,
   formatRaceClock,
   getKartDriverSpec,
+  getRecommendedSpeedAtS,
   KART_DRIVERS,
-  MINI_TURBO_CHARGE_SEC,
+  MAX_STRAIGHT_SPEED,
   ordinalPlace,
+  speedToColorHex,
   stepRaceState,
   toKartNetSnapshot,
   TOTAL_LAPS,
-  ULTRA_TURBO_CHARGE_SEC,
   type CircuitId,
   type DriverCharacterId,
   type KartNetSnapshot,
@@ -89,6 +90,9 @@ interface HudTelemetry {
   place: number;
   lap: number;
   kmh: number;
+  speedMps: number;
+  recommendedSpeedMps: number;
+  yawRate: number;
   driftCharge: number;
   boostTimer: number;
   boostKind: string;
@@ -100,6 +104,196 @@ interface HudTelemetry {
   bestLapMs: number | null;
   finishMs: number | null;
 }
+
+function arcSegmentPath(cx: number, cy: number, r: number, frac0: number, frac1: number): string {
+  const a0 = Math.PI * (1 - frac0);
+  const a1 = Math.PI * (1 - frac1);
+  const x0 = cx + Math.cos(a0) * r;
+  const y0 = cy - Math.sin(a0) * r;
+  const x1 = cx + Math.cos(a1) * r;
+  const y1 = cy - Math.sin(a1) * r;
+  return `M ${x0.toFixed(1)} ${y0.toFixed(1)} A ${r} ${r} 0 0 1 ${x1.toFixed(1)} ${y1.toFixed(1)}`;
+}
+
+const SPEEDO_BANDS: ReadonlyArray<{ readonly f0: number; readonly f1: number; readonly color: string }> = [
+  { f0: 0, f1: 0.55, color: '#38e8ff' },
+  { f0: 0.55, f1: 0.72, color: '#34d399' },
+  { f0: 0.72, f1: 0.86, color: '#facc15' },
+  { f0: 0.86, f1: 0.94, color: '#fb923c' },
+  { f0: 0.94, f1: 1.0, color: '#ff5666' },
+];
+
+const F1Speedometer = memo(function F1Speedometer({
+  speedMps,
+  recommendedSpeedMps,
+  kmh,
+}: {
+  speedMps: number;
+  recommendedSpeedMps: number;
+  kmh: number;
+}) {
+  const frac = Math.max(0, Math.min(1, speedMps / MAX_STRAIGHT_SPEED));
+  const recFrac = Math.max(0, Math.min(1, recommendedSpeedMps / MAX_STRAIGHT_SPEED));
+  const curColor = speedToColorHex(speedMps);
+  const recColor = speedToColorHex(recommendedSpeedMps);
+
+  const cx = 68;
+  const cy = 64;
+  const r = 50;
+  const needleAng = Math.PI * (1 - frac);
+  const nx = cx + Math.cos(needleAng) * (r - 8);
+  const ny = cy - Math.sin(needleAng) * (r - 8);
+
+  const recAng = Math.PI * (1 - recFrac);
+  const tx = cx + Math.cos(recAng) * r;
+  const ty = cy - Math.sin(recAng) * r;
+
+  return (
+    <div
+      className="kart-speedometer"
+      data-testid="kart-p1-speedometer"
+      data-speed-color={curColor}
+      data-target-kmh={Math.round(recommendedSpeedMps * 3.6)}
+      aria-label={`Speed ${kmh} kilometers per hour, corner target ${Math.round(recommendedSpeedMps * 3.6)}`}
+    >
+      <svg viewBox="0 0 136 76" width="136" height="76" aria-hidden="true">
+        {SPEEDO_BANDS.map((b) => (
+          <path
+            key={b.f0}
+            d={arcSegmentPath(cx, cy, r, b.f0, b.f1)}
+            fill="none"
+            stroke={b.color}
+            strokeWidth="8"
+            strokeLinecap="butt"
+            opacity="0.32"
+          />
+        ))}
+        {frac > 0.01 ? (
+          <path
+            d={arcSegmentPath(cx, cy, r, 0, frac)}
+            fill="none"
+            stroke={curColor}
+            strokeWidth="8"
+            strokeLinecap="round"
+          />
+        ) : null}
+        <circle cx={tx} cy={ty} r="5.5" fill={recColor} stroke="#0f172a" strokeWidth="2" />
+        <line
+          x1={cx}
+          y1={cy}
+          x2={nx}
+          y2={ny}
+          stroke={curColor}
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
+        <circle cx={cx} cy={cy} r="5" fill={curColor} />
+        <text
+          x={cx}
+          y={cy - 14}
+          textAnchor="middle"
+          fill={curColor}
+          fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+          fontSize="18"
+          fontWeight="800"
+        >
+          {kmh}
+        </text>
+        <text
+          x={cx}
+          y={cy - 2}
+          textAnchor="middle"
+          fill="#94a3b8"
+          fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+          fontSize="8.5"
+          fontWeight="700"
+          letterSpacing="0.08em"
+        >
+          KM/H
+        </text>
+      </svg>
+    </div>
+  );
+});
+
+const F1SteeringYoke = memo(function F1SteeringYoke({
+  yawRate,
+  speedMps,
+  leftPct,
+  rightPct,
+  braking,
+}: {
+  yawRate: number;
+  speedMps: number;
+  leftPct: number;
+  rightPct: number;
+  braking: boolean;
+}) {
+  // Rotate F1 butterfly yoke smoothly up to ±52 deg proportional to live turn rate (`yawRate`)
+  const turnNorm = Math.max(-1, Math.min(1, yawRate / 2.05));
+  const deg = Math.round(turnNorm * 52 * 10) / 10;
+  const speedColor = speedToColorHex(speedMps);
+  const litLeds = Math.round(Math.max(0, Math.min(1, speedMps / MAX_STRAIGHT_SPEED)) * 5);
+
+  return (
+    <div
+      className="kart-f1-yoke"
+      data-testid="kart-p1-f1-yoke"
+      data-turn-deg={deg}
+      aria-label={`F1 steering yoke turn rate ${Math.round(deg)} degrees`}
+    >
+      <svg
+        viewBox="0 0 120 74"
+        width="116"
+        height="72"
+        style={{ transform: `rotate(${deg}deg)` }}
+        className="kart-f1-yoke-svg"
+        aria-hidden="true"
+      >
+        {/* Sculpted rectangular/butterfly F1 steering yoke silhouette (NOT a round wheel!) */}
+        <path
+          d="M 16 14 L 104 14 Q 114 14 114 26 L 112 52 Q 111 62 98 62 L 88 62 Q 84 62 82 54 L 78 48 L 42 48 L 38 54 Q 36 62 32 62 L 22 62 Q 9 62 8 52 L 6 26 Q 6 14 16 14 Z"
+          fill="#182032"
+        />
+        {/* Sculpted cutout thumb holes */}
+        <rect x="20" y="27" width="14" height="18" rx="5" fill="#0b1120" />
+        <rect x="86" y="27" width="14" height="18" rx="5" fill="#0b1120" />
+        {/* Ergonomic side grip wraps */}
+        <rect x="7" y="22" width="10" height="32" rx="4" fill="#334155" />
+        <rect x="103" y="22" width="10" height="32" rx="4" fill="#334155" />
+        {/* Top F1 RPM / speed shift LEDs */}
+        {[0, 1, 2, 3, 4].map((idx) => (
+          <circle
+            key={idx}
+            cx={44 + idx * 8}
+            cy={19}
+            r="2.4"
+            fill={idx < litLeds ? speedColor : '#334155'}
+          />
+        ))}
+        {/* Center cockpit micro-display showing L / R rocket balance */}
+        <rect x="41" y="25" width="38" height="17" rx="3.5" fill="#0b1120" />
+        <rect
+          x="45"
+          y={28 + (1 - leftPct / 100) * 11}
+          width="6"
+          height={Math.max(1.5, (leftPct / 100) * 11)}
+          rx="1.5"
+          fill={braking ? '#ef4444' : '#fb923c'}
+        />
+        <rect
+          x="69"
+          y={28 + (1 - rightPct / 100) * 11}
+          width="6"
+          height={Math.max(1.5, (rightPct / 100) * 11)}
+          rx="1.5"
+          fill={braking ? '#ef4444' : '#fb923c'}
+        />
+        <line x1="60" y1="27" x2="60" y2="40" stroke="#475569" strokeWidth="1.5" />
+      </svg>
+    </div>
+  );
+});
 
 const CircuitMiniMap = memo(function CircuitMiniMap({
   circuitId,
@@ -216,6 +410,9 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     place: 1,
     lap: 1,
     kmh: 0,
+    speedMps: 0,
+    recommendedSpeedMps: MAX_STRAIGHT_SPEED,
+    yawRate: 0,
     driftCharge: 0,
     boostTimer: 0,
     boostKind: 'none',
@@ -232,6 +429,9 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     place: 2,
     lap: 1,
     kmh: 0,
+    speedMps: 0,
+    recommendedSpeedMps: MAX_STRAIGHT_SPEED,
+    yawRate: 0,
     driftCharge: 0,
     boostTimer: 0,
     boostKind: 'none',
@@ -279,6 +479,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
   const finishAwardedRef = useRef(false);
 
   const syncHudFromRace = useCallback((race: KartRaceState, focusLocalSlot = 0) => {
+    const circuit = CIRCUITS[race.circuitId];
     const k0 = race.karts[focusLocalSlot] ?? race.karts[0]!;
     const k1 = race.karts[1];
     setElapsedHudMs(Math.round(race.elapsedMs));
@@ -289,6 +490,9 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       place: k0.place,
       lap: Math.min(TOTAL_LAPS, k0.lap),
       kmh: Math.round(k0.speed * 3.6),
+      speedMps: k0.speed,
+      recommendedSpeedMps: getRecommendedSpeedAtS(circuit, k0.s),
+      yawRate: k0.yawRate,
       driftCharge: k0.driftCharge,
       boostTimer: k0.boostTimer,
       boostKind: k0.boostKind,
@@ -306,6 +510,9 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         place: k1.place,
         lap: Math.min(TOTAL_LAPS, k1.lap),
         kmh: Math.round(k1.speed * 3.6),
+        speedMps: k1.speed,
+        recommendedSpeedMps: getRecommendedSpeedAtS(circuit, k1.s),
+        yawRate: k1.yawRate,
         driftCharge: k1.driftCharge,
         boostTimer: k1.boostTimer,
         boostKind: k1.boostKind,
@@ -992,25 +1199,8 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
   const canSelectOnline2P =
     isOnline2P || isInviting || netplay.onlineCount >= 2;
   const activeCircuit = CIRCUITS[circuitId];
-
-  const driftStatusLabel = (hud: HudTelemetry): { text: string; tone: string } | null => {
-    if (hud.boostTimer > 0) {
-      return {
-        text: hud.boostKind === 'ultra' ? 'ULTRA BOOST!' : 'TURBO BOOST!',
-        tone: hud.boostKind === 'ultra' ? 'is-ultra' : 'is-cyan',
-      };
-    }
-    if (hud.driftCharge >= ULTRA_TURBO_CHARGE_SEC) {
-      return { text: 'RELEASE TURN → ULTRA!', tone: 'is-ultra' };
-    }
-    if (hud.driftCharge >= MINI_TURBO_CHARGE_SEC) {
-      return { text: 'RELEASE TURN → TURBO!', tone: 'is-cyan' };
-    }
-    return null;
-  };
-
-  const p1Banner = driftStatusLabel(p1Hud);
-  const p2Banner = driftStatusLabel(p2Hud);
+  const p1SpeedColor = speedToColorHex(p1Hud.speedMps);
+  const p2SpeedColor = speedToColorHex(p2Hud.speedMps);
 
   return (
     <div
@@ -1072,7 +1262,11 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
             </div>
             <div className="kart-telemetry-item">
               <span className="stack-label">Speed</span>
-              <span className="kart-telemetry-val" data-testid="kart-p1-speed">
+              <span
+                className="kart-telemetry-val"
+                data-testid="kart-p1-speed"
+                style={{ color: p1SpeedColor }}
+              >
                 {p1Hud.kmh} <small>km/h</small>
               </span>
             </div>
@@ -1084,13 +1278,24 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
           {!isSplit2P ? <CircuitMiniMap circuitId={circuitId} dots={mapDots} /> : null}
         </div>
 
-        {p1Banner ? (
-          <div className={`kart-boost-callout ${p1Banner.tone}`} data-testid="kart-p1-boost-banner">
-            {p1Banner.text}
-          </div>
-        ) : null}
-
         <div className="kart-controls-dock">
+          {!isSplit2P ? (
+            <div className="kart-cockpit-cluster">
+              <F1Speedometer
+                speedMps={p1Hud.speedMps}
+                recommendedSpeedMps={p1Hud.recommendedSpeedMps}
+                kmh={p1Hud.kmh}
+              />
+              <F1SteeringYoke
+                yawRate={p1Hud.yawRate}
+                speedMps={p1Hud.speedMps}
+                leftPct={p1Hud.leftPct}
+                rightPct={p1Hud.rightPct}
+                braking={p1Hud.brakeOn}
+              />
+            </div>
+          ) : null}
+
           {!isSplit2P ? (
             <div
               className="kart-steer-slider"
@@ -1172,13 +1377,16 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
               </div>
               <div className="kart-telemetry-item">
                 <span className="stack-label">Speed</span>
-                <span className="kart-telemetry-val" data-testid="kart-p2-speed">
+                <span
+                  className="kart-telemetry-val"
+                  data-testid="kart-p2-speed"
+                  style={{ color: p2SpeedColor }}
+                >
                   {p2Hud.kmh} <small>km/h</small>
                 </span>
               </div>
             </div>
           </div>
-          {p2Banner ? <div className={`kart-boost-callout ${p2Banner.tone}`}>{p2Banner.text}</div> : null}
           <div className="kart-thruster-row">
             <span className={p2Hud.turnLeftOn ? 'kart-thruster-pill is-firing' : 'kart-thruster-pill'}>
               ◀ P2 TURN L · ←
@@ -1225,7 +1433,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
               ? winnerSlot === (isOnline2P && activeKartRoom ? activeKartRoom.mySlot : 0)
                 ? '1st Place Victory!'
                 : `${raceRef.current.karts[winnerSlot ?? 0]?.name ?? 'Rival'} Wins!`
-              : `${ordinalPlace(p1Hud.place)} Place · ${formatRaceClock(p1Hud.finishMs)}`}
+              : `${ordinalPlace(p1Hud.place)} Place · ${formatRaceClock(p1Hud.finishMs ?? elapsedHudMs)}`}
           </div>
           {p1Hud.bestLapMs !== null ? (
             <div className="muted">Best Lap · {formatRaceClock(p1Hud.bestLapMs)}</div>

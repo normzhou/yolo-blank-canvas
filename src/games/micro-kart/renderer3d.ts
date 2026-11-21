@@ -10,8 +10,8 @@
 import {
   CIRCUITS,
   getKartDriverSpec,
-  MINI_TURBO_CHARGE_SEC,
-  ULTRA_TURBO_CHARGE_SEC,
+  predictKartTrajectory,
+  speedToColorRgb,
   type CircuitDefinition,
   type KartRaceState,
   type KartState,
@@ -250,6 +250,7 @@ function pushWorldPoly(
   rgb: readonly [number, number, number],
   depthBias = 0,
   emissive = false,
+  alpha = 1,
 ): void {
   const camVerts: Pt3[] = [];
   let maxZ = -Infinity;
@@ -311,9 +312,13 @@ function pushWorldPoly(
     });
   }
   const avgZ = sumZ / clipped.length;
+  const fill =
+    alpha < 0.995
+      ? `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${alpha.toFixed(2)})`
+      : shadeAndFogRgb(rgb, light, avgZ, proj.fogRgb, emissive);
   proj.polys.push({
     depth: avgZ + depthBias,
-    fill: shadeAndFogRgb(rgb, light, avgZ, proj.fogRgb, emissive),
+    fill,
     pts,
   });
 }
@@ -635,24 +640,14 @@ function emitKartMesh(proj: CameraProjector, kart: KartState, timeMs: number): v
   emitBox(proj, xf, -0.62, 0.28, -1.84, -0.26, 0.56, -1.54, nozzleSteel, -0.42);
   emitBox(proj, xf, 0.26, 0.28, -1.84, 0.62, 0.56, -1.54, nozzleSteel, -0.42);
 
-  // 7. Live Flickering 3D Plasma Flame Pyramids proportional to continuous left/right thrust!
-  const flicker = 0.86 + Math.sin(timeMs * 0.045 + kart.slot) * 0.18;
-  const isBoosting = kart.boostTimer > 0;
-  const speedBase = Math.min(1, 0.3 + kart.speed / 45);
-  const boostGain = isBoosting ? 1.55 : 1.15;
-  const leftPower = kart.leftThrottle * boostGain * (isBoosting ? 1 : speedBase);
-  const rightPower = kart.rightThrottle * boostGain * (isBoosting ? 1 : speedBase);
+  // 7. Pure Dual-Rocket Exhaust Flames scaled strictly in proportion to left/right throttle (`0..1`)!
+  const flicker = 0.88 + Math.sin(timeMs * 0.045 + kart.slot) * 0.14;
+  const flameColor: [number, number, number] = [255, 152, 48];
 
-  const flameColor: [number, number, number] = isBoosting
-    ? kart.boostKind === 'ultra'
-      ? [250, 204, 21]
-      : [56, 232, 255]
-    : [255, 148, 46];
-
-  const emitFlame = (cx: number, power: number) => {
-    if (power <= 0.05) return;
-    const len = (1.1 + power * 1.45) * flicker;
-    const r = 0.2 * Math.min(1.3, 0.7 + power * 0.4);
+  const emitFlame = (cx: number, throttle: number) => {
+    if (throttle <= 0.02) return;
+    const len = (0.35 + throttle * 2.15) * flicker;
+    const r = 0.2 * (0.42 + throttle * 0.72);
     const cy = 0.42;
     const zBase = -1.84;
     const apex = xf(cx, cy, zBase - len);
@@ -666,25 +661,8 @@ function emitKartMesh(proj: CameraProjector, kart: KartState, timeMs: number): v
     pushWorldPoly(proj, [b3, b0, apex], flameColor, -0.48, true);
   };
 
-  emitFlame(-0.44, leftPower);
-  emitFlame(0.44, rightPower);
-
-  // 8. Rear Tire Drift-Charge Sparks (Cyan = Mini-Turbo armed, Gold = Ultra-Turbo armed!)
-  if (kart.driftCharge >= 0.18) {
-    const sparkColor: [number, number, number] =
-      kart.driftCharge >= ULTRA_TURBO_CHARGE_SEC
-        ? [255, 215, 40]
-        : kart.driftCharge >= MINI_TURBO_CHARGE_SEC
-          ? [56, 232, 255]
-          : [255, 255, 255];
-    const sparkLen = (0.55 + Math.min(1.1, kart.driftCharge * 0.65)) * flicker;
-    for (const sx of [-1.22, 1.22]) {
-      const pA = xf(sx, 0.22, -1.35);
-      const pB = xf(sx + (sx < 0 ? -0.35 : 0.35), 0.45 + sparkLen * 0.35, -1.85 - sparkLen);
-      const pC = xf(sx, 0.52, -1.55 - sparkLen * 0.6);
-      pushWorldPoly(proj, [pA, pB, pC], sparkColor, -0.72, true);
-    }
-  }
+  emitFlame(-0.44, kart.leftThrottle);
+  emitFlame(0.44, kart.rightThrottle);
 }
 
 export interface ViewportRenderMetrics {
@@ -781,9 +759,9 @@ export function renderKartViewport(
       23,
     );
 
-    // Center dashed racing line (surface layer +22)
+    // Speed-matched center dashed racing line (matches onscreen speedometer color for skid-free cornering!)
     if (bandEven) {
-      const lw = 0.36;
+      const lw = 0.54;
       pushWorldPoly(
         proj,
         [
@@ -792,8 +770,9 @@ export function renderKartViewport(
           { x: n1.x + n1.rx * lw, y: n1.y + 0.03, z: n1.z + n1.rz * lw },
           { x: n1.x - n1.rx * lw, y: n1.y + 0.03, z: n1.z - n1.rz * lw },
         ],
-        [203, 213, 225],
+        speedToColorRgb(n0.recommendedSpeed),
         22,
+        true,
       );
     }
 
@@ -976,6 +955,32 @@ export function renderKartViewport(
     }
   }
 
+  // 3b. Curved 1-second predicted trajectory shadow in the focused driver's theme color
+  const traj = predictKartTrajectory(focusKart, circuit, 1.0, 16);
+  const focusSpec = getKartDriverSpec(focusKart.character);
+  const baseW = 1.62;
+  for (let i = 0; i < traj.length - 1; i += 1) {
+    const a = traj[i]!;
+    const b = traj[i + 1]!;
+    const alpha = (a.alpha + b.alpha) * 0.5;
+    if (alpha <= 0.01) continue;
+    const wA = baseW * (1 - (a.t / 1.0) * 0.42);
+    const wB = baseW * (1 - (b.t / 1.0) * 0.42);
+    pushWorldPoly(
+      proj,
+      [
+        { x: a.x - a.rx * wA, y: a.y, z: a.z - a.rz * wA },
+        { x: a.x + a.rx * wA, y: a.y, z: a.z + a.rz * wA },
+        { x: b.x + b.rx * wB, y: b.y, z: b.z + b.rz * wB },
+        { x: b.x - b.rx * wB, y: b.y, z: b.z - b.rz * wB },
+      ],
+      focusSpec.kartPrimary,
+      19.5,
+      true,
+      alpha,
+    );
+  }
+
   // 4. All karts in the race
   for (const kart of race.karts) {
     emitKartMesh(proj, kart, timeMs);
@@ -997,24 +1002,6 @@ export function renderKartViewport(
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
-  }
-
-  // 6. Subtle radial speed-lines around viewport edges during Mini-Turbo / Pad Boost!
-  if (focusKart.boostTimer > 0) {
-    ctx.strokeStyle =
-      focusKart.boostKind === 'ultra' ? 'rgba(250, 204, 21, 0.42)' : 'rgba(56, 232, 255, 0.42)';
-    ctx.lineWidth = 2;
-    const cx = vpW * 0.5;
-    const cy = vpH * 0.52;
-    for (let k = 0; k < 14; k += 1) {
-      const ang = (k / 14) * Math.PI * 2 + ((timeMs * 0.004) % 1);
-      const r0 = Math.min(vpW, vpH) * 0.36;
-      const r1 = Math.max(vpW, vpH) * 0.62;
-      ctx.beginPath();
-      ctx.moveTo(cx + Math.cos(ang) * r0, cy + Math.sin(ang) * r0);
-      ctx.lineTo(cx + Math.cos(ang) * r1, cy + Math.sin(ang) * r1);
-      ctx.stroke();
-    }
   }
 
   ctx.restore();

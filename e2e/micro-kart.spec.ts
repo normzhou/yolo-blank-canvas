@@ -17,7 +17,7 @@ test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Bu
     const card = page.getByTestId('deck-slide-card');
     await page.getByTestId('carousel-dot-micro-kart').click();
     await expect(card).toHaveAttribute('data-slide-id', 'micro-kart');
-    await expect(card).toHaveAttribute('data-game-version', '1.6.1');
+    await expect(card).toHaveAttribute('data-game-version', '1.7.0');
     await expect(page.locator('.deck-slide-title')).toHaveText('Micro Kart');
 
     await page.getByRole('button', { name: 'Play Micro Kart', exact: true }).click();
@@ -31,20 +31,22 @@ test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Bu
     await expect(page.getByTestId('kart-circuit-label')).toHaveText('Sunset Loop');
     await expect(page.getByTestId('kart-p1-driver')).toHaveText('Ren');
     await expect(page.getByTestId('kart-minimap')).toBeVisible();
+    await expect(page.getByTestId('kart-p1-speedometer')).toBeVisible();
+    await expect(page.getByTestId('kart-p1-f1-yoke')).toBeVisible();
     await expect(page.getByTestId('kart-p1-steer-slider')).toBeVisible();
 
-    // 1. Hands-off (`left: false, right: false, brake: false`) launches via dual thrusters!
+    // 1. Hands-off (`left: false, right: false, brake: false`) launches rapidly via dual rockets (2s vacuum calibration)!
     await page.evaluate(() => {
       window.dispatchEvent(
         new CustomEvent('yolo:kart:step', {
-          detail: { steps: 72, dtMs: 16.67, p1: { left: false, right: false } },
+          detail: { steps: 60, dtMs: 16.67, p1: { left: false, right: false } },
         }),
       );
     });
     const autoSpeed = parseInt((await page.getByTestId('kart-p1-speed').textContent()) ?? '0', 10);
-    expect(autoSpeed).toBeGreaterThan(120);
+    expect(autoSpeed).toBeGreaterThan(145);
 
-    // 2. Carve right (`right: true`) to ramp down right thruster & charge drift -> release for Mini-Turbo!
+    // 2. Carve right (`right: true`) -> right rocket scales down proportionally & F1 steering yoke rotates right!
     await page.evaluate(() => {
       window.dispatchEvent(
         new CustomEvent('yolo:kart:step', {
@@ -56,20 +58,14 @@ test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Bu
       (await page.getByTestId('kart-p1-turn-right').getAttribute('data-throttle')) ?? '100',
       10,
     );
-    expect(rightThrottleDuringTurn).toBeLessThan(25);
-
-    await page.evaluate(() => {
-      window.dispatchEvent(
-        new CustomEvent('yolo:kart:step', {
-          detail: { steps: 2, dtMs: 16.67, p1: { left: false, right: false } },
-        }),
-      );
-    });
-    await expect(page.getByTestId('kart-p1-boost-banner')).toContainText('BOOST!');
-    const boostSpeed = parseInt((await page.getByTestId('kart-p1-speed').textContent()) ?? '0', 10);
-    expect(boostSpeed).toBeGreaterThan(180);
+    expect(rightThrottleDuringTurn).toBeLessThan(15);
+    const yokeTurnDeg = parseFloat(
+      (await page.getByTestId('kart-p1-f1-yoke').getAttribute('data-turn-deg')) ?? '0',
+    );
+    expect(yokeTurnDeg).toBeGreaterThan(15);
 
     // 3. Down (`S` / `brake: true`) brakes cleanly and lights the Brake HUD pill!
+    const preBrakeSpeed = parseInt((await page.getByTestId('kart-p1-speed').textContent()) ?? '0', 10);
     await page.keyboard.down('ArrowDown');
     await page.evaluate(() => {
       window.dispatchEvent(
@@ -81,7 +77,7 @@ test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Bu
     await expect(page.getByTestId('kart-p1-brake')).toHaveClass(/is-braking/);
     const brakedSpeed = parseInt((await page.getByTestId('kart-p1-speed').textContent()) ?? '0', 10);
     await page.keyboard.up('ArrowDown');
-    expect(brakedSpeed).toBeLessThan(boostSpeed - 50);
+    expect(brakedSpeed).toBeLessThan(preBrakeSpeed - 45);
 
     // Pause -> switch Starlight Burst driver to Mochi (Cat), circuit to Canyon Crest, and 2P Split-Screen
     await page.keyboard.press('Escape');
