@@ -350,15 +350,16 @@
         "v0.46.0": "87b484efb8285abe75efb0ff93b56e9c5400ddab",
         "v0.46.1": "4136321ef41ff01a00d5e83e15bf05fdb1af0af6",
         "v0.46.2": "07c701547c3d67dba245fb2a5b9623f44adda5c2",
-        "v0.46.3": "9a2c6a5f8cfb67ec17935e3e77c27bc96ded2d11"
+        "v0.46.3": "9a2c6a5f8cfb67ec17935e3e77c27bc96ded2d11",
+        "v0.46.4": "2f8312cf7086fb17d4d3f8f3549a9e04a23131a1"
       },
       "published": {
-        "tag": "v0.46.4",
-        "commit": "2f8312cf7086fb17d4d3f8f3549a9e04a23131a1",
-        "source_commit": "87789a28fbed0600cccb4b08cc705fe6901c2463",
-        "published_at": "2026-11-21T05:07:59Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-19-v0464.json",
-        "note": "Patch CPU cadence release (#396, PR #397). Tunes Micro Kart CPU binary keyboard holds (@yolo-arcade/game-micro-kart@1.7.4) to randomized 200ms-400ms jittered intervals per kart with latched button states sticking until the next control event; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 053bf320-3148-462e-a5e4-7a24208d8d82)."
+        "tag": "v0.46.5",
+        "commit": "3d43006ab13025c1702a7d07fb8949e171f4e43a",
+        "source_commit": "985ca07e7874dcd6cd39b7cd3f250b088a3d5527",
+        "published_at": "2026-11-21T05:26:22Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-19-v0465.json",
+        "note": "Patch boost & AI release (#398, PR #399). Replaces Micro Kart's road boost velocity impulse with a pure +50% rocket booster force increase for 5.0 seconds and drives CPU steering via worst-case-latency (400 ms) 1s shadow-track projection picking whichever of Left / None / Right lands closest to road center plus track-speed braking (@yolo-arcade/game-micro-kart@1.7.5); verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 8911cc5a-6c0c-4a93-9cfc-fc2e9da2dd47)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -469,7 +470,8 @@
         ".yolo/reports/releases-observed-2026-11-19-v0461.json",
         ".yolo/reports/releases-observed-2026-11-19-v0462.json",
         ".yolo/reports/releases-observed-2026-11-19-v0463.json",
-        ".yolo/reports/releases-observed-2026-11-19-v0464.json"
+        ".yolo/reports/releases-observed-2026-11-19-v0464.json",
+        ".yolo/reports/releases-observed-2026-11-19-v0465.json"
       ]
     }
   },

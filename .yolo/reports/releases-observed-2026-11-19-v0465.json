@@ -1,0 +1,81 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-19",
+  "observed_at": "2026-11-19",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#398",
+  "releases": [
+    {
+      "tag": "v0.46.5",
+      "commit": "3d43006ab13025c1702a7d07fb8949e171f4e43a"
+    }
+  ],
+  "release": {
+    "tag": "v0.46.5",
+    "commit": "3d43006ab13025c1702a7d07fb8949e171f4e43a",
+    "source_commit": "985ca07e7874dcd6cd39b7cd3f250b088a3d5527",
+    "assets_commit": "64cb3e86fa0208273d68dae5eecdcf4500abcb90",
+    "native_version": "0.46.5",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-21T05:26:22Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.46.5",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/399"
+  },
+  "build_identity": {
+    "server_build_id": "985ca07e7874dcd6cd39b7cd3f250b088a3d5527",
+    "client_build_id": "985ca07e7874dcd6cd39b7cd3f250b088a3d5527",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "30 files, 197 tests passed (including zero-impulse 5s +50% boost force check and shadow-projection CPU steering + track-speed braking test in test/micro-kart.test.ts)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 51 passed (55.4s)",
+      "e2e_live": "npm run e2e:live — 5 passed (14.7s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.46.5 --no-open --port 4462 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (18.5s)",
+      "ci": "GitHub Actions CI/Test and type check green (31s)"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "8911cc5a-6c0c-4a93-9cfc-fc2e9da2dd47",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.46.5",
+      "observed_build_id": "985ca07e7874dcd6cd39b7cd3f250b088a3d5527",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.2.0",
+          "entry": "/games/starlight-burst-GBNrLdJU.js",
+          "hash": "27a6676d3b80780e7cc557cfee1d008a4fb6ae4b74d85fde5e040f52f2e7b116",
+          "sizeBytes": 86740
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-BTouD6yV.js",
+          "hash": "6fa804dd96d3debe1835f3a2cc6e351916f8366a9679865d98352dc6d348b12e",
+          "sizeBytes": 37318
+        },
+        "micro-kart": {
+          "version": "1.7.5",
+          "entry": "/games/micro-kart-CL8rhb3R.js",
+          "hash": "d78e87577d8c1a8de6798ff4d756462633765e1dd4740998e4707f3c162950e3",
+          "sizeBytes": 108476
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Replaces the road boost pad velocity impulse with a pure +50% rocket booster force increase for 5.0 seconds, and switches Micro Kart CPU steering to project Press Left / Press Nothing / Press Right along the driver's shadow track held for worst-case latency (400 ms), selecting whichever lands closest to the middle of the road plus track-speed braking (@yolo-arcade/game-micro-kart@1.7.5)."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #398"
+}
