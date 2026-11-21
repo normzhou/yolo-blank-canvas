@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   AERO_DRAG_COEFF,
+  AI_DECISION_INTERVAL_MS,
   ASPHALT_ROLLING_DRAG_N,
   CIRCUIT_LIST,
   CIRCUITS,
@@ -209,7 +210,7 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
     expect(maxSlip).toBeLessThan(25);
     expect(race.karts[0]!.lap).toBe(TOTAL_LAPS + 1);
     expect(race.karts[0]!.bestLapMs).not.toBeNull();
-    expect(race.karts[1]!.unwrappedS).toBeGreaterThan(circuit.totalLength * 2.5);
+    expect(race.karts[1]!.unwrappedS).toBeGreaterThan(circuit.totalLength * 1.8);
   });
 
   it('animates driver corner lean, high-speed wind duck, and species-specific wind-blown ears from speed and yawRate (#386)', () => {
@@ -348,5 +349,55 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
     expect(p1.boostTimer).toBeGreaterThan(0.9);
     expect(p1.speed).toBeGreaterThan(70);
     expect(race.lastEvents.boostTriggered.some((e) => e.slot === 0 && e.kind === 'pad')).toBe(true);
+  });
+
+  it('constrains CPU drivers to binary keyboard controls at max 2 actions/sec with staggered 0.5s decision clocks (#394)', () => {
+    expect(AI_DECISION_INTERVAL_MS).toBe(500);
+    const race = createRaceState('sunset-loop', '1p', 42);
+    const cpus = race.karts.slice(1);
+    expect(cpus.length).toBe(3);
+
+    // 1. Staggered initial decision phases across the 500 ms window (never synchronized!)
+    const phases = cpus.map((k) => k.aiNextDecisionMs % AI_DECISION_INTERVAL_MS);
+    expect(Math.abs(phases[0]! - phases[1]!)).toBeGreaterThanOrEqual(80);
+    expect(Math.abs(phases[1]! - phases[2]!)).toBeGreaterThanOrEqual(80);
+    expect(Math.abs(phases[0]! - phases[2]!)).toBeGreaterThanOrEqual(80);
+
+    const decisionTimes: number[][] = [[], [], []];
+    const prevCounts = [0, 0, 0];
+
+    // Step 10.0 seconds at 50 Hz (20 ms/step)
+    for (let i = 0; i < 500; i += 1) {
+      stepRaceState(race, { 0: { left: false, right: false } }, 20);
+      for (let c = 0; c < cpus.length; c += 1) {
+        const cpu = cpus[c]!;
+        // Strictly binary steering: never pressing both left and right simultaneously, no steerAnalog
+        expect(cpu.aiInput.left && cpu.aiInput.right).toBe(false);
+        expect(typeof cpu.aiInput.brake).toBe('boolean');
+        expect((cpu.aiInput as { steerAnalog?: unknown }).steerAnalog).toBeUndefined();
+
+        if (cpu.aiDecisionCount > prevCounts[c]!) {
+          prevCounts[c] = cpu.aiDecisionCount;
+          decisionTimes[c]!.push(cpu.aiLastDecisionMs!);
+        }
+      }
+    }
+
+    // 2. Each CPU makes at most 20 decisions in 10 seconds (<= 2 actions/sec), spaced by ~500 ms
+    for (let c = 0; c < cpus.length; c += 1) {
+      const times = decisionTimes[c]!;
+      expect(times.length).toBeGreaterThanOrEqual(19);
+      expect(times.length).toBeLessThanOrEqual(20);
+      for (let t = 1; t < times.length; t += 1) {
+        const gap = times[t]! - times[t - 1]!;
+        expect(gap).toBeGreaterThanOrEqual(480);
+        expect(gap).toBeLessThanOrEqual(520);
+      }
+    }
+
+    // 3. No two CPUs share synchronized decision timestamps
+    expect(decisionTimes[0]![0]).not.toBe(decisionTimes[1]![0]);
+    expect(decisionTimes[1]![0]).not.toBe(decisionTimes[2]![0]);
+    expect(decisionTimes[0]![0]).not.toBe(decisionTimes[2]![0]);
   });
 });
