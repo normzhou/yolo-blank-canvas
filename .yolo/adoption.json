@@ -349,15 +349,16 @@
         "v0.45.1": "17b27c054f156cba67f6416b223481385667a0d3",
         "v0.46.0": "87b484efb8285abe75efb0ff93b56e9c5400ddab",
         "v0.46.1": "4136321ef41ff01a00d5e83e15bf05fdb1af0af6",
-        "v0.46.2": "07c701547c3d67dba245fb2a5b9623f44adda5c2"
+        "v0.46.2": "07c701547c3d67dba245fb2a5b9623f44adda5c2",
+        "v0.46.3": "9a2c6a5f8cfb67ec17935e3e77c27bc96ded2d11"
       },
       "published": {
-        "tag": "v0.46.3",
-        "commit": "9a2c6a5f8cfb67ec17935e3e77c27bc96ded2d11",
-        "source_commit": "e2a8d4a03dabf92098975214c3614696f70c87a5",
-        "published_at": "2026-11-21T04:52:24Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-19-v0463.json",
-        "note": "Patch CPU fairness release (#394, PR #395). Constrains Micro Kart CPU rivals (@yolo-arcade/game-micro-kart@1.7.3) to strictly binary keyboard-equivalent buttons (left, right, or none + independent brake, no steerAnalog) through the 0.55s linear ramp, caps decisions at max 2 actions/sec (500 ms interval), and staggers each CPU's 0.5s clock across the cycle so rivals never synchronize; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 8c081aae-7ece-468d-8c7f-8d22987d4153)."
+        "tag": "v0.46.4",
+        "commit": "2f8312cf7086fb17d4d3f8f3549a9e04a23131a1",
+        "source_commit": "87789a28fbed0600cccb4b08cc705fe6901c2463",
+        "published_at": "2026-11-21T05:07:59Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-19-v0464.json",
+        "note": "Patch CPU cadence release (#396, PR #397). Tunes Micro Kart CPU binary keyboard holds (@yolo-arcade/game-micro-kart@1.7.4) to randomized 200ms-400ms jittered intervals per kart with latched button states sticking until the next control event; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 053bf320-3148-462e-a5e4-7a24208d8d82)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -467,7 +468,8 @@
         ".yolo/reports/releases-observed-2026-11-19-v0460.json",
         ".yolo/reports/releases-observed-2026-11-19-v0461.json",
         ".yolo/reports/releases-observed-2026-11-19-v0462.json",
-        ".yolo/reports/releases-observed-2026-11-19-v0463.json"
+        ".yolo/reports/releases-observed-2026-11-19-v0463.json",
+        ".yolo/reports/releases-observed-2026-11-19-v0464.json"
       ]
     }
   },

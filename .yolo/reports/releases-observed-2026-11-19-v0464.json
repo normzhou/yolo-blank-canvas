@@ -1,0 +1,81 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-19",
+  "observed_at": "2026-11-19",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#396",
+  "releases": [
+    {
+      "tag": "v0.46.4",
+      "commit": "2f8312cf7086fb17d4d3f8f3549a9e04a23131a1"
+    }
+  ],
+  "release": {
+    "tag": "v0.46.4",
+    "commit": "2f8312cf7086fb17d4d3f8f3549a9e04a23131a1",
+    "source_commit": "87789a28fbed0600cccb4b08cc705fe6901c2463",
+    "assets_commit": "a91b7dcea2c1f9fccc503d5051e25e515415b980",
+    "native_version": "0.46.4",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-21T05:07:59Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.46.4",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/397"
+  },
+  "build_identity": {
+    "server_build_id": "87789a28fbed0600cccb4b08cc705fe6901c2463",
+    "client_build_id": "87789a28fbed0600cccb4b08cc705fe6901c2463",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "30 files, 196 tests passed (including latched binary hold + 200-400ms randomized jitter + unsynchronized rival checks in test/micro-kart.test.ts)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 51 passed (58.2s)",
+      "e2e_live": "npm run e2e:live — 5 passed (13.7s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.46.4 --no-open --port 4460 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (17.7s)",
+      "ci": "GitHub Actions CI/Test and type check green (30s)"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "053bf320-3148-462e-a5e4-7a24208d8d82",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.46.4",
+      "observed_build_id": "87789a28fbed0600cccb4b08cc705fe6901c2463",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.2.0",
+          "entry": "/games/starlight-burst-GBNrLdJU.js",
+          "hash": "27a6676d3b80780e7cc557cfee1d008a4fb6ae4b74d85fde5e040f52f2e7b116",
+          "sizeBytes": 86740
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-BTouD6yV.js",
+          "hash": "6fa804dd96d3debe1835f3a2cc6e351916f8366a9679865d98352dc6d348b12e",
+          "sizeBytes": 37318
+        },
+        "micro-kart": {
+          "version": "1.7.4",
+          "entry": "/games/micro-kart-DUcgJsvW.js",
+          "hash": "7876c7e047fabfd5a268545462acb0c9bbfeaccf62eb2396d85042528fde56ad",
+          "sizeBytes": 108344
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Tunes Micro Kart CPU binary keyboard controls to randomized 200ms-400ms jittered hold intervals using independent per-kart deterministic PRNGs, sticking each chosen binary button state continuously until the next randomized control timestamp (@yolo-arcade/game-micro-kart@1.7.4)."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #396"
+}
