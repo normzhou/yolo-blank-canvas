@@ -17,8 +17,11 @@ import {
   MAX_STRAIGHT_SPEED,
   MAX_TOTAL_THRUST_N,
   predictKartTrajectory,
+  projectKartShadowForButtons,
   projectOntoCircuit,
   resolveElasticKartCollision,
+  ROAD_BOOST_DURATION_SEC,
+  ROAD_BOOST_FORCE_MULT,
   sampleCircuitAtS,
   speedToColorHex,
   speedToColorRgb,
@@ -328,28 +331,98 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
     expect(Math.abs(b.yawRate - prevOmegaB)).toBeGreaterThan(0.1);
   });
 
-  it('triggers a road boost pad surge when driving over a circuit boost strip (#390)', () => {
+  it('applies a pure +50% rocket booster force for 5.0s on road boost pads with zero instant velocity impulse (#390, #398)', () => {
+    expect(ROAD_BOOST_FORCE_MULT).toBe(1.5);
+    expect(ROAD_BOOST_DURATION_SEC).toBe(5.0);
     const circuit = CIRCUITS['sunset-loop'];
     const padNode = circuit.nodes.find((n) => n.hasBoostPad)!;
     expect(padNode).toBeDefined();
 
-    const race = createRaceState('sunset-loop', '1p', 19);
-    const p1 = race.karts[0]!;
-    // Place kart directly on the boost strip moving forward along track tangent
-    p1.x = padNode.x + padNode.rx * padNode.boostLat;
-    p1.z = padNode.z + padNode.rz * padNode.boostLat;
-    p1.s = padNode.s;
-    p1.lat = padNode.boostLat;
-    p1.yaw = Math.atan2(padNode.tx, padNode.tz);
-    p1.vx = Math.sin(p1.yaw) * 60;
-    p1.vz = Math.cos(p1.yaw) * 60;
-    p1.speed = 60;
+    const raceBoosted = createRaceState('sunset-loop', '1p', 19);
+    const raceNormal = createRaceState('sunset-loop', '1p', 19);
+    const kB = raceBoosted.karts[0]!;
+    const kN = raceNormal.karts[0]!;
 
-    stepRaceState(race, { 0: { left: false, right: false } }, 16.67);
-    expect(p1.boostKind).toBe('pad');
-    expect(p1.boostTimer).toBeGreaterThan(0.9);
-    expect(p1.speed).toBeGreaterThan(70);
-    expect(race.lastEvents.boostTriggered.some((e) => e.slot === 0 && e.kind === 'pad')).toBe(true);
+    // Place kB on the boost pad and kN on the same node offset off the pad at 55 m/s
+    const yaw = Math.atan2(padNode.tx, padNode.tz);
+    for (const [k, lat] of [
+      [kB, padNode.boostLat],
+      [kN, padNode.boostLat > 0 ? -6 : 6],
+    ] as const) {
+      k.x = padNode.x + padNode.rx * lat;
+      k.z = padNode.z + padNode.rz * lat;
+      k.s = padNode.s;
+      k.lat = lat;
+      k.yaw = yaw;
+      k.vx = Math.sin(yaw) * 55;
+      k.vz = Math.cos(yaw) * 55;
+      k.speed = 55;
+    }
+
+    // 1. First tick over pad: NO instant velocity impulse (< 2 m/s delta in 16.67 ms!), sets 5.0s pad boost!
+    stepRaceState(raceBoosted, { 0: { left: false, right: false } }, 16.67);
+    stepRaceState(raceNormal, { 0: { left: false, right: false } }, 16.67);
+    expect(kB.boostKind).toBe('pad');
+    expect(kB.boostTimer).toBeCloseTo(5.0, 1);
+    expect(kB.speed - 55).toBeLessThan(2.0);
+    expect(raceBoosted.lastEvents.boostTriggered.some((e) => e.slot === 0 && e.kind === 'pad')).toBe(true);
+
+    // 2. Over the next 1.0s, +50% rocket booster force smoothly accelerates kB significantly ahead of kN
+    for (let i = 0; i < 60; i += 1) {
+      stepRaceState(raceBoosted, { 0: { left: false, right: false } }, 16.67);
+      stepRaceState(raceNormal, { 0: { left: false, right: false } }, 16.67);
+    }
+    expect(kB.boostTimer).toBeGreaterThan(3.8);
+    expect(kB.speed).toBeGreaterThan(kN.speed + 10);
+  });
+
+  it('steers CPUs via worst-case-latency shadow projection closest to road center and checks track speed for braking (#398)', () => {
+    const circuit = CIRCUITS['sunset-loop'];
+    const race = createRaceState('sunset-loop', '1p', 7);
+    const cpu = race.karts[1]!;
+
+    // Place CPU right of centerline (`lat = +9m`) angled rightward (`+0.28 rad`) so Left pulls closest to center
+    const straightNode = circuit.nodes.find((n) => Math.abs(n.curvature) < 0.002)!;
+    const yaw = Math.atan2(straightNode.tx, straightNode.tz) + 0.28;
+    cpu.x = straightNode.x + straightNode.rx * 9;
+    cpu.z = straightNode.z + straightNode.rz * 9;
+    cpu.s = straightNode.s;
+    cpu.lat = 9;
+    cpu.yaw = yaw;
+    cpu.vx = Math.sin(yaw) * 70;
+    cpu.vz = Math.cos(yaw) * 70;
+    cpu.speed = 70;
+    cpu.aiNextDecisionMs = 0;
+
+    // Verify shadow projection confirms pressing Left lands closer to road center (`|lat|`) than Nothing or Right
+    const leftProj = projectKartShadowForButtons(cpu, circuit, true, false, false, 0.4);
+    const noneProj = projectKartShadowForButtons(cpu, circuit, false, false, false, 0.4);
+    const rightProj = projectKartShadowForButtons(cpu, circuit, false, true, false, 0.4);
+    expect(Math.abs(leftProj.lat)).toBeLessThan(Math.abs(noneProj.lat));
+    expect(Math.abs(noneProj.lat)).toBeLessThan(Math.abs(rightProj.lat));
+
+    stepRaceState(race, { 0: { left: false, right: false } }, 20);
+    expect(cpu.aiInput.left).toBe(true);
+    expect(cpu.aiInput.right).toBe(false);
+    expect(cpu.aiInput.brake).toBe(false);
+
+    // Overspeeding into a sharp corner (current speed >> track recommended speed) triggers independent brake!
+    const sharpIdx = circuit.nodes.findIndex((n) => n.recommendedSpeed < 82);
+    expect(sharpIdx).toBeGreaterThanOrEqual(0);
+    const approachNode = circuit.nodes[(sharpIdx - 4 + circuit.nodes.length) % circuit.nodes.length]!;
+    const aYaw = Math.atan2(approachNode.tx, approachNode.tz);
+    cpu.x = approachNode.x;
+    cpu.z = approachNode.z;
+    cpu.s = approachNode.s;
+    cpu.lat = 0;
+    cpu.yaw = aYaw;
+    cpu.vx = Math.sin(aYaw) * 98;
+    cpu.vz = Math.cos(aYaw) * 98;
+    cpu.speed = 98;
+    cpu.aiNextDecisionMs = race.elapsedMs;
+
+    stepRaceState(race, { 0: { left: false, right: false } }, 20);
+    expect(cpu.aiInput.brake).toBe(true);
   });
 
   it('constrains CPU drivers to latched binary keyboard controls with randomized 200ms-400ms jittered decision intervals (#394, #396)', () => {

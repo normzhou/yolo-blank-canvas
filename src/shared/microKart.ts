@@ -378,9 +378,11 @@ export const AERO_DOWNFORCE_COEFF = 0.0024;
 export const TIRE_CORNERING_STIFFNESS = 18.0;
 export const SLIP_SELF_ALIGN_TORQUE = 180;
 
-/** Approximate single-thruster equilibrium (~71% top speed) & road boost pad surge (~125 m/s). */
+/** Approximate single-thruster equilibrium (~71% top speed) & +50% force road boost equilibrium (~122 m/s). */
 export const MAX_DRIFT_SPEED = Math.round(MAX_STRAIGHT_SPEED * Math.SQRT1_2);
-export const MAX_BOOST_SPEED = 125;
+export const ROAD_BOOST_FORCE_MULT = 1.5;
+export const ROAD_BOOST_DURATION_SEC = 5.0;
+export const MAX_BOOST_SPEED = Math.round(MAX_STRAIGHT_SPEED * Math.sqrt(ROAD_BOOST_FORCE_MULT));
 export const MINI_TURBO_CHARGE_SEC = 0.42;
 export const ULTRA_TURBO_CHARGE_SEC = 1.1;
 
@@ -991,18 +993,23 @@ function nextAiRandom(kart: KartState): number {
   return ((s ^ (s >>> 14)) >>> 0) / 4294967296;
 }
 
-function simulateBinarySteerScore(
+/**
+ * Projects a kart forward using the exact same rigid-body physics as the driver's
+ * nose-anchored 1.0-second trajectory shadow (`predictKartTrajectory`), holding a candidate
+ * binary button state `(leftBtn, rightBtn, braking)` for `holdSec` (worst-case latency
+ * `0.40 s`) and letting the shadow track continue to `totalSec` (`1.0 s`) (#398).
+ */
+export function projectKartShadowForButtons(
   kart: KartState,
   circuit: CircuitDefinition,
   leftBtn: boolean,
   rightBtn: boolean,
   braking: boolean,
-  targetLat: number,
-  holdSteps: number,
-): { cost: number; maxAbsLat: number } {
-  // Lightweight 6-step (~0.84s) rollout: hold candidate binary buttons for this ~200-400ms window, then check exit!
-  const steps = 6;
-  const dt = 0.14;
+  holdSec: number,
+  totalSec = 1.0,
+  steps = 10,
+): { x: number; z: number; yaw: number; s: number; lat: number } {
+  const dt = totalSec / Math.max(1, steps);
   let x = kart.x;
   let z = kart.z;
   let yaw = kart.yaw;
@@ -1013,38 +1020,40 @@ function simulateBinarySteerScore(
   let rt = kart.rightThrottle;
   let curS = kart.s;
 
-  let maxAbsLat = Math.abs(kart.lat);
-  let lastLat = kart.lat;
-  let lastHeadingErr = 0;
+  const boostMult = kart.boostTimer > 0 && kart.boostKind === 'pad' ? ROAD_BOOST_FORCE_MULT : 1.0;
 
   for (let i = 0; i < steps; i += 1) {
-    const holding = i < holdSteps;
+    const holding = i * dt < holdSec;
     const stepL = holding ? leftBtn : false;
     const stepR = holding ? rightBtn : false;
     const stepBrake = holding ? braking : false;
     const targetL = stepBrake ? 0 : stepL ? 0 : 1;
     const targetR = stepBrake ? 0 : stepR ? 0 : 1;
     const rampRate = stepBrake ? 1 / BRAKE_CUT_RAMP_SEC : 1 / THRUSTER_RAMP_SEC;
+    const steerDir = stepL ? -1 : stepR ? 1 : 0;
 
     lt = moveToward(lt, targetL, dt * rampRate);
     rt = moveToward(rt, targetR, dt * rampRate);
 
-    const fL = lt * PER_THRUSTER_MAX_N;
-    const fR = rt * PER_THRUSTER_MAX_N;
-    const fThrust = fL + fR;
-    const torque = (fL - fR) * THRUSTER_HALF_SPAN_M;
+    const fLeft = lt * PER_THRUSTER_MAX_N * boostMult;
+    const fRight = rt * PER_THRUSTER_MAX_N * boostMult;
+    const fThrust = fLeft + fRight;
+    const torqueThrust = (fLeft - fRight) * THRUSTER_HALF_SPAN_M;
 
-    const pFx = Math.sin(yaw);
-    const pFz = Math.cos(yaw);
-    const pRx = Math.cos(yaw);
-    const pRz = -Math.sin(yaw);
-    const pVFwd = vx * pFx + vz * pFz;
-    const pVLat = vx * pRx + vz * pRz;
+    const preFx = Math.sin(yaw);
+    const preFz = Math.cos(yaw);
+    const preRx = Math.cos(yaw);
+    const preRz = -Math.sin(yaw);
+    const preVFwd = vx * preFx + vz * preFz;
+    const preVLat = vx * preRx + vz * preRz;
 
-    const steerDir = stepL ? -1 : stepR ? 1 : 0;
-    const torqueBrake = stepBrake && steerDir !== 0 ? steerDir * 6800 * clamp(pVFwd / 22, 0.25, 1) : 0;
-    const torqueAlign = SLIP_SELF_ALIGN_TORQUE * pVLat * clamp(pVFwd / 30, 0.2, 1);
-    yawRate = clamp(yawRate + ((torque + torqueBrake + torqueAlign - YAW_DAMPING * yawRate) / KART_YAW_INERTIA) * dt, -3.2, 3.2);
+    const torqueBrakeSteer =
+      stepBrake && steerDir !== 0
+        ? steerDir * 6800 * clamp(preVFwd / 22, 0.25, 1.0)
+        : 0;
+    const torqueAlign = SLIP_SELF_ALIGN_TORQUE * preVLat * clamp(preVFwd / 30, 0.2, 1.0);
+    const yawAccel = (torqueThrust + torqueBrakeSteer + torqueAlign - YAW_DAMPING * yawRate) / KART_YAW_INERTIA;
+    yawRate = clamp(yawRate + yawAccel * dt, -3.2, 3.2);
     yaw = wrapAngle(yaw + yawRate * dt);
 
     const fx = Math.sin(yaw);
@@ -1056,40 +1065,49 @@ function simulateBinarySteerScore(
     const vMag = Math.hypot(vx, vz);
 
     const fAeroFwd = -AERO_DRAG_COEFF * vMag * vFwd;
+    const fRoll = vFwd > 0.05 ? -ASPHALT_ROLLING_DRAG_N : 0;
     const fBrake = stepBrake && vFwd > 0.05 ? -BRAKE_FORCE_N : 0;
+
     const aLatMax = TIRE_LATERAL_MU * GRAVITY_MPS2 + AERO_DOWNFORCE_COEFF * vFwd * vFwd;
-    const aLat = clamp(-TIRE_CORNERING_STIFFNESS * vLat, -aLatMax, aLatMax);
-    const nextVFwd = Math.max(0, vFwd + ((fThrust + fAeroFwd + fBrake) / KART_MASS_KG) * dt);
-    const nextVLat = vLat + aLat * dt;
+    const aLatDesired = -TIRE_CORNERING_STIFFNESS * vLat;
+    const aLatTire = clamp(aLatDesired, -aLatMax, aLatMax);
+    const aAeroLat = -(AERO_DRAG_COEFF * vMag * vLat) / KART_MASS_KG;
+    const aScrub = vFwd > 0.5 ? -0.14 * Math.abs(aLatTire) * clamp(Math.abs(vLat) / 10, 0, 1) : 0;
+
+    const aFwd = (fThrust + fAeroFwd + fRoll + fBrake) / KART_MASS_KG + aScrub;
+    const aLat = aLatTire + aAeroLat;
+
+    let nextVFwd = Math.max(0, vFwd + aFwd * dt);
+    if (vFwd >= 0 && vFwd + aFwd * dt < 0) nextVFwd = 0;
+    let nextVLat = vLat + aLat * dt;
+    if (Math.abs(aLatDesired) <= aLatMax && vLat !== 0 && Math.sign(nextVLat) !== Math.sign(vLat)) {
+      nextVLat = 0;
+    }
 
     vx = fx * nextVFwd + rx * nextVLat;
     vz = fz * nextVFwd + rz * nextVLat;
     x += vx * dt;
     z += vz * dt;
-
-    const proj = projectOntoCircuit(circuit, x, z, curS);
-    curS = proj.s;
-    lastLat = proj.lat;
-    if (Math.abs(lastLat) > maxAbsLat) maxAbsLat = Math.abs(lastLat);
-
-    const sSample = sampleCircuitAtS(circuit, curS + 14);
-    lastHeadingErr = wrapAngle(sSample.yaw - yaw);
+    const stepProj = projectOntoCircuit(circuit, x, z, curS);
+    curS = stepProj.s;
   }
 
-  const offroadPenalty = maxAbsLat > circuit.roadHalfWidth ? (maxAbsLat - circuit.roadHalfWidth) * 14 : 0;
-  const wallPenalty = maxAbsLat > circuit.wallHalfWidth - 0.8 ? 160 : 0;
-  const latErr = Math.abs(lastLat - targetLat);
-  const straightBonus = !leftBtn && !rightBtn ? -1.1 : 0;
-  const cost = latErr * 1.15 + Math.abs(lastHeadingErr) * 18.0 + offroadPenalty + wallPenalty + straightBonus;
-  return { cost, maxAbsLat };
+  const endFx = Math.sin(yaw);
+  const endFz = Math.cos(yaw);
+  const noseX = x + endFx * KART_NOSE_OFFSET_M;
+  const noseZ = z + endFz * KART_NOSE_OFFSET_M;
+  const proj = projectOntoCircuit(circuit, noseX, noseZ, curS);
+  return { x: noseX, z: noseZ, yaw, s: proj.s, lat: proj.lat };
 }
 
 /**
- * Binary-button jittered-cadence AI pilot (#394, #396):
- * - Restricted to the exact same binary controls as keyboard players (`left`, `right`, or `none`,
- *   plus independent `brake` — NO `steerAnalog`!), going through the `0.55s` linear thruster ramp.
- * - Each decision schedules the next control timestamp with a randomized `200..400 ms` hold
- *   interval; whatever keys it presses (or releases) stick continuously until that next timestamp.
+ * Shadow-projection binary AI pilot (#394, #396, #398):
+ * - Restricted to binary keyboard controls (`left`, `right`, or `none`, plus independent `brake`,
+ *   NO `steerAnalog`) with randomized `200..400 ms` hold intervals.
+ * - Brake compares current speed directly against the track's recommended speed (`getRecommendedSpeedAtS`).
+ * - Steering projects the kart out to worst-case latency (`AI_DECISION_MAX_MS = 400 ms`) using the
+ *   same shadow-track physics as the player's trajectory path, picking whichever of `left`, `none`,
+ *   or `right` lands closest to the middle of the road (`lat = 0`).
  */
 function computeAiThrusters(
   kart: KartState,
@@ -1108,34 +1126,54 @@ function computeAiThrusters(
   kart.aiLastDecisionMs = elapsedMs;
   kart.aiDecisionCount += 1;
 
-  // Pick lane target (aim for boost strip if coming up in the next ~50m)
-  const aheadSample = sampleCircuitAtS(circuit, kart.s + clamp(22 + kart.speed * 0.42, 22, 58));
-  const aheadNode = circuit.nodes[aheadSample.nodeIndex]!;
-  const targetLat = aheadNode.hasBoostPad ? aheadNode.boostLat : kart.aiTargetLat;
-
-  // Evaluate the 3 binary steering choices (`none`, `left`, `right`) over ~2 steps (~0.28s) hold + exit
-  const holdSteps = nextHoldMs >= 330 ? 3 : 2;
-  const candidates: ReadonlyArray<{ left: boolean; right: boolean }> = [
-    { left: false, right: false },
-    { left: true, right: false },
-    { left: false, right: true },
-  ];
-  let best = candidates[0]!;
-  let bestEval = simulateBinarySteerScore(kart, circuit, false, false, false, targetLat, holdSteps);
-  for (let i = 1; i < candidates.length; i += 1) {
-    const c = candidates[i]!;
-    const ev = simulateBinarySteerScore(kart, circuit, c.left, c.right, false, targetLat, holdSteps);
-    if (ev.cost < bestEval.cost) {
-      best = c;
-      bestEval = ev;
-    }
+  // If an elastic collision spun this CPU around backward, turn immediately back toward track forward
+  const curTrackYaw = sampleCircuitAtS(circuit, kart.s).yaw;
+  const headingToTrack = wrapAngle(curTrackYaw - kart.yaw);
+  if (Math.abs(headingToTrack) > Math.PI * 0.55) {
+    kart.aiInput = {
+      left: headingToTrack < 0,
+      right: headingToTrack >= 0,
+      brake: false,
+    };
+    return kart.aiInput;
   }
 
-  // Independent binary brake decision: brake only if overspeeding a sharp corner or heading toward outer wall
-  const recSpeed = getRecommendedSpeedAtS(circuit, kart.s + clamp(28 + kart.speed * 0.5, 28, 76));
-  const brake =
-    (bestEval.maxAbsLat > circuit.wallHalfWidth - 1.2 && kart.speed > 66) ||
-    (kart.speed > recSpeed * 1.22 && recSpeed < 82);
+  // Independent binary brake decision: compare current speed against the track's recommended speed
+  const trackCheckS = kart.s + clamp(18 + kart.speed * 0.42, 18, 56);
+  const trackRecSpeed = getRecommendedSpeedAtS(circuit, trackCheckS);
+  const brake = kart.speed > trackRecSpeed * 1.08 && trackRecSpeed < 94;
+
+  // Project out to worst-case latency (`AI_DECISION_MAX_MS = 400 ms`) along the 1s shadow track
+  const worstCaseSec = AI_DECISION_MAX_MS / 1000;
+  const currentProj = projectKartShadowForButtons(
+    kart,
+    circuit,
+    kart.aiInput.left,
+    kart.aiInput.right,
+    brake,
+    worstCaseSec,
+  );
+
+  // Evaluate `press left`, `press nothing`, `press right` and choose whichever lands closest to road center (`lat = 0`)
+  const candidates: ReadonlyArray<{ left: boolean; right: boolean }> = [
+    { left: true, right: false },
+    { left: false, right: false },
+    { left: false, right: true },
+  ];
+
+  let best = candidates[1]!;
+  let bestAbsLat = Infinity;
+  for (const cand of candidates) {
+    const proj =
+      cand.left === kart.aiInput.left && cand.right === kart.aiInput.right
+        ? currentProj
+        : projectKartShadowForButtons(kart, circuit, cand.left, cand.right, brake, worstCaseSec);
+    const absLat = Math.abs(proj.lat);
+    if (absLat < bestAbsLat) {
+      bestAbsLat = absLat;
+      best = cand;
+    }
+  }
 
   kart.aiInput = { left: best.left, right: best.right, brake };
   return kart.aiInput;
@@ -1218,8 +1256,8 @@ function stepSingleKart(
     }
   }
 
-  // 2. Dual-rocket forces (amplified temporarily on road boost pads), rotational torque & yaw damping
-  const boostMult = kart.boostTimer > 0 && kart.boostKind === 'pad' ? 1.55 : 1.0;
+  // 2. Dual-rocket forces (+50% boost force for 5s on road boost pads), rotational torque & yaw damping
+  const boostMult = kart.boostTimer > 0 && kart.boostKind === 'pad' ? ROAD_BOOST_FORCE_MULT : 1.0;
   const fLeft = kart.leftThrottle * PER_THRUSTER_MAX_N * boostMult * aiSpeedScale;
   const fRight = kart.rightThrottle * PER_THRUSTER_MAX_N * boostMult * aiSpeedScale;
   const fThrust = fLeft + fRight;
@@ -1361,17 +1399,15 @@ function stepSingleKart(
     kart.lateralSlip = kart.vx * nRx + kart.vz * nRz;
   }
 
-  // 7. Road Boost Pad detection (#390): amplifies the 2 main rockets + adds a crisp launch kick
+  // 7. Road Boost Pad detection (#390, #398): pure +50% rocket force for 5.0s (NO velocity impulse!)
   const node = circuit.nodes[proj.nodeIndex]!;
-  if (node.hasBoostPad && Math.abs(kart.lat - node.boostLat) < 4.2 && kart.boostKind !== 'pad') {
-    kart.boostTimer = Math.max(kart.boostTimer, 1.1);
+  if (node.hasBoostPad && Math.abs(kart.lat - node.boostLat) < 4.2) {
+    const shouldEmit = kart.boostKind !== 'pad' || kart.boostTimer < ROAD_BOOST_DURATION_SEC - 0.6;
+    kart.boostTimer = ROAD_BOOST_DURATION_SEC;
     kart.boostKind = 'pad';
-    const bFx = Math.sin(kart.yaw);
-    const bFz = Math.cos(kart.yaw);
-    kart.vx += bFx * 14;
-    kart.vz += bFz * 14;
-    kart.speed = Math.max(0, kart.vx * bFx + kart.vz * bFz);
-    events.boostTriggered.push({ slot: kart.slot, kind: 'pad' });
+    if (shouldEmit) {
+      events.boostTriggered.push({ slot: kart.slot, kind: 'pad' });
+    }
   }
 
   // 8. Record tire skid marks only when actually slipping laterally or braking hard on asphalt
@@ -1773,7 +1809,7 @@ export function predictKartTrajectory(
   let yawRate = kart.yawRate;
   let curS = kart.s;
 
-  const boostMult = kart.boostTimer > 0 && kart.boostKind === 'pad' ? 1.55 : 1.0;
+  const boostMult = kart.boostTimer > 0 && kart.boostKind === 'pad' ? ROAD_BOOST_FORCE_MULT : 1.0;
   const fLeft = kart.leftThrottle * PER_THRUSTER_MAX_N * boostMult;
   const fRight = kart.rightThrottle * PER_THRUSTER_MAX_N * boostMult;
   const fThrust = fLeft + fRight;
