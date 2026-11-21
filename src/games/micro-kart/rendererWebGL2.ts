@@ -967,7 +967,11 @@ function buildStaticCircuitMesh(circuit: CircuitDefinition): MeshBuilder {
   const rw = circuit.roadHalfWidth;
   const cw = rw + 1.55;
   const gw = rw + 190;
-  const curbH = 0.3;
+  const isCloudSea = circuit.theme.skyMode === 'cloud-sea';
+  const curbH = isCloudSea ? 0.52 : 0.3;
+  const [jpStart, jpEnd] = circuit.theme.jadePoolRange ?? [-1, -1];
+  const [clStart, clEnd] = circuit.theme.cliffRange ?? [-1, -1];
+  const moonSeg = circuit.theme.moonGateSeg ?? -1;
 
   for (let i0 = 0; i0 < N; i0 += 1) {
     const i1 = (i0 + 1) % N;
@@ -975,26 +979,202 @@ function buildStaticCircuitMesh(circuit: CircuitDefinition): MeshBuilder {
     const n1 = nodes[i1]!;
     const even = i0 % 2 === 0;
     const gRgb = even ? groundOuter : groundAlt;
+    const inJadePool = isCloudSea && i0 >= jpStart && i0 <= jpEnd;
+    const inCliff = isCloudSea && i0 >= clStart && i0 <= clEnd;
 
-    // Ground shoulders
-    mb.addFlatQuad(
-      { x: n0.x - n0.rx * gw, y: n0.y - 0.18, z: n0.z - n0.rz * gw },
-      { x: n0.x - n0.rx * cw, y: n0.y - 0.04, z: n0.z - n0.rz * cw },
-      { x: n1.x - n1.rx * cw, y: n1.y - 0.04, z: n1.z - n1.rz * cw },
-      { x: n1.x - n1.rx * gw, y: n1.y - 0.18, z: n1.z - n1.rz * gw },
-      gRgb,
-      MAT_MATTE,
-    );
-    mb.addFlatQuad(
-      { x: n0.x + n0.rx * cw, y: n0.y - 0.04, z: n0.z + n0.rz * cw },
-      { x: n0.x + n0.rx * gw, y: n0.y - 0.18, z: n0.z + n0.rz * gw },
-      { x: n1.x + n1.rx * gw, y: n1.y - 0.18, z: n1.z + n1.rz * gw },
-      { x: n1.x + n1.rx * cw, y: n1.y - 0.04, z: n1.z + n1.rz * cw },
-      gRgb,
-      MAT_MATTE,
-    );
+    if (isCloudSea) {
+      // Sculpted floating White-Jade Sky Viaduct deck underside (Rainbow Road in the clouds!)
+      const deckH = 2.35;
+      const underW = cw - 0.8;
+      const jadeSide: [number, number, number] = even ? [236, 232, 222] : [224, 220, 210];
+      const jadeUnder: [number, number, number] = [184, 196, 212];
+      // Left & right carved jade bridge fascia walls dropping below the balustrade
+      mb.addFlatQuad(
+        { x: n0.x - n0.rx * cw, y: n0.y + curbH, z: n0.z - n0.rz * cw },
+        { x: n1.x - n1.rx * cw, y: n1.y + curbH, z: n1.z - n1.rz * cw },
+        { x: n1.x - n1.rx * underW, y: n1.y - deckH, z: n1.z - n1.rz * underW },
+        { x: n0.x - n0.rx * underW, y: n0.y - deckH, z: n0.z - n0.rz * underW },
+        jadeSide,
+        MAT_MATTE,
+      );
+      mb.addFlatQuad(
+        { x: n0.x + n0.rx * cw, y: n0.y + curbH, z: n0.z + n0.rz * cw },
+        { x: n0.x + n0.rx * underW, y: n0.y - deckH, z: n0.z + n0.rz * underW },
+        { x: n1.x + n1.rx * underW, y: n1.y - deckH, z: n1.z + n1.rz * underW },
+        { x: n1.x + n1.rx * cw, y: n1.y + curbH, z: n1.z + n1.rz * cw },
+        jadeSide,
+        MAT_MATTE,
+      );
+      // Solid bridge belly underneath so soaring hills never look paper-thin
+      mb.addFlatQuad(
+        { x: n0.x - n0.rx * underW, y: n0.y - deckH, z: n0.z - n0.rz * underW },
+        { x: n1.x - n1.rx * underW, y: n1.y - deckH, z: n1.z - n1.rz * underW },
+        { x: n1.x + n1.rx * underW, y: n1.y - deckH, z: n1.z + n1.rz * underW },
+        { x: n0.x + n0.rx * underW, y: n0.y - deckH, z: n0.z + n0.rz * underW },
+        jadeUnder,
+        MAT_MATTE,
+      );
 
-    // Asphalt track
+      // Jade Pool Terrace (`瑶池`): glossy turquoise-emerald mirror water flanking the causeway!
+      if (inJadePool) {
+        const poolW = rw + 66;
+        const poolCol: [number, number, number] = even ? [34, 174, 168] : [48, 198, 188];
+        const rimCol: [number, number, number] = [238, 235, 226];
+        for (const side of [-1, 1] as const) {
+          const inner = side * cw;
+          const outer = side * poolW;
+          const rimOuter = side * (poolW + 2.2);
+          mb.addFlatQuad(
+            { x: n0.x + n0.rx * inner, y: n0.y - 0.16, z: n0.z + n0.rz * inner },
+            { x: n0.x + n0.rx * outer, y: n0.y - 0.16, z: n0.z + n0.rz * outer },
+            { x: n1.x + n1.rx * outer, y: n1.y - 0.16, z: n1.z + n1.rz * outer },
+            { x: n1.x + n1.rx * inner, y: n1.y - 0.16, z: n1.z + n1.rz * inner },
+            poolCol,
+            MAT_GLOSSY,
+          );
+          mb.addFlatQuad(
+            { x: n0.x + n0.rx * outer, y: n0.y + 0.25, z: n0.z + n0.rz * outer },
+            { x: n0.x + n0.rx * rimOuter, y: n0.y + 0.25, z: n0.z + n0.rz * rimOuter },
+            { x: n1.x + n1.rx * rimOuter, y: n1.y + 0.25, z: n1.z + n1.rz * rimOuter },
+            { x: n1.x + n1.rx * outer, y: n1.y + 0.25, z: n1.z + n1.rz * outer },
+            rimCol,
+            MAT_MATTE,
+          );
+        }
+      }
+
+      // Immortal Cliff Cut (`cn6.jpg`): carved ivory-slate cliff wall on inner edge + cantilevered golden pavilion!
+      if (inCliff) {
+        const cliffX0 = n0.x - n0.rx * (cw + 2.5);
+        const cliffZ0 = n0.z - n0.rz * (cw + 2.5);
+        const cliffX1 = n1.x - n1.rx * (cw + 2.5);
+        const cliffZ1 = n1.z - n1.rz * (cw + 2.5);
+        const cliffBack0X = n0.x - n0.rx * (cw + 24);
+        const cliffBack0Z = n0.z - n0.rz * (cw + 24);
+        const cliffBack1X = n1.x - n1.rx * (cw + 24);
+        const cliffBack1Z = n1.z - n1.rz * (cw + 24);
+        const cliffH = 30 + Math.sin(((i0 - clStart) / Math.max(1, clEnd - clStart)) * Math.PI) * 14;
+        const cliffCol: [number, number, number] = even ? [226, 222, 212] : [206, 204, 196];
+        // Vertical carved white-jade cliff face
+        mb.addFlatQuad(
+          { x: cliffX0, y: n0.y - 12, z: cliffZ0 },
+          { x: cliffX1, y: n1.y - 12, z: cliffZ1 },
+          { x: cliffX1, y: n1.y + cliffH, z: cliffZ1 },
+          { x: cliffX0, y: n0.y + cliffH, z: cliffZ0 },
+          cliffCol,
+          MAT_MATTE,
+        );
+        // Subtle recessed vermilion-gold palace cornice band along the cliff wall
+        mb.addFlatQuad(
+          { x: cliffX0 + n0.rx * 0.2, y: n0.y + 9.2, z: cliffZ0 + n0.rz * 0.2 },
+          { x: cliffX1 + n1.rx * 0.2, y: n1.y + 9.2, z: cliffZ1 + n1.rz * 0.2 },
+          { x: cliffX1 + n1.rx * 0.2, y: n1.y + 10.6, z: cliffZ1 + n1.rz * 0.2 },
+          { x: cliffX0 + n0.rx * 0.2, y: n0.y + 10.6, z: cliffZ0 + n0.rz * 0.2 },
+          [238, 194, 78],
+          MAT_GLOSSY,
+        );
+        // Cliff top cap
+        mb.addFlatQuad(
+          { x: cliffX0, y: n0.y + cliffH, z: cliffZ0 },
+          { x: cliffX1, y: n1.y + cliffH, z: cliffZ1 },
+          { x: cliffBack1X, y: n1.y + cliffH + 4, z: cliffBack1Z },
+          { x: cliffBack0X, y: n0.y + cliffH + 4, z: cliffBack0Z },
+          [234, 232, 224],
+          MAT_MATTE,
+        );
+        // Cantilevered golden-roofed pavilion jutting out over the outer cloud abyss at apex!
+        if (i0 === Math.floor((clStart + clEnd) * 0.5)) {
+          const px = n0.x + n0.rx * (cw + 11.5);
+          const pz = n0.z + n0.rz * (cw + 11.5);
+          const py = n0.y - 0.3;
+          // White-jade cantilever deck connecting to the viaduct
+          mb.addBox(px - 6.8, py - 1.6, pz - 6.8, px + 6.8, py, pz + 6.8, [242, 239, 230], MAT_MATTE);
+          emitGoldenPavilion(mb, px, py, pz, 1.35);
+        }
+      }
+
+      // Colossal White-Jade Moon-Ring Arch & Sky-Waterfall (`cn1.jpg`)!
+      if (i0 === moonSeg) {
+        const ringSegs = 16;
+        const ringR = rw + 5.8;
+        const ringThick = 2.4;
+        const ringDepth = 1.9;
+        const ringCenterY = n0.y + 6.5;
+        for (let k = 0; k < ringSegs; k += 1) {
+          const a0 = -0.25 + (k / ringSegs) * (Math.PI + 0.5);
+          const a1 = -0.25 + ((k + 1) / ringSegs) * (Math.PI + 0.5);
+          const c0 = Math.cos(a0);
+          const s0 = Math.sin(a0);
+          const c1 = Math.cos(a1);
+          const s1 = Math.sin(a1);
+          const rIn = ringR - ringThick * 0.5;
+          const rOut = ringR + ringThick * 0.5;
+          const pIn0 = { x: n0.x + n0.rx * (c0 * rIn), y: ringCenterY + s0 * rIn, z: n0.z + n0.rz * (c0 * rIn) };
+          const pOut0 = { x: n0.x + n0.rx * (c0 * rOut), y: ringCenterY + s0 * rOut, z: n0.z + n0.rz * (c0 * rOut) };
+          const pIn1 = { x: n0.x + n0.rx * (c1 * rIn), y: ringCenterY + s1 * rIn, z: n0.z + n0.rz * (c1 * rIn) };
+          const pOut1 = { x: n0.x + n0.rx * (c1 * rOut), y: ringCenterY + s1 * rOut, z: n0.z + n0.rz * (c1 * rOut) };
+          const dfx = n0.tx * ringDepth;
+          const dfz = n0.tz * ringDepth;
+          const ringCol: [number, number, number] = k % 2 === 0 ? [246, 243, 236] : [234, 230, 220];
+          // Front & back faces of the colossal white-jade Moon-Ring
+          mb.addFlatQuad(pIn0, pOut0, pOut1, pIn1, ringCol, MAT_GLOSSY);
+          mb.addFlatQuad(
+            { x: pIn0.x + dfx, y: pIn0.y, z: pIn0.z + dfz },
+            { x: pIn1.x + dfx, y: pIn1.y, z: pIn1.z + dfz },
+            { x: pOut1.x + dfx, y: pOut1.y, z: pOut1.z + dfz },
+            { x: pOut0.x + dfx, y: pOut0.y, z: pOut0.z + dfz },
+            ringCol,
+            MAT_GLOSSY,
+          );
+          // Inner glowing gold-jade rim
+          mb.addFlatQuad(
+            pIn0,
+            pIn1,
+            { x: pIn1.x + dfx, y: pIn1.y, z: pIn1.z + dfz },
+            { x: pIn0.x + dfx, y: pIn0.y, z: pIn0.z + dfz },
+            [244, 206, 98],
+            MAT_GLOSSY,
+            1,
+          );
+        }
+      }
+
+      // Luminous Sky-Waterfall plunging off the outer edge into the cloud sea beside the Moon-Ring!
+      if (moonSeg >= 0 && i0 >= moonSeg - 3 && i0 <= moonSeg + 4) {
+        const wfDist = cw + 1.4;
+        const wfDrop = 46;
+        const wfCol: [number, number, number] = even ? [226, 246, 252] : [176, 228, 242];
+        mb.addFlatQuad(
+          { x: n0.x + n0.rx * wfDist, y: n0.y - 0.2, z: n0.z + n0.rz * wfDist },
+          { x: n1.x + n1.rx * wfDist, y: n1.y - 0.2, z: n1.z + n1.rz * wfDist },
+          { x: n1.x + n1.rx * (wfDist + 5.5), y: n1.y - wfDrop, z: n1.z + n1.rz * (wfDist + 5.5) },
+          { x: n0.x + n0.rx * (wfDist + 5.5), y: n0.y - wfDrop, z: n0.z + n0.rz * (wfDist + 5.5) },
+          wfCol,
+          MAT_GLOSSY,
+          1,
+        );
+      }
+    } else {
+      // Standard Earth-backed Ground Shoulders
+      mb.addFlatQuad(
+        { x: n0.x - n0.rx * gw, y: n0.y - 0.18, z: n0.z - n0.rz * gw },
+        { x: n0.x - n0.rx * cw, y: n0.y - 0.04, z: n0.z - n0.rz * cw },
+        { x: n1.x - n1.rx * cw, y: n1.y - 0.04, z: n1.z - n1.rz * cw },
+        { x: n1.x - n1.rx * gw, y: n1.y - 0.18, z: n1.z - n1.rz * gw },
+        gRgb,
+        MAT_MATTE,
+      );
+      mb.addFlatQuad(
+        { x: n0.x + n0.rx * cw, y: n0.y - 0.04, z: n0.z + n0.rz * cw },
+        { x: n0.x + n0.rx * gw, y: n0.y - 0.18, z: n0.z + n0.rz * gw },
+        { x: n1.x + n1.rx * gw, y: n1.y - 0.18, z: n1.z + n1.rz * gw },
+        { x: n1.x + n1.rx * cw, y: n1.y - 0.04, z: n1.z + n1.rz * cw },
+        gRgb,
+        MAT_MATTE,
+      );
+    }
+
+    // Asphalt / Slate-Jade track surface
     mb.addFlatQuad(
       { x: n0.x - n0.rx * rw, y: n0.y, z: n0.z - n0.rz * rw },
       { x: n0.x + n0.rx * rw, y: n0.y, z: n0.z + n0.rz * rw },
@@ -1019,7 +1199,7 @@ function buildStaticCircuitMesh(circuit: CircuitDefinition): MeshBuilder {
       );
     }
 
-    // Raised 3D Candy-Striped Curbs
+    // Raised 3D Curbs / Carved White-Jade & Vermilion Balustrades
     const cRgb = even ? curbA : curbB;
     mb.addFlatQuad(
       { x: n0.x - n0.rx * cw, y: n0.y + curbH, z: n0.z - n0.rz * cw },
@@ -1054,16 +1234,22 @@ function buildStaticCircuitMesh(circuit: CircuitDefinition): MeshBuilder {
       MAT_MATTE,
     );
 
-    // Vivid Rainbow-Chevron Turbo Boost Strip!
+    // Road Boost Strip (Dunhuang Liquid-Gold & Lapis on Cloud Gate; Rainbow Chevron elsewhere!)
     if (n0.hasBoostPad) {
       const bl = n0.boostLat;
       const bw = 3.0;
-      const rainbowCols: ReadonlyArray<[number, number, number]> = [
-        [56, 236, 255],
-        [255, 224, 72],
-        [255, 112, 166],
-      ];
-      const padCol = rainbowCols[i0 % 3]!;
+      const padPalette: ReadonlyArray<[number, number, number]> = isCloudSea
+        ? [
+            [248, 206, 86],
+            [76, 178, 238],
+            [255, 240, 186],
+          ]
+        : [
+            [56, 236, 255],
+            [255, 224, 72],
+            [255, 112, 166],
+          ];
+      const padCol = padPalette[i0 % 3]!;
       mb.addFlatQuad(
         { x: n0.x + n0.rx * (bl - bw), y: n0.y + 0.068, z: n0.z + n0.rz * (bl - bw) },
         { x: n0.x + n0.rx * (bl + bw), y: n0.y + 0.068, z: n0.z + n0.rz * (bl + bw) },
@@ -1075,38 +1261,37 @@ function buildStaticCircuitMesh(circuit: CircuitDefinition): MeshBuilder {
       );
     }
 
-    // Playful Sunny Turn-Arrow Signpost
+    // Turn-Warning Marker (Glowing White-Jade Palace Lantern Post on Cloud Gate; Yellow Chevron elsewhere)
     if (n0.hasChevron) {
       const side = n0.chevronSide;
       const dist = cw + 1.8;
       const sx = n0.x + n0.rx * side * dist;
       const sz = n0.z + n0.rz * side * dist;
-      const sw = 1.65;
-      mb.addFlatQuad(
-        { x: sx - n0.rx * sw, y: n0.y + 0.8, z: sz - n0.rz * sw },
-        { x: sx + n0.rx * sw, y: n0.y + 0.8, z: sz + n0.rz * sw },
-        { x: sx + n0.rx * sw, y: n0.y + 3.0, z: sz + n0.rz * sw },
-        { x: sx - n0.rx * sw, y: n0.y + 3.0, z: sz - n0.rz * sw },
-        [255, 218, 68],
-        MAT_GLOSSY,
-        1,
-      );
-      mb.addBox(sx - 0.18, n0.y, sz - 0.18, sx + 0.18, n0.y + 0.85, sz + 0.18, [255, 250, 240], MAT_GLOSSY);
+      if (isCloudSea) {
+        mb.addBox(sx - 0.34, n0.y, sz - 0.34, sx + 0.34, n0.y + 4.4, sz + 0.34, [242, 239, 230], MAT_MATTE);
+        mb.addBox(sx - 0.65, n0.y + 4.4, sz - 0.65, sx + 0.65, n0.y + 5.7, sz + 0.65, [244, 152, 58], MAT_GLOSSY, 1);
+        mb.addBox(sx - 0.9, n0.y + 5.7, sz - 0.9, sx + 0.9, n0.y + 6.1, sz + 0.9, [238, 194, 78], MAT_GLOSSY);
+      } else {
+        const sw = 1.65;
+        mb.addFlatQuad(
+          { x: sx - n0.rx * sw, y: n0.y + 0.8, z: sz - n0.rz * sw },
+          { x: sx + n0.rx * sw, y: n0.y + 0.8, z: sz + n0.rz * sw },
+          { x: sx + n0.rx * sw, y: n0.y + 3.0, z: sz + n0.rz * sw },
+          { x: sx - n0.rx * sw, y: n0.y + 3.0, z: sz - n0.rz * sw },
+          [255, 218, 68],
+          MAT_GLOSSY,
+          1,
+        );
+        mb.addBox(sx - 0.18, n0.y, sz - 0.18, sx + 0.18, n0.y + 0.85, sz + 0.18, [255, 250, 240], MAT_GLOSSY);
+      }
     }
 
-    // Festive Carnival Checkered Start / Finish Archway + Hanging Pennants + Twin Golden Stars!
+    // Start / Finish Archway: Monumental South Heaven Gate (`南天门`) on Cloud Gate; Carnival Arch elsewhere!
     if (i0 === 0) {
       const cells = 8;
-      const pennantColors: ReadonlyArray<[number, number, number]> = [
-        [255, 92, 108],
-        [255, 218, 68],
-        [77, 216, 232],
-        [184, 118, 242],
-      ];
       for (let c = 0; c < cells; c += 1) {
         const f0 = -rw + (c / cells) * (rw * 2);
         const f1 = -rw + ((c + 1) / cells) * (rw * 2);
-        const fm = (f0 + f1) * 0.5;
         // Ground checkered finish line
         mb.addFlatQuad(
           { x: n0.x + n0.rx * f0, y: n0.y + 0.055, z: n0.z + n0.rz * f0 },
@@ -1116,31 +1301,135 @@ function buildStaticCircuitMesh(circuit: CircuitDefinition): MeshBuilder {
           c % 2 === 0 ? [255, 255, 255] : [30, 38, 56],
           MAT_MATTE,
         );
-        // Overhead festive checkered banner
+      }
+
+      if (isCloudSea) {
+        // Monumental 4-Pillar South Heaven Gate (`南天门`) with Double-Tiered Upturned Golden Eaves!
+        const gateSpan = rw + 3.4;
+        const pillarPositions = [-gateSpan, -(rw + 0.8), rw + 0.8, gateSpan];
+        for (const pLat of pillarPositions) {
+          const px = n0.x + n0.rx * pLat;
+          const pz = n0.z + n0.rz * pLat;
+          // Stepped white-jade plinth
+          mb.addBox(px - 1.35, n0.y, pz - 1.35, px + 1.35, n0.y + 2.4, pz + 1.35, [242, 239, 230], MAT_MATTE);
+          // Vermilion imperial pillar with gilded capital
+          mb.addBox(px - 0.82, n0.y + 2.4, pz - 0.82, px + 0.82, n0.y + 11.4, pz + 0.82, [188, 50, 40], MAT_GLOSSY);
+          mb.addBox(px - 1.05, n0.y + 11.4, pz - 1.05, px + 1.05, n0.y + 12.2, pz + 1.05, [242, 198, 76], MAT_GLOSSY);
+        }
+        // Azure-lapis & gold carved lintel beam (`藻井`) spanning across all 4 pillars
+        const bL0 = { x: n0.x - n0.rx * (gateSpan + 1.2), z: n0.z - n0.rz * (gateSpan + 1.2) };
+        const bR0 = { x: n0.x + n0.rx * (gateSpan + 1.2), z: n0.z + n0.rz * (gateSpan + 1.2) };
+        const depth = 2.4;
+        const bL1 = { x: bL0.x + n0.tx * depth, z: bL0.z + n0.tz * depth };
+        const bR1 = { x: bR0.x + n0.tx * depth, z: bR0.z + n0.tz * depth };
+        const beamCols: ReadonlyArray<[number, number, [number, number, number], number]> = [
+          [9.4, 11.2, [42, 82, 148], 0],
+          [11.2, 12.0, [244, 198, 76], 1],
+        ];
+        for (const [y0, y1, rgb, em] of beamCols) {
+          mb.addFlatQuad(
+            { x: bL0.x, y: n0.y + y0, z: bL0.z },
+            { x: bR0.x, y: n0.y + y0, z: bR0.z },
+            { x: bR0.x, y: n0.y + y1, z: bR0.z },
+            { x: bL0.x, y: n0.y + y1, z: bL0.z },
+            rgb,
+            MAT_GLOSSY,
+            em,
+          );
+          mb.addFlatQuad(
+            { x: bR1.x, y: n0.y + y0, z: bR1.z },
+            { x: bL1.x, y: n0.y + y0, z: bL1.z },
+            { x: bL1.x, y: n0.y + y1, z: bL1.z },
+            { x: bR1.x, y: n0.y + y1, z: bR1.z },
+            rgb,
+            MAT_GLOSSY,
+            em,
+          );
+        }
+        // Central glowing golden plaque (`南天门`)
+        const plW = 4.6;
         mb.addFlatQuad(
-          { x: n0.x + n0.rx * f0, y: n0.y + 7.2, z: n0.z + n0.rz * f0 },
-          { x: n0.x + n0.rx * f1, y: n0.y + 7.2, z: n0.z + n0.rz * f1 },
-          { x: n0.x + n0.rx * f1, y: n0.y + 9.2, z: n0.z + n0.rz * f1 },
-          { x: n0.x + n0.rx * f0, y: n0.y + 9.2, z: n0.z + n0.rz * f0 },
-          c % 2 === 0 ? [255, 224, 72] : [255, 92, 108],
+          { x: n0.x - n0.rx * plW, y: n0.y + 8.6, z: n0.z - n0.rz * plW },
+          { x: n0.x + n0.rx * plW, y: n0.y + 8.6, z: n0.z + n0.rz * plW },
+          { x: n0.x + n0.rx * plW, y: n0.y + 11.4, z: n0.z + n0.rz * plW },
+          { x: n0.x - n0.rx * plW, y: n0.y + 11.4, z: n0.z - n0.rz * plW },
+          [246, 204, 82],
           MAT_GLOSSY,
           1,
         );
-        // Hanging triangular carnival pennant flags underneath the banner!
-        const pRgb = pennantColors[c % pennantColors.length]!;
-        const pL = { x: n0.x + n0.rx * (f0 + 0.25), y: n0.y + 7.15, z: n0.z + n0.rz * (f0 + 0.25) };
-        const pR = { x: n0.x + n0.rx * (f1 - 0.25), y: n0.y + 7.15, z: n0.z + n0.rz * (f1 - 0.25) };
-        const pTip = { x: n0.x + n0.rx * fm, y: n0.y + 5.75, z: n0.z + n0.rz * fm };
-        mb.addFlatTri(pL, pR, pTip, pRgb, MAT_GLOSSY, 1);
-        mb.addFlatTri(pR, pL, pTip, pRgb, MAT_GLOSSY, 1);
-      }
-      for (const side of [-1, 1] as const) {
-        const px = n0.x + n0.rx * side * (rw + 1.0);
-        const pz = n0.z + n0.rz * side * (rw + 1.0);
-        // Candy-striped archway pillars + glowing golden Starlight stars on top!
-        mb.addBox(px - 0.72, n0.y, pz - 0.72, px + 0.72, n0.y + 4.8, pz + 0.72, [255, 252, 245], MAT_GLOSSY);
-        mb.addBox(px - 0.76, n0.y + 4.8, pz - 0.76, px + 0.76, n0.y + 9.4, pz + 0.76, [255, 92, 108], MAT_GLOSSY);
-        emitStarCrystal(mb, px, n0.y + 10.6, pz, 1.15, [255, 224, 72], 1);
+        // Double-Tiered Sweeping Upturned Golden Pavilion Roofs (`飞檐`)!
+        const roofTiers: ReadonlyArray<[number, number, number, number]> = [
+          [gateSpan + 3.4, 12.1, 14.3, 3.6],
+          [gateSpan * 0.66, 14.6, 17.6, 2.8],
+        ];
+        for (const [halfSpan, yBot, yTop, halfD] of roofTiers) {
+          const eL = { x: n0.x - n0.rx * halfSpan, z: n0.z - n0.rz * halfSpan };
+          const eR = { x: n0.x + n0.rx * halfSpan, z: n0.z + n0.rz * halfSpan };
+          const rL = { x: n0.x - n0.rx * (halfSpan * 0.72), z: n0.z - n0.rz * (halfSpan * 0.72) };
+          const rR = { x: n0.x + n0.rx * (halfSpan * 0.72), z: n0.z + n0.rz * (halfSpan * 0.72) };
+          const fDx = n0.tx * halfD;
+          const fDz = n0.tz * halfD;
+          // Front & rear sloping golden tiled eaves
+          mb.addFlatQuad(
+            { x: eL.x - fDx, y: n0.y + yBot, z: eL.z - fDz },
+            { x: eR.x - fDx, y: n0.y + yBot, z: eR.z - fDz },
+            { x: rR.x, y: n0.y + yTop, z: rR.z },
+            { x: rL.x, y: n0.y + yTop, z: rL.z },
+            [244, 196, 72],
+            MAT_GLOSSY,
+          );
+          mb.addFlatQuad(
+            { x: eR.x + fDx, y: n0.y + yBot, z: eR.z + fDz },
+            { x: eL.x + fDx, y: n0.y + yBot, z: eL.z + fDz },
+            { x: rL.x, y: n0.y + yTop, z: rL.z },
+            { x: rR.x, y: n0.y + yTop, z: rR.z },
+            [224, 172, 54],
+            MAT_GLOSSY,
+          );
+          // Upturned corner eave tips
+          for (const side of [-1, 1] as const) {
+            const tipX = n0.x + n0.rx * side * (halfSpan + 1.4);
+            const tipZ = n0.z + n0.rz * side * (halfSpan + 1.4);
+            mb.addBox(tipX - 0.55, n0.y + yBot + 0.1, tipZ - 0.55, tipX + 0.55, n0.y + yBot + 1.15, tipZ + 0.55, [255, 224, 112], MAT_GLOSSY, 1);
+          }
+        }
+      } else {
+        const pennantColors: ReadonlyArray<[number, number, number]> = [
+          [255, 92, 108],
+          [255, 218, 68],
+          [77, 216, 232],
+          [184, 118, 242],
+        ];
+        for (let c = 0; c < cells; c += 1) {
+          const f0 = -rw + (c / cells) * (rw * 2);
+          const f1 = -rw + ((c + 1) / cells) * (rw * 2);
+          const fm = (f0 + f1) * 0.5;
+          // Overhead festive checkered banner
+          mb.addFlatQuad(
+            { x: n0.x + n0.rx * f0, y: n0.y + 7.2, z: n0.z + n0.rz * f0 },
+            { x: n0.x + n0.rx * f1, y: n0.y + 7.2, z: n0.z + n0.rz * f1 },
+            { x: n0.x + n0.rx * f1, y: n0.y + 9.2, z: n0.z + n0.rz * f1 },
+            { x: n0.x + n0.rx * f0, y: n0.y + 9.2, z: n0.z + n0.rz * f0 },
+            c % 2 === 0 ? [255, 224, 72] : [255, 92, 108],
+            MAT_GLOSSY,
+            1,
+          );
+          // Hanging triangular carnival pennant flags underneath the banner!
+          const pRgb = pennantColors[c % pennantColors.length]!;
+          const pL = { x: n0.x + n0.rx * (f0 + 0.25), y: n0.y + 7.15, z: n0.z + n0.rz * (f0 + 0.25) };
+          const pR = { x: n0.x + n0.rx * (f1 - 0.25), y: n0.y + 7.15, z: n0.z + n0.rz * (f1 - 0.25) };
+          const pTip = { x: n0.x + n0.rx * fm, y: n0.y + 5.75, z: n0.z + n0.rz * fm };
+          mb.addFlatTri(pL, pR, pTip, pRgb, MAT_GLOSSY, 1);
+          mb.addFlatTri(pR, pL, pTip, pRgb, MAT_GLOSSY, 1);
+        }
+        for (const side of [-1, 1] as const) {
+          const px = n0.x + n0.rx * side * (rw + 1.0);
+          const pz = n0.z + n0.rz * side * (rw + 1.0);
+          // Candy-striped archway pillars + glowing golden Starlight stars on top!
+          mb.addBox(px - 0.72, n0.y, pz - 0.72, px + 0.72, n0.y + 4.8, pz + 0.72, [255, 252, 245], MAT_GLOSSY);
+          mb.addBox(px - 0.76, n0.y + 4.8, pz - 0.76, px + 0.76, n0.y + 9.4, pz + 0.76, [255, 92, 108], MAT_GLOSSY);
+          emitStarCrystal(mb, px, n0.y + 10.6, pz, 1.15, [255, 224, 72], 1);
+        }
       }
     }
   }
@@ -1153,9 +1442,118 @@ function buildStaticCircuitMesh(circuit: CircuitDefinition): MeshBuilder {
   return mb;
 }
 
+function emitGoldenPavilion(
+  mb: MeshBuilder,
+  x: number,
+  y: number,
+  z: number,
+  s: number,
+): void {
+  // White-jade terrace plinth
+  mb.addBox(x - 4.2 * s, y, z - 4.2 * s, x + 4.2 * s, y + 1.4 * s, z + 4.2 * s, [242, 239, 230], MAT_MATTE);
+  // 4 Vermilion palace pillars
+  const po = 2.9 * s;
+  for (const sx of [-1, 1] as const) {
+    for (const sz of [-1, 1] as const) {
+      mb.addBox(
+        x + sx * po - 0.34 * s,
+        y + 1.4 * s,
+        z + sz * po - 0.34 * s,
+        x + sx * po + 0.34 * s,
+        y + 5.8 * s,
+        z + sz * po + 0.34 * s,
+        [188, 52, 42],
+        MAT_GLOSSY,
+      );
+    }
+  }
+  // Inner warm glowing sanctuary core
+  mb.addBox(x - 1.8 * s, y + 1.6 * s, z - 1.8 * s, x + 1.8 * s, y + 5.2 * s, z + 1.8 * s, [255, 220, 134], MAT_GLOSSY, 1);
+
+  // Double-tiered upturned liquid-gold pyramid roofs (`wm_laojun.jpg`)
+  const emitPyramidRoof = (yBase: number, halfW: number, height: number) => {
+    const apex = { x, y: yBase + height, z };
+    const p0 = { x: x - halfW, y: yBase, z: z - halfW };
+    const p1 = { x: x + halfW, y: yBase, z: z - halfW };
+    const p2 = { x: x + halfW, y: yBase, z: z + halfW };
+    const p3 = { x: x - halfW, y: yBase, z: z + halfW };
+    mb.addFlatTri(p0, p1, apex, [244, 198, 76], MAT_GLOSSY);
+    mb.addFlatTri(p1, p2, apex, [226, 174, 56], MAT_GLOSSY);
+    mb.addFlatTri(p2, p3, apex, [244, 198, 76], MAT_GLOSSY);
+    mb.addFlatTri(p3, p0, apex, [226, 174, 56], MAT_GLOSSY);
+  };
+  emitPyramidRoof(y + 5.6 * s, 5.2 * s, 2.4 * s);
+  emitPyramidRoof(y + 7.7 * s, 3.6 * s, 2.5 * s);
+  emitStarCrystal(mb, x, y + 10.6 * s, z, 0.55 * s, [255, 228, 112], 1);
+}
+
 function emitSceneryPropIntoBuilder(mb: MeshBuilder, prop: SceneryProp, index: number): void {
   const s = prop.scale;
   const { x, y, z } = prop;
+
+  if (prop.kind === 'pavilion') {
+    // Floating immortal spire islet beneath the golden-eaved mini-pavilion
+    emitSmoothSpineTube(
+      mb,
+      [
+        { x, y: y - 13 * s, z, rx: 0.4 * s, ry: 0.4 * s, rgb: [122, 136, 152] },
+        { x, y: y - 5.5 * s, z, rx: 3.4 * s, ry: 3.4 * s, rgb: [164, 174, 184] },
+        { x, y: y + 0.1 * s, z, rx: 5.4 * s, ry: 5.4 * s, rgb: [222, 220, 212] },
+      ],
+      6,
+      MAT_MATTE,
+    );
+    emitGoldenPavilion(mb, x, y, z, s);
+    return;
+  }
+
+  if (prop.kind === 'jade-pillar') {
+    // White-jade cloud column crowned with a warm glowing vermilion-gold palace lantern (`wm_paifang.jpg`)
+    mb.addBox(x - 0.55 * s, y, z - 0.55 * s, x + 0.55 * s, y + 0.85 * s, z + 0.55 * s, [238, 235, 226], MAT_MATTE);
+    mb.addBox(x - 0.34 * s, y + 0.85 * s, z - 0.34 * s, x + 0.34 * s, y + 4.4 * s, z + 0.34 * s, [246, 243, 236], MAT_MATTE);
+    mb.addBox(x - 0.54 * s, y + 4.4 * s, z - 0.54 * s, x + 0.54 * s, y + 5.45 * s, z + 0.54 * s, [248, 174, 72], MAT_GLOSSY, 1);
+    mb.addBox(x - 0.72 * s, y + 5.45 * s, z - 0.72 * s, x + 0.72 * s, y + 5.82 * s, z + 0.72 * s, [196, 56, 44], MAT_GLOSSY);
+    return;
+  }
+
+  if (prop.kind === 'bonsai-pine') {
+    // Gnarled Huangshan / Xianxia bonsai celestial pine on a floating rock spur (`cn1.jpg`, `cn4.jpg`)
+    emitSmoothEllipsoid(mb, x, y - 1.4 * s, z, 3.2 * s, 1.9 * s, 2.8 * s, 7, 5, () => [156, 166, 176], MAT_MATTE);
+    const lean = index % 2 === 0 ? 1 : -1;
+    emitSmoothSpineTube(
+      mb,
+      [
+        { x, y: y - 0.2 * s, z, rx: 0.58 * s, ry: 0.58 * s, rgb: [86, 66, 52] },
+        { x: x + lean * 1.4 * s, y: y + 2.6 * s, z: z + 0.5 * s, rx: 0.44 * s, ry: 0.44 * s, rgb: [98, 76, 58] },
+        { x: x + lean * 2.8 * s, y: y + 4.4 * s, z: z - 0.3 * s, rx: 0.28 * s, ry: 0.28 * s, rgb: [98, 76, 58] },
+      ],
+      6,
+      MAT_MATTE,
+    );
+    // Layered flat celadon-emerald pine needle pads
+    emitSmoothEllipsoid(mb, x + lean * 2.9 * s, y + 4.8 * s, z - 0.3 * s, 3.1 * s, 0.85 * s, 2.4 * s, 8, 5, () => [62, 118, 92], MAT_PLUSH);
+    emitSmoothEllipsoid(mb, x + lean * 1.0 * s, y + 3.4 * s, z + 1.2 * s, 2.2 * s, 0.7 * s, 1.9 * s, 7, 5, () => [78, 138, 106], MAT_PLUSH);
+    emitSmoothEllipsoid(mb, x + lean * 3.8 * s, y + 5.7 * s, z - 0.6 * s, 1.8 * s, 0.62 * s, 1.5 * s, 7, 5, () => [96, 158, 122], MAT_PLUSH);
+    return;
+  }
+
+  if (prop.kind === 'lotus') {
+    // Glowing glass lotus blossom on emerald lily pad inside the Jade Pool (`wm_lotus.jpg`)
+    emitSmoothEllipsoid(mb, x, y + 0.08, z, 2.3 * s, 0.16 * s, 2.3 * s, 8, 4, () => [42, 134, 96], MAT_MATTE);
+    emitSmoothEllipsoid(mb, x, y + 0.62 * s, z, 1.15 * s, 0.58 * s, 1.15 * s, 7, 5, () => [252, 186, 206], MAT_GLOSSY, 1);
+    emitSmoothEllipsoid(mb, x, y + 0.92 * s, z, 0.52 * s, 0.38 * s, 0.52 * s, 6, 4, () => [255, 232, 126], MAT_GLOSSY, 1);
+    return;
+  }
+
+  if (prop.kind === 'cloud-bank') {
+    // Sculpted sunlit 3D cloud-sea cluster drifting beneath the floating sky viaduct (`cn2.jpg`, `cn3.jpg`)
+    const cloudColor = (_th: number, phi: number): readonly [number, number, number] =>
+      phi > -0.1 ? [252, 249, 242] : [196, 214, 230];
+    emitSmoothEllipsoid(mb, x, y, z, 9.5 * s, 3.1 * s, 7.6 * s, 8, 5, cloudColor, MAT_PLUSH);
+    emitSmoothEllipsoid(mb, x + 5.8 * s, y - 0.6 * s, z + 2.4 * s, 6.8 * s, 2.4 * s, 5.8 * s, 7, 4, cloudColor, MAT_PLUSH);
+    emitSmoothEllipsoid(mb, x - 5.4 * s, y - 0.4 * s, z - 2.6 * s, 7.2 * s, 2.6 * s, 6.2 * s, 7, 4, cloudColor, MAT_PLUSH);
+    return;
+  }
 
   if (prop.kind === 'pine') {
     // Sunset Loop: Cheerful puffy rounded storybook trees + floating striped hot-air balloons!
@@ -1422,6 +1820,66 @@ uniform float uIsStarry;
 out vec4 outColor;
 
 void main() {
+  if (uIsStarry > 1.5) {
+    // Cloud Gate: Infinite Rolling Sea of Clouds below horizon +
+    // Atmospheric Huangshan Spires + Golden Tyndall Sunbeams
+    if (vUv.y < uHorizonUvY) {
+      float d = clamp((uHorizonUvY - vUv.y) / max(0.05, uHorizonUvY), 0.0, 1.0);
+      float sx = vUv.x * 8.0 + uYawPhase * 0.36;
+      float wave1 = sin(sx * 1.4 + d * 7.5) * 0.5 + 0.5;
+      float wave2 = cos(sx * 2.9 - d * 12.0 + 1.3) * 0.5 + 0.5;
+      float billow = smoothstep(0.22, 0.82, wave1 * 0.62 + wave2 * 0.38);
+      vec3 cloudShadow = vec3(0.66, 0.78, 0.89);
+      vec3 cloudCrest = vec3(0.99, 0.97, 0.93);
+      vec3 seaCol = mix(cloudShadow, cloudCrest, billow);
+      // Warm golden mist melt right at the distant horizon
+      vec3 horizonMist = mix(uSkyHorizon, vec3(0.98, 0.95, 0.89), 0.55);
+      seaCol = mix(horizonMist, seaCol, smoothstep(0.0, 0.38, d));
+      outColor = vec4(seaCol, 1.0);
+      return;
+    }
+
+    float t = clamp((vUv.y - uHorizonUvY) / max(0.05, 1.0 - uHorizonUvY), 0.0, 1.0);
+    vec3 sky = mix(uSkyHorizon, uSkyTop, pow(t, 0.72));
+
+    // Morning Celestial Sun + soft diagonal golden Tyndall sunbeams
+    float sunX = fract(0.72 - uYawPhase * 0.0416667);
+    float sunDist = length(vec2((vUv.x - sunX) * 1.6, t - 0.56));
+    sky += vec3(1.0, 0.92, 0.72) * (exp(-sunDist * 6.5) * 0.52);
+    float rayPhase = (vUv.x * 11.0 + uYawPhase * 0.45) - t * 3.8;
+    float rayMask = pow(max(0.0, sin(rayPhase) * 0.5 + 0.5), 4.0) * (1.0 - t * 0.75);
+    sky += vec3(1.0, 0.93, 0.76) * rayMask * 0.13;
+
+    // Soft high-altitude auspicious cloud wisps
+    float cx = fract(vUv.x * 2.5 + uYawPhase * 0.105) - 0.5;
+    float cy = t - 0.62;
+    float wisp = exp(-((cx * cx) * 14.0 + (cy * cy) * 68.0));
+    sky = mix(sky, vec3(1.0, 0.98, 0.93), wisp * 0.45);
+
+    // Atmospheric Huangshan / Zhangjiajie immortal spire silhouettes poking out of the cloud sea
+    float pxFar = vUv.x * 16.0 + uYawPhase * 0.72;
+    float pFarA = pow(max(0.0, 1.0 - abs(fract(pxFar * 0.31) * 2.0 - 1.0)), 1.7);
+    float pFarB = pow(max(0.0, 1.0 - abs(fract(pxFar * 0.53 + 0.37) * 2.0 - 1.0)), 2.2);
+    float farSpire = (pFarA * 0.58 + pFarB * 0.42) * 0.145;
+    if (vUv.y < uHorizonUvY + farSpire) {
+      float mGrad = clamp((vUv.y - uHorizonUvY) / max(0.01, farSpire), 0.0, 1.0);
+      vec3 farCol = mix(vec3(0.94, 0.92, 0.87), uMountain * 1.12, pow(mGrad, 0.75) * 0.8);
+      sky = mix(sky, farCol, 0.88);
+    }
+    float pxNear = vUv.x * 11.5 + uYawPhase * 0.52 + 1.8;
+    float pNearA = pow(max(0.0, 1.0 - abs(fract(pxNear * 0.41) * 2.0 - 1.0)), 2.1);
+    float pNearB = pow(max(0.0, 1.0 - abs(fract(pxNear * 0.79 + 0.21) * 2.0 - 1.0)), 2.8);
+    float nearSpire = (pNearA * 0.62 + pNearB * 0.38) * 0.095;
+    if (vUv.y < uHorizonUvY + nearSpire) {
+      float nGrad = clamp((vUv.y - uHorizonUvY) / max(0.01, nearSpire), 0.0, 1.0);
+      vec3 nearCol = mix(vec3(0.96, 0.94, 0.89), uMountain * 0.82, pow(nGrad, 0.7) * 0.88);
+      sky = mix(sky, nearCol, 0.94);
+    }
+
+    outColor = vec4(sky, 1.0);
+    return;
+  }
+
   if (vUv.y < uHorizonUvY) {
     outColor = vec4(uGround, 1.0);
     return;
@@ -1834,7 +2292,14 @@ export class MicroKartWebGL2Renderer {
     gl.uniform3f(this.skyUniforms.uMountain!, mtn[0] / 255, mtn[1] / 255, mtn[2] / 255);
     gl.uniform1f(this.skyUniforms.uHorizonUvY!, horizonUvY);
     gl.uniform1f(this.skyUniforms.uYawPhase!, (cam.yaw / (Math.PI * 2)) * 24.0);
-    gl.uniform1f(this.skyUniforms.uIsStarry!, race.circuitId === 'starlight-ring' ? 1.0 : 0.0);
+    gl.uniform1f(
+      this.skyUniforms.uIsStarry!,
+      circuit.theme.skyMode === 'cloud-sea'
+        ? 2.0
+        : circuit.theme.skyMode === 'starry'
+          ? 1.0
+          : 0.0,
+    );
     gl.bindVertexArray(this.skyVao);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
 
@@ -1934,6 +2399,81 @@ export class MicroKartWebGL2Renderer {
             b.rx - 0.15, b.ry, b.rz,
             0.09, 0.11, 0.16,
           );
+        }
+      }
+    }
+
+    // 3a-ii. Animated Soaring Red-Crowned Cranes (`仙鹤`, 12 graceful birds gliding above Cloud Gate!)
+    if (circuit.theme.skyMode === 'cloud-sea') {
+      const tSec = timeMs * 0.001;
+      const anchorSegs = [4, 14, 28, 44, 52, 70, 84, 96, 118, 138, 158, 176];
+      for (let ci = 0; ci < anchorSegs.length; ci += 1) {
+        const anchor = circuit.nodes[anchorSegs[ci]!]!;
+        const orbitR = 14 + (ci % 3) * 9;
+        const speed = (0.3 + (ci % 4) * 0.05) * (ci % 2 === 0 ? 1 : -1);
+        const ang = tSec * speed + ci * 1.15;
+        const cx = anchor.x + Math.cos(ang) * orbitR;
+        const cz = anchor.z + Math.sin(ang) * orbitR;
+        const cy = anchor.y + 8.5 + (ci % 3) * 3.8 + Math.sin(tSec * 1.2 + ci) * 1.3;
+
+        // Tangent flight direction around orbit
+        const dirSign = speed >= 0 ? 1 : -1;
+        const bfx = -Math.sin(ang) * dirSign;
+        const bfz = Math.cos(ang) * dirSign;
+        const brx = bfz;
+        const brz = -bfx;
+
+        // Graceful sinusoidal wingbeat (`wm_crane_fly.jpg`)
+        const flap = Math.sin(tSec * 4.4 + ci * 1.65);
+        const wingMidY = cy + flap * 1.05;
+        const wingTipY = cy + flap * 2.15;
+        const spanMid = 2.85;
+        const spanTip = 5.25;
+
+        // Slender snow-white torso & outstretched neck (two crisp double-sided triangles)
+        const noseX = cx + bfx * 3.2;
+        const noseZ = cz + bfz * 3.2;
+        const tailX = cx - bfx * 2.65;
+        const tailZ = cz - bfz * 2.65;
+        const bodyLX = cx - brx * 0.52;
+        const bodyLZ = cz - brz * 0.52;
+        const bodyRX = cx + brx * 0.52;
+        const bodyRZ = cz + brz * 0.52;
+        pushDynTri(noseX, cy + 0.18, noseZ, bodyLX, cy, bodyLZ, bodyRX, cy, bodyRZ, 0.99, 0.98, 0.96);
+        pushDynTri(noseX, cy + 0.18, noseZ, bodyRX, cy, bodyRZ, bodyLX, cy, bodyLZ, 0.99, 0.98, 0.96);
+        pushDynTri(tailX, cy - 0.06, tailZ, bodyRX, cy, bodyRZ, bodyLX, cy, bodyLZ, 0.96, 0.96, 0.94);
+        pushDynTri(tailX, cy - 0.06, tailZ, bodyLX, cy, bodyLZ, bodyRX, cy, bodyRZ, 0.96, 0.96, 0.94);
+
+        // Vivid crimson-red crown accent on the crane's head!
+        pushDynTri(
+          cx + bfx * 2.25, cy + 0.48, cz + bfz * 2.25,
+          cx + bfx * 2.95 - brx * 0.28, cy + 0.26, cz + bfz * 2.95 - brz * 0.28,
+          cx + bfx * 2.95 + brx * 0.28, cy + 0.26, cz + bfz * 2.95 + brz * 0.28,
+          0.92, 0.16, 0.14,
+        );
+
+        // Snow-white inner wings + charcoal-black trailing primary wingtips (double-sided!)
+        for (const side of [-1, 1] as const) {
+          const rootFX = cx + bfx * 0.85;
+          const rootFZ = cz + bfz * 0.85;
+          const rootBX = cx - bfx * 1.1;
+          const rootBZ = cz - bfz * 1.1;
+          const midFX = cx + brx * side * spanMid + bfx * 0.42;
+          const midFZ = cz + brz * side * spanMid + bfz * 0.42;
+          const midBX = cx + brx * side * spanMid - bfx * 1.05;
+          const midBZ = cz + brz * side * spanMid - bfz * 1.05;
+          const tipX = cx + brx * side * spanTip - bfx * 0.65;
+          const tipZ = cz + brz * side * spanTip - bfz * 0.65;
+
+          // Inner snow-white wing
+          pushDynTri(rootFX, cy, rootFZ, midFX, wingMidY, midFZ, midBX, wingMidY, midBZ, 0.99, 0.99, 0.97);
+          pushDynTri(rootFX, cy, rootFZ, midBX, wingMidY, midBZ, rootBX, cy, rootBZ, 0.97, 0.97, 0.95);
+          pushDynTri(rootFX, cy, rootFZ, midBX, wingMidY, midBZ, midFX, wingMidY, midFZ, 0.92, 0.94, 0.97);
+          pushDynTri(rootFX, cy, rootFZ, rootBX, cy, rootBZ, midBX, wingMidY, midBZ, 0.92, 0.94, 0.97);
+
+          // Crisp black trailing primary flight feathers!
+          pushDynTri(midFX, wingMidY, midFZ, tipX, wingTipY, tipZ, midBX, wingMidY, midBZ, 0.1, 0.12, 0.16);
+          pushDynTri(midFX, wingMidY, midFZ, midBX, wingMidY, midBZ, tipX, wingTipY, tipZ, 0.1, 0.12, 0.16);
         }
       }
     }

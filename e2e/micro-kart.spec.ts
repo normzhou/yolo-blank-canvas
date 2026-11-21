@@ -17,7 +17,7 @@ test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Bu
     const card = page.getByTestId('deck-slide-card');
     await page.getByTestId('carousel-dot-micro-kart').click();
     await expect(card).toHaveAttribute('data-slide-id', 'micro-kart');
-    await expect(card).toHaveAttribute('data-game-version', '1.7.6');
+    await expect(card).toHaveAttribute('data-game-version', '1.8.0');
     await expect(page.locator('.deck-slide-title')).toHaveText('Micro Kart');
 
     await page.getByRole('button', { name: 'Play Micro Kart', exact: true }).click();
@@ -270,6 +270,20 @@ test('Micro Kart moves on to the next track after finishing a circuit (#400)', a
       timeout: 7000,
     });
     await expect(page.getByTestId('kart-finish-card')).toHaveCount(0);
+
+    // Switch via Pause Menu to Track #4: Cloud Gate (Chinese Heavenly Palace sky viaduct)
+    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('game-pause-menu')).toBeVisible();
+    await page.getByTestId('kart-circuit-cloud-gate').click();
+    await expect(page.getByTestId('kart-circuit-label')).toHaveText('Cloud Gate');
+    await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });
+    await page.evaluate(() => {
+      window.dispatchEvent(
+        new CustomEvent('yolo:kart:step', {
+          detail: { steps: 30, dtMs: 20, p1: { left: false, right: false } },
+        }),
+      );
+    });
 
     expect(errors).toEqual([]);
   } finally {

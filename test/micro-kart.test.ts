@@ -50,22 +50,24 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
     expect(new Set(bunnyLead.karts.map((k) => k.character)).size).toBe(4);
   });
 
-  it('builds 3 seamless F1-scaled closed-loop 3D circuits with no extra boost pads and valid corner recommendedSpeed values', () => {
+  it('builds 4 seamless F1-scaled closed-loop 3D circuits including Cloud Gate with valid corner recommendedSpeed values', () => {
     expect(CIRCUIT_LIST.map((c) => c.id)).toEqual([
       'sunset-loop',
       'canyon-crest',
       'starlight-ring',
+      'cloud-gate',
     ]);
     expect(getNextCircuitId('sunset-loop')).toBe('canyon-crest');
     expect(getNextCircuitId('canyon-crest')).toBe('starlight-ring');
-    expect(getNextCircuitId('starlight-ring')).toBe('sunset-loop');
+    expect(getNextCircuitId('starlight-ring')).toBe('cloud-gate');
+    expect(getNextCircuitId('cloud-gate')).toBe('sunset-loop');
     for (const circuit of CIRCUIT_LIST) {
       expect(circuit.totalLength).toBeGreaterThan(1500);
       expect(circuit.roadHalfWidth).toBeGreaterThanOrEqual(15.5);
       expect(circuit.nodes.length).toBe(192);
       const ys = circuit.nodes.map((n) => n.y);
       expect(Math.max(...ys) - Math.min(...ys)).toBeGreaterThan(10);
-      // Road boost pads restored on all 3 circuits (#390)
+      // Road boost pads restored on all 4 circuits (#390, #402)
       expect(circuit.nodes.some((n) => n.hasBoostPad)).toBe(true);
 
       // Recommended cornering speeds vary smoothly between tighter bends and straights
@@ -78,6 +80,18 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
       const pEnd = sampleCircuitAtS(circuit, circuit.totalLength - 0.1);
       expect(Math.hypot(p0.x - pEnd.x, p0.z - pEnd.z)).toBeLessThan(2);
     }
+
+    // Cloud Gate specific Heavenly Palace cloud-scape properties (#402)
+    const cloudGate = CIRCUITS['cloud-gate'];
+    expect(cloudGate.theme.skyMode).toBe('cloud-sea');
+    expect(cloudGate.theme.jadePoolRange).toEqual([64, 96]);
+    expect(cloudGate.theme.cliffRange).toEqual([104, 132]);
+    expect(cloudGate.theme.moonGateSeg).toBe(46);
+    expect(cloudGate.scenery.some((p) => p.kind === 'cloud-bank')).toBe(true);
+    expect(cloudGate.scenery.some((p) => p.kind === 'pavilion')).toBe(true);
+    expect(cloudGate.scenery.some((p) => p.kind === 'jade-pillar')).toBe(true);
+    expect(cloudGate.scenery.some((p) => p.kind === 'bonsai-pine')).toBe(true);
+    expect(cloudGate.scenery.some((p) => p.kind === 'lotus')).toBe(true);
 
     // Shared speed-to-color mapping covers full 0..100 m/s range cleanly
     expect(speedToColorHex(0)).toBe('#38e8ff');
