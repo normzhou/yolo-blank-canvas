@@ -348,15 +348,16 @@
         "v0.45.0": "79aa7b39585c866e95cf81509e9a5739f0a48beb",
         "v0.45.1": "17b27c054f156cba67f6416b223481385667a0d3",
         "v0.46.0": "87b484efb8285abe75efb0ff93b56e9c5400ddab",
-        "v0.46.1": "4136321ef41ff01a00d5e83e15bf05fdb1af0af6"
+        "v0.46.1": "4136321ef41ff01a00d5e83e15bf05fdb1af0af6",
+        "v0.46.2": "07c701547c3d67dba245fb2a5b9623f44adda5c2"
       },
       "published": {
-        "tag": "v0.46.2",
-        "commit": "07c701547c3d67dba245fb2a5b9623f44adda5c2",
-        "source_commit": "35831ee78282db1cfbe94d715e876806a11f4dc3",
-        "published_at": "2026-11-21T04:18:52Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-19-v0462.json",
-        "note": "Patch focus-loss auto-pause release (#392, PR #393). Automatically pauses active games, brings up the in-game Pause Menu, and pauses background music on window blur or tab visibilitychange across Micro Kart (@yolo-arcade/game-micro-kart@1.7.2), Prism Stack, and Starlight Burst, resuming instantaneously from cached audio on Resume; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 7305c4c7-7169-4d98-8c59-7d6922fa5ae5)."
+        "tag": "v0.46.3",
+        "commit": "9a2c6a5f8cfb67ec17935e3e77c27bc96ded2d11",
+        "source_commit": "e2a8d4a03dabf92098975214c3614696f70c87a5",
+        "published_at": "2026-11-21T04:52:24Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-19-v0463.json",
+        "note": "Patch CPU fairness release (#394, PR #395). Constrains Micro Kart CPU rivals (@yolo-arcade/game-micro-kart@1.7.3) to strictly binary keyboard-equivalent buttons (left, right, or none + independent brake, no steerAnalog) through the 0.55s linear ramp, caps decisions at max 2 actions/sec (500 ms interval), and staggers each CPU's 0.5s clock across the cycle so rivals never synchronize; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 8c081aae-7ece-468d-8c7f-8d22987d4153)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -465,7 +466,8 @@
         ".yolo/reports/releases-observed-2026-11-19-v0451.json",
         ".yolo/reports/releases-observed-2026-11-19-v0460.json",
         ".yolo/reports/releases-observed-2026-11-19-v0461.json",
-        ".yolo/reports/releases-observed-2026-11-19-v0462.json"
+        ".yolo/reports/releases-observed-2026-11-19-v0462.json",
+        ".yolo/reports/releases-observed-2026-11-19-v0463.json"
       ]
     }
   },
