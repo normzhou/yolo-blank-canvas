@@ -40,6 +40,7 @@ import {
   createRaceState,
   formatRaceClock,
   getKartDriverSpec,
+  getNextCircuitId,
   getRecommendedSpeedAtS,
   KART_DRIVERS,
   MAX_STRAIGHT_SPEED,
@@ -405,6 +406,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
   const [raceStatus, setRaceStatus] = useState<'racing' | 'finished'>('racing');
   const [winnerSlot, setWinnerSlot] = useState<number | null>(null);
   const [elapsedHudMs, setElapsedHudMs] = useState(0);
+  const [nextTrackSec, setNextTrackSec] = useState<number>(5);
   const [p1Hud, setP1Hud] = useState<HudTelemetry>({
     driverName: 'Ren',
     place: 1,
@@ -583,11 +585,41 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       activePointersRef.current.clear();
       syncHudFromRace(fresh, focusSlot);
       setSharedGamePaused(false);
+      setNextTrackSec(5);
       triggerFreshCountdown(lang);
       getSharedArcadeAudio().startNewGameTrack();
     },
     [activeKartRoom, p1Character, syncHudFromRace, triggerFreshCountdown],
   );
+
+  const nextCircuit = CIRCUITS[getNextCircuitId(circuitId)];
+
+  const advanceToNextTrack = useCallback(() => {
+    const nextId = getNextCircuitId(circuitId);
+    setCircuitId(nextId);
+    if (isOnline2P && activeKartRoom) {
+      resetRace(nextId, '2p-online', activeKartRoom.seed + 1);
+    } else {
+      resetRace(nextId, localMode);
+    }
+  }, [activeKartRoom, circuitId, isOnline2P, localMode, resetRace]);
+
+  // Automatically advance to the next circuit after a 5-second podium pause in local modes (#400)
+  useEffect(() => {
+    if (raceStatus !== 'finished' || isOnline2P) {
+      setNextTrackSec(5);
+      return;
+    }
+    if (paused) return;
+    if (nextTrackSec <= 0) {
+      advanceToNextTrack();
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setNextTrackSec((s) => Math.max(0, s - 1));
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [advanceToNextTrack, isOnline2P, nextTrackSec, paused, raceStatus]);
 
   // Audio & shared pause subscriptions
   useEffect(() => {
@@ -829,22 +861,35 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         dtMs?: number;
         p1?: ThrusterInput;
         p2?: ThrusterInput;
+        autoPilotP1?: boolean;
       }>).detail;
-      const steps = Math.max(1, Math.min(600, detail?.steps ?? 1));
+      const steps = Math.max(1, Math.min(4500, detail?.steps ?? 1));
       const dtMs = detail?.dtMs ?? 16.67;
-      for (let i = 0; i < steps; i += 1) {
-        stepRaceState(
-          raceRef.current,
-          {
-            0: detail?.p1 ?? { left: false, right: false },
-            1: detail?.p2 ?? { left: false, right: false },
-          },
-          dtMs,
-        );
-        updateChaseCamera(cam1Ref.current, raceRef.current.karts[0]!, dtMs / 1000);
-        if (raceRef.current.karts[1]) {
-          updateChaseCamera(cam2Ref.current, raceRef.current.karts[1], dtMs / 1000);
+      const p1Kart = raceRef.current.karts[0]!;
+      const prevIsHuman = p1Kart.isHuman;
+      if (detail?.autoPilotP1) {
+        (p1Kart as { isHuman: boolean }).isHuman = false;
+      }
+      try {
+        for (let i = 0; i < steps; i += 1) {
+          stepRaceState(
+            raceRef.current,
+            {
+              0: detail?.p1 ?? { left: false, right: false },
+              1: detail?.p2 ?? { left: false, right: false },
+            },
+            dtMs,
+          );
+          if (detail?.autoPilotP1 && raceRef.current.status === 'finished') {
+            break;
+          }
         }
+      } finally {
+        (p1Kart as { isHuman: boolean }).isHuman = prevIsHuman;
+      }
+      updateChaseCamera(cam1Ref.current, raceRef.current.karts[0]!, dtMs / 1000);
+      if (raceRef.current.karts[1]) {
+        updateChaseCamera(cam2Ref.current, raceRef.current.karts[1], dtMs / 1000);
       }
       syncHudFromRace(raceRef.current, activeKartRoom?.mySlot ?? 0);
     };
@@ -1443,20 +1488,34 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
           {p1Hud.bestLapMs !== null ? (
             <div className="muted">Best Lap · {formatRaceClock(p1Hud.bestLapMs)}</div>
           ) : null}
-          <button
-            type="button"
-            className="primary"
-            data-testid="kart-race-again-btn"
-            onClick={() => {
-              if (isOnline2P && activeKartRoom) {
-                resetRace(circuitId, '2p-online', activeKartRoom.seed + 1);
-              } else {
-                resetRace(circuitId, localMode);
-              }
-            }}
-          >
-            Race again
-          </button>
+          {!isOnline2P ? (
+            <div className="muted" data-testid="kart-next-track-countdown">
+              Next track in {nextTrackSec}s · {nextCircuit.name}
+            </div>
+          ) : null}
+          <div className="game-pause-actions">
+            <button
+              type="button"
+              className="primary"
+              data-testid="kart-next-track-btn"
+              onClick={advanceToNextTrack}
+            >
+              Next Track · {nextCircuit.name}
+            </button>
+            <button
+              type="button"
+              data-testid="kart-race-again-btn"
+              onClick={() => {
+                if (isOnline2P && activeKartRoom) {
+                  resetRace(circuitId, '2p-online', activeKartRoom.seed + 1);
+                } else {
+                  resetRace(circuitId, localMode);
+                }
+              }}
+            >
+              Race again
+            </button>
+          </div>
         </div>
       ) : null}
 

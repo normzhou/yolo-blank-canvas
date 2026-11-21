@@ -17,7 +17,7 @@ test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Bu
     const card = page.getByTestId('deck-slide-card');
     await page.getByTestId('carousel-dot-micro-kart').click();
     await expect(card).toHaveAttribute('data-slide-id', 'micro-kart');
-    await expect(card).toHaveAttribute('data-game-version', '1.7.5');
+    await expect(card).toHaveAttribute('data-game-version', '1.7.6');
     await expect(page.locator('.deck-slide-title')).toHaveText('Micro Kart');
 
     await page.getByRole('button', { name: 'Play Micro Kart', exact: true }).click();
@@ -218,6 +218,58 @@ test('Micro Kart auto-pauses, opens Pause Menu, and pauses music when the window
         }),
       )
       .toBe(true);
+
+    expect(errors).toEqual([]);
+  } finally {
+    await closeStub(stub);
+  }
+});
+
+test('Micro Kart moves on to the next track after finishing a circuit (#400)', async ({
+  page,
+  errors,
+}) => {
+  const stub = await startStubApp();
+  try {
+    await page.goto(`${stub.base}?app=micro-kart`);
+    await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });
+    await expect(page.getByTestId('kart-circuit-label')).toHaveText('Sunset Loop');
+
+    // Complete 3 real physics laps on Sunset Loop
+    await page.evaluate(() => {
+      window.dispatchEvent(
+        new CustomEvent('yolo:kart:step', {
+          detail: { steps: 4500, dtMs: 20, autoPilotP1: true },
+        }),
+      );
+    });
+
+    await expect(page.getByTestId('kart-finish-card')).toBeVisible();
+    await expect(page.getByTestId('kart-next-track-countdown')).toContainText('Canyon Crest');
+    await expect(page.getByTestId('kart-next-track-btn')).toHaveText('Next Track · Canyon Crest');
+
+    // Clicking Next Track moves directly on to Canyon Crest!
+    await page.getByTestId('kart-next-track-btn').click();
+    await expect(page.getByTestId('kart-circuit-label')).toHaveText('Canyon Crest');
+    await expect(page.getByTestId('kart-finish-card')).toHaveCount(0);
+
+    // Finish Canyon Crest and verify automatic countdown advances cleanly to Starlight Ring!
+    await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });
+    await page.evaluate(() => {
+      window.dispatchEvent(
+        new CustomEvent('yolo:kart:step', {
+          detail: { steps: 4500, dtMs: 20, autoPilotP1: true },
+        }),
+      );
+    });
+    await expect(page.getByTestId('kart-finish-card')).toBeVisible();
+    await expect(page.getByTestId('kart-next-track-btn')).toHaveText('Next Track · Starlight Ring');
+
+    // Auto-advance countdown transitions cleanly to Starlight Ring within 7s!
+    await expect(page.getByTestId('kart-circuit-label')).toHaveText('Starlight Ring', {
+      timeout: 7000,
+    });
+    await expect(page.getByTestId('kart-finish-card')).toHaveCount(0);
 
     expect(errors).toEqual([]);
   } finally {

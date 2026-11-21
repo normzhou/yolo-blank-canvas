@@ -1,6 +1,6 @@
 {
   "name": "@yolo-arcade/game-micro-kart",
-  "version": "1.7.5",
+  "version": "1.7.6",
   "private": true,
   "type": "module",
   "exports": {
