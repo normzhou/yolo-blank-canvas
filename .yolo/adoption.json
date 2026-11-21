@@ -345,15 +345,16 @@
         "v0.44.3": "3a4e3d4406aab60d67116ce662f15b82cef5f8d3",
         "v0.44.4": "a6f46ec672e56b3468eebd5e6f874d3050c741d1",
         "v0.44.5": "d3bac5c1c29ee66846887f17deab115dcaf9e339",
-        "v0.45.0": "79aa7b39585c866e95cf81509e9a5739f0a48beb"
+        "v0.45.0": "79aa7b39585c866e95cf81509e9a5739f0a48beb",
+        "v0.45.1": "17b27c054f156cba67f6416b223481385667a0d3"
       },
       "published": {
-        "tag": "v0.45.1",
-        "commit": "17b27c054f156cba67f6416b223481385667a0d3",
-        "source_commit": "9acf9edb4f4fa27e20b97df30c9a443b4c416663",
-        "published_at": "2026-11-20T23:33:36Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-19-v0451.json",
-        "note": "Patch character animation release (#386, PR #387). Adds speed- and angular-rate-driven driver lean into tight turns, high-speed aero wind duck, and articulated wind-blown ears across all 4 Micro Kart drivers (@yolo-arcade/game-micro-kart@1.6.1) in both WebGL2 and Canvas 2D; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 93b3bce8-c851-4f83-ae22-d6f88ab861d8)."
+        "tag": "v0.46.0",
+        "commit": "87b484efb8285abe75efb0ff93b56e9c5400ddab",
+        "source_commit": "689d6c6b0c952e285a08309903fdf08fdfd22dbd",
+        "published_at": "2026-11-21T00:18:00Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-19-v0460.json",
+        "note": "Minor Micro Kart F1 cockpit & handling release (#388, PR #389). Tunes 2.0s vacuum F1 rocket acceleration and planted tire grip (@yolo-arcade/game-micro-kart@1.7.0), removes extra boost pads/drift turbos in favor of pure proportional dual rockets, matches center road-line colors to the new onscreen colored F1 arc speedometer, adds an onscreen F1 butterfly steering yoke driven by turn rate, and renders a 1-second curved theme-colored trajectory shadow (solid beneath kart fading to transparent at 1s); verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 5cccbef2-b9b4-48f1-9590-024624a7c2ac)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -459,7 +460,8 @@
         ".yolo/reports/releases-observed-2026-11-17-v0444.json",
         ".yolo/reports/releases-observed-2026-11-19-v0445.json",
         ".yolo/reports/releases-observed-2026-11-19-v0450.json",
-        ".yolo/reports/releases-observed-2026-11-19-v0451.json"
+        ".yolo/reports/releases-observed-2026-11-19-v0451.json",
+        ".yolo/reports/releases-observed-2026-11-19-v0460.json"
       ]
     }
   },
