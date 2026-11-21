@@ -346,15 +346,16 @@
         "v0.44.4": "a6f46ec672e56b3468eebd5e6f874d3050c741d1",
         "v0.44.5": "d3bac5c1c29ee66846887f17deab115dcaf9e339",
         "v0.45.0": "79aa7b39585c866e95cf81509e9a5739f0a48beb",
-        "v0.45.1": "17b27c054f156cba67f6416b223481385667a0d3"
+        "v0.45.1": "17b27c054f156cba67f6416b223481385667a0d3",
+        "v0.46.0": "87b484efb8285abe75efb0ff93b56e9c5400ddab"
       },
       "published": {
-        "tag": "v0.46.0",
-        "commit": "87b484efb8285abe75efb0ff93b56e9c5400ddab",
-        "source_commit": "689d6c6b0c952e285a08309903fdf08fdfd22dbd",
-        "published_at": "2026-11-21T00:18:00Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-19-v0460.json",
-        "note": "Minor Micro Kart F1 cockpit & handling release (#388, PR #389). Tunes 2.0s vacuum F1 rocket acceleration and planted tire grip (@yolo-arcade/game-micro-kart@1.7.0), removes extra boost pads/drift turbos in favor of pure proportional dual rockets, matches center road-line colors to the new onscreen colored F1 arc speedometer, adds an onscreen F1 butterfly steering yoke driven by turn rate, and renders a 1-second curved theme-colored trajectory shadow (solid beneath kart fading to transparent at 1s); verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 5cccbef2-b9b4-48f1-9590-024624a7c2ac)."
+        "tag": "v0.46.1",
+        "commit": "4136321ef41ff01a00d5e83e15bf05fdb1af0af6",
+        "source_commit": "77da5a2abee08878681dd9ee9ded4a7b1d77345a",
+        "published_at": "2026-11-21T03:58:29Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-19-v0461.json",
+        "note": "Patch physics & guidance release (#390, PR #391). Anchors Micro Kart's 1-second curved trajectory path to the front nose of the kart (@yolo-arcade/game-micro-kart@1.7.1), restores road boost pads on all 3 circuits (keeping drift Mini-Turbo disabled), and implements perfectly elastic (e = 1.0) 2D SAT OBB rigid-body collisions around each kart's Center of Mass strictly conserving linear momentum, total orbital+spin angular momentum, and kinetic energy; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 49b3b04e-c2dd-4432-bb17-24fba48abe56)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -461,7 +462,8 @@
         ".yolo/reports/releases-observed-2026-11-19-v0445.json",
         ".yolo/reports/releases-observed-2026-11-19-v0450.json",
         ".yolo/reports/releases-observed-2026-11-19-v0451.json",
-        ".yolo/reports/releases-observed-2026-11-19-v0460.json"
+        ".yolo/reports/releases-observed-2026-11-19-v0460.json",
+        ".yolo/reports/releases-observed-2026-11-19-v0461.json"
       ]
     }
   },

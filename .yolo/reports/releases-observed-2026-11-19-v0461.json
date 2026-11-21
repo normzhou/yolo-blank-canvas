@@ -1,0 +1,81 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-19",
+  "observed_at": "2026-11-19",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#390",
+  "releases": [
+    {
+      "tag": "v0.46.1",
+      "commit": "4136321ef41ff01a00d5e83e15bf05fdb1af0af6"
+    }
+  ],
+  "release": {
+    "tag": "v0.46.1",
+    "commit": "4136321ef41ff01a00d5e83e15bf05fdb1af0af6",
+    "source_commit": "77da5a2abee08878681dd9ee9ded4a7b1d77345a",
+    "assets_commit": "f18396f7d02f80957973f9d51a2ac341aa81f3ed",
+    "native_version": "0.46.1",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-21T03:58:29Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.46.1",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/391"
+  },
+  "build_identity": {
+    "server_build_id": "77da5a2abee08878681dd9ee9ded4a7b1d77345a",
+    "client_build_id": "77da5a2abee08878681dd9ee9ded4a7b1d77345a",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "30 files, 195 tests passed (including exact linear momentum, total orbital+spin angular momentum, and kinetic energy conservation on off-center elastic collisions, road boost pad activation, and nose-anchored trajectory assertions)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 50 passed (53.8s)",
+      "e2e_live": "npm run e2e:live — 5 passed (13.2s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.46.1 --no-open --port 4455 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (18.4s)",
+      "ci": "GitHub Actions CI/Test and type check green (32s)"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "49b3b04e-c2dd-4432-bb17-24fba48abe56",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.46.1",
+      "observed_build_id": "77da5a2abee08878681dd9ee9ded4a7b1d77345a",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.2.0",
+          "entry": "/games/starlight-burst-DEm4-yuf.js",
+          "hash": "b113ae31f74a8615fef8e1bdaaa10a8cc3203a3485e2dbc0e495fa53423a86bd",
+          "sizeBytes": 86740
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-ByBmNLhB.js",
+          "hash": "031daa023f44113c92076ff38dad8561481a042db328e9b46a837521d57cbe36",
+          "sizeBytes": 37312
+        },
+        "micro-kart": {
+          "version": "1.7.1",
+          "entry": "/games/micro-kart-CQ9izdx_.js",
+          "hash": "0b26af7e78cb0d58b4ad2af7c7c742fbea8555d7a34970de3c515b27fb802764",
+          "sizeBytes": 106913
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Anchors Micro Kart's 1-second theme-colored trajectory path to the front nose (head) of the kart while restoring grounded contact shadows beneath every kart, brings back road boost pads across all 3 circuits (no drift Mini-Turbo), and replaces sphere bumps with an oriented 2D SAT OBB perfectly elastic (e = 1.0) rigid-body impulse solver using each kart's Center of Mass with exact conservation of linear momentum, total angular momentum, and kinetic energy (@yolo-arcade/game-micro-kart@1.7.1)."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #390"
+}
