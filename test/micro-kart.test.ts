@@ -9,6 +9,7 @@ import {
   createRaceState,
   cross2D,
   getKartCenterOfMass,
+  getKartPortraitMood,
   getNextCircuitId,
   getRecommendedSpeedAtS,
   KART_DRIVERS,
@@ -91,7 +92,18 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
     expect(cloudGate.scenery.some((p) => p.kind === 'pavilion')).toBe(true);
     expect(cloudGate.scenery.some((p) => p.kind === 'jade-pillar')).toBe(true);
     expect(cloudGate.scenery.some((p) => p.kind === 'bonsai-pine')).toBe(true);
-    expect(cloudGate.scenery.some((p) => p.kind === 'lotus')).toBe(true);
+    const lotusCount = cloudGate.scenery.filter((p) => p.kind === 'lotus').length;
+    expect(lotusCount).toBeGreaterThanOrEqual(6);
+    expect(lotusCount).toBeLessThanOrEqual(16);
+
+    // Live placement portrait emotions (#406): 1st = happy, last while racing = anxious, last at finish = cry
+    expect(getKartPortraitMood(1, 4, false, false)).toBe('happy');
+    expect(getKartPortraitMood(1, 4, true, true)).toBe('happy');
+    expect(getKartPortraitMood(2, 4, false, false)).toBe('normal');
+    expect(getKartPortraitMood(3, 4, true, true)).toBe('normal');
+    expect(getKartPortraitMood(4, 4, false, false)).toBe('anxious');
+    expect(getKartPortraitMood(4, 4, true, false)).toBe('cry');
+    expect(getKartPortraitMood(4, 4, false, true)).toBe('cry');
 
     // Shared speed-to-color mapping covers full 0..100 m/s range cleanly
     expect(speedToColorHex(0)).toBe('#38e8ff');

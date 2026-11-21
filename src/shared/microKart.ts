@@ -8,6 +8,27 @@ export type CircuitId = 'sunset-loop' | 'canyon-crest' | 'starlight-ring' | 'clo
 export type KartRaceMode = '1p' | '2p-local' | '2p-online';
 export type BoostKind = 'none' | 'mini' | 'ultra' | 'pad';
 export type DriverCharacterId = 'fox' | 'cat' | 'dog' | 'bunny';
+export type KartPortraitMood = 'happy' | 'normal' | 'anxious' | 'cry';
+
+/**
+ * Computes the live HUD portrait emotion for a kart based on race placement (#406):
+ * - 1st place -> `'happy'`
+ * - Last place while racing -> `'anxious'` (worried/sweating like Starlight Burst hurry-up)
+ * - Last place when finished / race ends -> `'cry'` (teardrops)
+ * - Middle places -> `'normal'`
+ */
+export function getKartPortraitMood(
+  place: number,
+  totalKarts: number,
+  raceFinished: boolean,
+  kartFinished = false,
+): KartPortraitMood {
+  if (place === 1) return 'happy';
+  if (place >= totalKarts) {
+    return raceFinished || kartFinished ? 'cry' : 'anxious';
+  }
+  return 'normal';
+}
 
 export interface KartDriverSpec {
   readonly id: DriverCharacterId;
@@ -785,31 +806,19 @@ function buildCircuit(spec: CircuitSpec): CircuitDefinition {
         }
       }
 
-      // 2. Prominent Glowing Glass Lotus Blossoms floating at pond level (`y = pondY`) across the Jade Pool!
-      if (inJadePool && i % 2 === 0) {
+      // 2. Restrained, sculptural Glowing Glass Lotus Blossoms (~10-12 across the Jade Pool pond, #404, #406)
+      if (inJadePool && i % 6 === 0) {
         const pondWaterY = Math.min(nodes[jpStart]!.y, nodes[jpEnd]!.y) - 0.24;
         for (const side of [-1, 1] as const) {
-          // Near-bank cluster clearly visible over the balustrade + mid-pond blossom
-          const nearDist = spec.roadHalfWidth + 4.8 + rng() * 11.5;
+          const dist = spec.roadHalfWidth + 6.5 + rng() * 15.5;
           scenery.push({
             kind: 'lotus',
-            x: node.x + node.rx * side * nearDist,
+            x: node.x + node.rx * side * dist,
             y: pondWaterY,
-            z: node.z + node.rz * side * nearDist,
-            scale: 1.45 + rng() * 0.75,
+            z: node.z + node.rz * side * dist,
+            scale: 1.25 + rng() * 0.5,
             yaw: rng() * Math.PI * 2,
           });
-          if (i % 4 === 0) {
-            const farDist = spec.roadHalfWidth + 18 + rng() * 20;
-            scenery.push({
-              kind: 'lotus',
-              x: node.x + node.rx * side * farDist,
-              y: pondWaterY,
-              z: node.z + node.rz * side * farDist,
-              scale: 1.7 + rng() * 0.8,
-              yaw: rng() * Math.PI * 2,
-            });
-          }
         }
       }
 
@@ -1733,10 +1742,10 @@ export function stepRaceState(
     kart.place = idx + 1;
   });
 
-  // Finish check: race ends as soon as all local human karts finish (or in online 2P when either finishes + settles)
-  const localHumans = race.karts.filter((k) => k.isHuman && !k.isRemote);
+  // Finish check: race ends once all human players have crossed the finish line (#406)
+  const humanKarts = race.karts.filter((k) => k.isHuman);
   const allHumansDone =
-    localHumans.length > 0 && localHumans.every((k) => k.finishMs !== null);
+    humanKarts.length > 0 && humanKarts.every((k) => k.finishMs !== null);
   if (race.status === 'racing' && allHumansDone) {
     race.status = 'finished';
     race.winnerSlot = sorted[0]?.slot ?? 0;
