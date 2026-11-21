@@ -5,13 +5,16 @@ import {
   CIRCUIT_LIST,
   CIRCUITS,
   createRaceState,
+  getRecommendedSpeedAtS,
   KART_DRIVERS,
   KART_MASS_KG,
   MAX_STRAIGHT_SPEED,
   MAX_TOTAL_THRUST_N,
-  MINI_TURBO_CHARGE_SEC,
+  predictKartTrajectory,
   projectOntoCircuit,
   sampleCircuitAtS,
+  speedToColorHex,
+  speedToColorRgb,
   stepRaceState,
   THRUSTER_RAMP_SEC,
   TOTAL_LAPS,
@@ -19,7 +22,7 @@ import {
 } from '../src/shared/microKart';
 import { computeDriverPose } from '../src/games/micro-kart/driverPose';
 
-describe('Micro Kart 3D circuits, F1 dual-thruster physics, PWM ramp, lateral slip & Starlight Burst drivers (#344, #358, #360, #362, #384)', () => {
+describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road lines, 1s trajectory shadow & driver animations (#344, #362, #384, #386, #388)', () => {
   it('populates the 4 karts with the 4 Starlight Burst companions (Ren, Mochi, Koro, Momo) with no duplicates', () => {
     expect(KART_DRIVERS.map((d) => `${d.id}:${d.driverName}`)).toEqual([
       'fox:Ren',
@@ -36,7 +39,7 @@ describe('Micro Kart 3D circuits, F1 dual-thruster physics, PWM ramp, lateral sl
     expect(new Set(bunnyLead.karts.map((k) => k.character)).size).toBe(4);
   });
 
-  it('builds 3 seamless F1-scaled closed-loop 3D circuits with elevation relief and boost pads', () => {
+  it('builds 3 seamless F1-scaled closed-loop 3D circuits with no extra boost pads and valid corner recommendedSpeed values', () => {
     expect(CIRCUIT_LIST.map((c) => c.id)).toEqual([
       'sunset-loop',
       'canyon-crest',
@@ -48,24 +51,39 @@ describe('Micro Kart 3D circuits, F1 dual-thruster physics, PWM ramp, lateral sl
       expect(circuit.nodes.length).toBe(192);
       const ys = circuit.nodes.map((n) => n.y);
       expect(Math.max(...ys) - Math.min(...ys)).toBeGreaterThan(10);
-      expect(circuit.nodes.some((n) => n.hasBoostPad)).toBe(true);
+      // Pure dual-rocket design (#388): no extra road boost pads
+      expect(circuit.nodes.some((n) => n.hasBoostPad)).toBe(false);
+
+      // Recommended cornering speeds vary smoothly between tighter bends and straights
+      const recSpeeds = circuit.nodes.map((n) => n.recommendedSpeed);
+      expect(Math.min(...recSpeeds)).toBeLessThan(82);
+      expect(Math.max(...recSpeeds)).toBeGreaterThan(95);
+      expect(getRecommendedSpeedAtS(circuit, 0)).toBeGreaterThan(40);
 
       const p0 = sampleCircuitAtS(circuit, 0);
       const pEnd = sampleCircuitAtS(circuit, circuit.totalLength - 0.1);
       expect(Math.hypot(p0.x - pEnd.x, p0.z - pEnd.z)).toBeLessThan(2);
     }
+
+    // Shared speed-to-color mapping covers full 0..100 m/s range cleanly
+    expect(speedToColorHex(0)).toBe('#38e8ff');
+    expect(speedToColorHex(100)).toBe('#ff5666');
+    const midRgb = speedToColorRgb(72);
+    expect(midRgb[0]).toBeGreaterThan(200);
+    expect(midRgb[1]).toBeGreaterThan(180);
   });
 
-  it('calibrates mass, dual-thruster force (3s vacuum to 360 km/h) and quadratic aero drag equilibrium at 100 m/s', () => {
-    // Vacuum check: F_max / m * 3.0s === 100 m/s (360 km/h F1 top speed)
-    const vacuumSpeedAt3s = (MAX_TOTAL_THRUST_N / KART_MASS_KG) * VACUUM_ACCEL_TIME_SEC;
-    expect(vacuumSpeedAt3s).toBeCloseTo(MAX_STRAIGHT_SPEED, 5);
+  it('calibrates mass, dual-rocket force (2.0s vacuum to 360 km/h) and quadratic aero drag equilibrium at 100 m/s', () => {
+    expect(VACUUM_ACCEL_TIME_SEC).toBe(2.0);
+    // Vacuum check: F_max / m * 2.0s === 100 m/s (360 km/h F1 top speed)
+    const vacuumSpeedAt2s = (MAX_TOTAL_THRUST_N / KART_MASS_KG) * VACUUM_ACCEL_TIME_SEC;
+    expect(vacuumSpeedAt2s).toBeCloseTo(MAX_STRAIGHT_SPEED, 5);
 
     // Terminal velocity equilibrium: full dual thrust balances aero drag + asphalt rolling drag at 100 m/s
     const dragAtTop = AERO_DRAG_COEFF * MAX_STRAIGHT_SPEED * MAX_STRAIGHT_SPEED + ASPHALT_ROLLING_DRAG_N;
     expect(dragAtTop).toBeCloseTo(MAX_TOTAL_THRUST_N, 4);
 
-    // Acceleration tapers realistically with quadratic aero drag (strong launch, slower top-end gain)
+    // Stronger 2.0s launch (~45 m/s in 1.0s) and crisp Down braking
     const race = createRaceState('sunset-loop', '1p', 42);
     const p1 = race.karts[0]!;
     expect(p1.speed).toBe(0);
@@ -74,33 +92,34 @@ describe('Micro Kart 3D circuits, F1 dual-thruster physics, PWM ramp, lateral sl
       stepRaceState(race, { 0: { left: false, right: false } }, 16.67);
     }
     const speedAt1s = p1.speed;
-    expect(speedAt1s).toBeGreaterThan(28);
-    expect(speedAt1s).toBeLessThan(36);
+    expect(speedAt1s).toBeGreaterThan(40);
+    expect(speedAt1s).toBeLessThan(50);
     expect(p1.braking).toBe(false);
     expect(p1.leftThrottle).toBeCloseTo(1, 3);
     expect(p1.rightThrottle).toBeCloseTo(1, 3);
 
-    // Hold Down (`brake: true`) -> cuts both thrusters quickly and decelerates strongly
+    // Hold Down (`brake: true`) -> cuts both rockets quickly and decelerates strongly
     for (let i = 0; i < 25; i += 1) {
       stepRaceState(race, { 0: { left: false, right: false, brake: true } }, 16.67);
     }
     expect(p1.braking).toBe(true);
     expect(p1.leftThrottle).toBe(0);
     expect(p1.rightThrottle).toBe(0);
-    expect(p1.speed).toBeLessThan(speedAt1s - 15);
+    expect(p1.speed).toBeLessThan(speedAt1s - 20);
   });
 
-  it('ramps keyboard inner thruster linearly over 0.65s for PWM feathering, supports full cut and analog steer, induces moderate lateral slip, and fires Mini-Turbo on release', () => {
+  it('ramps keyboard inner rocket linearly for PWM feathering, keeps planted cornering without extra boosters, and predicts a 1-second curved trajectory shadow', () => {
+    const circuit = CIRCUITS['sunset-loop'];
     const raceL = createRaceState('sunset-loop', '1p', 7);
     const raceR = createRaceState('sunset-loop', '1p', 7);
 
-    // Launch hands-off for 1.5s so karts carry high speed (~45 m/s) into the corner
-    for (let i = 0; i < 90; i += 1) {
+    // Launch hands-off for 1.2s (~52 m/s)
+    for (let i = 0; i < 72; i += 1) {
       stepRaceState(raceL, { 0: { left: false, right: false } }, 16.67);
       stepRaceState(raceR, { 0: { left: false, right: false } }, 16.67);
     }
 
-    // Half-ramp (~0.325s) -> inner thruster drops smoothly to ~50% (enabling keyboard PWM!)
+    // Half-ramp -> inner rocket drops smoothly to ~50% (PWM feathering)
     const halfRampSteps = Math.round((THRUSTER_RAMP_SEC * 0.5) / 0.01667);
     for (let i = 0; i < halfRampSteps; i += 1) {
       stepRaceState(raceL, { 0: { left: true, right: false } }, 16.67);
@@ -110,7 +129,7 @@ describe('Micro Kart 3D circuits, F1 dual-thruster physics, PWM ramp, lateral sl
     expect(raceR.karts[0]!.rightThrottle).toBeLessThan(0.65);
     expect(raceR.karts[0]!.leftThrottle).toBeCloseTo(1, 3);
 
-    // Finish full ramp (>0.65s total) -> full 0% inner cut + real lateral slip + Mini-Turbo charge!
+    // Finish full ramp -> 0% inner cut, planted cornering, zero extra drift turbo!
     for (let i = 0; i < 24; i += 1) {
       stepRaceState(raceL, { 0: { left: true, right: false } }, 16.67);
       stepRaceState(raceR, { 0: { left: false, right: true } }, 16.67);
@@ -119,18 +138,27 @@ describe('Micro Kart 3D circuits, F1 dual-thruster physics, PWM ramp, lateral sl
     expect(raceL.karts[0]!.leftThrottle).toBe(0);
     expect(raceL.karts[0]!.yaw).toBeLessThan(raceR.karts[0]!.yaw);
     expect(raceL.karts[0]!.lat).toBeLessThan(raceR.karts[0]!.lat);
-    expect(Math.abs(raceR.karts[0]!.lateralSlip)).toBeGreaterThan(1.5);
-    expect(raceR.karts[0]!.driftCharge).toBeGreaterThanOrEqual(MINI_TURBO_CHARGE_SEC);
-    expect(raceR.karts[0]!.skidMarks.length).toBeGreaterThan(0);
+    expect(raceR.karts[0]!.boostTimer).toBe(0);
 
-    // Release turn -> force-based Mini-Turbo surge!
-    const speedBeforeBoost = raceR.karts[0]!.speed;
+    // Releasing back to straight does NOT fire artificial drift boosters (#388)
     stepRaceState(raceR, { 0: { left: false, right: false } }, 16.67);
-    expect(raceR.karts[0]!.boostTimer).toBeGreaterThan(0.5);
-    expect(raceR.karts[0]!.speed).toBeGreaterThan(speedBeforeBoost + 8);
-    expect(raceR.lastEvents.boostTriggered.some((b) => b.slot === 0)).toBe(true);
+    expect(raceR.karts[0]!.boostTimer).toBe(0);
+    expect(raceR.lastEvents.boostTriggered.length).toBe(0);
 
-    // Analog steering (`steerAnalog = 0.45`) smoothly holds right thruster at 55%
+    // 1-second trajectory predictor curves smoothly along current steering and fades to alpha = 0!
+    const trajR = predictKartTrajectory(raceR.karts[0]!, circuit, 1.0, 16);
+    const trajL = predictKartTrajectory(raceL.karts[0]!, circuit, 1.0, 16);
+    expect(trajR.length).toBe(17);
+    expect(trajR[0]!.alpha).toBeGreaterThan(0.8);
+    expect(trajR[8]!.alpha).toBeGreaterThan(0.1);
+    expect(trajR[8]!.alpha).toBeLessThan(trajR[0]!.alpha);
+    expect(trajR[16]!.alpha).toBe(0);
+    // Turning left vs right predicts diverging spatial paths 1s ahead
+    const endR = trajR[16]!;
+    const endL = trajL[16]!;
+    expect(Math.hypot(endR.x - endL.x, endR.z - endL.z)).toBeGreaterThan(20);
+
+    // Analog steering (`steerAnalog = 0.45`) smoothly holds right rocket at 55%
     const raceAnalog = createRaceState('sunset-loop', '1p', 7);
     for (let i = 0; i < 12; i += 1) {
       stepRaceState(raceAnalog, { 0: { left: false, right: true, steerAnalog: 0.45 } }, 16.67);
@@ -139,9 +167,10 @@ describe('Micro Kart 3D circuits, F1 dual-thruster physics, PWM ramp, lateral sl
     expect(raceAnalog.karts[0]!.rightThrottle).toBeCloseTo(0.55, 2);
   });
 
-  it('keeps karts inside cushioned track barriers and advances karts & AI rivals cleanly across 3 laps', () => {
+  it('keeps karts planted inside track barriers and advances karts & AI rivals cleanly across 3 laps', () => {
     const circuit = CIRCUITS['canyon-crest'];
     const race = createRaceState('canyon-crest', '1p', 99);
+    let maxSlip = 0;
     for (let step = 0; step < 3600 && race.status === 'racing'; step += 1) {
       const k0 = race.karts[0]!;
       const lookahead = Math.min(44, 18 + k0.speed * 0.28);
@@ -162,12 +191,13 @@ describe('Micro Kart 3D circuits, F1 dual-thruster physics, PWM ramp, lateral sl
         },
         20,
       );
-
+      maxSlip = Math.max(maxSlip, Math.abs(k0.lateralSlip));
       const proj = projectOntoCircuit(circuit, k0.x, k0.z, k0.s);
       expect(Math.abs(proj.lat)).toBeLessThanOrEqual(circuit.wallHalfWidth + 0.5);
     }
 
     expect(race.status).toBe('finished');
+    expect(maxSlip).toBeLessThan(8);
     expect(race.karts[0]!.lap).toBe(TOTAL_LAPS + 1);
     expect(race.karts[0]!.bestLapMs).not.toBeNull();
     expect(race.karts[1]!.unwrappedS).toBeGreaterThan(circuit.totalLength * 2.5);
@@ -180,13 +210,11 @@ describe('Micro Kart 3D circuits, F1 dual-thruster physics, PWM ramp, lateral sl
     const dog = race.karts[2]!;
     const bunny = race.karts[3]!;
 
-    // 1. At standstill: upright neutral posture, minimal wind tuck and gentle ears
     const idleFox = computeDriverPose(fox, 0);
     expect(idleFox.aeroTuck).toBe(0);
     expect(Math.abs(idleFox.torsoRoll)).toBeLessThan(0.01);
     expect(Math.abs(idleFox.headDuckZ)).toBeLessThan(0.01);
 
-    // 2. Tight left vs right turn (`yawRate`): torso & head lean opposite directions into the turn
     fox.speed = 70;
     fox.yawRate = -1.6;
     fox.leftThrottle = 0;
@@ -198,35 +226,32 @@ describe('Micro Kart 3D circuits, F1 dual-thruster physics, PWM ramp, lateral sl
     fox.rightThrottle = 0;
     const rightTurn = computeDriverPose(fox, 100);
 
-    expect(leftTurn.torsoRoll).toBeGreaterThan(0.2); // leans left (+roll)
-    expect(rightTurn.torsoRoll).toBeLessThan(-0.2); // leans right (-roll)
+    expect(leftTurn.torsoRoll).toBeGreaterThan(0.2);
+    expect(rightTurn.torsoRoll).toBeLessThan(-0.2);
     expect(leftTurn.torsoShiftX).toBeLessThan(-0.1);
     expect(rightTurn.torsoShiftX).toBeGreaterThan(0.1);
     expect(leftTurn.headYaw).toBeLessThan(-0.3);
     expect(rightTurn.headYaw).toBeGreaterThan(0.3);
 
-    // 3. Top speed (100 m/s) & boost: driver ducks head forward/down and blows ears back for all 4 species!
     for (const k of [fox, cat, dog, bunny]) {
       k.speed = 98;
       k.yawRate = 0;
       k.leftThrottle = 1;
       k.rightThrottle = 1;
-      k.boostTimer = 0.6;
     }
     const fastFox = computeDriverPose(fox, 200);
     const fastCat = computeDriverPose(cat, 200);
     const fastDog = computeDriverPose(dog, 200);
     const fastBunny = computeDriverPose(bunny, 200);
 
-    expect(fastFox.aeroTuck).toBeGreaterThan(1.0);
-    expect(fastFox.torsoPitch).toBeGreaterThan(0.2);
-    expect(fastFox.headDuckZ).toBeGreaterThan(0.14);
-    expect(fastFox.headDuckY).toBeLessThan(-0.09);
+    expect(fastFox.aeroTuck).toBeGreaterThan(0.9);
+    expect(fastFox.torsoPitch).toBeGreaterThan(0.18);
+    expect(fastFox.headDuckZ).toBeGreaterThan(0.12);
+    expect(fastFox.headDuckY).toBeLessThan(-0.08);
 
-    // Upright ears (`fox`, `cat`, `bunny`) sweep back with negative pitch; floppy `dog` ears sweep back with positive pitch!
-    expect(fastFox.leftEarPitch).toBeLessThan(-0.55);
-    expect(fastCat.leftEarPitch).toBeLessThan(-0.45);
-    expect(fastBunny.leftEarPitch).toBeLessThan(-0.95);
-    expect(fastDog.leftEarPitch).toBeGreaterThan(0.75);
+    expect(fastFox.leftEarPitch).toBeLessThan(-0.5);
+    expect(fastCat.leftEarPitch).toBeLessThan(-0.42);
+    expect(fastBunny.leftEarPitch).toBeLessThan(-0.8);
+    expect(fastDog.leftEarPitch).toBeGreaterThan(0.65);
   });
 });

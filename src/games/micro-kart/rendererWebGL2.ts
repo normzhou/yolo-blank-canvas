@@ -17,8 +17,8 @@ import {
   CIRCUITS,
   getKartDriverSpec,
   KART_DRIVERS,
-  MINI_TURBO_CHARGE_SEC,
-  ULTRA_TURBO_CHARGE_SEC,
+  predictKartTrajectory,
+  speedToColorRgb,
   type CircuitDefinition,
   type CircuitId,
   type DriverCharacterId,
@@ -1004,16 +1004,18 @@ function buildStaticCircuitMesh(circuit: CircuitDefinition): MeshBuilder {
       MAT_MATTE,
     );
 
-    // Sunny center dashed racing line
+    // Speed-matched center dashed racing line (matches onscreen speedometer color for skid-free cornering!)
     if (even && i0 !== 0) {
-      const lw = 0.38;
+      const lw = 0.54;
+      const lineRgb = speedToColorRgb(n0.recommendedSpeed);
       mb.addFlatQuad(
-        { x: n0.x - n0.rx * lw, y: n0.y + 0.045, z: n0.z - n0.rz * lw },
-        { x: n0.x + n0.rx * lw, y: n0.y + 0.045, z: n0.z + n0.rz * lw },
-        { x: n1.x + n1.rx * lw, y: n1.y + 0.045, z: n1.z + n1.rz * lw },
-        { x: n1.x - n1.rx * lw, y: n1.y + 0.045, z: n1.z - n1.rz * lw },
-        [255, 246, 200],
+        { x: n0.x - n0.rx * lw, y: n0.y + 0.048, z: n0.z - n0.rz * lw },
+        { x: n0.x + n0.rx * lw, y: n0.y + 0.048, z: n0.z + n0.rz * lw },
+        { x: n1.x + n1.rx * lw, y: n1.y + 0.048, z: n1.z + n1.rz * lw },
+        { x: n1.x - n1.rx * lw, y: n1.y + 0.048, z: n1.z - n1.rz * lw },
+        lineRgb,
         MAT_MATTE,
+        1,
       );
     }
 
@@ -1356,6 +1358,48 @@ void main() {
 }
 `;
 
+const SHADOW_FLOATS_PER_VERT = 7; // pos(3) + rgba(4)
+
+const SHADOW_VS = `#version 300 es
+layout(location = 0) in vec3 aPos;
+layout(location = 1) in vec4 aColor;
+
+uniform vec3 uCamPos;
+uniform vec3 uCamR;
+uniform vec3 uCamU;
+uniform vec3 uCamF;
+uniform vec2 uProjScale;
+uniform float uCenterYBias;
+
+out vec4 vColor;
+
+void main() {
+  vec3 rel = aPos - uCamPos;
+  float vx = dot(rel, uCamR);
+  float vy = dot(rel, uCamU);
+  float vz = dot(rel, uCamF);
+
+  vColor = aColor;
+  float near = 1.05;
+  float far = 340.0;
+  float clipX = vx * uProjScale.x;
+  float clipY = vy * uProjScale.y + uCenterYBias * vz;
+  float clipZ = ((far + near) / (far - near)) * vz - ((2.0 * far * near) / (far - near));
+  gl_Position = vec4(clipX, clipY, clipZ, vz);
+}
+`;
+
+const SHADOW_FS = `#version 300 es
+precision highp float;
+
+in vec4 vColor;
+out vec4 outColor;
+
+void main() {
+  outColor = vColor;
+}
+`;
+
 const SKY_VS = `#version 300 es
 layout(location = 0) in vec2 aQuad;
 out vec2 vUv;
@@ -1468,10 +1512,13 @@ export class MicroKartWebGL2Renderer {
   private gl: WebGL2RenderingContext | null = null;
   private worldProg: WebGLProgram | null = null;
   private skyProg: WebGLProgram | null = null;
+  private shadowProg: WebGLProgram | null = null;
   private worldVao: WebGLVertexArrayObject | null = null;
   private skyVao: WebGLVertexArrayObject | null = null;
   private dynamicVao: WebGLVertexArrayObject | null = null;
+  private shadowVao: WebGLVertexArrayObject | null = null;
   private dynamicVbo: WebGLBuffer | null = null;
+  private shadowVbo: WebGLBuffer | null = null;
   private skyVbo: WebGLBuffer | null = null;
 
   private circuitMeshes = new Map<CircuitId, StaticGpuMesh>();
@@ -1485,9 +1532,11 @@ export class MicroKartWebGL2Renderer {
   private readonly worldPartBasis = new Float32Array(9);
   private readonly headWorldBasis = new Float32Array(9);
   private readonly dynamicScratch = new Float32Array(4096 * FLOATS_PER_VERT);
+  private readonly shadowScratch = new Float32Array(512 * SHADOW_FLOATS_PER_VERT);
 
   private uniforms: Record<string, WebGLUniformLocation | null> = {};
   private skyUniforms: Record<string, WebGLUniformLocation | null> = {};
+  private shadowUniforms: Record<string, WebGLUniformLocation | null> = {};
 
   private readonly sunDir = (() => {
     const l = Math.hypot(0.42, 0.82, -0.38);
@@ -1593,11 +1642,13 @@ export class MicroKartWebGL2Renderer {
 
     const worldProg = this.compileProgram(gl, WORLD_VS, WORLD_FS);
     const skyProg = this.compileProgram(gl, SKY_VS, SKY_FS);
-    if (!worldProg || !skyProg) return false;
+    const shadowProg = this.compileProgram(gl, SHADOW_VS, SHADOW_FS);
+    if (!worldProg || !skyProg || !shadowProg) return false;
 
     this.gl = gl;
     this.worldProg = worldProg;
     this.skyProg = skyProg;
+    this.shadowProg = shadowProg;
 
     this.uniforms = {
       uModelPos: gl.getUniformLocation(worldProg, 'uModelPos'),
@@ -1621,6 +1672,14 @@ export class MicroKartWebGL2Renderer {
       uHorizonUvY: gl.getUniformLocation(skyProg, 'uHorizonUvY'),
       uYawPhase: gl.getUniformLocation(skyProg, 'uYawPhase'),
       uIsStarry: gl.getUniformLocation(skyProg, 'uIsStarry'),
+    };
+    this.shadowUniforms = {
+      uCamPos: gl.getUniformLocation(shadowProg, 'uCamPos'),
+      uCamR: gl.getUniformLocation(shadowProg, 'uCamR'),
+      uCamU: gl.getUniformLocation(shadowProg, 'uCamU'),
+      uCamF: gl.getUniformLocation(shadowProg, 'uCamF'),
+      uProjScale: gl.getUniformLocation(shadowProg, 'uProjScale'),
+      uCenterYBias: gl.getUniformLocation(shadowProg, 'uCenterYBias'),
     };
 
     const skyVao = gl.createVertexArray()!;
@@ -1647,6 +1706,19 @@ export class MicroKartWebGL2Renderer {
     this.bindWorldAttribs(gl);
     this.dynamicVao = dynVao;
     this.dynamicVbo = dynVbo;
+
+    const shVao = gl.createVertexArray()!;
+    gl.bindVertexArray(shVao);
+    const shVbo = gl.createBuffer()!;
+    gl.bindBuffer(gl.ARRAY_BUFFER, shVbo);
+    gl.bufferData(gl.ARRAY_BUFFER, this.shadowScratch.byteLength, gl.DYNAMIC_DRAW);
+    const shStride = SHADOW_FLOATS_PER_VERT * 4;
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 3, gl.FLOAT, false, shStride, 0);
+    gl.enableVertexAttribArray(1);
+    gl.vertexAttribPointer(1, 4, gl.FLOAT, false, shStride, 3 * 4);
+    this.shadowVao = shVao;
+    this.shadowVbo = shVbo;
     gl.bindVertexArray(null);
 
     for (const drv of KART_DRIVERS) {
@@ -1829,19 +1901,21 @@ export class MicroKartWebGL2Renderer {
     };
 
     for (const kart of race.karts) {
-      const shYaw = kart.yaw + kart.driftYaw;
-      const srx = Math.cos(shYaw) * 1.44;
-      const srz = -Math.sin(shYaw) * 1.44;
-      const sfx = Math.sin(shYaw) * 2.15;
-      const sfz = Math.cos(shYaw) * 2.15;
-      const sy = kart.y + 0.05;
-      pushDynQuad(
-        kart.x - srx - sfx, sy, kart.z - srz - sfz,
-        kart.x + srx - sfx, sy, kart.z + srz - sfz,
-        kart.x + srx + sfx, sy, kart.z + srz + sfz,
-        kart.x - srx + sfx, sy, kart.z - srz + sfz,
-        0.08, 0.1, 0.14,
-      );
+      if (kart.slot !== _focusSlot) {
+        const shYaw = kart.yaw + kart.driftYaw;
+        const srx = Math.cos(shYaw) * 1.44;
+        const srz = -Math.sin(shYaw) * 1.44;
+        const sfx = Math.sin(shYaw) * 2.15;
+        const sfz = Math.cos(shYaw) * 2.15;
+        const sy = kart.y + 0.05;
+        pushDynQuad(
+          kart.x - srx - sfx, sy, kart.z - srz - sfz,
+          kart.x + srx - sfx, sy, kart.z + srz - sfz,
+          kart.x + srx + sfx, sy, kart.z + srz + sfz,
+          kart.x - srx + sfx, sy, kart.z - srz + sfz,
+          0.08, 0.1, 0.14,
+        );
+      }
 
       const marks = kart.skidMarks;
       for (let i = 1; i < marks.length; i += 1) {
@@ -1878,6 +1952,96 @@ export class MicroKartWebGL2Renderer {
       gl.uniform3f(this.uniforms.uTint!, 1, 1, 1);
       gl.drawArrays(gl.TRIANGLES, 0, dynIdx / FLOATS_PER_VERT);
       gl.disable(gl.POLYGON_OFFSET_FILL);
+    }
+
+    // 3b. Curved 1-Second Predicted Trajectory Shadow in Driver's Theme Color (solid beneath car -> transparent at 1s!)
+    const focusKart = race.karts[_focusSlot];
+    if (focusKart && this.shadowProg && this.shadowVao && this.shadowVbo) {
+      const traj = predictKartTrajectory(focusKart, circuit, 1.0, 16);
+      const spec = getKartDriverSpec(focusKart.character);
+      // Rich theme-colored shadow tint (`kartPrimary`)
+      const tr = spec.kartPrimary[0] / 255;
+      const tg = spec.kartPrimary[1] / 255;
+      const tb = spec.kartPrimary[2] / 255;
+
+      let shIdx = 0;
+      const pushShVert = (vx: number, vy: number, vz: number, r: number, g: number, b: number, a: number) => {
+        if (shIdx + SHADOW_FLOATS_PER_VERT > this.shadowScratch.length) return;
+        this.shadowScratch[shIdx++] = vx;
+        this.shadowScratch[shIdx++] = vy;
+        this.shadowScratch[shIdx++] = vz;
+        this.shadowScratch[shIdx++] = r;
+        this.shadowScratch[shIdx++] = g;
+        this.shadowScratch[shIdx++] = b;
+        this.shadowScratch[shIdx++] = a;
+      };
+      const pushShQuad = (
+        x0: number, y0: number, z0: number, a0: number,
+        x1: number, y1: number, z1: number, a1: number,
+        x2: number, y2: number, z2: number, a2: number,
+        x3: number, y3: number, z3: number, a3: number,
+      ) => {
+        pushShVert(x0, y0, z0, tr, tg, tb, a0);
+        pushShVert(x1, y1, z1, tr, tg, tb, a1);
+        pushShVert(x2, y2, z2, tr, tg, tb, a2);
+        pushShVert(x0, y0, z0, tr, tg, tb, a0);
+        pushShVert(x2, y2, z2, tr, tg, tb, a2);
+        pushShVert(x3, y3, z3, tr, tg, tb, a3);
+      };
+
+      // Solid contact-shadow footprint directly beneath the rear/center of the kart (`z = -2.0m .. 0`)
+      const kFx = Math.sin(focusKart.yaw);
+      const kFz = Math.cos(focusKart.yaw);
+      const kRx = Math.cos(focusKart.yaw);
+      const kRz = -Math.sin(focusKart.yaw);
+      const p0 = traj[0]!;
+      const backX = p0.x - kFx * 2.05;
+      const backZ = p0.z - kFz * 2.05;
+      const baseW = 1.62;
+      pushShQuad(
+        backX - kRx * baseW, p0.y, backZ - kRz * baseW, 0.88,
+        backX + kRx * baseW, p0.y, backZ + kRz * baseW, 0.88,
+        p0.x + p0.rx * baseW, p0.y, p0.z + p0.rz * baseW, 0.85,
+        p0.x - p0.rx * baseW, p0.y, p0.z - p0.rz * baseW, 0.85,
+      );
+
+      // Curved 1-second predicted trajectory ribbon tapering & fading smoothly to alpha = 0!
+      for (let i = 0; i < traj.length - 1; i += 1) {
+        const a = traj[i]!;
+        const b = traj[i + 1]!;
+        const wA = baseW * (1 - (a.t / 1.0) * 0.42);
+        const wB = baseW * (1 - (b.t / 1.0) * 0.42);
+        pushShQuad(
+          a.x - a.rx * wA, a.y, a.z - a.rz * wA, a.alpha,
+          a.x + a.rx * wA, a.y, a.z + a.rz * wA, a.alpha,
+          b.x + b.rx * wB, b.y, b.z + b.rz * wB, b.alpha,
+          b.x - b.rx * wB, b.y, b.z - b.rz * wB, b.alpha,
+        );
+      }
+
+      if (shIdx > 0) {
+        gl.useProgram(this.shadowProg);
+        gl.uniform3f(this.shadowUniforms.uCamPos!, cam.x, cam.y, cam.z);
+        gl.uniform3f(this.shadowUniforms.uCamR!, rx, ry, rz);
+        gl.uniform3f(this.shadowUniforms.uCamU!, ux, uy, uz);
+        gl.uniform3f(this.shadowUniforms.uCamF!, fx, fy, fz);
+        gl.uniform2f(this.shadowUniforms.uProjScale!, (2.0 * focal) / pxW, (2.0 * focal) / pxH);
+        gl.uniform1f(this.shadowUniforms.uCenterYBias!, centerYBias);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.depthMask(false);
+        gl.enable(gl.POLYGON_OFFSET_FILL);
+        gl.polygonOffset(-3.0, -6.0);
+        gl.bindVertexArray(this.shadowVao);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.shadowVbo);
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.shadowScratch.subarray(0, shIdx));
+        gl.drawArrays(gl.TRIANGLES, 0, shIdx / SHADOW_FLOATS_PER_VERT);
+        gl.disable(gl.POLYGON_OFFSET_FILL);
+        gl.depthMask(true);
+        gl.disable(gl.BLEND);
+        // Restore world program for kart meshes
+        gl.useProgram(this.worldProg);
+      }
     }
 
     // 4. Playful Toy Bumper-Karts & Starlight Burst Companions
@@ -1995,26 +2159,19 @@ export class MicroKartWebGL2Renderer {
         this.worldPartBasis,
       );
 
-      // Bright Cartoon Rocket-Pipe Thruster Flames + Drift Sparks!
+      // Pure Dual-Rocket Exhaust Flames scaled strictly in proportion to each thruster's output (`0..1`)!
       if (this.flameMesh) {
-        const flicker = 0.86 + Math.sin(timeMs * 0.045 + kart.slot) * 0.18;
-        const isBoosting = kart.boostTimer > 0;
-        const speedBase = Math.min(1, 0.3 + kart.speed / 45);
-        const boostGain = isBoosting ? 1.55 : 1.15;
+        const flicker = 0.88 + Math.sin(timeMs * 0.045 + kart.slot) * 0.14;
         const powers: ReadonlyArray<[number, number]> = [
-          [-0.49, kart.leftThrottle * boostGain * (isBoosting ? 1 : speedBase)],
-          [0.49, kart.rightThrottle * boostGain * (isBoosting ? 1 : speedBase)],
+          [-0.49, kart.leftThrottle],
+          [0.49, kart.rightThrottle],
         ];
-        const [fr, fg, fb] = isBoosting
-          ? kart.boostKind === 'ultra'
-            ? [1.0, 0.86, 0.18]
-            : [0.24, 0.94, 1.0]
-          : [1.0, 0.68, 0.22];
+        const [fr, fg, fb] = [1.0, 0.68, 0.22];
 
-        for (const [cx, pwr] of powers) {
-          if (pwr <= 0.05) continue;
-          const len = (1.1 + pwr * 1.45) * flicker;
-          const radScale = Math.min(1.3, 0.74 + pwr * 0.38);
+        for (const [cx, throttle] of powers) {
+          if (throttle <= 0.02) continue;
+          const len = (0.35 + throttle * 2.15) * flicker;
+          const radScale = 0.42 + throttle * 0.72;
           const fOff = transformOffsetByBasis(this.kartBasis, cx, 0.52, -1.9);
           this.drawStaticMesh(
             gl,
@@ -2030,33 +2187,6 @@ export class MicroKartWebGL2Renderer {
             fg,
             fb,
           );
-        }
-
-        if (kart.driftCharge >= 0.18) {
-          const [sr, sg, sb] =
-            kart.driftCharge >= ULTRA_TURBO_CHARGE_SEC
-              ? [1.0, 0.85, 0.18]
-              : kart.driftCharge >= MINI_TURBO_CHARGE_SEC
-                ? [0.22, 0.94, 1.0]
-                : [1.0, 1.0, 1.0];
-          const sparkLen = (0.58 + Math.min(1.1, kart.driftCharge * 0.65)) * flicker;
-          for (const sx of [-1.28, 1.28]) {
-            const spOff = transformOffsetByBasis(this.kartBasis, sx, 0.34, -1.42);
-            this.drawStaticMesh(
-              gl,
-              this.flameMesh,
-              kart.x + spOff.x,
-              kart.y + bounceY + spOff.y,
-              kart.z + spOff.z,
-              this.kartBasis,
-              0.56,
-              0.56,
-              sparkLen,
-              sr,
-              sg,
-              sb,
-            );
-          }
         }
       }
     }
@@ -2084,11 +2214,14 @@ export class MicroKartWebGL2Renderer {
       if (this.flameMesh) gl.deleteBuffer(this.flameMesh.vbo);
       if (this.unitBoxMesh) gl.deleteBuffer(this.unitBoxMesh.vbo);
       if (this.dynamicVbo) gl.deleteBuffer(this.dynamicVbo);
+      if (this.shadowVbo) gl.deleteBuffer(this.shadowVbo);
       if (this.skyVbo) gl.deleteBuffer(this.skyVbo);
       if (this.worldVao) gl.deleteVertexArray(this.worldVao);
       if (this.dynamicVao) gl.deleteVertexArray(this.dynamicVao);
+      if (this.shadowVao) gl.deleteVertexArray(this.shadowVao);
       if (this.skyVao) gl.deleteVertexArray(this.skyVao);
       if (this.worldProg) gl.deleteProgram(this.worldProg);
+      if (this.shadowProg) gl.deleteProgram(this.shadowProg);
       if (this.skyProg) gl.deleteProgram(this.skyProg);
     }
     this.circuitMeshes.clear();

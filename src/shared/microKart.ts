@@ -121,11 +121,25 @@ export interface TrackNode {
   readonly rz: number;
   /** Signed horizontal curvature (positive = turning right, negative = turning left). */
   readonly curvature: number;
+  /** Recommended no-skid corner speed in m/s (`45 .. 100`) for center-stripe color guidance. */
+  readonly recommendedSpeed: number;
   readonly hasBoostPad: boolean;
   readonly boostLat: number;
   readonly hasChevron: boolean;
   /** Which road shoulder carries the turn-warning chevron (`-1` left, `+1` right). */
   readonly chevronSide: -1 | 1;
+}
+
+export interface TrajectoryPoint {
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
+  readonly rx: number;
+  readonly rz: number;
+  /** Elapsed prediction time in seconds (`0 .. durationSec`). */
+  readonly t: number;
+  /** Alpha opacity (`0.85` beneath car -> `0.0` at 1s out). */
+  readonly alpha: number;
 }
 
 export interface CircuitTheme {
@@ -315,43 +329,80 @@ export interface KartNetSnapshot {
 export const TOTAL_LAPS = 3;
 export const TRACK_SEGMENTS = 192;
 
-// F1-calibrated dual-thruster rigid-body physics constants (#384):
+// F1-calibrated dual-rocket rigid-body physics constants (#384, #388):
 // - Mass m = 800 kg, F1 top speed v_max = 100 m/s (360 km/h)
-// - In zero air drag, full dual thrust reaches v_max in exactly 3.0 seconds
-// - Quadratic aero drag + rolling resistance equilibrate full dual thrust at v_max = 100 m/s
+// - In zero air drag, full dual rocket thrust reaches v_max in exactly 2.0 seconds
+// - Quadratic aero drag + asphalt rolling resistance equilibrate full dual thrust at 100 m/s
 export const KART_MASS_KG = 800;
 export const GRAVITY_MPS2 = 9.81;
 export const MAX_STRAIGHT_SPEED = 100;
-export const VACUUM_ACCEL_TIME_SEC = 3.0;
+export const VACUUM_ACCEL_TIME_SEC = 2.0;
 export const MAX_TOTAL_THRUST_N = (KART_MASS_KG * MAX_STRAIGHT_SPEED) / VACUUM_ACCEL_TIME_SEC;
 export const PER_THRUSTER_MAX_N = MAX_TOTAL_THRUST_N * 0.5;
 export const ASPHALT_ROLLING_DRAG_N = 480;
 export const AERO_DRAG_COEFF =
   (MAX_TOTAL_THRUST_N - ASPHALT_ROLLING_DRAG_N) / (MAX_STRAIGHT_SPEED * MAX_STRAIGHT_SPEED);
-export const BRAKE_FORCE_N = 38_000;
-export const OFFROAD_EXTRA_DRAG_N = 14_000;
+export const BRAKE_FORCE_N = 42_000;
+export const OFFROAD_EXTRA_DRAG_N = 15_000;
 
 /** Linear ramp time (seconds) for keyboard 100% <-> 0% thruster modulation (PWM-friendly). */
-export const THRUSTER_RAMP_SEC = 0.65;
+export const THRUSTER_RAMP_SEC = 0.55;
 export const ANALOG_RAMP_SEC = 0.06;
-export const BRAKE_CUT_RAMP_SEC = 0.12;
+export const BRAKE_CUT_RAMP_SEC = 0.11;
 
-// Rotational dynamics (differential thrust torque vs angular inertia & yaw damping)
-export const THRUSTER_HALF_SPAN_M = 0.78;
-export const KART_YAW_INERTIA = 1350;
-export const YAW_DAMPING = 4800;
+// Rotational dynamics (differential rocket torque vs angular inertia & yaw damping)
+export const THRUSTER_HALF_SPAN_M = 0.68;
+export const KART_YAW_INERTIA = 1400;
+export const YAW_DAMPING = 6500;
 
-// Lateral tire friction + F1 speed-squared aerodynamic downforce (grippy F1 feel, moderate slide when overspeeding)
-export const TIRE_LATERAL_MU = 3.6;
-export const AERO_DOWNFORCE_COEFF = 0.0052;
-export const TIRE_CORNERING_STIFFNESS = 12.5;
-export const SLIP_SELF_ALIGN_TORQUE = 120;
+// Planted F1 lateral tire friction + speed-squared downforce (controlled, low-skid feel)
+export const TIRE_LATERAL_MU = 4.6;
+export const AERO_DOWNFORCE_COEFF = 0.0024;
+export const TIRE_CORNERING_STIFFNESS = 18.0;
+export const SLIP_SELF_ALIGN_TORQUE = 180;
 
-/** Approximate single-thruster equilibrium (~71% top speed) & boosted equilibrium (~128 m/s). */
+/** Approximate single-thruster equilibrium (~71% top speed). */
 export const MAX_DRIFT_SPEED = Math.round(MAX_STRAIGHT_SPEED * Math.SQRT1_2);
-export const MAX_BOOST_SPEED = 128;
+export const MAX_BOOST_SPEED = MAX_STRAIGHT_SPEED;
 export const MINI_TURBO_CHARGE_SEC = 0.42;
 export const ULTRA_TURBO_CHARGE_SEC = 1.1;
+
+const SPEED_COLOR_STOPS: ReadonlyArray<{ readonly mps: number; readonly rgb: readonly [number, number, number] }> = [
+  { mps: 0, rgb: [56, 232, 255] }, // 0 km/h — electric cyan
+  { mps: 55, rgb: [52, 211, 153] }, // 198 km/h — vivid emerald green (tight hairpin pace)
+  { mps: 72, rgb: [250, 204, 21] }, // 259 km/h — sunny gold (sweeper pace)
+  { mps: 86, rgb: [251, 146, 60] }, // 310 km/h — fiery orange (fast bend pace)
+  { mps: 100, rgb: [255, 86, 102] }, // 360 km/h — racing coral-red (flat-out top speed)
+];
+
+/**
+ * Shared speed-to-RGB color spectrum used identically on the onscreen speedometer
+ * and on the center road dashes (`node.recommendedSpeed`) so matching speedometer
+ * color to road-stripe color guides clean, skid-free cornering (#388).
+ */
+export function speedToColorRgb(speedMps: number): [number, number, number] {
+  const s = clamp(speedMps, 0, MAX_STRAIGHT_SPEED);
+  for (let i = 0; i < SPEED_COLOR_STOPS.length - 1; i += 1) {
+    const a = SPEED_COLOR_STOPS[i]!;
+    const b = SPEED_COLOR_STOPS[i + 1]!;
+    if (s <= b.mps) {
+      const t = (s - a.mps) / Math.max(1e-6, b.mps - a.mps);
+      return [
+        Math.round(a.rgb[0] + (b.rgb[0] - a.rgb[0]) * t),
+        Math.round(a.rgb[1] + (b.rgb[1] - a.rgb[1]) * t),
+        Math.round(a.rgb[2] + (b.rgb[2] - a.rgb[2]) * t),
+      ];
+    }
+  }
+  const last = SPEED_COLOR_STOPS[SPEED_COLOR_STOPS.length - 1]!.rgb;
+  return [last[0], last[1], last[2]];
+}
+
+export function speedToColorHex(speedMps: number): string {
+  const [r, g, b] = speedToColorRgb(speedMps);
+  const hex = (n: number) => n.toString(16).padStart(2, '0');
+  return `#${hex(r)}${hex(g)}${hex(b)}`;
+}
 
 function wrapAngle(a: number): number {
   let r = a;
@@ -499,12 +550,6 @@ function buildCircuit(spec: CircuitSpec): CircuitDefinition {
     return { u, ...spec.evalPoint(u) };
   });
 
-  const boostMap = new Map<number, number>();
-  for (const b of spec.boostSegments) {
-    boostMap.set(((b.seg % N) + N) % N, b.lat);
-    boostMap.set((((b.seg + 1) % N) + N) % N, b.lat);
-  }
-
   let cumS = 0;
   const sArr: number[] = [0];
   for (let i = 0; i < N; i += 1) {
@@ -516,7 +561,7 @@ function buildCircuit(spec: CircuitSpec): CircuitDefinition {
   }
   const totalLength = cumS;
 
-  const nodes: TrackNode[] = rawPts.map((pt, i) => {
+  const baseNodes = rawPts.map((pt, i) => {
     const prev = rawPts[(i - 1 + N) % N]!;
     const next = rawPts[(i + 1) % N]!;
     const dx = next.x - prev.x;
@@ -541,9 +586,8 @@ function buildCircuit(spec: CircuitSpec): CircuitDefinition {
     const segLen = Math.hypot(next.x - pt.x, next.z - pt.z) || 1;
     const curvature = wrapAngle(yaw2 - yaw1) / segLen;
 
-    const hasChevron = Math.abs(curvature) > 0.0085 && i % 3 === 0;
+    const hasChevron = Math.abs(curvature) > 0.0068 && i % 3 === 0;
     const chevronSide: -1 | 1 = curvature > 0 ? -1 : 1; // Outside shoulder of the turn!
-    const boostLat = boostMap.get(i);
 
     return {
       index: i,
@@ -558,10 +602,38 @@ function buildCircuit(spec: CircuitSpec): CircuitDefinition {
       rx,
       rz,
       curvature,
-      hasBoostPad: boostLat !== undefined,
-      boostLat: boostLat ?? 0,
       hasChevron,
       chevronSide,
+    };
+  });
+
+  // Compute no-skid recommended cornering speed (m/s) per node with a 0.72 safety margin
+  // plus 5-segment (~45m) braking-zone lookahead so center road dashes warn drivers early!
+  const gripBudget = TIRE_LATERAL_MU * GRAVITY_MPS2 * 0.72;
+  const dfBudget = AERO_DOWNFORCE_COEFF * 0.72;
+  const rawSafeSpeeds = baseNodes.map((n) => {
+    const absK = Math.abs(n.curvature);
+    if (absK <= dfBudget + 1e-5) return MAX_STRAIGHT_SPEED;
+    return clamp(Math.sqrt(gripBudget / (absK - dfBudget)), 45, MAX_STRAIGHT_SPEED);
+  });
+  const lookaheadSpeeds = rawSafeSpeeds.map((_, i) => {
+    let minSpd = MAX_STRAIGHT_SPEED;
+    for (let look = 0; look <= 5; look += 1) {
+      const sp = rawSafeSpeeds[(i + look) % N]!;
+      if (sp < minSpd) minSpd = sp;
+    }
+    return minSpd;
+  });
+  const nodes: TrackNode[] = baseNodes.map((n, i) => {
+    const prevSpd = lookaheadSpeeds[(i - 1 + N) % N]!;
+    const curSpd = lookaheadSpeeds[i]!;
+    const nextSpd = lookaheadSpeeds[(i + 1) % N]!;
+    const smoothed = prevSpd * 0.22 + curSpd * 0.56 + nextSpd * 0.22;
+    return {
+      ...n,
+      recommendedSpeed: Math.round(smoothed * 10) / 10,
+      hasBoostPad: false,
+      boostLat: 0,
     };
   });
 
@@ -965,7 +1037,6 @@ function stepSingleKart(
   const steerLeft = steerIntent < -0.05;
   const steerRight = steerIntent > 0.05;
   const turning = steerLeft || steerRight;
-  const straightAutoThrottle = !turning && !braking;
 
   // 1. Update continuous per-thruster throttle levels (`0.0 .. 1.0`):
   //    - Braking cuts both thrusters quickly (`BRAKE_CUT_RAMP_SEC`)
@@ -998,55 +1069,15 @@ function stepSingleKart(
   kart.leftThruster = kart.leftThrottle > 0.35;
   kart.rightThruster = kart.rightThrottle > 0.35;
 
-  // 2. Drift Mini-Turbo / Ultra-Turbo charge & release (force-based boost + impulse kick)
-  const throttleDiff = Math.abs(kart.leftThrottle - kart.rightThrottle);
-  if (straightAutoThrottle && kart.driftCharge >= MINI_TURBO_CHARGE_SEC) {
-    const isUltra = kart.driftCharge >= ULTRA_TURBO_CHARGE_SEC;
-    kart.boostTimer = Math.max(kart.boostTimer, isUltra ? 1.4 : 0.9);
-    kart.boostKind = isUltra ? 'ultra' : 'mini';
-    const fx0 = Math.sin(kart.yaw);
-    const fz0 = Math.cos(kart.yaw);
-    const impulseSpeed = isUltra ? 16 : 10;
-    kart.vx += fx0 * impulseSpeed;
-    kart.vz += fz0 * impulseSpeed;
-    events.boostTriggered.push({ slot: kart.slot, kind: kart.boostKind });
-  }
+  // Pure dual-rocket propulsion (#388): no extra drift mini-turbo or boost pads!
+  kart.driftCharge = 0;
+  kart.driftDir = turning && !braking ? (steerLeft ? -1 : 1) : 0;
+  kart.boostTimer = 0;
+  kart.boostKind = 'none';
 
-  if (!turning || braking) {
-    kart.driftCharge = 0;
-    kart.driftDir = 0;
-  } else {
-    const dir: -1 | 1 = steerLeft ? -1 : 1;
-    if (kart.driftDir !== 0 && kart.driftDir !== dir) {
-      kart.driftCharge = 0;
-    }
-    kart.driftDir = dir;
-    if (kart.speed > 20 && (throttleDiff > 0.12 || Math.abs(steerIntent) > 0.25)) {
-      const slipBonus = 1 + clamp(Math.abs(kart.lateralSlip) / 10, 0, 0.45);
-      kart.driftCharge = Math.min(2.0, kart.driftCharge + dt * slipBonus);
-    }
-  }
-
-  // Boost timer decay
-  if (kart.boostTimer > 0) {
-    kart.boostTimer = Math.max(0, kart.boostTimer - dt);
-    if (kart.boostTimer === 0) {
-      kart.boostKind = 'none';
-    }
-  }
-
-  // 3. Dual-thruster forces, rotational torque, angular inertia & yaw damping
-  const boostMult =
-    kart.boostTimer > 0
-      ? kart.boostKind === 'ultra'
-        ? 1.65
-        : kart.boostKind === 'pad'
-          ? 1.6
-          : 1.45
-      : 1.0;
-
-  const fLeft = kart.leftThrottle * PER_THRUSTER_MAX_N * boostMult * aiSpeedScale;
-  const fRight = kart.rightThrottle * PER_THRUSTER_MAX_N * boostMult * aiSpeedScale;
+  // 2. Dual-rocket forces, rotational torque, angular inertia & yaw damping
+  const fLeft = kart.leftThrottle * PER_THRUSTER_MAX_N * aiSpeedScale;
+  const fRight = kart.rightThrottle * PER_THRUSTER_MAX_N * aiSpeedScale;
   const fThrust = fLeft + fRight;
 
   // Left thruster pushing forward creates +yaw (right turn); cutting left creates -yaw (left turn)
@@ -1186,21 +1217,8 @@ function stepSingleKart(
     kart.lateralSlip = kart.vx * nRx + kart.vz * nRz;
   }
 
-  // 7. Track surface Boost Pad detection (adds thrust multiplier + immediate impulse)
-  const node = circuit.nodes[proj.nodeIndex]!;
-  if (node.hasBoostPad && Math.abs(kart.lat - node.boostLat) < 4.2 && kart.boostKind !== 'pad') {
-    kart.boostTimer = Math.max(kart.boostTimer, 1.1);
-    kart.boostKind = 'pad';
-    const bFx = Math.sin(kart.yaw);
-    const bFz = Math.cos(kart.yaw);
-    kart.vx += bFx * 15;
-    kart.vz += bFz * 15;
-    kart.speed = Math.max(0, kart.vx * bFx + kart.vz * bFz);
-    events.boostTriggered.push({ slot: kart.slot, kind: 'pad' });
-  }
-
-  // 8. Record tire skid marks while sliding laterally or braking hard on asphalt
-  if ((Math.abs(kart.lateralSlip) > 2.4 || braking) && kart.speed > 26) {
+  // 7. Record tire skid marks only when actually slipping laterally or braking hard on asphalt
+  if ((Math.abs(kart.lateralSlip) > 3.2 || braking) && kart.speed > 28) {
     const totalVisualYaw = kart.yaw + kart.driftYaw;
     const srx = Math.cos(totalVisualYaw);
     const srz = -Math.sin(totalVisualYaw);
@@ -1407,7 +1425,123 @@ export function toKartNetSnapshot(kart: KartState): KartNetSnapshot {
   };
 }
 
-export function formatRaceClock(ms: number | null): string {
+export function getRecommendedSpeedAtS(circuit: CircuitDefinition, s: number): number {
+  const sample = sampleCircuitAtS(circuit, s);
+  return circuit.nodes[sample.nodeIndex]?.recommendedSpeed ?? MAX_STRAIGHT_SPEED;
+}
+
+/**
+ * Predicts the kart's curved ground trajectory over the next `durationSec` seconds
+ * (default `1.0s`) assuming the driver holds their current steering & thruster levels.
+ * Used to draw the solid-to-transparent theme-colored trajectory shadow beneath and ahead
+ * of the kart (#388).
+ */
+export function predictKartTrajectory(
+  kart: KartState,
+  circuit: CircuitDefinition,
+  durationSec = 1.0,
+  steps = 16,
+): TrajectoryPoint[] {
+  const dt = durationSec / Math.max(1, steps);
+  let x = kart.x;
+  let z = kart.z;
+  let y = kart.y;
+  let yaw = kart.yaw;
+  let vx = kart.vx;
+  let vz = kart.vz;
+  let yawRate = kart.yawRate;
+  let curS = kart.s;
+
+  const fLeft = kart.leftThrottle * PER_THRUSTER_MAX_N;
+  const fRight = kart.rightThrottle * PER_THRUSTER_MAX_N;
+  const fThrust = fLeft + fRight;
+  const torqueThrust = (fLeft - fRight) * THRUSTER_HALF_SPAN_M;
+  const steerDir = kart.leftThrottle - kart.rightThrottle;
+  const braking = kart.braking;
+
+  const pts: TrajectoryPoint[] = [
+    {
+      x,
+      y: y + 0.06,
+      z,
+      rx: Math.cos(yaw),
+      rz: -Math.sin(yaw),
+      t: 0,
+      alpha: 0.85,
+    },
+  ];
+
+  for (let i = 1; i <= steps; i += 1) {
+    const preFx = Math.sin(yaw);
+    const preFz = Math.cos(yaw);
+    const preRx = Math.cos(yaw);
+    const preRz = -Math.sin(yaw);
+    const preVFwd = vx * preFx + vz * preFz;
+    const preVLat = vx * preRx + vz * preRz;
+
+    const torqueBrakeSteer =
+      braking && Math.abs(steerDir) > 0.05
+        ? clamp(steerDir, -1, 1) * 6800 * clamp(preVFwd / 22, 0.25, 1.0)
+        : 0;
+    const torqueAlign = SLIP_SELF_ALIGN_TORQUE * preVLat * clamp(preVFwd / 30, 0.2, 1.0);
+    const yawAccel = (torqueThrust + torqueBrakeSteer + torqueAlign - YAW_DAMPING * yawRate) / KART_YAW_INERTIA;
+    yawRate = clamp(yawRate + yawAccel * dt, -3.2, 3.2);
+    yaw = wrapAngle(yaw + yawRate * dt);
+
+    const fx = Math.sin(yaw);
+    const fz = Math.cos(yaw);
+    const rx = Math.cos(yaw);
+    const rz = -Math.sin(yaw);
+    const vFwd = vx * fx + vz * fz;
+    const vLat = vx * rx + vz * rz;
+    const vMag = Math.hypot(vx, vz);
+
+    const fAeroFwd = -AERO_DRAG_COEFF * vMag * vFwd;
+    const fRoll = vFwd > 0.05 ? -ASPHALT_ROLLING_DRAG_N : 0;
+    const fBrake = braking && vFwd > 0.05 ? -BRAKE_FORCE_N : 0;
+
+    const aLatMax = TIRE_LATERAL_MU * GRAVITY_MPS2 + AERO_DOWNFORCE_COEFF * vFwd * vFwd;
+    const aLatDesired = -TIRE_CORNERING_STIFFNESS * vLat;
+    const aLatTire = clamp(aLatDesired, -aLatMax, aLatMax);
+    const aAeroLat = -(AERO_DRAG_COEFF * vMag * vLat) / KART_MASS_KG;
+    const aScrub = vFwd > 0.5 ? -0.14 * Math.abs(aLatTire) * clamp(Math.abs(vLat) / 10, 0, 1) : 0;
+
+    const aFwd = (fThrust + fAeroFwd + fRoll + fBrake) / KART_MASS_KG + aScrub;
+    const aLat = aLatTire + aAeroLat;
+
+    let nextVFwd = Math.max(0, vFwd + aFwd * dt);
+    if (vFwd >= 0 && vFwd + aFwd * dt < 0) nextVFwd = 0;
+    let nextVLat = vLat + aLat * dt;
+    if (Math.abs(aLatDesired) <= aLatMax && vLat !== 0 && Math.sign(nextVLat) !== Math.sign(vLat)) {
+      nextVLat = 0;
+    }
+
+    vx = fx * nextVFwd + rx * nextVLat;
+    vz = fz * nextVFwd + rz * nextVLat;
+    x += vx * dt;
+    z += vz * dt;
+
+    const proj = projectOntoCircuit(circuit, x, z, curS);
+    curS = proj.s;
+    y = proj.groundY;
+
+    const frac = i / steps;
+    const alpha = i === steps ? 0 : 0.85 * Math.pow(1 - frac, 1.55);
+    pts.push({
+      x,
+      y: y + 0.06,
+      z,
+      rx,
+      rz,
+      t: frac * durationSec,
+      alpha,
+    });
+  }
+
+  return pts;
+}
+
+export function formatRaceClock(ms: number): string {
   if (ms === null || !Number.isFinite(ms)) return '--:--.--';
   const clamped = Math.max(0, Math.round(ms));
   const minutes = Math.floor(clamped / 60_000);

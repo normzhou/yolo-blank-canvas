@@ -3409,6 +3409,35 @@ button.passkey-handoff-copy-btn:hover {
   align-self: center;
 }
 
+.kart-cockpit-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 6px 16px 4px;
+  border-radius: var(--radius);
+  background: var(--yolo-fab-bg);
+}
+
+.kart-speedometer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kart-f1-yoke {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 118px;
+  height: 74px;
+}
+
+.kart-f1-yoke-svg {
+  transform-origin: center center;
+  transition: transform 45ms linear;
+}
+
 .kart-steer-slider {
   pointer-events: auto;
   touch-action: none;
