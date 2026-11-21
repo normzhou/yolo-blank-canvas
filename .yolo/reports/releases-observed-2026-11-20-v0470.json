@@ -1,0 +1,82 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-20",
+  "observed_at": "2026-11-20",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#402",
+  "releases": [
+    {
+      "tag": "v0.47.0",
+      "commit": "d002e094c209ad0ec763cbacbc33213f97c05df3"
+    }
+  ],
+  "release": {
+    "tag": "v0.47.0",
+    "commit": "d002e094c209ad0ec763cbacbc33213f97c05df3",
+    "source_commit": "1540f25a811cdf5a68f8a1535894f27e6dba0df9",
+    "assets_commit": "dbd46a24f2736cfac92a67c931effb01d9071207",
+    "native_version": "0.47.0",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-21T18:35:44Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.47.0",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/403"
+  },
+  "build_identity": {
+    "server_build_id": "1540f25a811cdf5a68f8a1535894f27e6dba0df9",
+    "client_build_id": "1540f25a811cdf5a68f8a1535894f27e6dba0df9",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "30 files, 197 tests passed (including 4-circuit validation, Cloud Gate skyMode/Jade Pool/Cliff/Moon-Ring/scenery checks, and 4-track getNextCircuitId rotation in test/micro-kart.test.ts)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 52 passed (1.1m, including Cloud Gate selection & WebGL2 driving in e2e/micro-kart.spec.ts)",
+      "e2e_live": "npm run e2e:live — 5 passed (12.7s, read-only)",
+      "visual_inspection": "4 real headless Chrome WebGL2 screenshots along Cloud Gate inspected via read_file (South Heaven Gate & sky viaduct, Moon-Ring & cranes, Jade Pool terrace & lotus blossoms, Immortal Cliff & golden pavilion)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.47.0 --no-open --port 4466 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (16.4s)",
+      "ci": "GitHub Actions CI/Test and type check green (29s)"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "c3ae5dd4-4cac-4992-8971-97fb9c444a2f",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.47.0",
+      "observed_build_id": "1540f25a811cdf5a68f8a1535894f27e6dba0df9",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.2.0",
+          "entry": "/games/starlight-burst-GBNrLdJU.js",
+          "hash": "27a6676d3b80780e7cc557cfee1d008a4fb6ae4b74d85fde5e040f52f2e7b116",
+          "sizeBytes": 86740
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-BTouD6yV.js",
+          "hash": "6fa804dd96d3debe1835f3a2cc6e351916f8366a9679865d98352dc6d348b12e",
+          "sizeBytes": 37318
+        },
+        "micro-kart": {
+          "version": "1.8.0",
+          "entry": "/games/micro-kart-wXl_U1Ad.js",
+          "hash": "e93ce6ab43113efa3487dfa9b77dfdcf02654c8e6b55b752d1083bed1d3362bc",
+          "sizeBytes": 124072
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Adds Track #4 Cloud Gate to Micro Kart (@yolo-arcade/game-micro-kart@1.8.0) modeled on the viral Chinese Heavenly Palace aesthetic: infinite shader Sea of Clouds below the horizon with Huangshan spires and Tyndall sunbeams, a suspended white-jade sky viaduct with sculpted 3D cloud banks below, South Heaven Gate start archway, colossal Moon-Ring Arch & sky-waterfall, glossy turquoise Jade Pool terrace with glowing lotus blossoms, Immortal Cliff cut with cantilevered golden pavilion, floating mini-pavilions, white-jade lantern pillars, bonsai sky-pines, and 12 animated soaring Red-Crowned Cranes."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #402"
+}
