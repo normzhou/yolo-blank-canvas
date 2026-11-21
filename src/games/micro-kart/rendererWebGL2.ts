@@ -972,6 +972,10 @@ function buildStaticCircuitMesh(circuit: CircuitDefinition): MeshBuilder {
   const [jpStart, jpEnd] = circuit.theme.jadePoolRange ?? [-1, -1];
   const [clStart, clEnd] = circuit.theme.cliffRange ?? [-1, -1];
   const moonSeg = circuit.theme.moonGateSeg ?? -1;
+  const jadePondY =
+    isCloudSea && jpStart >= 0 && jpEnd >= 0
+      ? Math.min(nodes[jpStart]!.y, nodes[jpEnd]!.y) - 0.25
+      : 0;
 
   for (let i0 = 0; i0 < N; i0 += 1) {
     const i1 = (i0 + 1) % N;
@@ -1015,29 +1019,89 @@ function buildStaticCircuitMesh(circuit: CircuitDefinition): MeshBuilder {
         MAT_MATTE,
       );
 
-      // Jade Pool Terrace (`瑶池`): glossy turquoise-emerald mirror water flanking the causeway!
+      // Jade Pool Terrace (`瑶池`) + Soaring White-Jade Belt Arch Bridge (`玉带桥`, `wm_jade_bridge.jpg`)!
       if (inJadePool) {
-        const poolW = rw + 66;
-        const poolCol: [number, number, number] = even ? [34, 174, 168] : [48, 198, 188];
-        const rimCol: [number, number, number] = [238, 235, 226];
+        const poolW = rw + 68;
+        const poolCol: [number, number, number] = even ? [28, 172, 166] : [42, 198, 188];
+        const rimCol: [number, number, number] = [242, 239, 230];
+        // Continuous shimmering turquoise-emerald pond water spanning flat at `jadePondY` EVEN UNDER THE ARCH BRIDGE!
+        mb.addFlatQuad(
+          { x: n0.x - n0.rx * poolW, y: jadePondY, z: n0.z - n0.rz * poolW },
+          { x: n0.x + n0.rx * poolW, y: jadePondY, z: n0.z + n0.rz * poolW },
+          { x: n1.x + n1.rx * poolW, y: jadePondY, z: n1.z + n1.rz * poolW },
+          { x: n1.x - n1.rx * poolW, y: jadePondY, z: n1.z - n1.rz * poolW },
+          poolCol,
+          MAT_GLOSSY,
+        );
         for (const side of [-1, 1] as const) {
-          const inner = side * cw;
           const outer = side * poolW;
-          const rimOuter = side * (poolW + 2.2);
+          const rimOuter = side * (poolW + 2.6);
           mb.addFlatQuad(
-            { x: n0.x + n0.rx * inner, y: n0.y - 0.16, z: n0.z + n0.rz * inner },
-            { x: n0.x + n0.rx * outer, y: n0.y - 0.16, z: n0.z + n0.rz * outer },
-            { x: n1.x + n1.rx * outer, y: n1.y - 0.16, z: n1.z + n1.rz * outer },
-            { x: n1.x + n1.rx * inner, y: n1.y - 0.16, z: n1.z + n1.rz * inner },
-            poolCol,
-            MAT_GLOSSY,
-          );
-          mb.addFlatQuad(
-            { x: n0.x + n0.rx * outer, y: n0.y + 0.25, z: n0.z + n0.rz * outer },
-            { x: n0.x + n0.rx * rimOuter, y: n0.y + 0.25, z: n0.z + n0.rz * rimOuter },
-            { x: n1.x + n1.rx * rimOuter, y: n1.y + 0.25, z: n1.z + n1.rz * rimOuter },
-            { x: n1.x + n1.rx * outer, y: n1.y + 0.25, z: n1.z + n1.rz * outer },
+            { x: n0.x + n0.rx * outer, y: jadePondY + 0.5, z: n0.z + n0.rz * outer },
+            { x: n0.x + n0.rx * rimOuter, y: jadePondY + 0.5, z: n0.z + n0.rz * rimOuter },
+            { x: n1.x + n1.rx * rimOuter, y: jadePondY + 0.5, z: n1.z + n1.rz * rimOuter },
+            { x: n1.x + n1.rx * outer, y: jadePondY + 0.5, z: n1.z + n1.rz * outer },
             rimCol,
+            MAT_MATTE,
+          );
+        }
+
+        // Sculpted White-Jade Belt Arch Bridge spandrel walls & rhythmic carved balustrade posts!
+        const jpMid = (jpStart + jpEnd) * 0.5;
+        const archHalfSpan = 12;
+        const d0 = Math.abs(i0 - jpMid);
+        const d1 = Math.abs(i1 - jpMid);
+        if (d0 <= archHalfSpan && d1 <= archHalfSpan) {
+          // Graceful high semicircular arch vault opening right above the emerald pond
+          const archOpening = (d: number) => {
+            const norm = d / archHalfSpan;
+            // Semi-circular stone arch cutout rising cleanly up toward the bridge belly
+            const archH = Math.sqrt(Math.max(0, 1 - norm * norm)) * 8.4;
+            return jadePondY + archH;
+          };
+          const bot0 = Math.min(n0.y - deckH, archOpening(d0));
+          const bot1 = Math.min(n1.y - deckH, archOpening(d1));
+          const spandrelCol: [number, number, number] = even ? [246, 243, 236] : [236, 232, 224];
+          // Solid 0.45m-thick carved white-marble arch spandrel & parapet walls (separate inner/outer faces -> ZERO Z-fighting!)
+          for (const side of [-1, 1] as const) {
+            const sxIn = side * (cw + 0.06);
+            const sxOut = side * (cw + 0.52);
+            const topY0 = n0.y + curbH + 1.32;
+            const topY1 = n1.y + curbH + 1.32;
+            // Outer face (facing pond)
+            const outA = { x: n0.x + n0.rx * sxOut, y: topY0, z: n0.z + n0.rz * sxOut };
+            const outB = { x: n1.x + n1.rx * sxOut, y: topY1, z: n1.z + n1.rz * sxOut };
+            const outC = { x: n1.x + n1.rx * sxOut, y: bot1, z: n1.z + n1.rz * sxOut };
+            const outD = { x: n0.x + n0.rx * sxOut, y: bot0, z: n0.z + n0.rz * sxOut };
+            // Inner face (facing road)
+            const inA = { x: n0.x + n0.rx * sxIn, y: topY0, z: n0.z + n0.rz * sxIn };
+            const inB = { x: n1.x + n1.rx * sxIn, y: topY1, z: n1.z + n1.rz * sxIn };
+            const inC = { x: n1.x + n1.rx * sxIn, y: n1.y + curbH, z: n1.z + n1.rz * sxIn };
+            const inD = { x: n0.x + n0.rx * sxIn, y: n0.y + curbH, z: n0.z + n0.rz * sxIn };
+            if (side > 0) {
+              mb.addFlatQuad(outA, outD, outC, outB, spandrelCol, MAT_MATTE);
+              mb.addFlatQuad(inA, inB, inC, inD, [232, 228, 220], MAT_MATTE);
+              mb.addFlatQuad(inA, outA, outB, inB, [248, 245, 238], MAT_MATTE);
+            } else {
+              mb.addFlatQuad(outA, outB, outC, outD, spandrelCol, MAT_MATTE);
+              mb.addFlatQuad(inA, inD, inC, inB, [232, 228, 220], MAT_MATTE);
+              mb.addFlatQuad(outA, inA, inB, outB, [248, 245, 238], MAT_MATTE);
+            }
+            // Rhythmic carved white-jade balustrade posts with golden orbs along the Jade Belt Bridge hill!
+            if (i0 % 2 === 0) {
+              const px = n0.x + n0.rx * (side * (cw + 0.3));
+              const pz = n0.z + n0.rz * (side * (cw + 0.3));
+              mb.addBox(px - 0.36, n0.y + curbH, pz - 0.36, px + 0.36, n0.y + curbH + 1.95, pz + 0.36, [248, 245, 238], MAT_MATTE);
+              mb.addBox(px - 0.42, n0.y + curbH + 1.95, pz - 0.42, px + 0.42, n0.y + curbH + 2.4, pz + 0.42, [244, 202, 86], MAT_GLOSSY, 1);
+            }
+          }
+          // Stone arch vault soffit underneath the bridge
+          mb.addFlatQuad(
+            { x: n0.x - n0.rx * cw, y: bot0, z: n0.z - n0.rz * cw },
+            { x: n1.x - n1.rx * cw, y: bot1, z: n1.z - n1.rz * cw },
+            { x: n1.x + n1.rx * cw, y: bot1, z: n1.z + n1.rz * cw },
+            { x: n0.x + n0.rx * cw, y: bot0, z: n0.z + n0.rz * cw },
+            [194, 206, 216],
             MAT_MATTE,
           );
         }
@@ -1066,10 +1130,10 @@ function buildStaticCircuitMesh(circuit: CircuitDefinition): MeshBuilder {
         );
         // Subtle recessed vermilion-gold palace cornice band along the cliff wall
         mb.addFlatQuad(
-          { x: cliffX0 + n0.rx * 0.2, y: n0.y + 9.2, z: cliffZ0 + n0.rz * 0.2 },
-          { x: cliffX1 + n1.rx * 0.2, y: n1.y + 9.2, z: cliffZ1 + n1.rz * 0.2 },
-          { x: cliffX1 + n1.rx * 0.2, y: n1.y + 10.6, z: cliffZ1 + n1.rz * 0.2 },
-          { x: cliffX0 + n0.rx * 0.2, y: n0.y + 10.6, z: cliffZ0 + n0.rz * 0.2 },
+          { x: cliffX0 + n0.rx * 0.25, y: n0.y + 9.2, z: cliffZ0 + n0.rz * 0.25 },
+          { x: cliffX1 + n1.rx * 0.25, y: n1.y + 9.2, z: cliffZ1 + n1.rz * 0.25 },
+          { x: cliffX1 + n1.rx * 0.25, y: n1.y + 10.6, z: cliffZ1 + n1.rz * 0.25 },
+          { x: cliffX0 + n0.rx * 0.25, y: n0.y + 10.6, z: cliffZ0 + n0.rz * 0.25 },
           [238, 194, 78],
           MAT_GLOSSY,
         );
@@ -1087,22 +1151,30 @@ function buildStaticCircuitMesh(circuit: CircuitDefinition): MeshBuilder {
           const px = n0.x + n0.rx * (cw + 11.5);
           const pz = n0.z + n0.rz * (cw + 11.5);
           const py = n0.y - 0.3;
-          // White-jade cantilever deck connecting to the viaduct
           mb.addBox(px - 6.8, py - 1.6, pz - 6.8, px + 6.8, py, pz + 6.8, [242, 239, 230], MAT_MATTE);
           emitGoldenPavilion(mb, px, py, pz, 1.35);
         }
       }
 
-      // Colossal White-Jade Moon-Ring Arch & Sky-Waterfall (`cn1.jpg`)!
+      // Colossal 68m-Wide White-Jade Moon-Ring Arch (`cn1.jpg`) + High-Altitude Sky-Waterfall (`+38m` ABOVE track)!
       if (i0 === moonSeg) {
-        const ringSegs = 16;
-        const ringR = rw + 5.8;
-        const ringThick = 2.4;
-        const ringDepth = 1.9;
-        const ringCenterY = n0.y + 6.5;
+        const ringSegs = 24;
+        const ringR = 34.0; // Monumental 68m diameter towering ~52m above the road!
+        const ringThick = 3.8;
+        const ringDepth = 3.2;
+        const ringCenterY = n0.y + 14.5;
+
+        // Twin monumental stepped white-jade cloud pedestals anchoring the colossal ring
+        for (const side of [-1, 1] as const) {
+          const pedX = n0.x + n0.rx * side * (ringR - 0.4);
+          const pedZ = n0.z + n0.rz * side * (ringR - 0.4);
+          mb.addBox(pedX - 4.4, n0.y - 16, pedZ - 4.4, pedX + 4.4, n0.y + 3.5, pedZ + 4.4, [238, 235, 226], MAT_MATTE);
+          mb.addBox(pedX - 3.4, n0.y + 3.5, pedZ - 3.4, pedX + 3.4, n0.y + 8.5, pedZ + 3.4, [246, 243, 236], MAT_MATTE);
+        }
+
         for (let k = 0; k < ringSegs; k += 1) {
-          const a0 = -0.25 + (k / ringSegs) * (Math.PI + 0.5);
-          const a1 = -0.25 + ((k + 1) / ringSegs) * (Math.PI + 0.5);
+          const a0 = -0.35 + (k / ringSegs) * (Math.PI + 0.7);
+          const a1 = -0.35 + ((k + 1) / ringSegs) * (Math.PI + 0.7);
           const c0 = Math.cos(a0);
           const s0 = Math.sin(a0);
           const c1 = Math.cos(a1);
@@ -1115,7 +1187,7 @@ function buildStaticCircuitMesh(circuit: CircuitDefinition): MeshBuilder {
           const pOut1 = { x: n0.x + n0.rx * (c1 * rOut), y: ringCenterY + s1 * rOut, z: n0.z + n0.rz * (c1 * rOut) };
           const dfx = n0.tx * ringDepth;
           const dfz = n0.tz * ringDepth;
-          const ringCol: [number, number, number] = k % 2 === 0 ? [246, 243, 236] : [234, 230, 220];
+          const ringCol: [number, number, number] = k % 2 === 0 ? [248, 245, 238] : [236, 232, 222];
           // Front & back faces of the colossal white-jade Moon-Ring
           mb.addFlatQuad(pIn0, pOut0, pOut1, pIn1, ringCol, MAT_GLOSSY);
           mb.addFlatQuad(
@@ -1126,33 +1198,81 @@ function buildStaticCircuitMesh(circuit: CircuitDefinition): MeshBuilder {
             ringCol,
             MAT_GLOSSY,
           );
-          // Inner glowing gold-jade rim
+          // Outer thickness cap
+          mb.addFlatQuad(
+            pOut0,
+            { x: pOut0.x + dfx, y: pOut0.y, z: pOut0.z + dfz },
+            { x: pOut1.x + dfx, y: pOut1.y, z: pOut1.z + dfz },
+            pOut1,
+            [226, 222, 214],
+            MAT_MATTE,
+          );
+          // Gleaming golden inner celestial band
           mb.addFlatQuad(
             pIn0,
             pIn1,
             { x: pIn1.x + dfx, y: pIn1.y, z: pIn1.z + dfz },
             { x: pIn0.x + dfx, y: pIn0.y, z: pIn0.z + dfz },
-            [244, 206, 98],
+            [248, 208, 92],
             MAT_GLOSSY,
             1,
           );
         }
-      }
 
-      // Luminous Sky-Waterfall plunging off the outer edge into the cloud sea beside the Moon-Ring!
-      if (moonSeg >= 0 && i0 >= moonSeg - 3 && i0 <= moonSeg + 4) {
-        const wfDist = cw + 1.4;
-        const wfDrop = 46;
-        const wfCol: [number, number, number] = even ? [226, 246, 252] : [176, 228, 242];
-        mb.addFlatQuad(
-          { x: n0.x + n0.rx * wfDist, y: n0.y - 0.2, z: n0.z + n0.rz * wfDist },
-          { x: n1.x + n1.rx * wfDist, y: n1.y - 0.2, z: n1.z + n1.rz * wfDist },
-          { x: n1.x + n1.rx * (wfDist + 5.5), y: n1.y - wfDrop, z: n1.z + n1.rz * (wfDist + 5.5) },
-          { x: n0.x + n0.rx * (wfDist + 5.5), y: n0.y - wfDrop, z: n0.z + n0.rz * (wfDist + 5.5) },
-          wfCol,
-          MAT_GLOSSY,
-          1,
+        // Soaring Floating Immortal Cliff Spire + Upper Golden Palace Terrace (+39m ABOVE road)
+        // placed cleanly clear of the 68m Moon-Ring Arch on the outside (`LEFT / -rx`) — dead-ahead in the driver's sightline!
+        const spireDist = ringR + 24;
+        const spX = n0.x - n0.rx * spireDist + n0.tx * 26;
+        const spZ = n0.z - n0.rz * spireDist + n0.tz * 26;
+        const spTopY = n0.y + 39;
+        // Towering sculpted immortal mountain spire rising from clouds below to +39m above the road
+        emitSmoothSpineTube(
+          mb,
+          [
+            { x: spX, y: n0.y - 34, z: spZ, rx: 4.0, ry: 4.0, rgb: [118, 132, 150] },
+            { x: spX, y: n0.y - 4, z: spZ, rx: 12.5, ry: 12.5, rgb: [154, 166, 178] },
+            { x: spX, y: n0.y + 22, z: spZ, rx: 15.5, ry: 15.5, rgb: [198, 200, 194] },
+            { x: spX, y: spTopY, z: spZ, rx: 14.0, ry: 14.0, rgb: [236, 233, 224] },
+          ],
+          8,
+          MAT_MATTE,
         );
+        // Crown the floating mountain terrace with a gleaming Golden Pavilion (`cn2.jpg`)!
+        emitGoldenPavilion(mb, spX - n0.rx * 2.5 + n0.tx * 2.5, spTopY, spZ - n0.rz * 2.5 + n0.tz * 2.5, 1.55);
+
+        // MASSIVE 74m-TALL LUMINOUS SKY-WATERFALL pouring down the FRONT FACE (`-tx` + `+rx` toward the approaching driver!)
+        // from +38m ABOVE the road straight past the colossal Moon-Ring into the clouds below!
+        const faceDirX = -n0.tx * 0.78 + n0.rx * 0.62;
+        const faceDirZ = -n0.tz * 0.78 + n0.rz * 0.62;
+        const faceSideX = faceDirZ;
+        const faceSideZ = -faceDirX;
+        const wfBaseX = spX + faceDirX * 15.2;
+        const wfBaseZ = spZ + faceDirZ * 15.2;
+
+        // Water spout lip jutting out from the top of the spire at +38m
+        mb.addBox(wfBaseX - 6.5, spTopY - 1.8, wfBaseZ - 6.5, wfBaseX + 6.5, spTopY - 0.1, wfBaseZ + 6.5, [224, 246, 252], MAT_GLOSSY, 1);
+
+        const wfStreams: ReadonlyArray<[number, number, number, [number, number, number]]> = [
+          [-5.4, 3.6, 0.2, [132, 224, 244]],
+          [0.0, 4.8, 0.85, [242, 253, 255]],
+          [5.6, 3.2, 0.2, [156, 234, 248]],
+        ];
+        for (const [latOff, halfW, outOff, wfRgb] of wfStreams) {
+          const cx0 = wfBaseX + faceSideX * (latOff - halfW) + faceDirX * outOff;
+          const cz0 = wfBaseZ + faceSideZ * (latOff - halfW) + faceDirZ * outOff;
+          const cx1 = wfBaseX + faceSideX * (latOff + halfW) + faceDirX * outOff;
+          const cz1 = wfBaseZ + faceSideZ * (latOff + halfW) + faceDirZ * outOff;
+          const top0 = { x: cx0, y: spTopY - 1.0, z: cz0 };
+          const top1 = { x: cx1, y: spTopY - 1.0, z: cz1 };
+          const bot1 = { x: cx1 + faceDirX * 5.2, y: n0.y - 36, z: cz1 + faceDirZ * 5.2 };
+          const bot0 = { x: cx0 + faceDirX * 5.2, y: n0.y - 36, z: cz0 + faceDirZ * 5.2 };
+          mb.addFlatQuad(top0, top1, bot1, bot0, wfRgb, MAT_GLOSSY, 1);
+          mb.addFlatQuad(top1, top0, bot0, bot1, wfRgb, MAT_GLOSSY, 1);
+        }
+        // Billowing white spray-mist cloud puffs where the Sky-Waterfall plunges past road level into the clouds!
+        const mistCol = (): readonly [number, number, number] => [246, 252, 255];
+        emitSmoothEllipsoid(mb, wfBaseX + faceDirX * 4, n0.y - 2, wfBaseZ + faceDirZ * 4, 11.5, 4.6, 11.5, 8, 5, mistCol, MAT_PLUSH, 1);
+        emitSmoothEllipsoid(mb, wfBaseX + faceDirX * 6, n0.y - 14, wfBaseZ + faceDirZ * 6, 15.5, 5.4, 15.5, 8, 5, mistCol, MAT_PLUSH, 1);
       }
     } else {
       // Standard Earth-backed Ground Shoulders
@@ -1316,47 +1436,67 @@ function buildStaticCircuitMesh(circuit: CircuitDefinition): MeshBuilder {
           mb.addBox(px - 0.82, n0.y + 2.4, pz - 0.82, px + 0.82, n0.y + 11.4, pz + 0.82, [188, 50, 40], MAT_GLOSSY);
           mb.addBox(px - 1.05, n0.y + 11.4, pz - 1.05, px + 1.05, n0.y + 12.2, pz + 1.05, [242, 198, 76], MAT_GLOSSY);
         }
-        // Azure-lapis & gold carved lintel beam (`藻井`) spanning across all 4 pillars
-        const bL0 = { x: n0.x - n0.rx * (gateSpan + 1.2), z: n0.z - n0.rz * (gateSpan + 1.2) };
-        const bR0 = { x: n0.x + n0.rx * (gateSpan + 1.2), z: n0.z + n0.rz * (gateSpan + 1.2) };
-        const depth = 2.4;
-        const bL1 = { x: bL0.x + n0.tx * depth, z: bL0.z + n0.tz * depth };
-        const bR1 = { x: bR0.x + n0.tx * depth, z: bR0.z + n0.tz * depth };
+        // Azure-lapis & gold carved lintel beam (`藻井`) spanning across all 4 pillars (`t = -1.2 .. +1.2`)
+        const halfD = 1.2;
+        const bLFront = { x: n0.x - n0.rx * (gateSpan + 1.2) - n0.tx * halfD, z: n0.z - n0.rz * (gateSpan + 1.2) - n0.tz * halfD };
+        const bRFront = { x: n0.x + n0.rx * (gateSpan + 1.2) - n0.tx * halfD, z: n0.z + n0.rz * (gateSpan + 1.2) - n0.tz * halfD };
+        const bLBack = { x: n0.x - n0.rx * (gateSpan + 1.2) + n0.tx * halfD, z: n0.z - n0.rz * (gateSpan + 1.2) + n0.tz * halfD };
+        const bRBack = { x: n0.x + n0.rx * (gateSpan + 1.2) + n0.tx * halfD, z: n0.z + n0.rz * (gateSpan + 1.2) + n0.tz * halfD };
         const beamCols: ReadonlyArray<[number, number, [number, number, number], number]> = [
           [9.4, 11.2, [42, 82, 148], 0],
           [11.2, 12.0, [244, 198, 76], 1],
         ];
         for (const [y0, y1, rgb, em] of beamCols) {
           mb.addFlatQuad(
-            { x: bL0.x, y: n0.y + y0, z: bL0.z },
-            { x: bR0.x, y: n0.y + y0, z: bR0.z },
-            { x: bR0.x, y: n0.y + y1, z: bR0.z },
-            { x: bL0.x, y: n0.y + y1, z: bL0.z },
+            { x: bLFront.x, y: n0.y + y0, z: bLFront.z },
+            { x: bRFront.x, y: n0.y + y0, z: bRFront.z },
+            { x: bRFront.x, y: n0.y + y1, z: bRFront.z },
+            { x: bLFront.x, y: n0.y + y1, z: bLFront.z },
             rgb,
             MAT_GLOSSY,
             em,
           );
           mb.addFlatQuad(
-            { x: bR1.x, y: n0.y + y0, z: bR1.z },
-            { x: bL1.x, y: n0.y + y0, z: bL1.z },
-            { x: bL1.x, y: n0.y + y1, z: bL1.z },
-            { x: bR1.x, y: n0.y + y1, z: bR1.z },
+            { x: bRBack.x, y: n0.y + y0, z: bRBack.z },
+            { x: bLBack.x, y: n0.y + y0, z: bLBack.z },
+            { x: bLBack.x, y: n0.y + y1, z: bLBack.z },
+            { x: bRBack.x, y: n0.y + y1, z: bRBack.z },
             rgb,
             MAT_GLOSSY,
             em,
           );
         }
-        // Central glowing golden plaque (`南天门`)
-        const plW = 4.6;
+        // Bottom soffit of lintel beam
         mb.addFlatQuad(
-          { x: n0.x - n0.rx * plW, y: n0.y + 8.6, z: n0.z - n0.rz * plW },
-          { x: n0.x + n0.rx * plW, y: n0.y + 8.6, z: n0.z + n0.rz * plW },
-          { x: n0.x + n0.rx * plW, y: n0.y + 11.4, z: n0.z + n0.rz * plW },
-          { x: n0.x - n0.rx * plW, y: n0.y + 11.4, z: n0.z - n0.rz * plW },
-          [246, 204, 82],
-          MAT_GLOSSY,
-          1,
+          { x: bLFront.x, y: n0.y + 9.4, z: bLFront.z },
+          { x: bLBack.x, y: n0.y + 9.4, z: bLBack.z },
+          { x: bRBack.x, y: n0.y + 9.4, z: bRBack.z },
+          { x: bRFront.x, y: n0.y + 9.4, z: bRFront.z },
+          [32, 62, 112],
+          MAT_MATTE,
         );
+        // Central 3D Carved Imperial Plaque (`南天门`) protruding cleanly proud of BOTH faces (ZERO Z-fighting!)
+        const frameW = 5.4;
+        const innerW = 4.65;
+        for (const faceSign of [-1, 1] as const) {
+          const frameOff = faceSign * (halfD + 0.35);
+          const goldOff = faceSign * (halfD + 0.62);
+          const emitPlaqueQuad = (hw: number, yBot: number, yTop: number, off: number, rgb: [number, number, number], em: number) => {
+            const p0 = { x: n0.x - n0.rx * hw + n0.tx * off, y: n0.y + yBot, z: n0.z - n0.rz * hw + n0.tz * off };
+            const p1 = { x: n0.x + n0.rx * hw + n0.tx * off, y: n0.y + yBot, z: n0.z + n0.rz * hw + n0.tz * off };
+            const p2 = { x: n0.x + n0.rx * hw + n0.tx * off, y: n0.y + yTop, z: n0.z + n0.rz * hw + n0.tz * off };
+            const p3 = { x: n0.x - n0.rx * hw + n0.tx * off, y: n0.y + yTop, z: n0.z - n0.rz * hw + n0.tz * off };
+            if (faceSign < 0) {
+              mb.addFlatQuad(p0, p1, p2, p3, rgb, MAT_GLOSSY, em);
+            } else {
+              mb.addFlatQuad(p1, p0, p3, p2, rgb, MAT_GLOSSY, em);
+            }
+          };
+          // Deep vermilion carved border frame (0.35m proud of azure beam)
+          emitPlaqueQuad(frameW, 8.2, 11.8, frameOff, [156, 36, 28], 0);
+          // Raised glowing liquid-gold central tablet (0.27m proud of vermilion border!)
+          emitPlaqueQuad(innerW, 8.65, 11.35, goldOff, [252, 212, 88], 1);
+        }
         // Double-Tiered Sweeping Upturned Golden Pavilion Roofs (`飞檐`)!
         const roofTiers: ReadonlyArray<[number, number, number, number]> = [
           [gateSpan + 3.4, 12.1, 14.3, 3.6],
@@ -1538,10 +1678,24 @@ function emitSceneryPropIntoBuilder(mb: MeshBuilder, prop: SceneryProp, index: n
   }
 
   if (prop.kind === 'lotus') {
-    // Glowing glass lotus blossom on emerald lily pad inside the Jade Pool (`wm_lotus.jpg`)
-    emitSmoothEllipsoid(mb, x, y + 0.08, z, 2.3 * s, 0.16 * s, 2.3 * s, 8, 4, () => [42, 134, 96], MAT_MATTE);
-    emitSmoothEllipsoid(mb, x, y + 0.62 * s, z, 1.15 * s, 0.58 * s, 1.15 * s, 7, 5, () => [252, 186, 206], MAT_GLOSSY, 1);
-    emitSmoothEllipsoid(mb, x, y + 0.92 * s, z, 0.52 * s, 0.38 * s, 0.52 * s, 6, 4, () => [255, 232, 126], MAT_GLOSSY, 1);
+    // Oversized Sculpted Glowing Glass Lotus Blossom (`琉璃莲花`, `wm_lotus.jpg`) clearly visible from driver eye height!
+    emitSmoothEllipsoid(mb, x, y + 0.12, z, 3.1 * s, 0.18 * s, 3.1 * s, 9, 4, () => [32, 134, 92], MAT_MATTE);
+    // 6 sculpted angled outer rose-pink glass petals fanning open around the pad
+    const petalCount = 6;
+    for (let k = 0; k < petalCount; k += 1) {
+      const a0 = prop.yaw + (k / petalCount) * Math.PI * 2;
+      const aL = a0 - 0.34;
+      const aR = a0 + 0.34;
+      const baseP = { x: x + Math.cos(a0) * 0.45 * s, y: y + 0.35 * s, z: z + Math.sin(a0) * 0.45 * s };
+      const midL = { x: x + Math.cos(aL) * 1.45 * s, y: y + 1.05 * s, z: z + Math.sin(aL) * 1.45 * s };
+      const midR = { x: x + Math.cos(aR) * 1.45 * s, y: y + 1.05 * s, z: z + Math.sin(aR) * 1.45 * s };
+      const tip = { x: x + Math.cos(a0) * 2.15 * s, y: y + 1.65 * s, z: z + Math.sin(a0) * 2.15 * s };
+      mb.addFlatQuad(baseP, midL, tip, midR, [255, 136, 188], MAT_GLOSSY, 1);
+      mb.addFlatQuad(baseP, midR, tip, midL, [255, 168, 206], MAT_GLOSSY, 1);
+    }
+    // Upright glowing blush-white inner crown petals + radiant golden lotus heart!
+    emitSmoothEllipsoid(mb, x, y + 1.25 * s, z, 1.15 * s, 0.95 * s, 1.15 * s, 7, 5, () => [255, 224, 238], MAT_GLOSSY, 1);
+    emitSmoothEllipsoid(mb, x, y + 1.85 * s, z, 0.62 * s, 0.52 * s, 0.62 * s, 6, 4, () => [255, 236, 112], MAT_GLOSSY, 1);
     return;
   }
 

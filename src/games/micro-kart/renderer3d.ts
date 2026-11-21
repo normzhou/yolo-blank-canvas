@@ -819,6 +819,10 @@ export function renderKartViewport(
 
   const isCloudSea = circuit.theme.skyMode === 'cloud-sea';
   const [jpStart, jpEnd] = circuit.theme.jadePoolRange ?? [-1, -1];
+  const jadePondY =
+    isCloudSea && jpStart >= 0 && jpEnd >= 0
+      ? Math.min(nodes[jpStart]!.y, nodes[jpEnd]!.y) - 0.25
+      : 0;
 
   // 1. Track ribbon segments (`-10 .. +70` around camera kart)
   for (let step = -10; step < 70; step += 1) {
@@ -829,15 +833,22 @@ export function renderKartViewport(
     const bandEven = i0 % 2 === 0;
     const inJadePool = isCloudSea && i0 >= jpStart && i0 <= jpEnd;
 
-    // Terrain shoulders (omitted on open Cloud-Sea viaduct segments; turquoise Jade Pool on terrace!)
-    if (!isCloudSea || inJadePool) {
-      const gRgb: [number, number, number] = inJadePool
-        ? bandEven
-          ? [34, 174, 168]
-          : [48, 198, 188]
-        : bandEven
-          ? groundOuterRgb
-          : groundAltRgb;
+    // Terrain shoulders (omitted on open Cloud-Sea viaduct segments; flat emerald Jade Pool beneath arch bridge!)
+    if (inJadePool) {
+      const pRgb: [number, number, number] = bandEven ? [28, 172, 166] : [42, 198, 188];
+      pushWorldPoly(
+        proj,
+        [
+          { x: n0.x - n0.rx * gw, y: jadePondY, z: n0.z - n0.rz * gw },
+          { x: n0.x + n0.rx * gw, y: jadePondY, z: n0.z + n0.rz * gw },
+          { x: n1.x + n1.rx * gw, y: jadePondY, z: n1.z + n1.rz * gw },
+          { x: n1.x - n1.rx * gw, y: jadePondY, z: n1.z - n1.rz * gw },
+        ],
+        pRgb,
+        26,
+      );
+    } else if (!isCloudSea) {
+      const gRgb: [number, number, number] = bandEven ? groundOuterRgb : groundAltRgb;
       pushWorldPoly(
         proj,
         [

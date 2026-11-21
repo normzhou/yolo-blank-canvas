@@ -583,9 +583,10 @@ const CIRCUIT_SPECS: readonly CircuitSpec[] = [
     subtitle: 'White-jade sky viaduct & sea of clouds',
     roadHalfWidth: 16.0,
     evalPoint(u: number) {
-      // Sweeping elevated Heavenly Palace sky circuit (`~2,150 m`):
-      // Soars up sky-stairs from South Heaven Gate -> Moon-Ring & Sky-Waterfall ->
-      // turquoise Jade Pool terrace -> Immortal Cliff cut -> open Cloud-Sea viaduct descent!
+      // Sweeping elevated Heavenly Palace sky circuit (`~1,975 m`):
+      // Soars up sky-stairs from South Heaven Gate -> Colossal Moon-Ring & Sky-Waterfall ->
+      // flat emerald Jade Pool basin bridged by a soaring +11m White-Jade Arch Bridge hill ->
+      // Immortal Cliff cut -> open Cloud-Sea viaduct descent!
       const x =
         312 * Math.sin(u) +
         62 * Math.sin(2 * u + 0.3) -
@@ -594,12 +595,39 @@ const CIRCUIT_SPECS: readonly CircuitSpec[] = [
         282 * Math.cos(u) -
         54 * Math.cos(2 * u - 0.25) +
         24 * Math.sin(3 * u + 0.6);
-      const y =
+
+      // Base sky elevation undulating gently across cloud viaduct & cliff sections
+      let baseY =
         16.5 +
-        11.5 * Math.sin(u - 0.2) -
-        5.5 * Math.cos(2 * u + 0.4) +
-        2.5 * Math.sin(3 * u);
-      return { x, y, z };
+        9.5 * Math.sin(u - 0.2) -
+        4.2 * Math.cos(2 * u + 0.4) +
+        2.0 * Math.sin(3 * u);
+
+      // Level the Jade Pool basin (`segs 64..96`, `u in [2.094 .. 3.142]`) smoothly to `pondY = 14.0 m`,
+      // then sculpt a dramatic +11.2m semicircular White-Jade Belt Arch Bridge hill (`segs 68..92`)!
+      const jpStartU = (64 / TRACK_SEGMENTS) * Math.PI * 2;
+      const jpEndU = (96 / TRACK_SEGMENTS) * Math.PI * 2;
+      const jpMidU = (jpStartU + jpEndU) * 0.5;
+      const jpHalfU = (jpEndU - jpStartU) * 0.5;
+      const pondY = 14.0;
+      const distFromPool = Math.abs(u - jpMidU);
+      if (distFromPool < jpHalfU + 0.38) {
+        // Smooth flat-blend into the calm emerald pond level
+        const blend =
+          distFromPool <= jpHalfU
+            ? 1.0
+            : 0.5 * (1 + Math.cos(((distFromPool - jpHalfU) / 0.38) * Math.PI));
+        baseY = baseY * (1 - blend) + pondY * blend;
+      }
+
+      // Semicircular White-Jade Belt Arch Bridge hump (`玉带桥`, `segs 68..92`, +11.2m peak at seg 80)
+      const bridgeHalfU = (12 / TRACK_SEGMENTS) * Math.PI * 2;
+      if (distFromPool < bridgeHalfU) {
+        const archPhase = (distFromPool / bridgeHalfU) * Math.PI;
+        baseY += 11.2 * 0.5 * (1 + Math.cos(archPhase));
+      }
+
+      return { x, y: baseY, z };
     },
     boostSegments: [
       { seg: 14, lat: 0 },
@@ -757,18 +785,31 @@ function buildCircuit(spec: CircuitSpec): CircuitDefinition {
         }
       }
 
-      // 2. Glowing glass lotus blossoms dotting the elevated turquoise Jade Pool terrace!
-      if (inJadePool && i % 4 === 0) {
+      // 2. Prominent Glowing Glass Lotus Blossoms floating at pond level (`y = pondY`) across the Jade Pool!
+      if (inJadePool && i % 2 === 0) {
+        const pondWaterY = Math.min(nodes[jpStart]!.y, nodes[jpEnd]!.y) - 0.24;
         for (const side of [-1, 1] as const) {
-          const dist = spec.roadHalfWidth + 8 + rng() * 34;
+          // Near-bank cluster clearly visible over the balustrade + mid-pond blossom
+          const nearDist = spec.roadHalfWidth + 4.8 + rng() * 11.5;
           scenery.push({
             kind: 'lotus',
-            x: node.x + node.rx * side * dist,
-            y: node.y - 0.12,
-            z: node.z + node.rz * side * dist,
-            scale: 0.9 + rng() * 0.7,
+            x: node.x + node.rx * side * nearDist,
+            y: pondWaterY,
+            z: node.z + node.rz * side * nearDist,
+            scale: 1.45 + rng() * 0.75,
             yaw: rng() * Math.PI * 2,
           });
+          if (i % 4 === 0) {
+            const farDist = spec.roadHalfWidth + 18 + rng() * 20;
+            scenery.push({
+              kind: 'lotus',
+              x: node.x + node.rx * side * farDist,
+              y: pondWaterY,
+              z: node.z + node.rz * side * farDist,
+              scale: 1.7 + rng() * 0.8,
+              yaw: rng() * Math.PI * 2,
+            });
+          }
         }
       }
 
