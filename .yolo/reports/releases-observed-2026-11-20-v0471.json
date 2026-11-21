@@ -1,0 +1,82 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-20",
+  "observed_at": "2026-11-20",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#404",
+  "releases": [
+    {
+      "tag": "v0.47.1",
+      "commit": "ba20512c36904a83609ba4d683c7071113980040"
+    }
+  ],
+  "release": {
+    "tag": "v0.47.1",
+    "commit": "ba20512c36904a83609ba4d683c7071113980040",
+    "source_commit": "e5a03c2f3fb9acee4bdf77b75edc16a4ff91d14f",
+    "assets_commit": "05a0e4c23c317772b49bd3b424dce85602247f71",
+    "native_version": "0.47.1",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-21T20:26:31Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.47.1",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/405"
+  },
+  "build_identity": {
+    "server_build_id": "e5a03c2f3fb9acee4bdf77b75edc16a4ff91d14f",
+    "client_build_id": "e5a03c2f3fb9acee4bdf77b75edc16a4ff91d14f",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "30 files, 197 tests passed",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 52 passed (1.0m)",
+      "e2e_live": "npm run e2e:live — 5 passed (13.0s, read-only)",
+      "visual_inspection": "Multi-pass headless Chrome WebGL2 driver-perspective screenshots verified via read_file across all 5 landmarks: South Heaven Gate plaque (zero Z-fighting/stripes), colossal 68m Moon-Ring Arch + 74m Sky-Waterfall from +39m Golden Palace spire, prominent 6-petal glowing glass lotus blossoms, and clean thick-walled Jade Belt Arch Bridge hill over continuous emerald pond water",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.47.1 --no-open --port 4468 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (16.3s)",
+      "ci": "GitHub Actions CI/Test and type check green (31s)"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "8231dda7-bd34-4f83-8291-5e28f18ff17b",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.47.1",
+      "observed_build_id": "e5a03c2f3fb9acee4bdf77b75edc16a4ff91d14f",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.2.0",
+          "entry": "/games/starlight-burst-GBNrLdJU.js",
+          "hash": "27a6676d3b80780e7cc557cfee1d008a4fb6ae4b74d85fde5e040f52f2e7b116",
+          "sizeBytes": 86740
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-BTouD6yV.js",
+          "hash": "6fa804dd96d3debe1835f3a2cc6e351916f8366a9679865d98352dc6d348b12e",
+          "sizeBytes": 37318
+        },
+        "micro-kart": {
+          "version": "1.8.1",
+          "entry": "/games/micro-kart-BTg0KBTs.js",
+          "hash": "d905c8e0c8f034f3858e6bafab214b08ada5a64daa96c21050bf23162011fdf6",
+          "sizeBytes": 127766
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Polishes Cloud Gate's 5 signature landmarks (@yolo-arcade/game-micro-kart@1.8.1): scales the White-Jade Moon-Ring Arch to 68m wide (~52m tall), pours a 74m-tall driver-facing Sky-Waterfall from a +39m Golden Palace cliff spire into billowing cloud mist, eliminates South Heaven Gate plaque Z-fighting with a solid protruding 3D vermilion-and-gold tablet, enlarges and clusters glowing 6-petal glass lotus blossoms along the emerald Jade Pool, and sculpts a +11.2m White-Jade Belt Arch Bridge hill directly over continuous emerald pond water."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #404"
+}

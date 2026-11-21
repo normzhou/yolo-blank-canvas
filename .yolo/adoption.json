@@ -353,15 +353,16 @@
         "v0.46.3": "9a2c6a5f8cfb67ec17935e3e77c27bc96ded2d11",
         "v0.46.4": "2f8312cf7086fb17d4d3f8f3549a9e04a23131a1",
         "v0.46.5": "3d43006ab13025c1702a7d07fb8949e171f4e43a",
-        "v0.46.6": "8ae1b749c063703c74f1c3803ff6d7a7eeb8661c"
+        "v0.46.6": "8ae1b749c063703c74f1c3803ff6d7a7eeb8661c",
+        "v0.47.0": "d002e094c209ad0ec763cbacbc33213f97c05df3"
       },
       "published": {
-        "tag": "v0.47.0",
-        "commit": "d002e094c209ad0ec763cbacbc33213f97c05df3",
-        "source_commit": "1540f25a811cdf5a68f8a1535894f27e6dba0df9",
-        "published_at": "2026-11-21T18:35:44Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-20-v0470.json",
-        "note": "Minor Track #4 release (#402, PR #403). Adds Cloud Gate (Chinese Heavenly Palace cloud-scape sky circuit) to Micro Kart (@yolo-arcade/game-micro-kart@1.8.0) featuring an infinite shader sea of clouds below the horizon, Huangshan spires and golden Tyndall sunbeams, a suspended white-jade sky viaduct with sculpted 3D cloud banks below, South Heaven Gate start archway, colossal Moon-Ring Arch & sky-waterfall, turquoise Jade Pool terrace with glowing lotus blossoms, Immortal Cliff cut with cantilevered golden pavilion, floating mini-pavilions, bonsai sky-pines, and 12 animated soaring Red-Crowned Cranes; visually inspected in WebGL2, verified 11/11 standalone npx e2e:verify-release, and deployed live to https://demo.yolo-dev.ai (Version ID: c3ae5dd4-4cac-4992-8971-97fb9c444a2f)."
+        "tag": "v0.47.1",
+        "commit": "ba20512c36904a83609ba4d683c7071113980040",
+        "source_commit": "e5a03c2f3fb9acee4bdf77b75edc16a4ff91d14f",
+        "published_at": "2026-11-21T20:26:31Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-20-v0471.json",
+        "note": "Patch Cloud Gate visual polish release (#404, PR #405). Visually verified in multi-pass WebGL2 driver-perspective screenshots (@yolo-arcade/game-micro-kart@1.8.1): scales the White-Jade Moon-Ring Arch to 68m diameter, pours a 74m driver-facing Sky-Waterfall from a +39m Golden Palace spire into mist, fixes South Heaven Gate plaque Z-fighting with a protruding 3D vermilion-gold tablet, enlarges and clusters glowing 6-petal glass lotus blossoms along the emerald pond, and adds a +11.2m White-Jade Belt Arch Bridge hill arching over continuous Jade Pool water; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 8231dda7-bd34-4f83-8291-5e28f18ff17b)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -475,7 +476,8 @@
         ".yolo/reports/releases-observed-2026-11-19-v0464.json",
         ".yolo/reports/releases-observed-2026-11-19-v0465.json",
         ".yolo/reports/releases-observed-2026-11-19-v0466.json",
-        ".yolo/reports/releases-observed-2026-11-20-v0470.json"
+        ".yolo/reports/releases-observed-2026-11-20-v0470.json",
+        ".yolo/reports/releases-observed-2026-11-20-v0471.json"
       ]
     }
   },
