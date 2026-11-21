@@ -1,0 +1,82 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-20",
+  "observed_at": "2026-11-20",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#406",
+  "releases": [
+    {
+      "tag": "v0.48.0",
+      "commit": "05b28161354c6d1aa2130f105fc1aa0a2394fc1f"
+    }
+  ],
+  "release": {
+    "tag": "v0.48.0",
+    "commit": "05b28161354c6d1aa2130f105fc1aa0a2394fc1f",
+    "source_commit": "ec0a4a07704e4973704c0fc9f5b6f0a1e48f0b97",
+    "assets_commit": "cacd4fec88c3765dad99a84cb127445bdbc84f7f",
+    "native_version": "0.48.0",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-21T21:09:17Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.48.0",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/407"
+  },
+  "build_identity": {
+    "server_build_id": "ec0a4a07704e4973704c0fc9f5b6f0a1e48f0b97",
+    "client_build_id": "ec0a4a07704e4973704c0fc9f5b6f0a1e48f0b97",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "30 files, 197 tests passed (including Cloud Gate restrained lotus count 6..16, getKartPortraitMood transitions, and full CSS design-token discipline)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 52 passed (1.0m, verifying left-side emotional portrait standings, immediate in-viewport banners, 5s delayed Continue popover, 2P split-screen divided banners, and mobile 2P hiding)",
+      "e2e_live": "npm run e2e:live — 5 passed (13.4s, read-only)",
+      "visual_inspection": "3 real Chrome WebGL2 screenshots verified via read_file (fewer Cloud Gate lotuses + live left-side happy/anxious portraits, 1P finish banner + 4th place crying portrait, and 2P split-screen divided top/bottom banners)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.48.0 --no-open --port 4470 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (16.3s)",
+      "ci": "GitHub Actions CI/Test and type check green (34s)"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "b1b9d6d6-6ac9-4d13-9c16-1e3b57d07669",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.48.0",
+      "observed_build_id": "ec0a4a07704e4973704c0fc9f5b6f0a1e48f0b97",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.2.0",
+          "entry": "/games/starlight-burst-GBNrLdJU.js",
+          "hash": "27a6676d3b80780e7cc557cfee1d008a4fb6ae4b74d85fde5e040f52f2e7b116",
+          "sizeBytes": 86740
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-BTouD6yV.js",
+          "hash": "6fa804dd96d3debe1835f3a2cc6e351916f8366a9679865d98352dc6d348b12e",
+          "sizeBytes": 37318
+        },
+        "micro-kart": {
+          "version": "1.9.0",
+          "entry": "/games/micro-kart-N0MGI3JL.js",
+          "hash": "8c036189f86f57f862799d060e10abc1d57fd7d3a6d5a072463f200fe0d13faa",
+          "sizeBytes": 136903
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Adds dynamic left-side live standings with Starlight-Burst-style expressive animal portraits (1st happy, last anxious while racing, last crying at finish), non-blocking per-viewport in-game finish placement banners (divided separately in 2P split screen) followed 5s after all players finish by a separate Continue to Next Track popover, desktop-keyboard-only 2P split screen, and sparser sculptural lotus blossoms on Cloud Gate (@yolo-arcade/game-micro-kart@1.9.0)."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #406"
+}
