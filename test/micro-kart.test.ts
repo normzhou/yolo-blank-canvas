@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   AERO_DRAG_COEFF,
-  AI_DECISION_INTERVAL_MS,
+  AI_DECISION_MAX_MS,
+  AI_DECISION_MIN_MS,
   ASPHALT_ROLLING_DRAG_N,
   CIRCUIT_LIST,
   CIRCUITS,
@@ -351,23 +352,24 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
     expect(race.lastEvents.boostTriggered.some((e) => e.slot === 0 && e.kind === 'pad')).toBe(true);
   });
 
-  it('constrains CPU drivers to binary keyboard controls at max 2 actions/sec with staggered 0.5s decision clocks (#394)', () => {
-    expect(AI_DECISION_INTERVAL_MS).toBe(500);
+  it('constrains CPU drivers to latched binary keyboard controls with randomized 200ms-400ms jittered decision intervals (#394, #396)', () => {
+    expect(AI_DECISION_MIN_MS).toBe(200);
+    expect(AI_DECISION_MAX_MS).toBe(400);
     const race = createRaceState('sunset-loop', '1p', 42);
     const cpus = race.karts.slice(1);
     expect(cpus.length).toBe(3);
 
-    // 1. Staggered initial decision phases across the 500 ms window (never synchronized!)
-    const phases = cpus.map((k) => k.aiNextDecisionMs % AI_DECISION_INTERVAL_MS);
-    expect(Math.abs(phases[0]! - phases[1]!)).toBeGreaterThanOrEqual(80);
-    expect(Math.abs(phases[1]! - phases[2]!)).toBeGreaterThanOrEqual(80);
-    expect(Math.abs(phases[0]! - phases[2]!)).toBeGreaterThanOrEqual(80);
+    // 1. Staggered initial decision timestamps across rivals (never synchronized!)
+    const initNext = cpus.map((k) => k.aiNextDecisionMs);
+    expect(Math.abs(initNext[0]! - initNext[1]!)).toBeGreaterThanOrEqual(60);
+    expect(Math.abs(initNext[1]! - initNext[2]!)).toBeGreaterThanOrEqual(60);
 
     const decisionTimes: number[][] = [[], [], []];
     const prevCounts = [0, 0, 0];
+    const prevInputs = cpus.map((k) => ({ ...k.aiInput }));
 
-    // Step 10.0 seconds at 50 Hz (20 ms/step)
-    for (let i = 0; i < 500; i += 1) {
+    // Step 12.0 seconds at 50 Hz (20 ms/step)
+    for (let i = 0; i < 600; i += 1) {
       stepRaceState(race, { 0: { left: false, right: false } }, 20);
       for (let c = 0; c < cpus.length; c += 1) {
         const cpu = cpus[c]!;
@@ -379,23 +381,31 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
         if (cpu.aiDecisionCount > prevCounts[c]!) {
           prevCounts[c] = cpu.aiDecisionCount;
           decisionTimes[c]!.push(cpu.aiLastDecisionMs!);
+          prevInputs[c] = { ...cpu.aiInput };
+        } else {
+          // Whatever the CPU decided MUST stick unchanged until the next control event timestamp!
+          expect(cpu.aiInput.left).toBe(prevInputs[c]!.left);
+          expect(cpu.aiInput.right).toBe(prevInputs[c]!.right);
+          expect(cpu.aiInput.brake).toBe(prevInputs[c]!.brake);
         }
       }
     }
 
-    // 2. Each CPU makes at most 20 decisions in 10 seconds (<= 2 actions/sec), spaced by ~500 ms
+    // 2. Every decision hold duration falls within [200, 400] ms (+ 20 ms tick quantization) with real jitter!
     for (let c = 0; c < cpus.length; c += 1) {
       const times = decisionTimes[c]!;
-      expect(times.length).toBeGreaterThanOrEqual(19);
-      expect(times.length).toBeLessThanOrEqual(20);
+      expect(times.length).toBeGreaterThanOrEqual(30);
+      const gaps: number[] = [];
       for (let t = 1; t < times.length; t += 1) {
         const gap = times[t]! - times[t - 1]!;
-        expect(gap).toBeGreaterThanOrEqual(480);
-        expect(gap).toBeLessThanOrEqual(520);
+        expect(gap).toBeGreaterThanOrEqual(AI_DECISION_MIN_MS);
+        expect(gap).toBeLessThanOrEqual(AI_DECISION_MAX_MS + 20);
+        gaps.push(gap);
       }
+      expect(Math.max(...gaps) - Math.min(...gaps)).toBeGreaterThanOrEqual(80);
     }
 
-    // 3. No two CPUs share synchronized decision timestamps
+    // 3. Rival CPUs stay desynchronized
     expect(decisionTimes[0]![0]).not.toBe(decisionTimes[1]![0]);
     expect(decisionTimes[1]![0]).not.toBe(decisionTimes[2]![0]);
     expect(decisionTimes[0]![0]).not.toBe(decisionTimes[2]![0]);

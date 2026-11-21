@@ -276,12 +276,14 @@ export interface KartState {
   /** AI lane preference offset in meters. */
   aiTargetLat: number;
   aiBaseSkill: number;
-  /** Latched binary keyboard-equivalent AI decision (updated at most 2x/sec, #394). */
+  /** Latched binary keyboard-equivalent AI decision (sticks until next jittered event, #394, #396). */
   aiInput: { readonly left: boolean; readonly right: boolean; readonly brake: boolean };
-  /** Next race clock timestamp (ms) when this CPU is allowed to change buttons (staggered per slot). */
+  /** Next race clock timestamp (ms) when this CPU is allowed to change buttons (randomized 200..400ms). */
   aiNextDecisionMs: number;
   aiLastDecisionMs: number | null;
   aiDecisionCount: number;
+  /** Per-kart deterministic PRNG state for randomized 200..400ms control timing jitter. */
+  aiRngState: number;
   skidMarks: SkidMark[];
 }
 
@@ -355,8 +357,9 @@ export const OFFROAD_EXTRA_DRAG_N = 15_000;
 export const THRUSTER_RAMP_SEC = 0.55;
 export const ANALOG_RAMP_SEC = 0.06;
 export const BRAKE_CUT_RAMP_SEC = 0.11;
-/** Minimum interval between CPU button decisions (500 ms = max 2 actions per second, #394). */
-export const AI_DECISION_INTERVAL_MS = 500;
+/** Randomized CPU binary button decision hold window (200 ms .. 400 ms jittered, #394, #396). */
+export const AI_DECISION_MIN_MS = 200;
+export const AI_DECISION_MAX_MS = 400;
 
 // Rotational dynamics & 2D rigid-body bumper footprint (#384, #388, #390)
 export const THRUSTER_HALF_SPAN_M = 0.68;
@@ -947,11 +950,12 @@ export function createRaceState(
       aiTargetLat: (rng() - 0.5) * 10,
       aiBaseSkill: 0.92 + slot * 0.025 + rng() * 0.03,
       aiInput: { left: false, right: false, brake: false },
-      // Stagger each CPU slot's 500ms decision clock across the cycle so rivals never synchronize (#394)
+      // Stagger each CPU slot's first decision across [60..340] ms so rivals start unsynchronized (#394, #396)
       aiNextDecisionMs:
-        ([0, 125, 290, 430][slot] ?? slot * 125) + Math.round((rng() - 0.5) * 36),
+        ([0, 75, 195, 315][slot] ?? slot * 95) + Math.round(rng() * 30),
       aiLastDecisionMs: null,
       aiDecisionCount: 0,
+      aiRngState: ((seed ^ ((slot + 1) * 0x9e3779b1)) >>> 0) || 1,
       skidMarks: [],
     });
   }
@@ -979,6 +983,14 @@ function moveToward(current: number, target: number, maxDelta: number): number {
   return target;
 }
 
+function nextAiRandom(kart: KartState): number {
+  let s = (kart.aiRngState + 0x6d2b79f5) >>> 0;
+  kart.aiRngState = s;
+  s = Math.imul(s ^ (s >>> 15), 1 | s);
+  s ^= s + Math.imul(s ^ (s >>> 7), 61 | s);
+  return ((s ^ (s >>> 14)) >>> 0) / 4294967296;
+}
+
 function simulateBinarySteerScore(
   kart: KartState,
   circuit: CircuitDefinition,
@@ -986,10 +998,11 @@ function simulateBinarySteerScore(
   rightBtn: boolean,
   braking: boolean,
   targetLat: number,
+  holdSteps: number,
 ): { cost: number; maxAbsLat: number } {
-  // Lightweight 6-step (~0.90s) rollout: hold candidate binary buttons for 0.5s, then check exit trajectory!
+  // Lightweight 6-step (~0.84s) rollout: hold candidate binary buttons for this ~200-400ms window, then check exit!
   const steps = 6;
-  const dt = 0.15;
+  const dt = 0.14;
   let x = kart.x;
   let z = kart.z;
   let yaw = kart.yaw;
@@ -1005,7 +1018,7 @@ function simulateBinarySteerScore(
   let lastHeadingErr = 0;
 
   for (let i = 0; i < steps; i += 1) {
-    const holding = i < 3; // 0.45s commitment window, then evaluate straight exit
+    const holding = i < holdSteps;
     const stepL = holding ? leftBtn : false;
     const stepR = holding ? rightBtn : false;
     const stepBrake = holding ? braking : false;
@@ -1066,17 +1079,17 @@ function simulateBinarySteerScore(
   const offroadPenalty = maxAbsLat > circuit.roadHalfWidth ? (maxAbsLat - circuit.roadHalfWidth) * 14 : 0;
   const wallPenalty = maxAbsLat > circuit.wallHalfWidth - 0.8 ? 160 : 0;
   const latErr = Math.abs(lastLat - targetLat);
-  const straightBonus = !leftBtn && !rightBtn ? -1.4 : 0; // Prefer straight full-rocket thrust when close!
+  const straightBonus = !leftBtn && !rightBtn ? -1.1 : 0;
   const cost = latErr * 1.15 + Math.abs(lastHeadingErr) * 18.0 + offroadPenalty + wallPenalty + straightBonus;
   return { cost, maxAbsLat };
 }
 
 /**
- * Binary-button 2 Hz AI pilot (#394):
+ * Binary-button jittered-cadence AI pilot (#394, #396):
  * - Restricted to the exact same binary controls as keyboard players (`left`, `right`, or `none`,
  *   plus independent `brake` — NO `steerAnalog`!), going through the `0.55s` linear thruster ramp.
- * - Can only make a new decision once every `AI_DECISION_INTERVAL_MS` (`500 ms` = max 2 actions/sec),
- *   with each CPU slot's decision clock staggered across the 500 ms window so CPUs never synchronize.
+ * - Each decision schedules the next control timestamp with a randomized `200..400 ms` hold
+ *   interval; whatever keys it presses (or releases) stick continuously until that next timestamp.
  */
 function computeAiThrusters(
   kart: KartState,
@@ -1088,29 +1101,30 @@ function computeAiThrusters(
     return kart.aiInput;
   }
 
-  // Advance staggered 500ms clock cleanly without drifting into synchronization
-  while (kart.aiNextDecisionMs <= elapsedMs) {
-    kart.aiNextDecisionMs += AI_DECISION_INTERVAL_MS;
-  }
+  // Draw the next randomized hold duration in [200, 400] ms so keys stick cleanly and CPUs stay desynchronized
+  const nextHoldMs =
+    AI_DECISION_MIN_MS + Math.round(nextAiRandom(kart) * (AI_DECISION_MAX_MS - AI_DECISION_MIN_MS));
+  kart.aiNextDecisionMs = elapsedMs + nextHoldMs;
   kart.aiLastDecisionMs = elapsedMs;
   kart.aiDecisionCount += 1;
 
   // Pick lane target (aim for boost strip if coming up in the next ~50m)
-  const aheadSample = sampleCircuitAtS(circuit, kart.s + clamp(24 + kart.speed * 0.45, 24, 62));
+  const aheadSample = sampleCircuitAtS(circuit, kart.s + clamp(22 + kart.speed * 0.42, 22, 58));
   const aheadNode = circuit.nodes[aheadSample.nodeIndex]!;
   const targetLat = aheadNode.hasBoostPad ? aheadNode.boostLat : kart.aiTargetLat;
 
-  // Evaluate the 3 binary steering choices (`none`, `left`, `right`) over the 0.5s commitment window
+  // Evaluate the 3 binary steering choices (`none`, `left`, `right`) over ~2 steps (~0.28s) hold + exit
+  const holdSteps = nextHoldMs >= 330 ? 3 : 2;
   const candidates: ReadonlyArray<{ left: boolean; right: boolean }> = [
     { left: false, right: false },
     { left: true, right: false },
     { left: false, right: true },
   ];
   let best = candidates[0]!;
-  let bestEval = simulateBinarySteerScore(kart, circuit, false, false, false, targetLat);
+  let bestEval = simulateBinarySteerScore(kart, circuit, false, false, false, targetLat, holdSteps);
   for (let i = 1; i < candidates.length; i += 1) {
     const c = candidates[i]!;
-    const ev = simulateBinarySteerScore(kart, circuit, c.left, c.right, false, targetLat);
+    const ev = simulateBinarySteerScore(kart, circuit, c.left, c.right, false, targetLat, holdSteps);
     if (ev.cost < bestEval.cost) {
       best = c;
       bestEval = ev;
@@ -1118,10 +1132,10 @@ function computeAiThrusters(
   }
 
   // Independent binary brake decision: brake only if overspeeding a sharp corner or heading toward outer wall
-  const recSpeed = getRecommendedSpeedAtS(circuit, kart.s + clamp(32 + kart.speed * 0.55, 32, 82));
+  const recSpeed = getRecommendedSpeedAtS(circuit, kart.s + clamp(28 + kart.speed * 0.5, 28, 76));
   const brake =
     (bestEval.maxAbsLat > circuit.wallHalfWidth - 1.2 && kart.speed > 66) ||
-    (kart.speed > recSpeed * 1.26 && recSpeed < 82);
+    (kart.speed > recSpeed * 1.22 && recSpeed < 82);
 
   kart.aiInput = { left: best.left, right: best.right, brake };
   return kart.aiInput;
