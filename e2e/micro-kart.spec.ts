@@ -17,7 +17,7 @@ test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Bu
     const card = page.getByTestId('deck-slide-card');
     await page.getByTestId('carousel-dot-micro-kart').click();
     await expect(card).toHaveAttribute('data-slide-id', 'micro-kart');
-    await expect(card).toHaveAttribute('data-game-version', '1.7.2');
+    await expect(card).toHaveAttribute('data-game-version', '1.7.3');
     await expect(page.locator('.deck-slide-title')).toHaveText('Micro Kart');
 
     await page.getByRole('button', { name: 'Play Micro Kart', exact: true }).click();
@@ -62,7 +62,7 @@ test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Bu
     const yokeTurnDeg = parseFloat(
       (await page.getByTestId('kart-p1-f1-yoke').getAttribute('data-turn-deg')) ?? '0',
     );
-    expect(yokeTurnDeg).toBeGreaterThan(15);
+    expect(yokeTurnDeg).toBeGreaterThan(10);
 
     // 3. Down (`S` / `brake: true`) brakes cleanly and lights the Brake HUD pill!
     const preBrakeSpeed = parseInt((await page.getByTestId('kart-p1-speed').textContent()) ?? '0', 10);

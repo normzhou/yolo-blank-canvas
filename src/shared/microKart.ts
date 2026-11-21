@@ -276,6 +276,12 @@ export interface KartState {
   /** AI lane preference offset in meters. */
   aiTargetLat: number;
   aiBaseSkill: number;
+  /** Latched binary keyboard-equivalent AI decision (updated at most 2x/sec, #394). */
+  aiInput: { readonly left: boolean; readonly right: boolean; readonly brake: boolean };
+  /** Next race clock timestamp (ms) when this CPU is allowed to change buttons (staggered per slot). */
+  aiNextDecisionMs: number;
+  aiLastDecisionMs: number | null;
+  aiDecisionCount: number;
   skidMarks: SkidMark[];
 }
 
@@ -349,6 +355,8 @@ export const OFFROAD_EXTRA_DRAG_N = 15_000;
 export const THRUSTER_RAMP_SEC = 0.55;
 export const ANALOG_RAMP_SEC = 0.06;
 export const BRAKE_CUT_RAMP_SEC = 0.11;
+/** Minimum interval between CPU button decisions (500 ms = max 2 actions per second, #394). */
+export const AI_DECISION_INTERVAL_MS = 500;
 
 // Rotational dynamics & 2D rigid-body bumper footprint (#384, #388, #390)
 export const THRUSTER_HALF_SPAN_M = 0.68;
@@ -938,6 +946,12 @@ export function createRaceState(
       place: slot + 1,
       aiTargetLat: (rng() - 0.5) * 10,
       aiBaseSkill: 0.92 + slot * 0.025 + rng() * 0.03,
+      aiInput: { left: false, right: false, brake: false },
+      // Stagger each CPU slot's 500ms decision clock across the cycle so rivals never synchronize (#394)
+      aiNextDecisionMs:
+        ([0, 125, 290, 430][slot] ?? slot * 125) + Math.round((rng() - 0.5) * 36),
+      aiLastDecisionMs: null,
+      aiDecisionCount: 0,
       skidMarks: [],
     });
   }
@@ -965,54 +979,152 @@ function moveToward(current: number, target: number, maxDelta: number): number {
   return target;
 }
 
+function simulateBinarySteerScore(
+  kart: KartState,
+  circuit: CircuitDefinition,
+  leftBtn: boolean,
+  rightBtn: boolean,
+  braking: boolean,
+  targetLat: number,
+): { cost: number; maxAbsLat: number } {
+  // Lightweight 6-step (~0.90s) rollout: hold candidate binary buttons for 0.5s, then check exit trajectory!
+  const steps = 6;
+  const dt = 0.15;
+  let x = kart.x;
+  let z = kart.z;
+  let yaw = kart.yaw;
+  let vx = kart.vx;
+  let vz = kart.vz;
+  let yawRate = kart.yawRate;
+  let lt = kart.leftThrottle;
+  let rt = kart.rightThrottle;
+  let curS = kart.s;
+
+  let maxAbsLat = Math.abs(kart.lat);
+  let lastLat = kart.lat;
+  let lastHeadingErr = 0;
+
+  for (let i = 0; i < steps; i += 1) {
+    const holding = i < 3; // 0.45s commitment window, then evaluate straight exit
+    const stepL = holding ? leftBtn : false;
+    const stepR = holding ? rightBtn : false;
+    const stepBrake = holding ? braking : false;
+    const targetL = stepBrake ? 0 : stepL ? 0 : 1;
+    const targetR = stepBrake ? 0 : stepR ? 0 : 1;
+    const rampRate = stepBrake ? 1 / BRAKE_CUT_RAMP_SEC : 1 / THRUSTER_RAMP_SEC;
+
+    lt = moveToward(lt, targetL, dt * rampRate);
+    rt = moveToward(rt, targetR, dt * rampRate);
+
+    const fL = lt * PER_THRUSTER_MAX_N;
+    const fR = rt * PER_THRUSTER_MAX_N;
+    const fThrust = fL + fR;
+    const torque = (fL - fR) * THRUSTER_HALF_SPAN_M;
+
+    const pFx = Math.sin(yaw);
+    const pFz = Math.cos(yaw);
+    const pRx = Math.cos(yaw);
+    const pRz = -Math.sin(yaw);
+    const pVFwd = vx * pFx + vz * pFz;
+    const pVLat = vx * pRx + vz * pRz;
+
+    const steerDir = stepL ? -1 : stepR ? 1 : 0;
+    const torqueBrake = stepBrake && steerDir !== 0 ? steerDir * 6800 * clamp(pVFwd / 22, 0.25, 1) : 0;
+    const torqueAlign = SLIP_SELF_ALIGN_TORQUE * pVLat * clamp(pVFwd / 30, 0.2, 1);
+    yawRate = clamp(yawRate + ((torque + torqueBrake + torqueAlign - YAW_DAMPING * yawRate) / KART_YAW_INERTIA) * dt, -3.2, 3.2);
+    yaw = wrapAngle(yaw + yawRate * dt);
+
+    const fx = Math.sin(yaw);
+    const fz = Math.cos(yaw);
+    const rx = Math.cos(yaw);
+    const rz = -Math.sin(yaw);
+    const vFwd = vx * fx + vz * fz;
+    const vLat = vx * rx + vz * rz;
+    const vMag = Math.hypot(vx, vz);
+
+    const fAeroFwd = -AERO_DRAG_COEFF * vMag * vFwd;
+    const fBrake = stepBrake && vFwd > 0.05 ? -BRAKE_FORCE_N : 0;
+    const aLatMax = TIRE_LATERAL_MU * GRAVITY_MPS2 + AERO_DOWNFORCE_COEFF * vFwd * vFwd;
+    const aLat = clamp(-TIRE_CORNERING_STIFFNESS * vLat, -aLatMax, aLatMax);
+    const nextVFwd = Math.max(0, vFwd + ((fThrust + fAeroFwd + fBrake) / KART_MASS_KG) * dt);
+    const nextVLat = vLat + aLat * dt;
+
+    vx = fx * nextVFwd + rx * nextVLat;
+    vz = fz * nextVFwd + rz * nextVLat;
+    x += vx * dt;
+    z += vz * dt;
+
+    const proj = projectOntoCircuit(circuit, x, z, curS);
+    curS = proj.s;
+    lastLat = proj.lat;
+    if (Math.abs(lastLat) > maxAbsLat) maxAbsLat = Math.abs(lastLat);
+
+    const sSample = sampleCircuitAtS(circuit, curS + 14);
+    lastHeadingErr = wrapAngle(sSample.yaw - yaw);
+  }
+
+  const offroadPenalty = maxAbsLat > circuit.roadHalfWidth ? (maxAbsLat - circuit.roadHalfWidth) * 14 : 0;
+  const wallPenalty = maxAbsLat > circuit.wallHalfWidth - 0.8 ? 160 : 0;
+  const latErr = Math.abs(lastLat - targetLat);
+  const straightBonus = !leftBtn && !rightBtn ? -1.4 : 0; // Prefer straight full-rocket thrust when close!
+  const cost = latErr * 1.15 + Math.abs(lastHeadingErr) * 18.0 + offroadPenalty + wallPenalty + straightBonus;
+  return { cost, maxAbsLat };
+}
+
 /**
- * Predictive F1 AI pilot (#384): uses speed-scaled lookahead + proportional analog
- * differential steering (`steerAnalog`) and upcoming corner-curvature braking so AI
- * rivals carry real racing lines at 360 km/h without understeering into barriers.
+ * Binary-button 2 Hz AI pilot (#394):
+ * - Restricted to the exact same binary controls as keyboard players (`left`, `right`, or `none`,
+ *   plus independent `brake` — NO `steerAnalog`!), going through the `0.55s` linear thruster ramp.
+ * - Can only make a new decision once every `AI_DECISION_INTERVAL_MS` (`500 ms` = max 2 actions/sec),
+ *   with each CPU slot's decision clock staggered across the 500 ms window so CPUs never synchronize.
  */
 function computeAiThrusters(
   kart: KartState,
   circuit: CircuitDefinition,
-  leaderUnwrappedS: number,
+  _leaderUnwrappedS: number,
+  elapsedMs: number,
 ): ThrusterInput {
-  const lookahead = clamp(18 + kart.speed * 0.28, 18, 46);
-  const aheadSample = sampleCircuitAtS(circuit, kart.s + lookahead);
+  if (elapsedMs < kart.aiNextDecisionMs) {
+    return kart.aiInput;
+  }
+
+  // Advance staggered 500ms clock cleanly without drifting into synchronization
+  while (kart.aiNextDecisionMs <= elapsedMs) {
+    kart.aiNextDecisionMs += AI_DECISION_INTERVAL_MS;
+  }
+  kart.aiLastDecisionMs = elapsedMs;
+  kart.aiDecisionCount += 1;
+
+  // Pick lane target (aim for boost strip if coming up in the next ~50m)
+  const aheadSample = sampleCircuitAtS(circuit, kart.s + clamp(24 + kart.speed * 0.45, 24, 62));
   const aheadNode = circuit.nodes[aheadSample.nodeIndex]!;
   const targetLat = aheadNode.hasBoostPad ? aheadNode.boostLat : kart.aiTargetLat;
 
-  const tx = aheadSample.x + aheadSample.rx * targetLat;
-  const tz = aheadSample.z + aheadSample.rz * targetLat;
-  const desiredYaw = Math.atan2(tx - kart.x, tz - kart.z);
-  const travelYaw =
-    kart.speed > 12 ? Math.atan2(kart.vx, kart.vz) : kart.yaw;
-  const headingBlendYaw = wrapAngle(kart.yaw + wrapAngle(travelYaw - kart.yaw) * 0.45);
-  const yawError = wrapAngle(desiredYaw - headingBlendYaw);
+  // Evaluate the 3 binary steering choices (`none`, `left`, `right`) over the 0.5s commitment window
+  const candidates: ReadonlyArray<{ left: boolean; right: boolean }> = [
+    { left: false, right: false },
+    { left: true, right: false },
+    { left: false, right: true },
+  ];
+  let best = candidates[0]!;
+  let bestEval = simulateBinarySteerScore(kart, circuit, false, false, false, targetLat);
+  for (let i = 1; i < candidates.length; i += 1) {
+    const c = candidates[i]!;
+    const ev = simulateBinarySteerScore(kart, circuit, c.left, c.right, false, targetLat);
+    if (ev.cost < bestEval.cost) {
+      best = c;
+      bestEval = ev;
+    }
+  }
 
-  // Sample upcoming curvature slightly further ahead for smooth corner-entry braking
-  const brakeLookahead = clamp(28 + kart.speed * 0.42, 28, 72);
-  const curveSample = sampleCircuitAtS(circuit, kart.s + brakeLookahead);
-  const curveNode = circuit.nodes[curveSample.nodeIndex]!;
-  const absCurv = Math.abs(curveNode.curvature);
-  const maxLatAccel = TIRE_LATERAL_MU * GRAVITY_MPS2 + AERO_DOWNFORCE_COEFF * kart.speed * kart.speed;
-  const safeCornerSpeed =
-    absCurv > 0.003 ? Math.sqrt((maxLatAccel * 0.92) / absCurv) : MAX_STRAIGHT_SPEED;
+  // Independent binary brake decision: brake only if overspeeding a sharp corner or heading toward outer wall
+  const recSpeed = getRecommendedSpeedAtS(circuit, kart.s + clamp(32 + kart.speed * 0.55, 32, 82));
+  const brake =
+    (bestEval.maxAbsLat > circuit.wallHalfWidth - 1.2 && kart.speed > 66) ||
+    (kart.speed > recSpeed * 1.26 && recSpeed < 82);
 
-  // PD steering controller: proportional yaw error minus angular rate damping
-  const gapBehind = leaderUnwrappedS - kart.unwrappedS;
-  const steerGain = gapBehind > 60 ? 2.8 : 2.5;
-  const rawSteer = clamp(yawError * steerGain - kart.yawRate * 0.22, -1, 1);
-  const steerAnalog = Math.abs(rawSteer) < 0.03 ? 0 : rawSteer;
-
-  const needCornerBrake =
-    (kart.speed > safeCornerSpeed * 1.08 && absCurv > 0.0055) ||
-    (Math.abs(yawError) > 0.65 && kart.speed > 68);
-
-  return {
-    left: steerAnalog < -0.18,
-    right: steerAnalog > 0.18,
-    brake: needCornerBrake,
-    steerAnalog,
-  };
+  kart.aiInput = { left: best.left, right: best.right, brake };
+  return kart.aiInput;
 }
 
 function stepSingleKart(
@@ -1029,7 +1141,7 @@ function stepSingleKart(
   // Finished karts cruise cleanly on AI autopilot so the finish camera stays cinematic
   const activeInput =
     kart.finishMs !== null
-      ? computeAiThrusters(kart, circuit, kart.unwrappedS)
+      ? computeAiThrusters(kart, circuit, kart.unwrappedS, elapsedMs)
       : input;
 
   const braking = Boolean(activeInput.brake);
@@ -1325,7 +1437,7 @@ export function stepRaceState(
       // Gentle arcade rubber-banding keeps AI competitive without unfair runaway leads
       const deltaToLeader = leaderUnwrappedS - kart.unwrappedS;
       const rubberBand = clamp(1 + deltaToLeader * 0.0011, 0.88, 1.08);
-      const aiInput = computeAiThrusters(kart, circuit, leaderUnwrappedS);
+      const aiInput = computeAiThrusters(kart, circuit, leaderUnwrappedS, race.elapsedMs);
       stepSingleKart(
         kart,
         aiInput,
