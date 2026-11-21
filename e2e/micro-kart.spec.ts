@@ -17,7 +17,7 @@ test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Bu
     const card = page.getByTestId('deck-slide-card');
     await page.getByTestId('carousel-dot-micro-kart').click();
     await expect(card).toHaveAttribute('data-slide-id', 'micro-kart');
-    await expect(card).toHaveAttribute('data-game-version', '1.7.1');
+    await expect(card).toHaveAttribute('data-game-version', '1.7.2');
     await expect(page.locator('.deck-slide-title')).toHaveText('Micro Kart');
 
     await page.getByRole('button', { name: 'Play Micro Kart', exact: true }).click();
@@ -162,6 +162,65 @@ test('Micro Kart 2P Online pairs two browser contexts into a shared-circuit race
   } finally {
     await ctxA.close();
     await ctxB.close();
+    await closeStub(stub);
+  }
+});
+
+test('Micro Kart auto-pauses, opens Pause Menu, and pauses music when the window loses focus (#392)', async ({
+  page,
+  errors,
+}) => {
+  const stub = await startStubApp();
+  try {
+    await page.goto(stub.base);
+    await page.getByTestId('carousel-dot-micro-kart').click();
+    await page.getByRole('button', { name: 'Play Micro Kart', exact: true }).click();
+    await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });
+    await expect(page.getByTestId('game-pause-menu')).toHaveCount(0);
+
+    // Confirm music is active during active gameplay
+    await expect
+      .poll(async () =>
+        page.evaluate(() => {
+          const fn = (window as unknown as { __yoloAudioMetrics?: () => { active: boolean } })
+            .__yoloAudioMetrics;
+          return fn ? fn().active : false;
+        }),
+      )
+      .toBe(true);
+
+    // Losing screen/window focus must immediately open the Pause Menu and pause background music
+    await page.evaluate(() => window.dispatchEvent(new Event('blur')));
+    await expect(page.getByTestId('game-pause-menu')).toBeVisible();
+    await expect
+      .poll(async () =>
+        page.evaluate(() => {
+          const fn = (window as unknown as { __yoloAudioMetrics?: () => { active: boolean } })
+            .__yoloAudioMetrics;
+          return fn ? fn().active : true;
+        }),
+      )
+      .toBe(false);
+
+    // Returning window focus must keep the game paused until the player explicitly resumes
+    await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await expect(page.getByTestId('game-pause-menu')).toBeVisible();
+
+    // Clicking Resume closes the Pause Menu and resumes background music!
+    await page.getByTestId('pause-menu-resume').click();
+    await expect(page.getByTestId('game-pause-menu')).toHaveCount(0);
+    await expect
+      .poll(async () =>
+        page.evaluate(() => {
+          const fn = (window as unknown as { __yoloAudioMetrics?: () => { active: boolean } })
+            .__yoloAudioMetrics;
+          return fn ? fn().active : false;
+        }),
+      )
+      .toBe(true);
+
+    expect(errors).toEqual([]);
+  } finally {
     await closeStub(stub);
   }
 });

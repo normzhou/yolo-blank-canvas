@@ -2646,7 +2646,7 @@ export function StarlightBurstView({ onExit }: { onExit: () => void }) {
                   aria-pressed={musicOn}
                   onClick={() => {
                     getSharedArcadeAudio().setPlaylist(STARLIGHT_BURST_PLAYLIST);
-                    setSharedMusicOn(!musicOn, true);
+                    setSharedMusicOn(!musicOn, !paused);
                   }}
                 >
                   {musicOn ? 'Music: On' : 'Music: Off'}
