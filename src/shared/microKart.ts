@@ -4,7 +4,7 @@
  * 3-lap race state for Micro Kart (#344, #358).
  */
 
-export type CircuitId = 'sunset-loop' | 'canyon-crest' | 'starlight-ring';
+export type CircuitId = 'sunset-loop' | 'canyon-crest' | 'starlight-ring' | 'cloud-gate';
 export type KartRaceMode = '1p' | '2p-local' | '2p-online';
 export type BoostKind = 'none' | 'mini' | 'ultra' | 'pad';
 export type DriverCharacterId = 'fox' | 'cat' | 'dog' | 'bunny';
@@ -96,7 +96,15 @@ export interface ThrusterInput {
 }
 
 export interface SceneryProp {
-  readonly kind: 'pine' | 'spire' | 'pylon';
+  readonly kind:
+    | 'pine'
+    | 'spire'
+    | 'pylon'
+    | 'pavilion'
+    | 'jade-pillar'
+    | 'bonsai-pine'
+    | 'lotus'
+    | 'cloud-bank';
   readonly x: number;
   readonly y: number;
   readonly z: number;
@@ -154,6 +162,14 @@ export interface CircuitTheme {
   readonly curbA: string;
   readonly curbB: string;
   readonly propKind: SceneryProp['kind'];
+  /** `'ground'` for earth-backed circuits, `'starry'` for night sky, `'cloud-sea'` for suspended sky-viaduct circuits (#402). */
+  readonly skyMode?: 'ground' | 'starry' | 'cloud-sea';
+  /** Optional segment range `[start, end]` featuring an elevated turquoise Jade Pool basin flanking the causeway. */
+  readonly jadePoolRange?: readonly [number, number];
+  /** Optional segment range `[start, end]` hugging a carved white-jade cliff wall with a cantilevered golden pavilion. */
+  readonly cliffRange?: readonly [number, number];
+  /** Optional segment index spanned by a colossal carved white-jade Moon-Ring Arch & sky-waterfall. */
+  readonly moonGateSeg?: number;
 }
 
 export interface CircuitDefinition {
@@ -557,8 +573,59 @@ const CIRCUIT_SPECS: readonly CircuitSpec[] = [
       curbA: '#38e8ff',
       curbB: '#ffe46b',
       propKind: 'pylon',
+      skyMode: 'starry',
     },
     seed: 303,
+  },
+  {
+    id: 'cloud-gate',
+    name: 'Cloud Gate',
+    subtitle: 'White-jade sky viaduct & sea of clouds',
+    roadHalfWidth: 16.0,
+    evalPoint(u: number) {
+      // Sweeping elevated Heavenly Palace sky circuit (`~2,150 m`):
+      // Soars up sky-stairs from South Heaven Gate -> Moon-Ring & Sky-Waterfall ->
+      // turquoise Jade Pool terrace -> Immortal Cliff cut -> open Cloud-Sea viaduct descent!
+      const x =
+        312 * Math.sin(u) +
+        62 * Math.sin(2 * u + 0.3) -
+        28 * Math.sin(3 * u - 0.45);
+      const z =
+        282 * Math.cos(u) -
+        54 * Math.cos(2 * u - 0.25) +
+        24 * Math.sin(3 * u + 0.6);
+      const y =
+        16.5 +
+        11.5 * Math.sin(u - 0.2) -
+        5.5 * Math.cos(2 * u + 0.4) +
+        2.5 * Math.sin(3 * u);
+      return { x, y, z };
+    },
+    boostSegments: [
+      { seg: 14, lat: 0 },
+      { seg: 54, lat: -3.2 },
+      { seg: 84, lat: 0 },
+      { seg: 126, lat: 3.4 },
+      { seg: 168, lat: 0 },
+    ],
+    theme: {
+      skyTop: '#2f6da8',
+      skyHorizon: '#f5e2ba',
+      fogHex: [228, 224, 212],
+      groundOuter: '#e8eef5',
+      groundAlt: '#d4e2ef',
+      mountainHex: '#7fa1be',
+      roadDark: '#45546a',
+      roadLight: '#50617a',
+      curbA: '#f2efe6',
+      curbB: '#c84232',
+      propKind: 'pavilion',
+      skyMode: 'cloud-sea',
+      jadePoolRange: [64, 96],
+      cliffRange: [104, 132],
+      moonGateSeg: 46,
+    },
+    seed: 404,
   },
 ];
 
@@ -666,21 +733,116 @@ function buildCircuit(spec: CircuitSpec): CircuitDefinition {
   // Deterministic low-poly roadside scenery outside the track barriers
   const rng = mulberry32(spec.seed);
   const scenery: SceneryProp[] = [];
-  for (let i = 0; i < N; i += 3) {
-    const node = nodes[i]!;
-    for (const side of [-1, 1] as const) {
-      if (rng() < 0.62) {
-        const dist = spec.roadHalfWidth + 8.5 + rng() * 24;
-        const px = node.x + node.rx * side * dist;
-        const pz = node.z + node.rz * side * dist;
+  if (spec.theme.skyMode === 'cloud-sea') {
+    const [jpStart, jpEnd] = spec.theme.jadePoolRange ?? [-1, -1];
+    const [clStart, clEnd] = spec.theme.cliffRange ?? [-1, -1];
+
+    for (let i = 0; i < N; i += 2) {
+      const node = nodes[i]!;
+      const inJadePool = i >= jpStart && i <= jpEnd;
+      const inCliff = i >= clStart && i <= clEnd;
+
+      // 1. White-jade cloud pillars with warm glowing palace lanterns lining viaduct edges
+      if (i % 8 === 0 && i !== 0) {
+        for (const side of [-1, 1] as const) {
+          const dist = spec.roadHalfWidth + 2.4;
+          scenery.push({
+            kind: 'jade-pillar',
+            x: node.x + node.rx * side * dist,
+            y: node.y,
+            z: node.z + node.rz * side * dist,
+            scale: 1.0,
+            yaw: Math.atan2(node.tx, node.tz),
+          });
+        }
+      }
+
+      // 2. Glowing glass lotus blossoms dotting the elevated turquoise Jade Pool terrace!
+      if (inJadePool && i % 4 === 0) {
+        for (const side of [-1, 1] as const) {
+          const dist = spec.roadHalfWidth + 8 + rng() * 34;
+          scenery.push({
+            kind: 'lotus',
+            x: node.x + node.rx * side * dist,
+            y: node.y - 0.12,
+            z: node.z + node.rz * side * dist,
+            scale: 0.9 + rng() * 0.7,
+            yaw: rng() * Math.PI * 2,
+          });
+        }
+      }
+
+      // 3. Sculpted 3D sunlit cloud-sea banks drifting BELOW the suspended sky viaduct!
+      if (!inJadePool && i % 4 === 0) {
+        const underSide = (i / 4) % 2 === 0 ? -1 : 1;
+        const cloudDist = 14 + rng() * 34;
+        const cloudDrop = 5.5 + rng() * 9.5;
         scenery.push({
-          kind: spec.theme.propKind,
-          x: px,
-          y: node.y - 0.4,
-          z: pz,
-          scale: 0.85 + rng() * 0.65,
+          kind: 'cloud-bank',
+          x: node.x + node.rx * underSide * cloudDist,
+          y: node.y - cloudDrop,
+          z: node.z + node.rz * underSide * cloudDist,
+          scale: 1.3 + rng() * 1.15,
           yaw: rng() * Math.PI * 2,
         });
+        // Also place a broad sunlit cloud directly underneath the bridge span every 8 segments
+        if (i % 8 === 0) {
+          scenery.push({
+            kind: 'cloud-bank',
+            x: node.x + node.rx * ((rng() - 0.5) * 16),
+            y: node.y - (8.5 + rng() * 6.5),
+            z: node.z + node.rz * ((rng() - 0.5) * 16),
+            scale: 1.65 + rng() * 0.9,
+            yaw: rng() * Math.PI * 2,
+          });
+        }
+      }
+
+      // 4. Floating golden-eaved mini-pavilions & gnarled bonsai sky-pines on floating rock islets
+      if (i % 14 === 4) {
+        const side = inCliff ? 1 : (Math.floor(i / 14) % 2 === 0 ? 1 : -1);
+        const dist = spec.roadHalfWidth + 24 + rng() * 26;
+        scenery.push({
+          kind: 'pavilion',
+          x: node.x + node.rx * side * dist,
+          y: node.y + (rng() - 0.35) * 9,
+          z: node.z + node.rz * side * dist,
+          scale: 0.95 + rng() * 0.5,
+          yaw: Math.atan2(-node.rx * side, -node.rz * side),
+        });
+      }
+      if (i % 10 === 2) {
+        const side = inCliff ? -1 : (Math.floor(i / 10) % 2 === 0 ? -1 : 1);
+        const dist = inCliff
+          ? spec.roadHalfWidth + 11 + rng() * 10
+          : spec.roadHalfWidth + 15 + rng() * 24;
+        scenery.push({
+          kind: 'bonsai-pine',
+          x: node.x + node.rx * side * dist,
+          y: inCliff ? node.y + 4 + rng() * 12 : node.y + (rng() - 0.5) * 5,
+          z: node.z + node.rz * side * dist,
+          scale: 0.9 + rng() * 0.55,
+          yaw: rng() * Math.PI * 2,
+        });
+      }
+    }
+  } else {
+    for (let i = 0; i < N; i += 3) {
+      const node = nodes[i]!;
+      for (const side of [-1, 1] as const) {
+        if (rng() < 0.62) {
+          const dist = spec.roadHalfWidth + 8.5 + rng() * 24;
+          const px = node.x + node.rx * side * dist;
+          const pz = node.z + node.rz * side * dist;
+          scenery.push({
+            kind: spec.theme.propKind,
+            x: px,
+            y: node.y - 0.4,
+            z: pz,
+            scale: 0.85 + rng() * 0.65,
+            yaw: rng() * Math.PI * 2,
+          });
+        }
       }
     }
   }
@@ -702,12 +864,14 @@ export const CIRCUITS: Readonly<Record<CircuitId, CircuitDefinition>> = {
   'sunset-loop': buildCircuit(CIRCUIT_SPECS[0]!),
   'canyon-crest': buildCircuit(CIRCUIT_SPECS[1]!),
   'starlight-ring': buildCircuit(CIRCUIT_SPECS[2]!),
+  'cloud-gate': buildCircuit(CIRCUIT_SPECS[3]!),
 };
 
 export const CIRCUIT_LIST: readonly CircuitDefinition[] = [
   CIRCUITS['sunset-loop'],
   CIRCUITS['canyon-crest'],
   CIRCUITS['starlight-ring'],
+  CIRCUITS['cloud-gate'],
 ];
 
 /** Returns the next circuit in Grand Prix rotation (Sunset Loop -> Canyon Crest -> Starlight Ring -> Sunset Loop, #400). */

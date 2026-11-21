@@ -374,6 +374,108 @@ function emitProp(proj: CameraProjector, prop: SceneryProp): void {
   const y = prop.y;
   const z = prop.z;
 
+  if (prop.kind === 'pavilion') {
+    const r = 4.6 * s;
+    const apex = { x, y: y + 9.2 * s, z };
+    const baseY = y + 5.2 * s;
+    const corners: Pt3[] = [
+      { x: x - r, y: baseY, z: z - r },
+      { x: x + r, y: baseY, z: z - r },
+      { x: x + r, y: baseY, z: z + r },
+      { x: x - r, y: baseY, z: z + r },
+    ];
+    pushWorldPoly(
+      proj,
+      [
+        { x: x - 2.6 * s, y, z: z - 2.6 * s },
+        { x: x + 2.6 * s, y, z: z - 2.6 * s },
+        { x: x + 2.6 * s, y: baseY, z: z - 2.6 * s },
+        { x: x - 2.6 * s, y: baseY, z: z - 2.6 * s },
+      ],
+      [188, 52, 42],
+    );
+    for (let f = 0; f < 4; f += 1) {
+      pushWorldPoly(proj, [corners[f]!, corners[(f + 1) % 4]!, apex], [244, 198, 76]);
+    }
+    return;
+  }
+
+  if (prop.kind === 'jade-pillar') {
+    const w = 0.42 * s;
+    pushWorldPoly(
+      proj,
+      [
+        { x: x - w, y, z },
+        { x: x + w, y, z },
+        { x: x + w, y: y + 4.4 * s, z },
+        { x: x - w, y: y + 4.4 * s, z },
+      ],
+      [244, 240, 232],
+    );
+    pushWorldPoly(
+      proj,
+      [
+        { x: x - w * 1.4, y: y + 4.4 * s, z },
+        { x: x + w * 1.4, y: y + 4.4 * s, z },
+        { x: x + w * 1.4, y: y + 5.5 * s, z },
+        { x: x - w * 1.4, y: y + 5.5 * s, z },
+      ],
+      [248, 174, 72],
+      -0.1,
+      true,
+    );
+    return;
+  }
+
+  if (prop.kind === 'bonsai-pine') {
+    const r = 2.6 * s;
+    pushWorldPoly(
+      proj,
+      [
+        { x: x - r, y: y + 3.4 * s, z: z - r },
+        { x: x + r, y: y + 3.4 * s, z: z - r },
+        { x: x + r, y: y + 3.4 * s, z: z + r },
+        { x: x - r, y: y + 3.4 * s, z: z + r },
+      ],
+      [66, 126, 98],
+    );
+    return;
+  }
+
+  if (prop.kind === 'lotus') {
+    const r = 1.6 * s;
+    pushWorldPoly(
+      proj,
+      [
+        { x: x - r, y: y + 0.15, z: z - r },
+        { x: x + r, y: y + 0.15, z: z - r },
+        { x: x + r, y: y + 0.15, z: z + r },
+        { x: x - r, y: y + 0.15, z: z + r },
+      ],
+      [252, 186, 206],
+      -0.05,
+      true,
+    );
+    return;
+  }
+
+  if (prop.kind === 'cloud-bank') {
+    const r = 8.5 * s;
+    pushWorldPoly(
+      proj,
+      [
+        { x: x - r, y, z: z - r * 0.7 },
+        { x: x + r, y, z: z - r * 0.7 },
+        { x: x + r, y, z: z + r * 0.7 },
+        { x: x - r, y, z: z + r * 0.7 },
+      ],
+      [248, 245, 238],
+      28,
+      true,
+    );
+    return;
+  }
+
   if (prop.kind === 'pine') {
     // Trunk prism + 2-tier low-poly emerald pine pyramid
     const trunkW = 0.55 * s;
@@ -715,6 +817,9 @@ export function renderKartViewport(
   const gw = rw + 48;
   const curbH = 0.28;
 
+  const isCloudSea = circuit.theme.skyMode === 'cloud-sea';
+  const [jpStart, jpEnd] = circuit.theme.jadePoolRange ?? [-1, -1];
+
   // 1. Track ribbon segments (`-10 .. +70` around camera kart)
   for (let step = -10; step < 70; step += 1) {
     const i0 = ((startNodeIdx + step) % N + N) % N;
@@ -722,31 +827,40 @@ export function renderKartViewport(
     const n0 = nodes[i0]!;
     const n1 = nodes[i1]!;
     const bandEven = i0 % 2 === 0;
+    const inJadePool = isCloudSea && i0 >= jpStart && i0 <= jpEnd;
 
-    // Terrain shoulders (surface layer +26)
-    const gRgb = bandEven ? groundOuterRgb : groundAltRgb;
-    pushWorldPoly(
-      proj,
-      [
-        { x: n0.x - n0.rx * gw, y: n0.y - 0.15, z: n0.z - n0.rz * gw },
-        { x: n0.x - n0.rx * cw, y: n0.y - 0.05, z: n0.z - n0.rz * cw },
-        { x: n1.x - n1.rx * cw, y: n1.y - 0.05, z: n1.z - n1.rz * cw },
-        { x: n1.x - n1.rx * gw, y: n1.y - 0.15, z: n1.z - n1.rz * gw },
-      ],
-      gRgb,
-      26,
-    );
-    pushWorldPoly(
-      proj,
-      [
-        { x: n0.x + n0.rx * cw, y: n0.y - 0.05, z: n0.z + n0.rz * cw },
-        { x: n0.x + n0.rx * gw, y: n0.y - 0.15, z: n0.z + n0.rz * gw },
-        { x: n1.x + n1.rx * gw, y: n1.y - 0.15, z: n1.z + n1.rz * gw },
-        { x: n1.x + n1.rx * cw, y: n1.y - 0.05, z: n1.z + n1.rz * cw },
-      ],
-      gRgb,
-      26,
-    );
+    // Terrain shoulders (omitted on open Cloud-Sea viaduct segments; turquoise Jade Pool on terrace!)
+    if (!isCloudSea || inJadePool) {
+      const gRgb: [number, number, number] = inJadePool
+        ? bandEven
+          ? [34, 174, 168]
+          : [48, 198, 188]
+        : bandEven
+          ? groundOuterRgb
+          : groundAltRgb;
+      pushWorldPoly(
+        proj,
+        [
+          { x: n0.x - n0.rx * gw, y: n0.y - 0.15, z: n0.z - n0.rz * gw },
+          { x: n0.x - n0.rx * cw, y: n0.y - 0.05, z: n0.z - n0.rz * cw },
+          { x: n1.x - n1.rx * cw, y: n1.y - 0.05, z: n1.z - n1.rz * cw },
+          { x: n1.x - n1.rx * gw, y: n1.y - 0.15, z: n1.z - n1.rz * gw },
+        ],
+        gRgb,
+        26,
+      );
+      pushWorldPoly(
+        proj,
+        [
+          { x: n0.x + n0.rx * cw, y: n0.y - 0.05, z: n0.z + n0.rz * cw },
+          { x: n0.x + n0.rx * gw, y: n0.y - 0.15, z: n0.z + n0.rz * gw },
+          { x: n1.x + n1.rx * gw, y: n1.y - 0.15, z: n1.z + n1.rz * gw },
+          { x: n1.x + n1.rx * cw, y: n1.y - 0.05, z: n1.z + n1.rz * cw },
+        ],
+        gRgb,
+        26,
+      );
+    }
 
     // Asphalt road quad (surface layer +23)
     pushWorldPoly(
