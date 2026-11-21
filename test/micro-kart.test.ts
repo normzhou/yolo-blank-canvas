@@ -9,6 +9,7 @@ import {
   createRaceState,
   cross2D,
   getKartCenterOfMass,
+  getNextCircuitId,
   getRecommendedSpeedAtS,
   KART_DRIVERS,
   KART_MASS_KG,
@@ -55,6 +56,9 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
       'canyon-crest',
       'starlight-ring',
     ]);
+    expect(getNextCircuitId('sunset-loop')).toBe('canyon-crest');
+    expect(getNextCircuitId('canyon-crest')).toBe('starlight-ring');
+    expect(getNextCircuitId('starlight-ring')).toBe('sunset-loop');
     for (const circuit of CIRCUIT_LIST) {
       expect(circuit.totalLength).toBeGreaterThan(1500);
       expect(circuit.roadHalfWidth).toBeGreaterThanOrEqual(15.5);

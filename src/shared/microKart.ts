@@ -710,6 +710,12 @@ export const CIRCUIT_LIST: readonly CircuitDefinition[] = [
   CIRCUITS['starlight-ring'],
 ];
 
+/** Returns the next circuit in Grand Prix rotation (Sunset Loop -> Canyon Crest -> Starlight Ring -> Sunset Loop, #400). */
+export function getNextCircuitId(id: CircuitId): CircuitId {
+  const idx = CIRCUIT_LIST.findIndex((c) => c.id === id);
+  return CIRCUIT_LIST[(idx + 1) % CIRCUIT_LIST.length]!.id;
+}
+
 /**
  * Interpolates a track frame at continuous arc coordinate `s` (`0 .. totalLength`).
  */
