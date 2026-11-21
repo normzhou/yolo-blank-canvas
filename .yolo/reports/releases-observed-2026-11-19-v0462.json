@@ -1,0 +1,81 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-19",
+  "observed_at": "2026-11-19",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#392",
+  "releases": [
+    {
+      "tag": "v0.46.2",
+      "commit": "07c701547c3d67dba245fb2a5b9623f44adda5c2"
+    }
+  ],
+  "release": {
+    "tag": "v0.46.2",
+    "commit": "07c701547c3d67dba245fb2a5b9623f44adda5c2",
+    "source_commit": "35831ee78282db1cfbe94d715e876806a11f4dc3",
+    "assets_commit": "3ce68543d5fb0a4b1baa6b1930c8932ef7aa70fc",
+    "native_version": "0.46.2",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-21T04:18:52Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.46.2",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/393"
+  },
+  "build_identity": {
+    "server_build_id": "35831ee78282db1cfbe94d715e876806a11f4dc3",
+    "client_build_id": "35831ee78282db1cfbe94d715e876806a11f4dc3",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "30 files, 195 tests passed",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 51 passed (58.5s, including new focus-loss auto-pause & music pause E2E test in e2e/micro-kart.spec.ts)",
+      "e2e_live": "npm run e2e:live — 5 passed (13.3s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.46.2 --no-open --port 4455 (served on 4456 from an empty temporary directory) + npm run e2e:verify-release — 11 passed (18.5s)",
+      "ci": "GitHub Actions CI/Test and type check green (23s)"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "7305c4c7-7169-4d98-8c59-7d6922fa5ae5",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.46.2",
+      "observed_build_id": "35831ee78282db1cfbe94d715e876806a11f4dc3",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.2.0",
+          "entry": "/games/starlight-burst-GBNrLdJU.js",
+          "hash": "27a6676d3b80780e7cc557cfee1d008a4fb6ae4b74d85fde5e040f52f2e7b116",
+          "sizeBytes": 86740
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-BTouD6yV.js",
+          "hash": "6fa804dd96d3debe1835f3a2cc6e351916f8366a9679865d98352dc6d348b12e",
+          "sizeBytes": 37318
+        },
+        "micro-kart": {
+          "version": "1.7.2",
+          "entry": "/games/micro-kart-TbukYtav.js",
+          "hash": "2f8099b94852c35ce76fe8c0e2ff8664ac5f02ee8eafde703f4eddaa34587ecf",
+          "sizeBytes": 106967
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Automatically pauses active games, brings up the in-game Pause Menu, and pauses background music whenever the browser window or tab loses focus (blur or visibilitychange), keeping music paused while any game is paused and resuming instantaneously when the player resumes (@yolo-arcade/game-micro-kart@1.7.2)."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #392"
+}
