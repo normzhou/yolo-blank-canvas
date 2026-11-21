@@ -642,12 +642,14 @@ function emitKartMesh(proj: CameraProjector, kart: KartState, timeMs: number): v
 
   // 7. Pure Dual-Rocket Exhaust Flames scaled strictly in proportion to left/right throttle (`0..1`)!
   const flicker = 0.88 + Math.sin(timeMs * 0.045 + kart.slot) * 0.14;
-  const flameColor: [number, number, number] = [255, 152, 48];
+  const padBoost = kart.boostTimer > 0 && kart.boostKind === 'pad';
+  const flameColor: [number, number, number] = padBoost ? [56, 232, 255] : [255, 152, 48];
 
   const emitFlame = (cx: number, throttle: number) => {
     if (throttle <= 0.02) return;
-    const len = (0.35 + throttle * 2.15) * flicker;
-    const r = 0.2 * (0.42 + throttle * 0.72);
+    const boostLen = padBoost ? 1.32 : 1.0;
+    const len = (0.35 + throttle * 2.15) * boostLen * flicker;
+    const r = 0.2 * (0.42 + throttle * 0.72) * (padBoost ? 1.12 : 1.0);
     const cy = 0.42;
     const zBase = -1.84;
     const apex = xf(cx, cy, zBase - len);
