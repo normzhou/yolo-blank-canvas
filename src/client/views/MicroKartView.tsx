@@ -40,6 +40,7 @@ import {
   createRaceState,
   formatRaceClock,
   getKartDriverSpec,
+  getKartPortraitMood,
   getNextCircuitId,
   getRecommendedSpeedAtS,
   KART_DRIVERS,
@@ -52,6 +53,7 @@ import {
   type CircuitId,
   type DriverCharacterId,
   type KartNetSnapshot,
+  type KartPortraitMood,
   type KartRaceMode,
   type KartRaceState,
   type ThrusterInput,
@@ -86,7 +88,236 @@ function isEditableElement(target: EventTarget | null): boolean {
   return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable;
 }
 
+interface StandingEntry {
+  slot: number;
+  place: number;
+  character: DriverCharacterId;
+  driverName: string;
+  isHuman: boolean;
+  humanTag: string | null;
+  finished: boolean;
+  mood: KartPortraitMood;
+}
+
+function detectDesktopKeyboard(): boolean {
+  if (typeof window === 'undefined') return true;
+  const coarsePointer =
+    typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
+  return !coarsePointer && window.innerWidth >= 768;
+}
+
+/**
+ * Starlight-Burst-inspired expressive SVG animal portrait for Micro Kart (#406):
+ * - `happy` (1st place): joyful `◠ ◠` happy-squint eyes, rosy blush & sparkling smile
+ * - `normal` (2nd-3rd): bright soulful jewel eyes & warm smile
+ * - `anxious` (last place while racing): worried brows, wide eyes, `:o` mouth & bobbing sweat drop
+ * - `cry` (last place at finish): squishy `> <` eyes, wobbly pout & animated falling teardrops
+ */
+function KartDriverPortrait({
+  character,
+  mood,
+  size = 38,
+}: {
+  character: DriverCharacterId;
+  mood: KartPortraitMood;
+  size?: number;
+}) {
+  const spec = getKartDriverSpec(character);
+  const fur = `rgb(${spec.furPrimary[0]}, ${spec.furPrimary[1]}, ${spec.furPrimary[2]})`;
+  const inner = `rgb(${spec.furSecondary[0]}, ${spec.furSecondary[1]}, ${spec.furSecondary[2]})`;
+  const accent = `rgb(${spec.kartPrimary[0]}, ${spec.kartPrimary[1]}, ${spec.kartPrimary[2]})`;
+  const ink = '#1e1b29';
+  const moodClass =
+    mood === 'anxious'
+      ? 'kart-portrait-svg is-anxious'
+      : mood === 'cry'
+        ? 'kart-portrait-svg is-cry'
+        : mood === 'happy'
+          ? 'kart-portrait-svg is-happy'
+          : 'kart-portrait-svg';
+
+  return (
+    <svg
+      className={moodClass}
+      width={size}
+      height={size}
+      viewBox="-24 -28 48 48"
+      aria-hidden="true"
+    >
+      {/* Circular driver badge backdrop */}
+      <circle cx="0" cy="-2" r="21" fill="rgba(16, 22, 36, 0.72)" />
+      <circle cx="0" cy="-2" r="19" fill={accent} opacity="0.24" />
+
+      <g className="kart-portrait-head">
+        {/* Species-specific ears */}
+        {character === 'bunny' ? (
+          <g>
+            <ellipse cx="-7.5" cy="-16.5" rx="4.2" ry="10.2" transform="rotate(-12 -7.5 -16.5)" fill={fur} stroke={ink} strokeWidth="1.2" />
+            <ellipse cx="-7.5" cy="-16.2" rx="2.1" ry="6.8" transform="rotate(-12 -7.5 -16.2)" fill="#f8a9c4" />
+            <ellipse cx="7.5" cy="-16.5" rx="4.2" ry="10.2" transform="rotate(12 7.5 -16.5)" fill={fur} stroke={ink} strokeWidth="1.2" />
+            <ellipse cx="7.5" cy="-16.2" rx="2.1" ry="6.8" transform="rotate(12 7.5 -16.2)" fill="#f8a9c4" />
+          </g>
+        ) : character === 'dog' ? (
+          <g>
+            <ellipse cx="-13.5" cy="-2.5" rx="4.8" ry="9.2" transform="rotate(16 -13.5 -2.5)" fill={inner} stroke={ink} strokeWidth="1.2" />
+            <ellipse cx="13.5" cy="-2.5" rx="4.8" ry="9.2" transform="rotate(-16 13.5 -2.5)" fill={inner} stroke={ink} strokeWidth="1.2" />
+          </g>
+        ) : character === 'cat' ? (
+          <g>
+            <polygon points="-13,-7 -11,-20 -2,-12" fill={fur} stroke={ink} strokeWidth="1.2" strokeLinejoin="round" />
+            <polygon points="-11,-9 -10,-16.5 -4.5,-11.5" fill="#f7a8be" />
+            <polygon points="13,-7 11,-20 2,-12" fill={fur} stroke={ink} strokeWidth="1.2" strokeLinejoin="round" />
+            <polygon points="11,-9 10,-16.5 4.5,-11.5" fill="#f7a8be" />
+          </g>
+        ) : (
+          /* Fox pointed ears with dark tips */
+          <g>
+            <polygon points="-13.5,-6 -13,-22 -2.5,-12" fill={fur} stroke={ink} strokeWidth="1.2" strokeLinejoin="round" />
+            <polygon points="-13,-22 -13.2,-15.5 -8.5,-16" fill="#3a2a24" />
+            <polygon points="-11,-8.5 -11,-15 -5,-11.2" fill={inner} />
+            <polygon points="13.5,-6 13,-22 2.5,-12" fill={fur} stroke={ink} strokeWidth="1.2" strokeLinejoin="round" />
+            <polygon points="13,-22 13.2,-15.5 8.5,-16" fill="#3a2a24" />
+            <polygon points="11,-8.5 11,-15 5,-11.2" fill={inner} />
+          </g>
+        )}
+
+        {/* Rounded head silhouette */}
+        <ellipse cx="0" cy="-1.5" rx="13.5" ry="12.2" fill={fur} stroke={ink} strokeWidth="1.25" />
+        {/* Soft cheek muzzle patch */}
+        <ellipse cx="0" cy="3.2" rx="9.2" ry="5.8" fill={inner} opacity="0.88" />
+
+        {/* Rosy cheeks (hidden when crying) */}
+        {mood !== 'cry' ? (
+          <g opacity={mood === 'happy' ? 0.85 : 0.55}>
+            <ellipse cx="-8.2" cy="1.8" rx="3.1" ry="1.8" fill="#ff7fa4" />
+            <ellipse cx="8.2" cy="1.8" rx="3.1" ry="1.8" fill="#ff7fa4" />
+          </g>
+        ) : null}
+
+        {/* Cat whiskers */}
+        {character === 'cat' ? (
+          <g stroke={ink} strokeWidth="0.9" strokeLinecap="round" opacity="0.65">
+            <line x1="-15.5" y1="0.2" x2="-10.5" y2="1.0" />
+            <line x1="-15.2" y1="2.8" x2="-10.5" y2="2.5" />
+            <line x1="15.5" y1="0.2" x2="10.5" y2="1.0" />
+            <line x1="15.2" y1="2.8" x2="10.5" y2="2.5" />
+          </g>
+        ) : null}
+
+        {/* Expressive eyes by placement mood */}
+        {mood === 'happy' ? (
+          <g>
+            <path d="M -8.4 -2.2 Q -5.6 -6.2, -2.8 -2.2" fill="none" stroke={ink} strokeWidth="2.1" strokeLinecap="round" />
+            <path d="M 2.8 -2.2 Q 5.6 -6.2, 8.4 -2.2" fill="none" stroke={ink} strokeWidth="2.1" strokeLinecap="round" />
+            {/* Joyful sparkle star */}
+            <path d="M 13.5 -14 L 14.5 -11.4 L 17.1 -10.4 L 14.5 -9.4 L 13.5 -6.8 L 12.5 -9.4 L 9.9 -10.4 L 12.5 -11.4 Z" fill="#ffd954" />
+          </g>
+        ) : mood === 'cry' ? (
+          <g>
+            {/* Squishy `> <` eyes + shimmering animated teardrops */}
+            <path d="M -8.2 -4.6 L -3.6 -2.4 L -8.2 -0.2" fill="none" stroke={ink} strokeWidth="2.0" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M 8.2 -4.6 L 3.6 -2.4 L 8.2 -0.2" fill="none" stroke={ink} strokeWidth="2.0" strokeLinecap="round" strokeLinejoin="round" />
+            <ellipse cx="-6.8" cy="2.6" rx="1.65" ry="2.6" fill="#54d8ff" className="kart-portrait-tear" />
+            <ellipse cx="6.8" cy="2.6" rx="1.65" ry="2.6" fill="#54d8ff" className="kart-portrait-tear is-right" />
+            <circle cx="-8.8" cy="6.6" r="1.25" fill="#9eeeff" className="kart-portrait-tear" />
+            <circle cx="8.8" cy="6.6" r="1.25" fill="#9eeeff" className="kart-portrait-tear is-right" />
+          </g>
+        ) : mood === 'anxious' ? (
+          <g>
+            {/* Wide worried eyes + furrowed brows + bobbing blue sweat drop */}
+            <circle cx="-5.6" cy="-2.2" r="2.8" fill={ink} />
+            <circle cx="-4.6" cy="-3.2" r="1.05" fill="#ffffff" />
+            <circle cx="5.6" cy="-2.2" r="2.8" fill={ink} />
+            <circle cx="6.6" cy="-3.2" r="1.05" fill="#ffffff" />
+            <path d="M -8.6 -6.2 Q -5.8 -8.2, -3.0 -6.4 M 3.0 -6.4 Q 5.8 -8.2, 8.6 -6.2" fill="none" stroke={ink} strokeWidth="1.35" strokeLinecap="round" />
+            <path
+              d="M 13.4 -11.5 C 15.8 -7.8, 15.6 -4.6, 13.4 -4.6 C 11.2 -4.6, 11.0 -7.8, 13.4 -11.5 Z"
+              fill="#54d8ff"
+              stroke={ink}
+              strokeWidth="0.9"
+              className="kart-portrait-sweat"
+            />
+          </g>
+        ) : (
+          /* Normal soulful bright jewel eyes */
+          <g>
+            <circle cx="-5.5" cy="-2.4" r="2.55" fill={ink} />
+            <circle cx="-4.7" cy="-3.3" r="0.95" fill="#ffffff" />
+            <circle cx="5.5" cy="-2.4" r="2.55" fill={ink} />
+            <circle cx="6.3" cy="-3.3" r="0.95" fill="#ffffff" />
+          </g>
+        )}
+
+        {/* Cute nose */}
+        <ellipse cx="0" cy="0.8" rx={character === 'dog' ? 2.1 : 1.5} ry="1.1" fill={character === 'cat' || character === 'bunny' ? '#ff7c9f' : ink} />
+
+        {/* Expressive mouth */}
+        {mood === 'happy' ? (
+          <path d="M -3.6 3.2 Q 0 8.2, 3.6 3.2 Z" fill="#ff7392" stroke={ink} strokeWidth="1.1" strokeLinejoin="round" />
+        ) : mood === 'anxious' ? (
+          <ellipse cx="0" cy="5.0" rx="1.95" ry="2.25" fill="#ff7392" stroke={ink} strokeWidth="1.1" />
+        ) : mood === 'cry' ? (
+          <path d="M -3.4 6.2 Q 0 3.2, 3.4 6.2" fill="none" stroke={ink} strokeWidth="1.5" strokeLinecap="round" />
+        ) : (
+          <path d="M -3.0 3.8 Q 0 6.2, 3.0 3.8" fill="none" stroke={ink} strokeWidth="1.35" strokeLinecap="round" />
+        )}
+      </g>
+    </svg>
+  );
+}
+
+function KartFinishBanner({
+  testId,
+  label,
+  place,
+  character,
+  driverName,
+  finishMs,
+  bestLapMs,
+  totalKarts,
+}: {
+  testId: string;
+  label: string | null;
+  place: number;
+  character: DriverCharacterId;
+  driverName: string;
+  finishMs: number;
+  bestLapMs: number | null;
+  totalKarts: number;
+}) {
+  const mood = getKartPortraitMood(place, totalKarts, true, true);
+  const rankHeadline =
+    place === 1
+      ? '1ST PLACE!'
+      : `${ordinalPlace(place).toUpperCase()} PLACE`;
+  const reasonLine =
+    place === 1
+      ? `${driverName} crossed the line 1st!`
+      : `${driverName} finished ${ordinalPlace(place)}`;
+
+  return (
+    <div
+      className={place === 1 ? 'kart-finish-banner is-winner' : 'kart-finish-banner'}
+      role="status"
+      aria-live="polite"
+      data-testid={testId}
+      data-place={place}
+    >
+      <KartDriverPortrait character={character} mood={mood} size={52} />
+      <div className="kart-finish-banner-copy">
+        {label ? <span className="kart-finish-banner-kicker">{label}</span> : null}
+        <strong className="kart-finish-banner-rank">{rankHeadline}</strong>
+        <span className="kart-finish-banner-meta">
+          {reasonLine} · {formatRaceClock(finishMs)}
+          {bestLapMs !== null ? ` · Best ${formatRaceClock(bestLapMs)}` : ''}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 interface HudTelemetry {
+  character: DriverCharacterId;
   driverName: string;
   place: number;
   lap: number;
@@ -406,8 +637,11 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
   const [raceStatus, setRaceStatus] = useState<'racing' | 'finished'>('racing');
   const [winnerSlot, setWinnerSlot] = useState<number | null>(null);
   const [elapsedHudMs, setElapsedHudMs] = useState(0);
-  const [nextTrackSec, setNextTrackSec] = useState<number>(5);
+  const [nextTrackPopoverDelaySec, setNextTrackPopoverDelaySec] = useState<number>(5);
+  const [isDesktopKeyboard, setIsDesktopKeyboard] = useState<boolean>(detectDesktopKeyboard);
+  const [standings, setStandings] = useState<StandingEntry[]>([]);
   const [p1Hud, setP1Hud] = useState<HudTelemetry>({
+    character: 'fox',
     driverName: 'Ren',
     place: 1,
     lap: 1,
@@ -427,6 +661,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     finishMs: null,
   });
   const [p2Hud, setP2Hud] = useState<HudTelemetry>({
+    character: 'cat',
     driverName: 'Mochi',
     place: 2,
     lap: 1,
@@ -488,6 +723,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     setRaceStatus(race.status);
     setWinnerSlot(race.winnerSlot);
     setP1Hud({
+      character: k0.character,
       driverName: getKartDriverSpec(k0.character).driverName,
       place: k0.place,
       lap: Math.min(TOTAL_LAPS, k0.lap),
@@ -508,6 +744,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     });
     if (k1) {
       setP2Hud({
+        character: k1.character,
         driverName: getKartDriverSpec(k1.character).driverName,
         place: k1.place,
         lap: Math.min(TOTAL_LAPS, k1.lap),
@@ -527,6 +764,36 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         finishMs: k1.finishMs,
       });
     }
+    const totalKarts = race.karts.length;
+    const isFinished = race.status === 'finished';
+    const nextStandings: StandingEntry[] = [...race.karts]
+      .sort((a, b) => a.place - b.place)
+      .map((k) => {
+        const spec = getKartDriverSpec(k.character);
+        const humanTag =
+          race.mode === '2p-local'
+            ? k.slot === 0
+              ? 'P1'
+              : k.slot === 1
+                ? 'P2'
+                : null
+            : k.slot === focusLocalSlot
+              ? 'YOU'
+              : k.isRemote
+                ? 'P2'
+                : null;
+        return {
+          slot: k.slot,
+          place: k.place,
+          character: k.character,
+          driverName: spec.driverName,
+          isHuman: k.isHuman,
+          humanTag,
+          finished: k.finishMs !== null,
+          mood: getKartPortraitMood(k.place, totalKarts, isFinished, k.finishMs !== null),
+        };
+      });
+    setStandings(nextStandings);
     setMapDots(
       race.karts.map((k) => ({
         x: k.x,
@@ -585,12 +852,35 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       activePointersRef.current.clear();
       syncHudFromRace(fresh, focusSlot);
       setSharedGamePaused(false);
-      setNextTrackSec(5);
+      setNextTrackPopoverDelaySec(5);
       triggerFreshCountdown(lang);
       getSharedArcadeAudio().startNewGameTrack();
     },
     [activeKartRoom, p1Character, syncHudFromRace, triggerFreshCountdown],
   );
+
+  // Restrict 2P Split-Screen (`2p-local`) strictly to desktop environments with keyboards (#406)
+  useEffect(() => {
+    const syncDesktop = () => {
+      const desktop = detectDesktopKeyboard();
+      setIsDesktopKeyboard(desktop);
+    };
+    window.addEventListener('resize', syncDesktop);
+    const mq =
+      typeof window.matchMedia === 'function' ? window.matchMedia('(pointer: coarse)') : null;
+    mq?.addEventListener?.('change', syncDesktop);
+    return () => {
+      window.removeEventListener('resize', syncDesktop);
+      mq?.removeEventListener?.('change', syncDesktop);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isDesktopKeyboard && localMode === '2p-local' && !isOnline2P) {
+      setLocalMode('1p');
+      resetRace(circuitId, '1p');
+    }
+  }, [circuitId, isDesktopKeyboard, isOnline2P, localMode, resetRace]);
 
   const nextCircuit = CIRCUITS[getNextCircuitId(circuitId)];
 
@@ -604,22 +894,18 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     }
   }, [activeKartRoom, circuitId, isOnline2P, localMode, resetRace]);
 
-  // Automatically advance to the next circuit after a 5-second podium pause in local modes (#400)
+  // Wait 5 seconds AFTER all human players finish before surfacing the separate Continue to Next Track popover (#406)
   useEffect(() => {
-    if (raceStatus !== 'finished' || isOnline2P) {
-      setNextTrackSec(5);
+    if (raceStatus !== 'finished') {
+      setNextTrackPopoverDelaySec(5);
       return;
     }
-    if (paused) return;
-    if (nextTrackSec <= 0) {
-      advanceToNextTrack();
-      return;
-    }
+    if (paused || nextTrackPopoverDelaySec <= 0) return;
     const timer = window.setTimeout(() => {
-      setNextTrackSec((s) => Math.max(0, s - 1));
+      setNextTrackPopoverDelaySec((s) => Math.max(0, s - 1));
     }, 1000);
     return () => window.clearTimeout(timer);
-  }, [advanceToNextTrack, isOnline2P, nextTrackSec, paused, raceStatus]);
+  }, [nextTrackPopoverDelaySec, paused, raceStatus]);
 
   // Audio & shared pause subscriptions
   useEffect(() => {
@@ -862,13 +1148,19 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         p1?: ThrusterInput;
         p2?: ThrusterInput;
         autoPilotP1?: boolean;
+        autoPilotP2?: boolean;
       }>).detail;
-      const steps = Math.max(1, Math.min(4500, detail?.steps ?? 1));
+      const steps = Math.max(1, Math.min(6000, detail?.steps ?? 1));
       const dtMs = detail?.dtMs ?? 16.67;
       const p1Kart = raceRef.current.karts[0]!;
-      const prevIsHuman = p1Kart.isHuman;
+      const p2Kart = raceRef.current.karts[1];
+      const prevP1Human = p1Kart.isHuman;
+      const prevP2Human = p2Kart?.isHuman ?? false;
       if (detail?.autoPilotP1) {
         (p1Kart as { isHuman: boolean }).isHuman = false;
+      }
+      if (detail?.autoPilotP2 && p2Kart) {
+        (p2Kart as { isHuman: boolean }).isHuman = false;
       }
       try {
         for (let i = 0; i < steps; i += 1) {
@@ -880,12 +1172,23 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
             },
             dtMs,
           );
-          if (detail?.autoPilotP1 && raceRef.current.status === 'finished') {
-            break;
+          // Re-evaluate race finish using true human roles when autopiloting human slots in tests
+          if (detail?.autoPilotP1 || detail?.autoPilotP2) {
+            const p1Done = !prevP1Human || p1Kart.finishMs !== null;
+            const p2Done = !prevP2Human || (p2Kart?.finishMs ?? null) !== null;
+            if (p1Done && p2Done) {
+              raceRef.current.status = 'finished';
+              raceRef.current.winnerSlot =
+                raceRef.current.karts.find((k) => k.place === 1)?.slot ?? 0;
+              break;
+            }
           }
         }
       } finally {
-        (p1Kart as { isHuman: boolean }).isHuman = prevIsHuman;
+        (p1Kart as { isHuman: boolean }).isHuman = prevP1Human;
+        if (p2Kart) {
+          (p2Kart as { isHuman: boolean }).isHuman = prevP2Human;
+        }
       }
       updateChaseCamera(cam1Ref.current, raceRef.current.karts[0]!, dtMs / 1000);
       if (raceRef.current.karts[1]) {
@@ -1288,8 +1591,51 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         </div>
       </header>
 
+      {/* Dynamic Left-Side Live Standings Rail with Expressive Character Portraits (#406) */}
+      {!paused && standings.length > 0 ? (
+        <aside
+          className={isSplit2P ? 'kart-standings-rail is-compact' : 'kart-standings-rail'}
+          aria-label="Live race standings"
+          data-testid="kart-standings-rail"
+        >
+          {standings.map((entry) => (
+            <div
+              key={entry.slot}
+              className={
+                entry.place === 1
+                  ? 'kart-standing-row is-first'
+                  : entry.place >= standings.length
+                    ? 'kart-standing-row is-last'
+                    : 'kart-standing-row'
+              }
+              data-testid={`kart-standing-slot-${entry.slot}`}
+              data-place={entry.place}
+              data-mood={entry.mood}
+              data-character={entry.character}
+            >
+              <span className="kart-standing-rank">{ordinalPlace(entry.place)}</span>
+              <KartDriverPortrait
+                character={entry.character}
+                mood={entry.mood}
+                size={isSplit2P ? 30 : 38}
+              />
+              <div className="kart-standing-info">
+                <span className="kart-standing-name">
+                  {entry.driverName}
+                  {entry.humanTag ? <em className="kart-standing-tag">{entry.humanTag}</em> : null}
+                </span>
+                {entry.finished ? <span className="kart-standing-fin">FIN</span> : null}
+              </div>
+            </div>
+          ))}
+        </aside>
+      ) : null}
+
       {/* Primary Viewport HUD (Full screen in 1P / Online 2P, Top half in 2P Split-Screen) */}
-      <div className={isSplit2P ? 'kart-hud-layer is-top-half' : 'kart-hud-layer'}>
+      <div
+        className={isSplit2P ? 'kart-hud-layer is-top-half' : 'kart-hud-layer'}
+        data-testid="kart-p1-hud"
+      >
         <div className="kart-hud-top-right">
           <div className="kart-telemetry-card" data-testid="kart-p1-telemetry">
             <span
@@ -1327,6 +1673,20 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
           </div>
           {!isSplit2P ? <CircuitMiniMap circuitId={circuitId} dots={mapDots} /> : null}
         </div>
+
+        {/* P1 In-Viewport Finish Placement Banner (non-blocking; stays inside top half in 2P!) */}
+        {!paused && p1Hud.finishMs !== null ? (
+          <KartFinishBanner
+            testId="kart-p1-finish-banner"
+            label={isSplit2P ? 'Player 1' : null}
+            place={p1Hud.place}
+            character={p1Hud.character}
+            driverName={p1Hud.driverName}
+            finishMs={p1Hud.finishMs}
+            bestLapMs={p1Hud.bestLapMs}
+            totalKarts={standings.length || 4}
+          />
+        ) : null}
 
         <div className="kart-controls-dock">
           {!isSplit2P ? (
@@ -1437,6 +1797,21 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
               </div>
             </div>
           </div>
+
+          {/* P2 Independent Split-Screen In-Viewport Finish Banner */}
+          {!paused && p2Hud.finishMs !== null ? (
+            <KartFinishBanner
+              testId="kart-p2-finish-banner"
+              label="Player 2"
+              place={p2Hud.place}
+              character={p2Hud.character}
+              driverName={p2Hud.driverName}
+              finishMs={p2Hud.finishMs}
+              bestLapMs={p2Hud.bestLapMs}
+              totalKarts={standings.length || 4}
+            />
+          ) : null}
+
           <div className="kart-thruster-row">
             <span className={p2Hud.turnLeftOn ? 'kart-thruster-pill is-firing' : 'kart-thruster-pill'}>
               ◀ P2 TURN L · ←
@@ -1470,29 +1845,21 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         </div>
       ) : null}
 
-      {/* Finish Podium Card */}
-      {!paused && raceStatus === 'finished' ? (
+      {/* Separate "Continue to Next Track" Popover appearing 5s after all players finish (#406) */}
+      {!paused && raceStatus === 'finished' && nextTrackPopoverDelaySec <= 0 ? (
         <div
-          className="stack-over"
-          role="status"
-          aria-live="polite"
-          data-testid="kart-finish-card"
+          className="stack-over kart-next-track-popover"
+          role="dialog"
+          aria-label="Continue to next track"
+          data-testid="kart-next-track-popover"
         >
-          <div>
-            {isSplit2P || isOnline2P
-              ? winnerSlot === (isOnline2P && activeKartRoom ? activeKartRoom.mySlot : 0)
-                ? '1st Place Victory!'
-                : `${raceRef.current.karts[winnerSlot ?? 0]?.name ?? 'Rival'} Wins!`
-              : `${ordinalPlace(p1Hud.place)} Place · ${formatRaceClock(p1Hud.finishMs ?? elapsedHudMs)}`}
+          <span className="game-pause-kicker">Race Complete</span>
+          <div className="kart-next-track-title">Next Track · {nextCircuit.name}</div>
+          <div className="muted">
+            {winnerSlot !== null
+              ? `${raceRef.current.karts[winnerSlot]?.name ?? 'Leader'} took 1st Place`
+              : 'Ready for the next circuit'}
           </div>
-          {p1Hud.bestLapMs !== null ? (
-            <div className="muted">Best Lap · {formatRaceClock(p1Hud.bestLapMs)}</div>
-          ) : null}
-          {!isOnline2P ? (
-            <div className="muted" data-testid="kart-next-track-countdown">
-              Next track in {nextTrackSec}s · {nextCircuit.name}
-            </div>
-          ) : null}
           <div className="game-pause-actions">
             <button
               type="button"
@@ -1500,7 +1867,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
               data-testid="kart-next-track-btn"
               onClick={advanceToNextTrack}
             >
-              Next Track · {nextCircuit.name}
+              Continue · {nextCircuit.name}
             </button>
             <button
               type="button"
@@ -1602,18 +1969,20 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                 >
                   1P Grand Prix
                 </button>
-                <button
-                  type="button"
-                  data-testid="kart-2p-local-btn"
-                  aria-pressed={isSplit2P}
-                  onClick={() => {
-                    if (isOnline2P) void getSharedNetplay().leaveRoom();
-                    setLocalMode('2p-local');
-                    resetRace(circuitId, '2p-local');
-                  }}
-                >
-                  2P Split-Screen
-                </button>
+                {isDesktopKeyboard ? (
+                  <button
+                    type="button"
+                    data-testid="kart-2p-local-btn"
+                    aria-pressed={isSplit2P}
+                    onClick={() => {
+                      if (isOnline2P) void getSharedNetplay().leaveRoom();
+                      setLocalMode('2p-local');
+                      resetRace(circuitId, '2p-local');
+                    }}
+                  >
+                    2P Split-Screen
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   data-testid="kart-2p-online-btn"

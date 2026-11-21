@@ -17,7 +17,7 @@ test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Bu
     const card = page.getByTestId('deck-slide-card');
     await page.getByTestId('carousel-dot-micro-kart').click();
     await expect(card).toHaveAttribute('data-slide-id', 'micro-kart');
-    await expect(card).toHaveAttribute('data-game-version', '1.8.1');
+    await expect(card).toHaveAttribute('data-game-version', '1.9.0');
     await expect(page.locator('.deck-slide-title')).toHaveText('Micro Kart');
 
     await page.getByRole('button', { name: 'Play Micro Kart', exact: true }).click();
@@ -225,8 +225,9 @@ test('Micro Kart auto-pauses, opens Pause Menu, and pauses music when the window
   }
 });
 
-test('Micro Kart moves on to the next track after finishing a circuit (#400)', async ({
+test('Micro Kart shows left-side emotional standings, in-game split finish banners, 5s next-track popover, and desktop-only 2P split screen (#400, #402, #406)', async ({
   page,
+  browser,
   errors,
 }) => {
   const stub = await startStubApp();
@@ -235,7 +236,13 @@ test('Micro Kart moves on to the next track after finishing a circuit (#400)', a
     await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });
     await expect(page.getByTestId('kart-circuit-label')).toHaveText('Sunset Loop');
 
-    // Complete 3 real physics laps on Sunset Loop
+    // 1. Dynamic left-side standings rail shows all 4 character portraits with happy (1st) & anxious (4th) while racing!
+    const rail = page.getByTestId('kart-standings-rail');
+    await expect(rail).toBeVisible();
+    await expect(rail.locator('[data-place="1"]')).toHaveAttribute('data-mood', 'happy');
+    await expect(rail.locator('[data-place="4"]')).toHaveAttribute('data-mood', 'anxious');
+
+    // 2. Finish 3 laps on Sunset Loop -> non-blocking in-game banner appears IMMEDIATELY, NOT the popover yet!
     await page.evaluate(() => {
       window.dispatchEvent(
         new CustomEvent('yolo:kart:step', {
@@ -244,36 +251,45 @@ test('Micro Kart moves on to the next track after finishing a circuit (#400)', a
       );
     });
 
-    await expect(page.getByTestId('kart-finish-card')).toBeVisible();
-    await expect(page.getByTestId('kart-next-track-countdown')).toContainText('Canyon Crest');
-    await expect(page.getByTestId('kart-next-track-btn')).toHaveText('Next Track · Canyon Crest');
+    await expect(page.getByTestId('kart-p1-finish-banner')).toBeVisible();
+    await expect(page.getByTestId('kart-next-track-popover')).toHaveCount(0);
+    // At race end, 4th place portrait switches to crying (`data-mood="cry"`)!
+    await expect(rail.locator('[data-place="4"]')).toHaveAttribute('data-mood', 'cry');
 
-    // Clicking Next Track moves directly on to Canyon Crest!
+    // 3. After 5 seconds, the separate "Continue to Next Track" popover appears cleanly!
+    await expect(page.getByTestId('kart-next-track-popover')).toBeVisible({ timeout: 7500 });
+    await expect(page.getByTestId('kart-next-track-btn')).toHaveText('Continue · Canyon Crest');
     await page.getByTestId('kart-next-track-btn').click();
     await expect(page.getByTestId('kart-circuit-label')).toHaveText('Canyon Crest');
-    await expect(page.getByTestId('kart-finish-card')).toHaveCount(0);
+    await expect(page.getByTestId('kart-next-track-popover')).toHaveCount(0);
 
-    // Finish Canyon Crest and verify automatic countdown advances cleanly to Starlight Ring!
+    // 4. Switch to 2P Split-Screen on desktop & verify P1/P2 finish banners are divided into separate split halves!
+    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('game-pause-menu')).toBeVisible();
+    await expect(page.getByTestId('kart-2p-local-btn')).toBeVisible();
+    await page.getByTestId('kart-2p-local-btn').click();
+    await expect(page.getByTestId('micro-kart-stage')).toHaveAttribute('data-mode', '2p-local');
     await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });
+
     await page.evaluate(() => {
       window.dispatchEvent(
         new CustomEvent('yolo:kart:step', {
-          detail: { steps: 4500, dtMs: 20, autoPilotP1: true },
+          detail: { steps: 5500, dtMs: 20, autoPilotP1: true, autoPilotP2: true },
         }),
       );
     });
-    await expect(page.getByTestId('kart-finish-card')).toBeVisible();
-    await expect(page.getByTestId('kart-next-track-btn')).toHaveText('Next Track · Starlight Ring');
+    const p1Banner = page.getByTestId('kart-p1-hud').getByTestId('kart-p1-finish-banner');
+    const p2Banner = page.getByTestId('kart-p2-hud').getByTestId('kart-p2-finish-banner');
+    await expect(p1Banner).toBeVisible();
+    await expect(p2Banner).toBeVisible();
+    const box1 = await p1Banner.boundingBox();
+    const box2 = await p2Banner.boundingBox();
+    expect(box1 && box2 && box1.y + box1.height < box2.y).toBe(true);
 
-    // Auto-advance countdown transitions cleanly to Starlight Ring within 7s!
-    await expect(page.getByTestId('kart-circuit-label')).toHaveText('Starlight Ring', {
-      timeout: 7000,
-    });
-    await expect(page.getByTestId('kart-finish-card')).toHaveCount(0);
-
-    // Switch via Pause Menu to Track #4: Cloud Gate (Chinese Heavenly Palace sky viaduct)
+    // 5. Switch via Pause Menu to Track #4: Cloud Gate (fewer lotuses, Jade Belt Arch Bridge)
     await page.keyboard.press('Escape');
-    await expect(page.getByTestId('game-pause-menu')).toBeVisible();
+    await page.getByTestId('kart-1p-btn').click();
+    await page.keyboard.press('Escape');
     await page.getByTestId('kart-circuit-cloud-gate').click();
     await expect(page.getByTestId('kart-circuit-label')).toHaveText('Cloud Gate');
     await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });
@@ -284,6 +300,23 @@ test('Micro Kart moves on to the next track after finishing a circuit (#400)', a
         }),
       );
     });
+
+    // 6. Verify 2P Split-Screen is NOT offered on mobile/touch viewports (desktop keyboard only!)
+    const mobileCtx = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      hasTouch: true,
+      isMobile: true,
+    });
+    const mobilePage = await mobileCtx.newPage();
+    try {
+      await mobilePage.goto(`${stub.base}?app=micro-kart`);
+      await expect(mobilePage.getByTestId('kart-circuit-label')).toBeVisible();
+      await mobilePage.keyboard.press('Escape');
+      await expect(mobilePage.getByTestId('game-pause-menu')).toBeVisible();
+      await expect(mobilePage.getByTestId('kart-2p-local-btn')).toHaveCount(0);
+    } finally {
+      await mobileCtx.close();
+    }
 
     expect(errors).toEqual([]);
   } finally {
