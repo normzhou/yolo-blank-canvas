@@ -8,7 +8,7 @@
  */
 
 import {
-  getCircuit,
+  getCircuitForKart,
   getKartDriverSpec,
   predictKartTrajectory,
   speedToColorRgb,
@@ -787,8 +787,11 @@ export function renderKartViewport(
   vpH: number,
   timeMs: number,
 ): ViewportRenderMetrics {
-  const circuit = getCircuit(race.circuitId, race.reversed);
   const focusKart = race.karts[focusSlot] ?? race.karts[0]!;
+  const circuit = getCircuitForKart(race, focusKart);
+  const visibleKarts = race.karts.filter(
+    (k) => !k.eliminated && (race.format !== 'marathon' || k.stageIndex === focusKart.stageIndex),
+  );
 
   ctx.save();
   ctx.beginPath();
@@ -1050,7 +1053,7 @@ export function renderKartViewport(
   }
 
   // 3. Drift tire skid marks on asphalt
-  for (const kart of race.karts) {
+  for (const kart of visibleKarts) {
     const marks = kart.skidMarks;
     for (let i = 1; i < marks.length; i += 1) {
       const a = marks[i - 1]!;
@@ -1108,8 +1111,8 @@ export function renderKartViewport(
     );
   }
 
-  // 4. All karts in the race
-  for (const kart of race.karts) {
+  // 4. All active karts on the same stage
+  for (const kart of visibleKarts) {
     emitKartMesh(proj, kart, timeMs);
   }
 

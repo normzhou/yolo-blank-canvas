@@ -10,8 +10,10 @@ import {
   cross2D,
   formatCircuitTitle,
   getCircuit,
+  getCircuitForKart,
   getKartCenterOfMass,
   getKartPortraitMood,
+  getMarathonStage,
   getNextCircuitId,
   getNextRaceStage,
   getRecommendedSpeedAtS,
@@ -33,6 +35,7 @@ import {
   stepRaceState,
   THRUSTER_RAMP_SEC,
   TOTAL_LAPS,
+  transformPoseThroughPortal,
   VACUUM_ACCEL_TIME_SEC,
 } from '../src/shared/microKart';
 import { computeDriverPose } from '../src/games/micro-kart/driverPose';
@@ -107,6 +110,121 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
     }
     expect(revRace.karts[0]!.unwrappedS).toBeGreaterThan(20);
     expect(Number.isFinite(revRace.karts[0]!.x)).toBe(true);
+
+    // Portal Marathon endless 8-stage cycle, momentum-preserving portal warps, and progressive lap-out knockouts (#412)
+    const stages = Array.from({ length: 10 }, (_, idx) => {
+      const s = getMarathonStage(idx);
+      return `${s.circuitId}:${s.reversed ? 'rev' : 'fwd'}`;
+    });
+    expect(stages).toEqual([
+      'sunset-loop:fwd',
+      'canyon-crest:fwd',
+      'starlight-ring:fwd',
+      'cloud-gate:fwd',
+      'sunset-loop:rev',
+      'canyon-crest:rev',
+      'starlight-ring:rev',
+      'cloud-gate:rev',
+      'sunset-loop:fwd',
+      'canyon-crest:fwd',
+    ]);
+
+    // Rigid gate-to-gate portal camera transform aligns the start/finish gates 1:1
+    const c0 = getCircuit('sunset-loop', false);
+    const c1 = getCircuit('canyon-crest', false);
+    const g0 = c0.nodes[0]!;
+    const g1 = c1.nodes[0]!;
+    const h0 = Math.hypot(g0.tx, g0.tz);
+    const h1 = Math.hypot(g1.tx, g1.tz);
+    const transformed = transformPoseThroughPortal(
+      {
+        x: g0.x - (g0.tx / h0) * 10 + g0.rx * 3,
+        y: g0.y + 4,
+        z: g0.z - (g0.tz / h0) * 10 + g0.rz * 3,
+        yaw: Math.atan2(g0.tx, g0.tz),
+      },
+      c0,
+      c1,
+    );
+    expect(transformed.x).toBeCloseTo(g1.x - (g1.tx / h1) * 10 + g1.rx * 3, 5);
+    expect(transformed.y).toBeCloseTo(g1.y + 4, 5);
+    expect(transformed.z).toBeCloseTo(g1.z - (g1.tz / h1) * 10 + g1.rz * 3, 5);
+
+    // 1) Momentum-preserving Portal warp from Stage 0 (Sunset Loop) -> Stage 1 (Canyon Crest)
+    const race = createRaceState('sunset-loop', '1p', 7, { format: 'marathon' });
+    expect(race.format).toBe('marathon');
+    expect(race.survivorsCount).toBe(4);
+
+    // Drive P1 on autopilot through its first full lap -> warps seamlessly into Canyon Crest!
+    const p1 = race.karts[0]!;
+    (p1 as { isHuman: boolean }).isHuman = false;
+    let portalEvent: (typeof race.lastEvents.portalCrossed)[number] | null = null;
+    let preSpeed = 0;
+    for (let step = 0; step < 2200; step += 1) {
+      const prevSpeed = p1.speed;
+      stepRaceState(race, {}, 20);
+      const hit = race.lastEvents.portalCrossed.find((e) => e.slot === 0);
+      if (hit) {
+        portalEvent = hit;
+        preSpeed = prevSpeed;
+        break;
+      }
+    }
+    expect(portalEvent).not.toBeNull();
+    expect(portalEvent!.fromStageIndex).toBe(0);
+    expect(portalEvent!.toStageIndex).toBe(1);
+    expect(portalEvent!.fromCircuitId).toBe('sunset-loop');
+    expect(portalEvent!.toCircuitId).toBe('canyon-crest');
+    expect(p1.stageIndex).toBe(1);
+    expect(getCircuitForKart(race, p1).id).toBe('canyon-crest');
+    // Speed is preserved across the portal with zero reset!
+    expect(p1.speed).toBeGreaterThan(preSpeed * 0.85);
+    expect(p1.speed).toBeGreaterThan(45);
+
+    // 2) Pure knockout elimination: when 1st place laps 4th, then 3rd, then 2nd, each is knocked out cleanly until 1 survivor wins!
+    const koRace = createRaceState('sunset-loop', '1p', 9, { format: 'marathon' });
+    // Position leader (slot 0) ahead by 1.05 laps over slot 3, 0.50 over slot 2, 0.25 over slot 1
+    koRace.karts[0]!.stageIndex = 2;
+    koRace.karts[0]!.stageStartUnwrappedS = 3800;
+    koRace.karts[0]!.unwrappedS = 4100;
+    koRace.karts[1]!.stageIndex = 1;
+    koRace.karts[1]!.stageStartUnwrappedS = 1900;
+    koRace.karts[1]!.unwrappedS = 3500;
+    koRace.karts[2]!.stageIndex = 1;
+    koRace.karts[2]!.stageStartUnwrappedS = 1900;
+    koRace.karts[2]!.unwrappedS = 3000;
+    koRace.karts[3]!.stageIndex = 0;
+    koRace.karts[3]!.stageStartUnwrappedS = 0;
+    koRace.karts[3]!.unwrappedS = 100;
+
+    stepRaceState(koRace, { 0: { left: false, right: false } }, 20);
+    expect(koRace.karts[3]!.eliminated).toBe(true);
+    expect(koRace.karts[3]!.place).toBe(4);
+    expect(koRace.survivorsCount).toBe(3);
+    expect(koRace.status).toBe('racing');
+
+    // Leader laps slot 2 (progress ~1.58) while staying < 1.0 ahead of slot 1 (progress ~1.84) -> knocks out slot 2 in 3rd!
+    koRace.karts[0]!.stageIndex = 2;
+    koRace.karts[0]!.stageStartUnwrappedS = 3800;
+    koRace.karts[0]!.unwrappedS = 5200;
+    stepRaceState(koRace, { 0: { left: false, right: false } }, 20);
+    expect(koRace.karts[2]!.eliminated).toBe(true);
+    expect(koRace.karts[2]!.place).toBe(3);
+    expect(koRace.survivorsCount).toBe(2);
+    expect(koRace.status).toBe('racing');
+
+    // Leader laps slot 1 -> knocked out in 2nd, leaving slot 0 as lone 1st Place Champion!
+    koRace.karts[0]!.stageIndex = 4;
+    koRace.karts[0]!.stageStartUnwrappedS = 7600;
+    koRace.karts[0]!.unwrappedS = 8000;
+    stepRaceState(koRace, { 0: { left: false, right: false } }, 20);
+    expect(koRace.karts[1]!.eliminated).toBe(true);
+    expect(koRace.karts[1]!.place).toBe(2);
+    expect(koRace.survivorsCount).toBe(1);
+    expect(koRace.status).toBe('finished');
+    expect(koRace.winnerSlot).toBe(0);
+    expect(koRace.karts[0]!.place).toBe(1);
+
     for (const circuit of CIRCUIT_LIST) {
       expect(circuit.totalLength).toBeGreaterThan(1500);
       expect(circuit.roadHalfWidth).toBeGreaterThanOrEqual(15.5);
