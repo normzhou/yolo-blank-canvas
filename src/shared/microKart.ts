@@ -1081,6 +1081,40 @@ export function transformPoseThroughPortal(
 }
 
 /**
+ * Projects a lagging surviving rival kart (1 stage behind in Portal Marathon) onto the
+ * leader's active circuit at its exact normalized track fraction `(s / L)` and lateral offset (#416).
+ * This allows the leader to visually hunt down and overtake the rival's glowing Portal Echo
+ * right on their own road the exact moment `gap` hits `1.00` for the knockout!
+ */
+export function projectLappingEchoOntoCircuit(
+  rival: KartState,
+  rivalCircuit: CircuitDefinition,
+  targetCircuit: CircuitDefinition,
+): KartState {
+  const normFrac = (((rival.s / rivalCircuit.totalLength) % 1) + 1) % 1;
+  const targetS = normFrac * targetCircuit.totalLength;
+  const srcSample = sampleCircuitAtS(rivalCircuit, rival.s);
+  const dstSample = sampleCircuitAtS(targetCircuit, targetS);
+  const relYaw = wrapAngle(rival.yaw - srcSample.yaw);
+  const clampedLat = clamp(
+    rival.lat,
+    -(targetCircuit.wallHalfWidth - 1.5),
+    targetCircuit.wallHalfWidth - 1.5,
+  );
+  return {
+    ...rival,
+    x: dstSample.x + dstSample.rx * clampedLat,
+    y: dstSample.y,
+    z: dstSample.z + dstSample.rz * clampedLat,
+    yaw: wrapAngle(dstSample.yaw + relYaw),
+    pitch: dstSample.pitch,
+    s: targetS,
+    lat: clampedLat,
+    skidMarks: [],
+  };
+}
+
+/**
  * Interpolates a track frame at continuous arc coordinate `s` (`0 .. totalLength`).
  */
 export function sampleCircuitAtS(circuit: CircuitDefinition, rawS: number): {

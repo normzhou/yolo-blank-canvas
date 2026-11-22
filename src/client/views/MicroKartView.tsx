@@ -51,6 +51,7 @@ import {
   KART_DRIVERS,
   MAX_STRAIGHT_SPEED,
   ordinalPlace,
+  projectLappingEchoOntoCircuit,
   speedToColorHex,
   stepRaceState,
   toKartNetSnapshot,
@@ -847,16 +848,31 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         };
       });
     setStandings(nextStandings);
-    setMapDots(
-      race.karts
-        .filter((k) => !k.eliminated && (race.format !== 'marathon' || k.stageIndex === k0.stageIndex))
-        .map((k) => ({
+    const mapEntries: Array<{ x: number; z: number; color: string; isFocus: boolean }> = [];
+    for (const k of race.karts) {
+      if (k.eliminated) continue;
+      if (race.format !== 'marathon' || k.stageIndex === k0.stageIndex) {
+        mapEntries.push({
           x: k.x,
           z: k.z,
           color: getKartDriverSpec(k.character).mapGlow,
           isFocus: k.slot === focusLocalSlot,
-        })),
-    );
+        });
+      } else if (
+        k.stageIndex === k0.stageIndex - 1 &&
+        k0.marathonProgress - k.marathonProgress >= 0.4 &&
+        k0.marathonProgress - k.marathonProgress < 1.0
+      ) {
+        const echo = projectLappingEchoOntoCircuit(k, getCircuitForKart(race, k), c0);
+        mapEntries.push({
+          x: echo.x,
+          z: echo.z,
+          color: '#38f2ff',
+          isFocus: false,
+        });
+      }
+    }
+    setMapDots(mapEntries);
   }, []);
 
   const triggerFreshCountdown = useCallback(
