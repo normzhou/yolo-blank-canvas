@@ -25,6 +25,7 @@ import {
   MAX_TOTAL_THRUST_N,
   predictKartTrajectory,
   projectKartShadowForButtons,
+  projectLappingEchoOntoCircuit,
   projectOntoCircuit,
   resolveElasticKartCollision,
   ROAD_BOOST_DURATION_SEC,
@@ -180,6 +181,18 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
     // Speed is preserved across the portal with zero reset!
     expect(p1.speed).toBeGreaterThan(preSpeed * 0.85);
     expect(p1.speed).toBeGreaterThan(45);
+
+    // Projecting a lagging rival (stage 0 @ 30% lap) onto the leader's circuit (stage 1 @ 20% lap, gap = 0.90)
+    // places the glowing Portal Echo dead-ahead at 30% along the leader's current road (#416)!
+    const echoTarget = projectLappingEchoOntoCircuit(
+      { ...p1, s: c0.totalLength * 0.3, lat: 2.5 },
+      c0,
+      c1,
+    );
+    expect(echoTarget.s).toBeCloseTo(c1.totalLength * 0.3, 1);
+    expect(echoTarget.lat).toBeCloseTo(2.5, 3);
+    expect(Number.isFinite(echoTarget.x)).toBe(true);
+    expect(Number.isFinite(echoTarget.z)).toBe(true);
 
     // 2) Pure knockout elimination: when 1st place laps 4th, then 3rd, then 2nd, each is knocked out cleanly until 1 survivor wins!
     const koRace = createRaceState('sunset-loop', '1p', 9, { format: 'marathon' });

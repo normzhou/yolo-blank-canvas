@@ -20,6 +20,7 @@ import {
   getMarathonStage,
   KART_DRIVERS,
   predictKartTrajectory,
+  projectLappingEchoOntoCircuit,
   speedToColorRgb,
   transformPoseThroughPortal,
   type CircuitDefinition,
@@ -1880,10 +1881,15 @@ uniform vec3 uCamPos;
 uniform vec3 uSun;
 uniform vec3 uFogColor;
 uniform vec3 uTint;
+uniform vec4 uClipPlane;
+uniform float uUseClipPlane;
 
 out vec4 outColor;
 
 void main() {
+  if (uUseClipPlane > 0.5 && dot(vWorldPos, uClipPlane.xyz) < uClipPlane.w) {
+    discard;
+  }
   vec3 base = vColor * uTint;
   vec3 lit;
 
@@ -2286,6 +2292,8 @@ export class MicroKartWebGL2Renderer {
       uSun: gl.getUniformLocation(worldProg, 'uSun'),
       uFogColor: gl.getUniformLocation(worldProg, 'uFogColor'),
       uTint: gl.getUniformLocation(worldProg, 'uTint'),
+      uClipPlane: gl.getUniformLocation(worldProg, 'uClipPlane'),
+      uUseClipPlane: gl.getUniformLocation(worldProg, 'uUseClipPlane'),
     };
     this.skyUniforms = {
       uSkyTop: gl.getUniformLocation(skyProg, 'uSkyTop'),
@@ -2475,6 +2483,9 @@ export class MicroKartWebGL2Renderer {
     gl: WebGL2RenderingContext,
     karts: readonly KartState[],
     timeMs: number,
+    tr = 1,
+    tg = 1,
+    tb = 1,
   ): void {
     gl.bindVertexArray(this.worldVao);
     for (const kart of karts) {
@@ -2482,8 +2493,8 @@ export class MicroKartWebGL2Renderer {
       if (!rig) continue;
       const bounceY = Math.sin(timeMs * 0.015 + kart.slot * 1.4) * (kart.speed > 5 ? 0.045 : 0.01);
       const totalYaw = kart.yaw + kart.driftYaw;
-      eulerToBasis3(this.kartBasis, totalYaw, kart.pitch, kart.bodyRoll);
-      this.drawStaticMesh(gl, rig.chassis, kart.x, kart.y + bounceY, kart.z, this.kartBasis);
+      eulerToBasis3(this.kartBasis, totalYaw, kart.pitch, -kart.bodyRoll);
+      this.drawStaticMesh(gl, rig.chassis, kart.x, kart.y + bounceY, kart.z, this.kartBasis, 1, 1, 1, tr, tg, tb);
 
       const pose = computeDriverPose(kart, timeMs);
       eulerToBasis3(this.localBasis, 0, pose.torsoPitch, pose.torsoRoll);
@@ -2496,6 +2507,12 @@ export class MicroKartWebGL2Renderer {
         kart.y + bounceY + torsoOff.y,
         kart.z + torsoOff.z,
         this.worldPartBasis,
+        1,
+        1,
+        1,
+        tr,
+        tg,
+        tb,
       );
 
       eulerToBasis3(this.localBasis, pose.headYaw, pose.headPitch, pose.headRoll);
@@ -2509,7 +2526,7 @@ export class MicroKartWebGL2Renderer {
       const hx = kart.x + headOff.x;
       const hy = kart.y + bounceY + headOff.y;
       const hz = kart.z + headOff.z;
-      this.drawStaticMesh(gl, rig.head, hx, hy, hz, this.headWorldBasis);
+      this.drawStaticMesh(gl, rig.head, hx, hy, hz, this.headWorldBasis, 1, 1, 1, tr, tg, tb);
 
       eulerToBasis3(this.localBasis, 0, pose.leftEarPitch, pose.leftEarRoll);
       mulBasis3(this.worldPartBasis, this.headWorldBasis, this.localBasis);
@@ -2519,7 +2536,7 @@ export class MicroKartWebGL2Renderer {
         rig.leftEarAnchor[1],
         rig.leftEarAnchor[2],
       );
-      this.drawStaticMesh(gl, rig.leftEar, hx + lAnchor.x, hy + lAnchor.y, hz + lAnchor.z, this.worldPartBasis);
+      this.drawStaticMesh(gl, rig.leftEar, hx + lAnchor.x, hy + lAnchor.y, hz + lAnchor.z, this.worldPartBasis, 1, 1, 1, tr, tg, tb);
 
       eulerToBasis3(this.localBasis, 0, pose.rightEarPitch, pose.rightEarRoll);
       mulBasis3(this.worldPartBasis, this.headWorldBasis, this.localBasis);
@@ -2529,7 +2546,7 @@ export class MicroKartWebGL2Renderer {
         rig.rightEarAnchor[1],
         rig.rightEarAnchor[2],
       );
-      this.drawStaticMesh(gl, rig.rightEar, hx + rAnchor.x, hy + rAnchor.y, hz + rAnchor.z, this.worldPartBasis);
+      this.drawStaticMesh(gl, rig.rightEar, hx + rAnchor.x, hy + rAnchor.y, hz + rAnchor.z, this.worldPartBasis, 1, 1, 1, tr, tg, tb);
     }
   }
 
@@ -2598,20 +2615,25 @@ export class MicroKartWebGL2Renderer {
     this.setupWorldCameraUniforms(gl, circuit, cam.x, cam.y, cam.z, cam.yaw, cam.pitch, focal, pxW, pxH, centerYBias);
 
     gl.bindVertexArray(this.worldVao);
+    gl.uniform1f(this.uniforms.uUseClipPlane!, 0.0);
     const circuitMesh = this.getOrBakeCircuitMesh(gl, circuit.id, circuit.reversed);
     this.drawStaticMesh(gl, circuitMesh, 0, 0, 0, IDENTITY_BASIS);
 
-    // 2B. Live Valve-Portal Stencil Window inside the Finish-Line Archway in Portal Marathon Mode (#412)!
+    // 2B. Live Valve-Portal Stencil Window inside the Finish-Line Archway in Portal Marathon Mode (#412, #416)!
     const localProgressDist = focusKart.unwrappedS - focusKart.stageStartUnwrappedS;
     if (race.format === 'marathon' && localProgressDist > 120) {
       const g0 = circuit.nodes[0]!;
+      const h0 = Math.hypot(g0.tx, g0.tz) || 1;
+      const tx0 = g0.tx / h0;
+      const tz0 = g0.tz / h0;
       const toGateX = g0.x - cam.x;
       const toGateY = g0.y + 4.5 - cam.y;
       const toGateZ = g0.z - cam.z;
       const gateDist = Math.hypot(toGateX, toGateY, toGateZ);
       const fwdDot = (toGateX * fx + toGateY * fy + toGateZ * fz) / Math.max(1, gateDist);
-      // Render live 3D Portal Window whenever approaching the finish gate in front of camera
-      if (gateDist > 2.5 && gateDist < 380 && fwdDot > 0.12) {
+      // Camera must be on the approach side of the finish portal plane
+      const camSignedAlongGate = (cam.x - g0.x) * tx0 + (cam.z - g0.z) * tz0;
+      if (camSignedAlongGate < -0.5 && gateDist > 2.0 && gateDist < 380 && fwdDot > 0.12) {
         const nextStage = getMarathonStage(focusKart.stageIndex + 1, race.circuitId, race.reversed);
         const nextCircuit = getCircuit(nextStage.circuitId, nextStage.reversed);
         const nextKarts = race.karts.filter(
@@ -2626,9 +2648,9 @@ export class MicroKartWebGL2Renderer {
           this.dynamicScratch[pIdx++] = px;
           this.dynamicScratch[pIdx++] = py;
           this.dynamicScratch[pIdx++] = pz;
-          this.dynamicScratch[pIdx++] = -g0.tx;
+          this.dynamicScratch[pIdx++] = -tx0;
           this.dynamicScratch[pIdx++] = 0;
-          this.dynamicScratch[pIdx++] = -g0.tz;
+          this.dynamicScratch[pIdx++] = -tz0;
           this.dynamicScratch[pIdx++] = r;
           this.dynamicScratch[pIdx++] = g;
           this.dynamicScratch[pIdx++] = b;
@@ -2662,7 +2684,7 @@ export class MicroKartWebGL2Renderer {
         gl.uniform3f(this.uniforms.uTint!, 1, 1, 1);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-        // Draw NEXT CIRCUIT'S LIVE SKY + 3D WORLD strictly inside stencil === 1!
+        // Draw NEXT CIRCUIT'S LIVE SKY + UNOBSTRUCTED 3D WORLD strictly inside stencil === 1!
         gl.colorMask(true, true, true, true);
         gl.depthMask(true);
         gl.stencilMask(0x00);
@@ -2688,6 +2710,16 @@ export class MicroKartWebGL2Renderer {
           pxH,
           centerYBias,
         );
+        // Oblique Portal Near-Plane Clip (#416): discard ALL geometry of nextCircuit behind its portal plane
+        // (+2.4m past g1 clears nextCircuit's own start-gantry pillars & trailing road s=L-50..L!)
+        const g1 = nextCircuit.nodes[0]!;
+        const h1 = Math.hypot(g1.tx, g1.tz) || 1;
+        const tx1 = g1.tx / h1;
+        const tz1 = g1.tz / h1;
+        const clipD = tx1 * g1.x + tz1 * g1.z + 2.4;
+        gl.uniform4f(this.uniforms.uClipPlane!, tx1, 0, tz1, clipD);
+        gl.uniform1f(this.uniforms.uUseClipPlane!, 1.0);
+
         gl.bindVertexArray(this.worldVao);
         const nextMesh = this.getOrBakeCircuitMesh(gl, nextCircuit.id, nextCircuit.reversed);
         this.drawStaticMesh(gl, nextMesh, 0, 0, 0, IDENTITY_BASIS);
@@ -2695,7 +2727,8 @@ export class MicroKartWebGL2Renderer {
           this.drawKartRigs(gl, nextKarts, timeMs);
         }
 
-        // Restore main camera & disable stencil test
+        // Disable portal clip plane & stencil test, restore main camera!
+        gl.uniform1f(this.uniforms.uUseClipPlane!, 0.0);
         gl.disable(gl.STENCIL_TEST);
         gl.stencilMask(0xff);
         this.setupWorldCameraUniforms(
@@ -3150,6 +3183,35 @@ export class MicroKartWebGL2Renderer {
             fb,
           );
         }
+      }
+    }
+
+    // 5. Glowing Portal Echo Lapping Targets in Marathon Mode (#416):
+    //    Project surviving rivals 1 stage behind right onto the leader's road so you literally hunt
+    //    them down and blow past their glowing cyan-hologram kart on screen to score the Knockout!
+    if (race.format === 'marathon' && !focusKart.eliminated) {
+      const lappingEchoes: KartState[] = [];
+      for (const rival of race.karts) {
+        if (rival.eliminated || rival.slot === focusKart.slot) continue;
+        if (rival.stageIndex === focusKart.stageIndex - 1) {
+          const gap = focusKart.marathonProgress - rival.marathonProgress;
+          if (gap >= 0.4 && gap < 1.0) {
+            lappingEchoes.push(
+              projectLappingEchoOntoCircuit(rival, getCircuitForKart(race, rival), circuit),
+            );
+          }
+        }
+      }
+      if (lappingEchoes.length > 0) {
+        const echoPulse = 0.85 + 0.25 * Math.sin(timeMs * 0.012);
+        this.drawKartRigs(
+          gl,
+          lappingEchoes,
+          timeMs,
+          0.52 * echoPulse,
+          1.35 * echoPulse,
+          1.55 * echoPulse,
+        );
       }
     }
 
