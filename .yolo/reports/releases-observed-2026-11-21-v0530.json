@@ -1,0 +1,82 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-21",
+  "observed_at": "2026-11-21",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#422",
+  "releases": [
+    {
+      "tag": "v0.53.0",
+      "commit": "8b577eaf725acb76f3c7418c063e7a0b928cb0a0"
+    }
+  ],
+  "release": {
+    "tag": "v0.53.0",
+    "commit": "8b577eaf725acb76f3c7418c063e7a0b928cb0a0",
+    "source_commit": "47a226cf970b4b26ce18c80b8b53e538bf5859ce",
+    "assets_commit": "c5594459131dc6778082a59c9572e6cfc25df5a5",
+    "native_version": "0.53.0",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-22T07:08:58Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.53.0",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/423"
+  },
+  "build_identity": {
+    "server_build_id": "47a226cf970b4b26ce18c80b8b53e538bf5859ce",
+    "client_build_id": "47a226cf970b4b26ce18c80b8b53e538bf5859ce",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "visual_inspection": "Real Chrome WebGL2 screenshots visually verified via read_file for both Grand Prix (1-lap bottom-to-top rail) and Portal Marathon (8-segment divided rail showing zero-transparency character portraits + text, live physical track locations, and 2x2 quad directional-arrow radar)",
+      "npm_test": "30 files, 197 tests passed (including Portal Homing lock-on at gap >= 7.0, zero premature KO on different tracks, and physical pass KO on same track & direction in test/micro-kart.test.ts)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 52 passed (1.1m)",
+      "e2e_live": "npm run e2e:live — 5 passed (12.8s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.53.0 --no-open --port 4486 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (16.1s)",
+      "ci": "GitHub Actions CI/Test and type check green (30s)"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "fef0660f-62dc-4747-b236-1759851bce54",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.53.0",
+      "observed_build_id": "47a226cf970b4b26ce18c80b8b53e538bf5859ce",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.2.0",
+          "entry": "/games/starlight-burst-dfLBmggg.js",
+          "hash": "c5fb1e727049febeb2bb1d85dd16ca090a86d621e42e151c8cc640cebb112b1f",
+          "sizeBytes": 86740
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-C7Nzix8R.js",
+          "hash": "d69d68e7c4bc7176a83c5a4ab2c8d6bbaa048eab9d771e9f213a4ad2aabfa294",
+          "sizeBytes": 37318
+        },
+        "micro-kart": {
+          "version": "2.3.0",
+          "entry": "/games/micro-kart-CyOmZ8R2.js",
+          "hash": "6d06d1bfdfdef27299985870bbfcd92c8c0218c540ee2120822428c236d5c6c8",
+          "sizeBytes": 159090
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Adds Portal Homing Lock-On (lockLeaderNextPortalOntoTarget) at gap >= 7.0 + true physical overtake knockouts (same track & direction at gap >= 8.0) with dedicated Hunter and Prey HUD alert banners, and upgrades the left standings rail to a clean zero-transparency vertical lap-progress bar (1 lap bottom-to-top in Grand Prix, 8 divided track segments wrapping off the top into L2/L3 in Marathon) showing character portraits, text, and live physical track locations (@yolo-arcade/game-micro-kart@2.3.0)."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #422"
+}
