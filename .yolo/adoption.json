@@ -360,15 +360,16 @@
         "v0.48.1": "7caec40af03a0c4dea824b5aafe3e943d61de021",
         "v0.49.0": "cdc865457333ad68e45df00368680231e7ca2060",
         "v0.50.0": "209c8d6a50bcdee839b11cd63f25ade09de5acf4",
-        "v0.50.1": "b5959906508768032f56835b3246ecfaa3e837e9"
+        "v0.50.1": "b5959906508768032f56835b3246ecfaa3e837e9",
+        "v0.50.2": "2c9df7139fd763469d41fa02b17892c38ed885eb"
       },
       "published": {
-        "tag": "v0.50.2",
-        "commit": "2c9df7139fd763469d41fa02b17892c38ed885eb",
-        "source_commit": "7594973f5f43132aca15f600b203bf3bde2f548d",
-        "published_at": "2026-11-22T05:01:06Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-21-v0502.json",
-        "note": "Patch Portal Marathon 3D oblique clipping & lapping echo visibility release (#416, PR #417; @yolo-arcade/game-micro-kart@2.0.2). Adds world-space oblique near-plane clipping (uClipPlane/uUseClipPlane in WORLD_FS) to discard destination geometry behind nextCircuit's portal plane for crystal-clear unobstructed 3D portal views, and projects surviving rivals 1 stage behind onto the leader's current road as visible glowing cyan Portal Echo karts (plus minimap dots) so leaders visibly overtake rivals on-screen for knockouts; visually inspected in Chrome WebGL2, verified 11/11 standalone npx e2e:verify-release, and deployed live to https://demo.yolo-dev.ai (Version ID: 341b4b8e-ca36-4c7f-9fb3-87de382b1902)."
+        "tag": "v0.51.0",
+        "commit": "eb6482dd145a158b7fdd35992b090dd58d188f47",
+        "source_commit": "5280ad36e4b29364a6101f75c025abc217340a0d",
+        "published_at": "2026-11-22T05:20:35Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-21-v0510.json",
+        "note": "Minor Portal Marathon true 4-physical-track & 8-cycle lapping release (#418, PR #419; @yolo-arcade/game-micro-kart@2.1.0). Enforces real 4-physical-track presence across Forward (1,2,3,4) and Reverse (1',2',3',4') stages so karts on the same physical track see each other and collide head-on, removes temporary holographic echoes, and fixes lapping logic to require an exact full 8-stage cycle lead (gap >= 8.0) on the same track & direction with live Gap X.X/8 HUD; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: b333d3bd-d44c-4dad-9711-34c87d5bf5de)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -489,7 +490,8 @@
         ".yolo/reports/releases-observed-2026-11-21-v0490.json",
         ".yolo/reports/releases-observed-2026-11-21-v0500.json",
         ".yolo/reports/releases-observed-2026-11-21-v0501.json",
-        ".yolo/reports/releases-observed-2026-11-21-v0502.json"
+        ".yolo/reports/releases-observed-2026-11-21-v0502.json",
+        ".yolo/reports/releases-observed-2026-11-21-v0510.json"
       ]
     }
   },

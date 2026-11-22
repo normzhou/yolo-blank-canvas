@@ -1,0 +1,81 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-21",
+  "observed_at": "2026-11-21",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#418",
+  "releases": [
+    {
+      "tag": "v0.51.0",
+      "commit": "eb6482dd145a158b7fdd35992b090dd58d188f47"
+    }
+  ],
+  "release": {
+    "tag": "v0.51.0",
+    "commit": "eb6482dd145a158b7fdd35992b090dd58d188f47",
+    "source_commit": "5280ad36e4b29364a6101f75c025abc217340a0d",
+    "assets_commit": "f444bc90b05f75778d053ae7201456684ca69a9e",
+    "native_version": "0.51.0",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-22T05:20:35Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.51.0",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/419"
+  },
+  "build_identity": {
+    "server_build_id": "5280ad36e4b29364a6101f75c025abc217340a0d",
+    "client_build_id": "5280ad36e4b29364a6101f75c025abc217340a0d",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "30 files, 197 tests passed (including Forward-vs-Reverse head-on collision on canyon-crest, zero elimination at gap < 8.0, and exact 8-stage full-cycle progressive knockouts in test/micro-kart.test.ts)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 52 passed (1.2m)",
+      "e2e_live": "npm run e2e:live — 5 passed (12.9s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.51.0 --no-open --port 4482 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (15.6s)",
+      "ci": "GitHub Actions CI/Test and type check green (27s)"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "b333d3bd-d44c-4dad-9711-34c87d5bf5de",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.51.0",
+      "observed_build_id": "5280ad36e4b29364a6101f75c025abc217340a0d",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.2.0",
+          "entry": "/games/starlight-burst-dfLBmggg.js",
+          "hash": "c5fb1e727049febeb2bb1d85dd16ca090a86d621e42e151c8cc640cebb112b1f",
+          "sizeBytes": 86740
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-C7Nzix8R.js",
+          "hash": "d69d68e7c4bc7176a83c5a4ab2c8d6bbaa048eab9d771e9f213a4ad2aabfa294",
+          "sizeBytes": 37318
+        },
+        "micro-kart": {
+          "version": "2.1.0",
+          "entry": "/games/micro-kart-73YT6Q50.js",
+          "hash": "dc198b506556ce8aec25a1105d10cc81e042e091d670f7db5786511fd2ab62e4",
+          "sizeBytes": 151900
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Enforces true 4-physical-track Portal Marathon topology where Forward (1,2,3,4) and Reverse (1',2',3',4') stages share the exact same 3D physical tracks (enabling real head-on visibility and elastic collisions on the road, minimap, and Portal window), removes temporary holographic echoes, and enforces exact 8-stage full-cycle physical lapping knockouts (gap >= MARATHON_CYCLE_STAGES = 8.0) with live Gap X.X/8 HUD telemetry (@yolo-arcade/game-micro-kart@2.1.0)."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #418"
+}
