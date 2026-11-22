@@ -1,0 +1,82 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-21",
+  "observed_at": "2026-11-21",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#416",
+  "releases": [
+    {
+      "tag": "v0.50.2",
+      "commit": "2c9df7139fd763469d41fa02b17892c38ed885eb"
+    }
+  ],
+  "release": {
+    "tag": "v0.50.2",
+    "commit": "2c9df7139fd763469d41fa02b17892c38ed885eb",
+    "source_commit": "7594973f5f43132aca15f600b203bf3bde2f548d",
+    "assets_commit": "be1844f6e66df93c8ab393784df05769ed3bf73b",
+    "native_version": "0.50.2",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-22T05:01:06Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.50.2",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/417"
+  },
+  "build_identity": {
+    "server_build_id": "7594973f5f43132aca15f600b203bf3bde2f548d",
+    "client_build_id": "7594973f5f43132aca15f600b203bf3bde2f548d",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "visual_inspection": "Real Chrome WebGL2 screenshot visually verified via read_file showing the oblique-clipped 3D Portal archway on midnight Starlight Ring looking cleanly straight down Cloud Gate's unobstructed white-jade viaduct road, bonsai pine, lantern, golden pavilion, and Huangshan mountains",
+      "npm_test": "30 files, 197 tests passed (including projectLappingEchoOntoCircuit assertions in test/micro-kart.test.ts)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 52 passed (1.1m)",
+      "e2e_live": "npm run e2e:live — 5 passed (12.7s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.50.2 --no-open --port 4480 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (16.3s)",
+      "ci": "GitHub Actions CI/Test and type check green (23s)"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "341b4b8e-ca36-4c7f-9fb3-87de382b1902",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.50.2",
+      "observed_build_id": "7594973f5f43132aca15f600b203bf3bde2f548d",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.2.0",
+          "entry": "/games/starlight-burst-dfLBmggg.js",
+          "hash": "c5fb1e727049febeb2bb1d85dd16ca090a86d621e42e151c8cc640cebb112b1f",
+          "sizeBytes": 86740
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-C7Nzix8R.js",
+          "hash": "d69d68e7c4bc7176a83c5a4ab2c8d6bbaa048eab9d771e9f213a4ad2aabfa294",
+          "sizeBytes": 37318
+        },
+        "micro-kart": {
+          "version": "2.0.2",
+          "entry": "/games/micro-kart-P7M4gNUR.js",
+          "hash": "e0d2ce332934a5c10f687524a49ba802a3966871728203b90b420ffc5c51fb0a",
+          "sizeBytes": 152959
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Adds oblique world-space portal near-plane clipping (uClipPlane/uUseClipPlane in WORLD_FS) to eliminate occluding trailing geometry behind nextCircuit's portal entry plane so the stencil archway renders a true unobstructed 3D view straight down the next track's road, and projects lagging rivals 1 stage behind onto the leader's current road as visible glowing cyan Portal Echo karts (and minimap dots) so players visually hunt down and overtake rivals on-screen for knockouts (@yolo-arcade/game-micro-kart@2.0.2)."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #416"
+}
