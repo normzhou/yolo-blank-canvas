@@ -8,9 +8,12 @@ import {
   CIRCUITS,
   createRaceState,
   cross2D,
+  formatCircuitTitle,
+  getCircuit,
   getKartCenterOfMass,
   getKartPortraitMood,
   getNextCircuitId,
+  getNextRaceStage,
   getRecommendedSpeedAtS,
   KART_DRIVERS,
   KART_MASS_KG,
@@ -62,6 +65,48 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
     expect(getNextCircuitId('canyon-crest')).toBe('starlight-ring');
     expect(getNextCircuitId('starlight-ring')).toBe('cloud-gate');
     expect(getNextCircuitId('cloud-gate')).toBe('sunset-loop');
+
+    // Full 2x Grand Prix cycle (#410): 4 circuits Forward -> 4 circuits Reverse -> back to Forward!
+    let stage: { circuitId: (typeof CIRCUIT_LIST)[number]['id']; reversed: boolean } = {
+      circuitId: 'sunset-loop',
+      reversed: false,
+    };
+    const fullCycle: string[] = [];
+    for (let i = 0; i < CIRCUIT_LIST.length * 2; i += 1) {
+      fullCycle.push(`${stage.circuitId}:${stage.reversed ? 'rev' : 'fwd'}`);
+      stage = getNextRaceStage(stage.circuitId, stage.reversed);
+    }
+    expect(fullCycle).toEqual([
+      'sunset-loop:fwd',
+      'canyon-crest:fwd',
+      'starlight-ring:fwd',
+      'cloud-gate:fwd',
+      'sunset-loop:rev',
+      'canyon-crest:rev',
+      'starlight-ring:rev',
+      'cloud-gate:rev',
+    ]);
+    expect(stage).toEqual({ circuitId: 'sunset-loop', reversed: false });
+    expect(formatCircuitTitle('sunset-loop', false)).toBe('Sunset Loop');
+    expect(formatCircuitTitle('sunset-loop', true)).toBe('Sunset Loop ↺ Reverse');
+
+    // Reversed Cloud Gate mirrors landmark ranges & drives cleanly in reverse physics (#410)
+    const cgFwd = getCircuit('cloud-gate', false);
+    const cgRev = getCircuit('cloud-gate', true);
+    expect(cgRev.reversed).toBe(true);
+    expect(cgRev.totalLength).toBeCloseTo(cgFwd.totalLength, 1);
+    expect(cgRev.theme.moonGateSeg).toBe(192 - 46);
+    expect(cgRev.theme.jadePoolRange).toEqual([192 - 96, 192 - 64]);
+    expect(
+      cgRev.nodes[0]!.tx * cgFwd.nodes[0]!.tx + cgRev.nodes[0]!.tz * cgFwd.nodes[0]!.tz,
+    ).toBeLessThan(-0.98);
+    const revRace = createRaceState('cloud-gate', '1p', 42, { reversed: true });
+    expect(revRace.reversed).toBe(true);
+    for (let step = 0; step < 90; step += 1) {
+      stepRaceState(revRace, { 0: { left: false, right: false } }, 20);
+    }
+    expect(revRace.karts[0]!.unwrappedS).toBeGreaterThan(20);
+    expect(Number.isFinite(revRace.karts[0]!.x)).toBe(true);
     for (const circuit of CIRCUIT_LIST) {
       expect(circuit.totalLength).toBeGreaterThan(1500);
       expect(circuit.roadHalfWidth).toBeGreaterThanOrEqual(15.5);

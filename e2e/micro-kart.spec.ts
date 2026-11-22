@@ -17,7 +17,7 @@ test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Bu
     const card = page.getByTestId('deck-slide-card');
     await page.getByTestId('carousel-dot-micro-kart').click();
     await expect(card).toHaveAttribute('data-slide-id', 'micro-kart');
-    await expect(card).toHaveAttribute('data-game-version', '1.9.1');
+    await expect(card).toHaveAttribute('data-game-version', '1.10.0');
     await expect(page.locator('.deck-slide-title')).toHaveText('Micro Kart');
 
     await page.getByRole('button', { name: 'Play Micro Kart', exact: true }).click();
@@ -286,12 +286,28 @@ test('Micro Kart shows left-side emotional standings, in-game split finish banne
     const box2 = await p2Banner.boundingBox();
     expect(box1 && box2 && box1.y + box1.height < box2.y).toBe(true);
 
-    // 5. Switch via Pause Menu to Track #4: Cloud Gate (fewer lotuses, Jade Belt Arch Bridge)
+    // 5. Switch via Pause Menu to Track #4: Cloud Gate, finish it, and verify Cycle 2 flips to Sunset Loop ↺ Reverse! (#410)
     await page.keyboard.press('Escape');
     await page.getByTestId('kart-1p-btn').click();
     await page.keyboard.press('Escape');
     await page.getByTestId('kart-circuit-cloud-gate').click();
     await expect(page.getByTestId('kart-circuit-label')).toHaveText('Cloud Gate');
+    await expect(page.getByTestId('micro-kart-stage')).toHaveAttribute('data-reversed', 'false');
+    await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });
+    await page.evaluate(() => {
+      window.dispatchEvent(
+        new CustomEvent('yolo:kart:step', {
+          detail: { steps: 5000, dtMs: 20, autoPilotP1: true },
+        }),
+      );
+    });
+    await expect(page.getByTestId('kart-next-track-popover')).toBeVisible({ timeout: 7500 });
+    await expect(page.getByTestId('kart-next-track-btn')).toHaveText(
+      'Continue · Sunset Loop ↺ Reverse',
+    );
+    await page.getByTestId('kart-next-track-btn').click();
+    await expect(page.getByTestId('kart-circuit-label')).toHaveText('Sunset Loop ↺ Reverse');
+    await expect(page.getByTestId('micro-kart-stage')).toHaveAttribute('data-reversed', 'true');
     await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });
     await page.evaluate(() => {
       window.dispatchEvent(

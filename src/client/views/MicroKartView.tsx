@@ -36,12 +36,13 @@ import { CLOUD_GATE_PLAYLIST, MICRO_KART_PLAYLIST } from '../../shared/arcadeMus
 import {
   applyRemoteKartSnapshot,
   CIRCUIT_LIST,
-  CIRCUITS,
   createRaceState,
+  formatCircuitTitle,
   formatRaceClock,
+  getCircuit,
   getKartDriverSpec,
   getKartPortraitMood,
-  getNextCircuitId,
+  getNextRaceStage,
   getRecommendedSpeedAtS,
   KART_DRIVERS,
   MAX_STRAIGHT_SPEED,
@@ -529,12 +530,14 @@ const F1SteeringYoke = memo(function F1SteeringYoke({
 
 const CircuitMiniMap = memo(function CircuitMiniMap({
   circuitId,
+  reversed,
   dots,
 }: {
   circuitId: CircuitId;
+  reversed: boolean;
   dots: ReadonlyArray<{ x: number; z: number; color: string; isFocus: boolean }>;
 }) {
-  const circuit = CIRCUITS[circuitId];
+  const circuit = getCircuit(circuitId, reversed);
   const { pathD, startPt, scalePoint } = useMemo(() => {
     let minX = Infinity;
     let maxX = -Infinity;
@@ -620,6 +623,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     detectInitialRendererBackend(),
   );
   const [circuitId, setCircuitId] = useState<CircuitId>('sunset-loop');
+  const [reversed, setReversed] = useState<boolean>(false);
   const [p1Character, setP1Character] = useState<DriverCharacterId>('fox');
   const [localMode, setLocalMode] = useState<'1p' | '2p-local'>('1p');
   const [netplay, setNetplay] = useState<NetplayState>(() => getSharedNetplay().getState());
@@ -716,7 +720,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
   const finishAwardedRef = useRef(false);
 
   const syncHudFromRace = useCallback((race: KartRaceState, focusLocalSlot = 0) => {
-    const circuit = CIRCUITS[race.circuitId];
+    const circuit = getCircuit(race.circuitId, race.reversed);
     const k0 = race.karts[focusLocalSlot] ?? race.karts[0]!;
     const k1 = race.karts[1];
     setElapsedHudMs(Math.round(race.elapsedMs));
@@ -822,11 +826,14 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       names?: { p1?: string; p2?: string },
       lang?: CountdownLanguage,
       overrideP1Char?: DriverCharacterId,
+      overrideReversed?: boolean,
     ) => {
       const chosenChar = overrideP1Char ?? p1Character;
+      const nextReversed = overrideReversed ?? reversed;
       const fresh = createRaceState(nextCircuit, nextMode, seed, {
         ...names,
         p1Character: chosenChar,
+        reversed: nextReversed,
       });
       // In 2P Online, mark our assigned slot as local human and opponent slot as remote!
       if (nextMode === '2p-online' && activeKartRoom) {
@@ -858,7 +865,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       audio.setPlaylist(nextCircuit === 'cloud-gate' ? CLOUD_GATE_PLAYLIST : MICRO_KART_PLAYLIST);
       audio.startNewGameTrack();
     },
-    [activeKartRoom, p1Character, syncHudFromRace, triggerFreshCountdown],
+    [activeKartRoom, p1Character, reversed, syncHudFromRace, triggerFreshCountdown],
   );
 
   // Restrict 2P Split-Screen (`2p-local`) strictly to desktop environments with keyboards (#406)
@@ -884,17 +891,27 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     }
   }, [circuitId, isDesktopKeyboard, isOnline2P, localMode, resetRace]);
 
-  const nextCircuit = CIRCUITS[getNextCircuitId(circuitId)];
+  const nextStage = getNextRaceStage(circuitId, reversed);
+  const nextStageTitle = formatCircuitTitle(nextStage.circuitId, nextStage.reversed);
 
   const advanceToNextTrack = useCallback(() => {
-    const nextId = getNextCircuitId(circuitId);
-    setCircuitId(nextId);
+    const stage = getNextRaceStage(circuitId, reversed);
+    setCircuitId(stage.circuitId);
+    setReversed(stage.reversed);
     if (isOnline2P && activeKartRoom) {
-      resetRace(nextId, '2p-online', activeKartRoom.seed + 1);
+      resetRace(
+        stage.circuitId,
+        '2p-online',
+        activeKartRoom.seed + 1,
+        undefined,
+        undefined,
+        undefined,
+        stage.reversed,
+      );
     } else {
-      resetRace(nextId, localMode);
+      resetRace(stage.circuitId, localMode, undefined, undefined, undefined, undefined, stage.reversed);
     }
-  }, [activeKartRoom, circuitId, isOnline2P, localMode, resetRace]);
+  }, [activeKartRoom, circuitId, isOnline2P, localMode, resetRace, reversed]);
 
   // Wait 5 seconds AFTER all human players finish before surfacing the separate Continue to Next Track popover (#406)
   useEffect(() => {
@@ -1555,7 +1572,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
 
   const canSelectOnline2P =
     isOnline2P || isInviting || netplay.onlineCount >= 2;
-  const activeCircuit = CIRCUITS[circuitId];
+  const activeCircuitTitle = formatCircuitTitle(circuitId, reversed);
   const p1SpeedColor = speedToColorHex(p1Hud.speedMps);
   const p2SpeedColor = speedToColorHex(p2Hud.speedMps);
 
@@ -1565,6 +1582,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       data-testid="micro-kart-stage"
       data-mode={effectiveMode}
       data-circuit={circuitId}
+      data-reversed={reversed ? 'true' : 'false'}
       onPointerDown={handleStagePointerDown}
       onPointerMove={handleStagePointerMove}
       onPointerUp={handleStagePointerUp}
@@ -1577,7 +1595,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         data-testid="kart-canvas"
         data-renderer={rendererBackend}
         role="img"
-        aria-label={`Micro Kart 3D circuit ${activeCircuit.name}, mode ${effectiveMode}`}
+        aria-label={`Micro Kart 3D circuit ${activeCircuitTitle}, mode ${effectiveMode}`}
       />
 
       {/* Top header strip matching sibling games */}
@@ -1585,7 +1603,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         <div className="row">
           <h2 className="stack-title">Micro Kart</h2>
           <span className="kart-circuit-pill" data-testid="kart-circuit-label">
-            {activeCircuit.name}
+            {activeCircuitTitle}
           </span>
           {isSplit2P || isOnline2P ? (
             <span className="sb-tally" aria-live="polite">
@@ -1675,7 +1693,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
               <span className="kart-telemetry-val">{formatRaceClock(elapsedHudMs)}</span>
             </div>
           </div>
-          {!isSplit2P ? <CircuitMiniMap circuitId={circuitId} dots={mapDots} /> : null}
+          {!isSplit2P ? <CircuitMiniMap circuitId={circuitId} reversed={reversed} dots={mapDots} /> : null}
         </div>
 
         {/* P1 In-Viewport Finish Placement Banner (non-blocking; stays inside top half in 2P!) */}
@@ -1858,7 +1876,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
           data-testid="kart-next-track-popover"
         >
           <span className="game-pause-kicker">Race Complete</span>
-          <div className="kart-next-track-title">Next Track · {nextCircuit.name}</div>
+          <div className="kart-next-track-title">Next Track · {nextStageTitle}</div>
           <div className="muted">
             {winnerSlot !== null
               ? `${raceRef.current.karts[winnerSlot]?.name ?? 'Leader'} took 1st Place`
@@ -1871,7 +1889,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
               data-testid="kart-next-track-btn"
               onClick={advanceToNextTrack}
             >
-              Continue · {nextCircuit.name}
+              Continue · {nextStageTitle}
             </button>
             <button
               type="button"
@@ -2050,6 +2068,34 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                     {c.name}
                   </button>
                 ))}
+              </div>
+            </div>
+
+            <div className="game-pause-section">
+              <span className="stack-label">Direction</span>
+              <div className="filter-group" role="group" aria-label="Track direction">
+                <button
+                  type="button"
+                  data-testid="kart-dir-forward"
+                  aria-pressed={!reversed}
+                  onClick={() => {
+                    setReversed(false);
+                    resetRace(circuitId, effectiveMode, undefined, undefined, undefined, undefined, false);
+                  }}
+                >
+                  Forward
+                </button>
+                <button
+                  type="button"
+                  data-testid="kart-dir-reverse"
+                  aria-pressed={reversed}
+                  onClick={() => {
+                    setReversed(true);
+                    resetRace(circuitId, effectiveMode, undefined, undefined, undefined, undefined, true);
+                  }}
+                >
+                  ↺ Reverse
+                </button>
               </div>
             </div>
 

@@ -8,7 +8,7 @@
  */
 
 import {
-  CIRCUITS,
+  getCircuit,
   getKartDriverSpec,
   predictKartTrajectory,
   speedToColorRgb,
@@ -787,7 +787,7 @@ export function renderKartViewport(
   vpH: number,
   timeMs: number,
 ): ViewportRenderMetrics {
-  const circuit = CIRCUITS[race.circuitId];
+  const circuit = getCircuit(race.circuitId, race.reversed);
   const focusKart = race.karts[focusSlot] ?? race.karts[0]!;
 
   ctx.save();
