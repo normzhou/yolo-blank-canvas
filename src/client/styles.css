@@ -3571,17 +3571,30 @@ button.passkey-handoff-copy-btn:hover {
   opacity: 0.85;
 }
 
+.kart-rail-pip {
+  position: absolute;
+  left: -3px;
+  width: 10px;
+  height: 10px;
+  transform: translateY(50%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--stage-well);
+}
+
 .kart-standing-row {
   position: absolute;
   left: 16px;
   transform: translateY(50%);
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   padding: 0;
   background: none;
   color: var(--stage-text);
-  transition: bottom 140ms linear;
+}
+
+.kart-standing-row.is-col-1 {
+  left: 192px;
 }
 
 .kart-standing-text {

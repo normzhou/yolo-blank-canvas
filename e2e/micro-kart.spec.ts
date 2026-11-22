@@ -17,7 +17,7 @@ test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Bu
     const card = page.getByTestId('deck-slide-card');
     await page.getByTestId('carousel-dot-micro-kart').click();
     await expect(card).toHaveAttribute('data-slide-id', 'micro-kart');
-    await expect(card).toHaveAttribute('data-game-version', '2.3.0');
+    await expect(card).toHaveAttribute('data-game-version', '2.3.1');
     await expect(page.locator('.deck-slide-title')).toHaveText('Micro Kart');
 
     await page.getByRole('button', { name: 'Play Micro Kart', exact: true }).click();
@@ -331,10 +331,23 @@ test('Micro Kart shows left-side emotional standings, in-game split finish banne
     await expect(page.getByTestId('kart-standing-lap-0')).toHaveText('L1');
     await expect(page.getByTestId('kart-standing-track-0')).toHaveText('Sunset');
     await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });
+    // Step ~40% through Track 1 -> portrait smoothly climbs inside Segment 1 (0%..12.5%) without jumping!
     await page.evaluate(() => {
       window.dispatchEvent(
         new CustomEvent('yolo:kart:step', {
-          detail: { steps: 1450, dtMs: 20, autoPilotP1: true },
+          detail: { steps: 420, dtMs: 20, autoPilotP1: true },
+        }),
+      );
+    });
+    const midTrackPct = Number(
+      await page.getByTestId('kart-standing-slot-0').getAttribute('data-progress-pct'),
+    );
+    expect(midTrackPct).toBeGreaterThan(2.5);
+    expect(midTrackPct).toBeLessThan(11.5);
+    await page.evaluate(() => {
+      window.dispatchEvent(
+        new CustomEvent('yolo:kart:step', {
+          detail: { steps: 1050, dtMs: 20, autoPilotP1: true },
         }),
       );
     });
