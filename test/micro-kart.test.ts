@@ -9,11 +9,13 @@ import {
   createRaceState,
   cross2D,
   formatCircuitTitle,
+  generateMarathonCycleOrder,
   getCircuit,
   getCircuitForKart,
   getKartCenterOfMass,
   getKartPortraitMood,
   getMarathonStage,
+  getMarathonStageForKart,
   getNextCircuitId,
   getNextRaceStage,
   getRecommendedSpeedAtS,
@@ -151,13 +153,50 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
     expect(transformed.y).toBeCloseTo(g1.y + 4, 5);
     expect(transformed.z).toBeCloseTo(g1.z - (g1.tz / h1) * 10 + g1.rz * 3, 5);
 
-    // 1) Momentum-preserving Portal warp from Stage 0 (Sunset Loop) -> Stage 1 (Canyon Crest)
+    // 1) Per-kart shuffled 8-course cycles & momentum-preserving Portal warp (#412, #420)
     const race = createRaceState('sunset-loop', '1p', 7, { format: 'marathon' });
     expect(race.format).toBe('marathon');
     expect(race.survivorsCount).toBe(4);
 
-    // Drive P1 on autopilot through its first full lap -> warps seamlessly into Canyon Crest!
+    // Every kart starts on Track 1 (`sunset-loop:fwd`), every 8-stage Big Lap is a full permutation of all 8 stages,
+    // and ZERO consecutive stages ever share the same physical `circuitId` (`1 -> 1'` / `4' -> 4` forbidden across ALL boundaries)!
+    const perKartFirstCycleSigs: string[] = [];
+    const bigLap2FirstChoices = new Set<string>();
+    for (const k of race.karts) {
+      const s0 = getMarathonStageForKart(race, k, 0);
+      expect(s0).toEqual({ circuitId: 'sunset-loop', reversed: false });
+      let prevId: string | null = null;
+      for (let cycle = 0; cycle < 5; cycle += 1) {
+        const seen = new Set<string>();
+        for (let stepInCycle = 0; stepInCycle < 8; stepInCycle += 1) {
+          const st = getMarathonStageForKart(race, k, cycle * 8 + stepInCycle);
+          if (prevId !== null) {
+            expect(st.circuitId).not.toBe(prevId);
+          }
+          seen.add(`${st.circuitId}:${st.reversed ? 'rev' : 'fwd'}`);
+          prevId = st.circuitId;
+        }
+        expect(seen.size).toBe(8);
+        if (cycle >= 1) {
+          const firstOfCycle = getMarathonStageForKart(race, k, cycle * 8);
+          bigLap2FirstChoices.add(`${firstOfCycle.circuitId}:${firstOfCycle.reversed ? 'rev' : 'fwd'}`);
+        }
+      }
+      perKartFirstCycleSigs.push(
+        k.marathonSchedule
+          .slice(0, 8)
+          .map((s) => `${s.circuitId}:${s.reversed ? 'r' : 'f'}`)
+          .join(','),
+      );
+    }
+    // Players receive distinct randomized shuffles, and Big Lap 2+ is NOT locked to Sunset Loop Forward!
+    expect(new Set(perKartFirstCycleSigs).size).toBeGreaterThan(1);
+    expect(bigLap2FirstChoices.size).toBeGreaterThan(2);
+
+    // Drive P1 on autopilot through its first full lap -> warps seamlessly into P1's own shuffled Stage 1 (never same circuit!)
     const p1 = race.karts[0]!;
+    const expectedNext = getMarathonStageForKart(race, p1, 1);
+    expect(expectedNext.circuitId).not.toBe('sunset-loop');
     (p1 as { isHuman: boolean }).isHuman = false;
     let portalEvent: (typeof race.lastEvents.portalCrossed)[number] | null = null;
     let preSpeed = 0;
@@ -175,19 +214,21 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
     expect(portalEvent!.fromStageIndex).toBe(0);
     expect(portalEvent!.toStageIndex).toBe(1);
     expect(portalEvent!.fromCircuitId).toBe('sunset-loop');
-    expect(portalEvent!.toCircuitId).toBe('canyon-crest');
+    expect(portalEvent!.toCircuitId).toBe(expectedNext.circuitId);
+    expect(portalEvent!.toReversed).toBe(expectedNext.reversed);
     expect(p1.stageIndex).toBe(1);
-    expect(getCircuitForKart(race, p1).id).toBe('canyon-crest');
+    expect(getCircuitForKart(race, p1).id).toBe(expectedNext.circuitId);
     // Speed is preserved across the portal with zero reset!
     expect(p1.speed).toBeGreaterThan(preSpeed * 0.85);
     expect(p1.speed).toBeGreaterThan(45);
 
-    // 2) True 4-physical-track Forward-vs-Reverse head-on collision (#418):
-    //    A kart on Stage 1 (Canyon Crest Forward) and a kart on Stage 5 (Canyon Crest Reverse) share
-    //    the EXACT same physical 3D road and collide head-on!
+    // 2) True 4-physical-track Forward-vs-Reverse head-on collision (#418, #420):
+    //    Explicitly set kart 0 on Canyon Crest Forward and kart 1 on Canyon Crest Reverse -> real head-on bounce!
     const headOnRace = createRaceState('sunset-loop', '1p', 11, { format: 'marathon' });
     const kFwd = headOnRace.karts[0]!;
     const kRev = headOnRace.karts[1]!;
+    kFwd.marathonSchedule[1] = { circuitId: 'canyon-crest', reversed: false };
+    kRev.marathonSchedule[5] = { circuitId: 'canyon-crest', reversed: true };
     kFwd.stageIndex = 1; // Canyon Crest Forward
     kRev.stageIndex = 5; // Canyon Crest Reverse (same physical map id!)
     const canyonFwd = getCircuitForKart(headOnRace, kFwd);

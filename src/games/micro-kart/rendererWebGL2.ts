@@ -17,7 +17,7 @@ import {
   getCircuit,
   getCircuitForKart,
   getKartDriverSpec,
-  getMarathonStage,
+  getMarathonStageForKart,
   KART_DRIVERS,
   predictKartTrajectory,
   speedToColorRgb,
@@ -2635,7 +2635,7 @@ export class MicroKartWebGL2Renderer {
       // Camera must be on the approach side of the finish portal plane
       const camSignedAlongGate = (cam.x - g0.x) * tx0 + (cam.z - g0.z) * tz0;
       if (camSignedAlongGate < -0.5 && gateDist > 2.0 && gateDist < 380 && fwdDot > 0.12) {
-        const nextStage = getMarathonStage(focusKart.stageIndex + 1, race.circuitId, race.reversed);
+        const nextStage = getMarathonStageForKart(race, focusKart, focusKart.stageIndex + 1);
         const nextCircuit = getCircuit(nextStage.circuitId, nextStage.reversed);
         const nextKarts = race.karts.filter(
           (k) => !k.eliminated && getCircuitForKart(race, k).id === nextCircuit.id,
