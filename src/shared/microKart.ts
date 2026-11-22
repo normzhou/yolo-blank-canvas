@@ -6,6 +6,7 @@
 
 export type CircuitId = 'sunset-loop' | 'canyon-crest' | 'starlight-ring' | 'cloud-gate';
 export type KartRaceMode = '1p' | '2p-local' | '2p-online';
+export type KartRaceFormat = 'grand-prix' | 'marathon';
 export type BoostKind = 'none' | 'mini' | 'ultra' | 'pad';
 export type DriverCharacterId = 'fox' | 'cat' | 'dog' | 'bunny';
 export type KartPortraitMood = 'happy' | 'normal' | 'anxious' | 'cry';
@@ -295,6 +296,15 @@ export interface KartState {
   /** Unwrapped monotonic arc distance traveled since race start. */
   unwrappedS: number;
   maxUnwrappedS: number;
+  /** Marathon stage index (`0, 1, 2, ...` endlessly cycling all 8 forward + reverse circuits, #412). */
+  stageIndex: number;
+  /** UnwrappedS baseline where this kart entered its current Marathon stage. */
+  stageStartUnwrappedS: number;
+  /** Continuous lap-equivalent progress across portals (`stageIndex + localS / stageLen`). */
+  marathonProgress: number;
+  /** True once lapped & knocked out in Portal Marathon Knockout mode. */
+  eliminated: boolean;
+  eliminatedAtMs: number | null;
   /** Continuous left/right thruster output levels (`0.0 .. 1.0`). */
   leftThrottle: number;
   rightThrottle: number;
@@ -328,18 +338,33 @@ export interface KartState {
 export interface KartRaceEvents {
   boostTriggered: Array<{ slot: number; kind: BoostKind }>;
   lapCompleted: Array<{ slot: number; lap: number; lapMs: number; finished: boolean }>;
+  portalCrossed: Array<{
+    slot: number;
+    fromStageIndex: number;
+    toStageIndex: number;
+    fromCircuitId: CircuitId;
+    fromReversed: boolean;
+    toCircuitId: CircuitId;
+    toReversed: boolean;
+  }>;
+  eliminated: Array<{ slot: number; place: number; name: string }>;
   bumped: boolean;
 }
 
 export interface KartRaceState {
   readonly circuitId: CircuitId;
   readonly reversed: boolean;
+  readonly format: KartRaceFormat;
   readonly mode: KartRaceMode;
   readonly totalLaps: number;
   readonly seed: number;
   elapsedMs: number;
   status: 'racing' | 'finished';
   winnerSlot: number | null;
+  /** Current lap gap between 1st place and last surviving kart in Portal Marathon mode (`0..1+`). */
+  marathonLeadGapLaps: number;
+  /** Number of non-eliminated karts still racing in Portal Marathon mode. */
+  survivorsCount: number;
   karts: KartState[];
   lastEvents: KartRaceEvents;
 }
@@ -988,6 +1013,74 @@ export function formatCircuitTitle(id: CircuitId, reversed = false): string {
 }
 
 /**
+ * Maps an unbounded Portal Marathon stage index (`0, 1, 2, ...`) onto the
+ * endless 8-stage Forward + Reverse cycle (#412):
+ *  - `0..3`: 4 circuits Forward
+ *  - `4..7`: 4 circuits Reverse
+ *  - `8..11`: 4 circuits Forward ... endlessly!
+ */
+export function getMarathonStage(
+  stageIndex: number,
+  startCircuitId: CircuitId = 'sunset-loop',
+  startReversed = false,
+): { circuitId: CircuitId; reversed: boolean } {
+  const n = CIRCUIT_LIST.length;
+  const startBase = Math.max(0, CIRCUIT_LIST.findIndex((c) => c.id === startCircuitId));
+  const startOffset = startBase + (startReversed ? n : 0);
+  const fullCycle = n * 2;
+  const totalIdx = (((startOffset + stageIndex) % fullCycle) + fullCycle) % fullCycle;
+  return {
+    circuitId: CIRCUIT_LIST[totalIdx % n]!.id,
+    reversed: totalIdx >= n,
+  };
+}
+
+/** Resolves the active circuit definition for a specific kart (per-kart stage in Marathon, shared in Grand Prix, #412). */
+export function getCircuitForKart(race: KartRaceState, kart: KartState): CircuitDefinition {
+  if (race.format === 'marathon') {
+    const st = getMarathonStage(kart.stageIndex, race.circuitId, race.reversed);
+    return getCircuit(st.circuitId, st.reversed);
+  }
+  return getCircuit(race.circuitId, race.reversed);
+}
+
+/**
+ * Rigid-body 3D portal coordinate transform from `fromCircuit`'s start/finish gate
+ * (`nodes[0]`) into `toCircuit`'s start/finish gate (`nodes[0]`) (#412).
+ * Used identically for:
+ *  1) Rendering the live Valve-Portal stencil camera looking into the next circuit, and
+ *  2) Snapping the chase camera seamlessly the exact frame a kart crosses the portal!
+ */
+export function transformPoseThroughPortal(
+  pose: { x: number; y: number; z: number; yaw: number },
+  fromCircuit: CircuitDefinition,
+  toCircuit: CircuitDefinition,
+): { x: number; y: number; z: number; yaw: number } {
+  const g0 = fromCircuit.nodes[0]!;
+  const g1 = toCircuit.nodes[0]!;
+  const h0 = Math.hypot(g0.tx, g0.tz) || 1;
+  const tx0 = g0.tx / h0;
+  const tz0 = g0.tz / h0;
+  const h1 = Math.hypot(g1.tx, g1.tz) || 1;
+  const tx1 = g1.tx / h1;
+  const tz1 = g1.tz / h1;
+  const dx = pose.x - g0.x;
+  const dy = pose.y - g0.y;
+  const dz = pose.z - g0.z;
+  const fwd = dx * tx0 + dz * tz0;
+  const lat = dx * g0.rx + dz * g0.rz;
+  const yaw0 = Math.atan2(tx0, tz0);
+  const yaw1 = Math.atan2(tx1, tz1);
+  const relYaw = wrapAngle(pose.yaw - yaw0);
+  return {
+    x: g1.x + tx1 * fwd + g1.rx * lat,
+    y: g1.y + dy,
+    z: g1.z + tz1 * fwd + g1.rz * lat,
+    yaw: wrapAngle(yaw1 + relYaw),
+  };
+}
+
+/**
  * Interpolates a track frame at continuous arc coordinate `s` (`0 .. totalLength`).
  */
 export function sampleCircuitAtS(circuit: CircuitDefinition, rawS: number): {
@@ -1139,9 +1232,11 @@ export function createRaceState(
     p1Character?: DriverCharacterId;
     p2Character?: DriverCharacterId;
     reversed?: boolean;
+    format?: KartRaceFormat;
   },
 ): KartRaceState {
   const reversed = Boolean(options?.reversed);
+  const format: KartRaceFormat = options?.format ?? 'grand-prix';
   const circuit = getCircuit(circuitId, reversed);
   const rng = mulberry32(seed);
   const L = circuit.totalLength;
@@ -1215,6 +1310,11 @@ export function createRaceState(
       lap: 1,
       unwrappedS: -grid.backMeters,
       maxUnwrappedS: -grid.backMeters,
+      stageIndex: 0,
+      stageStartUnwrappedS: 0,
+      marathonProgress: -grid.backMeters / L,
+      eliminated: false,
+      eliminatedAtMs: null,
       leftThrottle: 1,
       rightThrottle: 1,
       leftThruster: true,
@@ -1244,16 +1344,21 @@ export function createRaceState(
   return {
     circuitId,
     reversed,
+    format,
     mode,
-    totalLaps: TOTAL_LAPS,
+    totalLaps: format === 'marathon' ? Number.POSITIVE_INFINITY : TOTAL_LAPS,
     seed,
     elapsedMs: 0,
     status: 'racing',
     winnerSlot: null,
+    marathonLeadGapLaps: 0,
+    survivorsCount: karts.length,
     karts,
     lastEvents: {
       boostTriggered: [],
       lapCompleted: [],
+      portalCrossed: [],
+      eliminated: [],
       bumped: false,
     },
   };
@@ -1467,6 +1572,9 @@ function stepSingleKart(
   elapsedMs: number,
   events: KartRaceEvents,
   aiSpeedScale = 1,
+  raceFormat: KartRaceFormat = 'grand-prix',
+  startCircuitId: CircuitId = circuit.id,
+  startReversed = circuit.reversed,
 ): void {
   if (kart.isRemote) return;
 
@@ -1710,8 +1818,67 @@ function stepSingleKart(
     }
   }
 
-  // 9. Monotonic lap crossing (`unwrappedS >= lap * totalLength`)
-  if (kart.finishMs === null && kart.unwrappedS >= kart.lap * L) {
+  // 9. Monotonic lap / Portal crossing
+  if (raceFormat === 'marathon') {
+    const localUnwrapped = kart.unwrappedS - kart.stageStartUnwrappedS;
+    if (!kart.eliminated && localUnwrapped >= L) {
+      const overshoot = localUnwrapped - L;
+      const completedStage = kart.stageIndex;
+      const lapMs = Math.max(100, Math.round(elapsedMs - kart.lapStartMs));
+      if (kart.bestLapMs === null || lapMs < kart.bestLapMs) {
+        kart.bestLapMs = lapMs;
+      }
+      kart.lapStartMs = elapsedMs;
+      kart.lap += 1;
+      kart.stageStartUnwrappedS += L;
+      kart.stageIndex += 1;
+
+      const nextStage = getMarathonStage(kart.stageIndex, startCircuitId, startReversed);
+      const nextCircuit = getCircuit(nextStage.circuitId, nextStage.reversed);
+
+      // Preserve 100% exact momentum & relative pose through the finish-line Portal Gate!
+      const oldGateYaw = Math.atan2(circuit.nodes[0]!.tx, circuit.nodes[0]!.tz);
+      const relYaw = wrapAngle(kart.yaw - oldGateYaw);
+      const vFwd = kart.vx * Math.sin(oldGateYaw) + kart.vz * Math.cos(oldGateYaw);
+      const vLat = kart.vx * Math.cos(oldGateYaw) - kart.vz * Math.sin(oldGateYaw);
+      const clampedLat = clamp(kart.lat, -(nextCircuit.wallHalfWidth - 1.4), nextCircuit.wallHalfWidth - 1.4);
+      const entryS = clamp(overshoot, 0.05, nextCircuit.totalLength * 0.25);
+      const nextSample = sampleCircuitAtS(nextCircuit, entryS);
+      const nextGateYaw = nextSample.yaw;
+
+      kart.x = nextSample.x + nextSample.rx * clampedLat;
+      kart.y = nextSample.y;
+      kart.z = nextSample.z + nextSample.rz * clampedLat;
+      kart.yaw = wrapAngle(nextGateYaw + relYaw);
+      kart.pitch = nextSample.pitch;
+      kart.vx = Math.sin(nextGateYaw) * vFwd + Math.cos(nextGateYaw) * vLat;
+      kart.vz = Math.cos(nextGateYaw) * vFwd - Math.sin(nextGateYaw) * vLat;
+      kart.s = nextSample.s;
+      kart.lat = clampedLat;
+      kart.unwrappedS = kart.stageStartUnwrappedS + nextSample.s;
+      kart.maxUnwrappedS = Math.max(kart.maxUnwrappedS, kart.unwrappedS);
+      kart.marathonProgress = kart.stageIndex + nextSample.s / nextCircuit.totalLength;
+      kart.skidMarks = [];
+
+      events.lapCompleted.push({
+        slot: kart.slot,
+        lap: completedStage + 1,
+        lapMs,
+        finished: false,
+      });
+      events.portalCrossed.push({
+        slot: kart.slot,
+        fromStageIndex: completedStage,
+        toStageIndex: kart.stageIndex,
+        fromCircuitId: circuit.id,
+        fromReversed: circuit.reversed,
+        toCircuitId: nextCircuit.id,
+        toReversed: nextCircuit.reversed,
+      });
+    } else {
+      kart.marathonProgress = kart.stageIndex + localUnwrapped / L;
+    }
+  } else if (kart.finishMs === null && kart.unwrappedS >= kart.lap * L) {
     const completedLap = kart.lap;
     const lapMs = Math.max(100, Math.round(elapsedMs - kart.lapStartMs));
     if (kart.bestLapMs === null || lapMs < kart.bestLapMs) {
@@ -1734,7 +1901,8 @@ function stepSingleKart(
 
 /**
  * Advances the entire race by `dtMs` milliseconds (clamped for tab-switch safety),
- * resolving dual-thruster rigid-body physics, AI rivals, kart-to-kart bumping, and standings.
+ * resolving dual-thruster rigid-body physics, pure non-rubber-banded AI rivals,
+ * kart-to-kart bumping, Portal warps, and Marathon knockout elimination (#390, #412).
  */
 export function stepRaceState(
   race: KartRaceState,
@@ -1743,10 +1911,11 @@ export function stepRaceState(
 ): KartRaceState {
   const clampedMs = clamp(dtMs, 0, 50);
   const dt = clampedMs / 1000;
-  const circuit = getCircuit(race.circuitId, race.reversed);
   const events: KartRaceEvents = {
     boostTriggered: [],
     lapCompleted: [],
+    portalCrossed: [],
+    eliminated: [],
     bumped: false,
   };
 
@@ -1759,56 +1928,129 @@ export function stepRaceState(
   const leaderUnwrappedS = Math.max(...race.karts.map((k) => k.unwrappedS));
 
   for (const kart of race.karts) {
-    if (kart.isRemote) continue;
+    if (kart.isRemote || kart.eliminated) continue;
+    const kartCircuit = getCircuitForKart(race, kart);
     if (kart.isHuman) {
       const input = humanInputs[kart.slot] ?? { left: false, right: false };
-      stepSingleKart(kart, input, circuit, dt, race.elapsedMs, events, 1);
-    } else {
-      // Gentle arcade rubber-banding keeps AI competitive without unfair runaway leads
-      const deltaToLeader = leaderUnwrappedS - kart.unwrappedS;
-      const rubberBand = clamp(1 + deltaToLeader * 0.0011, 0.88, 1.08);
-      const aiInput = computeAiThrusters(kart, circuit, leaderUnwrappedS, race.elapsedMs);
       stepSingleKart(
         kart,
-        aiInput,
-        circuit,
+        input,
+        kartCircuit,
         dt,
         race.elapsedMs,
         events,
-        kart.aiBaseSkill * rubberBand,
+        1,
+        race.format,
+        race.circuitId,
+        race.reversed,
+      );
+    } else {
+      // Pure honest AI with ZERO artificial rubber-banding or pack compression (#412)
+      const aiInput = computeAiThrusters(kart, kartCircuit, leaderUnwrappedS, race.elapsedMs);
+      stepSingleKart(
+        kart,
+        aiInput,
+        kartCircuit,
+        dt,
+        race.elapsedMs,
+        events,
+        kart.aiBaseSkill,
+        race.format,
+        race.circuitId,
+        race.reversed,
       );
     }
   }
 
-  // Perfectly elastic 2D rigid-body kart-to-kart collisions conserving linear & angular momentum (#390)
+  // Perfectly elastic 2D rigid-body kart-to-kart collisions (only between active karts on the same stage! #390, #412)
   for (let i = 0; i < race.karts.length; i += 1) {
     for (let j = i + 1; j < race.karts.length; j += 1) {
       const a = race.karts[i]!;
       const b = race.karts[j]!;
+      if (a.eliminated || b.eliminated) continue;
+      if (race.format === 'marathon' && a.stageIndex !== b.stageIndex) continue;
       if (resolveElasticKartCollision(a, b, true)) {
         events.bumped = true;
       }
     }
   }
 
-  // Recompute live race standings (`1st .. Nth`): finished karts ordered by finishMs, racing karts by unwrappedS
-  const sorted = [...race.karts].sort((a, b) => {
-    if (a.finishMs !== null && b.finishMs !== null) return a.finishMs - b.finishMs;
-    if (a.finishMs !== null) return -1;
-    if (b.finishMs !== null) return 1;
-    return b.unwrappedS - a.unwrappedS;
-  });
-  sorted.forEach((kart, idx) => {
-    kart.place = idx + 1;
-  });
+  if (race.format === 'marathon') {
+    // Pure Portal Marathon Knockout Elimination: whenever 1st place laps the last survivor (>= 1.0 lap), knock them out!
+    let active = race.karts
+      .filter((k) => !k.eliminated)
+      .sort((a, b) => b.marathonProgress - a.marathonProgress);
 
-  // Finish check: race ends once all human players have crossed the finish line (#406)
-  const humanKarts = race.karts.filter((k) => k.isHuman);
-  const allHumansDone =
-    humanKarts.length > 0 && humanKarts.every((k) => k.finishMs !== null);
-  if (race.status === 'racing' && allHumansDone) {
-    race.status = 'finished';
-    race.winnerSlot = sorted[0]?.slot ?? 0;
+    while (race.status === 'racing' && active.length > 1) {
+      const leader = active[0]!;
+      const trailer = active[active.length - 1]!;
+      const gap = leader.marathonProgress - trailer.marathonProgress;
+      if (gap >= 1.0) {
+        trailer.eliminated = true;
+        trailer.eliminatedAtMs = Math.round(race.elapsedMs);
+        trailer.finishMs = Math.round(race.elapsedMs);
+        trailer.place = active.length;
+        trailer.speed = 0;
+        trailer.vx = 0;
+        trailer.vz = 0;
+        events.eliminated.push({
+          slot: trailer.slot,
+          place: trailer.place,
+          name: trailer.name,
+        });
+        active = active.slice(0, active.length - 1);
+      } else {
+        break;
+      }
+    }
+
+    race.survivorsCount = active.length;
+    race.marathonLeadGapLaps =
+      active.length > 1
+        ? Math.max(0, active[0]!.marathonProgress - active[active.length - 1]!.marathonProgress)
+        : 1.0;
+
+    // Order standings: active survivors by marathonProgress desc, then eliminated karts by knockout order (latest eliminated = higher rank!)
+    const eliminatedSorted = race.karts
+      .filter((k) => k.eliminated)
+      .sort((a, b) => (b.eliminatedAtMs ?? 0) - (a.eliminatedAtMs ?? 0));
+    const ordered = [...active, ...eliminatedSorted];
+    ordered.forEach((kart, idx) => {
+      kart.place = idx + 1;
+    });
+
+    // Race ends when only 1 survivor remains (Champion!) OR all human players have been knocked out
+    const humanKarts = race.karts.filter((k) => k.isHuman);
+    const allHumansEliminated =
+      humanKarts.length > 0 && humanKarts.every((k) => k.eliminated);
+    if (race.status === 'racing' && (active.length <= 1 || allHumansEliminated)) {
+      race.status = 'finished';
+      const champ = active[0] ?? ordered[0]!;
+      race.winnerSlot = champ.slot;
+      if (active.length === 1 && champ.finishMs === null) {
+        champ.finishMs = Math.round(race.elapsedMs);
+      }
+    }
+  } else {
+    // Standard Grand Prix standings: finished karts ordered by finishMs, racing karts by unwrappedS
+    const sorted = [...race.karts].sort((a, b) => {
+      if (a.finishMs !== null && b.finishMs !== null) return a.finishMs - b.finishMs;
+      if (a.finishMs !== null) return -1;
+      if (b.finishMs !== null) return 1;
+      return b.unwrappedS - a.unwrappedS;
+    });
+    sorted.forEach((kart, idx) => {
+      kart.place = idx + 1;
+    });
+
+    // Finish check: race ends once all human players have crossed the finish line (#406)
+    const humanKarts = race.karts.filter((k) => k.isHuman);
+    const allHumansDone =
+      humanKarts.length > 0 && humanKarts.every((k) => k.finishMs !== null);
+    if (race.status === 'racing' && allHumansDone) {
+      race.status = 'finished';
+      race.winnerSlot = sorted[0]?.slot ?? 0;
+    }
   }
 
   race.lastEvents = events;

@@ -15,15 +15,19 @@
 
 import {
   getCircuit,
+  getCircuitForKart,
   getKartDriverSpec,
+  getMarathonStage,
   KART_DRIVERS,
   predictKartTrajectory,
   speedToColorRgb,
+  transformPoseThroughPortal,
   type CircuitDefinition,
   type CircuitId,
   type DriverCharacterId,
   type KartDriverSpec,
   type KartRaceState,
+  type KartState,
   type SceneryProp,
 } from '../../shared/microKart';
 import { computeDriverPose } from './driverPose';
@@ -1963,7 +1967,7 @@ layout(location = 0) in vec2 aQuad;
 out vec2 vUv;
 void main() {
   vUv = aQuad * 0.5 + 0.5;
-  gl_Position = vec4(aQuad, 0.999, 1.0);
+  gl_Position = vec4(aQuad, 0.99999, 1.0);
 }
 `;
 
@@ -2251,6 +2255,7 @@ export class MicroKartWebGL2Renderer {
         alpha: false,
         antialias: true,
         depth: true,
+        stencil: true,
         powerPreference: 'default',
       });
     } catch {
@@ -2395,9 +2400,142 @@ export class MicroKartWebGL2Renderer {
     gl.drawArrays(gl.TRIANGLES, 0, mesh.count);
   }
 
+  private drawSkyBackdrop(
+    gl: WebGL2RenderingContext,
+    circuit: CircuitDefinition,
+    camYaw: number,
+    horizonUvY: number,
+  ): void {
+    gl.useProgram(this.skyProg);
+    const skyTop = parseHexRgb(circuit.theme.skyTop);
+    const skyHor = parseHexRgb(circuit.theme.skyHorizon);
+    const gnd = parseHexRgb(circuit.theme.groundOuter);
+    const mtn = parseHexRgb(circuit.theme.mountainHex);
+    gl.uniform3f(this.skyUniforms.uSkyTop!, skyTop[0] / 255, skyTop[1] / 255, skyTop[2] / 255);
+    gl.uniform3f(this.skyUniforms.uSkyHorizon!, skyHor[0] / 255, skyHor[1] / 255, skyHor[2] / 255);
+    gl.uniform3f(this.skyUniforms.uGround!, gnd[0] / 255, gnd[1] / 255, gnd[2] / 255);
+    gl.uniform3f(this.skyUniforms.uMountain!, mtn[0] / 255, mtn[1] / 255, mtn[2] / 255);
+    gl.uniform1f(this.skyUniforms.uHorizonUvY!, horizonUvY);
+    gl.uniform1f(this.skyUniforms.uYawPhase!, (camYaw / (Math.PI * 2)) * 24.0);
+    gl.uniform1f(
+      this.skyUniforms.uIsStarry!,
+      circuit.theme.skyMode === 'cloud-sea'
+        ? 2.0
+        : circuit.theme.skyMode === 'starry'
+          ? 1.0
+          : 0.0,
+    );
+    gl.bindVertexArray(this.skyVao);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+  }
+
+  private setupWorldCameraUniforms(
+    gl: WebGL2RenderingContext,
+    circuit: CircuitDefinition,
+    camX: number,
+    camY: number,
+    camZ: number,
+    camYaw: number,
+    camPitch: number,
+    focal: number,
+    pxW: number,
+    pxH: number,
+    centerYBias: number,
+  ): void {
+    const cosY = Math.cos(camYaw);
+    const sinY = Math.sin(camYaw);
+    const cosP = Math.cos(camPitch);
+    const sinP = Math.sin(camPitch);
+    const fx = sinY * cosP;
+    const fy = sinP;
+    const fz = cosY * cosP;
+    const rx = cosY;
+    const ry = 0;
+    const rz = -sinY;
+    const ux = fy * rz - fz * ry;
+    const uy = fz * rx - fx * rz;
+    const uz = fx * ry - fy * rx;
+    gl.useProgram(this.worldProg);
+    gl.uniform3f(this.uniforms.uCamPos!, camX, camY, camZ);
+    gl.uniform3f(this.uniforms.uCamR!, rx, ry, rz);
+    gl.uniform3f(this.uniforms.uCamU!, ux, uy, uz);
+    gl.uniform3f(this.uniforms.uCamF!, fx, fy, fz);
+    gl.uniform2f(this.uniforms.uProjScale!, (2.0 * focal) / pxW, (2.0 * focal) / pxH);
+    gl.uniform1f(this.uniforms.uCenterYBias!, centerYBias);
+    gl.uniform3f(this.uniforms.uSun!, this.sunDir[0], this.sunDir[1], this.sunDir[2]);
+    gl.uniform3f(
+      this.uniforms.uFogColor!,
+      circuit.theme.fogHex[0] / 255,
+      circuit.theme.fogHex[1] / 255,
+      circuit.theme.fogHex[2] / 255,
+    );
+  }
+
+  private drawKartRigs(
+    gl: WebGL2RenderingContext,
+    karts: readonly KartState[],
+    timeMs: number,
+  ): void {
+    gl.bindVertexArray(this.worldVao);
+    for (const kart of karts) {
+      const rig = this.driverRigs.get(kart.character);
+      if (!rig) continue;
+      const bounceY = Math.sin(timeMs * 0.015 + kart.slot * 1.4) * (kart.speed > 5 ? 0.045 : 0.01);
+      const totalYaw = kart.yaw + kart.driftYaw;
+      eulerToBasis3(this.kartBasis, totalYaw, kart.pitch, kart.bodyRoll);
+      this.drawStaticMesh(gl, rig.chassis, kart.x, kart.y + bounceY, kart.z, this.kartBasis);
+
+      const pose = computeDriverPose(kart, timeMs);
+      eulerToBasis3(this.localBasis, 0, pose.torsoPitch, pose.torsoRoll);
+      mulBasis3(this.worldPartBasis, this.kartBasis, this.localBasis);
+      const torsoOff = transformOffsetByBasis(this.kartBasis, 0, 0.72, -0.04);
+      this.drawStaticMesh(
+        gl,
+        rig.torso,
+        kart.x + torsoOff.x,
+        kart.y + bounceY + torsoOff.y,
+        kart.z + torsoOff.z,
+        this.worldPartBasis,
+      );
+
+      eulerToBasis3(this.localBasis, pose.headYaw, pose.headPitch, pose.headRoll);
+      mulBasis3(this.headWorldBasis, this.kartBasis, this.localBasis);
+      const headOff = transformOffsetByBasis(
+        this.kartBasis,
+        pose.headShiftX,
+        1.12 + pose.headDuckY,
+        -0.02 + pose.headDuckZ,
+      );
+      const hx = kart.x + headOff.x;
+      const hy = kart.y + bounceY + headOff.y;
+      const hz = kart.z + headOff.z;
+      this.drawStaticMesh(gl, rig.head, hx, hy, hz, this.headWorldBasis);
+
+      eulerToBasis3(this.localBasis, 0, pose.leftEarPitch, pose.leftEarRoll);
+      mulBasis3(this.worldPartBasis, this.headWorldBasis, this.localBasis);
+      const lAnchor = transformOffsetByBasis(
+        this.headWorldBasis,
+        rig.leftEarAnchor[0],
+        rig.leftEarAnchor[1],
+        rig.leftEarAnchor[2],
+      );
+      this.drawStaticMesh(gl, rig.leftEar, hx + lAnchor.x, hy + lAnchor.y, hz + lAnchor.z, this.worldPartBasis);
+
+      eulerToBasis3(this.localBasis, 0, pose.rightEarPitch, pose.rightEarRoll);
+      mulBasis3(this.worldPartBasis, this.headWorldBasis, this.localBasis);
+      const rAnchor = transformOffsetByBasis(
+        this.headWorldBasis,
+        rig.rightEarAnchor[0],
+        rig.rightEarAnchor[1],
+        rig.rightEarAnchor[2],
+      );
+      this.drawStaticMesh(gl, rig.rightEar, hx + rAnchor.x, hy + rAnchor.y, hz + rAnchor.z, this.worldPartBasis);
+    }
+  }
+
   renderViewport(
     race: KartRaceState,
-    _focusSlot: number,
+    focusSlot: number,
     cam: ChaseCamera,
     pxX: number,
     pxYFromTop: number,
@@ -2408,7 +2546,11 @@ export class MicroKartWebGL2Renderer {
     const gl = this.gl;
     if (!gl || this.contextLost || !this.worldProg || !this.skyProg) return false;
 
-    const circuit = getCircuit(race.circuitId, race.reversed);
+    const focusKart = race.karts[focusSlot] ?? race.karts[0]!;
+    const circuit = getCircuitForKart(race, focusKart);
+    const visibleKarts = race.karts.filter(
+      (k) => !k.eliminated && (race.format !== 'marathon' || k.stageIndex === focusKart.stageIndex),
+    );
     const totalH = this.canvas.height;
     const glY = totalH - pxYFromTop - pxH;
 
@@ -2446,50 +2588,182 @@ export class MicroKartWebGL2Renderer {
     // 1. Sky + Fluffy Clouds / Twinkling Stars + Rolling Hills Pass
     gl.disable(gl.DEPTH_TEST);
     gl.depthMask(false);
-    gl.useProgram(this.skyProg);
-    const skyTop = parseHexRgb(circuit.theme.skyTop);
-    const skyHor = parseHexRgb(circuit.theme.skyHorizon);
-    const gnd = parseHexRgb(circuit.theme.groundOuter);
-    const mtn = parseHexRgb(circuit.theme.mountainHex);
-    gl.uniform3f(this.skyUniforms.uSkyTop!, skyTop[0] / 255, skyTop[1] / 255, skyTop[2] / 255);
-    gl.uniform3f(this.skyUniforms.uSkyHorizon!, skyHor[0] / 255, skyHor[1] / 255, skyHor[2] / 255);
-    gl.uniform3f(this.skyUniforms.uGround!, gnd[0] / 255, gnd[1] / 255, gnd[2] / 255);
-    gl.uniform3f(this.skyUniforms.uMountain!, mtn[0] / 255, mtn[1] / 255, mtn[2] / 255);
-    gl.uniform1f(this.skyUniforms.uHorizonUvY!, horizonUvY);
-    gl.uniform1f(this.skyUniforms.uYawPhase!, (cam.yaw / (Math.PI * 2)) * 24.0);
-    gl.uniform1f(
-      this.skyUniforms.uIsStarry!,
-      circuit.theme.skyMode === 'cloud-sea'
-        ? 2.0
-        : circuit.theme.skyMode === 'starry'
-          ? 1.0
-          : 0.0,
-    );
-    gl.bindVertexArray(this.skyVao);
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
+    this.drawSkyBackdrop(gl, circuit, cam.yaw, horizonUvY);
 
     // 2. Static 3D Circuit World Pass (1 single draw call!)
     gl.depthMask(true);
     gl.enable(gl.DEPTH_TEST);
-    gl.clear(gl.DEPTH_BUFFER_BIT);
-    gl.useProgram(this.worldProg);
-    gl.uniform3f(this.uniforms.uCamPos!, cam.x, cam.y, cam.z);
-    gl.uniform3f(this.uniforms.uCamR!, rx, ry, rz);
-    gl.uniform3f(this.uniforms.uCamU!, ux, uy, uz);
-    gl.uniform3f(this.uniforms.uCamF!, fx, fy, fz);
-    gl.uniform2f(this.uniforms.uProjScale!, (2.0 * focal) / pxW, (2.0 * focal) / pxH);
-    gl.uniform1f(this.uniforms.uCenterYBias!, centerYBias);
-    gl.uniform3f(this.uniforms.uSun!, this.sunDir[0], this.sunDir[1], this.sunDir[2]);
-    gl.uniform3f(
-      this.uniforms.uFogColor!,
-      circuit.theme.fogHex[0] / 255,
-      circuit.theme.fogHex[1] / 255,
-      circuit.theme.fogHex[2] / 255,
-    );
+    gl.depthFunc(gl.LESS);
+    gl.clear(gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+    this.setupWorldCameraUniforms(gl, circuit, cam.x, cam.y, cam.z, cam.yaw, cam.pitch, focal, pxW, pxH, centerYBias);
 
     gl.bindVertexArray(this.worldVao);
-    const circuitMesh = this.getOrBakeCircuitMesh(gl, race.circuitId, race.reversed);
+    const circuitMesh = this.getOrBakeCircuitMesh(gl, circuit.id, circuit.reversed);
     this.drawStaticMesh(gl, circuitMesh, 0, 0, 0, IDENTITY_BASIS);
+
+    // 2B. Live Valve-Portal Stencil Window inside the Finish-Line Archway in Portal Marathon Mode (#412)!
+    const localProgressDist = focusKart.unwrappedS - focusKart.stageStartUnwrappedS;
+    if (race.format === 'marathon' && localProgressDist > 120) {
+      const g0 = circuit.nodes[0]!;
+      const toGateX = g0.x - cam.x;
+      const toGateY = g0.y + 4.5 - cam.y;
+      const toGateZ = g0.z - cam.z;
+      const gateDist = Math.hypot(toGateX, toGateY, toGateZ);
+      const fwdDot = (toGateX * fx + toGateY * fy + toGateZ * fz) / Math.max(1, gateDist);
+      // Render live 3D Portal Window whenever approaching the finish gate in front of camera
+      if (gateDist > 2.5 && gateDist < 380 && fwdDot > 0.12) {
+        const nextStage = getMarathonStage(focusKart.stageIndex + 1, race.circuitId, race.reversed);
+        const nextCircuit = getCircuit(nextStage.circuitId, nextStage.reversed);
+        const nextKarts = race.karts.filter(
+          (k) => !k.eliminated && k.stageIndex === focusKart.stageIndex + 1,
+        );
+
+        const portalW = circuit.roadHalfWidth + 0.35;
+        const portalH = circuit.theme.skyMode === 'cloud-sea' ? 9.2 : 6.85;
+        // Build portal doorway quad in dynamicScratch (2 triangles)
+        let pIdx = 0;
+        const pushPortalVert = (px: number, py: number, pz: number, r: number, g: number, b: number, em: number) => {
+          this.dynamicScratch[pIdx++] = px;
+          this.dynamicScratch[pIdx++] = py;
+          this.dynamicScratch[pIdx++] = pz;
+          this.dynamicScratch[pIdx++] = -g0.tx;
+          this.dynamicScratch[pIdx++] = 0;
+          this.dynamicScratch[pIdx++] = -g0.tz;
+          this.dynamicScratch[pIdx++] = r;
+          this.dynamicScratch[pIdx++] = g;
+          this.dynamicScratch[pIdx++] = b;
+          this.dynamicScratch[pIdx++] = MAT_GLOSSY;
+          this.dynamicScratch[pIdx++] = em;
+        };
+        const pBL = [g0.x - g0.rx * portalW, g0.y + 0.02, g0.z - g0.rz * portalW] as const;
+        const pBR = [g0.x + g0.rx * portalW, g0.y + 0.02, g0.z + g0.rz * portalW] as const;
+        const pTR = [g0.x + g0.rx * portalW, g0.y + portalH, g0.z + g0.rz * portalW] as const;
+        const pTL = [g0.x - g0.rx * portalW, g0.y + portalH, g0.z - g0.rz * portalW] as const;
+        pushPortalVert(pBL[0], pBL[1], pBL[2], 0.2, 0.9, 1.0, 1);
+        pushPortalVert(pBR[0], pBR[1], pBR[2], 0.2, 0.9, 1.0, 1);
+        pushPortalVert(pTR[0], pTR[1], pTR[2], 0.2, 0.9, 1.0, 1);
+        pushPortalVert(pBL[0], pBL[1], pBL[2], 0.2, 0.9, 1.0, 1);
+        pushPortalVert(pTR[0], pTR[1], pTR[2], 0.2, 0.9, 1.0, 1);
+        pushPortalVert(pTL[0], pTL[1], pTL[2], 0.2, 0.9, 1.0, 1);
+
+        // Stencil mask write pass (depth-tested against current circuit so foreground hills occlude cleanly!)
+        gl.enable(gl.STENCIL_TEST);
+        gl.stencilMask(0xff);
+        gl.stencilFunc(gl.ALWAYS, 1, 0xff);
+        gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
+        gl.colorMask(false, false, false, false);
+        gl.depthMask(false);
+        gl.bindVertexArray(this.dynamicVao);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.dynamicVbo);
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.dynamicScratch.subarray(0, pIdx));
+        gl.uniform3f(this.uniforms.uModelPos!, 0, 0, 0);
+        gl.uniformMatrix3fv(this.uniforms.uModelBasis!, false, IDENTITY_BASIS);
+        gl.uniform3f(this.uniforms.uModelScale!, 1, 1, 1);
+        gl.uniform3f(this.uniforms.uTint!, 1, 1, 1);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+        // Draw NEXT CIRCUIT'S LIVE SKY + 3D WORLD strictly inside stencil === 1!
+        gl.colorMask(true, true, true, true);
+        gl.depthMask(true);
+        gl.stencilMask(0x00);
+        gl.stencilFunc(gl.EQUAL, 1, 0xff);
+        gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+
+        const portalCam = transformPoseThroughPortal(cam, circuit, nextCircuit);
+        // Reset depth ONLY inside stencil === 1 while painting next circuit's sky!
+        gl.depthFunc(gl.ALWAYS);
+        this.drawSkyBackdrop(gl, nextCircuit, portalCam.yaw, horizonUvY);
+
+        gl.depthFunc(gl.LESS);
+        this.setupWorldCameraUniforms(
+          gl,
+          nextCircuit,
+          portalCam.x,
+          portalCam.y,
+          portalCam.z,
+          portalCam.yaw,
+          cam.pitch,
+          focal,
+          pxW,
+          pxH,
+          centerYBias,
+        );
+        gl.bindVertexArray(this.worldVao);
+        const nextMesh = this.getOrBakeCircuitMesh(gl, nextCircuit.id, nextCircuit.reversed);
+        this.drawStaticMesh(gl, nextMesh, 0, 0, 0, IDENTITY_BASIS);
+        if (nextKarts.length > 0) {
+          this.drawKartRigs(gl, nextKarts, timeMs);
+        }
+
+        // Restore main camera & disable stencil test
+        gl.disable(gl.STENCIL_TEST);
+        gl.stencilMask(0xff);
+        this.setupWorldCameraUniforms(
+          gl,
+          circuit,
+          cam.x,
+          cam.y,
+          cam.z,
+          cam.yaw,
+          cam.pitch,
+          focal,
+          pxW,
+          pxH,
+          centerYBias,
+        );
+
+        // Luminous shimmering Cyan-Gold Portal Frame Border outlining the archway opening!
+        const pulse = 0.78 + 0.22 * Math.sin(timeMs * 0.008);
+        const borderT = 0.72;
+        let fIdx = 0;
+        const pushFrameQuad = (
+          a: readonly [number, number, number],
+          b: readonly [number, number, number],
+          c: readonly [number, number, number],
+          d: readonly [number, number, number],
+          cr: number,
+          cg: number,
+          cb: number,
+        ) => {
+          const verts = [a, b, c, a, c, d];
+          for (const v of verts) {
+            this.dynamicScratch[fIdx++] = v[0];
+            this.dynamicScratch[fIdx++] = v[1];
+            this.dynamicScratch[fIdx++] = v[2];
+            this.dynamicScratch[fIdx++] = -g0.tx;
+            this.dynamicScratch[fIdx++] = 0;
+            this.dynamicScratch[fIdx++] = -g0.tz;
+            this.dynamicScratch[fIdx++] = cr * pulse;
+            this.dynamicScratch[fIdx++] = cg * pulse;
+            this.dynamicScratch[fIdx++] = cb * pulse;
+            this.dynamicScratch[fIdx++] = MAT_GLOSSY;
+            this.dynamicScratch[fIdx++] = 1;
+          }
+        };
+        const fOffX = -g0.tx * 0.32;
+        const fOffZ = -g0.tz * 0.32;
+        const pt = (lat: number, y: number): [number, number, number] => [
+          g0.x + g0.rx * lat + fOffX,
+          g0.y + y,
+          g0.z + g0.rz * lat + fOffZ,
+        ];
+        // Left cyan energy pillar strip
+        pushFrameQuad(pt(-portalW - borderT, 0), pt(-portalW, 0), pt(-portalW, portalH), pt(-portalW - borderT, portalH), 0.16, 0.94, 1.0);
+        // Right cyan energy pillar strip
+        pushFrameQuad(pt(portalW, 0), pt(portalW + borderT, 0), pt(portalW + borderT, portalH), pt(portalW, portalH), 0.16, 0.94, 1.0);
+        // Top radiant gold-cyan portal header strip
+        pushFrameQuad(pt(-portalW - borderT, portalH - 0.15), pt(portalW + borderT, portalH - 0.15), pt(portalW + borderT, portalH + borderT), pt(-portalW - borderT, portalH + borderT), 1.0, 0.86, 0.32);
+
+        gl.bindVertexArray(this.dynamicVao);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.dynamicVbo);
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.dynamicScratch.subarray(0, fIdx));
+        gl.uniform3f(this.uniforms.uModelPos!, 0, 0, 0);
+        gl.uniformMatrix3fv(this.uniforms.uModelBasis!, false, IDENTITY_BASIS);
+        gl.uniform3f(this.uniforms.uModelScale!, 1, 1, 1);
+        gl.uniform3f(this.uniforms.uTint!, 1, 1, 1);
+        gl.drawArrays(gl.TRIANGLES, 0, fIdx / FLOATS_PER_VERT);
+      }
+    }
 
     // 3. Ground Shadows + Tire Marks
     let dynIdx = 0;
@@ -2530,7 +2804,7 @@ export class MicroKartWebGL2Renderer {
       pushDynTri(x0, y0, z0, x2, y2, z2, x3, y3, z3, cr, cg, cb);
     };
 
-    for (const kart of race.karts) {
+    for (const kart of visibleKarts) {
       const shYaw = kart.yaw + kart.driftYaw;
       const srx = Math.cos(shYaw) * 1.44;
       const srz = -Math.sin(shYaw) * 1.44;
@@ -2658,8 +2932,7 @@ export class MicroKartWebGL2Renderer {
     }
 
     // 3b. Curved 1-Second Predicted Trajectory Path starting from the HEAD (front nose) of the kart!
-    const focusKart = race.karts[_focusSlot];
-    if (focusKart && this.shadowProg && this.shadowVao && this.shadowVbo) {
+    if (focusKart && !focusKart.eliminated && this.shadowProg && this.shadowVao && this.shadowVbo) {
       const traj = predictKartTrajectory(focusKart, circuit, 1.0, 16);
       const spec = getKartDriverSpec(focusKart.character);
       const tr = spec.kartPrimary[0] / 255;
@@ -2733,7 +3006,7 @@ export class MicroKartWebGL2Renderer {
 
     // 4. Playful Toy Bumper-Karts & Starlight Burst Companions
     gl.bindVertexArray(this.worldVao);
-    for (const kart of race.karts) {
+    for (const kart of visibleKarts) {
       const rig = this.driverRigs.get(kart.character) ?? this.driverRigs.get('fox')!;
       const pose = computeDriverPose(kart, timeMs);
       // Subtle playful suspension hop when racing fast!

@@ -40,8 +40,10 @@ import {
   formatCircuitTitle,
   formatRaceClock,
   getCircuit,
+  getCircuitForKart,
   getKartDriverSpec,
   getKartPortraitMood,
+  getMarathonStage,
   getNextRaceStage,
   getRecommendedSpeedAtS,
   KART_DRIVERS,
@@ -51,10 +53,12 @@ import {
   stepRaceState,
   toKartNetSnapshot,
   TOTAL_LAPS,
+  transformPoseThroughPortal,
   type CircuitId,
   type DriverCharacterId,
   type KartNetSnapshot,
   type KartPortraitMood,
+  type KartRaceFormat,
   type KartRaceMode,
   type KartRaceState,
   type ThrusterInput,
@@ -97,6 +101,8 @@ interface StandingEntry {
   isHuman: boolean;
   humanTag: string | null;
   finished: boolean;
+  eliminated: boolean;
+  stageIndex: number;
   mood: KartPortraitMood;
 }
 
@@ -276,6 +282,8 @@ function KartFinishBanner({
   finishMs,
   bestLapMs,
   totalKarts,
+  eliminated = false,
+  portalsCleared,
 }: {
   testId: string;
   label: string | null;
@@ -285,15 +293,19 @@ function KartFinishBanner({
   finishMs: number;
   bestLapMs: number | null;
   totalKarts: number;
+  eliminated?: boolean;
+  portalsCleared?: number;
 }) {
-  const mood = getKartPortraitMood(place, totalKarts, true, true);
-  const rankHeadline =
-    place === 1
+  const mood = eliminated ? 'cry' : getKartPortraitMood(place, totalKarts, true, true);
+  const rankHeadline = eliminated
+    ? `ELIMINATED · ${ordinalPlace(place).toUpperCase()}`
+    : place === 1
       ? '1ST PLACE!'
       : `${ordinalPlace(place).toUpperCase()} PLACE`;
-  const reasonLine =
-    place === 1
-      ? `${driverName} crossed the line 1st!`
+  const reasonLine = eliminated
+    ? `${driverName} was lapped out${typeof portalsCleared === 'number' ? ` (${portalsCleared} portals)` : ''}`
+    : place === 1
+      ? `${driverName} ${typeof portalsCleared === 'number' ? `survived ${portalsCleared} portals!` : 'crossed the line 1st!'}`
       : `${driverName} finished ${ordinalPlace(place)}`;
 
   return (
@@ -303,6 +315,7 @@ function KartFinishBanner({
       aria-live="polite"
       data-testid={testId}
       data-place={place}
+      data-eliminated={eliminated ? 'true' : 'false'}
     >
       <KartDriverPortrait character={character} mood={mood} size={52} />
       <div className="kart-finish-banner-copy">
@@ -322,6 +335,10 @@ interface HudTelemetry {
   driverName: string;
   place: number;
   lap: number;
+  stageIndex: number;
+  stageCircuitId: CircuitId;
+  stageReversed: boolean;
+  eliminated: boolean;
   kmh: number;
   speedMps: number;
   recommendedSpeedMps: number;
@@ -624,6 +641,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
   );
   const [circuitId, setCircuitId] = useState<CircuitId>('sunset-loop');
   const [reversed, setReversed] = useState<boolean>(false);
+  const [raceFormat, setRaceFormat] = useState<KartRaceFormat>('grand-prix');
   const [p1Character, setP1Character] = useState<DriverCharacterId>('fox');
   const [localMode, setLocalMode] = useState<'1p' | '2p-local'>('1p');
   const [netplay, setNetplay] = useState<NetplayState>(() => getSharedNetplay().getState());
@@ -644,11 +662,19 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
   const [nextTrackPopoverDelaySec, setNextTrackPopoverDelaySec] = useState<number>(5);
   const [isDesktopKeyboard, setIsDesktopKeyboard] = useState<boolean>(detectDesktopKeyboard);
   const [standings, setStandings] = useState<StandingEntry[]>([]);
+  const [marathonLeadGap, setMarathonLeadGap] = useState<number>(0);
+  const [survivorsCount, setSurvivorsCount] = useState<number>(4);
+  const [portalFlashKey, setPortalFlashKey] = useState<number>(0);
+  const [koToast, setKoToast] = useState<string | null>(null);
   const [p1Hud, setP1Hud] = useState<HudTelemetry>({
     character: 'fox',
     driverName: 'Ren',
     place: 1,
     lap: 1,
+    stageIndex: 0,
+    stageCircuitId: 'sunset-loop',
+    stageReversed: false,
+    eliminated: false,
     kmh: 0,
     speedMps: 0,
     recommendedSpeedMps: MAX_STRAIGHT_SPEED,
@@ -669,6 +695,10 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     driverName: 'Mochi',
     place: 2,
     lap: 1,
+    stageIndex: 0,
+    stageCircuitId: 'sunset-loop',
+    stageReversed: false,
+    eliminated: false,
     kmh: 0,
     speedMps: 0,
     recommendedSpeedMps: MAX_STRAIGHT_SPEED,
@@ -720,20 +750,26 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
   const finishAwardedRef = useRef(false);
 
   const syncHudFromRace = useCallback((race: KartRaceState, focusLocalSlot = 0) => {
-    const circuit = getCircuit(race.circuitId, race.reversed);
     const k0 = race.karts[focusLocalSlot] ?? race.karts[0]!;
     const k1 = race.karts[1];
+    const c0 = getCircuitForKart(race, k0);
     setElapsedHudMs(Math.round(race.elapsedMs));
     setRaceStatus(race.status);
     setWinnerSlot(race.winnerSlot);
+    setMarathonLeadGap(race.marathonLeadGapLaps);
+    setSurvivorsCount(race.survivorsCount);
     setP1Hud({
       character: k0.character,
       driverName: getKartDriverSpec(k0.character).driverName,
       place: k0.place,
-      lap: Math.min(TOTAL_LAPS, k0.lap),
+      lap: race.format === 'marathon' ? k0.stageIndex + 1 : Math.min(TOTAL_LAPS, k0.lap),
+      stageIndex: k0.stageIndex,
+      stageCircuitId: c0.id,
+      stageReversed: c0.reversed,
+      eliminated: k0.eliminated,
       kmh: Math.round(k0.speed * 3.6),
       speedMps: k0.speed,
-      recommendedSpeedMps: getRecommendedSpeedAtS(circuit, k0.s),
+      recommendedSpeedMps: getRecommendedSpeedAtS(c0, k0.s),
       yawRate: k0.yawRate,
       driftCharge: k0.driftCharge,
       boostTimer: k0.boostTimer,
@@ -747,14 +783,19 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       finishMs: k0.finishMs,
     });
     if (k1) {
+      const c1 = getCircuitForKart(race, k1);
       setP2Hud({
         character: k1.character,
         driverName: getKartDriverSpec(k1.character).driverName,
         place: k1.place,
-        lap: Math.min(TOTAL_LAPS, k1.lap),
+        lap: race.format === 'marathon' ? k1.stageIndex + 1 : Math.min(TOTAL_LAPS, k1.lap),
+        stageIndex: k1.stageIndex,
+        stageCircuitId: c1.id,
+        stageReversed: c1.reversed,
+        eliminated: k1.eliminated,
         kmh: Math.round(k1.speed * 3.6),
         speedMps: k1.speed,
-        recommendedSpeedMps: getRecommendedSpeedAtS(circuit, k1.s),
+        recommendedSpeedMps: getRecommendedSpeedAtS(c1, k1.s),
         yawRate: k1.yawRate,
         driftCharge: k1.driftCharge,
         boostTimer: k1.boostTimer,
@@ -768,7 +809,8 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         finishMs: k1.finishMs,
       });
     }
-    const totalKarts = race.karts.length;
+    const activeCount =
+      race.format === 'marathon' ? Math.max(1, race.survivorsCount) : race.karts.length;
     const isFinished = race.status === 'finished';
     const nextStandings: StandingEntry[] = [...race.karts]
       .sort((a, b) => a.place - b.place)
@@ -786,6 +828,9 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
               : k.isRemote
                 ? 'P2'
                 : null;
+        const mood: KartPortraitMood = k.eliminated
+          ? 'cry'
+          : getKartPortraitMood(k.place, activeCount, isFinished, k.finishMs !== null);
         return {
           slot: k.slot,
           place: k.place,
@@ -794,17 +839,21 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
           isHuman: k.isHuman,
           humanTag,
           finished: k.finishMs !== null,
-          mood: getKartPortraitMood(k.place, totalKarts, isFinished, k.finishMs !== null),
+          eliminated: k.eliminated,
+          stageIndex: k.stageIndex,
+          mood,
         };
       });
     setStandings(nextStandings);
     setMapDots(
-      race.karts.map((k) => ({
-        x: k.x,
-        z: k.z,
-        color: getKartDriverSpec(k.character).mapGlow,
-        isFocus: k.slot === focusLocalSlot,
-      })),
+      race.karts
+        .filter((k) => !k.eliminated && (race.format !== 'marathon' || k.stageIndex === k0.stageIndex))
+        .map((k) => ({
+          x: k.x,
+          z: k.z,
+          color: getKartDriverSpec(k.character).mapGlow,
+          isFocus: k.slot === focusLocalSlot,
+        })),
     );
   }, []);
 
@@ -827,13 +876,16 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       lang?: CountdownLanguage,
       overrideP1Char?: DriverCharacterId,
       overrideReversed?: boolean,
+      overrideFormat?: KartRaceFormat,
     ) => {
       const chosenChar = overrideP1Char ?? p1Character;
       const nextReversed = overrideReversed ?? reversed;
+      const nextFormat = overrideFormat ?? raceFormat;
       const fresh = createRaceState(nextCircuit, nextMode, seed, {
         ...names,
         p1Character: chosenChar,
         reversed: nextReversed,
+        format: nextFormat,
       });
       // In 2P Online, mark our assigned slot as local human and opponent slot as remote!
       if (nextMode === '2p-online' && activeKartRoom) {
@@ -857,6 +909,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       finishAwardedRef.current = false;
       pressedKeysRef.current.clear();
       activePointersRef.current.clear();
+      setKoToast(null);
       syncHudFromRace(fresh, focusSlot);
       setSharedGamePaused(false);
       setNextTrackPopoverDelaySec(5);
@@ -865,7 +918,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       audio.setPlaylist(nextCircuit === 'cloud-gate' ? CLOUD_GATE_PLAYLIST : MICRO_KART_PLAYLIST);
       audio.startNewGameTrack();
     },
-    [activeKartRoom, p1Character, reversed, syncHudFromRace, triggerFreshCountdown],
+    [activeKartRoom, p1Character, raceFormat, reversed, syncHudFromRace, triggerFreshCountdown],
   );
 
   // Restrict 2P Split-Screen (`2p-local`) strictly to desktop environments with keyboards (#406)
@@ -912,6 +965,13 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       resetRace(stage.circuitId, localMode, undefined, undefined, undefined, undefined, stage.reversed);
     }
   }, [activeKartRoom, circuitId, isOnline2P, localMode, resetRace, reversed]);
+
+  // Auto-dismiss Knockout elimination toast after 3.2s (#412)
+  useEffect(() => {
+    if (!koToast) return;
+    const timer = window.setTimeout(() => setKoToast(null), 3200);
+    return () => window.clearTimeout(timer);
+  }, [koToast]);
 
   // Wait 5 seconds AFTER all human players finish before surfacing the separate Continue to Next Track popover (#406)
   useEffect(() => {
@@ -1194,7 +1254,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
             dtMs,
           );
           // Re-evaluate race finish using true human roles when autopiloting human slots in tests
-          if (detail?.autoPilotP1 || detail?.autoPilotP2) {
+          if (raceRef.current.format === 'grand-prix' && (detail?.autoPilotP1 || detail?.autoPilotP2)) {
             const p1Done = !prevP1Human || p1Kart.finishMs !== null;
             const p2Done = !prevP2Human || (p2Kart?.finishMs ?? null) !== null;
             if (p1Done && p2Done) {
@@ -1204,6 +1264,9 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
               break;
             }
           }
+          if (raceRef.current.format === 'marathon' && raceRef.current.status === 'finished') {
+            break;
+          }
         }
       } finally {
         (p1Kart as { isHuman: boolean }).isHuman = prevP1Human;
@@ -1211,6 +1274,9 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
           (p2Kart as { isHuman: boolean }).isHuman = prevP2Human;
         }
       }
+      // Snap chase cameras straight behind karts after deterministic jumps (including across portals!)
+      cam1Ref.current.initialized = false;
+      cam2Ref.current.initialized = false;
       updateChaseCamera(cam1Ref.current, raceRef.current.karts[0]!, dtMs / 1000);
       if (raceRef.current.karts[1]) {
         updateChaseCamera(cam2Ref.current, raceRef.current.karts[1], dtMs / 1000);
@@ -1350,6 +1416,40 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       if (canAdvance) {
         const inputs = readCurrentHumanInputs();
         stepRaceState(race, inputs, dtMs);
+
+        // Seamless Portal Camera Handoff + Warp Flash + Cloud Gate Soundtrack Crossfade (#412)
+        for (const p of race.lastEvents.portalCrossed) {
+          const fromC = getCircuit(p.fromCircuitId, p.fromReversed);
+          const toC = getCircuit(p.toCircuitId, p.toReversed);
+          if (p.slot === focusSlot) {
+            const warped = transformPoseThroughPortal(cam1Ref.current, fromC, toC);
+            cam1Ref.current.x = warped.x;
+            cam1Ref.current.y = warped.y;
+            cam1Ref.current.z = warped.z;
+            cam1Ref.current.yaw = warped.yaw;
+            setPortalFlashKey((k) => k + 1);
+            if (p.toCircuitId === 'cloud-gate' || p.fromCircuitId === 'cloud-gate') {
+              const audio = getSharedArcadeAudio();
+              audio.setPlaylist(
+                p.toCircuitId === 'cloud-gate' ? CLOUD_GATE_PLAYLIST : MICRO_KART_PLAYLIST,
+              );
+              audio.startNewGameTrack();
+            }
+            syncHudFromRace(race, focusSlot);
+          } else if (isSplit2P && p.slot === 1) {
+            const warped = transformPoseThroughPortal(cam2Ref.current, fromC, toC);
+            cam2Ref.current.x = warped.x;
+            cam2Ref.current.y = warped.y;
+            cam2Ref.current.z = warped.z;
+            cam2Ref.current.yaw = warped.yaw;
+            syncHudFromRace(race, focusSlot);
+          }
+        }
+        if (race.lastEvents.eliminated.length > 0) {
+          const lastKo = race.lastEvents.eliminated[race.lastEvents.eliminated.length - 1]!;
+          setKoToast(`KO! ${lastKo.name} lapped out (${ordinalPlace(lastKo.place)})`);
+          syncHudFromRace(race, focusSlot);
+        }
 
         // Trigger procedural Web Audio events
         const synth = synthRef.current;
@@ -1570,9 +1670,12 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     setAnalogSteerUi(0);
   };
 
+  const isMarathon = raceFormat === 'marathon';
   const canSelectOnline2P =
     isOnline2P || isInviting || netplay.onlineCount >= 2;
-  const activeCircuitTitle = formatCircuitTitle(circuitId, reversed);
+  const activeCircuitTitle = isMarathon
+    ? `🌀 #${p1Hud.stageIndex + 1} · ${formatCircuitTitle(p1Hud.stageCircuitId, p1Hud.stageReversed)}`
+    : formatCircuitTitle(circuitId, reversed);
   const p1SpeedColor = speedToColorHex(p1Hud.speedMps);
   const p2SpeedColor = speedToColorHex(p2Hud.speedMps);
 
@@ -1581,8 +1684,10 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       className="kart-stage"
       data-testid="micro-kart-stage"
       data-mode={effectiveMode}
-      data-circuit={circuitId}
-      data-reversed={reversed ? 'true' : 'false'}
+      data-format={raceFormat}
+      data-circuit={isMarathon ? p1Hud.stageCircuitId : circuitId}
+      data-stage={p1Hud.stageIndex}
+      data-reversed={(isMarathon ? p1Hud.stageReversed : reversed) ? 'true' : 'false'}
       onPointerDown={handleStagePointerDown}
       onPointerMove={handleStagePointerMove}
       onPointerUp={handleStagePointerUp}
@@ -1597,6 +1702,16 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         role="img"
         aria-label={`Micro Kart 3D circuit ${activeCircuitTitle}, mode ${effectiveMode}`}
       />
+
+      {portalFlashKey > 0 ? (
+        <div key={portalFlashKey} className="kart-portal-flash" aria-hidden="true" />
+      ) : null}
+
+      {koToast && !paused ? (
+        <div className="kart-ko-toast" role="status" aria-live="polite" data-testid="kart-ko-toast">
+          {koToast}
+        </div>
+      ) : null}
 
       {/* Top header strip matching sibling games */}
       <header className="kart-header">
@@ -1646,7 +1761,11 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                   {entry.driverName}
                   {entry.humanTag ? <em className="kart-standing-tag">{entry.humanTag}</em> : null}
                 </span>
-                {entry.finished ? <span className="kart-standing-fin">FIN</span> : null}
+                {entry.eliminated ? (
+                  <span className="kart-standing-out">OUT</span>
+                ) : entry.finished ? (
+                  <span className="kart-standing-fin">FIN</span>
+                ) : null}
               </div>
             </div>
           ))}
@@ -1673,9 +1792,9 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
               </span>
             </div>
             <div className="kart-telemetry-item">
-              <span className="stack-label">Lap</span>
+              <span className="stack-label">{isMarathon ? 'Portals' : 'Lap'}</span>
               <span className="kart-telemetry-val" data-testid="kart-p1-lap">
-                {p1Hud.lap}/{TOTAL_LAPS}
+                {isMarathon ? `${p1Hud.stageIndex}` : `${p1Hud.lap}/${TOTAL_LAPS}`}
               </span>
             </div>
             <div className="kart-telemetry-item">
@@ -1688,12 +1807,42 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                 {p1Hud.kmh} <small>km/h</small>
               </span>
             </div>
-            <div className="kart-telemetry-item">
-              <span className="stack-label">Time</span>
-              <span className="kart-telemetry-val">{formatRaceClock(elapsedHudMs)}</span>
-            </div>
+            {isMarathon ? (
+              <>
+                <div className="kart-telemetry-item">
+                  <span className="stack-label">Alive</span>
+                  <span className="kart-telemetry-val" data-testid="kart-marathon-alive">
+                    {survivorsCount}/{standings.length || 4}
+                  </span>
+                </div>
+                <div className="kart-telemetry-item">
+                  <span className="stack-label">Gap</span>
+                  <span
+                    className={
+                      marathonLeadGap >= 0.75
+                        ? 'kart-telemetry-val is-danger'
+                        : 'kart-telemetry-val'
+                    }
+                    data-testid="kart-marathon-gap"
+                  >
+                    {marathonLeadGap.toFixed(2)}<small>/1.0</small>
+                  </span>
+                </div>
+              </>
+            ) : (
+              <div className="kart-telemetry-item">
+                <span className="stack-label">Time</span>
+                <span className="kart-telemetry-val">{formatRaceClock(elapsedHudMs)}</span>
+              </div>
+            )}
           </div>
-          {!isSplit2P ? <CircuitMiniMap circuitId={circuitId} reversed={reversed} dots={mapDots} /> : null}
+          {!isSplit2P ? (
+            <CircuitMiniMap
+              circuitId={isMarathon ? p1Hud.stageCircuitId : circuitId}
+              reversed={isMarathon ? p1Hud.stageReversed : reversed}
+              dots={mapDots}
+            />
+          ) : null}
         </div>
 
         {/* P1 In-Viewport Finish Placement Banner (non-blocking; stays inside top half in 2P!) */}
@@ -1707,6 +1856,8 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
             finishMs={p1Hud.finishMs}
             bestLapMs={p1Hud.bestLapMs}
             totalKarts={standings.length || 4}
+            eliminated={p1Hud.eliminated}
+            portalsCleared={isMarathon ? p1Hud.stageIndex : undefined}
           />
         ) : null}
 
@@ -1831,6 +1982,8 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
               finishMs={p2Hud.finishMs}
               bestLapMs={p2Hud.bestLapMs}
               totalKarts={standings.length || 4}
+              eliminated={p2Hud.eliminated}
+              portalsCleared={isMarathon ? p2Hud.stageIndex : undefined}
             />
           ) : null}
 
@@ -2048,6 +2201,52 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                     {drv.driverName} · {drv.speciesLabel}
                   </button>
                 ))}
+              </div>
+            </div>
+
+            <div className="game-pause-section">
+              <span className="stack-label">Race Format</span>
+              <div className="filter-group" role="group" aria-label="Race format">
+                <button
+                  type="button"
+                  data-testid="kart-format-gp"
+                  aria-pressed={raceFormat === 'grand-prix'}
+                  onClick={() => {
+                    setRaceFormat('grand-prix');
+                    resetRace(
+                      circuitId,
+                      effectiveMode,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      reversed,
+                      'grand-prix',
+                    );
+                  }}
+                >
+                  Grand Prix · 3 Laps
+                </button>
+                <button
+                  type="button"
+                  data-testid="kart-format-marathon"
+                  aria-pressed={raceFormat === 'marathon'}
+                  onClick={() => {
+                    setRaceFormat('marathon');
+                    resetRace(
+                      circuitId,
+                      effectiveMode,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      reversed,
+                      'marathon',
+                    );
+                  }}
+                >
+                  🌀 Portal Marathon
+                </button>
               </div>
             </div>
 
