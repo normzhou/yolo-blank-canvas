@@ -21,11 +21,11 @@ import {
   KART_MASS_KG,
   KART_NOSE_OFFSET_M,
   KART_YAW_INERTIA,
+  MARATHON_CYCLE_STAGES,
   MAX_STRAIGHT_SPEED,
   MAX_TOTAL_THRUST_N,
   predictKartTrajectory,
   projectKartShadowForButtons,
-  projectLappingEchoOntoCircuit,
   projectOntoCircuit,
   resolveElasticKartCollision,
   ROAD_BOOST_DURATION_SEC,
@@ -182,55 +182,89 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
     expect(p1.speed).toBeGreaterThan(preSpeed * 0.85);
     expect(p1.speed).toBeGreaterThan(45);
 
-    // Projecting a lagging rival (stage 0 @ 30% lap) onto the leader's circuit (stage 1 @ 20% lap, gap = 0.90)
-    // places the glowing Portal Echo dead-ahead at 30% along the leader's current road (#416)!
-    const echoTarget = projectLappingEchoOntoCircuit(
-      { ...p1, s: c0.totalLength * 0.3, lat: 2.5 },
-      c0,
-      c1,
-    );
-    expect(echoTarget.s).toBeCloseTo(c1.totalLength * 0.3, 1);
-    expect(echoTarget.lat).toBeCloseTo(2.5, 3);
-    expect(Number.isFinite(echoTarget.x)).toBe(true);
-    expect(Number.isFinite(echoTarget.z)).toBe(true);
+    // 2) True 4-physical-track Forward-vs-Reverse head-on collision (#418):
+    //    A kart on Stage 1 (Canyon Crest Forward) and a kart on Stage 5 (Canyon Crest Reverse) share
+    //    the EXACT same physical 3D road and collide head-on!
+    const headOnRace = createRaceState('sunset-loop', '1p', 11, { format: 'marathon' });
+    const kFwd = headOnRace.karts[0]!;
+    const kRev = headOnRace.karts[1]!;
+    kFwd.stageIndex = 1; // Canyon Crest Forward
+    kRev.stageIndex = 5; // Canyon Crest Reverse (same physical map id!)
+    const canyonFwd = getCircuitForKart(headOnRace, kFwd);
+    const canyonRev = getCircuitForKart(headOnRace, kRev);
+    expect(canyonFwd.id).toBe('canyon-crest');
+    expect(canyonRev.id).toBe('canyon-crest');
+    expect(canyonFwd.reversed).toBe(false);
+    expect(canyonRev.reversed).toBe(true);
+    const midFwd = sampleCircuitAtS(canyonFwd, canyonFwd.totalLength * 0.5);
+    kFwd.x = midFwd.x - midFwd.tx * 1.1;
+    kFwd.y = midFwd.y;
+    kFwd.z = midFwd.z - midFwd.tz * 1.1;
+    kFwd.yaw = midFwd.yaw;
+    kFwd.vx = midFwd.tx * 60;
+    kFwd.vz = midFwd.tz * 60;
+    kFwd.speed = 60;
+    kRev.x = midFwd.x + midFwd.tx * 1.1;
+    kRev.y = midFwd.y;
+    kRev.z = midFwd.z + midFwd.tz * 1.1;
+    kRev.yaw = midFwd.yaw + Math.PI;
+    kRev.vx = -midFwd.tx * 60;
+    kRev.vz = -midFwd.tz * 60;
+    kRev.speed = 60;
+    stepRaceState(headOnRace, { 0: { left: false, right: false } }, 16);
+    expect(headOnRace.lastEvents.bumped).toBe(true);
 
-    // 2) Pure knockout elimination: when 1st place laps 4th, then 3rd, then 2nd, each is knocked out cleanly until 1 survivor wins!
+    // 3) True 8-stage full-cycle lapping knockout (#418):
+    //    IMPOSSIBLE to lap anyone before completing a full 8-stage cycle (gap < 8.0 -> ZERO knockouts)!
+    expect(MARATHON_CYCLE_STAGES).toBe(8);
     const koRace = createRaceState('sunset-loop', '1p', 9, { format: 'marathon' });
-    // Position leader (slot 0) ahead by 1.05 laps over slot 3, 0.50 over slot 2, 0.25 over slot 1
-    koRace.karts[0]!.stageIndex = 2;
-    koRace.karts[0]!.stageStartUnwrappedS = 3800;
-    koRace.karts[0]!.unwrappedS = 4100;
-    koRace.karts[1]!.stageIndex = 1;
-    koRace.karts[1]!.stageStartUnwrappedS = 1900;
-    koRace.karts[1]!.unwrappedS = 3500;
-    koRace.karts[2]!.stageIndex = 1;
-    koRace.karts[2]!.stageStartUnwrappedS = 1900;
-    koRace.karts[2]!.unwrappedS = 3000;
-    koRace.karts[3]!.stageIndex = 0;
-    koRace.karts[3]!.stageStartUnwrappedS = 0;
-    koRace.karts[3]!.unwrappedS = 100;
+    const setStageProg = (slot: number, stageIdx: number, frac: number) => {
+      const k = koRace.karts[slot]!;
+      k.stageIndex = stageIdx;
+      const c = getCircuitForKart(koRace, k);
+      const pt = sampleCircuitAtS(c, frac * c.totalLength);
+      k.x = pt.x;
+      k.y = pt.y;
+      k.z = pt.z;
+      k.yaw = pt.yaw;
+      k.vx = 0;
+      k.vz = 0;
+      k.speed = 0;
+      k.stageStartUnwrappedS = stageIdx * 2000;
+      k.unwrappedS = k.stageStartUnwrappedS + pt.s;
+      k.s = pt.s;
+      k.marathonProgress = stageIdx + frac;
+    };
 
-    stepRaceState(koRace, { 0: { left: false, right: false } }, 20);
+    // Leader at 7.5 stages ahead of slot 3 (NOT a full 8-stage cycle!) -> ZERO knockouts!
+    setStageProg(0, 7, 0.55);
+    setStageProg(1, 5, 0.5);
+    setStageProg(2, 3, 0.5);
+    setStageProg(3, 0, 0.05);
+    stepRaceState(koRace, { 0: { left: false, right: false } }, 1);
+    expect(koRace.karts[3]!.eliminated).toBe(false);
+    expect(koRace.survivorsCount).toBe(4);
+    expect(koRace.status).toBe('racing');
+
+    // Leader reaches stage 8.10 (gap = 8.05 >= 8.0 over slot 3 on stage 0.05, same track & direction!) -> knocks out slot 3 in 4th!
+    setStageProg(0, 8, 0.12);
+    stepRaceState(koRace, { 0: { left: false, right: false } }, 1);
     expect(koRace.karts[3]!.eliminated).toBe(true);
     expect(koRace.karts[3]!.place).toBe(4);
     expect(koRace.survivorsCount).toBe(3);
     expect(koRace.status).toBe('racing');
 
-    // Leader laps slot 2 (progress ~1.58) while staying < 1.0 ahead of slot 1 (progress ~1.84) -> knocks out slot 2 in 3rd!
-    koRace.karts[0]!.stageIndex = 2;
-    koRace.karts[0]!.stageStartUnwrappedS = 3800;
-    koRace.karts[0]!.unwrappedS = 5200;
-    stepRaceState(koRace, { 0: { left: false, right: false } }, 20);
+    // Leader reaches stage 11.60 (gap >= 8.0 over slot 2 on stage 3.5, while < 8.0 over slot 1 on stage 5.5) -> knocks out slot 2 in 3rd!
+    setStageProg(0, 11, 0.62);
+    stepRaceState(koRace, { 0: { left: false, right: false } }, 1);
     expect(koRace.karts[2]!.eliminated).toBe(true);
     expect(koRace.karts[2]!.place).toBe(3);
     expect(koRace.survivorsCount).toBe(2);
     expect(koRace.status).toBe('racing');
 
-    // Leader laps slot 1 -> knocked out in 2nd, leaving slot 0 as lone 1st Place Champion!
-    koRace.karts[0]!.stageIndex = 4;
-    koRace.karts[0]!.stageStartUnwrappedS = 7600;
-    koRace.karts[0]!.unwrappedS = 8000;
-    stepRaceState(koRace, { 0: { left: false, right: false } }, 20);
+    // Leader reaches stage 13.60 (gap >= 8.0 over slot 1 on stage 5.5) -> knocks out slot 1 in 2nd, slot 0 wins 1st Place Champion!
+    setStageProg(0, 13, 0.62);
+    stepRaceState(koRace, { 0: { left: false, right: false } }, 1);
     expect(koRace.karts[1]!.eliminated).toBe(true);
     expect(koRace.karts[1]!.place).toBe(2);
     expect(koRace.survivorsCount).toBe(1);

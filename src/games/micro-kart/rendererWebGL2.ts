@@ -20,7 +20,6 @@ import {
   getMarathonStage,
   KART_DRIVERS,
   predictKartTrajectory,
-  projectLappingEchoOntoCircuit,
   speedToColorRgb,
   transformPoseThroughPortal,
   type CircuitDefinition,
@@ -2566,7 +2565,9 @@ export class MicroKartWebGL2Renderer {
     const focusKart = race.karts[focusSlot] ?? race.karts[0]!;
     const circuit = getCircuitForKart(race, focusKart);
     const visibleKarts = race.karts.filter(
-      (k) => !k.eliminated && (race.format !== 'marathon' || k.stageIndex === focusKart.stageIndex),
+      (k) =>
+        !k.eliminated &&
+        (race.format !== 'marathon' || getCircuitForKart(race, k).id === circuit.id),
     );
     const totalH = this.canvas.height;
     const glY = totalH - pxYFromTop - pxH;
@@ -2637,7 +2638,7 @@ export class MicroKartWebGL2Renderer {
         const nextStage = getMarathonStage(focusKart.stageIndex + 1, race.circuitId, race.reversed);
         const nextCircuit = getCircuit(nextStage.circuitId, nextStage.reversed);
         const nextKarts = race.karts.filter(
-          (k) => !k.eliminated && k.stageIndex === focusKart.stageIndex + 1,
+          (k) => !k.eliminated && getCircuitForKart(race, k).id === nextCircuit.id,
         );
 
         const portalW = circuit.roadHalfWidth + 0.35;
@@ -3183,35 +3184,6 @@ export class MicroKartWebGL2Renderer {
             fb,
           );
         }
-      }
-    }
-
-    // 5. Glowing Portal Echo Lapping Targets in Marathon Mode (#416):
-    //    Project surviving rivals 1 stage behind right onto the leader's road so you literally hunt
-    //    them down and blow past their glowing cyan-hologram kart on screen to score the Knockout!
-    if (race.format === 'marathon' && !focusKart.eliminated) {
-      const lappingEchoes: KartState[] = [];
-      for (const rival of race.karts) {
-        if (rival.eliminated || rival.slot === focusKart.slot) continue;
-        if (rival.stageIndex === focusKart.stageIndex - 1) {
-          const gap = focusKart.marathonProgress - rival.marathonProgress;
-          if (gap >= 0.4 && gap < 1.0) {
-            lappingEchoes.push(
-              projectLappingEchoOntoCircuit(rival, getCircuitForKart(race, rival), circuit),
-            );
-          }
-        }
-      }
-      if (lappingEchoes.length > 0) {
-        const echoPulse = 0.85 + 0.25 * Math.sin(timeMs * 0.012);
-        this.drawKartRigs(
-          gl,
-          lappingEchoes,
-          timeMs,
-          0.52 * echoPulse,
-          1.35 * echoPulse,
-          1.55 * echoPulse,
-        );
       }
     }
 

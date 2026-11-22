@@ -11,7 +11,6 @@ import {
   getCircuitForKart,
   getKartDriverSpec,
   predictKartTrajectory,
-  projectLappingEchoOntoCircuit,
   speedToColorRgb,
   type CircuitDefinition,
   type KartRaceState,
@@ -791,7 +790,9 @@ export function renderKartViewport(
   const focusKart = race.karts[focusSlot] ?? race.karts[0]!;
   const circuit = getCircuitForKart(race, focusKart);
   const visibleKarts = race.karts.filter(
-    (k) => !k.eliminated && (race.format !== 'marathon' || k.stageIndex === focusKart.stageIndex),
+    (k) =>
+      !k.eliminated &&
+      (race.format !== 'marathon' || getCircuitForKart(race, k).id === circuit.id),
   );
 
   ctx.save();
@@ -1112,21 +1113,9 @@ export function renderKartViewport(
     );
   }
 
-  // 4. All active karts on the same stage + glowing Portal Echo lapping targets 1 stage behind (#416)
+  // 4. All active karts physically present on this track (both Forward & Reverse!)
   for (const kart of visibleKarts) {
     emitKartMesh(proj, kart, timeMs);
-  }
-  if (race.format === 'marathon' && !focusKart.eliminated) {
-    for (const rival of race.karts) {
-      if (rival.eliminated || rival.slot === focusKart.slot) continue;
-      if (rival.stageIndex === focusKart.stageIndex - 1) {
-        const gap = focusKart.marathonProgress - rival.marathonProgress;
-        if (gap >= 0.4 && gap < 1.0) {
-          const echo = projectLappingEchoOntoCircuit(rival, getCircuitForKart(race, rival), circuit);
-          emitKartMesh(proj, echo, timeMs);
-        }
-      }
-    }
   }
 
   // 5. Painter's depth sort (far -> near) + crisp polygon rasterization
