@@ -1,0 +1,82 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-21",
+  "observed_at": "2026-11-21",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#424",
+  "releases": [
+    {
+      "tag": "v0.53.1",
+      "commit": "99c7c012e8db766a8e7c204ab6c1670742c97dab"
+    }
+  ],
+  "release": {
+    "tag": "v0.53.1",
+    "commit": "99c7c012e8db766a8e7c204ab6c1670742c97dab",
+    "source_commit": "b518d52bedd669bfb7163d9c6c86fab74b9be60c",
+    "assets_commit": "55525b41f24d9a9a45866e24d1fe717479fb109e",
+    "native_version": "0.53.1",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-22T08:28:07Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.53.1",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/425"
+  },
+  "build_identity": {
+    "server_build_id": "b518d52bedd669bfb7163d9c6c86fab74b9be60c",
+    "client_build_id": "b518d52bedd669bfb7163d9c6c86fab74b9be60c",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "visual_inspection": "Real Chrome WebGL2 screenshots visually verified via read_file at ~40-50% of Track 1 (all 4 colored pips and 2x2 portrait formation gliding inside Segment 1 with zero overlap) and mid-race across Segments 4-5 (1:1 aligned with ticks and live per-track % readout)",
+      "npm_test": "30 files, 197 tests passed",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 52 passed (1.2m, including mid-track assertion verifying data-progress-pct smoothly sits inside 2.5%..11.5% during Track 1)",
+      "e2e_live": "npm run e2e:live — 5 passed (12.6s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.53.1 --no-open --port 4488 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (18.1s)",
+      "ci": "GitHub Actions CI/Test and type check green (32s)"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "48a11904-bc17-4ab0-ac0f-cc326892dd80",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.53.1",
+      "observed_build_id": "b518d52bedd669bfb7163d9c6c86fab74b9be60c",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.2.0",
+          "entry": "/games/starlight-burst-dfLBmggg.js",
+          "hash": "c5fb1e727049febeb2bb1d85dd16ca090a86d621e42e151c8cc640cebb112b1f",
+          "sizeBytes": 86740
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-C7Nzix8R.js",
+          "hash": "d69d68e7c4bc7176a83c5a4ab2c8d6bbaa048eab9d771e9f213a4ad2aabfa294",
+          "sizeBytes": 37318
+        },
+        "micro-kart": {
+          "version": "2.3.1",
+          "entry": "/games/micro-kart-BhtAQ-Ob.js",
+          "hash": "94798ff4692135c69ac4dd53c4c228a26d2279f004819c2fa0fe2c1664ecfc0b",
+          "sizeBytes": 159631
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Refines the left vertical lap-progress standings rail so portraits and colored spine pips glide gradually 1:1 with exact track completion percentage at 30 Hz (0%->12.5% across Track 1, etc.) with zero multi-segment jumping, zero-overlap 2-column alternating layout, instant L2 wrap, and live per-track % readout (@yolo-arcade/game-micro-kart@2.3.1)."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #424"
+}
