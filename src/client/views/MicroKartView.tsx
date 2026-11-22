@@ -64,6 +64,7 @@ import {
   type KartRaceFormat,
   type KartRaceMode,
   type KartRaceState,
+  type MarathonHuntState,
   type ThrusterInput,
 } from '../../shared/microKart';
 import {
@@ -106,7 +107,43 @@ interface StandingEntry {
   finished: boolean;
   eliminated: boolean;
   stageIndex: number;
+  circuitId: CircuitId;
+  reversed: boolean;
+  lapNumber: number;
+  /** Vertical rail position `0.0` (bottom start) -> `1.0` (top finish of lap / 8-track cycle). */
+  verticalProgress: number;
   mood: KartPortraitMood;
+}
+
+function KartHuntBanner({
+  testId,
+  hunt,
+  slot,
+}: {
+  testId: string;
+  hunt: MarathonHuntState;
+  slot: number;
+}) {
+  if (slot !== hunt.hunterSlot && slot !== hunt.preySlot) return null;
+  const isHunter = slot === hunt.hunterSlot;
+  const targetLabel = `${SHORT_CIRCUIT_NAMES[hunt.targetCircuitId]}${hunt.targetReversed ? ' ↺' : ''}`;
+  const text = isHunter
+    ? hunt.onSameRoad
+      ? `🎯 ON ${targetLabel.toUpperCase()} — PASS ${hunt.preyName.toUpperCase()} TO KO!`
+      : `🎯 PORTAL LOCKED → ${hunt.preyName.toUpperCase()} (${targetLabel})`
+    : `⚠️ HUNTED BY ${hunt.hunterName.toUpperCase()} — DON'T GET LAPPED!`;
+
+  return (
+    <div
+      className={isHunter ? 'kart-hunt-banner is-hunter' : 'kart-hunt-banner is-prey'}
+      role="status"
+      aria-live="polite"
+      data-testid={testId}
+      data-role={isHunter ? 'hunter' : 'prey'}
+    >
+      {text}
+    </div>
+  );
 }
 
 function detectDesktopKeyboard(): boolean {
@@ -773,6 +810,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
   const [isDesktopKeyboard, setIsDesktopKeyboard] = useState<boolean>(detectDesktopKeyboard);
   const [standings, setStandings] = useState<StandingEntry[]>([]);
   const [marathonLeadGap, setMarathonLeadGap] = useState<number>(0);
+  const [marathonHunt, setMarathonHunt] = useState<MarathonHuntState | null>(null);
   const [survivorsCount, setSurvivorsCount] = useState<number>(4);
   const [portalFlashKey, setPortalFlashKey] = useState<number>(0);
   const [koToast, setKoToast] = useState<string | null>(null);
@@ -865,6 +903,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     setRaceStatus(race.status);
     setWinnerSlot(race.winnerSlot);
     setMarathonLeadGap(race.marathonLeadGapLaps);
+    setMarathonHunt(race.marathonHunt);
     setSurvivorsCount(race.survivorsCount);
     setP1Hud({
       character: k0.character,
@@ -939,6 +978,19 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         const mood: KartPortraitMood = k.eliminated
           ? 'cry'
           : getKartPortraitMood(k.place, activeCount, isFinished, k.finishMs !== null);
+        const kc = getCircuitForKart(race, k);
+        const lapNumber =
+          race.format === 'marathon'
+            ? Math.floor(k.stageIndex / MARATHON_CYCLE_STAGES) + 1
+            : Math.min(TOTAL_LAPS, k.lap);
+        let verticalProgress = 0;
+        if (race.format === 'marathon') {
+          const clampedProg = Math.max(0, k.marathonProgress);
+          verticalProgress = (clampedProg % MARATHON_CYCLE_STAGES) / MARATHON_CYCLE_STAGES;
+        } else {
+          const clampedUnwrapped = Math.max(0, k.unwrappedS);
+          verticalProgress = (clampedUnwrapped % kc.totalLength) / kc.totalLength;
+        }
         return {
           slot: k.slot,
           place: k.place,
@@ -949,6 +1001,10 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
           finished: k.finishMs !== null,
           eliminated: k.eliminated,
           stageIndex: k.stageIndex,
+          circuitId: kc.id,
+          reversed: kc.reversed,
+          lapNumber,
+          verticalProgress,
           mood,
         };
       });
@@ -1850,57 +1906,95 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         </div>
       </header>
 
-      {/* Dynamic Left-Side Live Standings Rail with Expressive Character Portraits (#406) */}
-      {!paused && standings.length > 0 ? (
-        <aside
-          className={isSplit2P ? 'kart-standings-rail is-compact' : 'kart-standings-rail'}
-          aria-label="Live race standings"
-          data-testid="kart-standings-rail"
-        >
-          {standings.map((entry) => (
-            <div
-              key={entry.slot}
-              className={
-                entry.place === 1
-                  ? 'kart-standing-row is-first'
-                  : entry.place >= standings.length
-                    ? 'kart-standing-row is-last'
-                    : 'kart-standing-row'
-              }
-              data-testid={`kart-standing-slot-${entry.slot}`}
-              data-place={entry.place}
-              data-mood={entry.mood}
-              data-character={entry.character}
-            >
-              <span className="kart-standing-rank">{ordinalPlace(entry.place)}</span>
-              <KartDriverPortrait
-                character={entry.character}
-                mood={entry.mood}
-                size={isSplit2P ? 30 : 38}
-              />
-              <div className="kart-standing-info">
-                <span className="kart-standing-name">
-                  {entry.driverName}
-                  {entry.humanTag ? <em className="kart-standing-tag">{entry.humanTag}</em> : null}
-                </span>
-                {isMarathon && !entry.eliminated ? (
-                  <span
-                    className="kart-standing-lap"
-                    data-testid={`kart-standing-lap-${entry.slot}`}
-                  >
-                    L{Math.floor(entry.stageIndex / MARATHON_CYCLE_STAGES) + 1}
-                  </span>
-                ) : null}
-                {entry.eliminated ? (
-                  <span className="kart-standing-out">OUT</span>
-                ) : entry.finished ? (
-                  <span className="kart-standing-fin">FIN</span>
-                ) : null}
-              </div>
+      {/* Vertical Left-Side Lap Progress Standings Rail — Character Photo + Text Only, Zero Transparency (#406, #422) */}
+      {!paused && standings.length > 0 ? (() => {
+        // Compute non-overlapping bottom% vertical positions (0% = start at bottom, 100% = top finish)
+        const placed = standings
+          .map((entry) => ({
+            entry,
+            bottomPct: entry.eliminated ? 4 : 6 + entry.verticalProgress * 88,
+          }))
+          .sort((a, b) => a.bottomPct - b.bottomPct);
+        const minGap = isSplit2P ? 14 : 11.5;
+        for (let pass = 0; pass < 4; pass += 1) {
+          for (let i = 1; i < placed.length; i += 1) {
+            const diff = placed[i]!.bottomPct - placed[i - 1]!.bottomPct;
+            if (diff < minGap) {
+              const push = (minGap - diff) * 0.5;
+              placed[i - 1]!.bottomPct = Math.max(4, placed[i - 1]!.bottomPct - push);
+              placed[i]!.bottomPct = Math.min(96, placed[i]!.bottomPct + push);
+            }
+          }
+        }
+        return (
+          <aside
+            className={isSplit2P ? 'kart-standings-rail is-compact' : 'kart-standings-rail'}
+            aria-label="Live race standings"
+            data-testid="kart-standings-rail"
+          >
+            {/* Vertical lap progress spine (divided into 8 equal track segments in Portal Marathon!) */}
+            <div className="kart-rail-spine" aria-hidden="true">
+              {isMarathon
+                ? [1, 2, 3, 4, 5, 6, 7].map((seg) => (
+                    <span
+                      key={seg}
+                      className="kart-rail-tick"
+                      style={{ bottom: `${(seg / MARATHON_CYCLE_STAGES) * 100}%` }}
+                    />
+                  ))
+                : null}
             </div>
-          ))}
-        </aside>
-      ) : null}
+            {placed.map(({ entry, bottomPct }) => {
+              const trackTag = `${SHORT_CIRCUIT_NAMES[entry.circuitId]}${entry.reversed ? ' ↺' : ''}`;
+              return (
+                <div
+                  key={entry.slot}
+                  className={
+                    entry.place === 1
+                      ? 'kart-standing-row is-first'
+                      : entry.place >= standings.length
+                        ? 'kart-standing-row is-last'
+                        : 'kart-standing-row'
+                  }
+                  style={{ bottom: `${bottomPct.toFixed(1)}%` }}
+                  data-testid={`kart-standing-slot-${entry.slot}`}
+                  data-place={entry.place}
+                  data-mood={entry.mood}
+                  data-character={entry.character}
+                  data-circuit={entry.circuitId}
+                >
+                  <KartDriverPortrait
+                    character={entry.character}
+                    mood={entry.mood}
+                    size={isSplit2P ? 30 : 38}
+                  />
+                  <div className="kart-standing-text">
+                    <span className="kart-standing-line1">
+                      <strong className="kart-standing-rank">{ordinalPlace(entry.place)}</strong>
+                      <span className="kart-standing-name">
+                        {entry.driverName}
+                        {entry.humanTag ? ` (${entry.humanTag})` : ''}
+                      </span>
+                      {entry.eliminated ? (
+                        <span className="kart-standing-out">OUT</span>
+                      ) : entry.finished ? (
+                        <span className="kart-standing-fin">FIN</span>
+                      ) : null}
+                    </span>
+                    <span className="kart-standing-line2">
+                      <span data-testid={`kart-standing-lap-${entry.slot}`}>
+                        L{entry.lapNumber}
+                      </span>
+                      {' · '}
+                      <span data-testid={`kart-standing-track-${entry.slot}`}>{trackTag}</span>
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </aside>
+        );
+      })() : null}
 
       {/* Primary Viewport HUD (Full screen in 1P / Online 2P, Top half in 2P Split-Screen) */}
       <div
@@ -1980,6 +2074,15 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
             )
           ) : null}
         </div>
+
+        {/* P1 Portal Homing Hunter / Prey Notification (#422) */}
+        {!paused && isMarathon && marathonHunt && p1Hud.finishMs === null ? (
+          <KartHuntBanner
+            testId="kart-p1-hunt-banner"
+            hunt={marathonHunt}
+            slot={isOnline2P && activeKartRoom ? activeKartRoom.mySlot : 0}
+          />
+        ) : null}
 
         {/* P1 In-Viewport Finish Placement Banner (non-blocking; stays inside top half in 2P!) */}
         {!paused && p1Hud.finishMs !== null ? (
@@ -2106,6 +2209,11 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
               </div>
             </div>
           </div>
+
+          {/* P2 Independent Split-Screen Portal Homing Hunter / Prey Alert (#422) */}
+          {!paused && isMarathon && marathonHunt && p2Hud.finishMs === null ? (
+            <KartHuntBanner testId="kart-p2-hunt-banner" hunt={marathonHunt} slot={1} />
+          ) : null}
 
           {/* P2 Independent Split-Screen In-Viewport Finish Banner */}
           {!paused && p2Hud.finishMs !== null ? (
