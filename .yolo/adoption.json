@@ -355,15 +355,16 @@
         "v0.46.5": "3d43006ab13025c1702a7d07fb8949e171f4e43a",
         "v0.46.6": "8ae1b749c063703c74f1c3803ff6d7a7eeb8661c",
         "v0.47.0": "d002e094c209ad0ec763cbacbc33213f97c05df3",
-        "v0.47.1": "ba20512c36904a83609ba4d683c7071113980040"
+        "v0.47.1": "ba20512c36904a83609ba4d683c7071113980040",
+        "v0.48.0": "05b28161354c6d1aa2130f105fc1aa0a2394fc1f"
       },
       "published": {
-        "tag": "v0.48.0",
-        "commit": "05b28161354c6d1aa2130f105fc1aa0a2394fc1f",
-        "source_commit": "ec0a4a07704e4973704c0fc9f5b6f0a1e48f0b97",
-        "published_at": "2026-11-21T21:09:17Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-20-v0480.json",
-        "note": "Minor Micro Kart HUD & split-screen ergonomics release (#406, PR #407). Adds dynamic left-side live standings with Starlight-Burst-style expressive animal character portraits (1st happy, last anxious while racing, last crying at finish), replaces immediate finish popovers with non-blocking in-viewport placement banners divided separately into top/bottom halves in 2P split screen, surfaces a separate Continue to Next Track popover 5s after all players finish, restricts 2P Split-Screen to desktop environments with keyboards, and thins Cloud Gate lotus blossoms (@yolo-arcade/game-micro-kart@1.9.0); visually inspected in WebGL2, verified 11/11 standalone npx e2e:verify-release, and deployed live to https://demo.yolo-dev.ai (Version ID: b1b9d6d6-6ac9-4d13-9c16-1e3b57d07669)."
+        "tag": "v0.48.1",
+        "commit": "7caec40af03a0c4dea824b5aafe3e943d61de021",
+        "source_commit": "07a6f44358b1d7ec3855327ef0606f44318848d4",
+        "published_at": "2026-11-22T02:49:47Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-21-v0481.json",
+        "note": "Patch Cloud Gate soundtrack release (#408, PR #409). Composes, synthesizes, and ships an original 138 BPM Chinese Celestial Melodic Techno racing anthem (Cloud Gate Celestial Techno, public/audio/kart-track-cloud-gate.m4a, 113.10s stereo AAC-LC, zero clipping) fusing four-on-the-floor sidechained melodic-techno propulsion with 1980s celestial synth-brass fanfares, expressive singing legato dizi bamboo-flute/erhu phrases, stereo cascading guzheng arpeggios, and an ethereal cloud-palace choir-formant breakdown, wired with automatic circuit-aware crossfading on Track #4 Cloud Gate (@yolo-arcade/game-micro-kart@1.9.1); verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 24d8ac3e-5798-4f8c-ab73-552f750a708c)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -479,7 +480,8 @@
         ".yolo/reports/releases-observed-2026-11-19-v0466.json",
         ".yolo/reports/releases-observed-2026-11-20-v0470.json",
         ".yolo/reports/releases-observed-2026-11-20-v0471.json",
-        ".yolo/reports/releases-observed-2026-11-20-v0480.json"
+        ".yolo/reports/releases-observed-2026-11-20-v0480.json",
+        ".yolo/reports/releases-observed-2026-11-21-v0481.json"
       ]
     }
   },

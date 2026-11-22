@@ -1,0 +1,83 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-21",
+  "observed_at": "2026-11-21",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#408",
+  "releases": [
+    {
+      "tag": "v0.48.1",
+      "commit": "7caec40af03a0c4dea824b5aafe3e943d61de021"
+    }
+  ],
+  "release": {
+    "tag": "v0.48.1",
+    "commit": "7caec40af03a0c4dea824b5aafe3e943d61de021",
+    "source_commit": "07a6f44358b1d7ec3855327ef0606f44318848d4",
+    "assets_commit": "9b346fb79c05883676f4945488dd9c5ea1e68d52",
+    "native_version": "0.48.1",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-22T02:49:47Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.48.1",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/409"
+  },
+  "build_identity": {
+    "server_build_id": "07a6f44358b1d7ec3855327ef0606f44318848d4",
+    "client_build_id": "07a6f44358b1d7ec3855327ef0606f44318848d4",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "audio_dsp_audit": "public/audio/kart-track-cloud-gate.m4a: 113.10s @ 138 BPM, 2 ch 44100 Hz AAC-LC 124.7 kbps (1.7 MB), peak=-0.82 dBFS, RMS=-13.11 dBFS, 0 clipped samples",
+      "npm_test": "30 files, 197 tests passed (including test/arcade-music.test.ts validating 17 bundled full-length .m4a tracks and test/ip-compliance.test.ts)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 52 passed (59.9s)",
+      "e2e_live": "npm run e2e:live — 5 passed (13.0s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.48.1 --no-open --port 4472 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (16.3s)",
+      "ci": "GitHub Actions CI/Test and type check green (28s)"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "24d8ac3e-5798-4f8c-ab73-552f750a708c",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.48.1",
+      "observed_build_id": "07a6f44358b1d7ec3855327ef0606f44318848d4",
+      "audio_check": "HTTP/2 200 audio/mp4 at https://demo.yolo-dev.ai/audio/kart-track-cloud-gate.m4a",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.2.0",
+          "entry": "/games/starlight-burst-WOvzRsAT.js",
+          "hash": "36da7e76487a86c3cc51da0dc19441059167a6fdc1e5a38656c52a7b62fc9630",
+          "sizeBytes": 86740
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-C0j7FVYy.js",
+          "hash": "1f643e44f9b1e0ff6efd0d9e6c775fe5e728df717eededd31bb60cb10c23ad9f",
+          "sizeBytes": 37318
+        },
+        "micro-kart": {
+          "version": "1.9.1",
+          "entry": "/games/micro-kart-DJ3NXX9d.js",
+          "hash": "a41a34cc4ee56ed8bb7e2e334a7bed291866a0c096e308fe6b469c2253a0490e",
+          "sizeBytes": 137021
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Composes, synthesizes, and integrates a dedicated original 138 BPM Chinese Celestial Melodic Techno racing soundtrack (Cloud Gate Celestial Techno, public/audio/kart-track-cloud-gate.m4a) with automatic circuit-aware crossfading on Track #4 Cloud Gate (@yolo-arcade/game-micro-kart@1.9.1)."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #408"
+}
