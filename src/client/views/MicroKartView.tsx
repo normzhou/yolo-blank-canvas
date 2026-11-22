@@ -32,7 +32,7 @@ import {
   pickCountdownLanguage,
   type CountdownLanguage,
 } from '../../shared/countdownLanguages';
-import { MICRO_KART_PLAYLIST } from '../../shared/arcadeMusic';
+import { CLOUD_GATE_PLAYLIST, MICRO_KART_PLAYLIST } from '../../shared/arcadeMusic';
 import {
   applyRemoteKartSnapshot,
   CIRCUIT_LIST,
@@ -854,7 +854,9 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       setSharedGamePaused(false);
       setNextTrackPopoverDelaySec(5);
       triggerFreshCountdown(lang);
-      getSharedArcadeAudio().startNewGameTrack();
+      const audio = getSharedArcadeAudio();
+      audio.setPlaylist(nextCircuit === 'cloud-gate' ? CLOUD_GATE_PLAYLIST : MICRO_KART_PLAYLIST);
+      audio.startNewGameTrack();
     },
     [activeKartRoom, p1Character, syncHudFromRace, triggerFreshCountdown],
   );
@@ -910,7 +912,9 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
   // Audio & shared pause subscriptions
   useEffect(() => {
     const audio = getSharedArcadeAudio();
-    audio.setPlaylist(MICRO_KART_PLAYLIST);
+    audio.setPlaylist(
+      raceRef.current.circuitId === 'cloud-gate' ? CLOUD_GATE_PLAYLIST : MICRO_KART_PLAYLIST,
+    );
     const synth = new MicroKartSynth();
     synthRef.current = synth;
     const unsubAudio = subscribeSharedAudio((mOn, _now, sOn) => {
@@ -2065,7 +2069,9 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                   data-testid="pause-menu-music-btn"
                   aria-pressed={musicOn}
                   onClick={() => {
-                    getSharedArcadeAudio().setPlaylist(MICRO_KART_PLAYLIST);
+                    getSharedArcadeAudio().setPlaylist(
+                      circuitId === 'cloud-gate' ? CLOUD_GATE_PLAYLIST : MICRO_KART_PLAYLIST,
+                    );
                     setSharedMusicOn(!musicOn, !paused);
                   }}
                 >
