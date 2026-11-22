@@ -1,0 +1,81 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-21",
+  "observed_at": "2026-11-21",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#410",
+  "releases": [
+    {
+      "tag": "v0.49.0",
+      "commit": "cdc865457333ad68e45df00368680231e7ca2060"
+    }
+  ],
+  "release": {
+    "tag": "v0.49.0",
+    "commit": "cdc865457333ad68e45df00368680231e7ca2060",
+    "source_commit": "797452c815779991b3404124937f743bcc58d17a",
+    "assets_commit": "77612d7e02678fd968b05ba187a8b2f4e152dc33",
+    "native_version": "0.49.0",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-22T03:36:10Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.49.0",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/411"
+  },
+  "build_identity": {
+    "server_build_id": "797452c815779991b3404124937f743bcc58d17a",
+    "client_build_id": "797452c815779991b3404124937f743bcc58d17a",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "30 files, 197 tests passed (including 8-race forward+reverse cycle assertions, mirrored Cloud Gate reversed geometry, and reversed circuit physics in test/micro-kart.test.ts)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 52 passed (1.2m, verifying finishing Cloud Gate forward advances cleanly into Sunset Loop ↺ Reverse with data-reversed=true)",
+      "e2e_live": "npm run e2e:live — 5 passed (13.0s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.49.0 --no-open --port 4474 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (15.9s)",
+      "ci": "GitHub Actions CI/Test and type check green (27s)"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "c88ac025-bb1e-474a-be05-181a071cb2b0",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.49.0",
+      "observed_build_id": "797452c815779991b3404124937f743bcc58d17a",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.2.0",
+          "entry": "/games/starlight-burst-WOvzRsAT.js",
+          "hash": "36da7e76487a86c3cc51da0dc19441059167a6fdc1e5a38656c52a7b62fc9630",
+          "sizeBytes": 86740
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-C0j7FVYy.js",
+          "hash": "1f643e44f9b1e0ff6efd0d9e6c775fe5e728df717eededd31bb60cb10c23ad9f",
+          "sizeBytes": 37318
+        },
+        "micro-kart": {
+          "version": "1.10.0",
+          "entry": "/games/micro-kart-DMimFkR2.js",
+          "hash": "79447d2c7dd7213602e2dcb9d9f0e4192d80303ffb3c53d05f892d4f952bcd17",
+          "sizeBytes": 138617
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Doubles Micro Kart's Grand Prix rotation to an 8-race cycle (4 circuits Forward -> 4 circuits Reverse -> back to Forward) with exact reversed 3D spline geometry, mirrored Cloud Gate landmarks, outside-bend Sky-Waterfall orientation, keyed WebGL2 static circuit caching, and a Forward/Reverse direction toggle in the Pause Menu (@yolo-arcade/game-micro-kart@1.10.0)."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #410"
+}

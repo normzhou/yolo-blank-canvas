@@ -356,15 +356,16 @@
         "v0.46.6": "8ae1b749c063703c74f1c3803ff6d7a7eeb8661c",
         "v0.47.0": "d002e094c209ad0ec763cbacbc33213f97c05df3",
         "v0.47.1": "ba20512c36904a83609ba4d683c7071113980040",
-        "v0.48.0": "05b28161354c6d1aa2130f105fc1aa0a2394fc1f"
+        "v0.48.0": "05b28161354c6d1aa2130f105fc1aa0a2394fc1f",
+        "v0.48.1": "7caec40af03a0c4dea824b5aafe3e943d61de021"
       },
       "published": {
-        "tag": "v0.48.1",
-        "commit": "7caec40af03a0c4dea824b5aafe3e943d61de021",
-        "source_commit": "07a6f44358b1d7ec3855327ef0606f44318848d4",
-        "published_at": "2026-11-22T02:49:47Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-21-v0481.json",
-        "note": "Patch Cloud Gate soundtrack release (#408, PR #409). Composes, synthesizes, and ships an original 138 BPM Chinese Celestial Melodic Techno racing anthem (Cloud Gate Celestial Techno, public/audio/kart-track-cloud-gate.m4a, 113.10s stereo AAC-LC, zero clipping) fusing four-on-the-floor sidechained melodic-techno propulsion with 1980s celestial synth-brass fanfares, expressive singing legato dizi bamboo-flute/erhu phrases, stereo cascading guzheng arpeggios, and an ethereal cloud-palace choir-formant breakdown, wired with automatic circuit-aware crossfading on Track #4 Cloud Gate (@yolo-arcade/game-micro-kart@1.9.1); verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 24d8ac3e-5798-4f8c-ab73-552f750a708c)."
+        "tag": "v0.49.0",
+        "commit": "cdc865457333ad68e45df00368680231e7ca2060",
+        "source_commit": "797452c815779991b3404124937f743bcc58d17a",
+        "published_at": "2026-11-22T03:36:10Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-21-v0490.json",
+        "note": "Minor Micro Kart 8-race Reverse Grand Prix cycle release (#410, PR #411). Runs the second Grand Prix cycle in Reverse (Sunset Loop -> Canyon Crest -> Starlight Ring -> Cloud Gate -> Sunset Loop ↺ Reverse -> Canyon Crest ↺ Reverse -> Starlight Ring ↺ Reverse -> Cloud Gate ↺ Reverse -> Forward), building exact reversed 3D circuit geometry with mirrored Cloud Gate landmarks, outside-bend Sky-Waterfall alignment, keyed WebGL2 static mesh caching, and a Forward/Reverse Pause Menu toggle (@yolo-arcade/game-micro-kart@1.10.0); verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: c88ac025-bb1e-474a-be05-181a071cb2b0)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -481,7 +482,8 @@
         ".yolo/reports/releases-observed-2026-11-20-v0470.json",
         ".yolo/reports/releases-observed-2026-11-20-v0471.json",
         ".yolo/reports/releases-observed-2026-11-20-v0480.json",
-        ".yolo/reports/releases-observed-2026-11-21-v0481.json"
+        ".yolo/reports/releases-observed-2026-11-21-v0481.json",
+        ".yolo/reports/releases-observed-2026-11-21-v0490.json"
       ]
     }
   },
