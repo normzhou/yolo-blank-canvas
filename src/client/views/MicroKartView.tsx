@@ -110,6 +110,10 @@ interface StandingEntry {
   circuitId: CircuitId;
   reversed: boolean;
   lapNumber: number;
+  /** Exact percent of current physical track completed (`0 .. 99`). */
+  trackPercent: number;
+  /** Accent dot color on the vertical progress spine. */
+  mapColor: string;
   /** Vertical rail position `0.0` (bottom start) -> `1.0` (top finish of lap / 8-track cycle). */
   verticalProgress: number;
   mood: KartPortraitMood;
@@ -984,12 +988,15 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
             ? Math.floor(k.stageIndex / MARATHON_CYCLE_STAGES) + 1
             : Math.min(TOTAL_LAPS, k.lap);
         let verticalProgress = 0;
+        let trackFrac = 0;
         if (race.format === 'marathon') {
           const clampedProg = Math.max(0, k.marathonProgress);
+          trackFrac = Math.max(0, Math.min(0.999, clampedProg - Math.floor(clampedProg)));
           verticalProgress = (clampedProg % MARATHON_CYCLE_STAGES) / MARATHON_CYCLE_STAGES;
         } else {
           const clampedUnwrapped = Math.max(0, k.unwrappedS);
-          verticalProgress = (clampedUnwrapped % kc.totalLength) / kc.totalLength;
+          trackFrac = (clampedUnwrapped % kc.totalLength) / kc.totalLength;
+          verticalProgress = trackFrac;
         }
         return {
           slot: k.slot,
@@ -1004,6 +1011,8 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
           circuitId: kc.id,
           reversed: kc.reversed,
           lapNumber,
+          trackPercent: Math.min(99, Math.floor(trackFrac * 100)),
+          mapColor: spec.mapGlow,
           verticalProgress,
           mood,
         };
@@ -1733,7 +1742,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       }
 
       hudThrottleMs += dtMs;
-      if (hudThrottleMs >= 65) {
+      if (hudThrottleMs >= 33) {
         hudThrottleMs = 0;
         syncHudFromRace(race, focusSlot);
       }
@@ -1906,26 +1915,27 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         </div>
       </header>
 
-      {/* Vertical Left-Side Lap Progress Standings Rail — Character Photo + Text Only, Zero Transparency (#406, #422) */}
+      {/* Vertical Left-Side Lap Progress Standings Rail — Exact 1:1 Track% Glide, Character Photo + Text Only (#406, #422, #424) */}
       {!paused && standings.length > 0 ? (() => {
-        // Compute non-overlapping bottom% vertical positions (0% = start at bottom, 100% = top finish)
-        const placed = standings
-          .map((entry) => ({
-            entry,
-            bottomPct: entry.eliminated ? 4 : 6 + entry.verticalProgress * 88,
-          }))
-          .sort((a, b) => a.bottomPct - b.bottomPct);
-        const minGap = isSplit2P ? 14 : 11.5;
-        for (let pass = 0; pass < 4; pass += 1) {
-          for (let i = 1; i < placed.length; i += 1) {
-            const diff = placed[i]!.bottomPct - placed[i - 1]!.bottomPct;
-            if (diff < minGap) {
-              const push = (minGap - diff) * 0.5;
-              placed[i - 1]!.bottomPct = Math.max(4, placed[i - 1]!.bottomPct - push);
-              placed[i]!.bottomPct = Math.min(96, placed[i]!.bottomPct + push);
-            }
-          }
-        }
+        // Colored pips on the spine ALWAYS sit at 100% exact `exactPct = verticalProgress * 100`.
+        // Portraits + labels glide smoothly at `exactPct`, alternating cleanly across 2 columns (`col 0` / `col 1`)
+        // with minimal per-column clearance so ZERO text or portraits ever overlap even in a 4-wide pack!
+        const sortedBottomUp = [...standings].sort((a, b) => {
+          const pa = a.eliminated ? -1 : a.verticalProgress;
+          const pb = b.eliminated ? -1 : b.verticalProgress;
+          return pa - pb || b.place - a.place;
+        });
+        const colClearance = isSplit2P ? 9.2 : 7.0;
+        const colLastBottom = [-999, -999];
+        const placed = sortedBottomUp.map((entry) => {
+          const exactPct = entry.eliminated ? 0 : entry.verticalProgress * 100;
+          const req0 = Math.max(exactPct, colLastBottom[0]! + colClearance);
+          const req1 = Math.max(exactPct, colLastBottom[1]! + colClearance);
+          const col = req0 <= req1 + 0.01 ? 0 : 1;
+          const labelBottom = Math.min(98, col === 0 ? req0 : req1);
+          colLastBottom[col] = labelBottom;
+          return { entry, exactPct, labelBottom, col };
+        });
         return (
           <aside
             className={isSplit2P ? 'kart-standings-rail is-compact' : 'kart-standings-rail'}
@@ -1943,30 +1953,38 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                     />
                   ))
                 : null}
+              {placed.map(({ entry, exactPct }) => (
+                <span
+                  key={`pip-${entry.slot}`}
+                  className="kart-rail-pip"
+                  style={{ bottom: `${exactPct.toFixed(2)}%`, background: entry.mapColor }}
+                />
+              ))}
             </div>
-            {placed.map(({ entry, bottomPct }) => {
+            {placed.map(({ entry, exactPct, labelBottom, col }) => {
               const trackTag = `${SHORT_CIRCUIT_NAMES[entry.circuitId]}${entry.reversed ? ' ↺' : ''}`;
               return (
                 <div
                   key={entry.slot}
                   className={
                     entry.place === 1
-                      ? 'kart-standing-row is-first'
+                      ? `kart-standing-row is-first${col === 1 ? ' is-col-1' : ''}`
                       : entry.place >= standings.length
-                        ? 'kart-standing-row is-last'
-                        : 'kart-standing-row'
+                        ? `kart-standing-row is-last${col === 1 ? ' is-col-1' : ''}`
+                        : `kart-standing-row${col === 1 ? ' is-col-1' : ''}`
                   }
-                  style={{ bottom: `${bottomPct.toFixed(1)}%` }}
+                  style={{ bottom: `${labelBottom.toFixed(2)}%`, zIndex: 10 - entry.place }}
                   data-testid={`kart-standing-slot-${entry.slot}`}
                   data-place={entry.place}
                   data-mood={entry.mood}
                   data-character={entry.character}
                   data-circuit={entry.circuitId}
+                  data-progress-pct={exactPct.toFixed(2)}
                 >
                   <KartDriverPortrait
                     character={entry.character}
                     mood={entry.mood}
-                    size={isSplit2P ? 30 : 38}
+                    size={isSplit2P ? 28 : 34}
                   />
                   <div className="kart-standing-text">
                     <span className="kart-standing-line1">
@@ -1987,6 +2005,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                       </span>
                       {' · '}
                       <span data-testid={`kart-standing-track-${entry.slot}`}>{trackTag}</span>
+                      {!entry.eliminated && !entry.finished ? ` ${entry.trackPercent}%` : ''}
                     </span>
                   </div>
                 </div>
