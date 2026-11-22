@@ -358,15 +358,16 @@
         "v0.47.1": "ba20512c36904a83609ba4d683c7071113980040",
         "v0.48.0": "05b28161354c6d1aa2130f105fc1aa0a2394fc1f",
         "v0.48.1": "7caec40af03a0c4dea824b5aafe3e943d61de021",
-        "v0.49.0": "cdc865457333ad68e45df00368680231e7ca2060"
+        "v0.49.0": "cdc865457333ad68e45df00368680231e7ca2060",
+        "v0.50.0": "209c8d6a50bcdee839b11cd63f25ade09de5acf4"
       },
       "published": {
-        "tag": "v0.50.0",
-        "commit": "209c8d6a50bcdee839b11cd63f25ade09de5acf4",
-        "source_commit": "63f06c75dcaafdbe2dbbeb68e0a50ba969049a1a",
-        "published_at": "2026-11-22T04:13:11Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-21-v0500.json",
-        "note": "Major Micro Kart Portal Marathon Knockout Mode release (#412, PR #413; @yolo-arcade/game-micro-kart@2.0.0). Adds a live WebGL2 stencil-buffer Portal finish-line gateway rendering the next circuit's sky, 3D road, landmarks, and karts inside the finish archway, seamless momentum-preserving kart & camera warps across an endless 8-stage Forward+Reverse cycle (1 lap per stage), removes artificial AI rubber-banding completely, implements progressive lap-out knockout elimination (4th -> 3rd -> 2nd -> 1st survivor), and adds Race Format Pause Menu toggle + live Portals/Alive/Lap-Gap HUD & Knockout toasts; visually inspected in Chrome WebGL2, verified 11/11 standalone npx e2e:verify-release, and deployed live to https://demo.yolo-dev.ai (Version ID: ca20d14b-fcd7-4702-a786-5dddea75093d)."
+        "tag": "v0.50.1",
+        "commit": "b5959906508768032f56835b3246ecfaa3e837e9",
+        "source_commit": "635979d26e4a9dc16d223403a78d5b913cda94e1",
+        "published_at": "2026-11-22T04:30:13Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-21-v0501.json",
+        "note": "Patch Portal Marathon per-portal music cut-over release (#414, PR #415; @yolo-arcade/game-micro-kart@2.0.1). Maps every adjacent stage in the 8-stage Forward+Reverse cycle to a distinct soundtrack (getMicroKartPlaylistForCircuit, with Cloud Gate always playing Cloud Gate Celestial Techno), pre-warms upcoming portal destination audio buffers ahead of time (preloadTrack), and performs a snappy 200ms synchronous audio cut-over on every portal crossing (cutToPlaylist); verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: dbb20003-7d3b-4490-ad54-c99d0c7eb478)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -485,7 +486,8 @@
         ".yolo/reports/releases-observed-2026-11-20-v0480.json",
         ".yolo/reports/releases-observed-2026-11-21-v0481.json",
         ".yolo/reports/releases-observed-2026-11-21-v0490.json",
-        ".yolo/reports/releases-observed-2026-11-21-v0500.json"
+        ".yolo/reports/releases-observed-2026-11-21-v0500.json",
+        ".yolo/reports/releases-observed-2026-11-21-v0501.json"
       ]
     }
   },

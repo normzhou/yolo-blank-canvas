@@ -1,0 +1,81 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-21",
+  "observed_at": "2026-11-21",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#414",
+  "releases": [
+    {
+      "tag": "v0.50.1",
+      "commit": "b5959906508768032f56835b3246ecfaa3e837e9"
+    }
+  ],
+  "release": {
+    "tag": "v0.50.1",
+    "commit": "b5959906508768032f56835b3246ecfaa3e837e9",
+    "source_commit": "635979d26e4a9dc16d223403a78d5b913cda94e1",
+    "assets_commit": "945ff2cd2c9fb70e35b06962c727b4f4f0026061",
+    "native_version": "0.50.1",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-22T04:30:13Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.50.1",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/415"
+  },
+  "build_identity": {
+    "server_build_id": "635979d26e4a9dc16d223403a78d5b913cda94e1",
+    "client_build_id": "635979d26e4a9dc16d223403a78d5b913cda94e1",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "npm_test": "30 files, 197 tests passed (including test/arcade-music.test.ts verifying every adjacent stage across the 8-stage Marathon cycle maps to a distinct soundtrack)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 52 passed (1.2m)",
+      "e2e_live": "npm run e2e:live — 5 passed (12.6s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.50.1 --no-open --port 4478 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (16.3s)",
+      "ci": "GitHub Actions CI/Test and type check green (30s)"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "dbb20003-7d3b-4490-ad54-c99d0c7eb478",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.50.1",
+      "observed_build_id": "635979d26e4a9dc16d223403a78d5b913cda94e1",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.2.0",
+          "entry": "/games/starlight-burst-dfLBmggg.js",
+          "hash": "c5fb1e727049febeb2bb1d85dd16ca090a86d621e42e151c8cc640cebb112b1f",
+          "sizeBytes": 86740
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-C7Nzix8R.js",
+          "hash": "d69d68e7c4bc7176a83c5a4ab2c8d6bbaa048eab9d771e9f213a4ad2aabfa294",
+          "sizeBytes": 37318
+        },
+        "micro-kart": {
+          "version": "2.0.1",
+          "entry": "/games/micro-kart-p3k5Z_na.js",
+          "hash": "f49cebefa85fd7b9b6431876afd9b46ba3d39451243ed7c9151f2b0e690e1f07",
+          "sizeBytes": 151222
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Maps every adjacent stage in Micro Kart's 8-stage Portal Marathon cycle to a distinct soundtrack (getMicroKartPlaylistForCircuit), pre-warms the upcoming portal stage's AudioBuffer ahead of time (preloadTrack), and cuts music cleanly over on every portal crossing via a snappy 200ms crossfade (cutToPlaylist) (@yolo-arcade/game-micro-kart@2.0.1)."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #414"
+}
