@@ -358,6 +358,17 @@ export interface KartRaceEvents {
   bumped: boolean;
 }
 
+export interface MarathonHuntState {
+  readonly hunterSlot: number;
+  readonly preySlot: number;
+  readonly hunterName: string;
+  readonly preyName: string;
+  readonly targetCircuitId: CircuitId;
+  readonly targetReversed: boolean;
+  /** True once the hunter has warped onto the prey's exact track & direction for the physical pass! */
+  readonly onSameRoad: boolean;
+}
+
 export interface KartRaceState {
   readonly circuitId: CircuitId;
   readonly reversed: boolean;
@@ -368,8 +379,10 @@ export interface KartRaceState {
   elapsedMs: number;
   status: 'racing' | 'finished';
   winnerSlot: number | null;
-  /** Current lap gap between 1st place and last surviving kart in Portal Marathon mode (`0..1+`). */
+  /** Current stage gap between 1st place and last surviving kart in Portal Marathon mode (`0..8+`). */
   marathonLeadGapLaps: number;
+  /** Active Portal Homing hunt state when 1st place is within 1 track of lapping last place (`gap >= 7.0`, #422). */
+  marathonHunt: MarathonHuntState | null;
   /** Number of non-eliminated karts still racing in Portal Marathon mode. */
   survivorsCount: number;
   karts: KartState[];
@@ -1460,6 +1473,7 @@ export function createRaceState(
     status: 'racing',
     winnerSlot: null,
     marathonLeadGapLaps: 0,
+    marathonHunt: null,
     survivorsCount: karts.length,
     karts,
     lastEvents: {
@@ -2006,6 +2020,91 @@ function stepSingleKart(
 }
 
 /**
+ * Locks `leader`'s upcoming finish-line portal (`leader.stageIndex + 1`) onto `target`
+ * while preserving the strict no-same-track-adjacent invariant (`X ↛ X'`) (#422).
+ */
+function lockLeaderNextPortalOntoTarget(
+  race: KartRaceState,
+  leader: KartState,
+  target: MarathonStage,
+): void {
+  const nextIdx = leader.stageIndex + 1;
+  // Ensure schedule covers the full 8-stage cycle containing `nextIdx`
+  const cycleStart = Math.floor(nextIdx / MARATHON_CYCLE_STAGES) * MARATHON_CYCLE_STAGES;
+  const cycleEnd = cycleStart + MARATHON_CYCLE_STAGES;
+  getMarathonStageForKart(race, leader, cycleEnd - 1);
+
+  const curr = leader.marathonSchedule[leader.stageIndex]!;
+  if (target.circuitId === curr.circuitId) return; // Never violate `X -> X'`
+
+  const existing = leader.marathonSchedule[nextIdx]!;
+  if (existing.circuitId === target.circuitId && existing.reversed === target.reversed) {
+    return; // Already locked!
+  }
+
+  // Prefer swapping `target` from the remaining tail of the current 8-stage cycle so the cycle stays an exact permutation!
+  const tail = leader.marathonSchedule.slice(nextIdx, cycleEnd);
+  const matchInTail = tail.findIndex(
+    (s) => s.circuitId === target.circuitId && s.reversed === target.reversed,
+  );
+  if (matchInTail >= 0) {
+    const rest = tail.filter((_, idx) => idx !== matchInTail);
+    const nextCycleFirstId =
+      leader.marathonSchedule.length > cycleEnd
+        ? leader.marathonSchedule[cycleEnd]!.circuitId
+        : null;
+    const solved: MarathonStage[] = [target];
+    const used = new Uint8Array(rest.length);
+    const backtrack = (): boolean => {
+      if (solved.length === tail.length) {
+        return nextCycleFirstId === null || solved[solved.length - 1]!.circuitId !== nextCycleFirstId;
+      }
+      const prevId = solved[solved.length - 1]!.circuitId;
+      for (let i = 0; i < rest.length; i += 1) {
+        if (!used[i] && rest[i]!.circuitId !== prevId) {
+          used[i] = 1;
+          solved.push(rest[i]!);
+          if (backtrack()) return true;
+          solved.pop();
+          used[i] = 0;
+        }
+      }
+      return false;
+    };
+    if (backtrack()) {
+      for (let k = 0; k < solved.length; k += 1) {
+        leader.marathonSchedule[nextIdx + k] = solved[k]!;
+      }
+      return;
+    }
+  }
+
+  // Fallback (if `target` was already completed earlier in this Big Lap): place `target` directly at `nextIdx`
+  // provided it doesn't conflict with `nextIdx + 1` (or swap `nextIdx + 1` safely inside the tail).
+  const after = leader.marathonSchedule[nextIdx + 1];
+  if (!after || after.circuitId !== target.circuitId) {
+    leader.marathonSchedule[nextIdx] = target;
+  } else {
+    // Find a non-conflicting successor in the remaining tail
+    for (let k = nextIdx + 2; k < cycleEnd; k += 1) {
+      const cand = leader.marathonSchedule[k]!;
+      const prevOk = cand.circuitId !== target.circuitId;
+      const nextAfterK = leader.marathonSchedule[k + 1];
+      const nextOk = !nextAfterK || after.circuitId !== nextAfterK.circuitId;
+      const prevBeforeK = leader.marathonSchedule[k - 1];
+      const beforeOk = !prevBeforeK || after.circuitId !== prevBeforeK.circuitId;
+      if (prevOk && nextOk && beforeOk) {
+        leader.marathonSchedule[nextIdx] = target;
+        leader.marathonSchedule[nextIdx + 1] = cand;
+        leader.marathonSchedule[k] = after;
+        return;
+      }
+    }
+    leader.marathonSchedule[nextIdx] = target;
+  }
+}
+
+/**
  * Advances the entire race by `dtMs` milliseconds (clamped for tab-switch safety),
  * resolving dual-thruster rigid-body physics, pure non-rubber-banded AI rivals,
  * kart-to-kart bumping, Portal warps, and Marathon knockout elimination (#390, #412).
@@ -2076,9 +2175,11 @@ export function stepRaceState(
   }
 
   if (race.format === 'marathon') {
-    // True 8-Cycle Physical Lapping Knockout (#418):
-    // A kart can ONLY be lapped when 1st place physically catches it after completing an entire
-    // 8-stage cycle (`1,2,3,4,1',2',3',4'` -> gap >= MARATHON_CYCLE_STAGES = 8.0) on the same track & direction!
+    // True 8-Cycle Physical Lapping Knockout + Portal Homing Lock-On (#418, #422):
+    // 1) At `gap >= 7.0` stages, 1st place's next Portal automatically locks onto last place's
+    //    physical track & direction so 1st warps right behind them on the exact same road!
+    // 2) Knockout triggers when 1st reaches `gap >= 8.0` PHYSICALLY on the same track & direction
+    //    passing last place on screen (with a `9.0` safety cap so a race never stalls across a portal).
     let active = race.karts
       .filter((k) => !k.eliminated)
       .sort((a, b) => b.marathonProgress - a.marathonProgress);
@@ -2087,7 +2188,16 @@ export function stepRaceState(
       const leader = active[0]!;
       const trailer = active[active.length - 1]!;
       const gapStages = leader.marathonProgress - trailer.marathonProgress;
-      if (gapStages >= MARATHON_CYCLE_STAGES) {
+      const leaderStage = getMarathonStageForKart(race, leader, leader.stageIndex);
+      const trailerStage = getMarathonStageForKart(race, trailer, trailer.stageIndex);
+      const onSameRoad =
+        leaderStage.circuitId === trailerStage.circuitId &&
+        leaderStage.reversed === trailerStage.reversed;
+
+      if (
+        (gapStages >= MARATHON_CYCLE_STAGES && onSameRoad) ||
+        gapStages >= MARATHON_CYCLE_STAGES + 1.0
+      ) {
         trailer.eliminated = true;
         trailer.eliminatedAtMs = Math.round(race.elapsedMs);
         trailer.finishMs = Math.round(race.elapsedMs);
@@ -2104,6 +2214,47 @@ export function stepRaceState(
       } else {
         break;
       }
+    }
+
+    // Update Portal Homing lock-on & active hunt telemetry when 1st is within 1 track of lapping last (`gap >= 7.0`)
+    if (race.status === 'racing' && active.length > 1) {
+      const leader = active[0]!;
+      const trailer = active[active.length - 1]!;
+      const gapStages = leader.marathonProgress - trailer.marathonProgress;
+      if (gapStages >= MARATHON_CYCLE_STAGES - 1.0) {
+        const leaderStage = getMarathonStageForKart(race, leader, leader.stageIndex);
+        const trailerStage = getMarathonStageForKart(race, trailer, trailer.stageIndex);
+        const onSameRoad =
+          leaderStage.circuitId === trailerStage.circuitId &&
+          leaderStage.reversed === trailerStage.reversed;
+
+        let targetStage = trailerStage;
+        if (!onSameRoad) {
+          const trailerFrac = trailer.marathonProgress - trailer.stageIndex;
+          if (trailerStage.circuitId === leaderStage.circuitId || trailerFrac >= 0.86) {
+            const upcomingTrailer = getMarathonStageForKart(race, trailer, trailer.stageIndex + 1);
+            if (upcomingTrailer.circuitId !== leaderStage.circuitId) {
+              targetStage = upcomingTrailer;
+            }
+          }
+          lockLeaderNextPortalOntoTarget(race, leader, targetStage);
+          targetStage = getMarathonStageForKart(race, leader, leader.stageIndex + 1);
+        }
+
+        race.marathonHunt = {
+          hunterSlot: leader.slot,
+          preySlot: trailer.slot,
+          hunterName: leader.name,
+          preyName: trailer.name,
+          targetCircuitId: targetStage.circuitId,
+          targetReversed: targetStage.reversed,
+          onSameRoad,
+        };
+      } else {
+        race.marathonHunt = null;
+      }
+    } else {
+      race.marathonHunt = null;
     }
 
     race.survivorsCount = active.length;

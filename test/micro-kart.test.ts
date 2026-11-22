@@ -277,17 +277,37 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
       k.marathonProgress = stageIdx + frac;
     };
 
-    // Leader at 7.5 stages ahead of slot 3 (NOT a full 8-stage cycle!) -> ZERO knockouts!
+    // Leader at 7.5 stages ahead of slot 3 (NOT a full 8-stage cycle!) -> ZERO knockouts,
+    // AND Portal Homing automatically activates & locks leader's next portal onto slot 3's track & direction (#422)!
     setStageProg(0, 7, 0.55);
     setStageProg(1, 5, 0.5);
     setStageProg(2, 3, 0.5);
     setStageProg(3, 0, 0.05);
+    // Ensure leader (stage 7) is on a different circuit than slot 3 (stage 0 = Sunset Loop Forward)
+    koRace.karts[0]!.marathonSchedule[7] = { circuitId: 'cloud-gate', reversed: true };
+    koRace.karts[3]!.marathonSchedule[0] = { circuitId: 'sunset-loop', reversed: false };
     stepRaceState(koRace, { 0: { left: false, right: false } }, 1);
     expect(koRace.karts[3]!.eliminated).toBe(false);
     expect(koRace.survivorsCount).toBe(4);
     expect(koRace.status).toBe('racing');
+    expect(koRace.marathonHunt).not.toBeNull();
+    expect(koRace.marathonHunt!.hunterSlot).toBe(0);
+    expect(koRace.marathonHunt!.preySlot).toBe(3);
+    expect(koRace.marathonHunt!.onSameRoad).toBe(false);
+    // Leader's next portal (stage 8) is now locked straight onto slot 3's exact track & direction!
+    expect(getMarathonStageForKart(koRace, koRace.karts[0]!, 8)).toEqual({
+      circuitId: 'sunset-loop',
+      reversed: false,
+    });
 
-    // Leader reaches stage 8.10 (gap = 8.05 >= 8.0 over slot 3 on stage 0.05, same track & direction!) -> knocks out slot 3 in 4th!
+    // If leader reaches gap = 8.07 on a DIFFERENT circuit than slot 3 -> NOT prematurely knocked out!
+    koRace.karts[0]!.marathonSchedule[8] = { circuitId: 'starlight-ring', reversed: false };
+    setStageProg(0, 8, 0.12);
+    stepRaceState(koRace, { 0: { left: false, right: false } }, 1);
+    expect(koRace.karts[3]!.eliminated).toBe(false);
+
+    // Once leader is PHYSICALLY on slot 3's exact track & direction (`sunset-loop:fwd`) and passes (gap >= 8.0) -> KO!
+    koRace.karts[0]!.marathonSchedule[8] = { circuitId: 'sunset-loop', reversed: false };
     setStageProg(0, 8, 0.12);
     stepRaceState(koRace, { 0: { left: false, right: false } }, 1);
     expect(koRace.karts[3]!.eliminated).toBe(true);
@@ -295,7 +315,10 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
     expect(koRace.survivorsCount).toBe(3);
     expect(koRace.status).toBe('racing');
 
-    // Leader reaches stage 11.60 (gap >= 8.0 over slot 2 on stage 3.5, while < 8.0 over slot 1 on stage 5.5) -> knocks out slot 2 in 3rd!
+    // Leader physically catches slot 2 on the same track & direction (gap >= 8.0) -> knocks out slot 2 in 3rd!
+    const slot2Stage = getMarathonStageForKart(koRace, koRace.karts[2]!, 3);
+    getMarathonStageForKart(koRace, koRace.karts[0]!, 11);
+    koRace.karts[0]!.marathonSchedule[11] = slot2Stage;
     setStageProg(0, 11, 0.62);
     stepRaceState(koRace, { 0: { left: false, right: false } }, 1);
     expect(koRace.karts[2]!.eliminated).toBe(true);
@@ -303,7 +326,10 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
     expect(koRace.survivorsCount).toBe(2);
     expect(koRace.status).toBe('racing');
 
-    // Leader reaches stage 13.60 (gap >= 8.0 over slot 1 on stage 5.5) -> knocks out slot 1 in 2nd, slot 0 wins 1st Place Champion!
+    // Leader physically catches slot 1 on the same track & direction (gap >= 8.0) -> knocks out slot 1 in 2nd, slot 0 wins!
+    const slot1Stage = getMarathonStageForKart(koRace, koRace.karts[1]!, 5);
+    getMarathonStageForKart(koRace, koRace.karts[0]!, 13);
+    koRace.karts[0]!.marathonSchedule[13] = slot1Stage;
     setStageProg(0, 13, 0.62);
     stepRaceState(koRace, { 0: { left: false, right: false } }, 1);
     expect(koRace.karts[1]!.eliminated).toBe(true);
