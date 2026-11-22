@@ -8,6 +8,7 @@ import {
   pickCountdownLanguage,
 } from '../src/shared/countdownLanguages';
 import {
+  CLOUD_GATE_PLAYLIST,
   MICRO_KART_PLAYLIST,
   PLAYLIST,
   PRISM_STACK_PLAYLIST,
@@ -85,11 +86,12 @@ describe('selector, prism stack, and starlight burst playlists + Tone synth SFX 
     expect(fs.statSync(voiceFile).size).toBeGreaterThan(150_000);
   });
 
-  it('offers distinct, game-specific playlists for Selector Screen, Prism Stack, Starlight Burst, and Micro Kart', () => {
+  it('offers distinct, game-specific playlists for Selector Screen, Prism Stack, Starlight Burst, Micro Kart, and Cloud Gate', () => {
     expect(SELECTOR_PLAYLIST.length).toBeGreaterThanOrEqual(2);
     expect(PRISM_STACK_PLAYLIST.length).toBeGreaterThanOrEqual(5);
     expect(STARLIGHT_BURST_PLAYLIST.length).toBeGreaterThanOrEqual(5);
     expect(MICRO_KART_PLAYLIST.length).toBeGreaterThanOrEqual(4);
+    expect(CLOUD_GATE_PLAYLIST).toHaveLength(1);
     expect(PLAYLIST).toBe(PRISM_STACK_PLAYLIST);
 
     const ids = new Set<string>();
@@ -98,6 +100,7 @@ describe('selector, prism stack, and starlight burst playlists + Tone synth SFX 
       ...PRISM_STACK_PLAYLIST,
       ...STARLIGHT_BURST_PLAYLIST,
       ...MICRO_KART_PLAYLIST,
+      ...CLOUD_GATE_PLAYLIST,
     ]) {
       expect(track.id.length).toBeGreaterThan(0);
       expect(track.title.length).toBeGreaterThan(0);
@@ -107,18 +110,19 @@ describe('selector, prism stack, and starlight burst playlists + Tone synth SFX 
     }
   });
 
-  it('points at 16 bundled full-length (~2-minute) audio files that exist under public/', () => {
+  it('points at 17 bundled full-length (~2-minute) audio files that exist under public/', () => {
     const allTracks = [
       ...SELECTOR_PLAYLIST,
       ...PRISM_STACK_PLAYLIST,
       ...STARLIGHT_BURST_PLAYLIST,
       ...MICRO_KART_PLAYLIST,
+      ...CLOUD_GATE_PLAYLIST,
     ];
-    expect(allTracks).toHaveLength(16);
+    expect(allTracks).toHaveLength(17);
     for (const track of allTracks) {
       const file = path.resolve(__dirname, '../public', track.src);
       expect(fs.existsSync(file), `${track.src} should exist under public/`).toBe(true);
-      // Full-length (~115s @ 64-128kbps AAC) tracks are > 750KB each.
+      // Full-length (~113-120s @ 64-128kbps AAC) tracks are > 750KB each.
       expect(fs.statSync(file).size).toBeGreaterThan(750_000);
     }
   });

@@ -51,6 +51,15 @@ export const MICRO_KART_PLAYLIST: ReadonlyArray<Track> = [
   { id: 'kart-track-4', title: 'Saints Go Racing Ska-Metal', src: 'audio/kart-track-4.m4a' },
 ];
 
+/** Dedicated Chinese Celestial Melodic Techno racing anthem for Micro Kart Track #4 ("Cloud Gate", #408). */
+export const CLOUD_GATE_PLAYLIST: ReadonlyArray<Track> = [
+  {
+    id: 'kart-track-cloud-gate',
+    title: 'Cloud Gate Celestial Techno',
+    src: 'audio/kart-track-cloud-gate.m4a',
+  },
+];
+
 /**
  * A shuffled copy of the given playlist (defaults to `PLAYLIST`).
  * Deterministic for a given `rng`, so tests can assert it is a permutation
