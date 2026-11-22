@@ -9,6 +9,7 @@ import {
 } from '../src/shared/countdownLanguages';
 import {
   CLOUD_GATE_PLAYLIST,
+  getMicroKartPlaylistForCircuit,
   MICRO_KART_PLAYLIST,
   PLAYLIST,
   PRISM_STACK_PLAYLIST,
@@ -17,6 +18,7 @@ import {
   shuffledTracks,
   type Track,
 } from '../src/shared/arcadeMusic';
+import { getMarathonStage } from '../src/shared/microKart';
 import {
   ArcadeMusicPlayer,
   AUDIO_DISK_CACHE_NAME,
@@ -124,6 +126,19 @@ describe('selector, prism stack, and starlight burst playlists + Tone synth SFX 
       expect(fs.existsSync(file), `${track.src} should exist under public/`).toBe(true);
       // Full-length (~113-120s @ 64-128kbps AAC) tracks are > 750KB each.
       expect(fs.statSync(file).size).toBeGreaterThan(750_000);
+    }
+
+    // Every adjacent Portal stage in the 8-stage Marathon cycle cuts over to a distinct track (#414)
+    const stageTrackIds = Array.from({ length: 9 }, (_, i) => {
+      const st = getMarathonStage(i);
+      const pl = getMicroKartPlaylistForCircuit(st.circuitId, st.reversed);
+      if (st.circuitId === 'cloud-gate') {
+        expect(pl[0]!.id).toBe('kart-track-cloud-gate');
+      }
+      return pl[0]!.id;
+    });
+    for (let i = 1; i < stageTrackIds.length; i += 1) {
+      expect(stageTrackIds[i]).not.toBe(stageTrackIds[i - 1]);
     }
   });
 

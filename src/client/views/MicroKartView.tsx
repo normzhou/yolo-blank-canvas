@@ -32,7 +32,9 @@ import {
   pickCountdownLanguage,
   type CountdownLanguage,
 } from '../../shared/countdownLanguages';
-import { CLOUD_GATE_PLAYLIST, MICRO_KART_PLAYLIST } from '../../shared/arcadeMusic';
+import {
+  getMicroKartPlaylistForCircuit,
+} from '../../shared/arcadeMusic';
 import {
   applyRemoteKartSnapshot,
   CIRCUIT_LIST,
@@ -915,8 +917,11 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       setNextTrackPopoverDelaySec(5);
       triggerFreshCountdown(lang);
       const audio = getSharedArcadeAudio();
-      audio.setPlaylist(nextCircuit === 'cloud-gate' ? CLOUD_GATE_PLAYLIST : MICRO_KART_PLAYLIST);
-      audio.startNewGameTrack();
+      audio.cutToPlaylist(getMicroKartPlaylistForCircuit(nextCircuit, nextReversed), 0.35);
+      if (nextFormat === 'marathon') {
+        const upcoming = getMarathonStage(1, nextCircuit, nextReversed);
+        audio.preloadTrack(getMicroKartPlaylistForCircuit(upcoming.circuitId, upcoming.reversed)[0]);
+      }
     },
     [activeKartRoom, p1Character, raceFormat, reversed, syncHudFromRace, triggerFreshCountdown],
   );
@@ -989,9 +994,8 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
   // Audio & shared pause subscriptions
   useEffect(() => {
     const audio = getSharedArcadeAudio();
-    audio.setPlaylist(
-      raceRef.current.circuitId === 'cloud-gate' ? CLOUD_GATE_PLAYLIST : MICRO_KART_PLAYLIST,
-    );
+    const initial = raceRef.current;
+    audio.setPlaylist(getMicroKartPlaylistForCircuit(initial.circuitId, initial.reversed));
     const synth = new MicroKartSynth();
     synthRef.current = synth;
     const unsubAudio = subscribeSharedAudio((mOn, _now, sOn) => {
@@ -1253,6 +1257,14 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
             },
             dtMs,
           );
+          for (const p of raceRef.current.lastEvents.portalCrossed) {
+            if (p.slot === (activeKartRoom?.mySlot ?? 0)) {
+              getSharedArcadeAudio().cutToPlaylist(
+                getMicroKartPlaylistForCircuit(p.toCircuitId, p.toReversed),
+                0.2,
+              );
+            }
+          }
           // Re-evaluate race finish using true human roles when autopiloting human slots in tests
           if (raceRef.current.format === 'grand-prix' && (detail?.autoPilotP1 || detail?.autoPilotP2)) {
             const p1Done = !prevP1Human || p1Kart.finishMs !== null;
@@ -1417,7 +1429,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         const inputs = readCurrentHumanInputs();
         stepRaceState(race, inputs, dtMs);
 
-        // Seamless Portal Camera Handoff + Warp Flash + Cloud Gate Soundtrack Crossfade (#412)
+        // Seamless Portal Camera Handoff + Warp Flash + Crisp Per-Portal Music Cut-Over (#412, #414)
         for (const p of race.lastEvents.portalCrossed) {
           const fromC = getCircuit(p.fromCircuitId, p.fromReversed);
           const toC = getCircuit(p.toCircuitId, p.toReversed);
@@ -1428,13 +1440,12 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
             cam1Ref.current.z = warped.z;
             cam1Ref.current.yaw = warped.yaw;
             setPortalFlashKey((k) => k + 1);
-            if (p.toCircuitId === 'cloud-gate' || p.fromCircuitId === 'cloud-gate') {
-              const audio = getSharedArcadeAudio();
-              audio.setPlaylist(
-                p.toCircuitId === 'cloud-gate' ? CLOUD_GATE_PLAYLIST : MICRO_KART_PLAYLIST,
-              );
-              audio.startNewGameTrack();
-            }
+            const audio = getSharedArcadeAudio();
+            audio.cutToPlaylist(getMicroKartPlaylistForCircuit(p.toCircuitId, p.toReversed), 0.2);
+            const nextPortal = getMarathonStage(p.toStageIndex + 1, race.circuitId, race.reversed);
+            audio.preloadTrack(
+              getMicroKartPlaylistForCircuit(nextPortal.circuitId, nextPortal.reversed)[0],
+            );
             syncHudFromRace(race, focusSlot);
           } else if (isSplit2P && p.slot === 1) {
             const warped = transformPoseThroughPortal(cam2Ref.current, fromC, toC);
@@ -2314,8 +2325,10 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                   data-testid="pause-menu-music-btn"
                   aria-pressed={musicOn}
                   onClick={() => {
+                    const activeCircuitId = isMarathon ? p1Hud.stageCircuitId : circuitId;
+                    const activeRev = isMarathon ? p1Hud.stageReversed : reversed;
                     getSharedArcadeAudio().setPlaylist(
-                      circuitId === 'cloud-gate' ? CLOUD_GATE_PLAYLIST : MICRO_KART_PLAYLIST,
+                      getMicroKartPlaylistForCircuit(activeCircuitId, activeRev),
                     );
                     setSharedMusicOn(!musicOn, !paused);
                   }}
