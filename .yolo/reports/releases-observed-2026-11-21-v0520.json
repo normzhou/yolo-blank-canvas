@@ -1,0 +1,82 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-21",
+  "observed_at": "2026-11-21",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#420",
+  "releases": [
+    {
+      "tag": "v0.52.0",
+      "commit": "479f6d9c7e6ed5f9e7f615fbafb27ddbbf531a68"
+    }
+  ],
+  "release": {
+    "tag": "v0.52.0",
+    "commit": "479f6d9c7e6ed5f9e7f615fbafb27ddbbf531a68",
+    "source_commit": "8485b70f3c8d3e4d08339464689b18012b98d200",
+    "assets_commit": "09d6c4adbcfc69f8db718ac50ea3326dfbf818ce",
+    "native_version": "0.52.0",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-22T06:11:11Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.52.0",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/421"
+  },
+  "build_identity": {
+    "server_build_id": "8485b70f3c8d3e4d08339464689b18012b98d200",
+    "client_build_id": "8485b70f3c8d3e4d08339464689b18012b98d200",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "visual_inspection": "Real Chrome WebGL2 screenshot visually verified via read_file showing the 2x2 live 4-track directional-arrow radar (karts distributed across Canyon, Starlight, and two karts converging head-on on Cloud Gate's Jade Belt Arch Bridge), Big-Lap L1 badges on standings, and the oncoming rival visibly driving toward the player",
+      "npm_test": "30 files, 197 tests passed (including 40-stage / 5-Big-Lap shuffled permutation proofs and zero-same-adjacent-circuit checks across all 4 karts in test/micro-kart.test.ts)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 52 passed (1.1m, verifying kart-quad-map, kart-quad-arrow-0, kart-standing-lap-0, and shuffled non-same-circuit portal transitions)",
+      "e2e_live": "npm run e2e:live — 5 passed (12.6s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.52.0 --no-open --port 4484 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (16.2s)",
+      "ci": "GitHub Actions CI/Test and type check green (28s)"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "7ef91e3b-3400-4984-b608-ed540666598b",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.52.0",
+      "observed_build_id": "8485b70f3c8d3e4d08339464689b18012b98d200",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.2.0",
+          "entry": "/games/starlight-burst-dfLBmggg.js",
+          "hash": "c5fb1e727049febeb2bb1d85dd16ca090a86d621e42e151c8cc640cebb112b1f",
+          "sizeBytes": 86740
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-C7Nzix8R.js",
+          "hash": "d69d68e7c4bc7176a83c5a4ab2c8d6bbaa048eab9d771e9f213a4ad2aabfa294",
+          "sizeBytes": 37318
+        },
+        "micro-kart": {
+          "version": "2.2.0",
+          "entry": "/games/micro-kart-BL4sbzIq.js",
+          "hash": "a2608906f5cc84b9ae084092ea27dd9b8e3fe3db20cba633dcc8f1666800afd5",
+          "sizeBytes": 155246
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Adds per-kart shuffled 8-course Portal Marathon cycles (generateMarathonCycleOrder, getMarathonStageForKart) where every player starts on Track 1 in Big Lap 1, re-shuffles all 8 courses freshly at every new Big Lap with zero X->X' adjacent same-circuit transitions, shows oncoming rivals through the live 3D Portal window, and introduces a 2x2 live 4-track directional-arrow radar (QuadCircuitOverviewMap) plus directional minimap arrows and per-racer Big-Lap (L1, L2...) badges (@yolo-arcade/game-micro-kart@2.2.0)."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #420"
+}

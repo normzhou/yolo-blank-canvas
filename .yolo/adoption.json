@@ -361,15 +361,16 @@
         "v0.49.0": "cdc865457333ad68e45df00368680231e7ca2060",
         "v0.50.0": "209c8d6a50bcdee839b11cd63f25ade09de5acf4",
         "v0.50.1": "b5959906508768032f56835b3246ecfaa3e837e9",
-        "v0.50.2": "2c9df7139fd763469d41fa02b17892c38ed885eb"
+        "v0.50.2": "2c9df7139fd763469d41fa02b17892c38ed885eb",
+        "v0.51.0": "eb6482dd145a158b7fdd35992b090dd58d188f47"
       },
       "published": {
-        "tag": "v0.51.0",
-        "commit": "eb6482dd145a158b7fdd35992b090dd58d188f47",
-        "source_commit": "5280ad36e4b29364a6101f75c025abc217340a0d",
-        "published_at": "2026-11-22T05:20:35Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-21-v0510.json",
-        "note": "Minor Portal Marathon true 4-physical-track & 8-cycle lapping release (#418, PR #419; @yolo-arcade/game-micro-kart@2.1.0). Enforces real 4-physical-track presence across Forward (1,2,3,4) and Reverse (1',2',3',4') stages so karts on the same physical track see each other and collide head-on, removes temporary holographic echoes, and fixes lapping logic to require an exact full 8-stage cycle lead (gap >= 8.0) on the same track & direction with live Gap X.X/8 HUD; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: b333d3bd-d44c-4dad-9711-34c87d5bf5de)."
+        "tag": "v0.52.0",
+        "commit": "479f6d9c7e6ed5f9e7f615fbafb27ddbbf531a68",
+        "source_commit": "8485b70f3c8d3e4d08339464689b18012b98d200",
+        "published_at": "2026-11-22T06:11:11Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-21-v0520.json",
+        "note": "Minor Portal Marathon shuffled cycles & 4-track arrow radar release (#420, PR #421; @yolo-arcade/game-micro-kart@2.2.0). Generates independent per-kart shuffled 8-course Big-Lap schedules (everyone starts on Track 1 in Big Lap 1, re-shuffling all 8 freshly on Big Lap 2+ with zero X->X' same-track transitions across all boundaries), shows oncoming rivals through the live 3D stencil Portal window, and adds a 2x2 live 4-track directional-arrow radar (QuadCircuitOverviewMap), rotated directional minimap arrows, and overall Big-Lap (L1, L2...) badges on the standings rail & HUD; visually inspected in Chrome WebGL2, verified 11/11 standalone npx e2e:verify-release, and deployed live to https://demo.yolo-dev.ai (Version ID: 7ef91e3b-3400-4984-b608-ed540666598b)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -491,7 +492,8 @@
         ".yolo/reports/releases-observed-2026-11-21-v0500.json",
         ".yolo/reports/releases-observed-2026-11-21-v0501.json",
         ".yolo/reports/releases-observed-2026-11-21-v0502.json",
-        ".yolo/reports/releases-observed-2026-11-21-v0510.json"
+        ".yolo/reports/releases-observed-2026-11-21-v0510.json",
+        ".yolo/reports/releases-observed-2026-11-21-v0520.json"
       ]
     }
   },
