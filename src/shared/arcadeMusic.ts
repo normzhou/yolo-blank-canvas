@@ -61,6 +61,26 @@ export const CLOUD_GATE_PLAYLIST: ReadonlyArray<Track> = [
 ];
 
 /**
+ * Returns a dedicated single-track soundtrack playlist for each Micro Kart circuit & direction (#414)
+ * so every finish-line Portal crossing in Marathon Mode cuts cleanly into a distinct track
+ * (and Cloud Gate always plays Cloud Gate Celestial Techno).
+ */
+export function getMicroKartPlaylistForCircuit(
+  circuitId: 'sunset-loop' | 'canyon-crest' | 'starlight-ring' | 'cloud-gate',
+  reversed = false,
+): ReadonlyArray<Track> {
+  if (circuitId === 'cloud-gate') return CLOUD_GATE_PLAYLIST;
+  if (!reversed) {
+    if (circuitId === 'sunset-loop') return [MICRO_KART_PLAYLIST[0]!];
+    if (circuitId === 'canyon-crest') return [MICRO_KART_PLAYLIST[1]!];
+    return [MICRO_KART_PLAYLIST[2]!];
+  }
+  if (circuitId === 'sunset-loop') return [MICRO_KART_PLAYLIST[3]!];
+  if (circuitId === 'canyon-crest') return [MICRO_KART_PLAYLIST[0]!];
+  return [MICRO_KART_PLAYLIST[1]!];
+}
+
+/**
  * A shuffled copy of the given playlist (defaults to `PLAYLIST`).
  * Deterministic for a given `rng`, so tests can assert it is a permutation
  * without depending on `Math.random`.

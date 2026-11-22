@@ -108,6 +108,34 @@ export class ArcadeMusicPlayer {
   }
 
   /**
+   * Silently pre-fetches & decodes a track into `bufferCache` ahead of time so
+   * crossing a Portal cuts over synchronously with zero network/decode gap (#414).
+   */
+  preloadTrack(track: Track | undefined): void {
+    if (!track || !this.ctx) return;
+    if (this.bufferCache.has(track.id) || this.pendingLoads.has(track.id)) return;
+    void this.loadBuffer(track);
+  }
+
+  /**
+   * Snappily cuts over to a new playlist (default 0.2s portal transition) when
+   * warping through a finish-line Portal in Micro Kart Marathon Mode (#414).
+   */
+  cutToPlaylist(nextPlaylist: ReadonlyArray<Track>, fadeSec = 0.2): void {
+    this.playlist = nextPlaylist;
+    this.queue = [];
+    this.pauseOffset = 0;
+    if (this.ctx || this.audio) {
+      this.advance(this.active && this.currentVoice !== null, fadeSec);
+    } else if (nextPlaylist.length > 0) {
+      const next = nextPlaylist[0]!;
+      this.currentTrack = next;
+      this.lastTrackId = next.id;
+      this.onTrackChange?.(next);
+    }
+  }
+
+  /**
    * Prepare and unlock audio output. Must be called synchronously inside a
    * user gesture (`onClick` / `onPointerDown`).
    */
@@ -521,19 +549,20 @@ export class ArcadeMusicPlayer {
     track: Track,
     offsetSec: number,
     crossfade: boolean,
+    fadeSec = CROSSFADE_SEC,
   ): Promise<void> {
     this.playToken += 1;
     const token = this.playToken;
 
     const cached = this.bufferCache.get(track.id);
     if (cached) {
-      this.startBufferVoice(track, cached, offsetSec, crossfade, token);
+      this.startBufferVoice(track, cached, offsetSec, crossfade, token, fadeSec);
       return Promise.resolve();
     }
 
     return this.loadBuffer(track).then((buffer) => {
       if (!buffer) return;
-      this.startBufferVoice(track, buffer, offsetSec, crossfade, token);
+      this.startBufferVoice(track, buffer, offsetSec, crossfade, token, fadeSec);
     });
   }
 
@@ -543,12 +572,13 @@ export class ArcadeMusicPlayer {
     offsetSec: number,
     crossfade: boolean,
     token: number,
+    fadeSec = CROSSFADE_SEC,
   ): void {
     if (!this.active || !this.ctx || token !== this.playToken) return;
 
     if (this.currentVoice) {
       if (crossfade) {
-        this.fadeOutVoice(this.currentVoice, CROSSFADE_SEC);
+        this.fadeOutVoice(this.currentVoice, fadeSec);
         this.currentVoice = null;
       } else {
         this.stopVoiceImmediate(this.currentVoice);
@@ -571,7 +601,7 @@ export class ArcadeMusicPlayer {
       if (crossfade && typeof gainNode.gain?.setValueAtTime === 'function') {
         gainNode.gain.setValueAtTime(0.0001, now);
         if (typeof gainNode.gain.linearRampToValueAtTime === 'function') {
-          gainNode.gain.linearRampToValueAtTime(MUSIC_GAIN, now + CROSSFADE_SEC);
+          gainNode.gain.linearRampToValueAtTime(MUSIC_GAIN, now + fadeSec);
         }
       } else if (typeof gainNode.gain?.setValueAtTime === 'function') {
         gainNode.gain.setValueAtTime(MUSIC_GAIN, now);
@@ -615,7 +645,7 @@ export class ArcadeMusicPlayer {
   }
 
   /** Move to the next queued track, reshuffling and avoiding an immediate repeat. */
-  public advance(crossfade = true): void {
+  public advance(crossfade = true, fadeSec = CROSSFADE_SEC): void {
     if (this.queue.length === 0) {
       this.queue = shuffledTracks(Math.random, this.playlist);
       if (this.queue.length > 1 && this.queue[0].id === this.lastTrackId) {
@@ -635,7 +665,7 @@ export class ArcadeMusicPlayer {
 
     if (this.ctx) {
       if (this.active) {
-        void this.playDecodedTrack(next, 0, crossfade && this.currentVoice !== null);
+        void this.playDecodedTrack(next, 0, crossfade && this.currentVoice !== null, fadeSec);
       } else {
         // Preload the first track buffer in the background so playback starts
         // instantaneously as soon as setActive(true) is called.
