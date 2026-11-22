@@ -195,6 +195,7 @@ export interface CircuitTheme {
 
 export interface CircuitDefinition {
   readonly id: CircuitId;
+  readonly reversed: boolean;
   readonly name: string;
   readonly subtitle: string;
   readonly roadHalfWidth: number;
@@ -332,6 +333,7 @@ export interface KartRaceEvents {
 
 export interface KartRaceState {
   readonly circuitId: CircuitId;
+  readonly reversed: boolean;
   readonly mode: KartRaceMode;
   readonly totalLaps: number;
   readonly seed: number;
@@ -678,17 +680,37 @@ const CIRCUIT_SPECS: readonly CircuitSpec[] = [
   },
 ];
 
-function buildCircuit(spec: CircuitSpec): CircuitDefinition {
+function buildCircuit(spec: CircuitSpec, reversed = false): CircuitDefinition {
   const N = TRACK_SEGMENTS;
   const rawPts = Array.from({ length: N }, (_, i) => {
-    const u = (i / N) * Math.PI * 2;
+    const srcIdx = reversed ? (N - i) % N : i;
+    const u = (srcIdx / N) * Math.PI * 2;
     return { u, ...spec.evalPoint(u) };
   });
 
+  // Mirror Cloud Gate segment ranges when driving in reverse so landmarks align 1:1 with elevation & spline (#410)
+  const theme: CircuitTheme = reversed
+    ? {
+        ...spec.theme,
+        jadePoolRange: spec.theme.jadePoolRange
+          ? [N - spec.theme.jadePoolRange[1], N - spec.theme.jadePoolRange[0]]
+          : undefined,
+        cliffRange: spec.theme.cliffRange
+          ? [N - spec.theme.cliffRange[1], N - spec.theme.cliffRange[0]]
+          : undefined,
+        moonGateSeg:
+          spec.theme.moonGateSeg !== undefined
+            ? (N - spec.theme.moonGateSeg) % N
+            : undefined,
+      }
+    : spec.theme;
+
   const boostMap = new Map<number, number>();
   for (const b of spec.boostSegments) {
-    boostMap.set(((b.seg % N) + N) % N, b.lat);
-    boostMap.set((((b.seg + 1) % N) + N) % N, b.lat);
+    const seg = reversed ? (N - b.seg) % N : ((b.seg % N) + N) % N;
+    const lat = reversed ? -b.lat : b.lat;
+    boostMap.set(seg, lat);
+    boostMap.set((seg + 1) % N, lat);
   }
 
   let cumS = 0;
@@ -782,9 +804,9 @@ function buildCircuit(spec: CircuitSpec): CircuitDefinition {
   // Deterministic low-poly roadside scenery outside the track barriers
   const rng = mulberry32(spec.seed);
   const scenery: SceneryProp[] = [];
-  if (spec.theme.skyMode === 'cloud-sea') {
-    const [jpStart, jpEnd] = spec.theme.jadePoolRange ?? [-1, -1];
-    const [clStart, clEnd] = spec.theme.cliffRange ?? [-1, -1];
+  if (theme.skyMode === 'cloud-sea') {
+    const [jpStart, jpEnd] = theme.jadePoolRange ?? [-1, -1];
+    const [clStart, clEnd] = theme.cliffRange ?? [-1, -1];
 
     for (let i = 0; i < N; i += 2) {
       const node = nodes[i]!;
@@ -899,6 +921,7 @@ function buildCircuit(spec: CircuitSpec): CircuitDefinition {
 
   return {
     id: spec.id,
+    reversed,
     name: spec.name,
     subtitle: spec.subtitle,
     roadHalfWidth: spec.roadHalfWidth,
@@ -906,16 +929,27 @@ function buildCircuit(spec: CircuitSpec): CircuitDefinition {
     totalLength,
     nodes,
     scenery,
-    theme: spec.theme,
+    theme,
   };
 }
 
 export const CIRCUITS: Readonly<Record<CircuitId, CircuitDefinition>> = {
-  'sunset-loop': buildCircuit(CIRCUIT_SPECS[0]!),
-  'canyon-crest': buildCircuit(CIRCUIT_SPECS[1]!),
-  'starlight-ring': buildCircuit(CIRCUIT_SPECS[2]!),
-  'cloud-gate': buildCircuit(CIRCUIT_SPECS[3]!),
+  'sunset-loop': buildCircuit(CIRCUIT_SPECS[0]!, false),
+  'canyon-crest': buildCircuit(CIRCUIT_SPECS[1]!, false),
+  'starlight-ring': buildCircuit(CIRCUIT_SPECS[2]!, false),
+  'cloud-gate': buildCircuit(CIRCUIT_SPECS[3]!, false),
 };
+
+export const CIRCUITS_REVERSED: Readonly<Record<CircuitId, CircuitDefinition>> = {
+  'sunset-loop': buildCircuit(CIRCUIT_SPECS[0]!, true),
+  'canyon-crest': buildCircuit(CIRCUIT_SPECS[1]!, true),
+  'starlight-ring': buildCircuit(CIRCUIT_SPECS[2]!, true),
+  'cloud-gate': buildCircuit(CIRCUIT_SPECS[3]!, true),
+};
+
+export function getCircuit(id: CircuitId, reversed = false): CircuitDefinition {
+  return reversed ? CIRCUITS_REVERSED[id] : CIRCUITS[id];
+}
 
 export const CIRCUIT_LIST: readonly CircuitDefinition[] = [
   CIRCUITS['sunset-loop'],
@@ -924,10 +958,33 @@ export const CIRCUIT_LIST: readonly CircuitDefinition[] = [
   CIRCUITS['cloud-gate'],
 ];
 
-/** Returns the next circuit in Grand Prix rotation (Sunset Loop -> Canyon Crest -> Starlight Ring -> Sunset Loop, #400). */
+/** Returns the next circuit in Grand Prix rotation (Sunset Loop -> Canyon Crest -> Starlight Ring -> Cloud Gate -> Sunset Loop, #400). */
 export function getNextCircuitId(id: CircuitId): CircuitId {
   const idx = CIRCUIT_LIST.findIndex((c) => c.id === id);
   return CIRCUIT_LIST[(idx + 1) % CIRCUIT_LIST.length]!.id;
+}
+
+/**
+ * Full 2x Grand Prix cycle (#410):
+ * Races all circuits forward, then flips into Reverse for the second cycle
+ * before wrapping back to Forward (`4 circuits -> 8-race full cycle`).
+ */
+export function getNextRaceStage(
+  id: CircuitId,
+  reversed = false,
+): { circuitId: CircuitId; reversed: boolean } {
+  const idx = CIRCUIT_LIST.findIndex((c) => c.id === id);
+  const nextIdx = (idx + 1) % CIRCUIT_LIST.length;
+  const wrapped = nextIdx === 0;
+  return {
+    circuitId: CIRCUIT_LIST[nextIdx]!.id,
+    reversed: wrapped ? !reversed : reversed,
+  };
+}
+
+export function formatCircuitTitle(id: CircuitId, reversed = false): string {
+  const name = CIRCUITS[id].name;
+  return reversed ? `${name} ↺ Reverse` : name;
 }
 
 /**
@@ -1081,9 +1138,11 @@ export function createRaceState(
     p2?: string;
     p1Character?: DriverCharacterId;
     p2Character?: DriverCharacterId;
+    reversed?: boolean;
   },
 ): KartRaceState {
-  const circuit = CIRCUITS[circuitId];
+  const reversed = Boolean(options?.reversed);
+  const circuit = getCircuit(circuitId, reversed);
   const rng = mulberry32(seed);
   const L = circuit.totalLength;
 
@@ -1184,6 +1243,7 @@ export function createRaceState(
 
   return {
     circuitId,
+    reversed,
     mode,
     totalLaps: TOTAL_LAPS,
     seed,
@@ -1683,7 +1743,7 @@ export function stepRaceState(
 ): KartRaceState {
   const clampedMs = clamp(dtMs, 0, 50);
   const dt = clampedMs / 1000;
-  const circuit = CIRCUITS[race.circuitId];
+  const circuit = getCircuit(race.circuitId, race.reversed);
   const events: KartRaceEvents = {
     boostTriggered: [],
     lapCompleted: [],

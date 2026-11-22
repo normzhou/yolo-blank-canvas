@@ -14,7 +14,7 @@
  */
 
 import {
-  CIRCUITS,
+  getCircuit,
   getKartDriverSpec,
   KART_DRIVERS,
   predictKartTrajectory,
@@ -1220,10 +1220,11 @@ function buildStaticCircuitMesh(circuit: CircuitDefinition): MeshBuilder {
         }
 
         // Soaring Floating Immortal Cliff Spire + Upper Golden Palace Terrace (+39m ABOVE road)
-        // placed cleanly clear of the 68m Moon-Ring Arch on the outside (`LEFT / -rx`) — dead-ahead in the driver's sightline!
+        // placed cleanly clear of the 68m Moon-Ring Arch on the OUTSIDE of the bend in both Forward & Reverse!
+        const outSign = n0.curvature >= 0 ? -1 : 1;
         const spireDist = ringR + 24;
-        const spX = n0.x - n0.rx * spireDist + n0.tx * 26;
-        const spZ = n0.z - n0.rz * spireDist + n0.tz * 26;
+        const spX = n0.x + n0.rx * outSign * spireDist + n0.tx * 26;
+        const spZ = n0.z + n0.rz * outSign * spireDist + n0.tz * 26;
         const spTopY = n0.y + 39;
         // Towering sculpted immortal mountain spire rising from clouds below to +39m above the road
         emitSmoothSpineTube(
@@ -1238,12 +1239,17 @@ function buildStaticCircuitMesh(circuit: CircuitDefinition): MeshBuilder {
           MAT_MATTE,
         );
         // Crown the floating mountain terrace with a gleaming Golden Pavilion (`cn2.jpg`)!
-        emitGoldenPavilion(mb, spX - n0.rx * 2.5 + n0.tx * 2.5, spTopY, spZ - n0.rz * 2.5 + n0.tz * 2.5, 1.55);
+        emitGoldenPavilion(
+          mb,
+          spX + n0.rx * outSign * 2.5 + n0.tx * 2.5,
+          spTopY,
+          spZ + n0.rz * outSign * 2.5 + n0.tz * 2.5,
+          1.55,
+        );
 
-        // MASSIVE 74m-TALL LUMINOUS SKY-WATERFALL pouring down the FRONT FACE (`-tx` + `+rx` toward the approaching driver!)
-        // from +38m ABOVE the road straight past the colossal Moon-Ring into the clouds below!
-        const faceDirX = -n0.tx * 0.78 + n0.rx * 0.62;
-        const faceDirZ = -n0.tz * 0.78 + n0.rz * 0.62;
+        // MASSIVE 74m-TALL LUMINOUS SKY-WATERFALL pouring down the FRONT FACE toward the approaching driver!
+        const faceDirX = -n0.tx * 0.78 - n0.rx * outSign * 0.62;
+        const faceDirZ = -n0.tz * 0.78 - n0.rz * outSign * 0.62;
         const faceSideX = faceDirZ;
         const faceSideZ = -faceDirX;
         const wfBaseX = spX + faceDirX * 15.2;
@@ -2133,7 +2139,7 @@ export class MicroKartWebGL2Renderer {
   private shadowVbo: WebGLBuffer | null = null;
   private skyVbo: WebGLBuffer | null = null;
 
-  private circuitMeshes = new Map<CircuitId, StaticGpuMesh>();
+  private circuitMeshes = new Map<string, StaticGpuMesh>();
   private driverRigs = new Map<DriverCharacterId, DriverGpuRig>();
   private flameMesh: StaticGpuMesh | null = null;
   private unitBoxMesh: StaticGpuMesh | null = null;
@@ -2353,11 +2359,16 @@ export class MicroKartWebGL2Renderer {
     return true;
   }
 
-  private getOrBakeCircuitMesh(gl: WebGL2RenderingContext, circuitId: CircuitId): StaticGpuMesh {
-    const cached = this.circuitMeshes.get(circuitId);
+  private getOrBakeCircuitMesh(
+    gl: WebGL2RenderingContext,
+    circuitId: CircuitId,
+    reversed: boolean,
+  ): StaticGpuMesh {
+    const key = `${circuitId}:${reversed ? 'rev' : 'fwd'}`;
+    const cached = this.circuitMeshes.get(key);
     if (cached) return cached;
-    const baked = this.uploadStaticMesh(gl, buildStaticCircuitMesh(CIRCUITS[circuitId]));
-    this.circuitMeshes.set(circuitId, baked);
+    const baked = this.uploadStaticMesh(gl, buildStaticCircuitMesh(getCircuit(circuitId, reversed)));
+    this.circuitMeshes.set(key, baked);
     return baked;
   }
 
@@ -2397,7 +2408,7 @@ export class MicroKartWebGL2Renderer {
     const gl = this.gl;
     if (!gl || this.contextLost || !this.worldProg || !this.skyProg) return false;
 
-    const circuit = CIRCUITS[race.circuitId];
+    const circuit = getCircuit(race.circuitId, race.reversed);
     const totalH = this.canvas.height;
     const glY = totalH - pxYFromTop - pxH;
 
@@ -2477,7 +2488,7 @@ export class MicroKartWebGL2Renderer {
     );
 
     gl.bindVertexArray(this.worldVao);
-    const circuitMesh = this.getOrBakeCircuitMesh(gl, race.circuitId);
+    const circuitMesh = this.getOrBakeCircuitMesh(gl, race.circuitId, race.reversed);
     this.drawStaticMesh(gl, circuitMesh, 0, 0, 0, IDENTITY_BASIS);
 
     // 3. Ground Shadows + Tire Marks
