@@ -34,15 +34,15 @@
     "micro-kart": {
       "id": "micro-kart",
       "packageName": "@yolo-arcade/game-micro-kart",
-      "version": "2.0.1",
-      "hash": "f49cebefa85fd7b9b6431876afd9b46ba3d39451243ed7c9151f2b0e690e1f07",
-      "entry": "/games/micro-kart-p3k5Z_na.js",
+      "version": "2.0.2",
+      "hash": "e0d2ce332934a5c10f687524a49ba802a3966871728203b90b420ffc5c51fb0a",
+      "entry": "/games/micro-kart-P7M4gNUR.js",
       "chunks": [
         "/assets/vendor-react-W1izUqcL.js",
         "/assets/arcade-runtime-_0pxmD9M.js",
-        "/games/micro-kart-p3k5Z_na.js"
+        "/games/micro-kart-P7M4gNUR.js"
       ],
-      "sizeBytes": 151222
+      "sizeBytes": 152959
     }
   }
 }
