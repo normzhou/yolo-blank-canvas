@@ -1,0 +1,82 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-21",
+  "observed_at": "2026-11-21",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#412",
+  "releases": [
+    {
+      "tag": "v0.50.0",
+      "commit": "209c8d6a50bcdee839b11cd63f25ade09de5acf4"
+    }
+  ],
+  "release": {
+    "tag": "v0.50.0",
+    "commit": "209c8d6a50bcdee839b11cd63f25ade09de5acf4",
+    "source_commit": "63f06c75dcaafdbe2dbbeb68e0a50ba969049a1a",
+    "assets_commit": "625d1acc7c768eda4017f0e4ea2279872d041688",
+    "native_version": "0.50.0",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-22T04:13:11Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.50.0",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/413"
+  },
+  "build_identity": {
+    "server_build_id": "63f06c75dcaafdbe2dbbeb68e0a50ba969049a1a",
+    "client_build_id": "63f06c75dcaafdbe2dbbeb68e0a50ba969049a1a",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "visual_inspection": "Real headless Chrome WebGL2 screenshots visually verified via read_file showing the live stencil Portal archway on Starlight Ring displaying Cloud Gate's golden pavilion, Huangshan spires, and viaduct road live inside the finish gantry, followed by seamless 340 km/h portal crossing into Cloud Gate",
+      "npm_test": "30 files, 197 tests passed (including endless 8-stage mapping, rigid portal camera transform, momentum-preserving portal warps, zero rubber-banding, and progressive 4th -> 3rd -> 2nd -> 1st knockouts in test/micro-kart.test.ts)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 52 passed (1.1m, verifying switching to Portal Marathon and seamlessly warping through the finish-line portal from Sunset Loop into Canyon Crest)",
+      "e2e_live": "npm run e2e:live — 5 passed (12.7s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.50.0 --no-open --port 4476 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed (16.7s)",
+      "ci": "GitHub Actions CI/Test and type check green (31s)"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "ca20d14b-fcd7-4702-a786-5dddea75093d",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.50.0",
+      "observed_build_id": "63f06c75dcaafdbe2dbbeb68e0a50ba969049a1a",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.2.0",
+          "entry": "/games/starlight-burst-WOvzRsAT.js",
+          "hash": "36da7e76487a86c3cc51da0dc19441059167a6fdc1e5a38656c52a7b62fc9630",
+          "sizeBytes": 86740
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-C0j7FVYy.js",
+          "hash": "1f643e44f9b1e0ff6efd0d9e6c775fe5e728df717eededd31bb60cb10c23ad9f",
+          "sizeBytes": 37318
+        },
+        "micro-kart": {
+          "version": "2.0.0",
+          "entry": "/games/micro-kart-BB2sreuA.js",
+          "hash": "8e26ce3cf28dbf19179c70389af4f8f6337298d881b4f76c5eb93e981ed445f1",
+          "sizeBytes": 150935
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Introduces Portal Marathon Knockout Mode in Micro Kart (@yolo-arcade/game-micro-kart@2.0.0) featuring a live WebGL2 stencil-buffer Portal finish-line gateway showing the next circuit's sky, 3D road, landmarks, and karts in real time, seamless momentum-preserving kart and camera warps across an endless 8-stage Forward+Reverse cycle, complete removal of artificial AI rubber-banding, progressive lap-out knockout elimination (4th -> 3rd -> 2nd -> 1st survivor), automatic Cloud Gate soundtrack crossfading, and live Portals/Alive/Lap-Gap HUD telemetry."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #412"
+}
