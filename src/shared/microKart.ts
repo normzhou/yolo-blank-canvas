@@ -1012,12 +1012,15 @@ export function formatCircuitTitle(id: CircuitId, reversed = false): string {
   return reversed ? `${name} ↺ Reverse` : name;
 }
 
+/** Full Portal Marathon cycle length: 4 physical tracks Forward + 4 Reverse = 8 stages (#418). */
+export const MARATHON_CYCLE_STAGES = CIRCUIT_LIST.length * 2;
+
 /**
  * Maps an unbounded Portal Marathon stage index (`0, 1, 2, ...`) onto the
- * endless 8-stage Forward + Reverse cycle (#412):
- *  - `0..3`: 4 circuits Forward
- *  - `4..7`: 4 circuits Reverse
- *  - `8..11`: 4 circuits Forward ... endlessly!
+ * endless 8-stage Forward + Reverse cycle (#412, #418):
+ *  - `0..3`: 4 physical tracks Forward (`1, 2, 3, 4`)
+ *  - `4..7`: 4 physical tracks Reverse (`1', 2', 3', 4'`)
+ *  - `8..11`: back to Forward (`1, 2, 3, 4`) ... endlessly!
  */
 export function getMarathonStage(
   stageIndex: number,
@@ -1027,7 +1030,7 @@ export function getMarathonStage(
   const n = CIRCUIT_LIST.length;
   const startBase = Math.max(0, CIRCUIT_LIST.findIndex((c) => c.id === startCircuitId));
   const startOffset = startBase + (startReversed ? n : 0);
-  const fullCycle = n * 2;
+  const fullCycle = MARATHON_CYCLE_STAGES;
   const totalIdx = (((startOffset + stageIndex) % fullCycle) + fullCycle) % fullCycle;
   return {
     circuitId: CIRCUIT_LIST[totalIdx % n]!.id,
@@ -1077,40 +1080,6 @@ export function transformPoseThroughPortal(
     y: g1.y + dy,
     z: g1.z + tz1 * fwd + g1.rz * lat,
     yaw: wrapAngle(yaw1 + relYaw),
-  };
-}
-
-/**
- * Projects a lagging surviving rival kart (1 stage behind in Portal Marathon) onto the
- * leader's active circuit at its exact normalized track fraction `(s / L)` and lateral offset (#416).
- * This allows the leader to visually hunt down and overtake the rival's glowing Portal Echo
- * right on their own road the exact moment `gap` hits `1.00` for the knockout!
- */
-export function projectLappingEchoOntoCircuit(
-  rival: KartState,
-  rivalCircuit: CircuitDefinition,
-  targetCircuit: CircuitDefinition,
-): KartState {
-  const normFrac = (((rival.s / rivalCircuit.totalLength) % 1) + 1) % 1;
-  const targetS = normFrac * targetCircuit.totalLength;
-  const srcSample = sampleCircuitAtS(rivalCircuit, rival.s);
-  const dstSample = sampleCircuitAtS(targetCircuit, targetS);
-  const relYaw = wrapAngle(rival.yaw - srcSample.yaw);
-  const clampedLat = clamp(
-    rival.lat,
-    -(targetCircuit.wallHalfWidth - 1.5),
-    targetCircuit.wallHalfWidth - 1.5,
-  );
-  return {
-    ...rival,
-    x: dstSample.x + dstSample.rx * clampedLat,
-    y: dstSample.y,
-    z: dstSample.z + dstSample.rz * clampedLat,
-    yaw: wrapAngle(dstSample.yaw + relYaw),
-    pitch: dstSample.pitch,
-    s: targetS,
-    lat: clampedLat,
-    skidMarks: [],
   };
 }
 
@@ -1996,13 +1965,20 @@ export function stepRaceState(
     }
   }
 
-  // Perfectly elastic 2D rigid-body kart-to-kart collisions (only between active karts on the same stage! #390, #412)
+  // Perfectly elastic 2D rigid-body kart-to-kart collisions between ANY active karts on the SAME physical track!
+  // In Portal Marathon, karts on stage `2` (Forward) and stage `2'` (Reverse) share the exact same 3D road
+  // and can collide head-on (#390, #418)!
   for (let i = 0; i < race.karts.length; i += 1) {
     for (let j = i + 1; j < race.karts.length; j += 1) {
       const a = race.karts[i]!;
       const b = race.karts[j]!;
       if (a.eliminated || b.eliminated) continue;
-      if (race.format === 'marathon' && a.stageIndex !== b.stageIndex) continue;
+      if (
+        race.format === 'marathon' &&
+        getCircuitForKart(race, a).id !== getCircuitForKart(race, b).id
+      ) {
+        continue;
+      }
       if (resolveElasticKartCollision(a, b, true)) {
         events.bumped = true;
       }
@@ -2010,7 +1986,9 @@ export function stepRaceState(
   }
 
   if (race.format === 'marathon') {
-    // Pure Portal Marathon Knockout Elimination: whenever 1st place laps the last survivor (>= 1.0 lap), knock them out!
+    // True 8-Cycle Physical Lapping Knockout (#418):
+    // A kart can ONLY be lapped when 1st place physically catches it after completing an entire
+    // 8-stage cycle (`1,2,3,4,1',2',3',4'` -> gap >= MARATHON_CYCLE_STAGES = 8.0) on the same track & direction!
     let active = race.karts
       .filter((k) => !k.eliminated)
       .sort((a, b) => b.marathonProgress - a.marathonProgress);
@@ -2018,8 +1996,8 @@ export function stepRaceState(
     while (race.status === 'racing' && active.length > 1) {
       const leader = active[0]!;
       const trailer = active[active.length - 1]!;
-      const gap = leader.marathonProgress - trailer.marathonProgress;
-      if (gap >= 1.0) {
+      const gapStages = leader.marathonProgress - trailer.marathonProgress;
+      if (gapStages >= MARATHON_CYCLE_STAGES) {
         trailer.eliminated = true;
         trailer.eliminatedAtMs = Math.round(race.elapsedMs);
         trailer.finishMs = Math.round(race.elapsedMs);
@@ -2042,7 +2020,7 @@ export function stepRaceState(
     race.marathonLeadGapLaps =
       active.length > 1
         ? Math.max(0, active[0]!.marathonProgress - active[active.length - 1]!.marathonProgress)
-        : 1.0;
+        : MARATHON_CYCLE_STAGES;
 
     // Order standings: active survivors by marathonProgress desc, then eliminated karts by knockout order (latest eliminated = higher rank!)
     const eliminatedSorted = race.karts
