@@ -17,7 +17,7 @@ test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Bu
     const card = page.getByTestId('deck-slide-card');
     await page.getByTestId('carousel-dot-micro-kart').click();
     await expect(card).toHaveAttribute('data-slide-id', 'micro-kart');
-    await expect(card).toHaveAttribute('data-game-version', '2.1.0');
+    await expect(card).toHaveAttribute('data-game-version', '2.2.0');
     await expect(page.locator('.deck-slide-title')).toHaveText('Micro Kart');
 
     await page.getByRole('button', { name: 'Play Micro Kart', exact: true }).click();
@@ -317,7 +317,7 @@ test('Micro Kart shows left-side emotional standings, in-game split finish banne
       );
     });
 
-    // 5B. Switch to Portal Marathon Knockout mode (#412): 1 lap through the portal warps seamlessly into Canyon Crest!
+    // 5B. Switch to Portal Marathon Knockout mode (#412, #420): 4-track arrow radar + shuffled portal warp!
     await page.keyboard.press('Escape');
     await page.getByTestId('kart-dir-forward').click();
     await page.keyboard.press('Escape');
@@ -325,6 +325,10 @@ test('Micro Kart shows left-side emotional standings, in-game split finish banne
     await expect(page.getByTestId('micro-kart-stage')).toHaveAttribute('data-format', 'marathon');
     await expect(page.getByTestId('kart-circuit-label')).toHaveText('🌀 #1 · Sunset Loop');
     await expect(page.getByTestId('kart-marathon-alive')).toHaveText('4/4');
+    await expect(page.getByTestId('kart-quad-map')).toBeVisible();
+    await expect(page.getByTestId('kart-quad-tile-sunset-loop')).toHaveAttribute('data-active', 'true');
+    await expect(page.getByTestId('kart-quad-arrow-0')).toBeVisible();
+    await expect(page.getByTestId('kart-standing-lap-0')).toHaveText('L1');
     await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });
     await page.evaluate(() => {
       window.dispatchEvent(
@@ -334,7 +338,10 @@ test('Micro Kart shows left-side emotional standings, in-game split finish banne
       );
     });
     await expect(page.getByTestId('micro-kart-stage')).toHaveAttribute('data-stage', '1');
-    await expect(page.getByTestId('kart-circuit-label')).toHaveText('🌀 #2 · Canyon Crest');
+    // Shuffled next stage MUST NOT be Sunset Loop (no 1 -> 1' self-facing portal!)
+    const nextCircuitAttr = await page.getByTestId('micro-kart-stage').getAttribute('data-circuit');
+    expect(nextCircuitAttr).not.toBe('sunset-loop');
+    await expect(page.getByTestId('kart-circuit-label')).toContainText('🌀 #2 ·');
 
     // 6. Verify 2P Split-Screen is NOT offered on mobile/touch viewports (desktop keyboard only!)
     const mobileCtx = await browser.newContext({

@@ -260,6 +260,11 @@ export const KART_LIVERIES: readonly KartLiveries[] = [
   },
 ];
 
+export interface MarathonStage {
+  readonly circuitId: CircuitId;
+  readonly reversed: boolean;
+}
+
 export interface KartState {
   readonly slot: 0 | 1 | 2 | 3;
   readonly name: string;
@@ -298,6 +303,8 @@ export interface KartState {
   maxUnwrappedS: number;
   /** Marathon stage index (`0, 1, 2, ...` endlessly cycling all 8 forward + reverse circuits, #412). */
   stageIndex: number;
+  /** Per-kart shuffled 8-course Portal Marathon schedule, lazily extended each Big Lap (#420). */
+  marathonSchedule: MarathonStage[];
   /** UnwrappedS baseline where this kart entered its current Marathon stage. */
   stageStartUnwrappedS: number;
   /** Continuous lap-equivalent progress across portals (`stageIndex + localS / stageLen`). */
@@ -1038,10 +1045,98 @@ export function getMarathonStage(
   };
 }
 
-/** Resolves the active circuit definition for a specific kart (per-kart stage in Marathon, shared in Grand Prix, #412). */
+const ALL_MARATHON_STAGES: readonly MarathonStage[] = [
+  ...CIRCUIT_LIST.map((c) => ({ circuitId: c.id, reversed: false })),
+  ...CIRCUIT_LIST.map((c) => ({ circuitId: c.id, reversed: true })),
+];
+
+/**
+ * Generates a uniformly randomized 8-course Portal Marathon cycle (`{1,2,3,4,1',2',3',4'}`)
+ * enforcing that NO two adjacent stages share the same physical `circuitId` (never `1 -> 1'` or `4' -> 4`)
+ * both within the cycle and across the boundary from `prevLastCircuitId` (#420).
+ */
+export function generateMarathonCycleOrder(
+  rng: () => number,
+  options?: {
+    fixedFirst?: MarathonStage | null;
+    forbiddenFirstCircuitId?: CircuitId | null;
+  },
+): MarathonStage[] {
+  const fixedFirst = options?.fixedFirst ?? null;
+  const forbiddenFirstId = options?.forbiddenFirstCircuitId ?? null;
+  const remaining = ALL_MARATHON_STAGES.filter(
+    (s) => !(fixedFirst && s.circuitId === fixedFirst.circuitId && s.reversed === fixedFirst.reversed),
+  );
+  const out: MarathonStage[] = fixedFirst ? [fixedFirst] : [];
+  const used = new Uint8Array(remaining.length);
+
+  function solve(): boolean {
+    if (out.length === ALL_MARATHON_STAGES.length) return true;
+    const prevId = out.length > 0 ? out[out.length - 1]!.circuitId : forbiddenFirstId;
+    const cands: number[] = [];
+    for (let i = 0; i < remaining.length; i += 1) {
+      if (!used[i] && remaining[i]!.circuitId !== prevId) {
+        cands.push(i);
+      }
+    }
+    for (let i = cands.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(rng() * (i + 1));
+      const tmp = cands[i]!;
+      cands[i] = cands[j]!;
+      cands[j] = tmp;
+    }
+    for (const idx of cands) {
+      used[idx] = 1;
+      out.push(remaining[idx]!);
+      if (solve()) return true;
+      out.pop();
+      used[idx] = 0;
+    }
+    return false;
+  }
+
+  solve();
+  return out;
+}
+
+/**
+ * Resolves a specific kart's shuffled Portal Marathon stage at any unbounded `stageIndex` (#420).
+ * Lazily extends `kart.marathonSchedule` one fresh shuffled 8-course Big Lap at a time:
+ * - Big Lap 1 (`cycle 0`): every kart starts on `race.circuitId` (`stage 0`), then follows its own shuffle.
+ * - Big Lap 2+ (`cycle >= 1`): freshly shuffles all 8 courses so any course (except the prior track's id) can be first!
+ */
+export function getMarathonStageForKart(
+  race: KartRaceState,
+  kart: KartState,
+  stageIndex: number = kart.stageIndex,
+): MarathonStage {
+  const safeIdx = Math.max(0, stageIndex);
+  while (kart.marathonSchedule.length <= safeIdx) {
+    const cycleIdx = Math.floor(kart.marathonSchedule.length / MARATHON_CYCLE_STAGES);
+    const cycleSeed =
+      (Math.imul(race.seed + 17, 2654435761) ^
+        Math.imul(kart.slot + 1, 1013904223) ^
+        Math.imul(cycleIdx + 1, 2246822519)) >>>
+      0;
+    const cycleRng = mulberry32(cycleSeed || 1);
+    const prevLastId =
+      kart.marathonSchedule.length > 0
+        ? kart.marathonSchedule[kart.marathonSchedule.length - 1]!.circuitId
+        : null;
+    const nextCycle = generateMarathonCycleOrder(cycleRng, {
+      fixedFirst:
+        cycleIdx === 0 ? { circuitId: race.circuitId, reversed: race.reversed } : null,
+      forbiddenFirstCircuitId: prevLastId,
+    });
+    kart.marathonSchedule.push(...nextCycle);
+  }
+  return kart.marathonSchedule[safeIdx]!;
+}
+
+/** Resolves the active circuit definition for a specific kart (per-kart shuffled stage in Marathon, shared in Grand Prix, #412, #420). */
 export function getCircuitForKart(race: KartRaceState, kart: KartState): CircuitDefinition {
   if (race.format === 'marathon') {
-    const st = getMarathonStage(kart.stageIndex, race.circuitId, race.reversed);
+    const st = getMarathonStageForKart(race, kart, kart.stageIndex);
     return getCircuit(st.circuitId, st.reversed);
   }
   return getCircuit(race.circuitId, race.reversed);
@@ -1314,6 +1409,16 @@ export function createRaceState(
       unwrappedS: -grid.backMeters,
       maxUnwrappedS: -grid.backMeters,
       stageIndex: 0,
+      marathonSchedule:
+        format === 'marathon'
+          ? generateMarathonCycleOrder(
+              mulberry32(
+                ((Math.imul(seed + 17, 2654435761) ^ Math.imul(slot + 1, 1013904223) ^ 2246822519) >>> 0) ||
+                  1,
+              ),
+              { fixedFirst: { circuitId, reversed } },
+            )
+          : [],
       stageStartUnwrappedS: 0,
       marathonProgress: -grid.backMeters / L,
       eliminated: false,
@@ -1575,9 +1680,7 @@ function stepSingleKart(
   elapsedMs: number,
   events: KartRaceEvents,
   aiSpeedScale = 1,
-  raceFormat: KartRaceFormat = 'grand-prix',
-  startCircuitId: CircuitId = circuit.id,
-  startReversed = circuit.reversed,
+  race: KartRaceState | null = null,
 ): void {
   if (kart.isRemote) return;
 
@@ -1822,7 +1925,7 @@ function stepSingleKart(
   }
 
   // 9. Monotonic lap / Portal crossing
-  if (raceFormat === 'marathon') {
+  if (race?.format === 'marathon') {
     const localUnwrapped = kart.unwrappedS - kart.stageStartUnwrappedS;
     if (!kart.eliminated && localUnwrapped >= L) {
       const overshoot = localUnwrapped - L;
@@ -1836,7 +1939,7 @@ function stepSingleKart(
       kart.stageStartUnwrappedS += L;
       kart.stageIndex += 1;
 
-      const nextStage = getMarathonStage(kart.stageIndex, startCircuitId, startReversed);
+      const nextStage = getMarathonStageForKart(race, kart, kart.stageIndex);
       const nextCircuit = getCircuit(nextStage.circuitId, nextStage.reversed);
 
       // Preserve 100% exact momentum & relative pose through the finish-line Portal Gate!
@@ -1935,18 +2038,7 @@ export function stepRaceState(
     const kartCircuit = getCircuitForKart(race, kart);
     if (kart.isHuman) {
       const input = humanInputs[kart.slot] ?? { left: false, right: false };
-      stepSingleKart(
-        kart,
-        input,
-        kartCircuit,
-        dt,
-        race.elapsedMs,
-        events,
-        1,
-        race.format,
-        race.circuitId,
-        race.reversed,
-      );
+      stepSingleKart(kart, input, kartCircuit, dt, race.elapsedMs, events, 1, race);
     } else {
       // Pure honest AI with ZERO artificial rubber-banding or pack compression (#412)
       const aiInput = computeAiThrusters(kart, kartCircuit, leaderUnwrappedS, race.elapsedMs);
@@ -1958,9 +2050,7 @@ export function stepRaceState(
         race.elapsedMs,
         events,
         kart.aiBaseSkill,
-        race.format,
-        race.circuitId,
-        race.reversed,
+        race,
       );
     }
   }

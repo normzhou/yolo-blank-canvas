@@ -45,7 +45,7 @@ import {
   getCircuitForKart,
   getKartDriverSpec,
   getKartPortraitMood,
-  getMarathonStage,
+  getMarathonStageForKart,
   getNextRaceStage,
   getRecommendedSpeedAtS,
   KART_DRIVERS,
@@ -548,6 +548,55 @@ const F1SteeringYoke = memo(function F1SteeringYoke({
   );
 });
 
+interface MapArrowEntry {
+  slot: number;
+  circuitId: CircuitId;
+  x: number;
+  z: number;
+  yaw: number;
+  color: string;
+  isFocus: boolean;
+  bigLap: number;
+}
+
+const SHORT_CIRCUIT_NAMES: Readonly<Record<CircuitId, string>> = {
+  'sunset-loop': 'Sunset',
+  'canyon-crest': 'Canyon',
+  'starlight-ring': 'Starlight',
+  'cloud-gate': 'Cloud Gate',
+};
+
+function buildTrackSvgGeo(circuit: ReturnType<typeof getCircuit>, boxSize = 96, pad = 10) {
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minZ = Infinity;
+  let maxZ = -Infinity;
+  for (const n of circuit.nodes) {
+    if (n.x < minX) minX = n.x;
+    if (n.x > maxX) maxX = n.x;
+    if (n.z < minZ) minZ = n.z;
+    if (n.z > maxZ) maxZ = n.z;
+  }
+  const span = Math.max(maxX - minX, maxZ - minZ, 1);
+  const inner = boxSize - pad * 2;
+  const cx = (minX + maxX) * 0.5;
+  const cz = (minZ + maxZ) * 0.5;
+  const half = boxSize * 0.5;
+  const toSvg = (wx: number, wz: number) => ({
+    sx: half + ((wx - cx) / span) * inner,
+    sy: half - ((wz - cz) / span) * inner,
+  });
+  const pathD =
+    circuit.nodes
+      .map((n, idx) => {
+        const p = toSvg(n.x, n.z);
+        return `${idx === 0 ? 'M' : 'L'} ${p.sx.toFixed(1)} ${p.sy.toFixed(1)}`;
+      })
+      .join(' ') + ' Z';
+  const n0 = circuit.nodes[0]!;
+  return { pathD, startPt: toSvg(n0.x, n0.z), scalePoint: toSvg };
+}
+
 const CircuitMiniMap = memo(function CircuitMiniMap({
   circuitId,
   reversed,
@@ -555,43 +604,10 @@ const CircuitMiniMap = memo(function CircuitMiniMap({
 }: {
   circuitId: CircuitId;
   reversed: boolean;
-  dots: ReadonlyArray<{ x: number; z: number; color: string; isFocus: boolean }>;
+  dots: ReadonlyArray<MapArrowEntry>;
 }) {
   const circuit = getCircuit(circuitId, reversed);
-  const { pathD, startPt, scalePoint } = useMemo(() => {
-    let minX = Infinity;
-    let maxX = -Infinity;
-    let minZ = Infinity;
-    let maxZ = -Infinity;
-    for (const n of circuit.nodes) {
-      if (n.x < minX) minX = n.x;
-      if (n.x > maxX) maxX = n.x;
-      if (n.z < minZ) minZ = n.z;
-      if (n.z > maxZ) maxZ = n.z;
-    }
-    const span = Math.max(maxX - minX, maxZ - minZ, 1);
-    const pad = 10;
-    const size = 96 - pad * 2;
-    const cx = (minX + maxX) * 0.5;
-    const cz = (minZ + maxZ) * 0.5;
-    const toSvg = (wx: number, wz: number) => ({
-      sx: 48 + ((wx - cx) / span) * size,
-      sy: 48 - ((wz - cz) / span) * size,
-    });
-    const d =
-      circuit.nodes
-        .map((n, idx) => {
-          const p = toSvg(n.x, n.z);
-          return `${idx === 0 ? 'M' : 'L'} ${p.sx.toFixed(1)} ${p.sy.toFixed(1)}`;
-        })
-        .join(' ') + ' Z';
-    const n0 = circuit.nodes[0]!;
-    return {
-      pathD: d,
-      startPt: toSvg(n0.x, n0.z),
-      scalePoint: toSvg,
-    };
-  }, [circuit]);
+  const { pathD, startPt, scalePoint } = useMemo(() => buildTrackSvgGeo(circuit, 96, 10), [circuit]);
 
   return (
     <svg
@@ -602,22 +618,113 @@ const CircuitMiniMap = memo(function CircuitMiniMap({
     >
       <path d={pathD} fill="none" stroke="var(--stage-well)" strokeWidth="6.5" opacity="0.78" />
       <path d={pathD} fill="none" stroke="var(--on-accent)" strokeWidth="2.4" opacity="0.58" />
-      <circle cx={startPt.sx} cy={startPt.sy} r="3.4" fill="var(--prism-4)" />
-      {dots.map((dot, idx) => {
+      <circle cx={startPt.sx} cy={startPt.sy} r="3.0" fill="var(--prism-4)" />
+      {dots.map((dot) => {
         const pt = scalePoint(dot.x, dot.z);
+        const deg = (dot.yaw * 180) / Math.PI;
+        const sc = dot.isFocus ? 1.15 : 0.92;
         return (
-          <circle
-            key={idx}
-            cx={pt.sx}
-            cy={pt.sy}
-            r={dot.isFocus ? 4.2 : 3.0}
-            fill={dot.color}
-            stroke="var(--stage-well)"
-            strokeWidth={dot.isFocus ? 1.4 : 1.0}
-          />
+          <g
+            key={dot.slot}
+            transform={`translate(${pt.sx.toFixed(1)}, ${pt.sy.toFixed(1)}) rotate(${deg.toFixed(1)}) scale(${sc})`}
+            data-testid={`kart-map-arrow-${dot.slot}`}
+          >
+            {dot.isFocus ? (
+              <circle cx="0" cy="0" r="6.8" fill="none" stroke="var(--on-accent)" strokeWidth="1.2" opacity="0.7" />
+            ) : null}
+            <polygon
+              points="0,-5.8 4.4,4.8 0,2.2 -4.4,4.8"
+              fill={dot.color}
+              stroke="var(--stage-well)"
+              strokeWidth="1.2"
+              strokeLinejoin="round"
+            />
+          </g>
         );
       })}
     </svg>
+  );
+});
+
+const QuadCircuitOverviewMap = memo(function QuadCircuitOverviewMap({
+  activeCircuitId,
+  arrows,
+}: {
+  activeCircuitId: CircuitId;
+  arrows: ReadonlyArray<MapArrowEntry>;
+}) {
+  const tiles = useMemo(
+    () =>
+      CIRCUIT_LIST.map((c) => ({
+        id: c.id,
+        label: SHORT_CIRCUIT_NAMES[c.id],
+        geo: buildTrackSvgGeo(c, 76, 9),
+      })),
+    [],
+  );
+
+  return (
+    <div
+      className="kart-quad-map"
+      role="img"
+      aria-label="All 4 circuits live radar"
+      data-testid="kart-quad-map"
+    >
+      {tiles.map((tile) => {
+        const onTile = arrows.filter((a) => a.circuitId === tile.id);
+        const isActive = tile.id === activeCircuitId;
+        return (
+          <div
+            key={tile.id}
+            className={isActive ? 'kart-quad-tile is-active' : 'kart-quad-tile'}
+            data-testid={`kart-quad-tile-${tile.id}`}
+            data-active={isActive ? 'true' : 'false'}
+          >
+            <span className="kart-quad-label">{tile.label}</span>
+            <svg viewBox="0 0 76 76" className="kart-quad-svg" aria-hidden="true">
+              <path
+                d={tile.geo.pathD}
+                fill="none"
+                stroke="var(--stage-well)"
+                strokeWidth="5.4"
+                opacity="0.72"
+              />
+              <path
+                d={tile.geo.pathD}
+                fill="none"
+                stroke={isActive ? 'var(--accent)' : 'var(--on-accent)'}
+                strokeWidth="2.1"
+                opacity={isActive ? 0.92 : 0.45}
+              />
+              <circle cx={tile.geo.startPt.sx} cy={tile.geo.startPt.sy} r="2.5" fill="var(--prism-4)" />
+              {onTile.map((dot) => {
+                const pt = tile.geo.scalePoint(dot.x, dot.z);
+                const deg = (dot.yaw * 180) / Math.PI;
+                const sc = dot.isFocus ? 1.08 : 0.88;
+                return (
+                  <g
+                    key={dot.slot}
+                    transform={`translate(${pt.sx.toFixed(1)}, ${pt.sy.toFixed(1)}) rotate(${deg.toFixed(1)}) scale(${sc})`}
+                    data-testid={`kart-quad-arrow-${dot.slot}`}
+                  >
+                    {dot.isFocus ? (
+                      <circle cx="0" cy="0" r="6.4" fill="none" stroke="var(--on-accent)" strokeWidth="1.2" opacity="0.78" />
+                    ) : null}
+                    <polygon
+                      points="0,-5.4 4.1,4.5 0,2.0 -4.1,4.5"
+                      fill={dot.color}
+                      stroke="var(--stage-well)"
+                      strokeWidth="1.2"
+                      strokeLinejoin="round"
+                    />
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
+        );
+      })}
+    </div>
   );
 });
 
@@ -718,9 +825,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     finishMs: null,
   });
   const [analogSteerUi, setAnalogSteerUi] = useState<number>(0);
-  const [mapDots, setMapDots] = useState<
-    Array<{ x: number; z: number; color: string; isFocus: boolean }>
-  >([]);
+  const [mapDots, setMapDots] = useState<MapArrowEntry[]>([]);
 
   const activeKartRoom =
     netplay.activeRoom && netplay.activeRoom.gameId === 'micro-kart'
@@ -850,16 +955,16 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     setStandings(nextStandings);
     setMapDots(
       race.karts
-        .filter(
-          (k) =>
-            !k.eliminated &&
-            (race.format !== 'marathon' || getCircuitForKart(race, k).id === c0.id),
-        )
+        .filter((k) => !k.eliminated)
         .map((k) => ({
+          slot: k.slot,
+          circuitId: getCircuitForKart(race, k).id,
           x: k.x,
           z: k.z,
+          yaw: k.yaw,
           color: getKartDriverSpec(k.character).mapGlow,
           isFocus: k.slot === focusLocalSlot,
+          bigLap: Math.floor(k.stageIndex / MARATHON_CYCLE_STAGES) + 1,
         })),
     );
   }, []);
@@ -924,7 +1029,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       const audio = getSharedArcadeAudio();
       audio.cutToPlaylist(getMicroKartPlaylistForCircuit(nextCircuit, nextReversed), 0.35);
       if (nextFormat === 'marathon') {
-        const upcoming = getMarathonStage(1, nextCircuit, nextReversed);
+        const upcoming = getMarathonStageForKart(fresh, fresh.karts[focusSlot]!, 1);
         audio.preloadTrack(getMicroKartPlaylistForCircuit(upcoming.circuitId, upcoming.reversed)[0]);
       }
     },
@@ -1447,7 +1552,8 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
             setPortalFlashKey((k) => k + 1);
             const audio = getSharedArcadeAudio();
             audio.cutToPlaylist(getMicroKartPlaylistForCircuit(p.toCircuitId, p.toReversed), 0.2);
-            const nextPortal = getMarathonStage(p.toStageIndex + 1, race.circuitId, race.reversed);
+            const focusKart = race.karts[focusSlot]!;
+            const nextPortal = getMarathonStageForKart(race, focusKart, p.toStageIndex + 1);
             audio.preloadTrack(
               getMicroKartPlaylistForCircuit(nextPortal.circuitId, nextPortal.reversed)[0],
             );
@@ -1777,6 +1883,14 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                   {entry.driverName}
                   {entry.humanTag ? <em className="kart-standing-tag">{entry.humanTag}</em> : null}
                 </span>
+                {isMarathon && !entry.eliminated ? (
+                  <span
+                    className="kart-standing-lap"
+                    data-testid={`kart-standing-lap-${entry.slot}`}
+                  >
+                    L{Math.floor(entry.stageIndex / MARATHON_CYCLE_STAGES) + 1}
+                  </span>
+                ) : null}
                 {entry.eliminated ? (
                   <span className="kart-standing-out">OUT</span>
                 ) : entry.finished ? (
@@ -1808,9 +1922,11 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
               </span>
             </div>
             <div className="kart-telemetry-item">
-              <span className="stack-label">{isMarathon ? 'Portals' : 'Lap'}</span>
+              <span className="stack-label">{isMarathon ? 'Big Lap' : 'Lap'}</span>
               <span className="kart-telemetry-val" data-testid="kart-p1-lap">
-                {isMarathon ? `${p1Hud.stageIndex}` : `${p1Hud.lap}/${TOTAL_LAPS}`}
+                {isMarathon
+                  ? `L${Math.floor(p1Hud.stageIndex / MARATHON_CYCLE_STAGES) + 1} · ${(p1Hud.stageIndex % MARATHON_CYCLE_STAGES) + 1}/${MARATHON_CYCLE_STAGES}`
+                  : `${p1Hud.lap}/${TOTAL_LAPS}`}
               </span>
             </div>
             <div className="kart-telemetry-item">
@@ -1853,11 +1969,15 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
             )}
           </div>
           {!isSplit2P ? (
-            <CircuitMiniMap
-              circuitId={isMarathon ? p1Hud.stageCircuitId : circuitId}
-              reversed={isMarathon ? p1Hud.stageReversed : reversed}
-              dots={mapDots}
-            />
+            isMarathon ? (
+              <QuadCircuitOverviewMap activeCircuitId={p1Hud.stageCircuitId} arrows={mapDots} />
+            ) : (
+              <CircuitMiniMap
+                circuitId={circuitId}
+                reversed={reversed}
+                dots={mapDots.filter((d) => d.circuitId === circuitId)}
+              />
+            )
           ) : null}
         </div>
 
