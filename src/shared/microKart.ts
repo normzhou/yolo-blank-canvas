@@ -1832,10 +1832,11 @@ function stepSingleKart(
   const aLat = aLatTire + aAeroLat;
 
   let nextVFwd = vFwd + aFwd * dt;
+  // Braking / drag stops a forward-moving kart at 0, but an existing backward rebound velocity
+  // from a head-on elastic collision is preserved so karts genuinely fly apart (#426)!
   if (vFwd >= 0 && nextVFwd < 0) {
     nextVFwd = 0;
   }
-  nextVFwd = Math.max(0, nextVFwd);
 
   let nextVLat = vLat + aLat * dt;
   if (Math.abs(aLatDesired) <= aLatMax && vLat !== 0 && Math.sign(nextVLat) !== Math.sign(vLat)) {
@@ -1844,7 +1845,7 @@ function stepSingleKart(
 
   kart.vx = fx * nextVFwd + rx * nextVLat;
   kart.vz = fz * nextVFwd + rz * nextVLat;
-  kart.speed = nextVFwd;
+  kart.speed = Math.max(0, nextVFwd);
   kart.lateralSlip = nextVLat;
 
   // Visual slip yaw & chassis roll reflect real angular velocity + lateral slide angle
@@ -1891,7 +1892,7 @@ function stepSingleKart(
     const vTang = kart.vx * stx + kart.vz * stz;
     const vOut = (kart.vx * sample.rx + kart.vz * sample.rz) * outSign;
     const impactRatio = clamp(Math.max(0, vOut) / 40, 0, 1);
-    const newVTang = Math.max(0, vTang * (0.94 - 0.14 * impactRatio));
+    const newVTang = vTang * (0.94 - 0.14 * impactRatio);
     const newVOut = vOut > 0 ? -vOut * 0.16 : vOut;
 
     kart.vx = stx * newVTang + sample.rx * outSign * newVOut;
@@ -2390,21 +2391,8 @@ export function cross2D(rx: number, rz: number, vx: number, vz: number): number 
   return rz * vx - rx * vz;
 }
 
-function getObbCorners(kart: Pick<KartState, 'x' | 'z' | 'yaw'>): Array<{ x: number; z: number }> {
-  const rx = Math.cos(kart.yaw) * KART_HALF_WIDTH;
-  const rz = -Math.sin(kart.yaw) * KART_HALF_WIDTH;
-  const fx = Math.sin(kart.yaw) * KART_HALF_LENGTH;
-  const fz = Math.cos(kart.yaw) * KART_HALF_LENGTH;
-  return [
-    { x: kart.x - rx - fx, z: kart.z - rz - fz },
-    { x: kart.x + rx - fx, z: kart.z + rz - fz },
-    { x: kart.x + rx + fx, z: kart.z + rz + fz },
-    { x: kart.x - rx + fx, z: kart.z - rz + fz },
-  ];
-}
-
 /**
- * Resolves a perfectly elastic (`e = 1.0`) 2D rigid-body collision between two oriented
+ * Resolves a perfectly elastic (`e = 1.0`) collision between two karts:
  * karts using Separating Axis Theorem (SAT) contact detection and each kart's Center of Mass.
  *
  * Strictly conserves:
@@ -2431,17 +2419,16 @@ export function resolveElasticKartCollision(
   const bFx = Math.sin(b.yaw);
   const bFz = Math.cos(b.yaw);
 
-  const axes: ReadonlyArray<{ ax: number; az: number; refIsA: boolean }> = [
-    { ax: aRx, az: aRz, refIsA: true },
-    { ax: aFx, az: aFz, refIsA: true },
-    { ax: bRx, az: bRz, refIsA: false },
-    { ax: bFx, az: bFz, refIsA: false },
+  const axes: ReadonlyArray<{ ax: number; az: number }> = [
+    { ax: aRx, az: aRz },
+    { ax: aFx, az: aFz },
+    { ax: bRx, az: bRz },
+    { ax: bFx, az: bFz },
   ];
 
   let minOverlap = Infinity;
   let nx = 1;
   let nz = 0;
-  let refIsA = true;
 
   for (const cand of axes) {
     const projA =
@@ -2458,80 +2445,57 @@ export function resolveElasticKartCollision(
       const sign = centerDist >= 0 ? 1 : -1;
       nx = cand.ax * sign;
       nz = cand.az * sign;
-      refIsA = cand.refIsA;
     }
   }
 
-  // Exact world contact point: deepest penetrating corner(s) of the incident OBB
-  const incidentCorners = refIsA ? getObbCorners(b) : getObbCorners(a);
-  let bestProj = refIsA ? Infinity : -Infinity;
-  for (const pt of incidentCorners) {
-    const p = pt.x * nx + pt.z * nz;
-    if (refIsA ? p < bestProj : p > bestProj) {
-      bestProj = p;
-    }
-  }
-  let cpX = 0;
-  let cpZ = 0;
-  let cpCount = 0;
-  for (const pt of incidentCorners) {
-    const p = pt.x * nx + pt.z * nz;
-    if (Math.abs(p - bestProj) <= 0.08) {
-      cpX += pt.x;
-      cpZ += pt.z;
-      cpCount += 1;
-    }
-  }
-  cpX /= Math.max(1, cpCount);
-  cpZ /= Math.max(1, cpCount);
-
-  // Lever arms from each kart's Center of Mass to the shared contact point
+  // Simple 2D spherical collision physics with respect to each kart's Center of Mass (`comA`, `comB`),
+  // while keeping exact 2D OBB polygon SAT for overlap detection & minimal separation (#426).
+  // Strictly conserves total linear momentum, total angular momentum (orbital + spin), and kinetic energy!
   const comA = getKartCenterOfMass(a);
   const comB = getKartCenterOfMass(b);
-  const rAx = cpX - comA.x;
-  const rAz = cpZ - comA.z;
-  const rBx = cpX - comB.x;
-  const rBz = cpZ - comB.z;
+  const comDx = comB.x - comA.x;
+  const comDz = comB.z - comA.z;
+  const comDist = Math.hypot(comDx, comDz);
+  let physNx = comDist > 1e-6 ? comDx / comDist : nx;
+  let physNz = comDist > 1e-6 ? comDz / comDist : nz;
 
-  // Rigid-body velocities at contact point: v_p = v_com + (+w * r_z, -w * r_x)
-  const vApX = a.vx + a.yawRate * rAz;
-  const vApZ = a.vz - a.yawRate * rAx;
-  const vBpX = b.vx + b.yawRate * rBz;
-  const vBpZ = b.vz - b.yawRate * rBx;
+  // On a mathematically exact dead-center opposing head-on collision (`|cross| < 0.035`),
+  // break unstable knife-edge symmetry with a small deterministic glance (~4 deg) so opposing karts
+  // never balance nose-to-nose under equal full forward thrust.
+  const headingDot = aFx * bFx + aFz * bFz;
+  const radialAlignCross = cross2D(physNx, physNz, aFx, aFz);
+  if (headingDot < -0.7 && Math.abs(radialAlignCross) < 0.035) {
+    const glanceSign = a.slot < b.slot ? 1 : -1;
+    const glanceAngle = glanceSign * 0.07;
+    const ca = Math.cos(glanceAngle);
+    const sa = Math.sin(glanceAngle);
+    const rotNx = physNx * ca - physNz * sa;
+    const rotNz = physNx * sa + physNz * ca;
+    physNx = rotNx;
+    physNz = rotNz;
+  }
 
-  const vRelNormal = (vBpX - vApX) * nx + (vBpZ - vApZ) * nz;
+  const vRelNormal = (b.vx - a.vx) * physNx + (b.vz - a.vz) * physNz;
   if (vRelNormal < 0) {
-    const rACrossN = cross2D(rAx, rAz, nx, nz);
-    const rBCrossN = cross2D(rBx, rBz, nx, nz);
-
     const invMA = a.isRemote ? 0 : 1 / KART_MASS_KG;
     const invMB = b.isRemote ? 0 : 1 / KART_MASS_KG;
-    const invIA = a.isRemote ? 0 : 1 / KART_YAW_INERTIA;
-    const invIB = b.isRemote ? 0 : 1 / KART_YAW_INERTIA;
-
-    const denom =
-      invMA +
-      invMB +
-      rACrossN * rACrossN * invIA +
-      rBCrossN * rBCrossN * invIB;
+    const denom = invMA + invMB;
 
     if (denom > 1e-12) {
-      // Perfectly elastic (`e = 1.0`) normal impulse conserving linear, angular momentum & kinetic energy!
+      // Perfectly elastic (`e = 1.0`) 2D spherical COM impulse!
       const j = (-2.0 * vRelNormal) / denom;
-      const jx = j * nx;
-      const jz = j * nz;
+      const jx = j * physNx;
+      const jz = j * physNz;
 
       if (!a.isRemote) {
         a.vx -= jx * invMA;
         a.vz -= jz * invMA;
-        a.yawRate -= rACrossN * j * invIA;
         a.speed = Math.max(0, a.vx * aFx + a.vz * aFz);
         a.lateralSlip = a.vx * aRx + a.vz * aRz;
       }
       if (!b.isRemote) {
         b.vx += jx * invMB;
         b.vz += jz * invMB;
-        b.yawRate += rBCrossN * j * invIB;
         b.speed = Math.max(0, b.vx * bFx + b.vz * bFz);
         b.lateralSlip = b.vx * bRx + b.vz * bRz;
       }

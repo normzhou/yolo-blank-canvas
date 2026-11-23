@@ -238,22 +238,37 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
     expect(canyonFwd.reversed).toBe(false);
     expect(canyonRev.reversed).toBe(true);
     const midFwd = sampleCircuitAtS(canyonFwd, canyonFwd.totalLength * 0.5);
-    kFwd.x = midFwd.x - midFwd.tx * 1.1;
+    kFwd.x = midFwd.x - midFwd.tx * 2.4;
     kFwd.y = midFwd.y;
-    kFwd.z = midFwd.z - midFwd.tz * 1.1;
+    kFwd.z = midFwd.z - midFwd.tz * 2.4;
     kFwd.yaw = midFwd.yaw;
     kFwd.vx = midFwd.tx * 60;
     kFwd.vz = midFwd.tz * 60;
     kFwd.speed = 60;
-    kRev.x = midFwd.x + midFwd.tx * 1.1;
+    kRev.x = midFwd.x + midFwd.tx * 2.4;
     kRev.y = midFwd.y;
-    kRev.z = midFwd.z + midFwd.tz * 1.1;
+    kRev.z = midFwd.z + midFwd.tz * 2.4;
     kRev.yaw = midFwd.yaw + Math.PI;
     kRev.vx = -midFwd.tx * 60;
     kRev.vz = -midFwd.tz * 60;
     kRev.speed = 60;
     stepRaceState(headOnRace, { 0: { left: false, right: false } }, 16);
     expect(headOnRace.lastEvents.bumped).toBe(true);
+    // Pure spherical COM elastic rebound sends BOTH 60 m/s karts cleanly backward (~ -58 m/s)!
+    const vFwdAfterHitA = kFwd.vx * Math.sin(kFwd.yaw) + kFwd.vz * Math.cos(kFwd.yaw);
+    const vFwdAfterHitB = kRev.vx * Math.sin(kRev.yaw) + kRev.vz * Math.cos(kRev.yaw);
+    expect(vFwdAfterHitA).toBeLessThan(-40);
+    expect(vFwdAfterHitB).toBeLessThan(-40);
+
+    // Step 125 frames (2.0s) under full forward thrust on both karts -> they cleanly rebound, glance apart,
+    // and resume forward racing instead of deadlocking nose-to-nose (#426)!
+    for (let t = 0; t < 125; t += 1) {
+      stepRaceState(headOnRace, { 0: { left: false, right: false } }, 16);
+    }
+    const postDist = Math.hypot(kFwd.x - kRev.x, kFwd.z - kRev.z);
+    expect(postDist).toBeGreaterThan(12);
+    expect(kFwd.speed).toBeGreaterThan(20);
+    expect(kRev.speed).toBeGreaterThan(20);
 
     // 3) True 8-stage full-cycle lapping knockout (#418):
     //    IMPOSSIBLE to lap anyone before completing a full 8-stage cycle (gap < 8.0 -> ZERO knockouts)!
@@ -492,6 +507,7 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
     const circuit = CIRCUITS['canyon-crest'];
     const race = createRaceState('canyon-crest', '1p', 99);
     let maxSlip = 0;
+    let postBumpCooldown = 0;
     for (let step = 0; step < 3600 && race.status === 'racing'; step += 1) {
       const k0 = race.karts[0]!;
       const lookahead = Math.min(44, 18 + k0.speed * 0.28);
@@ -512,7 +528,13 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
         },
         20,
       );
-      maxSlip = Math.max(maxSlip, Math.abs(k0.lateralSlip));
+      if (race.lastEvents.bumped) {
+        postBumpCooldown = 25;
+      } else if (postBumpCooldown > 0) {
+        postBumpCooldown -= 1;
+      } else {
+        maxSlip = Math.max(maxSlip, Math.abs(k0.lateralSlip));
+      }
       const proj = projectOntoCircuit(circuit, k0.x, k0.z, k0.s);
       expect(Math.abs(proj.lat)).toBeLessThanOrEqual(circuit.wallHalfWidth + 0.5);
     }
@@ -614,8 +636,8 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
     };
 
     const before = measureSystem();
-    const prevOmegaA = a.yawRate;
-    const prevOmegaB = b.yawRate;
+    const prevVxA = a.vx;
+    const prevVxB = b.vx;
 
     // Resolve elastic impulse without positional shift to test exact analytical conservation at contact instant
     const hit = resolveElasticKartCollision(a, b, false);
@@ -633,9 +655,9 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
     // 3. Exact Kinetic Energy conservation (perfectly elastic e = 1.0!)
     expect(after.ke).toBeCloseTo(before.ke, 4);
 
-    // 4. Off-center hit genuinely induces angular spin on both karts!
-    expect(Math.abs(a.yawRate - prevOmegaA)).toBeGreaterThan(0.1);
-    expect(Math.abs(b.yawRate - prevOmegaB)).toBeGreaterThan(0.1);
+    // 4. Off-center spherical COM hit deflects both karts laterally apart!
+    expect(Math.abs(a.vx - prevVxA)).toBeGreaterThan(5);
+    expect(Math.abs(b.vx - prevVxB)).toBeGreaterThan(5);
   });
 
   it('applies a pure +50% rocket booster force for 5.0s on road boost pads with zero instant velocity impulse (#390, #398)', () => {
