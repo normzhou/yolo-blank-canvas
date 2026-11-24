@@ -14,6 +14,7 @@
  */
 
 import {
+  CIRCUIT_LIST,
   getCircuit,
   getCircuitForKart,
   getKartDriverSpec,
@@ -1804,6 +1805,7 @@ function emitSceneryPropIntoBuilder(mb: MeshBuilder, prop: SceneryProp, index: n
 }
 
 interface StaticGpuMesh {
+  vao: WebGLVertexArrayObject;
   vbo: WebGLBuffer;
   count: number;
 }
@@ -2149,6 +2151,16 @@ export class MicroKartWebGL2Renderer {
   private skyVbo: WebGLBuffer | null = null;
 
   private circuitMeshes = new Map<string, StaticGpuMesh>();
+  private skyThemeCache = new Map<
+    CircuitId,
+    {
+      skyTop: [number, number, number];
+      skyHorizon: [number, number, number];
+      ground: [number, number, number];
+      mountain: [number, number, number];
+    }
+  >();
+  private prewarmQueue: Array<{ circuitId: CircuitId; reversed: boolean }> = [];
   private driverRigs = new Map<DriverCharacterId, DriverGpuRig>();
   private flameMesh: StaticGpuMesh | null = null;
   private unitBoxMesh: StaticGpuMesh | null = null;
@@ -2235,10 +2247,14 @@ export class MicroKartWebGL2Renderer {
   }
 
   private uploadStaticMesh(gl: WebGL2RenderingContext, mb: MeshBuilder): StaticGpuMesh {
+    const vao = gl.createVertexArray()!;
+    gl.bindVertexArray(vao);
     const vbo = gl.createBuffer()!;
     gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mb.data), gl.STATIC_DRAW);
-    return { vbo, count: mb.vertexCount };
+    this.bindWorldAttribs(gl);
+    gl.bindVertexArray(null);
+    return { vao, vbo, count: mb.vertexCount };
   }
 
   private bindWorldAttribs(gl: WebGL2RenderingContext): void {
@@ -2261,7 +2277,8 @@ export class MicroKartWebGL2Renderer {
         antialias: true,
         depth: true,
         stencil: true,
-        powerPreference: 'default',
+        desynchronized: true,
+        powerPreference: 'high-performance',
       });
     } catch {
       return false;
@@ -2368,7 +2385,32 @@ export class MicroKartWebGL2Renderer {
     this.flameMesh = this.uploadStaticMesh(gl, buildFlameConeMesh());
     this.unitBoxMesh = this.uploadStaticMesh(gl, buildBrakeBarMesh());
 
+    // Queue all 8 (circuit, fwd/rev) meshes for staggered idle pre-baking so approaching a portal never hitches (#428)
+    this.prewarmQueue = [];
+    for (const c of CIRCUIT_LIST) {
+      this.prewarmQueue.push({ circuitId: c.id, reversed: false });
+      this.prewarmQueue.push({ circuitId: c.id, reversed: true });
+    }
+
     return true;
+  }
+
+  /**
+   * Bakes at most ONE uncached circuit VBO+VAO per call during countdown/idle frames so
+   * all 8 Portal Marathon worlds are warm in VRAM before the first portal comes into view (#428).
+   */
+  prewarmNextCircuit(): boolean {
+    const gl = this.gl;
+    if (!gl || this.contextLost) return false;
+    while (this.prewarmQueue.length > 0) {
+      const next = this.prewarmQueue.shift()!;
+      const key = `${next.circuitId}:${next.reversed ? 'rev' : 'fwd'}`;
+      if (!this.circuitMeshes.has(key)) {
+        this.getOrBakeCircuitMesh(gl, next.circuitId, next.reversed);
+        return true;
+      }
+    }
+    return false;
   }
 
   private getOrBakeCircuitMesh(
@@ -2398,8 +2440,7 @@ export class MicroKartWebGL2Renderer {
     tg = 1,
     tb = 1,
   ): void {
-    gl.bindBuffer(gl.ARRAY_BUFFER, mesh.vbo);
-    this.bindWorldAttribs(gl);
+    gl.bindVertexArray(mesh.vao);
     gl.uniform3f(this.uniforms.uModelPos!, px, py, pz);
     gl.uniformMatrix3fv(this.uniforms.uModelBasis!, false, basis);
     gl.uniform3f(this.uniforms.uModelScale!, sx, sy, sz);
@@ -2414,14 +2455,24 @@ export class MicroKartWebGL2Renderer {
     horizonUvY: number,
   ): void {
     gl.useProgram(this.skyProg);
-    const skyTop = parseHexRgb(circuit.theme.skyTop);
-    const skyHor = parseHexRgb(circuit.theme.skyHorizon);
-    const gnd = parseHexRgb(circuit.theme.groundOuter);
-    const mtn = parseHexRgb(circuit.theme.mountainHex);
-    gl.uniform3f(this.skyUniforms.uSkyTop!, skyTop[0] / 255, skyTop[1] / 255, skyTop[2] / 255);
-    gl.uniform3f(this.skyUniforms.uSkyHorizon!, skyHor[0] / 255, skyHor[1] / 255, skyHor[2] / 255);
-    gl.uniform3f(this.skyUniforms.uGround!, gnd[0] / 255, gnd[1] / 255, gnd[2] / 255);
-    gl.uniform3f(this.skyUniforms.uMountain!, mtn[0] / 255, mtn[1] / 255, mtn[2] / 255);
+    let colors = this.skyThemeCache.get(circuit.id);
+    if (!colors) {
+      const st = parseHexRgb(circuit.theme.skyTop);
+      const sh = parseHexRgb(circuit.theme.skyHorizon);
+      const gd = parseHexRgb(circuit.theme.groundOuter);
+      const mt = parseHexRgb(circuit.theme.mountainHex);
+      colors = {
+        skyTop: [st[0] / 255, st[1] / 255, st[2] / 255],
+        skyHorizon: [sh[0] / 255, sh[1] / 255, sh[2] / 255],
+        ground: [gd[0] / 255, gd[1] / 255, gd[2] / 255],
+        mountain: [mt[0] / 255, mt[1] / 255, mt[2] / 255],
+      };
+      this.skyThemeCache.set(circuit.id, colors);
+    }
+    gl.uniform3f(this.skyUniforms.uSkyTop!, colors.skyTop[0], colors.skyTop[1], colors.skyTop[2]);
+    gl.uniform3f(this.skyUniforms.uSkyHorizon!, colors.skyHorizon[0], colors.skyHorizon[1], colors.skyHorizon[2]);
+    gl.uniform3f(this.skyUniforms.uGround!, colors.ground[0], colors.ground[1], colors.ground[2]);
+    gl.uniform3f(this.skyUniforms.uMountain!, colors.mountain[0], colors.mountain[1], colors.mountain[2]);
     gl.uniform1f(this.skyUniforms.uHorizonUvY!, horizonUvY);
     gl.uniform1f(this.skyUniforms.uYawPhase!, (camYaw / (Math.PI * 2)) * 24.0);
     gl.uniform1f(
@@ -3197,18 +3248,23 @@ export class MicroKartWebGL2Renderer {
     this.canvas.removeEventListener('webglcontextrestored', this.handleContextRestored);
     const gl = this.gl;
     if (gl) {
-      for (const m of this.circuitMeshes.values()) gl.deleteBuffer(m.vbo);
+      const freeMesh = (m: StaticGpuMesh | null) => {
+        if (!m) return;
+        gl.deleteVertexArray(m.vao);
+        gl.deleteBuffer(m.vbo);
+      };
+      for (const m of this.circuitMeshes.values()) freeMesh(m);
       for (const r of this.driverRigs.values()) {
-        gl.deleteBuffer(r.chassis.vbo);
-        gl.deleteBuffer(r.torso.vbo);
-        gl.deleteBuffer(r.head.vbo);
-        gl.deleteBuffer(r.leftEar.vbo);
-        gl.deleteBuffer(r.rightEar.vbo);
-        gl.deleteBuffer(r.tail.vbo);
-        gl.deleteBuffer(r.scarf.vbo);
+        freeMesh(r.chassis);
+        freeMesh(r.torso);
+        freeMesh(r.head);
+        freeMesh(r.leftEar);
+        freeMesh(r.rightEar);
+        freeMesh(r.tail);
+        freeMesh(r.scarf);
       }
-      if (this.flameMesh) gl.deleteBuffer(this.flameMesh.vbo);
-      if (this.unitBoxMesh) gl.deleteBuffer(this.unitBoxMesh.vbo);
+      freeMesh(this.flameMesh);
+      freeMesh(this.unitBoxMesh);
       if (this.dynamicVbo) gl.deleteBuffer(this.dynamicVbo);
       if (this.shadowVbo) gl.deleteBuffer(this.shadowVbo);
       if (this.skyVbo) gl.deleteBuffer(this.skyVbo);
