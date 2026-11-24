@@ -17,7 +17,7 @@ test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Bu
     const card = page.getByTestId('deck-slide-card');
     await page.getByTestId('carousel-dot-micro-kart').click();
     await expect(card).toHaveAttribute('data-slide-id', 'micro-kart');
-    await expect(card).toHaveAttribute('data-game-version', '2.4.0');
+    await expect(card).toHaveAttribute('data-game-version', '2.5.0');
     await expect(page.locator('.deck-slide-title')).toHaveText('Micro Kart');
 
     await page.getByRole('button', { name: 'Play Micro Kart', exact: true }).click();
@@ -324,7 +324,8 @@ test('Micro Kart shows left-side emotional standings, in-game split finish banne
     await page.getByTestId('kart-format-marathon').click();
     await expect(page.getByTestId('micro-kart-stage')).toHaveAttribute('data-format', 'marathon');
     await expect(page.getByTestId('kart-circuit-label')).toHaveText('🌀 #1 · Sunset Loop');
-    await expect(page.getByTestId('kart-marathon-alive')).toHaveText('4/4');
+    await expect(page.getByTestId('kart-marathon-alive')).toHaveText('8/8');
+    await expect(page.getByTestId('kart-standing-slot-7')).toBeVisible();
     await expect(page.getByTestId('kart-quad-map')).toBeVisible();
     await expect(page.getByTestId('kart-quad-tile-sunset-loop')).toHaveAttribute('data-active', 'true');
     await expect(page.getByTestId('kart-quad-arrow-0')).toBeVisible();

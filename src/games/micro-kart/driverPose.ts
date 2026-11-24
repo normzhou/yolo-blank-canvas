@@ -10,7 +10,7 @@
  *   sweeps species-specific ears back with playful high-speed flutter.
  */
 
-import { MAX_STRAIGHT_SPEED, type KartState } from '../../shared/microKart';
+import { getKartDriverSpec, MAX_STRAIGHT_SPEED, type KartState } from '../../shared/microKart';
 
 export interface DriverPose {
   /** Normalized linear speed (`0 .. 1.35`, where `1.0` = 100 m/s / 360 km/h). */
@@ -119,18 +119,19 @@ export function computeDriverPose(kart: KartState, timeMs: number): DriverPose {
   let leftEarRoll = centrifugalRoll + flutterL * 0.35;
   let rightEarRoll = centrifugalRoll - flutterR * 0.35;
 
-  if (kart.character === 'bunny') {
+  const species = getKartDriverSpec(kart.character).species;
+  if (species === 'bunny') {
     // Tall left bunny ear streams dramatically back (~62 deg max!); folded right ear sweeps ~44 deg!
     leftEarPitch = -(0.06 + earWindRatio * 0.86) + flutterL;
     rightEarPitch = -(0.04 + earWindRatio * 0.62) + flutterR;
-  } else if (kart.character === 'dog') {
+  } else if (species === 'dog') {
     // Downward floppy puppy ears: +pitch rotates negative-Y ear tips BACKWARD (-z) in the wind!
     leftEarPitch = 0.06 + earWindRatio * 0.72 + flutterL * 1.25;
     rightEarPitch = 0.06 + earWindRatio * 0.72 + flutterR * 1.25;
     // Flip centrifugal roll sign for downward-hanging ears so tips still swing outward!
     leftEarRoll = -centrifugalRoll - 0.08 * earWindRatio + flutterL * 0.45;
     rightEarRoll = -centrifugalRoll + 0.08 * earWindRatio - flutterR * 0.45;
-  } else if (kart.character === 'fox') {
+  } else if (species === 'fox') {
     // Leaf-curved fox ears sweep sleekly back (~42 deg max)
     leftEarPitch = -(0.04 + earWindRatio * 0.58) + flutterL * 0.75;
     rightEarPitch = -(0.04 + earWindRatio * 0.58) + flutterR * 0.75;
@@ -146,13 +147,13 @@ export function computeDriverPose(kart: KartState, timeMs: number): DriverPose {
   const scarfYaw = scarfFlutter - turnLean * 0.32;
   const scarfPitch = 0.08 + speedRatio * 0.22 + (isBoosting ? 0.12 : 0);
 
-  const wagFreq = kart.character === 'dog' ? (isBoosting ? 0.036 : 0.018) : 0.011;
+  const wagFreq = species === 'dog' ? (isBoosting ? 0.036 : 0.018) : 0.011;
   const tailYaw =
-    Math.sin(timeMs * wagFreq + kart.slot) * (kart.character === 'dog' ? 0.28 : 0.16) -
+    Math.sin(timeMs * wagFreq + kart.slot) * (species === 'dog' ? 0.28 : 0.16) -
     turnLean * 0.4;
   const tailPitch = -aeroTuck * 0.24;
   const tailHop =
-    kart.character === 'bunny' ? Math.abs(Math.sin(timeMs * 0.018 + kart.slot)) * 0.06 : 0;
+    species === 'bunny' ? Math.abs(Math.sin(timeMs * 0.018 + kart.slot)) * 0.06 : 0;
 
   return {
     speedRatio,

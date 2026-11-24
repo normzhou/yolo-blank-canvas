@@ -3591,6 +3591,22 @@ button.passkey-handoff-copy-btn:hover {
   color: var(--stage-text);
 }
 
+.kart-driver-picker {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.kart-driver-choice {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 4px;
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
 .kart-standing-row.is-col-1 {
   left: 192px;
 }
