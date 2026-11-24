@@ -1584,83 +1584,154 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     };
   }, [rendererBackend]);
 
-  // Main 60fps 3D simulation & canvas render loop
+  // Main 60/120fps 3D simulation & WebGL2 render loop (#428):
+  // - ResizeObserver caches canvas CSS dimensions (ZERO per-frame getBoundingClientRect reflow!)
+  // - 120Hz fixed-timestep physics accumulator keeps frame pacing rock-solid across 60/120/144Hz monitors
+  // - Smart 720p-1080p backing resolution cap + adaptive dynamic scaling + GPU bilinear upscaling
+  // - Staggered circuit VBO/VAO pre-warming eliminates first-portal hitches
   useEffect(() => {
     let rafId = 0;
     let lastTime = performance.now();
     let hudThrottleMs = 0;
+    let simAccumulatorMs = 0;
+    const FIXED_STEP_MS = 1000 / 120; // 8.333ms crisp 120Hz physics substeps
+
+    // Cached canvas CSS box updated only on actual resize (no per-frame forced layout!)
+    let cachedCssW = 960;
+    let cachedCssH = 540;
+    const updateCachedCanvasSize = () => {
+      const c = canvasRef.current;
+      if (!c) return;
+      const rect = c.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        cachedCssW = Math.max(320, Math.round(rect.width));
+        cachedCssH = Math.max(220, Math.round(rect.height));
+      }
+    };
+    updateCachedCanvasSize();
+    const ro =
+      typeof ResizeObserver !== 'undefined' && canvasRef.current
+        ? new ResizeObserver(() => updateCachedCanvasSize())
+        : null;
+    if (ro && canvasRef.current) {
+      ro.observe(canvasRef.current);
+    }
+
+    // Adaptive resolution tier: starts at crisp 1080p max (1.5x DPR cap), drops smoothly to 720p if avg frame > 19ms
+    let emaFrameMs = 16.67;
+    let slowFrames = 0;
+    let fastFrames = 0;
+    let maxBackingH = 1080;
 
     const frame = (now: number) => {
       const rawDt = now - lastTime;
       lastTime = now;
       const dtMs = Math.min(40, Math.max(0, rawDt));
 
+      // Adaptive dynamic resolution governor
+      if (rawDt > 1 && rawDt < 120) {
+        emaFrameMs = emaFrameMs * 0.9 + rawDt * 0.1;
+        if (emaFrameMs > 19.5) {
+          slowFrames += 1;
+          fastFrames = 0;
+          if (slowFrames >= 24 && maxBackingH > 720) {
+            maxBackingH = 720;
+            slowFrames = 0;
+          }
+        } else if (emaFrameMs < 14.0) {
+          fastFrames += 1;
+          slowFrames = 0;
+          if (fastFrames >= 90 && maxBackingH < 1080) {
+            maxBackingH = 1080;
+            fastFrames = 0;
+          }
+        }
+      }
+
       const race = raceRef.current;
       const focusSlot = isOnline2P && activeKartRoom ? activeKartRoom.mySlot : 0;
       const canAdvance =
         !paused && !overlayOpen && !isReadyCheck && !isInviting && !isNetworkPaused && countdown <= 0;
 
+      // Pre-warm remaining circuit VBO/VAOs 1 per frame during countdown/paused/early race so portals NEVER stutter!
+      const glRendererForWarm = rendererBackend === 'webgl2' ? webglRendererRef.current : null;
+      if (glRendererForWarm && glRendererForWarm.isReady && (!canAdvance || race.elapsedMs < 3500)) {
+        glRendererForWarm.prewarmNextCircuit();
+      }
+
       if (canAdvance) {
         const inputs = readCurrentHumanInputs();
-        stepRaceState(race, inputs, dtMs);
+        simAccumulatorMs = Math.min(40, simAccumulatorMs + dtMs);
+        let stepped = false;
+        while (simAccumulatorMs >= FIXED_STEP_MS) {
+          simAccumulatorMs -= FIXED_STEP_MS;
+          stepRaceState(race, inputs, FIXED_STEP_MS);
+          stepped = true;
 
-        // Seamless Portal Camera Handoff + Warp Flash + Crisp Per-Portal Music Cut-Over (#412, #414)
-        for (const p of race.lastEvents.portalCrossed) {
-          const fromC = getCircuit(p.fromCircuitId, p.fromReversed);
-          const toC = getCircuit(p.toCircuitId, p.toReversed);
-          if (p.slot === focusSlot) {
-            const warped = transformPoseThroughPortal(cam1Ref.current, fromC, toC);
-            cam1Ref.current.x = warped.x;
-            cam1Ref.current.y = warped.y;
-            cam1Ref.current.z = warped.z;
-            cam1Ref.current.yaw = warped.yaw;
-            setPortalFlashKey((k) => k + 1);
-            const audio = getSharedArcadeAudio();
-            audio.cutToPlaylist(getMicroKartPlaylistForCircuit(p.toCircuitId, p.toReversed), 0.2);
-            const focusKart = race.karts[focusSlot]!;
-            const nextPortal = getMarathonStageForKart(race, focusKart, p.toStageIndex + 1);
-            audio.preloadTrack(
-              getMicroKartPlaylistForCircuit(nextPortal.circuitId, nextPortal.reversed)[0],
+          // Seamless Portal Camera Handoff + Warp Flash + Crisp Per-Portal Music Cut-Over (#412, #414)
+          for (const p of race.lastEvents.portalCrossed) {
+            const fromC = getCircuit(p.fromCircuitId, p.fromReversed);
+            const toC = getCircuit(p.toCircuitId, p.toReversed);
+            if (p.slot === focusSlot) {
+              const warped = transformPoseThroughPortal(cam1Ref.current, fromC, toC);
+              cam1Ref.current.x = warped.x;
+              cam1Ref.current.y = warped.y;
+              cam1Ref.current.z = warped.z;
+              cam1Ref.current.yaw = warped.yaw;
+              setPortalFlashKey((k) => k + 1);
+              const audio = getSharedArcadeAudio();
+              audio.cutToPlaylist(getMicroKartPlaylistForCircuit(p.toCircuitId, p.toReversed), 0.2);
+              const focusKart = race.karts[focusSlot]!;
+              const nextPortal = getMarathonStageForKart(race, focusKart, p.toStageIndex + 1);
+              audio.preloadTrack(
+                getMicroKartPlaylistForCircuit(nextPortal.circuitId, nextPortal.reversed)[0],
+              );
+              syncHudFromRace(race, focusSlot);
+            } else if (isSplit2P && p.slot === 1) {
+              const warped = transformPoseThroughPortal(cam2Ref.current, fromC, toC);
+              cam2Ref.current.x = warped.x;
+              cam2Ref.current.y = warped.y;
+              cam2Ref.current.z = warped.z;
+              cam2Ref.current.yaw = warped.yaw;
+              syncHudFromRace(race, focusSlot);
+            }
+          }
+          if (race.lastEvents.eliminated.length > 0) {
+            const lastKo = race.lastEvents.eliminated[race.lastEvents.eliminated.length - 1]!;
+            setKoToast(`KO! ${lastKo.name} lapped out (${ordinalPlace(lastKo.place)})`);
+            syncHudFromRace(race, focusSlot);
+          }
+
+          // Trigger procedural Web Audio events
+          const synth = synthRef.current;
+          if (synth) {
+            for (const b of race.lastEvents.boostTriggered) {
+              if (b.slot === focusSlot || (isSplit2P && b.slot === 1)) {
+                synth.playBoost(b.kind);
+              }
+            }
+            for (const l of race.lastEvents.lapCompleted) {
+              if (l.slot === focusSlot || (isSplit2P && l.slot === 1)) {
+                synth.playLap(l.finished);
+              }
+            }
+            if (race.lastEvents.bumped) {
+              synth.playBump();
+            }
+          }
+        }
+
+        if (stepped) {
+          const synth = synthRef.current;
+          if (synth) {
+            const fk = race.karts[focusSlot]!;
+            synth.updateEngine(
+              fk.speed,
+              fk.boostTimer > 0,
+              fk.driftCharge > 0.08,
+              race.status === 'racing',
             );
-            syncHudFromRace(race, focusSlot);
-          } else if (isSplit2P && p.slot === 1) {
-            const warped = transformPoseThroughPortal(cam2Ref.current, fromC, toC);
-            cam2Ref.current.x = warped.x;
-            cam2Ref.current.y = warped.y;
-            cam2Ref.current.z = warped.z;
-            cam2Ref.current.yaw = warped.yaw;
-            syncHudFromRace(race, focusSlot);
           }
-        }
-        if (race.lastEvents.eliminated.length > 0) {
-          const lastKo = race.lastEvents.eliminated[race.lastEvents.eliminated.length - 1]!;
-          setKoToast(`KO! ${lastKo.name} lapped out (${ordinalPlace(lastKo.place)})`);
-          syncHudFromRace(race, focusSlot);
-        }
-
-        // Trigger procedural Web Audio events
-        const synth = synthRef.current;
-        if (synth) {
-          for (const b of race.lastEvents.boostTriggered) {
-            if (b.slot === focusSlot || (isSplit2P && b.slot === 1)) {
-              synth.playBoost(b.kind);
-            }
-          }
-          for (const l of race.lastEvents.lapCompleted) {
-            if (l.slot === focusSlot || (isSplit2P && l.slot === 1)) {
-              synth.playLap(l.finished);
-            }
-          }
-          if (race.lastEvents.bumped) {
-            synth.playBump();
-          }
-          const fk = race.karts[focusSlot]!;
-          synth.updateEngine(
-            fk.speed,
-            fk.boostTimer > 0,
-            fk.driftCharge > 0.08,
-            race.status === 'racing',
-          );
         }
 
         if (race.status === 'finished' && !finishAwardedRef.current) {
@@ -1672,23 +1743,26 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
           syncHudFromRace(race, focusSlot);
         }
       } else {
+        simAccumulatorMs = 0;
         synthRef.current?.updateEngine(0, false, false, false);
       }
 
-      updateChaseCamera(cam1Ref.current, race.karts[focusSlot]!, Math.max(0.008, dtMs / 1000));
+      updateChaseCamera(cam1Ref.current, race.karts[focusSlot]!, Math.max(0.004, dtMs / 1000));
       if (isSplit2P && race.karts[1]) {
-        updateChaseCamera(cam2Ref.current, race.karts[1], Math.max(0.008, dtMs / 1000));
+        updateChaseCamera(cam2Ref.current, race.karts[1], Math.max(0.004, dtMs / 1000));
       }
 
-      // Render 3D viewport(s) onto Hi-DPI canvas (WebGL2 primary, automatic 2D fallback)
+      // Render 3D viewport(s) at capped 720p-1080p resolution (GPU bilinear upscales cleanly to native Retina/4K!)
       const canvas = canvasRef.current;
       if (canvas) {
-        const rect = canvas.getBoundingClientRect();
-        const cssW = Math.max(320, Math.round(rect.width));
-        const cssH = Math.max(220, Math.round(rect.height));
-        const dpr = Math.min(2.5, window.devicePixelRatio || 1);
-        const targetW = Math.round(cssW * dpr);
-        const targetH = Math.round(cssH * dpr);
+        const cssW = cachedCssW;
+        const cssH = cachedCssH;
+        const nativeDpr = window.devicePixelRatio || 1;
+        const maxBackingW = Math.round((maxBackingH * 16) / 9);
+        const resScale = Math.min(nativeDpr, 1.5, maxBackingW / cssW, maxBackingH / cssH);
+        const effScale = Math.max(0.5, resScale);
+        const targetW = Math.max(320, Math.round(cssW * effScale));
+        const targetH = Math.max(220, Math.round(cssH * effScale));
         if (canvas.width !== targetW || canvas.height !== targetH) {
           canvas.width = targetW;
           canvas.height = targetH;
@@ -1716,7 +1790,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
           const ctx = canvas.getContext('2d');
           if (ctx) {
             ctx.save();
-            ctx.scale(dpr, dpr);
+            ctx.scale(effScale, effScale);
             if (isSplit2P) {
               const halfH = Math.floor(cssH / 2);
               renderKartViewport(ctx, race, 0, cam1Ref.current, 0, 0, cssW, halfH - 1, now);
@@ -1742,7 +1816,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       }
 
       hudThrottleMs += dtMs;
-      if (hudThrottleMs >= 33) {
+      if (hudThrottleMs >= 50) {
         hudThrottleMs = 0;
         syncHudFromRace(race, focusSlot);
       }
@@ -1751,7 +1825,10 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     };
 
     rafId = window.requestAnimationFrame(frame);
-    return () => window.cancelAnimationFrame(rafId);
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      ro?.disconnect();
+    };
   }, [
     activeKartRoom,
     countdown,
