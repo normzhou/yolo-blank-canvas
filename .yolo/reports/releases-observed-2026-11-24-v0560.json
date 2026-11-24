@@ -1,0 +1,82 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-24",
+  "observed_at": "2026-11-24",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#432",
+  "releases": [
+    {
+      "tag": "v0.56.0",
+      "commit": "a174bab184037ad92a600738d6975db4ed91a0c6"
+    }
+  ],
+  "release": {
+    "tag": "v0.56.0",
+    "commit": "a174bab184037ad92a600738d6975db4ed91a0c6",
+    "source_commit": "30172af6a5fbdd3194f3a3ee09c73e0f8ba93b80",
+    "assets_commit": "9caff7e99b7ea0229f5ab86485690bd0156135f3",
+    "native_version": "0.56.0",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-24T04:56:38Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.56.0",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/433"
+  },
+  "build_identity": {
+    "server_build_id": "30172af6a5fbdd3194f3a3ee09c73e0f8ba93b80",
+    "client_build_id": "30172af6a5fbdd3194f3a3ee09c73e0f8ba93b80",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "visual_inspection": "Real Chrome WebGL2 screenshots visually verified via read_file across Canyon Crest, Cloud Gate Marathon, and Sunset Loop confirming zero semi-transparent HUD boxes, flush-left single-column vertical progress rail with multi-lap wrap-around, faint speed-colored horizon centerline ribbon curving ahead over hills, and 7 crisp floating driver portraits hovering above distant karts at 146m-175m",
+      "npm_test": "30 files, 197 tests passed",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 52 passed (1.2m)",
+      "e2e_live": "npm run e2e:live — 5 passed (14.0s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.56.0 --no-open --port 4502 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed",
+      "ci": "GitHub Actions CI/Test and type check green (34s)"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "2003692f-f9cb-4876-94a3-239c991530f7",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.56.0",
+      "observed_build_id": "30172af6a5fbdd3194f3a3ee09c73e0f8ba93b80",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.2.0",
+          "entry": "/games/starlight-burst-dfLBmggg.js",
+          "hash": "c5fb1e727049febeb2bb1d85dd16ca090a86d621e42e151c8cc640cebb112b1f",
+          "sizeBytes": 86740
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-C7Nzix8R.js",
+          "hash": "d69d68e7c4bc7176a83c5a4ab2c8d6bbaa048eab9d771e9f213a4ad2aabfa294",
+          "sizeBytes": 37318
+        },
+        "micro-kart": {
+          "version": "2.6.0",
+          "entry": "/games/micro-kart-DJfkGZPw.js",
+          "hash": "75abe0f1086dbb5003aad36de89c99bc5ede6807d1f9d9b3fdbe11b05275e600",
+          "sizeBytes": 167366
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Upgrades Micro Kart with a pure transparent-background text HUD (zero semi-transparent HUD boxes/buttons), a flush-left single-column vertical progress rail with simultaneous multi-lap (L1/L2/L3) wrap-around and zero horizontal jumping, a 2x WebGL2 render horizon (760m far plane) with a faint speed-colored horizon centerline ribbon peeking over blind hill crests, and floating transparent driver portraits with distance tags hovering above distant same-track karts up to 720m ahead (@yolo-arcade/game-micro-kart@2.6.0)."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #432"
+}

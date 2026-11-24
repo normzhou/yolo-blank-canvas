@@ -367,15 +367,16 @@
         "v0.53.0": "8b577eaf725acb76f3c7418c063e7a0b928cb0a0",
         "v0.53.1": "99c7c012e8db766a8e7c204ab6c1670742c97dab",
         "v0.53.2": "b3c9cc31c49a8367858eb5d02ae3a6b0e6da684a",
-        "v0.54.0": "bcb67327e3915ff0bb85ce622508efb7bce24d0a"
+        "v0.54.0": "bcb67327e3915ff0bb85ce622508efb7bce24d0a",
+        "v0.55.0": "566b8806ab2ece4c9f3232c999ecec946313e89b"
       },
       "published": {
-        "tag": "v0.55.0",
-        "commit": "566b8806ab2ece4c9f3232c999ecec946313e89b",
-        "source_commit": "8ad435a32be09999708ddecb3ac28fe356fbeb0b",
-        "published_at": "2026-11-24T04:10:08Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-24-v0550.json",
-        "note": "Minor 8-player Starlight Burst roster release (#430, PR #431; @yolo-arcade/game-micro-kart@2.5.0). Expands Micro Kart to an 8-kart 4x2 F1 grid featuring all 8 Starlight Burst companion characters (Ren, Kiko, Yuzu, Mochi, Koro, Hana, Poko, Momo) with sculpted 3D rigs & persona accessories, 8 expressive emotional portraits, 4x2 Pause Menu driver picker, 8-arrow 2x2 Quad Radar, and 8-racer Portal Marathon knockout support; visually verified in Chrome WebGL2, 11/11 standalone npx e2e:verify-release, and deployed live to https://demo.yolo-dev.ai (Version ID: b4bd5f65-c53e-4f69-a11c-12691c56fc38)."
+        "tag": "v0.56.0",
+        "commit": "a174bab184037ad92a600738d6975db4ed91a0c6",
+        "source_commit": "30172af6a5fbdd3194f3a3ee09c73e0f8ba93b80",
+        "published_at": "2026-11-24T04:56:38Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-24-v0560.json",
+        "note": "Minor Micro Kart pure transparent text HUD, flush-left multi-lap rail, 2x horizon guide & distant portraits release (#432, PR #433; @yolo-arcade/game-micro-kart@2.6.0). Removes all semi-transparent HUD boxes/buttons in favor of crisp floating text, fixes vertical progress rail horizontal jumping and supports simultaneous L1/L2/L3 wrap-around, doubles WebGL2 far clip to 760m with a faint speed-colored horizon centerline ribbon peeking over hills, and hovers transparent driver portraits + distance tags above distant same-track rivals up to 720m ahead; visually verified in Chrome WebGL2, 11/11 standalone npx e2e:verify-release, and deployed live to https://demo.yolo-dev.ai (Version ID: 2003692f-f9cb-4876-94a3-239c991530f7)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -503,7 +504,8 @@
         ".yolo/reports/releases-observed-2026-11-21-v0531.json",
         ".yolo/reports/releases-observed-2026-11-23-v0532.json",
         ".yolo/reports/releases-observed-2026-11-24-v0540.json",
-        ".yolo/reports/releases-observed-2026-11-24-v0550.json"
+        ".yolo/reports/releases-observed-2026-11-24-v0550.json",
+        ".yolo/reports/releases-observed-2026-11-24-v0560.json"
       ]
     }
   },
