@@ -1,0 +1,82 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-24",
+  "observed_at": "2026-11-24",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#440",
+  "releases": [
+    {
+      "tag": "v0.60.0",
+      "commit": "a7278bc0bad32b70ff5910321ba9373ae50aecde"
+    }
+  ],
+  "release": {
+    "tag": "v0.60.0",
+    "commit": "a7278bc0bad32b70ff5910321ba9373ae50aecde",
+    "source_commit": "b0c90d44d9ef5e9fdf1532694898666c67ae9248",
+    "assets_commit": "11ba3f11abfcc38b79011988a817aa5e367e1ad4",
+    "native_version": "0.60.0",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-24T23:20:34Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.60.0",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/441"
+  },
+  "build_identity": {
+    "server_build_id": "b0c90d44d9ef5e9fdf1532694898666c67ae9248",
+    "client_build_id": "b0c90d44d9ef5e9fdf1532694898666c67ae9248",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "closed_loop_controls_audit": "Two-round closed-loop Chrome screenshots visually inspected via read_file across Mobile Landscape (844x390 Steering Band + Brake), Mobile Portrait (390x844 Rotate Phone prompt), and Desktop Side-by-Side 2P Split-Screen (1280x720), fixing bottom-bar clearance and portrait band width until zero overlaps remained",
+      "npm_test": "31 files, 200 tests passed",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 52 passed (1.3m, asserting side-by-side 2P geometry and mobile portrait rotate prompt)",
+      "e2e_live": "npm run e2e:live — 5 passed (22.5s, read-only)",
+      "standalone_verify_release": "git archive v0.60.0 extracted to an empty temporary directory + node server/cli.js --no-open --port 4507 + npm run e2e:verify-release — 11 passed (32.8s)",
+      "ci": "GitHub Actions CI/Test and type check green (23s)"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "576319a1-ed37-427e-9356-1cc04d8645e7",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.60.0",
+      "observed_build_id": "b0c90d44d9ef5e9fdf1532694898666c67ae9248",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.3.0",
+          "entry": "/games/starlight-burst-DkE8OQwP.js",
+          "hash": "434fa7329cbd872ccf7ac2cb919678f6d2338265a8ac54922124d7807fd384f6",
+          "sizeBytes": 87227
+        },
+        "prism-stack": {
+          "version": "2.2.0",
+          "entry": "/games/prism-stack-DSAM1YLh.js",
+          "hash": "13370bb93d2e863a4e90eeed26666b23804851936098fb9aab527c992ed19503",
+          "sizeBytes": 37768
+        },
+        "micro-kart": {
+          "version": "2.10.0",
+          "entry": "/games/micro-kart-DogED0dS.js",
+          "hash": "cae6a446d86787641a31f52a32fe4518ba41a07d7b991eec709b72838902c530",
+          "sizeBytes": 179251
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Replaces swipe-to-steer canvas zones in Micro Kart (@yolo-arcade/game-micro-kart@2.10.0) with a faintly highlighted direct-position Steering Band containing the live-rotating F1 steering wheel in the center and a dedicated translucent BRAKE pad, adds Mobile Landscape orientation preference with a non-blocking Portrait Rotate Phone prompt, and switches Desktop 2-player local split-screen to full-height side-by-side layout."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #440"
+}
