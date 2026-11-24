@@ -1,0 +1,82 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-24",
+  "observed_at": "2026-11-24",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#434",
+  "releases": [
+    {
+      "tag": "v0.57.0",
+      "commit": "9237b0ecc6f16e3349a8a03b7fbf8b1966e0d801"
+    }
+  ],
+  "release": {
+    "tag": "v0.57.0",
+    "commit": "9237b0ecc6f16e3349a8a03b7fbf8b1966e0d801",
+    "source_commit": "85f571bb07163cd63738d7eebf3c62fb921c3848",
+    "assets_commit": "018281d24e19c09ec123fae9b2c79a73df5a495b",
+    "native_version": "0.57.0",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-24T07:02:08Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.57.0",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/435"
+  },
+  "build_identity": {
+    "server_build_id": "85f571bb07163cd63738d7eebf3c62fb921c3848",
+    "client_build_id": "85f571bb07163cd63738d7eebf3c62fb921c3848",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "closed_loop_multi_viewport_audit": "Real Chrome WebGL2 screenshots visually inspected via read_file across two closed-loop rounds on 1920x1080 Desktop, 1280x720 Laptop, 390x844 Mobile Portrait, and 844x390 Mobile Landscape confirming zero overlap, transparent top-docked alerts, bold slanted arcade typography, and 60/120fps distant portraits",
+      "npm_test": "30 files, 197 tests passed (including theme-discipline.test.ts)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 52 passed (1.3m)",
+      "e2e_live": "npm run e2e:live — 5 passed (13.1s, read-only)",
+      "standalone_verify_release": "git archive v0.57.0 extracted to an empty temporary directory + node server/cli.js --no-open --port 4504 + npm run e2e:verify-release — 11 passed (21.1s)",
+      "ci": "GitHub Actions CI/Test and type check green (31s)"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "6e9242fb-fdbf-46f2-af4b-c526b757172c",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.57.0",
+      "observed_build_id": "85f571bb07163cd63738d7eebf3c62fb921c3848",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.2.0",
+          "entry": "/games/starlight-burst-dfLBmggg.js",
+          "hash": "c5fb1e727049febeb2bb1d85dd16ca090a86d621e42e151c8cc640cebb112b1f",
+          "sizeBytes": 86740
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-C7Nzix8R.js",
+          "hash": "d69d68e7c4bc7176a83c5a4ab2c8d6bbaa048eab9d771e9f213a4ad2aabfa294",
+          "sizeBytes": 37318
+        },
+        "micro-kart": {
+          "version": "2.7.0",
+          "entry": "/games/micro-kart-DX6PKO8K.js",
+          "hash": "cf999e9d75457094fb175718cff79cd8af6037e74713a88d34536d99b5fbeee1",
+          "sizeBytes": 167706
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Removes button/pill backgrounds from .kart-hunt-banner/.kart-ko-toast/.kart-finish-banner and moves portal-lock alerts cleanly into the upper sky strip, applies bold slanted arcade racing typography with closed-loop responsive HUD scaling across 1920x1080/1280x720/390x844/844x390 viewports, drives floating distant kart portraits directly at 60/120fps WebGL2 render cadence via GPU-composited translate3d DOM refs, and defaults WebGL2 MSAA to crisp 720p (adaptive 540p fallback) with native GPU bilinear upsampling (@yolo-arcade/game-micro-kart@2.7.0)."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #434"
+}

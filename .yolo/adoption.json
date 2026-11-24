@@ -368,15 +368,16 @@
         "v0.53.1": "99c7c012e8db766a8e7c204ab6c1670742c97dab",
         "v0.53.2": "b3c9cc31c49a8367858eb5d02ae3a6b0e6da684a",
         "v0.54.0": "bcb67327e3915ff0bb85ce622508efb7bce24d0a",
-        "v0.55.0": "566b8806ab2ece4c9f3232c999ecec946313e89b"
+        "v0.55.0": "566b8806ab2ece4c9f3232c999ecec946313e89b",
+        "v0.56.0": "a174bab184037ad92a600738d6975db4ed91a0c6"
       },
       "published": {
-        "tag": "v0.56.0",
-        "commit": "a174bab184037ad92a600738d6975db4ed91a0c6",
-        "source_commit": "30172af6a5fbdd3194f3a3ee09c73e0f8ba93b80",
-        "published_at": "2026-11-24T04:56:38Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-24-v0560.json",
-        "note": "Minor Micro Kart pure transparent text HUD, flush-left multi-lap rail, 2x horizon guide & distant portraits release (#432, PR #433; @yolo-arcade/game-micro-kart@2.6.0). Removes all semi-transparent HUD boxes/buttons in favor of crisp floating text, fixes vertical progress rail horizontal jumping and supports simultaneous L1/L2/L3 wrap-around, doubles WebGL2 far clip to 760m with a faint speed-colored horizon centerline ribbon peeking over hills, and hovers transparent driver portraits + distance tags above distant same-track rivals up to 720m ahead; visually verified in Chrome WebGL2, 11/11 standalone npx e2e:verify-release, and deployed live to https://demo.yolo-dev.ai (Version ID: 2003692f-f9cb-4876-94a3-239c991530f7)."
+        "tag": "v0.57.0",
+        "commit": "9237b0ecc6f16e3349a8a03b7fbf8b1966e0d801",
+        "source_commit": "85f571bb07163cd63738d7eebf3c62fb921c3848",
+        "published_at": "2026-11-24T07:02:08Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-24-v0570.json",
+        "note": "Minor Micro Kart arcade HUD, 60/120fps distant portraits & 720p->540p MSAA release (#434, PR #435; @yolo-arcade/game-micro-kart@2.7.0). Removes backgrounds from portal-lock/KO/finish alerts and docks hunt banner in top sky strip, adds bold italic geometric arcade typography + closed-loop responsive HUD across 1920x1080/1280x720/390x844/844x390 viewports, drives distant kart portraits at native 60/120fps render rate via GPU-composited DOM refs, and defaults WebGL2 MSAA to crisp 720p (adaptive 540p fallback) with native GPU bilinear upsampling; visually verified across 4 viewports, 11/11 standalone npx e2e:verify-release, and deployed live to https://demo.yolo-dev.ai (Version ID: 6e9242fb-fdbf-46f2-af4b-c526b757172c)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -505,7 +506,8 @@
         ".yolo/reports/releases-observed-2026-11-23-v0532.json",
         ".yolo/reports/releases-observed-2026-11-24-v0540.json",
         ".yolo/reports/releases-observed-2026-11-24-v0550.json",
-        ".yolo/reports/releases-observed-2026-11-24-v0560.json"
+        ".yolo/reports/releases-observed-2026-11-24-v0560.json",
+        ".yolo/reports/releases-observed-2026-11-24-v0570.json"
       ]
     }
   },
