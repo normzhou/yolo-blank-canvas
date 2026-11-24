@@ -369,15 +369,16 @@
         "v0.53.2": "b3c9cc31c49a8367858eb5d02ae3a6b0e6da684a",
         "v0.54.0": "bcb67327e3915ff0bb85ce622508efb7bce24d0a",
         "v0.55.0": "566b8806ab2ece4c9f3232c999ecec946313e89b",
-        "v0.56.0": "a174bab184037ad92a600738d6975db4ed91a0c6"
+        "v0.56.0": "a174bab184037ad92a600738d6975db4ed91a0c6",
+        "v0.57.0": "9237b0ecc6f16e3349a8a03b7fbf8b1966e0d801"
       },
       "published": {
-        "tag": "v0.57.0",
-        "commit": "9237b0ecc6f16e3349a8a03b7fbf8b1966e0d801",
-        "source_commit": "85f571bb07163cd63738d7eebf3c62fb921c3848",
-        "published_at": "2026-11-24T07:02:08Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-24-v0570.json",
-        "note": "Minor Micro Kart arcade HUD, 60/120fps distant portraits & 720p->540p MSAA release (#434, PR #435; @yolo-arcade/game-micro-kart@2.7.0). Removes backgrounds from portal-lock/KO/finish alerts and docks hunt banner in top sky strip, adds bold italic geometric arcade typography + closed-loop responsive HUD across 1920x1080/1280x720/390x844/844x390 viewports, drives distant kart portraits at native 60/120fps render rate via GPU-composited DOM refs, and defaults WebGL2 MSAA to crisp 720p (adaptive 540p fallback) with native GPU bilinear upsampling; visually verified across 4 viewports, 11/11 standalone npx e2e:verify-release, and deployed live to https://demo.yolo-dev.ai (Version ID: 6e9242fb-fdbf-46f2-af4b-c526b757172c)."
+        "tag": "v0.58.0",
+        "commit": "328ea156f9d9f0fc30665879843f55d588529f64",
+        "source_commit": "39f7a36b9639722215288febf1517034b438f571",
+        "published_at": "2026-11-24T08:22:55Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-24-v0580.json",
+        "note": "Minor harmonized Start & Pause Menus release across all 3 games (#436, PR #437; prism-stack@2.2.0, starlight-burst@2.3.0, micro-kart@2.8.0). All 3 games now launch cleanly on their Start Menu with selection-first live previews (no premature dismissal), context-aware Start / Continue / Go! primary CTA, simplified Micro Kart option rows, and one unified borderless dark-obsidian arcade card language verified across two closed-loop Chrome screenshot rounds; 11/11 standalone v0.58.0 e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 2cc6c4c4-2817-44b6-8bfb-2b112e7098ee)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -507,7 +508,8 @@
         ".yolo/reports/releases-observed-2026-11-24-v0540.json",
         ".yolo/reports/releases-observed-2026-11-24-v0550.json",
         ".yolo/reports/releases-observed-2026-11-24-v0560.json",
-        ".yolo/reports/releases-observed-2026-11-24-v0570.json"
+        ".yolo/reports/releases-observed-2026-11-24-v0570.json",
+        ".yolo/reports/releases-observed-2026-11-24-v0580.json"
       ]
     }
   },

@@ -1,0 +1,82 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-24",
+  "observed_at": "2026-11-24",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#436",
+  "releases": [
+    {
+      "tag": "v0.58.0",
+      "commit": "328ea156f9d9f0fc30665879843f55d588529f64"
+    }
+  ],
+  "release": {
+    "tag": "v0.58.0",
+    "commit": "328ea156f9d9f0fc30665879843f55d588529f64",
+    "source_commit": "39f7a36b9639722215288febf1517034b438f571",
+    "assets_commit": "1af68972b161b17e82ceb59822b2ee71739dc999",
+    "native_version": "0.58.0",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-24T08:22:55Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.58.0",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/437"
+  },
+  "build_identity": {
+    "server_build_id": "39f7a36b9639722215288febf1517034b438f571",
+    "client_build_id": "39f7a36b9639722215288febf1517034b438f571",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "closed_loop_menu_audit": "Two-round closed-loop Chrome screenshots visually inspected via read_file across Prism Stack, Starlight Burst, and Micro Kart (1280x720 Desktop & 390x844 Mobile Portrait), harmonizing dark-obsidian borderless cards, accent-tinted pills, and compact zero-scroll option rows across all 3 titles",
+      "npm_test": "30 files, 197 tests passed (including theme-tokens.test.ts and theme-discipline.test.ts)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 52 passed (1.2m)",
+      "e2e_live": "npm run e2e:live — 5 passed (13.6s, read-only)",
+      "standalone_verify_release": "git archive v0.58.0 extracted to an empty temporary directory + node server/cli.js --no-open --port 4505 + npm run e2e:verify-release — 11 passed (19.8s)",
+      "ci": "GitHub Actions CI/Test and type check green (31s)"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "2cc6c4c4-2817-44b6-8bfb-2b112e7098ee",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.58.0",
+      "observed_build_id": "39f7a36b9639722215288febf1517034b438f571",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.3.0",
+          "entry": "/games/starlight-burst-Dago-lir.js",
+          "hash": "8260fbcbb5091090ab3987c7f66bf1128f20d6ab5a2689927f3218ba5b71d705",
+          "sizeBytes": 87227
+        },
+        "prism-stack": {
+          "version": "2.2.0",
+          "entry": "/games/prism-stack-DD3T2TOZ.js",
+          "hash": "3f7ba25d73f9ecd41b7b12900215f91800840da6fdcabbae6581e07a031aabf6",
+          "sizeBytes": 37768
+        },
+        "micro-kart": {
+          "version": "2.8.0",
+          "entry": "/games/micro-kart-g57rcyH8.js",
+          "hash": "13245dd3a40f1ed7534a6876f4b78f6c4f38bbf8b8ff82feb2df10044c2144ba",
+          "sizeBytes": 167917
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Starts all 3 YOLO Arcade games (Prism Stack, Starlight Burst, Micro Kart) cleanly on their Start Menu, switches option selection to selection-first live previews without premature menu dismissal, adapts the primary CTA cleanly between Start / Continue / Go!, and harmonizes all 3 game menus into one cohesive dark-obsidian borderless arcade design language with simplified option rows verified via closed-loop Chrome screenshots."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #436"
+}
