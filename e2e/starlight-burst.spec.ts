@@ -26,12 +26,12 @@ test('home gallery opens 2-player Starlight Burst, aims with 0.5° taps, channel
     await expect(page.getByRole('img', { name: 'Player 1 starlight board' })).toBeVisible();
     await expect(page.getByRole('img', { name: 'Player 2 starlight board' })).toBeVisible();
 
-    await expect(page.getByTestId('arcade-countdown')).toBeVisible();
-    await page.getByTestId('pause-button').click();
+    // Starts cleanly on the harmonized Start Menu with arrow-key focus on Start (#436)
     await expect(page.getByTestId('game-pause-menu')).toBeVisible();
+    await expect(page.getByTestId('pause-menu-resume')).toHaveText('Start');
     await expect(page.getByTestId('pause-menu-resume')).toHaveAttribute('data-menu-focused', 'true');
     await page.keyboard.press('ArrowDown');
-    await expect(page.getByTestId('pause-menu-restart')).toHaveAttribute('data-menu-focused', 'true');
+    await expect(page.getByTestId('pause-menu-exit')).toHaveAttribute('data-menu-focused', 'true');
     await page.keyboard.press('ArrowUp');
     await expect(page.getByTestId('pause-menu-resume')).toHaveAttribute('data-menu-focused', 'true');
     await page.keyboard.press('Enter');
@@ -188,8 +188,11 @@ test('home gallery opens 2-player Starlight Burst, aims with 0.5° taps, channel
     await expect(page.getByTestId('game-pause-menu')).toBeVisible();
     await expect(page.getByTestId('sb-2p-online-btn')).toBeDisabled();
 
-    // Switch to 1 Player mode, clear the solo constellation, and verify Space/Next round flow.
-    await page.getByRole('button', { name: '1 Player', exact: true }).click();
+    // Switch to 1P mode (selection stays on menu -> Go!), clear the solo constellation, and verify Space/Next round flow.
+    await page.getByRole('button', { name: '1P', exact: true }).click();
+    await expect(page.getByTestId('game-pause-menu')).toBeVisible();
+    await expect(page.getByTestId('pause-menu-resume')).toHaveText('Go!');
+    await page.getByTestId('pause-menu-resume').click();
     await expect(page.getByRole('img', { name: 'Player 2 starlight board' })).toHaveCount(0);
     await expect(page.getByTestId('arcade-countdown')).toBeVisible();
     await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 6000 });
@@ -228,21 +231,17 @@ test('home gallery opens 2-player Starlight Burst, aims with 0.5° taps, channel
     await expect(page.getByTestId('arcade-countdown')).toBeVisible();
     await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 6000 });
     await page.getByTestId('pause-button').click();
-    await page.getByRole('button', { name: '2 Player', exact: true }).click();
+    await page.getByRole('button', { name: '2P Local', exact: true }).click();
     await expect(page.getByRole('img', { name: 'Player 2 starlight board' })).toBeVisible();
 
-    // Step through the 15 constellations inside the Pause Menu.
-    await page.getByTestId('pause-button').click();
+    // Step through the 15 constellations seamlessly inside the Pause Menu without reopening it (#436).
     const stageBtn = page.getByTestId('sb-stage-button');
-    await expect(stageBtn).toHaveText('Wave: Random');
+    await expect(stageBtn).toHaveText('Random');
     await page.getByRole('button', { name: 'Next constellation', exact: true }).click();
-    await page.getByTestId('pause-button').click();
     await expect(stageBtn).toHaveText('Stage 1: Paired Blocks');
     await page.getByRole('button', { name: 'Previous constellation', exact: true }).click();
-    await page.getByTestId('pause-button').click();
-    await expect(stageBtn).toHaveText('Wave: Random');
+    await expect(stageBtn).toHaveText('Random');
     await page.getByRole('button', { name: 'Previous constellation', exact: true }).click();
-    await page.getByTestId('pause-button').click();
     await expect(stageBtn).toHaveText("Stage 15: Emperor's Citadel");
     await page.getByTestId('pause-menu-resume').click();
 
@@ -328,9 +327,8 @@ test('mobile and tablet touch support: phone (< 560px) enforces 1P mode, tablet 
     await page.goto(`${stub.base}?app=starlight-burst`);
     await expect(page.getByRole('img', { name: 'Player 1 starlight board' })).toBeVisible();
     await expect(page.getByRole('img', { name: 'Player 2 starlight board' })).toHaveCount(0);
-    await page.getByTestId('pause-button').click();
     await expect(page.getByTestId('game-pause-menu')).toBeVisible();
-    await expect(page.getByRole('button', { name: '2 Player', exact: true })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: '2P Local', exact: true })).toHaveCount(0);
     await page.getByTestId('pause-menu-resume').click();
     await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 6000 });
 
@@ -405,7 +403,8 @@ test('mobile and tablet touch support: phone (< 560px) enforces 1P mode, tablet 
     ] as const) {
       await page.setViewportSize({ width: w, height: h });
       await page.getByTestId('pause-button').click();
-      await page.getByRole('button', { name: '2 Player', exact: true }).click();
+      await page.getByRole('button', { name: '2P Local', exact: true }).click();
+      await page.getByTestId('pause-menu-resume').click();
       await expect(page.getByRole('img', { name: 'Player 1 starlight board' })).toBeVisible();
       await expect(page.getByRole('img', { name: 'Player 2 starlight board' })).toBeVisible();
       const cardTops = await page.evaluate(() =>
@@ -460,6 +459,8 @@ test('mobile and tablet touch support: phone (< 560px) enforces 1P mode, tablet 
     // Prism Stack touch controls work on phone without a keyboard.
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`${stub.base}?app=prism-stack`);
+    await expect(page.getByTestId('game-pause-menu')).toBeVisible();
+    await page.getByTestId('pause-menu-resume').click();
     await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 6000 });
     await expect(page.getByTestId('prism-touch-controls')).toBeVisible();
     await page.getByTestId('prism-touch-rotate').click();
@@ -500,7 +501,7 @@ test('2P Online networking (#236, #352): 2 independent browser sessions join via
     // 1. Online 2P Starlight Burst with full symmetric split-screen opponent arena (#352)
     await page1.goto(`${stub.base}?app=starlight-burst`);
     await expect(page1.getByRole('heading', { name: 'Starlight Burst' })).toBeVisible();
-    await page1.getByTestId('pause-button').click();
+    await expect(page1.getByTestId('game-pause-menu')).toBeVisible();
     await expect(page1.getByTestId('sb-2p-online-btn')).toBeEnabled({ timeout: 6000 });
     await page1.getByTestId('sb-2p-online-btn').click();
     await expect(page1.getByTestId('sb-invite-waiting')).toBeVisible();
@@ -569,7 +570,7 @@ test('2P Online networking (#236, #352): 2 independent browser sessions join via
     // 2. Online 2P Prism Stack with symmetric 9x18 split-screen & solid 36-cell Hazard Lock Bars (#352)
     await page1.goto(`${stub.base}?app=prism-stack`);
     await expect(page1.getByRole('heading', { name: 'Prism Stack' })).toBeVisible();
-    await page1.getByTestId('pause-button').click();
+    await expect(page1.getByTestId('game-pause-menu')).toBeVisible();
     await expect(page1.getByTestId('prism-2p-online-btn')).toBeEnabled({ timeout: 6000 });
     await page1.getByTestId('prism-2p-online-btn').click();
     await expect(page1.getByTestId('prism-invite-waiting')).toBeVisible();

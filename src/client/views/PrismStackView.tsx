@@ -412,6 +412,8 @@ export function PrismStackView({ onExit }: { onExit: () => void }) {
   const [game, setGame] = useState<PrismStackState>(() => createGame());
   const [game2, setGame2] = useState<PrismStackState>(() => createGame());
   const [localMode, setLocalMode] = useState<'1p' | '2p'>('1p');
+  const [hasStarted, setHasStarted] = useState<boolean>(false);
+  const [menuDirty, setMenuDirty] = useState<boolean>(false);
   const [paused, setPaused] = useState<boolean>(() => getSharedGamePaused());
   const [musicOn, setMusicOn] = useState<boolean>(() => getSharedMusicOn());
   const [sfxOn, setSfxOn] = useState<boolean>(() => getSharedSfxOn());
@@ -1175,7 +1177,7 @@ export function PrismStackView({ onExit }: { onExit: () => void }) {
   const pendingHazard2 = pendingHazardCount(game2);
 
   const startLocalRound = useCallback(
-    (mode: '1p' | '2p', resetWins = false) => {
+    (mode: '1p' | '2p', resetWins = false, stayPaused = false) => {
       if (isOnline2P) void getSharedNetplay().leaveRoom();
       if (isInviting) void getSharedNetplay().cancelInvite();
       rngRef.current = Math.random;
@@ -1192,12 +1194,18 @@ export function PrismStackView({ onExit }: { onExit: () => void }) {
       if (resetWins) {
         setWins([0, 0]);
       }
-      setSharedGamePaused(false);
-      triggerFreshCountdown();
-      if (getSharedMusicOn()) {
-        getSharedArcadeAudio().ensureContext();
+      if (stayPaused) {
+        setMenuDirty(true);
+      } else {
+        setHasStarted(true);
+        setMenuDirty(false);
+        setSharedGamePaused(false);
+        triggerFreshCountdown();
+        if (getSharedMusicOn()) {
+          getSharedArcadeAudio().ensureContext();
+        }
+        getSharedArcadeAudio().startNewGameTrack();
       }
-      getSharedArcadeAudio().startNewGameTrack();
     },
     [isInviting, isOnline2P, triggerFreshCountdown],
   );
@@ -1572,30 +1580,35 @@ export function PrismStackView({ onExit }: { onExit: () => void }) {
             className="game-pause-menu"
             role="dialog"
             aria-modal="true"
-            aria-label="Game paused"
+            aria-label={hasStarted ? 'Game paused' : 'Prism Stack menu'}
             data-testid="game-pause-menu"
+            data-menu-state={hasStarted ? 'paused' : 'start'}
             ref={pauseMenuRef}
           >
-            <span className="game-pause-kicker">Prism Stack</span>
-            <h3 className="game-pause-title">Paused</h3>
+            <div className="game-pause-head">
+              <span className="game-pause-kicker">
+                {hasStarted ? 'Game Paused' : 'Ready to Play'}
+              </span>
+              <div className="game-pause-title">{hasStarted ? 'Paused' : 'Prism Stack'}</div>
+            </div>
             <div className="game-pause-section">
-              <span className="stack-label">Game Mode</span>
-              <div className="filter-group" role="group" aria-label="Prism Stack player mode">
+              <span className="stack-label">Mode</span>
+              <div className="filter-group game-menu-pills" role="group" aria-label="Prism Stack player mode">
                 <button
                   type="button"
                   data-testid="prism-1p-btn"
                   aria-pressed={!isLocal2P && !isOnline2P && !isInviting}
-                  onClick={() => startLocalRound('1p', true)}
+                  onClick={() => startLocalRound('1p', true, true)}
                 >
-                  1 Player
+                  1P
                 </button>
                 <button
                   type="button"
                   data-testid="prism-2p-local-btn"
                   aria-pressed={isLocal2P}
-                  onClick={() => startLocalRound('2p', true)}
+                  onClick={() => startLocalRound('2p', true, true)}
                 >
-                  2 Player
+                  2P Local
                 </button>
                 <button
                   type="button"
@@ -1614,22 +1627,24 @@ export function PrismStackView({ onExit }: { onExit: () => void }) {
                       void getSharedNetplay().cancelInvite();
                     } else if (canSelectOnline2P) {
                       setLocalMode('1p');
+                      setHasStarted(true);
+                      setMenuDirty(false);
                       setSharedGamePaused(false);
                       void getSharedNetplay().sendInvite('prism-stack');
                     }
                   }}
                 >
                   {isOnline2P
-                    ? `2P online (${activePrismRoom.opponent.name})`
+                    ? `Online (${activePrismRoom.opponent.name})`
                     : isInviting
-                      ? `Waiting 2P… (${inviteSecondsLeft}s)`
-                      : '2P online'}
+                      ? `Waiting (${inviteSecondsLeft}s)`
+                      : '2P Online'}
                 </button>
               </div>
             </div>
             <div className="game-pause-section">
               <span className="stack-label">Audio</span>
-              <div className="filter-group" role="group" aria-label="Audio controls">
+              <div className="filter-group game-menu-pills" role="group" aria-label="Audio controls">
                 <button
                   type="button"
                   data-testid="pause-menu-sfx-btn"
@@ -1656,40 +1671,51 @@ export function PrismStackView({ onExit }: { onExit: () => void }) {
             <div className="game-pause-actions">
               <button
                 type="button"
-                className="primary"
+                className="primary game-menu-cta"
                 data-testid="pause-menu-resume"
-                aria-label="Continue game"
+                aria-label={!hasStarted ? 'Start game' : menuDirty ? 'Start new game' : 'Continue game'}
                 onClick={() => {
                   if (getSharedMusicOn()) {
                     getSharedArcadeAudio().ensureContext();
                   }
-                  if (countdown > 0) {
+                  if (!hasStarted || menuDirty) {
+                    setHasStarted(true);
+                    setMenuDirty(false);
+                    triggerFreshCountdown();
+                    getSharedArcadeAudio().startNewGameTrack();
+                  } else if (countdown > 0) {
                     triggerFreshCountdown();
                   }
                   setSharedGamePaused(false);
                 }}
               >
-                Continue
+                {!hasStarted ? 'Start' : menuDirty ? 'Go!' : 'Continue'}
               </button>
-              <button
-                type="button"
-                data-testid="pause-menu-restart"
-                aria-label="Restart game"
-                onClick={() => {
-                  handleNewOrRematch();
-                  setSharedGamePaused(false);
-                }}
-              >
-                {isOnline2P && matchEnded ? 'Next round' : 'New game'}
-              </button>
-              <button
-                type="button"
-                data-testid="pause-menu-exit"
-                aria-label="Close Prism Stack"
-                onClick={onExit}
-              >
-                Exit to menu
-              </button>
+              <div className="game-pause-secondary">
+                {hasStarted && !menuDirty ? (
+                  <button
+                    type="button"
+                    data-testid="pause-menu-restart"
+                    aria-label="Restart game"
+                    onClick={() => {
+                      setHasStarted(true);
+                      setMenuDirty(false);
+                      handleNewOrRematch();
+                      setSharedGamePaused(false);
+                    }}
+                  >
+                    {isOnline2P && matchEnded ? 'Next round' : 'Restart'}
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  data-testid="pause-menu-exit"
+                  aria-label="Close Prism Stack"
+                  onClick={onExit}
+                >
+                  Home
+                </button>
+              </div>
             </div>
           </div>
         </div>

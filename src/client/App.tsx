@@ -909,7 +909,9 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    setSharedGamePaused(Boolean(appId && getSharedOverlayOpen()));
+    const activeRoom = getSharedNetplay().getState().activeRoom;
+    const isJoiningRoom = Boolean(appId && activeRoom && activeRoom.gameId === appId);
+    setSharedGamePaused(Boolean(appId && (!isJoiningRoom || getSharedOverlayOpen())));
     getSharedNetplay().setCurrentApp(appId);
   }, [appId]);
 
@@ -1057,7 +1059,9 @@ export function App() {
     window.history.pushState(null, '', routeUrl(null, window.location.pathname, id));
     setPanelOpen(false);
     setView({ name: 'list' });
-    setSharedGamePaused(Boolean(id && getSharedOverlayOpen()));
+    const activeRoom = getSharedNetplay().getState().activeRoom;
+    const isJoiningRoom = Boolean(id && activeRoom && activeRoom.gameId === id);
+    setSharedGamePaused(Boolean(id && (!isJoiningRoom || getSharedOverlayOpen())));
     setAppId(id);
   }, []);
 

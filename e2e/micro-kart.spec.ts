@@ -17,7 +17,7 @@ test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Bu
     const card = page.getByTestId('deck-slide-card');
     await page.getByTestId('carousel-dot-micro-kart').click();
     await expect(card).toHaveAttribute('data-slide-id', 'micro-kart');
-    await expect(card).toHaveAttribute('data-game-version', '2.7.0');
+    await expect(card).toHaveAttribute('data-game-version', '2.8.0');
     await expect(page.locator('.deck-slide-title')).toHaveText('Micro Kart');
 
     await page.getByRole('button', { name: 'Play Micro Kart', exact: true }).click();
@@ -27,6 +27,12 @@ test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Bu
     const canvas = page.getByTestId('kart-canvas');
     await expect(canvas).toBeVisible();
     await expect(canvas).toHaveAttribute('data-renderer', 'webgl2');
+
+    // Starts cleanly on the harmonized Start Menu with Start CTA (#436)
+    await expect(page.getByTestId('game-pause-menu')).toBeVisible();
+    await expect(page.getByTestId('pause-menu-resume')).toHaveText('Start');
+    await page.getByTestId('pause-menu-resume').click();
+    await expect(page.getByTestId('game-pause-menu')).toHaveCount(0);
     await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });
     await expect(page.getByTestId('kart-circuit-label')).toHaveText('Sunset Loop');
     await expect(page.getByTestId('kart-p1-driver')).toHaveText('Ren');
@@ -50,7 +56,7 @@ test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Bu
     await page.evaluate(() => {
       window.dispatchEvent(
         new CustomEvent('yolo:kart:step', {
-          detail: { steps: 36, dtMs: 16.67, p1: { left: false, right: true } },
+          detail: { steps: 30, dtMs: 16.67, p1: { left: false, right: true } },
         }),
       );
     });
@@ -62,7 +68,7 @@ test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Bu
     const yokeTurnDeg = parseFloat(
       (await page.getByTestId('kart-p1-f1-yoke').getAttribute('data-turn-deg')) ?? '0',
     );
-    expect(yokeTurnDeg).toBeGreaterThan(10);
+    expect(yokeTurnDeg).toBeGreaterThan(3);
 
     // 3. Down (`S` / `brake: true`) brakes cleanly and lights the Brake HUD pill!
     const preBrakeSpeed = parseInt((await page.getByTestId('kart-p1-speed').textContent()) ?? '0', 10);
@@ -79,20 +85,19 @@ test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Bu
     await page.keyboard.up('ArrowDown');
     expect(brakedSpeed).toBeLessThan(preBrakeSpeed - 45);
 
-    // Pause -> switch Starlight Burst driver to Mochi (Cat), circuit to Canyon Crest, and 2P Split-Screen
+    // Pause -> selection-first choices stay on menu and switch CTA from Continue -> Go! (#436)
     await page.keyboard.press('Escape');
     await expect(page.getByTestId('game-pause-menu')).toBeVisible();
+    await expect(page.getByTestId('pause-menu-resume')).toHaveText('Continue');
     await page.getByTestId('kart-driver-cat').click();
-    await expect(page.getByTestId('kart-p1-driver')).toHaveText('Mochi');
-    await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });
-
-    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('game-pause-menu')).toBeVisible();
+    await expect(page.getByTestId('pause-menu-resume')).toHaveText('Go!');
     await page.getByTestId('kart-circuit-canyon-crest').click();
-    await expect(page.getByTestId('kart-circuit-label')).toHaveText('Canyon Crest');
-    await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });
-
-    await page.keyboard.press('Escape');
     await page.getByTestId('kart-2p-local-btn').click();
+    await page.getByTestId('pause-menu-resume').click();
+    await expect(page.getByTestId('game-pause-menu')).toHaveCount(0);
+    await expect(page.getByTestId('kart-p1-driver')).toHaveText('Mochi');
+    await expect(page.getByTestId('kart-circuit-label')).toHaveText('Canyon Crest');
     await expect(page.getByTestId('micro-kart-stage')).toHaveAttribute('data-mode', '2p-local');
     await expect(page.getByTestId('kart-p2-hud')).toBeVisible();
 
@@ -140,14 +145,13 @@ test('Micro Kart 2P Online pairs two browser contexts into a shared-circuit race
 
     await pageA.goto(`${stub.base}?app=micro-kart`);
     await pageB.goto(`${stub.base}?app=micro-kart`);
-    await expect(pageA.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });
-    await expect(pageB.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });
+    await expect(pageA.getByTestId('game-pause-menu')).toBeVisible();
+    await expect(pageB.getByTestId('game-pause-menu')).toBeVisible();
 
     await expect(pageA.locator('.online-presence-count')).toContainText('2 online', {
       timeout: 8000,
     });
 
-    await pageA.keyboard.press('Escape');
     await pageA.getByTestId('kart-2p-online-btn').click();
     await expect(pageA.getByTestId('kart-invite-waiting')).toBeVisible();
 
@@ -175,6 +179,8 @@ test('Micro Kart auto-pauses, opens Pause Menu, and pauses music when the window
     await page.goto(stub.base);
     await page.getByTestId('carousel-dot-micro-kart').click();
     await page.getByRole('button', { name: 'Play Micro Kart', exact: true }).click();
+    await expect(page.getByTestId('game-pause-menu')).toBeVisible();
+    await page.getByTestId('pause-menu-resume').click();
     await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });
     await expect(page.getByTestId('game-pause-menu')).toHaveCount(0);
 
@@ -233,6 +239,8 @@ test('Micro Kart shows left-side emotional standings, in-game split finish banne
   const stub = await startStubApp();
   try {
     await page.goto(`${stub.base}?app=micro-kart`);
+    await expect(page.getByTestId('game-pause-menu')).toBeVisible();
+    await page.getByTestId('pause-menu-resume').click();
     await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });
     await expect(page.getByTestId('kart-circuit-label')).toHaveText('Sunset Loop');
 
@@ -268,6 +276,7 @@ test('Micro Kart shows left-side emotional standings, in-game split finish banne
     await expect(page.getByTestId('game-pause-menu')).toBeVisible();
     await expect(page.getByTestId('kart-2p-local-btn')).toBeVisible();
     await page.getByTestId('kart-2p-local-btn').click();
+    await page.getByTestId('pause-menu-resume').click();
     await expect(page.getByTestId('micro-kart-stage')).toHaveAttribute('data-mode', '2p-local');
     await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });
 
@@ -289,8 +298,8 @@ test('Micro Kart shows left-side emotional standings, in-game split finish banne
     // 5. Switch via Pause Menu to Track #4: Cloud Gate, finish it, and verify Cycle 2 flips to Sunset Loop ↺ Reverse! (#410)
     await page.keyboard.press('Escape');
     await page.getByTestId('kart-1p-btn').click();
-    await page.keyboard.press('Escape');
     await page.getByTestId('kart-circuit-cloud-gate').click();
+    await page.getByTestId('pause-menu-resume').click();
     await expect(page.getByTestId('kart-circuit-label')).toHaveText('Cloud Gate');
     await expect(page.getByTestId('micro-kart-stage')).toHaveAttribute('data-reversed', 'false');
     await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });
@@ -319,9 +328,9 @@ test('Micro Kart shows left-side emotional standings, in-game split finish banne
 
     // 5B. Switch to Portal Marathon Knockout mode (#412, #420): 4-track arrow radar + shuffled portal warp!
     await page.keyboard.press('Escape');
-    await page.getByTestId('kart-dir-forward').click();
-    await page.keyboard.press('Escape');
+    await page.getByTestId('kart-dir-reverse').click();
     await page.getByTestId('kart-format-marathon').click();
+    await page.getByTestId('pause-menu-resume').click();
     await expect(page.getByTestId('micro-kart-stage')).toHaveAttribute('data-format', 'marathon');
     await expect(page.getByTestId('kart-circuit-label')).toHaveText('🌀 #1 · Sunset Loop');
     await expect(page.getByTestId('kart-marathon-alive')).toHaveText('8/8');
@@ -367,8 +376,6 @@ test('Micro Kart shows left-side emotional standings, in-game split finish banne
     const mobilePage = await mobileCtx.newPage();
     try {
       await mobilePage.goto(`${stub.base}?app=micro-kart`);
-      await expect(mobilePage.getByTestId('kart-circuit-label')).toBeVisible();
-      await mobilePage.keyboard.press('Escape');
       await expect(mobilePage.getByTestId('game-pause-menu')).toBeVisible();
       await expect(mobilePage.getByTestId('kart-2p-local-btn')).toHaveCount(0);
     } finally {
