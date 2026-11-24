@@ -1,0 +1,83 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-24",
+  "observed_at": "2026-11-24",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#438",
+  "releases": [
+    {
+      "tag": "v0.59.0",
+      "commit": "38a62564d94ff3ade9c2acae01b8537d4163dd7c"
+    }
+  ],
+  "release": {
+    "tag": "v0.59.0",
+    "commit": "38a62564d94ff3ade9c2acae01b8537d4163dd7c",
+    "source_commit": "d5e80bbb4e101042e7cdd565fc10bb5a0f970942",
+    "assets_commit": "c629e5de26505ef59afceb3320b220f66944a597",
+    "native_version": "0.59.0",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-24T18:01:17Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.59.0",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/439"
+  },
+  "build_identity": {
+    "server_build_id": "d5e80bbb4e101042e7cdd565fc10bb5a0f970942",
+    "client_build_id": "d5e80bbb4e101042e7cdd565fc10bb5a0f970942",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "closed_loop_online_ui_audit": "Real 3-browser Chrome screenshots visually inspected via read_file across notification toast (v1->v2 spacing fix), host & guest 8P waiting lobby (with greyed-out human companion), and live spectator HUD bar with best-CPU drop-in takeover",
+      "npm_test": "31 files, 200 tests passed (including new test/kart-online-room.test.ts)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 52 passed (1.2m, including 3-browser 8P authoritative Micro Kart test)",
+      "e2e_live": "npm run e2e:live — 5 passed (14.2s, read-only)",
+      "standalone_verify_release": "git archive v0.59.0 extracted to an empty temporary directory + node server/cli.js --no-open --port 4506 + npm run e2e:verify-release — 11 passed (20.5s)",
+      "ci": "GitHub Actions CI/Test and type check green (37s)"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "7199ba8e-c736-49b9-89c1-80a754af90cb",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.59.0",
+      "observed_build_id": "d5e80bbb4e101042e7cdd565fc10bb5a0f970942",
+      "live_do_probe": "GET https://demo.yolo-dev.ai/api/netplay?clientId=smoke_probe -> 200 OK with kartRoom & kartClosedNotice fields",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.3.0",
+          "entry": "/games/starlight-burst-DkE8OQwP.js",
+          "hash": "434fa7329cbd872ccf7ac2cb919678f6d2338265a8ac54922124d7807fd384f6",
+          "sizeBytes": 87227
+        },
+        "prism-stack": {
+          "version": "2.2.0",
+          "entry": "/games/prism-stack-DSAM1YLh.js",
+          "hash": "13370bb93d2e863a4e90eeed26666b23804851936098fb9aab527c992ed19503",
+          "sizeBytes": 37768
+        },
+        "micro-kart": {
+          "version": "2.9.0",
+          "entry": "/games/micro-kart-DAm6HJ2O.js",
+          "hash": "f9c5443f7b0b1b4c52503ec3f12f86b3b9f9803ed47d3f98af23ebb029dfbec7",
+          "sizeBytes": 177405
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Implements up to 8-player simultaneous server-authoritative Online Micro Kart (@yolo-arcade/game-micro-kart@2.9.0) on Cloudflare Durable Objects (NetplayHub) and local Express, featuring a single esbuild-compiled simulation engine, 20Hz authoritative snapshots (120Hz substeps) with zero idle DO cost, waiting lobby with Join/Spectate/Dismiss notifications and exact 3 exit conditions (Go!, 2-minute timeout, all dismissed), greyed-out unique Starlight companion selection, anytime live spectating with best-CPU drop-in takeover, and seamless disconnect->CPU conversion."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #438"
+}
