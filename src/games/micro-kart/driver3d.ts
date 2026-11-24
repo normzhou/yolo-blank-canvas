@@ -304,7 +304,8 @@ export function emitAnimalDriverMesh(
   }
 
   // 4. Expressive 3D Snout, Button Nose, Eyes & Rosy Cheeks (visible from side/overtake/turntable!)
-  const snoutLen = kart.character === 'fox' || kart.character === 'dog' ? 0.53 : 0.44;
+  const species = spec.species;
+  const snoutLen = species === 'fox' || species === 'dog' ? 0.53 : 0.44;
   emitPyramid(
     pushPoly,
     hxf(-0.15, -0.16, 0.36),
@@ -322,7 +323,7 @@ export function emitAnimalDriverMesh(
       hxf(0.045, -0.05, snoutLen + 0.01),
       hxf(0, -0.1, snoutLen + 0.01),
     ],
-    kart.character === 'cat' || kart.character === 'bunny' ? [244, 92, 132] : darkCharcoal,
+    species === 'cat' || species === 'bunny' ? [244, 92, 132] : darkCharcoal,
     -0.45,
   );
   // Expressive eyes + bright white eye-shine glint + rosy cheeks on front-side temples
@@ -365,7 +366,7 @@ export function emitAnimalDriverMesh(
   // 5. Species-Specific 3D Ears, Accessories & Animated Rear Tails!
   const earWind = pose.earWindRatio;
   const earGShiftX = -pose.turnLean * 0.09;
-  if (kart.character === 'fox') {
+  if (species === 'fox') {
     // Wide-set pointed Fox Ears swept backward by high-speed wind + fluffy side cheek tufts!
     const sweepMidZ = -earWind * 0.16;
     const sweepTipZ = -earWind * 0.36;
@@ -429,7 +430,7 @@ export function emitAnimalDriverMesh(
     return;
   }
 
-  if (kart.character === 'cat') {
+  if (species === 'cat') {
     // Perked Cat Ears swept back by rushing wind + sculpted 3D Rose Satin Ear Bow!
     const catSweepZ = -earWind * 0.28;
     const catDropY = -earWind * 0.1;
@@ -544,7 +545,7 @@ export function emitAnimalDriverMesh(
     return;
   }
 
-  if (kart.character === 'dog') {
+  if (species === 'dog') {
     // Fuller 2-Segment Bouncy Floppy Puppy Ears streaming backward in high-speed wind!
     const bounce = Math.sin(timeMs * 0.02 + kart.slot) * (0.04 + earWind * 0.05);
     const dogBackZ = -earWind * 0.34;

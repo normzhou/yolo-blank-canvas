@@ -201,19 +201,19 @@ function KartDriverPortrait({
 
       <g className="kart-portrait-head">
         {/* Species-specific ears */}
-        {character === 'bunny' ? (
+        {spec.species === 'bunny' ? (
           <g>
             <ellipse cx="-7.5" cy="-16.5" rx="4.2" ry="10.2" transform="rotate(-12 -7.5 -16.5)" fill={fur} stroke={ink} strokeWidth="1.2" />
             <ellipse cx="-7.5" cy="-16.2" rx="2.1" ry="6.8" transform="rotate(-12 -7.5 -16.2)" fill="#f8a9c4" />
             <ellipse cx="7.5" cy="-16.5" rx="4.2" ry="10.2" transform="rotate(12 7.5 -16.5)" fill={fur} stroke={ink} strokeWidth="1.2" />
             <ellipse cx="7.5" cy="-16.2" rx="2.1" ry="6.8" transform="rotate(12 7.5 -16.2)" fill="#f8a9c4" />
           </g>
-        ) : character === 'dog' ? (
+        ) : spec.species === 'dog' ? (
           <g>
             <ellipse cx="-13.5" cy="-2.5" rx="4.8" ry="9.2" transform="rotate(16 -13.5 -2.5)" fill={inner} stroke={ink} strokeWidth="1.2" />
             <ellipse cx="13.5" cy="-2.5" rx="4.8" ry="9.2" transform="rotate(-16 13.5 -2.5)" fill={inner} stroke={ink} strokeWidth="1.2" />
           </g>
-        ) : character === 'cat' ? (
+        ) : spec.species === 'cat' ? (
           <g>
             <polygon points="-13,-7 -11,-20 -2,-12" fill={fur} stroke={ink} strokeWidth="1.2" strokeLinejoin="round" />
             <polygon points="-11,-9 -10,-16.5 -4.5,-11.5" fill="#f7a8be" />
@@ -232,6 +232,26 @@ function KartDriverPortrait({
           </g>
         )}
 
+        {/* Girl persona ear bow / sakura blossom clip */}
+        {spec.persona === 'girl' ? (
+          spec.species === 'dog' ? (
+            <g transform="translate(8.5, -11.5)">
+              <circle cx="0" cy="-2.4" r="2.1" fill="#ffa6c6" />
+              <circle cx="2.3" cy="-0.7" r="2.1" fill="#ffa6c6" />
+              <circle cx="1.4" cy="1.9" r="2.1" fill="#ffa6c6" />
+              <circle cx="-1.4" cy="1.9" r="2.1" fill="#ffa6c6" />
+              <circle cx="-2.3" cy="-0.7" r="2.1" fill="#ffa6c6" />
+              <circle cx="0" cy="0" r="1.4" fill="#ffd54f" />
+            </g>
+          ) : (
+            <g transform="translate(8.5, -12.5) rotate(14)">
+              <ellipse cx="-3.6" cy="0" rx="3.4" ry="2.2" fill={accent} stroke={ink} strokeWidth="0.9" />
+              <ellipse cx="3.6" cy="0" rx="3.4" ry="2.2" fill={accent} stroke={ink} strokeWidth="0.9" />
+              <circle cx="0" cy="0" r="1.7" fill="#ffd54f" stroke={ink} strokeWidth="0.8" />
+            </g>
+          )
+        ) : null}
+
         {/* Rounded head silhouette */}
         <ellipse cx="0" cy="-1.5" rx="13.5" ry="12.2" fill={fur} stroke={ink} strokeWidth="1.25" />
         {/* Soft cheek muzzle patch */}
@@ -246,7 +266,7 @@ function KartDriverPortrait({
         ) : null}
 
         {/* Cat whiskers */}
-        {character === 'cat' ? (
+        {spec.species === 'cat' ? (
           <g stroke={ink} strokeWidth="0.9" strokeLinecap="round" opacity="0.65">
             <line x1="-15.5" y1="0.2" x2="-10.5" y2="1.0" />
             <line x1="-15.2" y1="2.8" x2="-10.5" y2="2.5" />
@@ -300,7 +320,7 @@ function KartDriverPortrait({
         )}
 
         {/* Cute nose */}
-        <ellipse cx="0" cy="0.8" rx={character === 'dog' ? 2.1 : 1.5} ry="1.1" fill={character === 'cat' || character === 'bunny' ? '#ff7c9f' : ink} />
+        <ellipse cx="0" cy="0.8" rx={spec.species === 'dog' ? 2.1 : 1.5} ry="1.1" fill={spec.species === 'cat' || spec.species === 'bunny' ? '#ff7c9f' : ink} />
 
         {/* Expressive mouth */}
         {mood === 'happy' ? (
@@ -815,7 +835,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
   const [standings, setStandings] = useState<StandingEntry[]>([]);
   const [marathonLeadGap, setMarathonLeadGap] = useState<number>(0);
   const [marathonHunt, setMarathonHunt] = useState<MarathonHuntState | null>(null);
-  const [survivorsCount, setSurvivorsCount] = useState<number>(4);
+  const [survivorsCount, setSurvivorsCount] = useState<number>(8);
   const [portalFlashKey, setPortalFlashKey] = useState<number>(0);
   const [koToast, setKoToast] = useState<string | null>(null);
   const [p1Hud, setP1Hud] = useState<HudTelemetry>({
@@ -2002,7 +2022,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
           const pb = b.eliminated ? -1 : b.verticalProgress;
           return pa - pb || b.place - a.place;
         });
-        const colClearance = isSplit2P ? 9.2 : 7.0;
+        const colClearance = isSplit2P ? 7.8 : 5.8;
         const colLastBottom = [-999, -999];
         const placed = sortedBottomUp.map((entry) => {
           const exactPct = entry.eliminated ? 0 : entry.verticalProgress * 100;
@@ -2061,7 +2081,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                   <KartDriverPortrait
                     character={entry.character}
                     mood={entry.mood}
-                    size={isSplit2P ? 28 : 34}
+                    size={isSplit2P ? 24 : 28}
                   />
                   <div className="kart-standing-text">
                     <span className="kart-standing-line1">
@@ -2134,7 +2154,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                 <div className="kart-telemetry-item">
                   <span className="stack-label">Alive</span>
                   <span className="kart-telemetry-val" data-testid="kart-marathon-alive">
-                    {survivorsCount}/{standings.length || 4}
+                    {survivorsCount}/{standings.length || 8}
                   </span>
                 </div>
                 <div className="kart-telemetry-item">
@@ -2525,12 +2545,13 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
             </div>
 
             <div className="game-pause-section">
-              <span className="stack-label">Driver</span>
-              <div className="filter-group" role="group" aria-label="Driver selection">
+              <span className="stack-label">Driver (8 Starlight Companions)</span>
+              <div className="filter-group kart-driver-picker" role="group" aria-label="Driver selection">
                 {KART_DRIVERS.map((drv) => (
                   <button
                     key={drv.id}
                     type="button"
+                    className="kart-driver-choice"
                     data-testid={`kart-driver-${drv.id}`}
                     aria-pressed={p1Character === drv.id}
                     onClick={() => {
@@ -2538,7 +2559,8 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                       resetRace(circuitId, effectiveMode, undefined, undefined, undefined, drv.id);
                     }}
                   >
-                    {drv.driverName} · {drv.speciesLabel}
+                    <KartDriverPortrait character={drv.id} mood="normal" size={22} />
+                    <span>{drv.driverName}</span>
                   </button>
                 ))}
               </div>

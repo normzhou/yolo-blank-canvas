@@ -8,7 +8,16 @@ export type CircuitId = 'sunset-loop' | 'canyon-crest' | 'starlight-ring' | 'clo
 export type KartRaceMode = '1p' | '2p-local' | '2p-online';
 export type KartRaceFormat = 'grand-prix' | 'marathon';
 export type BoostKind = 'none' | 'mini' | 'ultra' | 'pad';
-export type DriverCharacterId = 'fox' | 'cat' | 'dog' | 'bunny';
+export type DriverSpecies = 'fox' | 'cat' | 'dog' | 'bunny';
+export type DriverCharacterId =
+  | 'fox'
+  | 'kiko'
+  | 'yuzu'
+  | 'cat'
+  | 'dog'
+  | 'hana'
+  | 'poko'
+  | 'bunny';
 export type KartPortraitMood = 'happy' | 'normal' | 'anxious' | 'cry';
 
 /**
@@ -33,6 +42,8 @@ export function getKartPortraitMood(
 
 export interface KartDriverSpec {
   readonly id: DriverCharacterId;
+  readonly species: DriverSpecies;
+  readonly persona: 'boy' | 'girl';
   readonly speciesLabel: string;
   readonly driverName: string;
   readonly furPrimary: [number, number, number];
@@ -47,6 +58,8 @@ export interface KartDriverSpec {
 export const KART_DRIVERS: readonly KartDriverSpec[] = [
   {
     id: 'fox',
+    species: 'fox',
+    persona: 'boy',
     speciesLabel: 'Fox',
     driverName: 'Ren',
     furPrimary: [242, 160, 61],
@@ -58,7 +71,37 @@ export const KART_DRIVERS: readonly KartDriverSpec[] = [
     mapGlow: '#4dd0e1',
   },
   {
+    id: 'kiko',
+    species: 'fox',
+    persona: 'girl',
+    speciesLabel: 'Fox',
+    driverName: 'Kiko',
+    furPrimary: [244, 132, 124],
+    furSecondary: [246, 215, 67],
+    furCream: [255, 248, 244],
+    scarfRgb: [246, 215, 67],
+    kartPrimary: [244, 114, 148],
+    kartAccent: [246, 215, 67],
+    mapGlow: '#ff8a80',
+  },
+  {
+    id: 'yuzu',
+    species: 'cat',
+    persona: 'boy',
+    speciesLabel: 'Cat',
+    driverName: 'Yuzu',
+    furPrimary: [246, 206, 78],
+    furSecondary: [232, 162, 52],
+    furCream: [255, 252, 240],
+    scarfRgb: [72, 209, 204],
+    kartPrimary: [64, 196, 170],
+    kartAccent: [255, 224, 102],
+    mapGlow: '#ffd54f',
+  },
+  {
     id: 'cat',
+    species: 'cat',
+    persona: 'girl',
     speciesLabel: 'Cat',
     driverName: 'Mochi',
     furPrimary: [176, 107, 216],
@@ -67,10 +110,12 @@ export const KART_DRIVERS: readonly KartDriverSpec[] = [
     scarfRgb: [224, 96, 95],
     kartPrimary: [246, 215, 67],
     kartAccent: [224, 96, 95],
-    mapGlow: '#b06bd8',
+    mapGlow: '#c084fc',
   },
   {
     id: 'dog',
+    species: 'dog',
+    persona: 'boy',
     speciesLabel: 'Dog',
     driverName: 'Koro',
     furPrimary: [95, 194, 126],
@@ -82,7 +127,37 @@ export const KART_DRIVERS: readonly KartDriverSpec[] = [
     mapGlow: '#5fc27e',
   },
   {
+    id: 'hana',
+    species: 'dog',
+    persona: 'girl',
+    speciesLabel: 'Dog',
+    driverName: 'Hana',
+    furPrimary: [106, 214, 206],
+    furSecondary: [244, 138, 168],
+    furCream: [252, 255, 254],
+    scarfRgb: [244, 138, 168],
+    kartPrimary: [255, 154, 178],
+    kartAccent: [148, 236, 224],
+    mapGlow: '#64ffda',
+  },
+  {
+    id: 'poko',
+    species: 'bunny',
+    persona: 'boy',
+    speciesLabel: 'Bunny',
+    driverName: 'Poko',
+    furPrimary: [102, 168, 244],
+    furSecondary: [246, 215, 67],
+    furCream: [248, 252, 255],
+    scarfRgb: [246, 215, 67],
+    kartPrimary: [88, 132, 246],
+    kartAccent: [250, 224, 108],
+    mapGlow: '#60a5fa',
+  },
+  {
     id: 'bunny',
+    species: 'bunny',
+    persona: 'girl',
     speciesLabel: 'Bunny',
     driverName: 'Momo',
     furPrimary: [224, 96, 95],
@@ -91,7 +166,7 @@ export const KART_DRIVERS: readonly KartDriverSpec[] = [
     scarfRgb: [246, 215, 67],
     kartPrimary: [176, 107, 216],
     kartAccent: [246, 215, 67],
-    mapGlow: '#e0605f',
+    mapGlow: '#f472b6',
   },
 ];
 
@@ -235,28 +310,60 @@ export const KART_LIVERIES: readonly KartLiveries[] = [
     helmet: [248, 250, 252],
   },
   {
-    id: 'blaze',
-    name: 'Blaze Coral',
-    primary: [240, 101, 95],
-    accent: [255, 214, 102],
-    glow: '#f0655f',
-    helmet: [254, 242, 242],
+    id: 'sakura',
+    name: 'Sakura Rose',
+    primary: [244, 114, 148],
+    accent: [255, 224, 112],
+    glow: '#ff8a80',
+    helmet: [255, 245, 248],
   },
   {
-    id: 'verde',
-    name: 'Verde Mint',
-    primary: [63, 185, 80],
-    accent: [230, 255, 180],
-    glow: '#3fb950',
-    helmet: [240, 253, 244],
+    id: 'citrine',
+    name: 'Citrine Teal',
+    primary: [64, 196, 170],
+    accent: [255, 224, 102],
+    glow: '#ffd54f',
+    helmet: [254, 252, 236],
   },
   {
     id: 'astral',
     name: 'Astral Violet',
     primary: [188, 140, 255],
     accent: [125, 211, 252],
-    glow: '#bc8cff',
+    glow: '#c084fc',
     helmet: [250, 245, 255],
+  },
+  {
+    id: 'verde',
+    name: 'Verde Mint',
+    primary: [63, 185, 80],
+    accent: [230, 255, 180],
+    glow: '#5fc27e',
+    helmet: [240, 253, 244],
+  },
+  {
+    id: 'aqua',
+    name: 'Aqua Blossom',
+    primary: [255, 154, 178],
+    accent: [148, 236, 224],
+    glow: '#64ffda',
+    helmet: [240, 255, 252],
+  },
+  {
+    id: 'cobalt',
+    name: 'Cobalt Star',
+    primary: [88, 132, 246],
+    accent: [250, 224, 108],
+    glow: '#60a5fa',
+    helmet: [240, 246, 255],
+  },
+  {
+    id: 'blaze',
+    name: 'Blaze Coral',
+    primary: [240, 101, 95],
+    accent: [255, 214, 102],
+    glow: '#f472b6',
+    helmet: [254, 242, 242],
   },
 ];
 
@@ -266,7 +373,7 @@ export interface MarathonStage {
 }
 
 export interface KartState {
-  readonly slot: 0 | 1 | 2 | 3;
+  readonly slot: number;
   readonly name: string;
   readonly character: DriverCharacterId;
   readonly isHuman: boolean;
@@ -1352,7 +1459,7 @@ export function createRaceState(
   const rng = mulberry32(seed);
   const L = circuit.totalLength;
 
-  const allChars: DriverCharacterId[] = ['fox', 'cat', 'dog', 'bunny'];
+  const allChars: DriverCharacterId[] = KART_DRIVERS.map((d) => d.id);
   const p1Char: DriverCharacterId = options?.p1Character ?? 'fox';
   const remainingAfterP1 = allChars.filter((c) => c !== p1Char);
   const p2Char: DriverCharacterId =
@@ -1360,24 +1467,23 @@ export function createRaceState(
       ? options.p2Character
       : remainingAfterP1[0]!;
   const aiChars = allChars.filter((c) => c !== p1Char && c !== p2Char);
-  const slotCharacters: DriverCharacterId[] = [
-    p1Char,
-    p2Char,
-    aiChars[0] ?? 'dog',
-    aiChars[1] ?? 'bunny',
-  ];
+  const slotCharacters: DriverCharacterId[] = [p1Char, p2Char, ...aiChars];
 
-  // Staggered 2x2 starting grid behind the start/finish arch:
-  // Rivals (`slot 2, 3`) start on row 1 (`11m` behind line) and human karts (`slot 0, 1`)
-  // start right behind them (`20m` behind line) with a clear view of the pack & arch!
+  // Staggered 4x2 F1 starting grid behind the start/finish arch (#430):
+  // 6 AI rivals fill rows 1-3 (`10m, 18m, 26m` behind line) and human karts (`slot 0, 1`)
+  // launch from row 4 (`34m` behind line) looking straight down an epic 8-kart pack!
   const gridOffsets: ReadonlyArray<{ backMeters: number; lat: number }> = [
-    { backMeters: 20, lat: -3.8 },
-    { backMeters: 20, lat: 3.8 },
-    { backMeters: 11, lat: -3.8 },
-    { backMeters: 11, lat: 3.8 },
+    { backMeters: 34, lat: -3.8 },
+    { backMeters: 34, lat: 3.8 },
+    { backMeters: 26, lat: -3.8 },
+    { backMeters: 26, lat: 3.8 },
+    { backMeters: 18, lat: -3.8 },
+    { backMeters: 18, lat: 3.8 },
+    { backMeters: 10, lat: -3.8 },
+    { backMeters: 10, lat: 3.8 },
   ];
 
-  const count = mode === '2p-online' ? 2 : 4;
+  const count = mode === '2p-online' ? 2 : 8;
   const karts: KartState[] = [];
 
   for (let slot = 0; slot < count; slot += 1) {
@@ -1398,7 +1504,7 @@ export function createRaceState(
           : driverSpec.driverName;
 
     karts.push({
-      slot: slot as 0 | 1 | 2 | 3,
+      slot,
       name: defaultName,
       character: charId,
       isHuman,
@@ -1450,11 +1556,11 @@ export function createRaceState(
       finishMs: null,
       place: slot + 1,
       aiTargetLat: (rng() - 0.5) * 10,
-      aiBaseSkill: 0.92 + slot * 0.025 + rng() * 0.03,
+      aiBaseSkill: 0.88 + (slot / Math.max(1, count - 1)) * 0.11 + rng() * 0.025,
       aiInput: { left: false, right: false, brake: false },
-      // Stagger each CPU slot's first decision across [60..340] ms so rivals start unsynchronized (#394, #396)
+      // Stagger each CPU slot's first decision across [60..340] ms so all 7 AI rivals start unsynchronized (#394, #430)
       aiNextDecisionMs:
-        ([0, 75, 195, 315][slot] ?? slot * 95) + Math.round(rng() * 30),
+        ([0, 65, 115, 165, 210, 255, 300, 340][slot] ?? slot * 50) + Math.round(rng() * 25),
       aiLastDecisionMs: null,
       aiDecisionCount: 0,
       aiRngState: ((seed ^ ((slot + 1) * 0x9e3779b1)) >>> 0) || 1,

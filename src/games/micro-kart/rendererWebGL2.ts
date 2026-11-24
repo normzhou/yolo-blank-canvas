@@ -557,12 +557,14 @@ function buildDriverTorsoMesh(spec: KartDriverSpec): MeshBuilder {
   );
   // Cozy cream plush tummy patch visible from the front!
   emitSmoothEllipsoid(mb, 0, 0.8 - py, 0.08 - pz, 0.21, 0.2, 0.1, 10, 6, () => spec.furCream, MAT_PLUSH);
-  // Cozy Starlight Burst neckerchief collar (+ Mochi's golden jingle bell / Ren's star badge!)
+  // Cozy Starlight Burst neckerchief collar (+ persona pendants: bells, stars, bow-ties!)
   emitSmoothEllipsoid(mb, 0, 1.0 - py, -0.14 - pz, 0.34, 0.085, 0.28, 14, 6, () => spec.scarfRgb, MAT_PLUSH);
   if (spec.id === 'cat') {
     emitSmoothEllipsoid(mb, 0, 0.96 - py, 0.16 - pz, 0.085, 0.085, 0.085, 8, 6, () => [246, 215, 67], MAT_GLOSSY);
-  } else if (spec.id === 'fox') {
+  } else if (spec.id === 'fox' || spec.id === 'yuzu' || spec.id === 'poko') {
     emitStarCrystal(mb, 0, 0.94 - py, 0.17 - pz, 0.095, [246, 215, 67], 1);
+  } else if (spec.id === 'kiko') {
+    emitStarCrystal(mb, 0, 0.94 - py, 0.17 - pz, 0.095, [188, 140, 255], 1);
   }
 
   // Plush arms + chubby cream paws reaching toward the steering wheel!
@@ -628,24 +630,25 @@ function buildDriverHeadMesh(charId: DriverCharacterId): MeshBuilder {
     MAT_PLUSH,
   );
 
-  // 2. Soft Cute Muzzle + Glossy Button Nose (+ Koro's Happy Pink Blep Tongue!)
-  const snoutLen = charId === 'fox' || charId === 'dog' ? 0.5 : 0.45;
+  // 2. Soft Cute Muzzle + Glossy Button Nose (+ Puppy Happy Pink Blep Tongue!)
+  const species = spec.species;
+  const snoutLen = species === 'fox' || species === 'dog' ? 0.5 : 0.45;
   emitSmoothEllipsoid(mb, 0, -0.09, 0.36, 0.2, 0.13, snoutLen - 0.31, 10, 6, () => spec.furCream, MAT_PLUSH);
   emitSmoothEllipsoid(
     mb,
     0,
     -0.055,
     snoutLen + 0.015,
-    charId === 'dog' ? 0.068 : 0.052,
+    species === 'dog' ? 0.068 : 0.052,
     0.042,
     0.038,
     8,
     6,
-    () => (charId === 'cat' || charId === 'bunny' ? rosyPink : darkInk),
+    () => (species === 'cat' || species === 'bunny' ? rosyPink : darkInk),
     MAT_GLOSSY,
   );
-  if (charId === 'dog') {
-    // Koro's signature Starlight Burst happy pink blep tongue + cream Shiba brow dots!
+  if (species === 'dog') {
+    // Koro & Hana's signature Starlight Burst happy pink blep tongue + cream Shiba brow dots!
     emitSmoothEllipsoid(mb, 0, -0.15, snoutLen - 0.01, 0.055, 0.065, 0.032, 8, 6, () => rosyPink, MAT_PLUSH);
     for (const side of [-1, 1] as const) {
       emitSmoothEllipsoid(mb, side * 0.16, 0.2, 0.36, 0.062, 0.036, 0.03, 8, 6, () => spec.furCream, MAT_PLUSH);
@@ -654,14 +657,14 @@ function buildDriverHeadMesh(charId: DriverCharacterId): MeshBuilder {
 
   // 3. Wide-Set Glossy Starlight Burst Kawaii Jewel Eyes + Rosy Plush Cheeks!
   const irisRgb: [number, number, number] =
-    charId === 'fox'
+    spec.id === 'fox'
       ? [95, 194, 126]
-      : charId === 'cat'
-        ? [246, 215, 67]
-        : charId === 'dog'
-          ? [246, 215, 67]
+      : spec.id === 'yuzu'
+        ? [72, 209, 204]
+        : spec.id === 'hana'
+          ? [192, 132, 252]
           : [246, 215, 67];
-  const cheekRgb = charId === 'bunny' ? warmPeach : rosyPink;
+  const cheekRgb = species === 'bunny' ? warmPeach : rosyPink;
 
   for (const side of [-1, 1] as const) {
     // Wide-set big glossy espresso jewel eyes (`x = ±0.215`)
@@ -687,9 +690,9 @@ function buildDriverHeadMesh(charId: DriverCharacterId): MeshBuilder {
     emitSmoothEllipsoid(mb, side * 0.32, -0.085, 0.33, 0.085, 0.052, 0.038, 8, 6, () => cheekRgb, MAT_PLUSH);
   }
 
-  // 4. Species-Specific Static Head Accessories (whiskers, cheek tufts, satin bows);
+  // 4. Species- & Persona-Specific Static Head Accessories (whiskers, cheek tufts, bows, sakura clips);
   //    articulated left/right ears are baked in `buildDriverEarMeshes` so they blow back in the wind!
-  if (charId === 'fox') {
+  if (species === 'fox') {
     for (const side of [-1, 1] as const) {
       // Adorable fluffy side cheek tufts!
       emitSmoothSpineTube(
@@ -703,7 +706,13 @@ function buildDriverHeadMesh(charId: DriverCharacterId): MeshBuilder {
         MAT_PLUSH,
       );
     }
-  } else if (charId === 'cat') {
+    if (spec.persona === 'girl') {
+      // Kiko's golden satin ear bow!
+      emitSmoothEllipsoid(mb, 0.26, 0.37, -0.04, 0.06, 0.06, 0.06, 8, 6, () => [188, 140, 255], MAT_GLOSSY);
+      emitSmoothEllipsoid(mb, 0.14, 0.39, -0.04, 0.105, 0.072, 0.052, 8, 6, () => [246, 215, 67], MAT_PLUSH);
+      emitSmoothEllipsoid(mb, 0.38, 0.35, -0.04, 0.105, 0.072, 0.052, 8, 6, () => [246, 215, 67], MAT_PLUSH);
+    }
+  } else if (species === 'cat') {
     for (const side of [-1, 1] as const) {
       // Cute dainty cat whiskers
       for (const wy of [-0.04, -0.11]) {
@@ -719,12 +728,33 @@ function buildDriverHeadMesh(charId: DriverCharacterId): MeshBuilder {
         );
       }
     }
-    // Puffy Rose Satin Ear Bow + Golden Center Knot (visible front & back!)
-    emitSmoothEllipsoid(mb, 0.27, 0.37, -0.04, 0.062, 0.062, 0.062, 8, 6, () => [246, 215, 67], MAT_GLOSSY);
-    emitSmoothEllipsoid(mb, 0.14, 0.39, -0.04, 0.11, 0.075, 0.055, 8, 6, () => spec.scarfRgb, MAT_PLUSH);
-    emitSmoothEllipsoid(mb, 0.4, 0.35, -0.04, 0.11, 0.075, 0.055, 8, 6, () => spec.scarfRgb, MAT_PLUSH);
-  } else if (charId === 'bunny') {
-    // Sunny Golden Satin Ear Bow!
+    if (spec.persona === 'girl') {
+      // Mochi's Puffy Rose Satin Ear Bow + Golden Center Knot!
+      emitSmoothEllipsoid(mb, 0.27, 0.37, -0.04, 0.062, 0.062, 0.062, 8, 6, () => [246, 215, 67], MAT_GLOSSY);
+      emitSmoothEllipsoid(mb, 0.14, 0.39, -0.04, 0.11, 0.075, 0.055, 8, 6, () => spec.scarfRgb, MAT_PLUSH);
+      emitSmoothEllipsoid(mb, 0.4, 0.35, -0.04, 0.11, 0.075, 0.055, 8, 6, () => spec.scarfRgb, MAT_PLUSH);
+    }
+  } else if (species === 'dog' && spec.persona === 'girl') {
+    // Hana's sakura blossom clip near right ear!
+    emitSmoothEllipsoid(mb, 0.26, 0.34, 0.02, 0.055, 0.055, 0.055, 8, 6, () => [246, 215, 67], MAT_GLOSSY);
+    for (let p = 0; p < 5; p += 1) {
+      const pa = (p / 5) * Math.PI * 2;
+      emitSmoothEllipsoid(
+        mb,
+        0.26 + Math.cos(pa) * 0.095,
+        0.34 + Math.sin(pa) * 0.095,
+        0.01,
+        0.062,
+        0.062,
+        0.04,
+        8,
+        4,
+        () => [255, 166, 198],
+        MAT_PLUSH,
+      );
+    }
+  } else if (species === 'bunny' && spec.persona === 'girl') {
+    // Momo's Sunny Golden Satin Ear Bow!
     emitSmoothEllipsoid(mb, 0.24, 0.39, -0.04, 0.06, 0.06, 0.06, 8, 6, () => [255, 250, 224], MAT_GLOSSY);
     emitSmoothEllipsoid(mb, 0.12, 0.41, -0.04, 0.105, 0.072, 0.052, 8, 6, () => spec.scarfRgb, MAT_PLUSH);
     emitSmoothEllipsoid(mb, 0.36, 0.37, -0.04, 0.105, 0.072, 0.052, 8, 6, () => spec.scarfRgb, MAT_PLUSH);
@@ -742,6 +772,7 @@ interface DriverEarMeshes {
 
 function buildDriverEarMeshes(charId: DriverCharacterId): DriverEarMeshes {
   const spec = getKartDriverSpec(charId);
+  const species = spec.species;
   const left = new MeshBuilder();
   const right = new MeshBuilder();
 
@@ -767,7 +798,7 @@ function buildDriverEarMeshes(charId: DriverCharacterId): DriverEarMeshes {
     );
   };
 
-  if (charId === 'fox') {
+  if (species === 'fox') {
     const leftAnchor = [-0.24, 0.27, -0.01] as const;
     const rightAnchor = [0.24, 0.27, -0.01] as const;
     for (const [side, mb, anchor] of [
@@ -789,7 +820,7 @@ function buildDriverEarMeshes(charId: DriverCharacterId): DriverEarMeshes {
     return { left, right, leftAnchor, rightAnchor };
   }
 
-  if (charId === 'cat') {
+  if (species === 'cat') {
     const leftAnchor = [-0.22, 0.28, 0.0] as const;
     const rightAnchor = [0.22, 0.28, 0.0] as const;
     for (const [side, mb, anchor] of [
@@ -810,7 +841,7 @@ function buildDriverEarMeshes(charId: DriverCharacterId): DriverEarMeshes {
     return { left, right, leftAnchor, rightAnchor };
   }
 
-  if (charId === 'dog') {
+  if (species === 'dog') {
     const leftAnchor = [-0.32, 0.25, -0.02] as const;
     const rightAnchor = [0.32, 0.25, -0.02] as const;
     for (const [side, mb, anchor] of [
@@ -827,7 +858,7 @@ function buildDriverEarMeshes(charId: DriverCharacterId): DriverEarMeshes {
     return { left, right, leftAnchor, rightAnchor };
   }
 
-  // Momo (`bunny`): tall perky left ear + adorable folded right ear!
+  // Poko & Momo (`bunny`): tall perky left ear + adorable folded right ear!
   const leftAnchor = [-0.17, 0.32, -0.02] as const;
   const rightAnchor = [0.18, 0.32, -0.02] as const;
   emitRel(
@@ -860,9 +891,10 @@ function buildDriverEarMeshes(charId: DriverCharacterId): DriverEarMeshes {
 
 function buildDriverTailMesh(charId: DriverCharacterId): MeshBuilder {
   const spec = getKartDriverSpec(charId);
+  const species = spec.species;
   const mb = new MeshBuilder();
 
-  if (charId === 'fox') {
+  if (species === 'fox') {
     emitSmoothSpineTube(
       mb,
       [
@@ -875,7 +907,7 @@ function buildDriverTailMesh(charId: DriverCharacterId): MeshBuilder {
       12,
       MAT_PLUSH,
     );
-  } else if (charId === 'cat') {
+  } else if (species === 'cat') {
     emitSmoothSpineTube(
       mb,
       [
@@ -888,7 +920,7 @@ function buildDriverTailMesh(charId: DriverCharacterId): MeshBuilder {
       10,
       MAT_PLUSH,
     );
-  } else if (charId === 'dog') {
+  } else if (species === 'dog') {
     emitSmoothSpineTube(
       mb,
       [
@@ -2170,7 +2202,7 @@ export class MicroKartWebGL2Renderer {
   private readonly localBasis = new Float32Array(9);
   private readonly worldPartBasis = new Float32Array(9);
   private readonly headWorldBasis = new Float32Array(9);
-  private readonly dynamicScratch = new Float32Array(4096 * FLOATS_PER_VERT);
+  private readonly dynamicScratch = new Float32Array(6144 * FLOATS_PER_VERT);
   private readonly shadowScratch = new Float32Array(512 * SHADOW_FLOATS_PER_VERT);
 
   private uniforms: Record<string, WebGLUniformLocation | null> = {};

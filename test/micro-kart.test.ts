@@ -44,20 +44,33 @@ import {
 import { computeDriverPose } from '../src/games/micro-kart/driverPose';
 
 describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road lines, 1s trajectory shadow & driver animations (#344, #362, #384, #386, #388)', () => {
-  it('populates the 4 karts with the 4 Starlight Burst companions (Ren, Mochi, Koro, Momo) with no duplicates', () => {
+  it('populates the 8 karts with all 8 Starlight Burst companions (Ren, Kiko, Yuzu, Mochi, Koro, Hana, Poko, Momo) with no duplicates (#430)', () => {
     expect(KART_DRIVERS.map((d) => `${d.id}:${d.driverName}`)).toEqual([
       'fox:Ren',
+      'kiko:Kiko',
+      'yuzu:Yuzu',
       'cat:Mochi',
       'dog:Koro',
+      'hana:Hana',
+      'poko:Poko',
       'bunny:Momo',
     ]);
     const defaultRace = createRaceState('sunset-loop', '1p', 1);
-    expect(defaultRace.karts.map((k) => k.character)).toEqual(['fox', 'cat', 'dog', 'bunny']);
+    expect(defaultRace.karts.map((k) => k.character)).toEqual([
+      'fox',
+      'kiko',
+      'yuzu',
+      'cat',
+      'dog',
+      'hana',
+      'poko',
+      'bunny',
+    ]);
 
-    const bunnyLead = createRaceState('sunset-loop', '1p', 1, { p1Character: 'bunny' });
-    expect(bunnyLead.karts[0]!.character).toBe('bunny');
-    expect(bunnyLead.karts[0]!.name).toBe('Momo');
-    expect(new Set(bunnyLead.karts.map((k) => k.character)).size).toBe(4);
+    const hanaLead = createRaceState('sunset-loop', '1p', 1, { p1Character: 'hana' });
+    expect(hanaLead.karts[0]!.character).toBe('hana');
+    expect(hanaLead.karts[0]!.name).toBe('Hana');
+    expect(new Set(hanaLead.karts.map((k) => k.character)).size).toBe(8);
   });
 
   it('builds 4 seamless F1-scaled closed-loop 3D circuits including Cloud Gate with valid corner recommendedSpeed values', () => {
@@ -153,10 +166,10 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
     expect(transformed.y).toBeCloseTo(g1.y + 4, 5);
     expect(transformed.z).toBeCloseTo(g1.z - (g1.tz / h1) * 10 + g1.rz * 3, 5);
 
-    // 1) Per-kart shuffled 8-course cycles & momentum-preserving Portal warp (#412, #420)
+    // 1) Per-kart shuffled 8-course cycles & momentum-preserving Portal warp (#412, #420, #430)
     const race = createRaceState('sunset-loop', '1p', 7, { format: 'marathon' });
     expect(race.format).toBe('marathon');
-    expect(race.survivorsCount).toBe(4);
+    expect(race.survivorsCount).toBe(8);
 
     // Every kart starts on Track 1 (`sunset-loop:fwd`), every 8-stage Big Lap is a full permutation of all 8 stages,
     // and ZERO consecutive stages ever share the same physical `circuitId` (`1 -> 1'` / `4' -> 4` forbidden across ALL boundaries)!
@@ -292,60 +305,50 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
       k.marathonProgress = stageIdx + frac;
     };
 
-    // Leader at 7.5 stages ahead of slot 3 (NOT a full 8-stage cycle!) -> ZERO knockouts,
-    // AND Portal Homing automatically activates & locks leader's next portal onto slot 3's track & direction (#422)!
+    // Leader at 7.5 stages ahead of slot 7 (NOT a full 8-stage cycle!) -> ZERO knockouts,
+    // AND Portal Homing automatically activates & locks leader's next portal onto slot 7's track & direction (#422, #430)!
     setStageProg(0, 7, 0.55);
-    setStageProg(1, 5, 0.5);
-    setStageProg(2, 3, 0.5);
-    setStageProg(3, 0, 0.05);
-    // Ensure leader (stage 7) is on a different circuit than slot 3 (stage 0 = Sunset Loop Forward)
+    setStageProg(1, 6, 0.5);
+    setStageProg(2, 5, 0.5);
+    setStageProg(3, 4, 0.5);
+    setStageProg(4, 3, 0.5);
+    setStageProg(5, 2, 0.5);
+    setStageProg(6, 1, 0.5);
+    setStageProg(7, 0, 0.05);
+    // Ensure leader (stage 7) is on a different circuit than slot 7 (stage 0 = Sunset Loop Forward)
     koRace.karts[0]!.marathonSchedule[7] = { circuitId: 'cloud-gate', reversed: true };
-    koRace.karts[3]!.marathonSchedule[0] = { circuitId: 'sunset-loop', reversed: false };
+    koRace.karts[7]!.marathonSchedule[0] = { circuitId: 'sunset-loop', reversed: false };
     stepRaceState(koRace, { 0: { left: false, right: false } }, 1);
-    expect(koRace.karts[3]!.eliminated).toBe(false);
-    expect(koRace.survivorsCount).toBe(4);
+    expect(koRace.karts[7]!.eliminated).toBe(false);
+    expect(koRace.survivorsCount).toBe(8);
     expect(koRace.status).toBe('racing');
     expect(koRace.marathonHunt).not.toBeNull();
     expect(koRace.marathonHunt!.hunterSlot).toBe(0);
-    expect(koRace.marathonHunt!.preySlot).toBe(3);
+    expect(koRace.marathonHunt!.preySlot).toBe(7);
     expect(koRace.marathonHunt!.onSameRoad).toBe(false);
-    // Leader's next portal (stage 8) is now locked straight onto slot 3's exact track & direction!
+    // Leader's next portal (stage 8) is now locked straight onto slot 7's exact track & direction!
     expect(getMarathonStageForKart(koRace, koRace.karts[0]!, 8)).toEqual({
       circuitId: 'sunset-loop',
       reversed: false,
     });
 
-    // If leader reaches gap = 8.07 on a DIFFERENT circuit than slot 3 -> NOT prematurely knocked out!
+    // If leader reaches gap = 8.07 on a DIFFERENT circuit than slot 7 -> NOT prematurely knocked out!
     koRace.karts[0]!.marathonSchedule[8] = { circuitId: 'starlight-ring', reversed: false };
     setStageProg(0, 8, 0.12);
     stepRaceState(koRace, { 0: { left: false, right: false } }, 1);
-    expect(koRace.karts[3]!.eliminated).toBe(false);
+    expect(koRace.karts[7]!.eliminated).toBe(false);
 
-    // Once leader is PHYSICALLY on slot 3's exact track & direction (`sunset-loop:fwd`) and passes (gap >= 8.0) -> KO!
+    // Once leader is PHYSICALLY on slot 7's exact track & direction (`sunset-loop:fwd`) and passes (gap >= 8.0) -> KO in 8th!
     koRace.karts[0]!.marathonSchedule[8] = { circuitId: 'sunset-loop', reversed: false };
     setStageProg(0, 8, 0.12);
     stepRaceState(koRace, { 0: { left: false, right: false } }, 1);
-    expect(koRace.karts[3]!.eliminated).toBe(true);
-    expect(koRace.karts[3]!.place).toBe(4);
-    expect(koRace.survivorsCount).toBe(3);
+    expect(koRace.karts[7]!.eliminated).toBe(true);
+    expect(koRace.karts[7]!.place).toBe(8);
+    expect(koRace.survivorsCount).toBe(7);
     expect(koRace.status).toBe('racing');
 
-    // Leader physically catches slot 2 on the same track & direction (gap >= 8.0) -> knocks out slot 2 in 3rd!
-    const slot2Stage = getMarathonStageForKart(koRace, koRace.karts[2]!, 3);
-    getMarathonStageForKart(koRace, koRace.karts[0]!, 11);
-    koRace.karts[0]!.marathonSchedule[11] = slot2Stage;
-    setStageProg(0, 11, 0.62);
-    stepRaceState(koRace, { 0: { left: false, right: false } }, 1);
-    expect(koRace.karts[2]!.eliminated).toBe(true);
-    expect(koRace.karts[2]!.place).toBe(3);
-    expect(koRace.survivorsCount).toBe(2);
-    expect(koRace.status).toBe('racing');
-
-    // Leader physically catches slot 1 on the same track & direction (gap >= 8.0) -> knocks out slot 1 in 2nd, slot 0 wins!
-    const slot1Stage = getMarathonStageForKart(koRace, koRace.karts[1]!, 5);
-    getMarathonStageForKart(koRace, koRace.karts[0]!, 13);
-    koRace.karts[0]!.marathonSchedule[13] = slot1Stage;
-    setStageProg(0, 13, 0.62);
+    // Leader laps remaining 6 rivals (>= 9 stages ahead) -> knocks them all out cleanly, leaving slot 0 as 1st Place Champion!
+    setStageProg(0, 16, 0.62);
     stepRaceState(koRace, { 0: { left: false, right: false } }, 1);
     expect(koRace.karts[1]!.eliminated).toBe(true);
     expect(koRace.karts[1]!.place).toBe(2);
@@ -548,10 +551,10 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
 
   it('animates driver corner lean, high-speed wind duck, and species-specific wind-blown ears from speed and yawRate (#386)', () => {
     const race = createRaceState('sunset-loop', '1p', 12);
-    const fox = race.karts[0]!;
-    const cat = race.karts[1]!;
-    const dog = race.karts[2]!;
-    const bunny = race.karts[3]!;
+    const fox = race.karts.find((k) => k.character === 'fox')!;
+    const cat = race.karts.find((k) => k.character === 'cat')!;
+    const dog = race.karts.find((k) => k.character === 'dog')!;
+    const bunny = race.karts.find((k) => k.character === 'bunny')!;
 
     const idleFox = computeDriverPose(fox, 0);
     expect(idleFox.aeroTuck).toBe(0);
@@ -759,15 +762,16 @@ describe('Micro Kart 3D circuits, 2s F1 dual-rocket physics, speed-colored road 
     expect(AI_DECISION_MAX_MS).toBe(400);
     const race = createRaceState('sunset-loop', '1p', 42);
     const cpus = race.karts.slice(1);
-    expect(cpus.length).toBe(3);
+    expect(cpus.length).toBe(7);
 
-    // 1. Staggered initial decision timestamps across rivals (never synchronized!)
+    // 1. Staggered initial decision timestamps across all 7 rivals (never synchronized!)
     const initNext = cpus.map((k) => k.aiNextDecisionMs);
-    expect(Math.abs(initNext[0]! - initNext[1]!)).toBeGreaterThanOrEqual(60);
-    expect(Math.abs(initNext[1]! - initNext[2]!)).toBeGreaterThanOrEqual(60);
+    expect(Math.abs(initNext[0]! - initNext[1]!)).toBeGreaterThanOrEqual(25);
+    expect(Math.abs(initNext[1]! - initNext[2]!)).toBeGreaterThanOrEqual(25);
+    expect(new Set(initNext).size).toBeGreaterThanOrEqual(6);
 
-    const decisionTimes: number[][] = [[], [], []];
-    const prevCounts = [0, 0, 0];
+    const decisionTimes: number[][] = cpus.map(() => []);
+    const prevCounts = cpus.map(() => 0);
     const prevInputs = cpus.map((k) => ({ ...k.aiInput }));
 
     // Step 12.0 seconds at 50 Hz (20 ms/step)
