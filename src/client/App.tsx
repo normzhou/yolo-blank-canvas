@@ -909,8 +909,13 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    const activeRoom = getSharedNetplay().getState().activeRoom;
-    const isJoiningRoom = Boolean(appId && activeRoom && activeRoom.gameId === appId);
+    const np = getSharedNetplay().getState();
+    const activeRoom = np.activeRoom;
+    const isJoiningRoom = Boolean(
+      appId &&
+        ((activeRoom && activeRoom.gameId === appId) ||
+          (appId === 'micro-kart' && np.kartRoom && np.kartRoom.myRole !== 'none')),
+    );
     setSharedGamePaused(Boolean(appId && (!isJoiningRoom || getSharedOverlayOpen())));
     getSharedNetplay().setCurrentApp(appId);
   }, [appId]);
@@ -1059,14 +1064,20 @@ export function App() {
     window.history.pushState(null, '', routeUrl(null, window.location.pathname, id));
     setPanelOpen(false);
     setView({ name: 'list' });
-    const activeRoom = getSharedNetplay().getState().activeRoom;
-    const isJoiningRoom = Boolean(id && activeRoom && activeRoom.gameId === id);
+    const np = getSharedNetplay().getState();
+    const activeRoom = np.activeRoom;
+    const isJoiningRoom = Boolean(
+      id &&
+        ((activeRoom && activeRoom.gameId === id) ||
+          (id === 'micro-kart' && np.kartRoom && np.kartRoom.myRole !== 'none')),
+    );
     setSharedGamePaused(Boolean(id && (!isJoiningRoom || getSharedOverlayOpen())));
     setAppId(id);
   }, []);
 
   const exitApp = useCallback(() => {
     void getSharedNetplay().leaveRoom();
+    void getSharedNetplay().leaveKartRoom();
     void getSharedNetplay().cancelInvite();
     openApp(null);
   }, [openApp]);
@@ -1631,6 +1642,83 @@ export function App() {
               </div>
             );
           })}
+        </aside>
+      ) : null}
+
+      {/* #438: 8-Player Online Micro Kart live notification for all idle online players */}
+      {!netplay.activeRoom &&
+      netplay.kartRoom &&
+      netplay.kartRoom.myRole === 'none' &&
+      !netplay.kartRoom.dismissedByMe ? (
+        <aside
+          className="netplay-toast-stack"
+          aria-label="8P Online Micro Kart race notification"
+          data-testid="kart-online-toast"
+        >
+          <div className="netplay-toast" role="status">
+            <div className="netplay-toast-copy">
+              <span className="netplay-toast-kicker">
+                <span className="netplay-online-dot" aria-hidden="true" />
+                {netplay.kartRoom.status === 'waiting'
+                  ? `8P Micro Kart Lobby · ${netplay.kartRoom.players.length}/${netplay.kartRoom.maxPlayers}`
+                  : `8P Micro Kart Live · ${netplay.kartRoom.players.length}/${netplay.kartRoom.maxPlayers}`}
+              </span>
+              <span className="netplay-toast-title">
+                {netplay.kartRoom.status === 'waiting' ? (
+                  <>
+                    <strong>{netplay.kartRoom.hostName}</strong> started an online race (
+                    {netplay.kartRoom.format === 'marathon' ? 'Portal Marathon' : 'Grand Prix'})
+                  </>
+                ) : (
+                  <>
+                    Live race in progress —{' '}
+                    {netplay.kartRoom.openCpuSeats > 0
+                      ? 'drop in or spectate!'
+                      : 'watch live as a spectator!'}
+                  </>
+                )}
+              </span>
+            </div>
+            <div className="netplay-toast-actions">
+              {netplay.kartRoom.status === 'waiting' || netplay.kartRoom.openCpuSeats > 0 ? (
+                <button
+                  type="button"
+                  className="primary netplay-toast-accept"
+                  data-testid="kart-toast-join"
+                  onClick={async () => {
+                    const res = await getSharedNetplay().joinKartRoom();
+                    if (res.room) {
+                      openApp('micro-kart');
+                    }
+                  }}
+                >
+                  {netplay.kartRoom.status === 'waiting' ? 'Join' : 'Join Race'}
+                </button>
+              ) : null}
+              <button
+                type="button"
+                className="netplay-toast-spectate"
+                data-testid="kart-toast-spectate"
+                onClick={async () => {
+                  const room = await getSharedNetplay().spectateKartRoom();
+                  if (room) {
+                    openApp('micro-kart');
+                  }
+                }}
+              >
+                Spectate
+              </button>
+              <button
+                type="button"
+                className="netplay-toast-dismiss"
+                data-testid="kart-toast-dismiss"
+                aria-label="Dismiss race notification"
+                onClick={() => void getSharedNetplay().dismissKartLobby()}
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
         </aside>
       ) : null}
 

@@ -17,7 +17,7 @@ test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Bu
     const card = page.getByTestId('deck-slide-card');
     await page.getByTestId('carousel-dot-micro-kart').click();
     await expect(card).toHaveAttribute('data-slide-id', 'micro-kart');
-    await expect(card).toHaveAttribute('data-game-version', '2.8.0');
+    await expect(card).toHaveAttribute('data-game-version', '2.9.0');
     await expect(page.locator('.deck-slide-title')).toHaveText('Micro Kart');
 
     await page.getByRole('button', { name: 'Play Micro Kart', exact: true }).click();
@@ -133,39 +133,73 @@ test('Micro Kart falls back cleanly to the 2D canvas renderer when WebGL2 is una
   }
 });
 
-test('Micro Kart 2P Online pairs two browser contexts into a shared-circuit race (#344, #358)', async ({
+test('Micro Kart 8P Server-Authoritative Online: waiting lobby, greyed-out unique companions, Go!, live spectate + best-CPU drop-in & disconnect->CPU (#438)', async ({
   browser,
 }) => {
   const stub = await startStubApp();
   const ctxA = await browser.newContext();
   const ctxB = await browser.newContext();
+  const ctxC = await browser.newContext();
   try {
     const pageA = await ctxA.newPage();
     const pageB = await ctxB.newPage();
+    const pageC = await ctxC.newPage();
 
     await pageA.goto(`${stub.base}?app=micro-kart`);
-    await pageB.goto(`${stub.base}?app=micro-kart`);
-    await expect(pageA.getByTestId('game-pause-menu')).toBeVisible();
-    await expect(pageB.getByTestId('game-pause-menu')).toBeVisible();
+    await pageB.goto(stub.base);
+    await pageC.goto(stub.base);
 
-    await expect(pageA.locator('.online-presence-count')).toContainText('2 online', {
+    await expect(pageA.getByTestId('game-pause-menu')).toBeVisible();
+    await expect(pageA.locator('.online-presence-count')).toContainText('3 online', {
       timeout: 8000,
     });
 
+    // 1. Host (A) starts 8P Online Lobby with Ren ('fox') -> Go! disabled until >= 1 other joins
     await pageA.getByTestId('kart-2p-online-btn').click();
-    await expect(pageA.getByTestId('kart-invite-waiting')).toBeVisible();
+    await expect(pageA.getByTestId('kart-online-waiting')).toBeVisible({ timeout: 6000 });
+    await expect(pageA.getByTestId('kart-lobby-go-btn')).toBeDisabled();
 
-    await expect(pageB.getByTestId('netplay-invite-toast')).toContainText('Micro Kart');
-    await pageB.getByTestId('netplay-accept-invite').click();
+    // 2. Idle online players B & C both receive the live 8P notification toast!
+    await expect(pageB.getByTestId('kart-online-toast')).toBeVisible({ timeout: 6000 });
+    await expect(pageC.getByTestId('kart-online-toast')).toBeVisible({ timeout: 6000 });
 
-    await pageA.getByTestId('kart-ready-btn').click();
-    await pageB.getByTestId('kart-ready-btn').click();
+    // 3. Player B clicks Join -> opens waiting room with Ren ('fox') GREYED OUT / disabled!
+    await pageB.getByTestId('kart-toast-join').click();
+    await expect(pageB).toHaveURL(/\?app=micro-kart/);
+    await expect(pageB.getByTestId('kart-online-waiting')).toBeVisible({ timeout: 6000 });
+    await expect(pageB.getByTestId('kart-lobby-driver-fox')).toBeDisabled();
 
-    await expect(pageA.getByTestId('micro-kart-stage')).toHaveAttribute('data-mode', '2p-online');
-    await expect(pageB.getByTestId('micro-kart-stage')).toHaveAttribute('data-mode', '2p-online');
-  } finally {
-    await ctxA.close();
+    // 4. Host's Go! button unlocks (2 Racers) -> Host clicks Go! -> authoritative 8P race starts!
+    await expect(pageA.getByTestId('kart-lobby-go-btn')).toBeEnabled({ timeout: 6000 });
+    await pageA.getByTestId('kart-lobby-go-btn').click();
+
+    await expect(pageA.getByTestId('micro-kart-stage')).toHaveAttribute('data-mode', 'online-8p', {
+      timeout: 6000,
+    });
+    await expect(pageB.getByTestId('micro-kart-stage')).toHaveAttribute('data-mode', 'online-8p', {
+      timeout: 6000,
+    });
+    await expect(pageA.getByTestId('kart-online-waiting')).toHaveCount(0);
+    await expect(pageB.getByTestId('kart-online-waiting')).toHaveCount(0);
+
+    // 5. Player C spectates live anytime, switches camera, then clicks Join Race to take over best CPU!
+    await pageC.getByTestId('kart-toast-spectate').click();
+    await expect(pageC).toHaveURL(/\?app=micro-kart/);
+    await expect(pageC.getByTestId('kart-spectator-bar')).toBeVisible({ timeout: 6000 });
+    await pageC.getByTestId('kart-spectate-next').click();
+    await pageC.getByTestId('kart-spectator-join-btn').click();
+    await expect(pageC.getByTestId('kart-spectator-bar')).toHaveCount(0, { timeout: 6000 });
+    await expect(pageC.getByTestId('micro-kart-stage')).toHaveAttribute('data-mode', 'online-8p');
+
+    // 6. Player B closes browser context mid-race -> converts seamlessly to CPU while A & C keep racing!
     await ctxB.close();
+    await pageA.waitForTimeout(400);
+    await expect(pageA.getByTestId('micro-kart-stage')).toHaveAttribute('data-mode', 'online-8p');
+    await expect(pageC.getByTestId('micro-kart-stage')).toHaveAttribute('data-mode', 'online-8p');
+  } finally {
+    await ctxA.close().catch(() => {});
+    await ctxB.close().catch(() => {});
+    await ctxC.close().catch(() => {});
     await closeStub(stub);
   }
 });

@@ -20,6 +20,17 @@
 
 import type { Board, PolyId } from '../shared/prismStack';
 import type { MascotSelection, StarColor, StarGrid } from '../shared/starlightBurst';
+import type {
+  AuthoritativeRaceSnapshot,
+  CircuitId,
+  DriverCharacterId,
+  KartRaceFormat,
+  ThrusterInput,
+} from '../shared/microKart';
+import type {
+  KartLobbyClosedNotice,
+  KartOnlineRoomPublicView,
+} from '../shared/kartOnlineRoom';
 
 export const INVITE_TIMEOUT_MS = 20_000;
 export const SYNC_TIMEOUT_MS = 15_000;
@@ -145,10 +156,13 @@ export interface NetplayState {
   openInvites: NetplayInvite[];
   myPendingInvite: NetplayInvite | null;
   activeRoom: NetplayActiveRoom | null;
+  kartRoom: KartOnlineRoomPublicView | null;
+  kartClosedNotice: KartLobbyClosedNotice | null;
 }
 
 type RoomEventListener = (event: NetplayRoomEvent) => void;
 type StateListener = (state: NetplayState) => void;
+type KartStateListener = (snapshot: AuthoritativeRaceSnapshot) => void;
 
 const HANDLE_ADJECTIVES = [
   'Neon',
@@ -231,9 +245,13 @@ export class NetplayClient {
     openInvites: [],
     myPendingInvite: null,
     activeRoom: null,
+    kartRoom: null,
+    kartClosedNotice: null,
   };
 
   private stateListeners = new Set<StateListener>();
+  private kartStateListeners = new Set<KartStateListener>();
+  private latestKartSnapshot: AuthoritativeRaceSnapshot | null = null;
   private roomEventListeners = new Set<RoomEventListener>();
   private currentAppId: NetplayGameId | null = (() => {
     if (typeof window === 'undefined') return null;
@@ -499,6 +517,10 @@ export class NetplayClient {
           if (data && typeof data === 'object') {
             this.consecutiveFailures = 0;
             this.localOfflineSince = null;
+            if (data.type === 'kart_state' && data.snapshot) {
+              this.emitKartSnapshot(data.snapshot as AuthoritativeRaceSnapshot);
+              return;
+            }
             this.reconcileLocalState(data as never);
           }
         } catch {
@@ -518,7 +540,8 @@ export class NetplayClient {
           this.wsKeepaliveTimer = null;
         }
         if (!this.started || !this.hasListeners()) return;
-        if (this.isDocumentHidden() && !this.state.activeRoom) {
+        const inKartRoom = Boolean(this.state.kartRoom && this.state.kartRoom.myRole !== 'none');
+        if (this.isDocumentHidden() && !this.state.activeRoom && !inKartRoom) {
           this.pauseNetwork();
           return;
         }
@@ -548,7 +571,8 @@ export class NetplayClient {
 
   private checkInactivityTimeout(): boolean {
     const idleElapsed = Date.now() - this.lastUserActivityAt;
-    if (!this.state.activeRoom && !this.state.myPendingInvite) {
+    const inKartRoom = Boolean(this.state.kartRoom && this.state.kartRoom.myRole !== 'none');
+    if (!this.state.activeRoom && !this.state.myPendingInvite && !inKartRoom) {
       if (idleElapsed >= IDLE_SLEEP_MS) {
         this.idleSleeping = true;
         this.pauseNetwork();
@@ -704,6 +728,24 @@ export class NetplayClient {
             pl: rm.players,
           }
         : null,
+      kr: s.kartRoom
+        ? {
+            id: s.kartRoom.id,
+            st: s.kartRoom.status,
+            h: s.kartRoom.hostId,
+            f: s.kartRoom.format,
+            c: s.kartRoom.circuitId,
+            rv: s.kartRoom.reversed,
+            pl: s.kartRoom.players,
+            sp: s.kartRoom.spectators,
+            mr: s.kartRoom.myRole,
+            ms: s.kartRoom.mySlot,
+            cs: s.kartRoom.canStart,
+            dm: s.kartRoom.dismissedByMe,
+            oc: s.kartRoom.openCpuSeats,
+          }
+        : null,
+      kcn: s.kartClosedNotice,
     });
   }
 
@@ -990,6 +1032,19 @@ export class NetplayClient {
       myPendingInvite = null;
     }
 
+    const nextKartRoom =
+      serverSnapshot && 'kartRoom' in serverSnapshot
+        ? ((serverSnapshot as { kartRoom?: KartOnlineRoomPublicView | null }).kartRoom ?? null)
+        : this.state.kartRoom;
+    const nextKartClosedNotice =
+      serverSnapshot && 'kartClosedNotice' in serverSnapshot
+        ? ((serverSnapshot as { kartClosedNotice?: KartLobbyClosedNotice | null }).kartClosedNotice ?? null)
+        : this.state.kartClosedNotice;
+    if (serverSnapshot && 'kartSnapshot' in serverSnapshot) {
+      const ks = (serverSnapshot as { kartSnapshot?: AuthoritativeRaceSnapshot | null }).kartSnapshot;
+      if (ks) this.emitKartSnapshot(ks);
+    }
+
     const players = Array.from(playerMap.values());
     this.updateState({
       onlineCount: Math.max(1, players.length),
@@ -997,6 +1052,8 @@ export class NetplayClient {
       openInvites: activeRoom ? [] : Array.from(inviteMap.values()),
       myPendingInvite,
       activeRoom,
+      kartRoom: nextKartRoom,
+      kartClosedNotice: nextKartClosedNotice,
     });
   }
 
@@ -1252,6 +1309,116 @@ export class NetplayClient {
     this.scheduleNextTick();
     const data = await this.dispatchAction({ action: 'leave_room', roomId: room.id });
     if (data) this.reconcileLocalState(data as never);
+  }
+
+  private emitKartSnapshot(snap: AuthoritativeRaceSnapshot): void {
+    this.latestKartSnapshot = snap;
+    for (const fn of this.kartStateListeners) {
+      fn(snap);
+    }
+  }
+
+  getLatestKartSnapshot(): AuthoritativeRaceSnapshot | null {
+    return this.latestKartSnapshot;
+  }
+
+  subscribeKartState(listener: KartStateListener): () => void {
+    this.kartStateListeners.add(listener);
+    if (this.latestKartSnapshot) {
+      listener(this.latestKartSnapshot);
+    }
+    return () => {
+      this.kartStateListeners.delete(listener);
+    };
+  }
+
+  async createKartLobby(options: {
+    format: KartRaceFormat;
+    circuitId: CircuitId;
+    reversed: boolean;
+    character: DriverCharacterId;
+  }): Promise<KartOnlineRoomPublicView | null> {
+    this.recordUserActivity();
+    const data = await this.postAction({
+      action: 'kart_lobby_create',
+      ...options,
+    });
+    if (data) this.reconcileLocalState(data as never);
+    return this.state.kartRoom;
+  }
+
+  async joinKartRoom(
+    preferredCharacter?: DriverCharacterId,
+  ): Promise<{ room: KartOnlineRoomPublicView | null; error?: string }> {
+    this.recordUserActivity();
+    const data = await this.postAction({
+      action: 'kart_lobby_join',
+      ...(preferredCharacter ? { character: preferredCharacter } : {}),
+    });
+    if (data) this.reconcileLocalState(data as never);
+    const err =
+      data && typeof data === 'object' && 'error' in data
+        ? ((data as { error?: { message?: string } }).error?.message ?? undefined)
+        : undefined;
+    return { room: this.state.kartRoom, error: err };
+  }
+
+  async selectKartCharacter(character: DriverCharacterId): Promise<boolean> {
+    this.recordUserActivity();
+    const data = await this.dispatchAction({
+      action: 'kart_lobby_character',
+      character,
+    });
+    if (data) this.reconcileLocalState(data as never);
+    return !(data && typeof data === 'object' && 'error' in data);
+  }
+
+  async updateKartLobbyOptions(options: {
+    format?: KartRaceFormat;
+    circuitId?: CircuitId;
+    reversed?: boolean;
+  }): Promise<void> {
+    this.recordUserActivity();
+    const data = await this.dispatchAction({
+      action: 'kart_lobby_options',
+      ...options,
+    });
+    if (data) this.reconcileLocalState(data as never);
+  }
+
+  async spectateKartRoom(): Promise<KartOnlineRoomPublicView | null> {
+    this.recordUserActivity();
+    const data = await this.postAction({ action: 'kart_lobby_spectate' });
+    if (data) this.reconcileLocalState(data as never);
+    return this.state.kartRoom;
+  }
+
+  async dismissKartLobby(): Promise<void> {
+    this.recordUserActivity();
+    const data = await this.dispatchAction({ action: 'kart_lobby_dismiss' });
+    if (data) this.reconcileLocalState(data as never);
+  }
+
+  async startKartRace(): Promise<boolean> {
+    this.recordUserActivity();
+    const data = await this.postAction({ action: 'kart_lobby_start' });
+    if (data) this.reconcileLocalState(data as never);
+    return this.state.kartRoom?.status === 'playing';
+  }
+
+  async leaveKartRoom(): Promise<void> {
+    this.recordUserActivity();
+    this.latestKartSnapshot = null;
+    const data = await this.dispatchAction({ action: 'kart_lobby_leave' });
+    if (data) this.reconcileLocalState(data as never);
+  }
+
+  sendKartInput(input: ThrusterInput): void {
+    this.lastUserActivityAt = Date.now();
+    if (this.sendWsFrame({ action: 'kart_input', input })) {
+      return;
+    }
+    void this.postAction({ action: 'kart_input', input });
   }
 }
 

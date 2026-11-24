@@ -5,7 +5,7 @@
  */
 
 export type CircuitId = 'sunset-loop' | 'canyon-crest' | 'starlight-ring' | 'cloud-gate';
-export type KartRaceMode = '1p' | '2p-local' | '2p-online';
+export type KartRaceMode = '1p' | '2p-local' | '2p-online' | 'online-8p';
 export type KartRaceFormat = 'grand-prix' | 'marathon';
 export type BoostKind = 'none' | 'mini' | 'ultra' | 'pad';
 export type DriverSpecies = 'fox' | 'cat' | 'dog' | 'bunny';
@@ -374,11 +374,11 @@ export interface MarathonStage {
 
 export interface KartState {
   readonly slot: number;
-  readonly name: string;
-  readonly character: DriverCharacterId;
-  readonly isHuman: boolean;
-  readonly isRemote: boolean;
-  readonly liveryIndex: number;
+  name: string;
+  character: DriverCharacterId;
+  isHuman: boolean;
+  isRemote: boolean;
+  liveryIndex: number;
   x: number;
   y: number;
   z: number;
@@ -1451,6 +1451,7 @@ export function createRaceState(
     p2Character?: DriverCharacterId;
     reversed?: boolean;
     format?: KartRaceFormat;
+    humanRoster?: Array<{ slot: number; name: string; character: DriverCharacterId }>;
   },
 ): KartRaceState {
   const reversed = Boolean(options?.reversed);
@@ -1460,14 +1461,39 @@ export function createRaceState(
   const L = circuit.totalLength;
 
   const allChars: DriverCharacterId[] = KART_DRIVERS.map((d) => d.id);
-  const p1Char: DriverCharacterId = options?.p1Character ?? 'fox';
-  const remainingAfterP1 = allChars.filter((c) => c !== p1Char);
-  const p2Char: DriverCharacterId =
-    options?.p2Character && options.p2Character !== p1Char
-      ? options.p2Character
-      : remainingAfterP1[0]!;
-  const aiChars = allChars.filter((c) => c !== p1Char && c !== p2Char);
-  const slotCharacters: DriverCharacterId[] = [p1Char, p2Char, ...aiChars];
+  const rosterBySlot = new Map<number, { name: string; character: DriverCharacterId }>();
+  let slotCharacters: DriverCharacterId[];
+  if (options?.humanRoster && options.humanRoster.length > 0) {
+    const used = new Set<DriverCharacterId>();
+    for (const entry of options.humanRoster) {
+      if (entry.slot < 0 || entry.slot >= 8) continue;
+      let chosen = entry.character;
+      if (used.has(chosen)) {
+        chosen = allChars.find((c) => !used.has(c)) ?? chosen;
+      }
+      used.add(chosen);
+      rosterBySlot.set(entry.slot, { name: entry.name, character: chosen });
+    }
+    const remaining = allChars.filter((c) => !used.has(c));
+    slotCharacters = [];
+    for (let s = 0; s < 8; s += 1) {
+      const assigned = rosterBySlot.get(s);
+      if (assigned) {
+        slotCharacters.push(assigned.character);
+      } else {
+        slotCharacters.push(remaining.shift() ?? allChars[s % allChars.length]!);
+      }
+    }
+  } else {
+    const p1Char: DriverCharacterId = options?.p1Character ?? 'fox';
+    const remainingAfterP1 = allChars.filter((c) => c !== p1Char);
+    const p2Char: DriverCharacterId =
+      options?.p2Character && options.p2Character !== p1Char
+        ? options.p2Character
+        : remainingAfterP1[0]!;
+    const aiChars = allChars.filter((c) => c !== p1Char && c !== p2Char);
+    slotCharacters = [p1Char, p2Char, ...aiChars];
+  }
 
   // Staggered 4x2 F1 starting grid behind the start/finish arch (#430):
   // 6 AI rivals fill rows 1-3 (`10m, 18m, 26m` behind line) and human karts (`slot 0, 1`)
@@ -1493,11 +1519,16 @@ export function createRaceState(
     const charId = slotCharacters[slot]!;
     const driverSpec = getKartDriverSpec(charId);
     const liveryIndex = KART_DRIVERS.findIndex((d) => d.id === charId);
+    const rosterEntry = rosterBySlot.get(slot);
     const isHuman =
-      slot === 0 || (slot === 1 && mode === '2p-local');
+      mode === 'online-8p'
+        ? Boolean(rosterEntry)
+        : slot === 0 || (slot === 1 && mode === '2p-local');
     const isRemote = slot === 1 && mode === '2p-online';
     const defaultName =
-      slot === 0
+      rosterEntry
+        ? rosterEntry.name
+        : slot === 0
         ? options?.p1 ?? driverSpec.driverName
         : slot === 1 && (mode === '2p-local' || mode === '2p-online')
           ? options?.p2 ?? driverSpec.driverName
@@ -2766,4 +2797,233 @@ export function ordinalPlace(place: number): string {
   if (place === 2) return '2ND';
   if (place === 3) return '3RD';
   return `${place}TH`;
+}
+
+/**
+ * Seamlessly converts a departing/disconnected human kart into a server-simulated CPU rival
+ * without losing momentum, lap, stage, or Portal Marathon cycle (#438).
+ */
+export function convertKartToCpu(race: KartRaceState, slot: number): boolean {
+  const kart = race.karts[slot];
+  if (!kart || !kart.isHuman) return false;
+  const spec = getKartDriverSpec(kart.character);
+  kart.isHuman = false;
+  kart.isRemote = false;
+  kart.name = spec.driverName;
+  return true;
+}
+
+/**
+ * Drops a live spectator into the **best-performing surviving CPU kart** (lowest `place`
+ * among non-human, non-eliminated karts) and returns its slot index, or `-1` if all
+ * surviving karts are already human-controlled (#438).
+ */
+export function takeOverBestCpuKart(race: KartRaceState, humanName: string): number {
+  const candidates = race.karts
+    .filter((k) => !k.isHuman && !k.eliminated)
+    .sort((a, b) => a.place - b.place);
+  const best = candidates[0];
+  if (!best) return -1;
+  best.isHuman = true;
+  best.isRemote = false;
+  best.name = humanName.trim() || 'Player';
+  return best.slot;
+}
+
+export interface AuthoritativeKartFrame {
+  sl: number;
+  h: 0 | 1;
+  nm: string;
+  ch: DriverCharacterId;
+  x: number;
+  y: number;
+  z: number;
+  yw: number;
+  pt: number;
+  vx: number;
+  vz: number;
+  sp: number;
+  yr: number;
+  s: number;
+  lt: number;
+  us: number;
+  lp: number;
+  pl: number;
+  si: number;
+  mp: number;
+  el: 0 | 1;
+  fn: number | null;
+  bl: number | null;
+  bt: number;
+  bk: BoostKind;
+  ltT: number;
+  rtT: number;
+  br: 0 | 1;
+  dd: -1 | 0 | 1;
+  sc?: CircuitId;
+  sr?: 0 | 1;
+  nc?: CircuitId;
+  nr?: 0 | 1;
+}
+
+export interface AuthoritativeRaceSnapshot {
+  tk: number;
+  ms: number;
+  st: 'racing' | 'finished';
+  w: number | null;
+  sv: number;
+  gp: number;
+  ht: MarathonHuntState | null;
+  k: AuthoritativeKartFrame[];
+}
+
+function r2(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
+/** Serializes the full 8-kart authoritative world into a compact 20Hz wire packet (#438). */
+export function serializeAuthoritativeRaceSnapshot(
+  race: KartRaceState,
+  serverTick: number,
+): AuthoritativeRaceSnapshot {
+  const isMarathon = race.format === 'marathon';
+  return {
+    tk: serverTick,
+    ms: Math.round(race.elapsedMs),
+    st: race.status,
+    w: race.winnerSlot,
+    sv: race.survivorsCount,
+    gp: r2(race.marathonLeadGapLaps),
+    ht: race.marathonHunt ? { ...race.marathonHunt } : null,
+    k: race.karts.map((kart) => {
+      const curStage = isMarathon ? getMarathonStageForKart(race, kart, kart.stageIndex) : null;
+      const nextStage = isMarathon ? getMarathonStageForKart(race, kart, kart.stageIndex + 1) : null;
+      return {
+        sl: kart.slot,
+        h: kart.isHuman ? 1 : 0,
+        nm: kart.name,
+        ch: kart.character,
+        x: r2(kart.x),
+        y: r2(kart.y),
+        z: r2(kart.z),
+        yw: Math.round(kart.yaw * 1000) / 1000,
+        pt: Math.round(kart.pitch * 1000) / 1000,
+        vx: r2(kart.vx),
+        vz: r2(kart.vz),
+        sp: r2(kart.speed),
+        yr: r2(kart.yawRate),
+        s: r2(kart.s),
+        lt: r2(kart.lat),
+        us: r2(kart.unwrappedS),
+        lp: kart.lap,
+        pl: kart.place,
+        si: kart.stageIndex,
+        mp: Math.round(kart.marathonProgress * 1000) / 1000,
+        el: kart.eliminated ? 1 : 0,
+        fn: kart.finishMs,
+        bl: kart.bestLapMs,
+        bt: r2(kart.boostTimer),
+        bk: kart.boostKind,
+        ltT: r2(kart.leftThrottle),
+        rtT: r2(kart.rightThrottle),
+        br: kart.braking ? 1 : 0,
+        dd: kart.driftDir,
+        ...(curStage ? { sc: curStage.circuitId, sr: curStage.reversed ? 1 : 0 } : {}),
+        ...(nextStage ? { nc: nextStage.circuitId, nr: nextStage.reversed ? 1 : 0 } : {}),
+      };
+    }),
+  };
+}
+
+/**
+ * Reconciles a client-side `KartRaceState` smoothly toward an authoritative 20Hz server snapshot:
+ * - Local human slot uses gentle prediction reconciliation (`0.22`) for crisp 0ms steering feel.
+ * - Remote humans & server-simulated CPUs blend smoothly (`0.48`) with exact velocity tracking.
+ * - Stage transitions (portal warps) or large deltas snap cleanly immediately (#438).
+ */
+export function applyAuthoritativeRaceSnapshot(
+  race: KartRaceState,
+  snap: AuthoritativeRaceSnapshot,
+  localHumanSlot: number | null,
+  hardSnap = false,
+): { localPortalCrossed: boolean } {
+  let localPortalCrossed = false;
+  race.elapsedMs = snap.ms;
+  race.status = snap.st;
+  race.winnerSlot = snap.w;
+  race.survivorsCount = snap.sv;
+  race.marathonLeadGapLaps = snap.gp;
+  race.marathonHunt = snap.ht ? { ...snap.ht } : null;
+
+  for (const kf of snap.k) {
+    const kart = race.karts[kf.sl];
+    if (!kart) continue;
+    const prevStage = kart.stageIndex;
+    const isLocal = localHumanSlot !== null && kf.sl === localHumanSlot;
+
+    kart.isHuman = kf.h === 1;
+    kart.isRemote = kf.h === 1 && !isLocal;
+    kart.name = kf.nm;
+    kart.character = kf.ch;
+    kart.liveryIndex = Math.max(0, KART_DRIVERS.findIndex((d) => d.id === kf.ch));
+    kart.lap = kf.lp;
+    kart.place = kf.pl;
+    kart.stageIndex = kf.si;
+    kart.marathonProgress = kf.mp;
+    kart.eliminated = kf.el === 1;
+    kart.finishMs = kf.fn;
+    kart.bestLapMs = kf.bl;
+    kart.boostTimer = kf.bt;
+    kart.boostKind = kf.bk;
+    kart.leftThrottle = kf.ltT;
+    kart.rightThrottle = kf.rtT;
+    kart.braking = kf.br === 1;
+    kart.driftDir = kf.dd;
+    kart.unwrappedS = kf.us;
+    kart.maxUnwrappedS = Math.max(kart.maxUnwrappedS, kf.us);
+
+    if (race.format === 'marathon' && kf.sc) {
+      getMarathonStageForKart(race, kart, kf.si + 1);
+      kart.marathonSchedule[kf.si] = { circuitId: kf.sc, reversed: kf.sr === 1 };
+      if (kf.nc) {
+        kart.marathonSchedule[kf.si + 1] = { circuitId: kf.nc, reversed: kf.nr === 1 };
+      }
+    }
+
+    const stageChanged = kf.si !== prevStage;
+    if (isLocal && stageChanged) {
+      localPortalCrossed = true;
+    }
+
+    const distErr = Math.hypot(kf.x - kart.x, kf.z - kart.z);
+    if (hardSnap || stageChanged || distErr > 14) {
+      kart.x = kf.x;
+      kart.y = kf.y;
+      kart.z = kf.z;
+      kart.yaw = kf.yw;
+      kart.pitch = kf.pt;
+      kart.vx = kf.vx;
+      kart.vz = kf.vz;
+      kart.speed = kf.sp;
+      kart.yawRate = kf.yr;
+      kart.s = kf.s;
+      kart.lat = kf.lt;
+      if (stageChanged) kart.skidMarks = [];
+    } else {
+      const alpha = isLocal ? 0.22 : 0.48;
+      kart.x += (kf.x - kart.x) * alpha;
+      kart.y += (kf.y - kart.y) * alpha;
+      kart.z += (kf.z - kart.z) * alpha;
+      kart.yaw = wrapAngle(kart.yaw + wrapAngle(kf.yw - kart.yaw) * (isLocal ? 0.28 : 0.52));
+      kart.pitch += (kf.pt - kart.pitch) * 0.45;
+      kart.vx += (kf.vx - kart.vx) * (isLocal ? 0.3 : 0.65);
+      kart.vz += (kf.vz - kart.vz) * (isLocal ? 0.3 : 0.65);
+      kart.speed += (kf.sp - kart.speed) * (isLocal ? 0.3 : 0.65);
+      kart.yawRate += (kf.yr - kart.yawRate) * 0.4;
+      kart.s = kf.s;
+      kart.lat = kf.lt;
+    }
+  }
+
+  return { localPortalCrossed };
 }

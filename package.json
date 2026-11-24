@@ -1,6 +1,6 @@
 {
   "name": "yolo-blank-canvas",
-  "version": "0.58.0",
+  "version": "0.59.0",
   "private": false,
   "description": "Blank canvas with a Requests overlay over one GitHub repository",
   "license": "MIT",
@@ -17,7 +17,8 @@
     "README.md"
   ],
   "scripts": {
-    "build": "npm run build:client",
+    "build": "npm run build:sim && npm run build:client",
+    "build:sim": "node -e \"import('esbuild').then(e => e.build({ entryPoints: ['src/shared/kartOnlineRoom.ts'], bundle: true, format: 'esm', platform: 'neutral', outfile: 'server/kart-room-engine.generated.js' }))\" && cp server/kart-room-engine.generated.js hosting/cloudflare/kart-room-engine.generated.mjs",
     "build:client": "vite build",
     "dev": "node server/cli.js --dev",
     "start": "node server/cli.js",
