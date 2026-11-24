@@ -119,24 +119,28 @@ interface StandingEntry {
   mood: KartPortraitMood;
 }
 
-interface DistantKartMarker {
-  slot: number;
-  character: DriverCharacterId;
-  driverName: string;
-  place: number;
-  leftPct: number;
-  topPct: number;
-  distM: number;
-  oncoming: boolean;
+interface DistantMarkerDom {
+  root: HTMLDivElement;
+  dist: HTMLSpanElement;
+  lastText: string;
+  visible: boolean;
 }
 
-function projectDistantKarts(
+/**
+ * Updates pre-mounted floating portrait markers above distant same-track rivals (`85m..720m`)
+ * directly via GPU-composited `translate3d` + `opacity` on EVERY 60/120fps WebGL2 render tick —
+ * zero React state churn and 100% locked to the 3D frame (#432, #434)!
+ */
+function syncDistantMarkersDom(
   race: KartRaceState,
   focusSlot: number,
   cam: ChaseCamera,
   vpW: number,
   vpH: number,
-): DistantKartMarker[] {
+  domMap: Map<DriverCharacterId, DistantMarkerDom>,
+  hideAll: boolean,
+): void {
+  if (domMap.size === 0) return;
   const focusKart = race.karts[focusSlot] ?? race.karts[0]!;
   const circuit = getCircuitForKart(race, focusKart);
   const cosY = Math.cos(cam.yaw);
@@ -161,40 +165,52 @@ function projectDistantKarts(
   const focusFx = Math.sin(focusKart.yaw);
   const focusFz = Math.cos(focusKart.yaw);
 
-  const out: DistantKartMarker[] = [];
-  for (const k of race.karts) {
-    if (k.eliminated || k.slot === focusSlot) continue;
-    if (race.format === 'marathon' && getCircuitForKart(race, k).id !== circuit.id) continue;
+  // Track which characters are visible this frame
+  const shown = new Set<DriverCharacterId>();
+  if (!hideAll && vpW > 0 && vpH > 0) {
+    for (const k of race.karts) {
+      if (k.eliminated || k.slot === focusSlot) continue;
+      if (race.format === 'marathon' && getCircuitForKart(race, k).id !== circuit.id) continue;
+      const entry = domMap.get(k.character);
+      if (!entry) continue;
 
-    // Project a point floating cleanly above the distant kart's head (`y + 3.4m`)
-    const relX = k.x - cam.x;
-    const relY = k.y + 3.4 - cam.y;
-    const relZ = k.z - cam.z;
-    const vz = relX * fx + relY * fy + relZ * fz;
-    if (vz < 85 || vz > 720) continue;
+      const relX = k.x - cam.x;
+      const relY = k.y + 3.4 - cam.y;
+      const relZ = k.z - cam.z;
+      const vz = relX * fx + relY * fy + relZ * fz;
+      if (vz < 85 || vz > 720) continue;
 
-    const vx = relX * rx + relZ * rz;
-    const vy = relX * ux + relY * uy + relZ * uz;
-    const screenX = vpW * 0.5 + (vx / vz) * focal;
-    const screenY = vpH * centerRatio - (vy / vz) * focal;
-    const leftPct = (screenX / Math.max(1, vpW)) * 100;
-    const topPct = (screenY / Math.max(1, vpH)) * 100;
-    if (leftPct < 3 || leftPct > 97 || topPct < 6 || topPct > 92) continue;
+      const vx = relX * rx + relZ * rz;
+      const vy = relX * ux + relY * uy + relZ * uz;
+      const screenX = vpW * 0.5 + (vx / vz) * focal;
+      const screenY = vpH * centerRatio - (vy / vz) * focal;
+      if (screenX < vpW * 0.03 || screenX > vpW * 0.97 || screenY < vpH * 0.06 || screenY > vpH * 0.92) {
+        continue;
+      }
 
-    const headingDot = focusFx * Math.sin(k.yaw) + focusFz * Math.cos(k.yaw);
-    out.push({
-      slot: k.slot,
-      character: k.character,
-      driverName: getKartDriverSpec(k.character).driverName,
-      place: k.place,
-      leftPct,
-      topPct,
-      distM: Math.round(vz),
-      oncoming: headingDot < -0.35,
-    });
+      shown.add(k.character);
+      entry.root.style.transform = `translate3d(${screenX.toFixed(1)}px, ${screenY.toFixed(1)}px, 0) translate(-50%, -100%)`;
+      if (!entry.visible) {
+        entry.visible = true;
+        entry.root.style.opacity = '1';
+        entry.root.dataset.visible = 'true';
+      }
+      const oncoming = focusFx * Math.sin(k.yaw) + focusFz * Math.cos(k.yaw) < -0.35;
+      const text = `${Math.round(vz)}m${oncoming ? ' ↺' : ''}`;
+      if (entry.lastText !== text) {
+        entry.lastText = text;
+        entry.dist.textContent = text;
+      }
+    }
   }
-  out.sort((a, b) => b.distM - a.distM);
-  return out;
+
+  for (const [charId, entry] of domMap.entries()) {
+    if (!shown.has(charId) && entry.visible) {
+      entry.visible = false;
+      entry.root.style.opacity = '0';
+      entry.root.dataset.visible = 'false';
+    }
+  }
 }
 
 function KartHuntBanner({
@@ -966,8 +982,8 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
   });
   const [analogSteerUi, setAnalogSteerUi] = useState<number>(0);
   const [mapDots, setMapDots] = useState<MapArrowEntry[]>([]);
-  const [distantMarkersP1, setDistantMarkersP1] = useState<DistantKartMarker[]>([]);
-  const [distantMarkersP2, setDistantMarkersP2] = useState<DistantKartMarker[]>([]);
+  const distantDomP1Ref = useRef<Map<DriverCharacterId, DistantMarkerDom>>(new Map());
+  const distantDomP2Ref = useRef<Map<DriverCharacterId, DistantMarkerDom>>(new Map());
   const viewportCssSizeRef = useRef<{ w: number; h: number }>({ w: 960, h: 540 });
 
   const activeKartRoom =
@@ -1133,14 +1149,6 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
           bigLap: Math.floor(k.stageIndex / MARATHON_CYCLE_STAGES) + 1,
         })),
     );
-    const vp = viewportCssSizeRef.current;
-    const halfH = race.mode === '2p-local' ? Math.max(110, vp.h * 0.5) : vp.h;
-    setDistantMarkersP1(projectDistantKarts(race, focusLocalSlot, cam1Ref.current, vp.w, halfH));
-    if (race.mode === '2p-local' && race.karts[1]) {
-      setDistantMarkersP2(projectDistantKarts(race, 1, cam2Ref.current, vp.w, halfH));
-    } else {
-      setDistantMarkersP2([]);
-    }
   }, []);
 
   const triggerFreshCountdown = useCallback(
@@ -1728,32 +1736,34 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       ro.observe(canvasRef.current);
     }
 
-    // Adaptive resolution tier: starts at crisp 1080p max (1.5x DPR cap), drops smoothly to 720p if avg frame > 19ms
+    // Adaptive MSAA resolution tier (#428, #434):
+    // Renders crisp 720p with hardware MSAA (~0.92M px) + GPU bilinear 2D upscaling to native screen,
+    // stepping smoothly down to 540p (~0.52M px) if frame delta exceeds 18.5ms so 60/120fps stays locked!
     let emaFrameMs = 16.67;
     let slowFrames = 0;
     let fastFrames = 0;
-    let maxBackingH = 1080;
+    let maxBackingH = 720;
 
     const frame = (now: number) => {
       const rawDt = now - lastTime;
       lastTime = now;
       const dtMs = Math.min(40, Math.max(0, rawDt));
 
-      // Adaptive dynamic resolution governor
+      // Adaptive dynamic resolution governor (720p MSAA default <-> 540p low-load fallback)
       if (rawDt > 1 && rawDt < 120) {
         emaFrameMs = emaFrameMs * 0.9 + rawDt * 0.1;
-        if (emaFrameMs > 19.5) {
+        if (emaFrameMs > 18.5) {
           slowFrames += 1;
           fastFrames = 0;
-          if (slowFrames >= 24 && maxBackingH > 720) {
-            maxBackingH = 720;
+          if (slowFrames >= 20 && maxBackingH > 540) {
+            maxBackingH = 540;
             slowFrames = 0;
           }
-        } else if (emaFrameMs < 14.0) {
+        } else if (emaFrameMs < 13.5) {
           fastFrames += 1;
           slowFrames = 0;
-          if (fastFrames >= 90 && maxBackingH < 1080) {
-            maxBackingH = 1080;
+          if (fastFrames >= 90 && maxBackingH < 720) {
+            maxBackingH = 720;
             fastFrames = 0;
           }
         }
@@ -1923,6 +1933,12 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
             }
             ctx.restore();
           }
+        }
+        // Sync floating distant kart portraits directly at 3D render FPS (60/120Hz, zero React lag! #434)
+        const vpHalfH = isSplit2P ? Math.floor(cssH / 2) : cssH;
+        syncDistantMarkersDom(race, focusSlot, cam1Ref.current, cssW, vpHalfH, distantDomP1Ref.current, paused);
+        if (isSplit2P && race.karts[1]) {
+          syncDistantMarkersDom(race, 1, cam2Ref.current, cssW, cssH - vpHalfH, distantDomP2Ref.current, paused);
         }
       }
 
@@ -2236,24 +2252,34 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         className={isSplit2P ? 'kart-hud-layer is-top-half' : 'kart-hud-layer'}
         data-testid="kart-p1-hud"
       >
-        {/* Floating portraits above distant same-track karts up to 2x horizon (#432) */}
-        {!paused && distantMarkersP1.length > 0 ? (
-          <div className="kart-distant-layer" aria-hidden="true">
-            {distantMarkersP1.map((m) => (
-              <div
-                key={m.slot}
-                className="kart-distant-marker"
-                style={{ left: `${m.leftPct.toFixed(1)}%`, top: `${m.topPct.toFixed(1)}%` }}
-                data-testid={`kart-distant-marker-${m.slot}`}
-              >
-                <KartDriverPortrait character={m.character} mood="normal" size={26} />
-                <span className="kart-distant-dist">
-                  {m.distM}m{m.oncoming ? ' ↺' : ''}
-                </span>
-              </div>
-            ))}
-          </div>
-        ) : null}
+        {/* Pre-mounted 60/120fps floating portraits above distant same-track karts (#432, #434) */}
+        <div className="kart-distant-layer" aria-hidden="true">
+          {KART_DRIVERS.map((drv) => (
+            <div
+              key={drv.id}
+              className="kart-distant-marker"
+              style={{ opacity: 0 }}
+              data-visible="false"
+              data-testid={`kart-distant-marker-${drv.id}`}
+              ref={(node) => {
+                if (node) {
+                  const distEl = node.querySelector('.kart-distant-dist') as HTMLSpanElement;
+                  distantDomP1Ref.current.set(drv.id, {
+                    root: node,
+                    dist: distEl,
+                    lastText: '',
+                    visible: false,
+                  });
+                } else {
+                  distantDomP1Ref.current.delete(drv.id);
+                }
+              }}
+            >
+              <KartDriverPortrait character={drv.id} mood="normal" size={26} />
+              <span className="kart-distant-dist" />
+            </div>
+          ))}
+        </div>
         <div className="kart-hud-top-right">
           <div className="kart-telemetry-card" data-testid="kart-p1-telemetry">
             <span
@@ -2430,22 +2456,32 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       {/* Bottom Viewport HUD in 2P Local Split-Screen */}
       {isSplit2P ? (
         <div className="kart-hud-layer is-bottom-half" data-testid="kart-p2-hud">
-          {!paused && distantMarkersP2.length > 0 ? (
-            <div className="kart-distant-layer" aria-hidden="true">
-              {distantMarkersP2.map((m) => (
-                <div
-                  key={m.slot}
-                  className="kart-distant-marker"
-                  style={{ left: `${m.leftPct.toFixed(1)}%`, top: `${m.topPct.toFixed(1)}%` }}
-                >
-                  <KartDriverPortrait character={m.character} mood="normal" size={22} />
-                  <span className="kart-distant-dist">
-                    {m.distM}m{m.oncoming ? ' ↺' : ''}
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : null}
+          <div className="kart-distant-layer" aria-hidden="true">
+            {KART_DRIVERS.map((drv) => (
+              <div
+                key={drv.id}
+                className="kart-distant-marker"
+                style={{ opacity: 0 }}
+                data-visible="false"
+                ref={(node) => {
+                  if (node) {
+                    const distEl = node.querySelector('.kart-distant-dist') as HTMLSpanElement;
+                    distantDomP2Ref.current.set(drv.id, {
+                      root: node,
+                      dist: distEl,
+                      lastText: '',
+                      visible: false,
+                    });
+                  } else {
+                    distantDomP2Ref.current.delete(drv.id);
+                  }
+                }}
+              >
+                <KartDriverPortrait character={drv.id} mood="normal" size={22} />
+                <span className="kart-distant-dist" />
+              </div>
+            ))}
+          </div>
           <div className="kart-hud-top-right">
             <div className="kart-telemetry-card" data-testid="kart-p2-telemetry">
               <span
