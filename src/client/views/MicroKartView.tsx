@@ -36,9 +36,11 @@ import {
   getMicroKartPlaylistForCircuit,
 } from '../../shared/arcadeMusic';
 import {
+  applyAuthoritativeRaceSnapshot,
   applyRemoteKartSnapshot,
   CIRCUIT_LIST,
   createRaceState,
+  type AuthoritativeRaceSnapshot,
   formatCircuitTitle,
   formatRaceClock,
   getCircuit,
@@ -992,12 +994,32 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     netplay.activeRoom && netplay.activeRoom.gameId === 'micro-kart'
       ? netplay.activeRoom
       : null;
+  const online8pRoom = netplay.kartRoom;
+  const isInOnline8P = Boolean(online8pRoom && online8pRoom.myRole !== 'none');
+  const isOnline8PWaiting = Boolean(online8pRoom && online8pRoom.status === 'waiting' && isInOnline8P);
+  const isOnline8PPlaying = Boolean(online8pRoom && online8pRoom.status === 'playing' && isInOnline8P);
+  const isOnline8PSpectator = Boolean(online8pRoom && online8pRoom.myRole === 'spectator');
+  const myOnline8PSlot = online8pRoom?.myRole === 'player' ? online8pRoom.mySlot : null;
+
   const isOnline2P = activeKartRoom !== null;
   const isReadyCheck = activeKartRoom?.status === 'ready_check';
   const isNetworkPaused = activeKartRoom?.syncStatus === 'paused';
   const isInviting = netplay.myPendingInvite?.gameId === 'micro-kart';
-  const effectiveMode: KartRaceMode = isOnline2P ? '2p-online' : localMode;
+  const effectiveMode: KartRaceMode = isInOnline8P
+    ? 'online-8p'
+    : isOnline2P
+      ? '2p-online'
+      : localMode;
   const isSplit2P = effectiveMode === '2p-local';
+
+  const [spectateSlot, setSpectateSlot] = useState<number>(0);
+  const [lobbySecondsLeft, setLobbySecondsLeft] = useState<number>(120);
+  const [lobbyNotice, setLobbyNotice] = useState<string | null>(null);
+  const online8pStartedIdRef = useRef<string | null>(null);
+  const online8pHasSnappedRef = useRef<boolean>(false);
+  const lastClosedNoticeAtRef = useRef<number>(0);
+  const lastSentInputKeyRef = useRef<string>('');
+  const lastSentInputAtRef = useRef<number>(0);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const webglRendererRef = useRef<MicroKartWebGL2Renderer | null>(null);
@@ -1086,6 +1108,8 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       .sort((a, b) => a.place - b.place)
       .map((k) => {
         const spec = getKartDriverSpec(k.character);
+        const myRoleNow = getSharedNetplay().getState().kartRoom?.myRole;
+        const isSpecNow = race.mode === 'online-8p' && myRoleNow === 'spectator';
         const humanTag =
           race.mode === '2p-local'
             ? k.slot === 0
@@ -1093,11 +1117,23 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
               : k.slot === 1
                 ? 'P2'
                 : null
-            : k.slot === focusLocalSlot
-              ? 'YOU'
-              : k.isRemote
-                ? 'P2'
-                : null;
+            : race.mode === 'online-8p'
+              ? isSpecNow
+                ? k.slot === focusLocalSlot
+                  ? 'CAM'
+                  : k.isHuman
+                    ? 'LIVE'
+                    : null
+                : k.slot === focusLocalSlot
+                  ? 'YOU'
+                  : k.isHuman
+                    ? 'LIVE'
+                    : null
+              : k.slot === focusLocalSlot
+                ? 'YOU'
+                : k.isRemote
+                  ? 'P2'
+                  : null;
         const mood: KartPortraitMood = k.eliminated
           ? 'cry'
           : getKartPortraitMood(k.place, activeCount, isFinished, k.finishMs !== null);
@@ -1472,6 +1508,116 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     return () => window.clearInterval(id);
   }, [activeKartRoom, countdown, isNetworkPaused, isOnline2P, isReadyCheck]);
 
+  // 8-Player Online Micro Kart: waiting timer, closed-lobby notice, race bootstrap & 20Hz authoritative snapshot sync (#438)
+  useEffect(() => {
+    if (!online8pRoom || online8pRoom.status !== 'waiting') return;
+    const tick = () => {
+      setLobbySecondsLeft(Math.max(0, Math.ceil((online8pRoom.timeoutAt - Date.now()) / 1000)));
+    };
+    tick();
+    const id = window.setInterval(tick, 250);
+    return () => window.clearInterval(id);
+  }, [online8pRoom]);
+
+  useEffect(() => {
+    const notice = netplay.kartClosedNotice;
+    if (!notice || notice.at === lastClosedNoticeAtRef.current) return;
+    if (notice.hostId !== netplay.clientId) return;
+    lastClosedNoticeAtRef.current = notice.at;
+    if (notice.reason === 'all_dismissed') {
+      setLobbyNotice('All online players dismissed the race invite.');
+      setSharedGamePaused(true);
+    } else if (notice.reason === 'timeout') {
+      setLobbyNotice('Waiting lobby timed out after 2 minutes.');
+      setSharedGamePaused(true);
+    }
+  }, [netplay.kartClosedNotice, netplay.clientId]);
+
+  useEffect(() => {
+    if (!isOnline8PPlaying || !online8pRoom) {
+      if (!isInOnline8P) {
+        online8pStartedIdRef.current = null;
+        online8pHasSnappedRef.current = false;
+      }
+      return;
+    }
+    if (online8pStartedIdRef.current !== online8pRoom.id) {
+      online8pStartedIdRef.current = online8pRoom.id;
+      online8pHasSnappedRef.current = false;
+      setCircuitId(online8pRoom.circuitId);
+      setReversed(online8pRoom.reversed);
+      setRaceFormat(online8pRoom.format);
+      const fresh = createRaceState(online8pRoom.circuitId, 'online-8p', online8pRoom.seed, {
+        reversed: online8pRoom.reversed,
+        format: online8pRoom.format,
+        humanRoster: online8pRoom.players.map((p) => ({
+          slot: p.slot,
+          name: p.name,
+          character: p.character,
+        })),
+      });
+      raceRef.current = fresh;
+      cam1Ref.current = createChaseCamera();
+      const initFocus = myOnline8PSlot ?? 0;
+      setSpectateSlot(initFocus);
+      updateChaseCamera(cam1Ref.current, fresh.karts[initFocus] ?? fresh.karts[0]!, 1);
+      finishAwardedRef.current = false;
+      setHasStarted(true);
+      setMenuDirty(false);
+      setSharedGamePaused(false);
+      setKoToast(null);
+      if (online8pRoom.countdownRemainingMs > 300) {
+        triggerFreshCountdown();
+      } else {
+        countdownRef.current = 0;
+        setCountdown(0);
+      }
+      getSharedArcadeAudio().cutToPlaylist(
+        getMicroKartPlaylistForCircuit(online8pRoom.circuitId, online8pRoom.reversed),
+        0.35,
+      );
+      syncHudFromRace(fresh, initFocus);
+    }
+
+    const unsub = getSharedNetplay().subscribeKartState((snap: AuthoritativeRaceSnapshot) => {
+      const race = raceRef.current;
+      if (race.mode !== 'online-8p') return;
+      const firstSnap = !online8pHasSnappedRef.current;
+      online8pHasSnappedRef.current = true;
+      const { localPortalCrossed } = applyAuthoritativeRaceSnapshot(
+        race,
+        snap,
+        myOnline8PSlot,
+        firstSnap,
+      );
+      if (localPortalCrossed && myOnline8PSlot !== null) {
+        setPortalFlashKey((k) => k + 1);
+        const fk = race.karts[myOnline8PSlot];
+        if (fk) {
+          const st = getMarathonStageForKart(race, fk, fk.stageIndex);
+          getSharedArcadeAudio().cutToPlaylist(
+            getMicroKartPlaylistForCircuit(st.circuitId, st.reversed),
+            0.2,
+          );
+        }
+      }
+      const focusIdx = myOnline8PSlot ?? spectateSlot;
+      if (firstSnap) {
+        const fk = race.karts[focusIdx] ?? race.karts[0]!;
+        updateChaseCamera(cam1Ref.current, fk, 1);
+      }
+    });
+    return unsub;
+  }, [
+    isInOnline8P,
+    isOnline8PPlaying,
+    myOnline8PSlot,
+    online8pRoom,
+    spectateSlot,
+    syncHudFromRace,
+    triggerFreshCountdown,
+  ]);
+
   // Keyboard listeners + deterministic E2E test hook (`yolo:kart:step`)
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -1672,15 +1818,20 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         ? { left: p1Analog < -0.1, right: p1Analog > 0.1, brake: p1Brake, steerAnalog: p1Analog }
         : { left: p1Left, right: p1Right, brake: p1Brake };
 
-    const myOnlineSlot = isOnline2P && activeKartRoom ? activeKartRoom.mySlot : 0;
-    if (isOnline2P) {
-      return { [myOnlineSlot]: p1Input };
+    const myOnlineSlot =
+      isOnline8PPlaying && myOnline8PSlot !== null
+        ? myOnline8PSlot
+        : isOnline2P && activeKartRoom
+          ? activeKartRoom.mySlot
+          : 0;
+    if (isOnline8PPlaying || isOnline2P) {
+      return isOnline8PSpectator ? {} : { [myOnlineSlot]: p1Input };
     }
     return {
       0: p1Input,
       1: { left: p2Left, right: p2Right, brake: p2Brake },
     };
-  }, [activeKartRoom, isOnline2P, isSplit2P]);
+  }, [activeKartRoom, isOnline2P, isOnline8PPlaying, isOnline8PSpectator, isSplit2P, myOnline8PSlot]);
 
   // WebGL2 renderer lifecycle (with automatic fallback to 2D canvas if unavailable or unrecoverable)
   useEffect(() => {
@@ -1779,9 +1930,20 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       }
 
       const race = raceRef.current;
-      const focusSlot = isOnline2P && activeKartRoom ? activeKartRoom.mySlot : 0;
-      const canAdvance =
-        !paused && !overlayOpen && !isReadyCheck && !isInviting && !isNetworkPaused && countdown <= 0;
+      const focusSlot = isOnline8PPlaying
+        ? myOnline8PSlot ?? Math.max(0, Math.min(race.karts.length - 1, spectateSlot))
+        : isOnline2P && activeKartRoom
+          ? activeKartRoom.mySlot
+          : 0;
+      const canAdvance = isOnline8PPlaying
+        ? countdown <= 0
+        : !paused &&
+          !overlayOpen &&
+          !isReadyCheck &&
+          !isInviting &&
+          !isOnline8PWaiting &&
+          !isNetworkPaused &&
+          countdown <= 0;
 
       // Pre-warm remaining circuit VBO/VAOs 1 per frame during countdown/paused/early race so portals NEVER stutter!
       const glRendererForWarm = rendererBackend === 'webgl2' ? webglRendererRef.current : null;
@@ -1791,6 +1953,18 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
 
       if (canAdvance) {
         const inputs = readCurrentHumanInputs();
+        // Delta-on-change input uplink (+ 2Hz heartbeat) to authoritative 8P server (#438)
+        if (isOnline8PPlaying && myOnline8PSlot !== null) {
+          const myIn = inputs[myOnline8PSlot] ?? { left: false, right: false, brake: false };
+          const key = `${myIn.left ? 1 : 0}${myIn.right ? 1 : 0}${myIn.brake ? 1 : 0}${
+            myIn.steerAnalog !== undefined ? myIn.steerAnalog.toFixed(2) : ''
+          }`;
+          if (key !== lastSentInputKeyRef.current || now - lastSentInputAtRef.current >= 450) {
+            lastSentInputKeyRef.current = key;
+            lastSentInputAtRef.current = now;
+            getSharedNetplay().sendKartInput(myIn);
+          }
+        }
         simAccumulatorMs = Math.min(40, simAccumulatorMs + dtMs);
         let stepped = false;
         while (simAccumulatorMs >= FIXED_STEP_MS) {
@@ -1971,15 +2145,18 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     isInviting,
     isNetworkPaused,
     isOnline2P,
+    isOnline8PPlaying,
+    isOnline8PWaiting,
     isReadyCheck,
     isSplit2P,
+    myOnline8PSlot,
     overlayOpen,
     paused,
     readCurrentHumanInputs,
     rendererBackend,
+    spectateSlot,
     syncHudFromRace,
   ]);
-
   const classifyTouchZone = (
     relX: number,
     relY: number,
@@ -1998,7 +2175,18 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
   };
 
   const handleStagePointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (paused || overlayOpen || raceStatus === 'finished') return;
+    if (
+      paused ||
+      overlayOpen ||
+      isOnline8PWaiting ||
+      isOnline8PSpectator ||
+      raceStatus === 'finished'
+    ) {
+      return;
+    }
+    if ((e.target as HTMLElement | null)?.closest('button, .game-pause-backdrop, .kart-spectator-bar')) {
+      return;
+    }
     const rect = e.currentTarget.getBoundingClientRect();
     const hit = classifyTouchZone(
       e.clientX - rect.left,
@@ -2388,7 +2576,8 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
           />
         ) : null}
 
-        <div className="kart-controls-dock">
+        {!isOnline8PSpectator ? (
+          <div className="kart-controls-dock">
           {!isSplit2P ? (
             <div className="kart-cockpit-cluster">
               <F1Speedometer
@@ -2460,6 +2649,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
             </span>
           </div>
         </div>
+        ) : null}
       </div>
 
       {/* Bottom Viewport HUD in 2P Local Split-Screen */}
@@ -2673,8 +2863,179 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         </div>
       ) : null}
 
-      {/* Harmonized Start / Pause Menu (#436) */}
-      {paused ? (
+      {/* 8-Player Online Waiting Room Screen (#438) */}
+      {isOnline8PWaiting && online8pRoom ? (
+        <div className="game-pause-backdrop">
+          <div
+            className="game-pause-menu kart-lobby-card"
+            role="dialog"
+            aria-modal="true"
+            aria-label="8P Online Micro Kart Waiting Lobby"
+            data-testid="kart-online-waiting"
+          >
+            <div className="game-pause-head">
+              <span className="game-pause-kicker">
+                8P Online · {online8pRoom.players.length}/{online8pRoom.maxPlayers} Joined ·{' '}
+                {Math.floor(lobbySecondsLeft / 60)}:{String(lobbySecondsLeft % 60).padStart(2, '0')}
+              </span>
+              <div className="game-pause-title">
+                {isOnline8PSpectator ? 'Spectating Lobby' : 'Waiting for Racers'}
+              </div>
+              <span className="kart-lobby-meta">
+                {online8pRoom.format === 'marathon' ? '🌀 Portal Marathon' : 'Grand Prix'} ·{' '}
+                {SHORT_CIRCUIT_NAMES[online8pRoom.circuitId]}
+                {online8pRoom.reversed ? ' ↺' : ''}
+              </span>
+            </div>
+
+            <div className="kart-lobby-roster" data-testid="kart-lobby-roster">
+              {online8pRoom.players.map((p) => (
+                <div
+                  key={p.id}
+                  className={p.id === netplay.clientId ? 'kart-lobby-member is-me' : 'kart-lobby-member'}
+                  data-testid={`kart-lobby-player-${p.slot}`}
+                >
+                  <KartDriverPortrait character={p.character} mood="happy" size={22} />
+                  <span className="kart-lobby-member-name">
+                    {p.name}
+                    {p.id === netplay.clientId ? ' (You)' : ''}
+                  </span>
+                  <span className="kart-lobby-member-tag">
+                    {p.isHost ? 'HOST' : getKartDriverSpec(p.character).driverName}
+                  </span>
+                </div>
+              ))}
+              {online8pRoom.spectators.length > 0 ? (
+                <div className="kart-lobby-spectators">
+                  👁 {online8pRoom.spectators.length} spectating
+                </div>
+              ) : null}
+            </div>
+
+            {!isOnline8PSpectator ? (
+              <div className="game-pause-section">
+                <span className="stack-label">Pick Companion (Unique per human)</span>
+                <div className="filter-group kart-driver-picker" role="group" aria-label="Online driver selection">
+                  {KART_DRIVERS.map((drv) => {
+                    const taken = online8pRoom.takenCharacters[drv.id];
+                    const takenByOther = Boolean(taken && taken.playerId !== netplay.clientId);
+                    const isMine = Boolean(taken && taken.playerId === netplay.clientId);
+                    return (
+                      <button
+                        key={drv.id}
+                        type="button"
+                        className={takenByOther ? 'kart-driver-choice is-taken' : 'kart-driver-choice'}
+                        data-testid={`kart-lobby-driver-${drv.id}`}
+                        aria-pressed={isMine}
+                        disabled={takenByOther}
+                        title={takenByOther ? `Chosen by ${taken!.playerName}` : drv.driverName}
+                        onClick={() => {
+                          setP1Character(drv.id);
+                          void getSharedNetplay().selectKartCharacter(drv.id);
+                        }}
+                      >
+                        <KartDriverPortrait character={drv.id} mood="normal" size={20} />
+                        <span>{drv.driverName}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
+
+            <div className="game-pause-actions">
+              {online8pRoom.hostId === netplay.clientId ? (
+                <button
+                  type="button"
+                  className="primary game-menu-cta"
+                  data-testid="kart-lobby-go-btn"
+                  disabled={!online8pRoom.canStart}
+                  onClick={() => void getSharedNetplay().startKartRace()}
+                >
+                  {online8pRoom.canStart
+                    ? `Go! (${online8pRoom.players.length} Racers)`
+                    : 'Waiting for 1+ Racer…'}
+                </button>
+              ) : isOnline8PSpectator ? (
+                <button
+                  type="button"
+                  className="primary game-menu-cta"
+                  data-testid="kart-spectator-join-btn"
+                  onClick={() => void getSharedNetplay().joinKartRoom(p1Character)}
+                >
+                  Join Race
+                </button>
+              ) : (
+                <div className="kart-lobby-waiting-hint">
+                  Waiting for {online8pRoom.hostName} to press Go!…
+                </div>
+              )}
+              <div className="game-pause-secondary">
+                <button
+                  type="button"
+                  data-testid="kart-lobby-leave-btn"
+                  onClick={() => {
+                    void getSharedNetplay().leaveKartRoom();
+                    setSharedGamePaused(true);
+                  }}
+                >
+                  {online8pRoom.hostId === netplay.clientId ? 'Cancel' : 'Leave'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Live Spectator Controls + Best-CPU Drop-In Takeover Bar (#438) */}
+      {isOnline8PPlaying && isOnline8PSpectator && online8pRoom ? (
+        <div className="kart-spectator-bar" data-testid="kart-spectator-bar">
+          <div className="kart-spectator-info">
+            <span className="kart-spectator-badge">👁 SPECTATING</span>
+            <span className="kart-spectator-target" data-testid="kart-spectator-target">
+              {ordinalPlace(p1Hud.place)} · {p1Hud.driverName}
+            </span>
+          </div>
+          <div className="kart-spectator-actions">
+            <button
+              type="button"
+              data-testid="kart-spectate-prev"
+              onClick={() => setSpectateSlot((s) => (s + 7) % 8)}
+            >
+              ◀ Prev
+            </button>
+            <button
+              type="button"
+              data-testid="kart-spectate-next"
+              onClick={() => setSpectateSlot((s) => (s + 1) % 8)}
+            >
+              Next ▶
+            </button>
+            <button
+              type="button"
+              className="primary"
+              data-testid="kart-spectator-join-btn"
+              disabled={online8pRoom.openCpuSeats <= 0}
+              onClick={() => void getSharedNetplay().joinKartRoom(p1Character)}
+            >
+              {online8pRoom.openCpuSeats > 0 ? 'Join Race' : 'Full (8/8 Humans)'}
+            </button>
+            <button
+              type="button"
+              data-testid="kart-spectate-leave-btn"
+              onClick={() => {
+                void getSharedNetplay().leaveKartRoom();
+                setSharedGamePaused(true);
+              }}
+            >
+              Leave
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Harmonized Start / Pause Menu (#436, #438) */}
+      {paused && !isOnline8PWaiting ? (
         <div className="game-pause-backdrop">
           <div
             className="game-pause-menu"
@@ -2687,9 +3048,18 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
           >
             <div className="game-pause-head">
               <span className="game-pause-kicker">
-                {hasStarted ? 'Game Paused' : 'Ready to Race'}
+                {isOnline8PPlaying
+                  ? `8P Online Live · ${online8pRoom?.players.length ?? 0}/8 Humans`
+                  : hasStarted
+                    ? 'Game Paused'
+                    : 'Ready to Race'}
               </span>
               <div className="game-pause-title">{hasStarted ? 'Paused' : 'Micro Kart'}</div>
+              {lobbyNotice ? (
+                <span className="kart-lobby-notice" data-testid="kart-lobby-notice">
+                  {lobbyNotice}
+                </span>
+              ) : null}
             </div>
 
             <div className="game-pause-section">
@@ -2698,9 +3068,11 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                 <button
                   type="button"
                   data-testid="kart-1p-btn"
-                  aria-pressed={!isSplit2P && !isOnline2P && !isInviting}
+                  aria-pressed={!isSplit2P && !isOnline2P && !isInOnline8P && !isInviting}
                   onClick={() => {
+                    setLobbyNotice(null);
                     if (isOnline2P) void getSharedNetplay().leaveRoom();
+                    if (isInOnline8P) void getSharedNetplay().leaveKartRoom();
                     setLocalMode('1p');
                     resetRace(circuitId, '1p', undefined, undefined, undefined, undefined, undefined, undefined, true);
                   }}
@@ -2713,7 +3085,9 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                     data-testid="kart-2p-local-btn"
                     aria-pressed={isSplit2P}
                     onClick={() => {
+                      setLobbyNotice(null);
                       if (isOnline2P) void getSharedNetplay().leaveRoom();
+                      if (isInOnline8P) void getSharedNetplay().leaveKartRoom();
                       setLocalMode('2p-local');
                       resetRace(circuitId, '2p-local', undefined, undefined, undefined, undefined, undefined, undefined, true);
                     }}
@@ -2724,29 +3098,50 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                 <button
                   type="button"
                   data-testid="kart-2p-online-btn"
-                  aria-pressed={isOnline2P || isInviting}
-                  disabled={!canSelectOnline2P}
+                  aria-pressed={isInOnline8P || isOnline2P || isInviting}
+                  disabled={!online8pRoom && !canSelectOnline2P}
                   onClick={() => {
-                    if (isOnline2P) {
-                      void getSharedNetplay().leaveRoom();
-                    } else if (isInviting) {
-                      void getSharedNetplay().cancelInvite();
+                    setLobbyNotice(null);
+                    if (isInOnline8P) {
+                      void getSharedNetplay().leaveKartRoom();
+                    } else if (online8pRoom) {
+                      void getSharedNetplay().joinKartRoom(p1Character);
+                      setSharedGamePaused(false);
                     } else if (canSelectOnline2P) {
                       setLocalMode('1p');
-                      setHasStarted(true);
-                      setMenuDirty(false);
                       setSharedGamePaused(false);
-                      void getSharedNetplay().sendInvite('micro-kart');
+                      void getSharedNetplay().createKartLobby({
+                        format: raceFormat,
+                        circuitId,
+                        reversed,
+                        character: p1Character,
+                      });
                     }
                   }}
                 >
-                  {isOnline2P && activeKartRoom
-                    ? `Online (${activeKartRoom.opponent.name})`
-                    : isInviting
-                      ? `Waiting (${inviteSecondsLeft}s)`
-                      : '2P Online'}
+                  {isInOnline8P
+                    ? `Online (${online8pRoom?.players.length ?? 1}/8)`
+                    : online8pRoom
+                      ? online8pRoom.status === 'waiting'
+                        ? `Join (${online8pRoom.players.length}/8)`
+                        : 'Join Live'
+                      : 'Online (8P)'}
                 </button>
               </div>
+              {online8pRoom && !isInOnline8P ? (
+                <button
+                  type="button"
+                  className="kart-menu-spectate-btn"
+                  data-testid="kart-menu-spectate-btn"
+                  onClick={() => {
+                    setLobbyNotice(null);
+                    setSharedGamePaused(false);
+                    void getSharedNetplay().spectateKartRoom();
+                  }}
+                >
+                  👁 Spectate Live 8P Race ({online8pRoom.players.length}/8)
+                </button>
+              ) : null}
             </div>
 
             <div className="game-pause-section">
@@ -2756,6 +3151,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                   type="button"
                   data-testid="kart-format-gp"
                   aria-pressed={raceFormat === 'grand-prix'}
+                  disabled={isInOnline8P}
                   onClick={() => {
                     setRaceFormat('grand-prix');
                     resetRace(circuitId, effectiveMode, undefined, undefined, undefined, undefined, reversed, 'grand-prix', true);
@@ -2767,6 +3163,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                   type="button"
                   data-testid="kart-format-marathon"
                   aria-pressed={raceFormat === 'marathon'}
+                  disabled={isInOnline8P}
                   onClick={() => {
                     setRaceFormat('marathon');
                     resetRace(circuitId, effectiveMode, undefined, undefined, undefined, undefined, reversed, 'marathon', true);
@@ -2778,6 +3175,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                   type="button"
                   data-testid="kart-dir-reverse"
                   aria-pressed={reversed}
+                  disabled={isInOnline8P}
                   onClick={() => {
                     const nextRev = !reversed;
                     setReversed(nextRev);
@@ -2798,6 +3196,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                     type="button"
                     data-testid={`kart-circuit-${c.id}`}
                     aria-pressed={circuitId === c.id}
+                    disabled={isInOnline8P}
                     onClick={() => {
                       setCircuitId(c.id);
                       resetRace(c.id, effectiveMode, undefined, undefined, undefined, undefined, reversed, raceFormat, true);
@@ -2812,22 +3211,28 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
             <div className="game-pause-section">
               <span className="stack-label">Driver</span>
               <div className="filter-group kart-driver-picker" role="group" aria-label="Driver selection">
-                {KART_DRIVERS.map((drv) => (
-                  <button
-                    key={drv.id}
-                    type="button"
-                    className="kart-driver-choice"
-                    data-testid={`kart-driver-${drv.id}`}
-                    aria-pressed={p1Character === drv.id}
-                    onClick={() => {
-                      setP1Character(drv.id);
-                      resetRace(circuitId, effectiveMode, undefined, undefined, undefined, drv.id, reversed, raceFormat, true);
-                    }}
-                  >
-                    <KartDriverPortrait character={drv.id} mood="normal" size={20} />
-                    <span>{drv.driverName}</span>
-                  </button>
-                ))}
+                {KART_DRIVERS.map((drv) => {
+                  const taken = online8pRoom?.takenCharacters[drv.id];
+                  const takenByOther = Boolean(taken && taken.playerId !== netplay.clientId);
+                  return (
+                    <button
+                      key={drv.id}
+                      type="button"
+                      className={takenByOther ? 'kart-driver-choice is-taken' : 'kart-driver-choice'}
+                      data-testid={`kart-driver-${drv.id}`}
+                      aria-pressed={p1Character === drv.id}
+                      disabled={takenByOther || isOnline8PPlaying}
+                      title={takenByOther ? `Chosen by ${taken!.playerName}` : drv.driverName}
+                      onClick={() => {
+                        setP1Character(drv.id);
+                        resetRace(circuitId, effectiveMode, undefined, undefined, undefined, drv.id, reversed, raceFormat, true);
+                      }}
+                    >
+                      <KartDriverPortrait character={drv.id} mood="normal" size={20} />
+                      <span>{drv.driverName}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -2867,14 +3272,15 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                 data-testid="pause-menu-resume"
                 aria-label={!hasStarted ? 'Start race' : menuDirty ? 'Start new race' : 'Continue race'}
                 onClick={() => {
+                  setLobbyNotice(null);
                   if (getSharedMusicOn()) {
                     getSharedArcadeAudio().ensureContext();
                   }
-                  if (!hasStarted || menuDirty) {
+                  if (!isOnline8PPlaying && (!hasStarted || menuDirty)) {
                     setHasStarted(true);
                     setMenuDirty(false);
                     triggerFreshCountdown();
-                  } else if (countdown > 0) {
+                  } else if (!isOnline8PPlaying && countdown > 0) {
                     triggerFreshCountdown();
                   }
                   setSharedGamePaused(false);
@@ -2883,7 +3289,19 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                 {!hasStarted ? 'Start' : menuDirty ? 'Go!' : 'Continue'}
               </button>
               <div className="game-pause-secondary">
-                {hasStarted && !menuDirty ? (
+                {isOnline8PPlaying ? (
+                  <button
+                    type="button"
+                    data-testid="kart-leave-online-btn"
+                    onClick={() => {
+                      void getSharedNetplay().leaveKartRoom();
+                      setHasStarted(false);
+                      setMenuDirty(false);
+                    }}
+                  >
+                    Leave Online (CPU Takes Over)
+                  </button>
+                ) : hasStarted && !menuDirty ? (
                   <button
                     type="button"
                     data-testid="pause-menu-restart"
@@ -2898,6 +3316,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                   aria-label="Close Micro Kart"
                   onClick={() => {
                     if (isOnline2P) void getSharedNetplay().leaveRoom();
+                    if (isInOnline8P) void getSharedNetplay().leaveKartRoom();
                     setSharedGamePaused(false);
                     onExit();
                   }}

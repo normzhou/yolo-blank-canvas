@@ -1,6 +1,7 @@
 import {publicOrigin, originAuthorization, cleanRequestHeaders, cleanResponse, failure, withinDeadline} from './transport.mjs';
 import {createManagedWorkBridge} from './yolo-feedback/src/managed-client.js';
 import {identify, hash as sha256Hex, secured} from './identity-client.mjs';
+import {createKartOnlineRoomManager, KART_SERVER_TICK_MS} from './kart-room-engine.generated.mjs';
 
 const VALID_HANDOFF_RE = /^[A-Za-z0-9_-]{43}$/;
 
@@ -70,6 +71,9 @@ export class NetplayHub {
     this.appLogins = new Map();
     this.appSessions = new Map();
     this.appHandoffs = new Map();
+    this.kartRooms = createKartOnlineRoomManager();
+    this.kartSimTimer = null;
+    this.kartWaitTimer = null;
     this.seq = 1;
     if (ctx && typeof ctx.blockConcurrencyWhile === 'function' && ctx.storage) {
       ctx.blockConcurrencyWhile(async () => {
@@ -248,6 +252,57 @@ export class NetplayHub {
     }
   }
 
+  broadcastKartState(snapshot) {
+    if (!snapshot) return;
+    const memberIds = this.kartRooms.getRoomMemberIds();
+    if (memberIds.size === 0) return;
+    const encoded = JSON.stringify({type: 'kart_state', snapshot});
+    for (const ws of this.getConnectedSockets()) {
+      const meta = this.socketMeta.get(ws);
+      if (!meta || !meta.clientId || !memberIds.has(meta.clientId)) continue;
+      try {
+        ws.send(encoded);
+      } catch {
+        // Ignore broken sockets
+      }
+    }
+  }
+
+  ensureKartLoops() {
+    if (this.kartRooms.isSimActive()) {
+      if (!this.kartSimTimer) {
+        this.kartSimTimer = setInterval(() => {
+          const snap = this.kartRooms.tickSimulation();
+          if (snap) this.broadcastKartState(snap);
+          if (!this.kartRooms.isSimActive()) this.ensureKartLoops();
+        }, KART_SERVER_TICK_MS);
+      }
+    } else if (this.kartSimTimer) {
+      clearInterval(this.kartSimTimer);
+      this.kartSimTimer = null;
+    }
+
+    if (this.kartRooms.hasActiveRoom()) {
+      if (!this.kartWaitTimer) {
+        this.kartWaitTimer = setInterval(() => {
+          const onlineIds = new Set(this.players.keys());
+          const res = this.kartRooms.checkTimers(onlineIds);
+          if (res.autoStarted || res.closed || res.changed) {
+            this.broadcastSnapshots();
+            if (res.autoStarted) {
+              const s = this.kartRooms.getLastSnapshot();
+              if (s) this.broadcastKartState(s);
+            }
+          }
+          this.ensureKartLoops();
+        }, 1_000);
+      }
+    } else if (this.kartWaitTimer) {
+      clearInterval(this.kartWaitTimer);
+      this.kartWaitTimer = null;
+    }
+  }
+
   broadcastSnapshots(targetClientIds = null) {
     for (const ws of this.getConnectedSockets()) {
       const meta = this.socketMeta.get(ws);
@@ -385,7 +440,16 @@ export class NetplayHub {
         };
       }
     }
-    return {onlineCount: players.length, players, openInvites, myPendingInvites, activeRoom, serverTime: now};
+    return {
+      onlineCount: players.length,
+      players,
+      openInvites,
+      myPendingInvites,
+      activeRoom,
+      kartRoom: this.kartRooms.getPublicRoomView(clientId),
+      kartClosedNotice: this.kartRooms.getLastClosedNotice(),
+      serverTime: now,
+    };
   }
 
   async processAction(body = {}, sourceWs = null) {
@@ -396,6 +460,7 @@ export class NetplayHub {
     if (!clientId) {
       return {status: 400, payload: {error: {kind: 'invalid_request', message: 'clientId is required.'}}};
     }
+    this.kartRooms.touch(clientId);
 
     const name = cleanName(body.name);
     const appId = typeof body.appId === 'string' && VALID_GAMES.has(body.appId) ? body.appId : null;
@@ -663,6 +728,119 @@ export class NetplayHub {
       return {status: 200, payload: snap};
     }
 
+    if (action === 'kart_lobby_create') {
+      const idleOtherIds = [];
+      for (const p of this.players.values()) {
+        if (p.id !== clientId && p.status === 'idle' && !p.roomId) idleOtherIds.push(p.id);
+      }
+      const res = this.kartRooms.createLobby(
+        clientId,
+        player.name,
+        {
+          format: body.format,
+          circuitId: body.circuitId,
+          reversed: body.reversed,
+          character: body.character,
+        },
+        idleOtherIds,
+      );
+      this.ensureKartLoops();
+      const snap = this.snapshot(clientId, 0);
+      this.broadcastSnapshots();
+      if (!res.ok) {
+        return {status: 409, payload: {error: {kind: 'kart_room_busy', message: res.error}, ...snap}};
+      }
+      return {status: 200, payload: snap};
+    }
+
+    if (action === 'kart_lobby_join') {
+      const res = this.kartRooms.joinRoom(clientId, player.name, body.character);
+      this.ensureKartLoops();
+      const snap = this.snapshot(clientId, 0);
+      this.broadcastSnapshots();
+      if (res.ok && res.snapshot) this.broadcastKartState(res.snapshot);
+      if (!res.ok) {
+        return {status: 409, payload: {error: {kind: 'kart_join_failed', message: res.error}, ...snap}};
+      }
+      return {status: 200, payload: {...snap, kartSnapshot: res.snapshot}};
+    }
+
+    if (action === 'kart_lobby_character') {
+      const res = this.kartRooms.selectCharacter(clientId, body.character);
+      const snap = this.snapshot(clientId, 0);
+      this.broadcastSnapshots();
+      if (!res.ok) {
+        return {status: 409, payload: {error: {kind: 'kart_char_taken', message: res.error}, ...snap}};
+      }
+      return {status: 200, payload: snap};
+    }
+
+    if (action === 'kart_lobby_options') {
+      this.kartRooms.updateLobbyOptions(clientId, {
+        format: body.format,
+        circuitId: body.circuitId,
+        reversed: body.reversed,
+      });
+      const snap = this.snapshot(clientId, 0);
+      this.broadcastSnapshots();
+      return {status: 200, payload: snap};
+    }
+
+    if (action === 'kart_lobby_spectate') {
+      const res = this.kartRooms.spectate(clientId, player.name);
+      this.ensureKartLoops();
+      const snap = this.snapshot(clientId, 0);
+      this.broadcastSnapshots();
+      if (res.ok && res.snapshot && ws) {
+        try {
+          ws.send(JSON.stringify({type: 'kart_state', snapshot: res.snapshot}));
+        } catch {
+          // Ignore broken socket
+        }
+      }
+      if (!res.ok) {
+        return {status: 404, payload: {error: {kind: 'kart_no_room', message: res.error}, ...snap}};
+      }
+      return {status: 200, payload: {...snap, kartSnapshot: res.snapshot}};
+    }
+
+    if (action === 'kart_lobby_dismiss') {
+      this.kartRooms.dismissLobby(clientId);
+      this.ensureKartLoops();
+      const snap = this.snapshot(clientId, 0);
+      this.broadcastSnapshots();
+      return {status: 200, payload: snap};
+    }
+
+    if (action === 'kart_lobby_start') {
+      const res = this.kartRooms.startRace(clientId);
+      this.ensureKartLoops();
+      const snap = this.snapshot(clientId, 0);
+      this.broadcastSnapshots();
+      if (res.ok && res.snapshot) this.broadcastKartState(res.snapshot);
+      if (!res.ok) {
+        return {status: 409, payload: {error: {kind: 'kart_start_failed', message: res.error}, ...snap}};
+      }
+      return {status: 200, payload: {...snap, kartSnapshot: res.snapshot}};
+    }
+
+    if (action === 'kart_lobby_leave') {
+      const res = this.kartRooms.leave(clientId);
+      this.ensureKartLoops();
+      const snap = this.snapshot(clientId, 0);
+      if (res.changed) {
+        this.broadcastSnapshots();
+        const latest = this.kartRooms.getLastSnapshot();
+        if (latest) this.broadcastKartState(latest);
+      }
+      return {status: 200, payload: snap};
+    }
+
+    if (action === 'kart_input') {
+      this.kartRooms.setInput(clientId, body.input || body);
+      return {status: 200, payload: {ok: true, kartSnapshot: this.kartRooms.getLastSnapshot()}};
+    }
+
     return {status: 400, payload: {error: {kind: 'invalid_request', message: 'Unknown netplay action.'}}};
   }
 
@@ -690,10 +868,18 @@ export class NetplayHub {
       const stillConnected = this.getConnectedSockets().some(
         other => other !== ws && this.socketMeta.get(other)?.clientId === meta.clientId,
       );
-      const p = this.players.get(meta.clientId);
-      if (!stillConnected && p && p.status === 'idle' && !p.roomId) {
-        this.players.delete(meta.clientId);
-        await this.persist(false);
+      if (!stillConnected) {
+        const kartRes = this.kartRooms.leave(meta.clientId);
+        if (kartRes.changed) {
+          this.ensureKartLoops();
+          const latest = this.kartRooms.getLastSnapshot();
+          if (latest) this.broadcastKartState(latest);
+        }
+        const p = this.players.get(meta.clientId);
+        if (p && p.status === 'idle' && !p.roomId) {
+          this.players.delete(meta.clientId);
+          await this.persist(false);
+        }
         this.broadcastSnapshots();
       }
     }
