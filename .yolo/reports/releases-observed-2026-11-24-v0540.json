@@ -1,0 +1,82 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-24",
+  "observed_at": "2026-11-24",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#428",
+  "releases": [
+    {
+      "tag": "v0.54.0",
+      "commit": "bcb67327e3915ff0bb85ce622508efb7bce24d0a"
+    }
+  ],
+  "release": {
+    "tag": "v0.54.0",
+    "commit": "bcb67327e3915ff0bb85ce622508efb7bce24d0a",
+    "source_commit": "92becd7bd547ca241f5412fc1008c627d71835b8",
+    "assets_commit": "84cdac12c4fc3cd921f95704c5b3a8736cb562ed",
+    "native_version": "0.54.0",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-24T00:50:32Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.54.0",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/429"
+  },
+  "build_identity": {
+    "server_build_id": "92becd7bd547ca241f5412fc1008c627d71835b8",
+    "client_build_id": "92becd7bd547ca241f5412fc1008c627d71835b8",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "chrome_perf_benchmark": "Cloud Gate Marathon 1440x900@2x Retina + live portal: 5.18M -> 1.87M backing pixels (-64%), 2 -> 0 live backdrop-filter blur layers, 50.0ms -> 16.8ms max frame delta, 0 dropped frames >20ms, locked 60.3 fps",
+      "npm_test": "30 files, 197 tests passed",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 52 passed (1.4m)",
+      "e2e_live": "npm run e2e:live — 5 passed (21.5s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.54.0 --no-open --port 4492 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed",
+      "ci": "GitHub Actions CI/Test and type check green (32s)"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "b5f9e961-7ce4-4306-8cf3-2ee019dcc483",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.54.0",
+      "observed_build_id": "92becd7bd547ca241f5412fc1008c627d71835b8",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.2.0",
+          "entry": "/games/starlight-burst-dfLBmggg.js",
+          "hash": "c5fb1e727049febeb2bb1d85dd16ca090a86d621e42e151c8cc640cebb112b1f",
+          "sizeBytes": 86740
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-C7Nzix8R.js",
+          "hash": "d69d68e7c4bc7176a83c5a4ab2c8d6bbaa048eab9d771e9f213a4ad2aabfa294",
+          "sizeBytes": 37318
+        },
+        "micro-kart": {
+          "version": "2.4.0",
+          "entry": "/games/micro-kart-B7xUJp2J.js",
+          "hash": "824179e147fc011b08b0853de834c50141edc2a59b06da7434a5fcfc08aadca9",
+          "sizeBytes": 160668
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Completes the Micro Kart WebGL2 & frame-pacing performance pass: caps backing resolution at 1080p adaptive (down to 720p) with high-performance desynchronized WebGL2, assigns dedicated VAOs per static mesh, pre-bakes all 8 circuits lazily during idle/countdown frames to eliminate 50ms first-portal hitches, replaces per-frame getBoundingClientRect with ResizeObserver, removes compositor backdrop-filter blur from live racing overlays, and runs physics on a 120Hz fixed-timestep accumulator (@yolo-arcade/game-micro-kart@2.4.0)."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #428"
+}

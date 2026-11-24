@@ -365,15 +365,16 @@
         "v0.51.0": "eb6482dd145a158b7fdd35992b090dd58d188f47",
         "v0.52.0": "479f6d9c7e6ed5f9e7f615fbafb27ddbbf531a68",
         "v0.53.0": "8b577eaf725acb76f3c7418c063e7a0b928cb0a0",
-        "v0.53.1": "99c7c012e8db766a8e7c204ab6c1670742c97dab"
+        "v0.53.1": "99c7c012e8db766a8e7c204ab6c1670742c97dab",
+        "v0.53.2": "b3c9cc31c49a8367858eb5d02ae3a6b0e6da684a"
       },
       "published": {
-        "tag": "v0.53.2",
-        "commit": "b3c9cc31c49a8367858eb5d02ae3a6b0e6da684a",
-        "source_commit": "6ce8e54fbf005b98858d44decc353bf09bd8d8a6",
-        "published_at": "2026-11-23T17:41:13Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-23-v0532.json",
-        "note": "Patch spherical COM elastic collision & head-on rebound fix release (#426, PR #427; @yolo-arcade/game-micro-kart@2.3.2). Removes unconditional nextVFwd >= 0 clamp in stepSingleKart so elastic backward rebounds survive onto subsequent frames, and models collision physics as simple 2D elastic spheres along each pair's Center-of-Mass normal (keeping polygon OBB SAT detection/separation) with a tiny deterministic glance on exact dead-center opposing hits—strictly conserving linear momentum, angular momentum & KE with zero nose-to-nose deadlocks; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 2da69c6b-4a1b-44b2-a7d8-fc713fd7eae8)."
+        "tag": "v0.54.0",
+        "commit": "bcb67327e3915ff0bb85ce622508efb7bce24d0a",
+        "source_commit": "92becd7bd547ca241f5412fc1008c627d71835b8",
+        "published_at": "2026-11-24T00:50:32Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-24-v0540.json",
+        "note": "Minor Micro Kart performance optimization release (#428, PR #429; @yolo-arcade/game-micro-kart@2.4.0). Caps WebGL2 backing resolution at 1080p adaptive (down to 720p) with high-performance desynchronized context (-64% fill-rate on Retina), assigns dedicated VAOs per static mesh, staggers VRAM pre-baking of all 8 circuit variants to eliminate 50ms first-portal hitches (50.0ms -> 16.8ms max delta, 0 dropped frames), caches canvas size via ResizeObserver, removes backdrop-filter blur from live HUD overlays, and adds a 120Hz fixed-timestep accumulator; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: b5f9e961-7ce4-4306-8cf3-2ee019dcc483)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -499,7 +500,8 @@
         ".yolo/reports/releases-observed-2026-11-21-v0520.json",
         ".yolo/reports/releases-observed-2026-11-21-v0530.json",
         ".yolo/reports/releases-observed-2026-11-21-v0531.json",
-        ".yolo/reports/releases-observed-2026-11-23-v0532.json"
+        ".yolo/reports/releases-observed-2026-11-23-v0532.json",
+        ".yolo/reports/releases-observed-2026-11-24-v0540.json"
       ]
     }
   },
