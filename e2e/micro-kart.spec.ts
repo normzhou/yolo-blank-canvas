@@ -17,7 +17,7 @@ test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Bu
     const card = page.getByTestId('deck-slide-card');
     await page.getByTestId('carousel-dot-micro-kart').click();
     await expect(card).toHaveAttribute('data-slide-id', 'micro-kart');
-    await expect(card).toHaveAttribute('data-game-version', '2.9.0');
+    await expect(card).toHaveAttribute('data-game-version', '2.10.0');
     await expect(page.locator('.deck-slide-title')).toHaveText('Micro Kart');
 
     await page.getByRole('button', { name: 'Play Micro Kart', exact: true }).click();
@@ -327,7 +327,7 @@ test('Micro Kart shows left-side emotional standings, in-game split finish banne
     await expect(p2Banner).toBeVisible();
     const box1 = await p1Banner.boundingBox();
     const box2 = await p2Banner.boundingBox();
-    expect(box1 && box2 && box1.y + box1.height < box2.y).toBe(true);
+    expect(box1 && box2 && box1.x + box1.width < box2.x).toBe(true);
 
     // 5. Switch via Pause Menu to Track #4: Cloud Gate, finish it, and verify Cycle 2 flips to Sunset Loop ↺ Reverse! (#410)
     await page.keyboard.press('Escape');
@@ -401,7 +401,7 @@ test('Micro Kart shows left-side emotional standings, in-game split finish banne
     expect(nextCircuitAttr).not.toBe('sunset-loop');
     await expect(page.getByTestId('kart-circuit-label')).toContainText('🌀 #2 ·');
 
-    // 6. Verify 2P Split-Screen is NOT offered on mobile/touch viewports (desktop keyboard only!)
+    // 6. Verify 2P Split-Screen is NOT offered on mobile & Portrait Rotate-to-Landscape prompt appears (#440)
     const mobileCtx = await browser.newContext({
       viewport: { width: 390, height: 844 },
       hasTouch: true,
@@ -412,6 +412,12 @@ test('Micro Kart shows left-side emotional standings, in-game split finish banne
       await mobilePage.goto(`${stub.base}?app=micro-kart`);
       await expect(mobilePage.getByTestId('game-pause-menu')).toBeVisible();
       await expect(mobilePage.getByTestId('kart-2p-local-btn')).toHaveCount(0);
+      await mobilePage.getByTestId('pause-menu-resume').click();
+      await expect(mobilePage.getByTestId('kart-landscape-prompt')).toBeVisible();
+      await mobilePage.getByTestId('kart-landscape-dismiss').click();
+      await expect(mobilePage.getByTestId('kart-landscape-prompt')).toHaveCount(0);
+      await expect(mobilePage.getByTestId('kart-p1-steer-slider')).toBeVisible();
+      await expect(mobilePage.getByTestId('kart-p1-touch-brake')).toBeVisible();
     } finally {
       await mobileCtx.close();
     }

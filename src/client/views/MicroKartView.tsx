@@ -1015,6 +1015,12 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
   const [spectateSlot, setSpectateSlot] = useState<number>(0);
   const [lobbySecondsLeft, setLobbySecondsLeft] = useState<number>(120);
   const [lobbyNotice, setLobbyNotice] = useState<string | null>(null);
+  const [isMobilePortrait, setIsMobilePortrait] = useState<boolean>(() =>
+    typeof window !== 'undefined' ? !detectDesktopKeyboard() && window.innerHeight > window.innerWidth : false,
+  );
+  const [portraitDismissed, setPortraitDismissed] = useState<boolean>(false);
+  const [touchBrakingUi, setTouchBrakingUi] = useState<boolean>(false);
+  const touchBrakeRef = useRef<boolean>(false);
   const online8pStartedIdRef = useRef<string | null>(null);
   const online8pHasSnappedRef = useRef<boolean>(false);
   const lastClosedNoticeAtRef = useRef<number>(0);
@@ -1773,49 +1779,37 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     };
   }, [activeKartRoom, circuitId, isOnline2P, localMode, overlayOpen, paused, resetRace, syncHudFromRace]);
 
+  // Track mobile portrait vs landscape orientation live (#440)
+  useEffect(() => {
+    const updateOrientation = () => {
+      const mobile = !detectDesktopKeyboard();
+      const portrait = mobile && window.innerHeight > window.innerWidth;
+      setIsMobilePortrait(portrait);
+      if (!portrait) setPortraitDismissed(false);
+    };
+    updateOrientation();
+    window.addEventListener('resize', updateOrientation);
+    window.addEventListener('orientationchange', updateOrientation);
+    return () => {
+      window.removeEventListener('resize', updateOrientation);
+      window.removeEventListener('orientationchange', updateOrientation);
+    };
+  }, []);
+
   const readCurrentHumanInputs = useCallback((): Record<number, ThrusterInput> => {
     const keys = pressedKeysRef.current;
-    let p1Left = keys.has('KeyA') || (!isSplit2P && keys.has('ArrowLeft'));
-    let p1Right = keys.has('KeyD') || (!isSplit2P && keys.has('ArrowRight'));
-    let p1Brake = keys.has('KeyS') || (!isSplit2P && keys.has('ArrowDown'));
+    const p1Left = keys.has('KeyA') || (!isSplit2P && keys.has('ArrowLeft'));
+    const p1Right = keys.has('KeyD') || (!isSplit2P && keys.has('ArrowRight'));
+    const p1Brake = keys.has('KeyS') || (!isSplit2P && keys.has('ArrowDown')) || touchBrakeRef.current;
 
-    let p2Left = isSplit2P && keys.has('ArrowLeft');
-    let p2Right = isSplit2P && keys.has('ArrowRight');
-    let p2Brake = isSplit2P && keys.has('ArrowDown');
-
-    let p1TouchL = false;
-    let p1TouchR = false;
-    let p2TouchL = false;
-    let p2TouchR = false;
-
-    for (const ptr of activePointersRef.current.values()) {
-      if (ptr.player === 0) {
-        if (ptr.zone === 'brake') p1Brake = true;
-        else if (ptr.zone === 'left') p1TouchL = true;
-        else p1TouchR = true;
-      } else {
-        if (ptr.zone === 'brake') p2Brake = true;
-        else if (ptr.zone === 'left') p2TouchL = true;
-        else p2TouchR = true;
-      }
-    }
-
-    // Holding both left & right touch halves simultaneously also triggers Brake on mobile!
-    if (p1TouchL && p1TouchR) p1Brake = true;
-    else {
-      if (p1TouchL) p1Left = true;
-      if (p1TouchR) p1Right = true;
-    }
-    if (p2TouchL && p2TouchR) p2Brake = true;
-    else {
-      if (p2TouchL) p2Left = true;
-      if (p2TouchR) p2Right = true;
-    }
+    const p2Left = isSplit2P && keys.has('ArrowLeft');
+    const p2Right = isSplit2P && keys.has('ArrowRight');
+    const p2Brake = isSplit2P && keys.has('ArrowDown');
 
     const p1Analog = analogSteerRef.current;
     const p1Input: ThrusterInput =
       p1Analog !== null
-        ? { left: p1Analog < -0.1, right: p1Analog > 0.1, brake: p1Brake, steerAnalog: p1Analog }
+        ? { left: p1Analog < -0.08, right: p1Analog > 0.08, brake: p1Brake, steerAnalog: p1Analog }
         : { left: p1Left, right: p1Right, brake: p1Brake };
 
     const myOnlineSlot =
@@ -2075,16 +2069,16 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         const glRenderer = rendererBackend === 'webgl2' ? webglRendererRef.current : null;
         if (glRenderer && glRenderer.isReady) {
           if (isSplit2P) {
-            const halfPx = Math.floor(targetH / 2);
-            glRenderer.renderViewport(race, 0, cam1Ref.current, 0, 0, targetW, halfPx - 1, now);
+            const halfPxW = Math.floor(targetW / 2);
+            glRenderer.renderViewport(race, 0, cam1Ref.current, 0, 0, halfPxW - 1, targetH, now);
             glRenderer.renderViewport(
               race,
               1,
               cam2Ref.current,
+              halfPxW + 1,
               0,
-              halfPx + 1,
-              targetW,
-              targetH - halfPx - 1,
+              targetW - halfPxW - 1,
+              targetH,
               now,
             );
           } else {
@@ -2096,32 +2090,32 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
             ctx.save();
             ctx.scale(effScale, effScale);
             if (isSplit2P) {
-              const halfH = Math.floor(cssH / 2);
-              renderKartViewport(ctx, race, 0, cam1Ref.current, 0, 0, cssW, halfH - 1, now);
+              const halfW = Math.floor(cssW / 2);
+              renderKartViewport(ctx, race, 0, cam1Ref.current, 0, 0, halfW - 1, cssH, now);
               renderKartViewport(
                 ctx,
                 race,
                 1,
                 cam2Ref.current,
+                halfW + 1,
                 0,
-                halfH + 1,
-                cssW,
-                cssH - halfH - 1,
+                cssW - halfW - 1,
+                cssH,
                 now,
               );
               ctx.fillStyle = '#070a10';
-              ctx.fillRect(0, halfH - 1, cssW, 2);
+              ctx.fillRect(halfW - 1, 0, 2, cssH);
             } else {
               renderKartViewport(ctx, race, focusSlot, cam1Ref.current, 0, 0, cssW, cssH, now);
             }
             ctx.restore();
           }
         }
-        // Sync floating distant kart portraits directly at 3D render FPS (60/120Hz, zero React lag! #434)
-        const vpHalfH = isSplit2P ? Math.floor(cssH / 2) : cssH;
-        syncDistantMarkersDom(race, focusSlot, cam1Ref.current, cssW, vpHalfH, distantDomP1Ref.current, paused);
+        // Sync floating distant kart portraits directly at 3D render FPS (60/120Hz, zero React lag! #434, #440)
+        const vpHalfW = isSplit2P ? Math.floor(cssW / 2) : cssW;
+        syncDistantMarkersDom(race, focusSlot, cam1Ref.current, vpHalfW, cssH, distantDomP1Ref.current, paused);
         if (isSplit2P && race.karts[1]) {
-          syncDistantMarkersDom(race, 1, cam2Ref.current, cssW, cssH - vpHalfH, distantDomP2Ref.current, paused);
+          syncDistantMarkersDom(race, 1, cam2Ref.current, cssW - vpHalfW, cssH, distantDomP2Ref.current, paused);
         }
       }
 
@@ -2157,68 +2151,14 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     spectateSlot,
     syncHudFromRace,
   ]);
-  const classifyTouchZone = (
-    relX: number,
-    relY: number,
-    w: number,
-    h: number,
-    split: boolean,
-  ): { player: 0 | 1; zone: 'left' | 'right' | 'brake' } => {
-    const player: 0 | 1 = split && relY > h / 2 ? 1 : 0;
-    const vpH = split ? h / 2 : h;
-    const localY = split && player === 1 ? relY - h / 2 : relY;
-    const nx = relX / Math.max(1, w);
-    const ny = localY / Math.max(1, vpH);
-    const zone: 'left' | 'right' | 'brake' =
-      nx >= 0.37 && nx <= 0.63 && ny >= 0.65 ? 'brake' : nx < 0.5 ? 'left' : 'right';
-    return { player, zone };
+  const handleStagePointerDown = (_e: ReactPointerEvent<HTMLDivElement>) => {
+    // Direct-position touch steering lives exclusively inside the bottom Steering Band & Brake pad (#440)
   };
 
-  const handleStagePointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (
-      paused ||
-      overlayOpen ||
-      isOnline8PWaiting ||
-      isOnline8PSpectator ||
-      raceStatus === 'finished'
-    ) {
-      return;
-    }
-    if ((e.target as HTMLElement | null)?.closest('button, .game-pause-backdrop, .kart-spectator-bar')) {
-      return;
-    }
-    const rect = e.currentTarget.getBoundingClientRect();
-    const hit = classifyTouchZone(
-      e.clientX - rect.left,
-      e.clientY - rect.top,
-      rect.width,
-      rect.height,
-      isSplit2P,
-    );
-    activePointersRef.current.set(e.pointerId, hit);
-    try {
-      e.currentTarget.setPointerCapture(e.pointerId);
-    } catch {
-      // Synthetic pointer events in tests may omit active pointer registration
-    }
-  };
+  const handleStagePointerMove = (_e: ReactPointerEvent<HTMLDivElement>) => {};
 
-  const handleStagePointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
-    const existing = activePointersRef.current.get(e.pointerId);
-    if (!existing) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const hit = classifyTouchZone(
-      e.clientX - rect.left,
-      e.clientY - rect.top,
-      rect.width,
-      rect.height,
-      isSplit2P,
-    );
-    existing.zone = hit.zone;
-  };
-
-  const handleStagePointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
-    activePointersRef.current.delete(e.pointerId);
+  const handleStagePointerUp = (_e: ReactPointerEvent<HTMLDivElement>) => {
+    activePointersRef.current.clear();
   };
 
   const updateAnalogSliderFromPointer = (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -2226,11 +2166,25 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
     if (rect.width <= 0) return;
     const norm = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     const clamped = Math.max(-1, Math.min(1, norm));
-    // Gentle center deadzone so releasing near center feels crisp
-    const val = Math.abs(clamped) < 0.05 ? 0 : clamped;
+    // Crisp 4% center deadzone so tapping center drives straight cleanly
+    const val = Math.abs(clamped) < 0.04 ? 0 : clamped;
     analogSteerRef.current = val;
     setAnalogSteerUi(val);
   };
+
+  const tryLockLandscape = useCallback(() => {
+    if (detectDesktopKeyboard()) return;
+    try {
+      const orient = screen.orientation as ScreenOrientation & {
+        lock?: (o: string) => Promise<void>;
+      };
+      if (typeof orient?.lock === 'function') {
+        void orient.lock('landscape').catch(() => {});
+      }
+    } catch {
+      // iOS Safari and non-fullscreen contexts ignore orientation.lock
+    }
+  }, []);
 
   const handleSliderPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     e.stopPropagation();
@@ -2444,9 +2398,9 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         );
       })() : null}
 
-      {/* Primary Viewport HUD (Full screen in 1P / Online 2P, Top half in 2P Split-Screen) */}
+      {/* Primary Viewport HUD (Full screen in 1P / Online, Left half in 2P Side-by-Side Split-Screen) */}
       <div
-        className={isSplit2P ? 'kart-hud-layer is-top-half' : 'kart-hud-layer'}
+        className={isSplit2P ? 'kart-hud-layer is-left-half' : 'kart-hud-layer'}
         data-testid="kart-p1-hud"
       >
         {/* Pre-mounted 60/120fps floating portraits above distant same-track karts (#432, #434) */}
@@ -2579,44 +2533,87 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         {!isOnline8PSpectator ? (
           <div className="kart-controls-dock">
           {!isSplit2P ? (
-            <div className="kart-cockpit-cluster">
+            <div className="kart-steer-deck">
               <F1Speedometer
                 speedMps={p1Hud.speedMps}
                 recommendedSpeedMps={p1Hud.recommendedSpeedMps}
                 kmh={p1Hud.kmh}
               />
-              <F1SteeringYoke
-                yawRate={p1Hud.yawRate}
-                speedMps={p1Hud.speedMps}
-                leftPct={p1Hud.leftPct}
-                rightPct={p1Hud.rightPct}
-                braking={p1Hud.brakeOn}
-              />
-            </div>
-          ) : null}
-
-          {!isSplit2P ? (
-            <div
-              className="kart-steer-slider"
-              data-testid="kart-p1-steer-slider"
-              role="slider"
-              aria-label="Analog differential thruster steering"
-              aria-valuemin={-100}
-              aria-valuemax={100}
-              aria-valuenow={Math.round(analogSteerUi * 100)}
-              onPointerDown={handleSliderPointerDown}
-              onPointerMove={handleSliderPointerMove}
-              onPointerUp={handleSliderPointerUp}
-              onPointerCancel={handleSliderPointerUp}
-            >
-              <div className="kart-steer-slider-track">
-                <div className="kart-steer-slider-center" />
-                <div
-                  className="kart-steer-slider-thumb"
-                  style={{ left: `${((analogSteerUi + 1) * 50).toFixed(1)}%` }}
-                />
+              <div
+                className={analogSteerUi !== 0 ? 'kart-steer-band is-active' : 'kart-steer-band'}
+                data-testid="kart-p1-steer-slider"
+                role="slider"
+                aria-label="Direct-position steering strip"
+                aria-valuemin={-100}
+                aria-valuemax={100}
+                aria-valuenow={Math.round(analogSteerUi * 100)}
+                onPointerDown={handleSliderPointerDown}
+                onPointerMove={handleSliderPointerMove}
+                onPointerUp={handleSliderPointerUp}
+                onPointerCancel={handleSliderPointerUp}
+              >
+                <span className="kart-steer-band-edge is-left" aria-hidden="true">◀</span>
+                <span className="kart-steer-band-edge is-right" aria-hidden="true">▶</span>
+                <div className="kart-steer-band-center-line" aria-hidden="true" />
+                {analogSteerUi !== 0 ? (
+                  <div
+                    className="kart-steer-band-fill"
+                    style={
+                      analogSteerUi < 0
+                        ? {
+                            right: '50%',
+                            width: `${(Math.abs(analogSteerUi) * 50).toFixed(1)}%`,
+                          }
+                        : {
+                            left: '50%',
+                            width: `${(analogSteerUi * 50).toFixed(1)}%`,
+                          }
+                    }
+                  />
+                ) : null}
+                <div className="kart-steer-band-wheel">
+                  <F1SteeringYoke
+                    yawRate={p1Hud.yawRate}
+                    speedMps={p1Hud.speedMps}
+                    leftPct={p1Hud.leftPct}
+                    rightPct={p1Hud.rightPct}
+                    braking={p1Hud.brakeOn}
+                  />
+                </div>
+                {analogSteerUi !== 0 ? (
+                  <div
+                    className="kart-steer-band-finger"
+                    style={{ left: `${((analogSteerUi + 1) * 50).toFixed(1)}%` }}
+                  />
+                ) : null}
               </div>
-              <span className="kart-steer-slider-label">DRAG STEER</span>
+              <button
+                type="button"
+                className={touchBrakingUi || p1Hud.brakeOn ? 'kart-touch-brake-btn is-braking' : 'kart-touch-brake-btn'}
+                data-testid="kart-p1-touch-brake"
+                aria-label="Brake"
+                onPointerDown={(e) => {
+                  e.stopPropagation();
+                  touchBrakeRef.current = true;
+                  setTouchBrakingUi(true);
+                  try {
+                    e.currentTarget.setPointerCapture(e.pointerId);
+                  } catch {
+                    // Ignore synthetic pointer capture error
+                  }
+                }}
+                onPointerUp={(e) => {
+                  e.stopPropagation();
+                  touchBrakeRef.current = false;
+                  setTouchBrakingUi(false);
+                }}
+                onPointerCancel={() => {
+                  touchBrakeRef.current = false;
+                  setTouchBrakingUi(false);
+                }}
+              >
+                BRAKE
+              </button>
             </div>
           ) : null}
 
@@ -2652,9 +2649,10 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         ) : null}
       </div>
 
-      {/* Bottom Viewport HUD in 2P Local Split-Screen */}
+      {/* Right Viewport HUD + Vertical Divider in 2P Local Side-by-Side Split-Screen (#440) */}
+      {isSplit2P ? <div className="kart-split-divider" aria-hidden="true" /> : null}
       {isSplit2P ? (
-        <div className="kart-hud-layer is-bottom-half" data-testid="kart-p2-hud">
+        <div className="kart-hud-layer is-right-half" data-testid="kart-p2-hud">
           <div className="kart-distant-layer" aria-hidden="true">
             {KART_DRIVERS.map((drv) => (
               <div
@@ -3034,6 +3032,42 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         </div>
       ) : null}
 
+      {/* Mobile Portrait -> Landscape Rotation Prompt (#440) */}
+      {isMobilePortrait && !portraitDismissed && !paused && !isOnline8PWaiting ? (
+        <div className="game-pause-backdrop" data-testid="kart-landscape-prompt">
+          <div className="game-pause-menu kart-landscape-card" role="dialog" aria-modal="true" aria-label="Rotate to landscape">
+            <div className="game-pause-head">
+              <span className="game-pause-kicker">Best Race View</span>
+              <div className="game-pause-title">Rotate Phone</div>
+            </div>
+            <div className="kart-rotate-icon" aria-hidden="true">
+              <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+                <rect x="17" y="8" width="22" height="36" rx="4" stroke="currentColor" strokeWidth="2.5" opacity="0.45" />
+                <rect x="10" y="20" width="36" height="22" rx="4" stroke="currentColor" strokeWidth="2.5" />
+                <path d="M40 10 C46 12 49 17 48 23" stroke="var(--prism-4)" strokeWidth="2.5" strokeLinecap="round" />
+                <path d="M45 19 L48 24 L52 20" stroke="var(--prism-4)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <p className="game-pause-copy">
+              Turn your phone sideways to play Micro Kart in wide landscape mode.
+            </p>
+            <div className="game-pause-actions">
+              <button
+                type="button"
+                className="primary game-menu-cta"
+                data-testid="kart-landscape-dismiss"
+                onClick={() => {
+                  tryLockLandscape();
+                  setPortraitDismissed(true);
+                }}
+              >
+                Play Anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {/* Harmonized Start / Pause Menu (#436, #438) */}
       {paused && !isOnline8PWaiting ? (
         <div className="game-pause-backdrop">
@@ -3273,6 +3307,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                 aria-label={!hasStarted ? 'Start race' : menuDirty ? 'Start new race' : 'Continue race'}
                 onClick={() => {
                   setLobbyNotice(null);
+                  tryLockLandscape();
                   if (getSharedMusicOn()) {
                     getSharedArcadeAudio().ensureContext();
                   }
