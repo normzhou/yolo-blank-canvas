@@ -119,6 +119,84 @@ interface StandingEntry {
   mood: KartPortraitMood;
 }
 
+interface DistantKartMarker {
+  slot: number;
+  character: DriverCharacterId;
+  driverName: string;
+  place: number;
+  leftPct: number;
+  topPct: number;
+  distM: number;
+  oncoming: boolean;
+}
+
+function projectDistantKarts(
+  race: KartRaceState,
+  focusSlot: number,
+  cam: ChaseCamera,
+  vpW: number,
+  vpH: number,
+): DistantKartMarker[] {
+  const focusKart = race.karts[focusSlot] ?? race.karts[0]!;
+  const circuit = getCircuitForKart(race, focusKart);
+  const cosY = Math.cos(cam.yaw);
+  const sinY = Math.sin(cam.yaw);
+  const cosP = Math.cos(cam.pitch);
+  const sinP = Math.sin(cam.pitch);
+  const fx = sinY * cosP;
+  const fy = sinP;
+  const fz = cosY * cosP;
+  const rx = cosY;
+  const rz = -sinY;
+  const ux = fy * rz;
+  const uy = fz * rx - fx * rz;
+  const uz = -fy * rx;
+
+  const isWideSplit = vpW / Math.max(1, vpH) > 2.15;
+  const baseFocal = isWideSplit
+    ? Math.min(vpW * 0.58, vpH * 1.48)
+    : Math.min(vpW * 0.72, vpH * 1.05);
+  const focal = baseFocal * cam.fovScale;
+  const centerRatio = isWideSplit ? 0.48 : 0.52;
+  const focusFx = Math.sin(focusKart.yaw);
+  const focusFz = Math.cos(focusKart.yaw);
+
+  const out: DistantKartMarker[] = [];
+  for (const k of race.karts) {
+    if (k.eliminated || k.slot === focusSlot) continue;
+    if (race.format === 'marathon' && getCircuitForKart(race, k).id !== circuit.id) continue;
+
+    // Project a point floating cleanly above the distant kart's head (`y + 3.4m`)
+    const relX = k.x - cam.x;
+    const relY = k.y + 3.4 - cam.y;
+    const relZ = k.z - cam.z;
+    const vz = relX * fx + relY * fy + relZ * fz;
+    if (vz < 85 || vz > 720) continue;
+
+    const vx = relX * rx + relZ * rz;
+    const vy = relX * ux + relY * uy + relZ * uz;
+    const screenX = vpW * 0.5 + (vx / vz) * focal;
+    const screenY = vpH * centerRatio - (vy / vz) * focal;
+    const leftPct = (screenX / Math.max(1, vpW)) * 100;
+    const topPct = (screenY / Math.max(1, vpH)) * 100;
+    if (leftPct < 3 || leftPct > 97 || topPct < 6 || topPct > 92) continue;
+
+    const headingDot = focusFx * Math.sin(k.yaw) + focusFz * Math.cos(k.yaw);
+    out.push({
+      slot: k.slot,
+      character: k.character,
+      driverName: getKartDriverSpec(k.character).driverName,
+      place: k.place,
+      leftPct,
+      topPct,
+      distM: Math.round(vz),
+      oncoming: headingDot < -0.35,
+    });
+  }
+  out.sort((a, b) => b.distM - a.distM);
+  return out;
+}
+
 function KartHuntBanner({
   testId,
   hunt,
@@ -888,6 +966,9 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
   });
   const [analogSteerUi, setAnalogSteerUi] = useState<number>(0);
   const [mapDots, setMapDots] = useState<MapArrowEntry[]>([]);
+  const [distantMarkersP1, setDistantMarkersP1] = useState<DistantKartMarker[]>([]);
+  const [distantMarkersP2, setDistantMarkersP2] = useState<DistantKartMarker[]>([]);
+  const viewportCssSizeRef = useRef<{ w: number; h: number }>({ w: 960, h: 540 });
 
   const activeKartRoom =
     netplay.activeRoom && netplay.activeRoom.gameId === 'micro-kart'
@@ -1052,6 +1133,14 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
           bigLap: Math.floor(k.stageIndex / MARATHON_CYCLE_STAGES) + 1,
         })),
     );
+    const vp = viewportCssSizeRef.current;
+    const halfH = race.mode === '2p-local' ? Math.max(110, vp.h * 0.5) : vp.h;
+    setDistantMarkersP1(projectDistantKarts(race, focusLocalSlot, cam1Ref.current, vp.w, halfH));
+    if (race.mode === '2p-local' && race.karts[1]) {
+      setDistantMarkersP2(projectDistantKarts(race, 1, cam2Ref.current, vp.w, halfH));
+    } else {
+      setDistantMarkersP2([]);
+    }
   }, []);
 
   const triggerFreshCountdown = useCallback(
@@ -1626,6 +1715,8 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       if (rect.width > 0 && rect.height > 0) {
         cachedCssW = Math.max(320, Math.round(rect.width));
         cachedCssH = Math.max(220, Math.round(rect.height));
+        viewportCssSizeRef.current.w = cachedCssW;
+        viewportCssSizeRef.current.h = cachedCssH;
       }
     };
     updateCachedCanvasSize();
@@ -2012,27 +2103,48 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         </div>
       </header>
 
-      {/* Vertical Left-Side Lap Progress Standings Rail — Exact 1:1 Track% Glide, Character Photo + Text Only (#406, #422, #424) */}
+      {/* Vertical Left-Side Lap Progress Standings Rail — Flush-Left Single Column, Simultaneous L1/L2 Wrap-Around (#406, #422, #424, #432) */}
       {!paused && standings.length > 0 ? (() => {
-        // Colored pips on the spine ALWAYS sit at 100% exact `exactPct = verticalProgress * 100`.
-        // Portraits + labels glide smoothly at `exactPct`, alternating cleanly across 2 columns (`col 0` / `col 1`)
-        // with minimal per-column clearance so ZERO text or portraits ever overlap even in a 4-wide pack!
-        const sortedBottomUp = [...standings].sort((a, b) => {
-          const pa = a.eliminated ? -1 : a.verticalProgress;
-          const pb = b.eliminated ? -1 : b.verticalProgress;
-          return pa - pb || b.place - a.place;
+        // Active racers on ANY lap (L1, L2, L3...) wrap simultaneously 0% -> 100% along the vertical bar!
+        // ZERO horizontal jumping (`left: 16px` always!); gentle vertical-only separation ensures two racers
+        // at the exact same wrapped % (e.g. an L1 racer and an L2 racer!) are BOTH clearly readable together.
+        const activeEntries = standings.filter((e) => !e.eliminated);
+        const eliminatedEntries = standings.filter((e) => e.eliminated);
+        const sortedActive = [...activeEntries].sort((a, b) => {
+          return a.verticalProgress - b.verticalProgress || b.place - a.place;
         });
-        const colClearance = isSplit2P ? 7.8 : 5.8;
-        const colLastBottom = [-999, -999];
-        const placed = sortedBottomUp.map((entry) => {
-          const exactPct = entry.eliminated ? 0 : entry.verticalProgress * 100;
-          const req0 = Math.max(exactPct, colLastBottom[0]! + colClearance);
-          const req1 = Math.max(exactPct, colLastBottom[1]! + colClearance);
-          const col = req0 <= req1 + 0.01 ? 0 : 1;
-          const labelBottom = Math.min(98, col === 0 ? req0 : req1);
-          colLastBottom[col] = labelBottom;
-          return { entry, exactPct, labelBottom, col };
-        });
+        const minGap = isSplit2P ? 7.2 : 5.4;
+        const placed = sortedActive.map((entry) => ({
+          entry,
+          exactPct: entry.verticalProgress * 100,
+          labelBottom: entry.verticalProgress * 100,
+        }));
+        // Gentle symmetric vertical-only pass (keeps portraits anchored near exact % without ever jumping right!)
+        for (let pass = 0; pass < 4; pass += 1) {
+          for (let i = 1; i < placed.length; i += 1) {
+            const diff = placed[i]!.labelBottom - placed[i - 1]!.labelBottom;
+            if (diff < minGap) {
+              const push = (minGap - diff) * 0.5;
+              placed[i - 1]!.labelBottom -= push;
+              placed[i]!.labelBottom += push;
+            }
+          }
+          // Keep cleanly inside [2%, 98%] without piling on top of each other at either edge
+          if (placed.length > 0 && placed[0]!.labelBottom < 2) {
+            const shift = 2 - placed[0]!.labelBottom;
+            for (const p of placed) p.labelBottom += shift;
+          }
+          if (placed.length > 0 && placed[placed.length - 1]!.labelBottom > 98) {
+            const shift = placed[placed.length - 1]!.labelBottom - 98;
+            for (const p of placed) p.labelBottom -= shift;
+          }
+          for (let i = placed.length - 2; i >= 0; i -= 1) {
+            const diff = placed[i + 1]!.labelBottom - placed[i]!.labelBottom;
+            if (diff < minGap) {
+              placed[i]!.labelBottom = placed[i + 1]!.labelBottom - minGap;
+            }
+          }
+        }
         return (
           <aside
             className={isSplit2P ? 'kart-standings-rail is-compact' : 'kart-standings-rail'}
@@ -2058,56 +2170,63 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                 />
               ))}
             </div>
-            {placed.map(({ entry, exactPct, labelBottom, col }) => {
+            {placed.map(({ entry, exactPct, labelBottom }) => {
               const trackTag = `${SHORT_CIRCUIT_NAMES[entry.circuitId]}${entry.reversed ? ' ↺' : ''}`;
               return (
                 <div
                   key={entry.slot}
                   className={
                     entry.place === 1
-                      ? `kart-standing-row is-first${col === 1 ? ' is-col-1' : ''}`
-                      : entry.place >= standings.length
-                        ? `kart-standing-row is-last${col === 1 ? ' is-col-1' : ''}`
-                        : `kart-standing-row${col === 1 ? ' is-col-1' : ''}`
+                      ? 'kart-standing-row is-first'
+                      : entry.place >= activeEntries.length
+                        ? 'kart-standing-row is-last'
+                        : 'kart-standing-row'
                   }
-                  style={{ bottom: `${labelBottom.toFixed(2)}%`, zIndex: 10 - entry.place }}
+                  style={{
+                    bottom: `${Math.max(1, Math.min(99, labelBottom)).toFixed(2)}%`,
+                    zIndex: entry.isHuman ? 20 : 12 - entry.place,
+                  }}
                   data-testid={`kart-standing-slot-${entry.slot}`}
                   data-place={entry.place}
                   data-mood={entry.mood}
                   data-character={entry.character}
                   data-circuit={entry.circuitId}
+                  data-lap={entry.lapNumber}
                   data-progress-pct={exactPct.toFixed(2)}
                 >
                   <KartDriverPortrait
                     character={entry.character}
                     mood={entry.mood}
-                    size={isSplit2P ? 24 : 28}
+                    size={isSplit2P ? 22 : 24}
                   />
-                  <div className="kart-standing-text">
-                    <span className="kart-standing-line1">
-                      <strong className="kart-standing-rank">{ordinalPlace(entry.place)}</strong>
-                      <span className="kart-standing-name">
-                        {entry.driverName}
-                        {entry.humanTag ? ` (${entry.humanTag})` : ''}
-                      </span>
-                      {entry.eliminated ? (
-                        <span className="kart-standing-out">OUT</span>
-                      ) : entry.finished ? (
-                        <span className="kart-standing-fin">FIN</span>
-                      ) : null}
+                  <span className="kart-standing-inline">
+                    <strong className="kart-standing-rank">{ordinalPlace(entry.place)}</strong>
+                    <span className="kart-standing-name">
+                      {entry.driverName}
+                      {entry.humanTag ? `(${entry.humanTag})` : ''}
                     </span>
-                    <span className="kart-standing-line2">
-                      <span data-testid={`kart-standing-lap-${entry.slot}`}>
-                        L{entry.lapNumber}
-                      </span>
-                      {' · '}
-                      <span data-testid={`kart-standing-track-${entry.slot}`}>{trackTag}</span>
-                      {!entry.eliminated && !entry.finished ? ` ${entry.trackPercent}%` : ''}
+                    <span
+                      className="kart-standing-meta"
+                      data-testid={`kart-standing-lap-${entry.slot}`}
+                    >
+                      L{entry.lapNumber}
                     </span>
-                  </div>
+                    <span
+                      className="kart-standing-meta"
+                      data-testid={`kart-standing-track-${entry.slot}`}
+                    >
+                      {trackTag}
+                      {!entry.finished ? ` ${entry.trackPercent}%` : ' FIN'}
+                    </span>
+                  </span>
                 </div>
               );
             })}
+            {eliminatedEntries.length > 0 ? (
+              <div className="kart-rail-eliminated" aria-label="Knocked out racers">
+                KO: {eliminatedEntries.map((e) => e.driverName).join(', ')}
+              </div>
+            ) : null}
           </aside>
         );
       })() : null}
@@ -2117,6 +2236,24 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         className={isSplit2P ? 'kart-hud-layer is-top-half' : 'kart-hud-layer'}
         data-testid="kart-p1-hud"
       >
+        {/* Floating portraits above distant same-track karts up to 2x horizon (#432) */}
+        {!paused && distantMarkersP1.length > 0 ? (
+          <div className="kart-distant-layer" aria-hidden="true">
+            {distantMarkersP1.map((m) => (
+              <div
+                key={m.slot}
+                className="kart-distant-marker"
+                style={{ left: `${m.leftPct.toFixed(1)}%`, top: `${m.topPct.toFixed(1)}%` }}
+                data-testid={`kart-distant-marker-${m.slot}`}
+              >
+                <KartDriverPortrait character={m.character} mood="normal" size={26} />
+                <span className="kart-distant-dist">
+                  {m.distM}m{m.oncoming ? ' ↺' : ''}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : null}
         <div className="kart-hud-top-right">
           <div className="kart-telemetry-card" data-testid="kart-p1-telemetry">
             <span
@@ -2293,6 +2430,22 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       {/* Bottom Viewport HUD in 2P Local Split-Screen */}
       {isSplit2P ? (
         <div className="kart-hud-layer is-bottom-half" data-testid="kart-p2-hud">
+          {!paused && distantMarkersP2.length > 0 ? (
+            <div className="kart-distant-layer" aria-hidden="true">
+              {distantMarkersP2.map((m) => (
+                <div
+                  key={m.slot}
+                  className="kart-distant-marker"
+                  style={{ left: `${m.leftPct.toFixed(1)}%`, top: `${m.topPct.toFixed(1)}%` }}
+                >
+                  <KartDriverPortrait character={m.character} mood="normal" size={22} />
+                  <span className="kart-distant-dist">
+                    {m.distM}m{m.oncoming ? ' ↺' : ''}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : null}
           <div className="kart-hud-top-right">
             <div className="kart-telemetry-card" data-testid="kart-p2-telemetry">
               <span

@@ -3278,24 +3278,36 @@ button.passkey-handoff-copy-btn:hover {
   pointer-events: none;
 }
 .kart-header .stack-title {
-  padding: 3px 10px;
-  border-radius: var(--radius-xs);
-  background: var(--yolo-fab-bg);
+  padding: 2px 4px;
+  background: transparent;
   color: var(--stage-text);
+  text-shadow: 0 1px 3px var(--stage-well), 0 0 6px var(--stage-well);
 }
 
 .kart-circuit-pill {
   display: inline-flex;
   align-items: center;
-  padding: 3px 10px;
-  border-radius: var(--radius-pill);
-  background: var(--yolo-fab-bg);
+  padding: 2px 4px;
+  background: transparent;
   color: var(--stage-text);
+  text-shadow: 0 1px 3px var(--stage-well), 0 0 6px var(--stage-well);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+/* Pure transparent-background text buttons on the live Micro Kart racing HUD (#432) */
+.kart-stage .game-stage-bar button,
+.kart-stage .game-stage-back,
+.kart-stage .arcade-music-btn,
+.kart-stage .arcade-sound-btn,
+.kart-stage .game-pause-btn {
+  background: transparent;
+  box-shadow: none;
+  color: var(--stage-text);
+  text-shadow: 0 1px 3px var(--stage-well), 0 0 6px var(--stage-well);
 }
 
 .kart-hud-layer {
@@ -3317,6 +3329,33 @@ button.passkey-handoff-copy-btn:hover {
   padding-top: 10px;
 }
 
+/* Floating portraits above distant same-track rivals up to 2x horizon (#432) */
+.kart-distant-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.kart-distant-marker {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  pointer-events: none;
+}
+
+.kart-distant-dist {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  line-height: 1;
+  color: var(--stage-text);
+  text-shadow: 0 1px 3px var(--stage-well), 0 0 6px var(--stage-well);
+}
+
 .kart-hud-top-right {
   align-self: flex-end;
   display: flex;
@@ -3328,31 +3367,31 @@ button.passkey-handoff-copy-btn:hover {
   display: inline-flex;
   align-items: center;
   gap: 14px;
-  padding: 7px 14px;
-  border-radius: var(--radius);
-  background: color-mix(in srgb, var(--stage-well) 88%, transparent);
+  padding: 4px 6px;
+  background: transparent;
   color: var(--stage-text);
+  text-shadow: 0 1px 3px var(--stage-well), 0 0 6px var(--stage-well);
 }
 .kart-telemetry-card .stage-eyebrow {
   color: var(--stage-text);
-  opacity: 0.74;
+  opacity: 0.85;
 }
 
 .kart-place-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 4px 10px;
-  border-radius: var(--radius-xs);
-  background: var(--stage-surface);
+  padding: 2px 4px;
+  background: transparent;
   color: var(--stage-text);
+  text-shadow: 0 1px 3px var(--stage-well), 0 0 6px var(--stage-well);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--text-lg);
   font-weight: var(--weight-semibold);
 }
 .kart-place-badge.is-first {
-  background: var(--prism-4);
-  color: var(--stage-well);
+  background: transparent;
+  color: var(--prism-4);
 }
 
 .kart-telemetry-item {
@@ -3369,40 +3408,39 @@ button.passkey-handoff-copy-btn:hover {
 }
 .kart-telemetry-val small {
   font-size: var(--text-xs);
-  color: var(--stage-muted);
+  color: var(--stage-text);
+  opacity: 0.85;
 }
 
 .kart-minimap {
   width: 88px;
   height: 88px;
-  border-radius: var(--radius);
-  background: color-mix(in srgb, var(--stage-well) 86%, transparent);
-  padding: 4px;
+  background: transparent;
+  padding: 2px;
 }
 
 .kart-boost-callout {
   align-self: center;
-  padding: 5px 14px;
-  border-radius: var(--radius-pill);
+  padding: 3px 8px;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--text-base);
   font-weight: var(--weight-semibold);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  background: var(--prism-7);
-  color: var(--stage-well);
-  box-shadow: var(--elevation-panel-centred);
+  background: transparent;
+  color: var(--prism-7);
+  text-shadow: 0 1px 4px var(--stage-well), 0 0 8px var(--stage-well);
 }
 .kart-boost-callout.is-ultra {
-  background: var(--prism-4);
-  color: var(--stage-well);
+  background: transparent;
+  color: var(--prism-4);
 }
 
 .kart-controls-dock {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   width: min(680px, 100%);
   align-self: center;
 }
@@ -3412,9 +3450,8 @@ button.passkey-handoff-copy-btn:hover {
   align-items: center;
   justify-content: center;
   gap: 14px;
-  padding: 6px 16px 4px;
-  border-radius: var(--radius);
-  background: var(--yolo-fab-bg);
+  padding: 2px 8px;
+  background: transparent;
 }
 
 .kart-speedometer {
@@ -3443,9 +3480,8 @@ button.passkey-handoff-copy-btn:hover {
   align-items: center;
   gap: 10px;
   width: min(320px, 86%);
-  padding: 6px 14px;
-  border-radius: var(--radius-pill);
-  background: var(--yolo-fab-bg);
+  padding: 4px 10px;
+  background: transparent;
   cursor: ew-resize;
   user-select: none;
 }
@@ -3498,38 +3534,32 @@ button.passkey-handoff-copy-btn:hover {
 .kart-thruster-pill {
   position: relative;
   overflow: hidden;
-  padding: 6px 14px;
-  border-radius: var(--radius-pill);
-  background: var(--yolo-fab-bg);
-  color: var(--stage-muted);
+  padding: 4px 8px;
+  background: transparent;
+  color: var(--stage-text);
+  text-shadow: 0 1px 3px var(--stage-well), 0 0 6px var(--stage-well);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
   letter-spacing: 0.04em;
-  transition: transform 90ms ease, background-color 90ms ease, color 90ms ease;
+  transition: transform 90ms ease, color 90ms ease;
 }
 .kart-thruster-fill {
-  position: absolute;
-  inset: 0 auto 0 0;
-  background: color-mix(in srgb, var(--prism-7) 26%, transparent);
-  transition: width 45ms linear;
+  display: none;
 }
 .kart-thruster-text {
   position: relative;
   z-index: 1;
 }
 .kart-thruster-pill.is-firing {
-  background: var(--prism-7);
-  color: var(--stage-well);
-  transform: scale(1.05);
-}
-.kart-thruster-pill.is-firing .kart-thruster-fill {
-  background: color-mix(in srgb, var(--stage-well) 16%, transparent);
+  background: transparent;
+  color: var(--prism-7);
+  transform: scale(1.06);
 }
 .kart-thruster-pill.is-braking {
-  background: var(--prism-1);
-  color: var(--stage-well);
-  transform: scale(1.05);
+  background: transparent;
+  color: var(--prism-1);
+  transform: scale(1.06);
 }
 
 /* Left-Side Vertical Lap-Progress Standings Rail — Character Photo + Text Only, Zero Transparency (#406, #422) */
@@ -3607,30 +3637,31 @@ button.passkey-handoff-copy-btn:hover {
   white-space: nowrap;
 }
 
-.kart-standing-row.is-col-1 {
-  left: 192px;
-}
-
-.kart-standing-text {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  text-shadow: 0 1px 3px var(--stage-well), 0 0 6px var(--stage-well);
-}
-
-.kart-standing-line1 {
+.kart-standing-inline {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   white-space: nowrap;
+  text-shadow: 0 1px 3px var(--stage-well), 0 0 6px var(--stage-well);
 }
 
-.kart-standing-line2 {
+.kart-standing-meta {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
   color: var(--stage-text);
   opacity: 0.92;
+}
+
+.kart-rail-eliminated {
+  position: absolute;
+  left: 16px;
+  bottom: -24px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--prism-1);
+  text-shadow: 0 1px 3px var(--stage-well), 0 0 6px var(--stage-well);
   white-space: nowrap;
 }
 
@@ -3704,15 +3735,14 @@ button.passkey-handoff-copy-btn:hover {
   color: var(--stage-well);
 }
 
-/* 2x2 Live 4-Track Overview Radar with Directional Heading Arrows in Portal Marathon (#420) */
+/* 2x2 Live 4-Track Overview Radar — Transparent Background with Crisp Outlines & Directional Arrows (#420, #432) */
 .kart-quad-map {
   display: grid;
   grid-template-columns: repeat(2, 74px);
   gap: 6px;
-  padding: 6px;
-  border-radius: var(--radius);
-  background: color-mix(in srgb, var(--stage-well) 88%, transparent);
-  box-shadow: var(--elevation-panel-centred);
+  padding: 2px;
+  background: transparent;
+  box-shadow: none;
   pointer-events: none;
 }
 
@@ -3721,13 +3751,12 @@ button.passkey-handoff-copy-btn:hover {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 3px 3px 2px;
-  border-radius: var(--radius);
-  background: color-mix(in srgb, var(--stage-well) 52%, transparent);
+  padding: 2px;
+  background: transparent;
 }
 
 .kart-quad-tile.is-active {
-  background: color-mix(in srgb, var(--accent) 24%, color-mix(in srgb, var(--stage-well) 68%, transparent));
+  background: transparent;
 }
 
 .kart-quad-label {
@@ -3735,12 +3764,15 @@ button.passkey-handoff-copy-btn:hover {
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
   line-height: 1.1;
-  color: var(--stage-muted);
+  color: var(--stage-text);
+  opacity: 0.8;
+  text-shadow: 0 1px 3px var(--stage-well), 0 0 6px var(--stage-well);
   white-space: nowrap;
 }
 
 .kart-quad-tile.is-active .kart-quad-label {
-  color: var(--stage-text);
+  color: var(--prism-4);
+  opacity: 1;
 }
 
 .kart-quad-svg {

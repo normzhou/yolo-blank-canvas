@@ -17,7 +17,7 @@ test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Bu
     const card = page.getByTestId('deck-slide-card');
     await page.getByTestId('carousel-dot-micro-kart').click();
     await expect(card).toHaveAttribute('data-slide-id', 'micro-kart');
-    await expect(card).toHaveAttribute('data-game-version', '2.5.0');
+    await expect(card).toHaveAttribute('data-game-version', '2.6.0');
     await expect(page.locator('.deck-slide-title')).toHaveText('Micro Kart');
 
     await page.getByRole('button', { name: 'Play Micro Kart', exact: true }).click();
@@ -330,7 +330,7 @@ test('Micro Kart shows left-side emotional standings, in-game split finish banne
     await expect(page.getByTestId('kart-quad-tile-sunset-loop')).toHaveAttribute('data-active', 'true');
     await expect(page.getByTestId('kart-quad-arrow-0')).toBeVisible();
     await expect(page.getByTestId('kart-standing-lap-0')).toHaveText('L1');
-    await expect(page.getByTestId('kart-standing-track-0')).toHaveText('Sunset');
+    await expect(page.getByTestId('kart-standing-track-0')).toContainText('Sunset');
     await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });
     // Step ~40% through Track 1 -> portrait smoothly climbs inside Segment 1 (0%..12.5%) without jumping!
     await page.evaluate(() => {

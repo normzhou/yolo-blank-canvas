@@ -19,8 +19,10 @@ import {
   getCircuitForKart,
   getKartDriverSpec,
   getMarathonStageForKart,
+  getRecommendedSpeedAtS,
   KART_DRIVERS,
   predictKartTrajectory,
+  sampleCircuitAtS,
   speedToColorRgb,
   transformPoseThroughPortal,
   type CircuitDefinition,
@@ -1893,7 +1895,7 @@ void main() {
   vDepth = vz;
 
   float near = 1.05;
-  float far = 340.0;
+  float far = 760.0;
   float clipX = vx * uProjScale.x;
   float clipY = vy * uProjScale.y + uCenterYBias * vz;
   float clipZ = ((far + near) / (far - near)) * vz - ((2.0 * far * near) / (far - near));
@@ -1953,7 +1955,7 @@ void main() {
     lit = base * diff + vec3(1.0, 0.97, 0.92) * (spec + fresnel);
   }
 
-  float fogT = clamp((vDepth - 108.0) / (330.0 - 108.0), 0.0, 0.78);
+  float fogT = clamp((vDepth - 155.0) / (700.0 - 155.0), 0.0, 0.74);
   vec3 finalRgb = mix(clamp(lit, 0.0, 1.0), uFogColor, fogT);
   outColor = vec4(finalRgb, 1.0);
 }
@@ -1982,7 +1984,7 @@ void main() {
 
   vColor = aColor;
   float near = 1.05;
-  float far = 340.0;
+  float far = 760.0;
   float clipX = vx * uProjScale.x;
   float clipY = vy * uProjScale.y + uCenterYBias * vz;
   float clipZ = ((far + near) / (far - near)) * vz - ((2.0 * far * near) / (far - near));
@@ -2203,7 +2205,7 @@ export class MicroKartWebGL2Renderer {
   private readonly worldPartBasis = new Float32Array(9);
   private readonly headWorldBasis = new Float32Array(9);
   private readonly dynamicScratch = new Float32Array(6144 * FLOATS_PER_VERT);
-  private readonly shadowScratch = new Float32Array(512 * SHADOW_FLOATS_PER_VERT);
+  private readonly shadowScratch = new Float32Array(1024 * SHADOW_FLOATS_PER_VERT);
 
   private uniforms: Record<string, WebGLUniformLocation | null> = {};
   private skyUniforms: Record<string, WebGLUniformLocation | null> = {};
@@ -3267,6 +3269,127 @@ export class MicroKartWebGL2Renderer {
             fb,
           );
         }
+      }
+    }
+
+    // 5. Faint Distant Horizon Centerline Ribbon (`65m -> 640m` ahead, including subtle over-hill crest preview! #432)
+    if (this.shadowProg && this.shadowVao && this.shadowVbo) {
+      const startAhead = 65;
+      const endAhead = 640;
+      const segStep = 18;
+      const samples: Array<{
+        x: number;
+        y: number;
+        z: number;
+        rx: number;
+        rz: number;
+        r: number;
+        g: number;
+        b: number;
+        a: number;
+      }> = [];
+      for (let d = startAhead; d <= endAhead; d += segStep) {
+        const pt = sampleCircuitAtS(circuit, focusKart.s + d);
+        const recSpeed = getRecommendedSpeedAtS(circuit, pt.s);
+        const [cr, cg, cb] = speedToColorRgb(recSpeed);
+        const fadeIn = Math.min(1, (d - startAhead) / 55);
+        const fadeOut = Math.max(0.2, 1 - (d - startAhead) / (endAhead - startAhead));
+        samples.push({
+          x: pt.x,
+          y: pt.y + 0.62,
+          z: pt.z,
+          rx: pt.rx,
+          rz: pt.rz,
+          r: cr / 255,
+          g: cg / 255,
+          b: cb / 255,
+          a: 0.36 * fadeIn * fadeOut,
+        });
+      }
+
+      const emitHorizonRibbon = (alphaScale: number) => {
+        let hIdx = 0;
+        const maxFloats = this.shadowScratch.length;
+        const pushH = (
+          px: number,
+          py: number,
+          pz: number,
+          r: number,
+          g: number,
+          b: number,
+          a: number,
+        ) => {
+          if (hIdx + SHADOW_FLOATS_PER_VERT > maxFloats) return;
+          this.shadowScratch[hIdx++] = px;
+          this.shadowScratch[hIdx++] = py;
+          this.shadowScratch[hIdx++] = pz;
+          this.shadowScratch[hIdx++] = r;
+          this.shadowScratch[hIdx++] = g;
+          this.shadowScratch[hIdx++] = b;
+          this.shadowScratch[hIdx++] = a;
+        };
+        const halfW = 0.78;
+        for (let i = 0; i < samples.length - 1; i += 1) {
+          const p0 = samples[i]!;
+          const p1 = samples[i + 1]!;
+          const a0 = p0.a * alphaScale;
+          const a1 = p1.a * alphaScale;
+          const l0x = p0.x - p0.rx * halfW;
+          const l0z = p0.z - p0.rz * halfW;
+          const r0x = p0.x + p0.rx * halfW;
+          const r0z = p0.z + p0.rz * halfW;
+          const l1x = p1.x - p1.rx * halfW;
+          const l1z = p1.z - p1.rz * halfW;
+          const r1x = p1.x + p1.rx * halfW;
+          const r1z = p1.z + p1.rz * halfW;
+          pushH(l0x, p0.y, l0z, p0.r, p0.g, p0.b, a0);
+          pushH(r0x, p0.y, r0z, p0.r, p0.g, p0.b, a0);
+          pushH(r1x, p1.y, r1z, p1.r, p1.g, p1.b, a1);
+          pushH(l0x, p0.y, l0z, p0.r, p0.g, p0.b, a0);
+          pushH(r1x, p1.y, r1z, p1.r, p1.g, p1.b, a1);
+          pushH(l1x, p1.y, l1z, p1.r, p1.g, p1.b, a1);
+        }
+        return hIdx / SHADOW_FLOATS_PER_VERT;
+      };
+
+      const vCountVis = emitHorizonRibbon(1.0);
+      if (vCountVis > 0) {
+        gl.useProgram(this.shadowProg);
+        gl.uniform3f(this.shadowUniforms.uCamPos!, cam.x, cam.y, cam.z);
+        gl.uniform3f(this.shadowUniforms.uCamR!, rx, ry, rz);
+        gl.uniform3f(this.shadowUniforms.uCamU!, ux, uy, uz);
+        gl.uniform3f(this.shadowUniforms.uCamF!, fx, fy, fz);
+        gl.uniform2f(this.shadowUniforms.uProjScale!, (2 * focal) / pxW, (2 * focal) / pxH);
+        gl.uniform1f(this.shadowUniforms.uCenterYBias!, centerYBias);
+
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.depthMask(false);
+        gl.bindVertexArray(this.shadowVao);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.shadowVbo);
+
+        // Pass 1: Faint horizon centerline along visible distant road (`gl.LESS`)
+        gl.depthFunc(gl.LESS);
+        gl.bufferSubData(
+          gl.ARRAY_BUFFER,
+          0,
+          this.shadowScratch.subarray(0, vCountVis * SHADOW_FLOATS_PER_VERT),
+        );
+        gl.drawArrays(gl.TRIANGLES, 0, vCountVis);
+
+        // Pass 2: Subtle ghost centerline peeking over blind hills (`gl.GREATER`, 55% fainter!)
+        const vCountHill = emitHorizonRibbon(0.55);
+        gl.depthFunc(gl.GREATER);
+        gl.bufferSubData(
+          gl.ARRAY_BUFFER,
+          0,
+          this.shadowScratch.subarray(0, vCountHill * SHADOW_FLOATS_PER_VERT),
+        );
+        gl.drawArrays(gl.TRIANGLES, 0, vCountHill);
+
+        gl.depthFunc(gl.LESS);
+        gl.depthMask(true);
+        gl.disable(gl.BLEND);
       }
     }
 
