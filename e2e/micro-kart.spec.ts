@@ -236,11 +236,11 @@ test('Micro Kart shows left-side emotional standings, in-game split finish banne
     await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });
     await expect(page.getByTestId('kart-circuit-label')).toHaveText('Sunset Loop');
 
-    // 1. Dynamic left-side standings rail shows all 4 character portraits with happy (1st) & anxious (4th) while racing!
+    // 1. Dynamic left-side standings rail shows all 8 character portraits with happy (1st) & anxious (8th) while racing!
     const rail = page.getByTestId('kart-standings-rail');
     await expect(rail).toBeVisible();
     await expect(rail.locator('[data-place="1"]')).toHaveAttribute('data-mood', 'happy');
-    await expect(rail.locator('[data-place="4"]')).toHaveAttribute('data-mood', 'anxious');
+    await expect(rail.locator('[data-place="8"]')).toHaveAttribute('data-mood', 'anxious');
 
     // 2. Finish 3 laps on Sunset Loop -> non-blocking in-game banner appears IMMEDIATELY, NOT the popover yet!
     await page.evaluate(() => {
@@ -253,8 +253,8 @@ test('Micro Kart shows left-side emotional standings, in-game split finish banne
 
     await expect(page.getByTestId('kart-p1-finish-banner')).toBeVisible();
     await expect(page.getByTestId('kart-next-track-popover')).toHaveCount(0);
-    // At race end, 4th place portrait switches to crying (`data-mood="cry"`)!
-    await expect(rail.locator('[data-place="4"]')).toHaveAttribute('data-mood', 'cry');
+    // At race end, 8th place portrait switches to crying (`data-mood="cry"`)!
+    await expect(rail.locator('[data-place="8"]')).toHaveAttribute('data-mood', 'cry');
 
     // 3. After 5 seconds, the separate "Continue to Next Track" popover appears cleanly!
     await expect(page.getByTestId('kart-next-track-popover')).toBeVisible({ timeout: 7500 });
