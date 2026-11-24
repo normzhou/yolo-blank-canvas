@@ -1,0 +1,82 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-24",
+  "observed_at": "2026-11-24",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#430",
+  "releases": [
+    {
+      "tag": "v0.55.0",
+      "commit": "566b8806ab2ece4c9f3232c999ecec946313e89b"
+    }
+  ],
+  "release": {
+    "tag": "v0.55.0",
+    "commit": "566b8806ab2ece4c9f3232c999ecec946313e89b",
+    "source_commit": "8ad435a32be09999708ddecb3ac28fe356fbeb0b",
+    "assets_commit": "71fc2a2657c47eb209ab6d53ce869d405d34bb36",
+    "native_version": "0.55.0",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-24T04:10:08Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.55.0",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/431"
+  },
+  "build_identity": {
+    "server_build_id": "8ad435a32be09999708ddecb3ac28fe356fbeb0b",
+    "client_build_id": "8ad435a32be09999708ddecb3ac28fe356fbeb0b",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "visual_inspection": "Real Chrome WebGL2 screenshots visually verified via read_file showing the 8-kart 4x2 F1 starting pack (Ren, Kiko, Yuzu, Mochi, Koro, Hana, Poko, Momo), 4x2 8-driver Pause Menu picker with mini portraits, and mid-race 8-racer Portal Marathon (8 live arrows across the 2x2 Quad Radar + 8 portraits gliding smoothly up the vertical 8-segment rail with zero overlap)",
+      "npm_test": "30 files, 197 tests passed (including 8-companion uniqueness and 8-racer Portal Marathon knockout tests)",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 52 passed (1.4m)",
+      "e2e_live": "npm run e2e:live — 5 passed (19.7s, read-only)",
+      "standalone_npx_verify_release": "npx --yes github:normzhou/yolo-blank-canvas#v0.55.0 --no-open --port 4494 (from an empty temporary directory) + npm run e2e:verify-release — 11 passed",
+      "ci": "GitHub Actions CI/Test and type check green (29s)"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "b4bd5f65-c53e-4f69-a11c-12691c56fc38",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.55.0",
+      "observed_build_id": "8ad435a32be09999708ddecb3ac28fe356fbeb0b",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.2.0",
+          "entry": "/games/starlight-burst-dfLBmggg.js",
+          "hash": "c5fb1e727049febeb2bb1d85dd16ca090a86d621e42e151c8cc640cebb112b1f",
+          "sizeBytes": 86740
+        },
+        "prism-stack": {
+          "version": "2.1.1",
+          "entry": "/games/prism-stack-C7Nzix8R.js",
+          "hash": "d69d68e7c4bc7176a83c5a4ab2c8d6bbaa048eab9d771e9f213a4ad2aabfa294",
+          "sizeBytes": 37318
+        },
+        "micro-kart": {
+          "version": "2.5.0",
+          "entry": "/games/micro-kart-BxdbqsuF.js",
+          "hash": "266ef84b6c7691e20a5f9037df247ac8ca8f782022bbc885a79f2456e1f842e6",
+          "sizeBytes": 163332
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Expands Micro Kart from 4 racers to an 8-kart staggered 4x2 F1 grid featuring all 8 Starlight Burst companion characters (Ren, Kiko, Yuzu, Mochi, Koro, Hana, Poko, Momo) with sculpted 3D rigs & signature persona accessories, 8 expressive emotional SVG portraits, a 4x2 Pause Menu driver picker, 8-arrow 2x2 Quad Radar, and 8-racer Portal Marathon knockout support (@yolo-arcade/game-micro-kart@2.5.0)."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #430"
+}

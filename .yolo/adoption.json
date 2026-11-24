@@ -366,15 +366,16 @@
         "v0.52.0": "479f6d9c7e6ed5f9e7f615fbafb27ddbbf531a68",
         "v0.53.0": "8b577eaf725acb76f3c7418c063e7a0b928cb0a0",
         "v0.53.1": "99c7c012e8db766a8e7c204ab6c1670742c97dab",
-        "v0.53.2": "b3c9cc31c49a8367858eb5d02ae3a6b0e6da684a"
+        "v0.53.2": "b3c9cc31c49a8367858eb5d02ae3a6b0e6da684a",
+        "v0.54.0": "bcb67327e3915ff0bb85ce622508efb7bce24d0a"
       },
       "published": {
-        "tag": "v0.54.0",
-        "commit": "bcb67327e3915ff0bb85ce622508efb7bce24d0a",
-        "source_commit": "92becd7bd547ca241f5412fc1008c627d71835b8",
-        "published_at": "2026-11-24T00:50:32Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-24-v0540.json",
-        "note": "Minor Micro Kart performance optimization release (#428, PR #429; @yolo-arcade/game-micro-kart@2.4.0). Caps WebGL2 backing resolution at 1080p adaptive (down to 720p) with high-performance desynchronized context (-64% fill-rate on Retina), assigns dedicated VAOs per static mesh, staggers VRAM pre-baking of all 8 circuit variants to eliminate 50ms first-portal hitches (50.0ms -> 16.8ms max delta, 0 dropped frames), caches canvas size via ResizeObserver, removes backdrop-filter blur from live HUD overlays, and adds a 120Hz fixed-timestep accumulator; verified 11/11 standalone npx e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: b5f9e961-7ce4-4306-8cf3-2ee019dcc483)."
+        "tag": "v0.55.0",
+        "commit": "566b8806ab2ece4c9f3232c999ecec946313e89b",
+        "source_commit": "8ad435a32be09999708ddecb3ac28fe356fbeb0b",
+        "published_at": "2026-11-24T04:10:08Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-24-v0550.json",
+        "note": "Minor 8-player Starlight Burst roster release (#430, PR #431; @yolo-arcade/game-micro-kart@2.5.0). Expands Micro Kart to an 8-kart 4x2 F1 grid featuring all 8 Starlight Burst companion characters (Ren, Kiko, Yuzu, Mochi, Koro, Hana, Poko, Momo) with sculpted 3D rigs & persona accessories, 8 expressive emotional portraits, 4x2 Pause Menu driver picker, 8-arrow 2x2 Quad Radar, and 8-racer Portal Marathon knockout support; visually verified in Chrome WebGL2, 11/11 standalone npx e2e:verify-release, and deployed live to https://demo.yolo-dev.ai (Version ID: b4bd5f65-c53e-4f69-a11c-12691c56fc38)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -501,7 +502,8 @@
         ".yolo/reports/releases-observed-2026-11-21-v0530.json",
         ".yolo/reports/releases-observed-2026-11-21-v0531.json",
         ".yolo/reports/releases-observed-2026-11-23-v0532.json",
-        ".yolo/reports/releases-observed-2026-11-24-v0540.json"
+        ".yolo/reports/releases-observed-2026-11-24-v0540.json",
+        ".yolo/reports/releases-observed-2026-11-24-v0550.json"
       ]
     }
   },
