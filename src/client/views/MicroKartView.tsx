@@ -909,6 +909,8 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
   const [raceFormat, setRaceFormat] = useState<KartRaceFormat>('grand-prix');
   const [p1Character, setP1Character] = useState<DriverCharacterId>('fox');
   const [localMode, setLocalMode] = useState<'1p' | '2p-local'>('1p');
+  const [hasStarted, setHasStarted] = useState<boolean>(false);
+  const [menuDirty, setMenuDirty] = useState<boolean>(false);
   const [netplay, setNetplay] = useState<NetplayState>(() => getSharedNetplay().getState());
   const [inviteSecondsLeft, setInviteSecondsLeft] = useState(20);
   const [paused, setPaused] = useState<boolean>(() => getSharedGamePaused());
@@ -1171,6 +1173,7 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       overrideP1Char?: DriverCharacterId,
       overrideReversed?: boolean,
       overrideFormat?: KartRaceFormat,
+      stayPaused = false,
     ) => {
       const chosenChar = overrideP1Char ?? p1Character;
       const nextReversed = overrideReversed ?? reversed;
@@ -1205,14 +1208,20 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
       activePointersRef.current.clear();
       setKoToast(null);
       syncHudFromRace(fresh, focusSlot);
-      setSharedGamePaused(false);
       setNextTrackPopoverDelaySec(5);
-      triggerFreshCountdown(lang);
       const audio = getSharedArcadeAudio();
       audio.cutToPlaylist(getMicroKartPlaylistForCircuit(nextCircuit, nextReversed), 0.35);
       if (nextFormat === 'marathon') {
         const upcoming = getMarathonStageForKart(fresh, fresh.karts[focusSlot]!, 1);
         audio.preloadTrack(getMicroKartPlaylistForCircuit(upcoming.circuitId, upcoming.reversed)[0]);
+      }
+      if (stayPaused) {
+        setMenuDirty(true);
+      } else {
+        setHasStarted(true);
+        setMenuDirty(false);
+        setSharedGamePaused(false);
+        triggerFreshCountdown(lang);
       }
     },
     [activeKartRoom, p1Character, raceFormat, reversed, syncHudFromRace, triggerFreshCountdown],
@@ -2664,23 +2673,28 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
         </div>
       ) : null}
 
-      {/* Pause Menu */}
+      {/* Harmonized Start / Pause Menu (#436) */}
       {paused ? (
         <div className="game-pause-backdrop">
           <div
             className="game-pause-menu"
             role="dialog"
             aria-modal="true"
-            aria-label="Game paused"
+            aria-label={hasStarted ? 'Game paused' : 'Micro Kart menu'}
             data-testid="game-pause-menu"
+            data-menu-state={hasStarted ? 'paused' : 'start'}
             ref={pauseMenuRef}
           >
-            <span className="game-pause-kicker">Micro Kart</span>
-            <h3 className="game-pause-title">Paused</h3>
+            <div className="game-pause-head">
+              <span className="game-pause-kicker">
+                {hasStarted ? 'Game Paused' : 'Ready to Race'}
+              </span>
+              <div className="game-pause-title">{hasStarted ? 'Paused' : 'Micro Kart'}</div>
+            </div>
 
             <div className="game-pause-section">
-              <span className="stack-label">Race Mode</span>
-              <div className="filter-group" role="group" aria-label="Micro Kart player mode">
+              <span className="stack-label">Mode</span>
+              <div className="filter-group game-menu-pills" role="group" aria-label="Micro Kart player mode">
                 <button
                   type="button"
                   data-testid="kart-1p-btn"
@@ -2688,10 +2702,10 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                   onClick={() => {
                     if (isOnline2P) void getSharedNetplay().leaveRoom();
                     setLocalMode('1p');
-                    resetRace(circuitId, '1p');
+                    resetRace(circuitId, '1p', undefined, undefined, undefined, undefined, undefined, undefined, true);
                   }}
                 >
-                  1P Grand Prix
+                  1P
                 </button>
                 {isDesktopKeyboard ? (
                   <button
@@ -2701,10 +2715,10 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                     onClick={() => {
                       if (isOnline2P) void getSharedNetplay().leaveRoom();
                       setLocalMode('2p-local');
-                      resetRace(circuitId, '2p-local');
+                      resetRace(circuitId, '2p-local', undefined, undefined, undefined, undefined, undefined, undefined, true);
                     }}
                   >
-                    2P Split-Screen
+                    2P Split
                   </button>
                 ) : null}
                 <button
@@ -2719,22 +2733,84 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                       void getSharedNetplay().cancelInvite();
                     } else if (canSelectOnline2P) {
                       setLocalMode('1p');
+                      setHasStarted(true);
+                      setMenuDirty(false);
                       setSharedGamePaused(false);
                       void getSharedNetplay().sendInvite('micro-kart');
                     }
                   }}
                 >
                   {isOnline2P && activeKartRoom
-                    ? `2P online (${activeKartRoom.opponent.name})`
+                    ? `Online (${activeKartRoom.opponent.name})`
                     : isInviting
-                      ? `Waiting 2P… (${inviteSecondsLeft}s)`
-                      : '2P online'}
+                      ? `Waiting (${inviteSecondsLeft}s)`
+                      : '2P Online'}
                 </button>
               </div>
             </div>
 
             <div className="game-pause-section">
-              <span className="stack-label">Driver (8 Starlight Companions)</span>
+              <span className="stack-label">Race</span>
+              <div className="filter-group game-menu-pills" role="group" aria-label="Race format and direction">
+                <button
+                  type="button"
+                  data-testid="kart-format-gp"
+                  aria-pressed={raceFormat === 'grand-prix'}
+                  onClick={() => {
+                    setRaceFormat('grand-prix');
+                    resetRace(circuitId, effectiveMode, undefined, undefined, undefined, undefined, reversed, 'grand-prix', true);
+                  }}
+                >
+                  Grand Prix
+                </button>
+                <button
+                  type="button"
+                  data-testid="kart-format-marathon"
+                  aria-pressed={raceFormat === 'marathon'}
+                  onClick={() => {
+                    setRaceFormat('marathon');
+                    resetRace(circuitId, effectiveMode, undefined, undefined, undefined, undefined, reversed, 'marathon', true);
+                  }}
+                >
+                  🌀 Marathon
+                </button>
+                <button
+                  type="button"
+                  data-testid="kart-dir-reverse"
+                  aria-pressed={reversed}
+                  onClick={() => {
+                    const nextRev = !reversed;
+                    setReversed(nextRev);
+                    resetRace(circuitId, effectiveMode, undefined, undefined, undefined, undefined, nextRev, raceFormat, true);
+                  }}
+                >
+                  ↺ Reverse
+                </button>
+              </div>
+            </div>
+
+            <div className="game-pause-section">
+              <span className="stack-label">Track</span>
+              <div className="filter-group game-menu-pills" role="group" aria-label="Circuit selection">
+                {CIRCUIT_LIST.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    data-testid={`kart-circuit-${c.id}`}
+                    aria-pressed={circuitId === c.id}
+                    onClick={() => {
+                      setCircuitId(c.id);
+                      resetRace(c.id, effectiveMode, undefined, undefined, undefined, undefined, reversed, raceFormat, true);
+                    }}
+                  >
+                    {SHORT_CIRCUIT_NAMES[c.id]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="game-pause-section">
+              <span className="stack-label">Driver</span>
               <div className="filter-group kart-driver-picker" role="group" aria-label="Driver selection">
                 {KART_DRIVERS.map((drv) => (
                   <button
@@ -2745,10 +2821,10 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
                     aria-pressed={p1Character === drv.id}
                     onClick={() => {
                       setP1Character(drv.id);
-                      resetRace(circuitId, effectiveMode, undefined, undefined, undefined, drv.id);
+                      resetRace(circuitId, effectiveMode, undefined, undefined, undefined, drv.id, reversed, raceFormat, true);
                     }}
                   >
-                    <KartDriverPortrait character={drv.id} mood="normal" size={22} />
+                    <KartDriverPortrait character={drv.id} mood="normal" size={20} />
                     <span>{drv.driverName}</span>
                   </button>
                 ))}
@@ -2756,102 +2832,8 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
             </div>
 
             <div className="game-pause-section">
-              <span className="stack-label">Race Format</span>
-              <div className="filter-group" role="group" aria-label="Race format">
-                <button
-                  type="button"
-                  data-testid="kart-format-gp"
-                  aria-pressed={raceFormat === 'grand-prix'}
-                  onClick={() => {
-                    setRaceFormat('grand-prix');
-                    resetRace(
-                      circuitId,
-                      effectiveMode,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      reversed,
-                      'grand-prix',
-                    );
-                  }}
-                >
-                  Grand Prix · 3 Laps
-                </button>
-                <button
-                  type="button"
-                  data-testid="kart-format-marathon"
-                  aria-pressed={raceFormat === 'marathon'}
-                  onClick={() => {
-                    setRaceFormat('marathon');
-                    resetRace(
-                      circuitId,
-                      effectiveMode,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      reversed,
-                      'marathon',
-                    );
-                  }}
-                >
-                  🌀 Portal Marathon
-                </button>
-              </div>
-            </div>
-
-            <div className="game-pause-section">
-              <span className="stack-label">Circuit</span>
-              <div className="filter-group" role="group" aria-label="Circuit selection">
-                {CIRCUIT_LIST.map((c) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    data-testid={`kart-circuit-${c.id}`}
-                    aria-pressed={circuitId === c.id}
-                    onClick={() => {
-                      setCircuitId(c.id);
-                      resetRace(c.id, effectiveMode);
-                    }}
-                  >
-                    {c.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="game-pause-section">
-              <span className="stack-label">Direction</span>
-              <div className="filter-group" role="group" aria-label="Track direction">
-                <button
-                  type="button"
-                  data-testid="kart-dir-forward"
-                  aria-pressed={!reversed}
-                  onClick={() => {
-                    setReversed(false);
-                    resetRace(circuitId, effectiveMode, undefined, undefined, undefined, undefined, false);
-                  }}
-                >
-                  Forward
-                </button>
-                <button
-                  type="button"
-                  data-testid="kart-dir-reverse"
-                  aria-pressed={reversed}
-                  onClick={() => {
-                    setReversed(true);
-                    resetRace(circuitId, effectiveMode, undefined, undefined, undefined, undefined, true);
-                  }}
-                >
-                  ↺ Reverse
-                </button>
-              </div>
-            </div>
-
-            <div className="game-pause-section">
               <span className="stack-label">Audio</span>
-              <div className="filter-group" role="group" aria-label="Audio controls">
+              <div className="filter-group game-menu-pills" role="group" aria-label="Audio controls">
                 <button
                   type="button"
                   data-testid="pause-menu-sfx-btn"
@@ -2881,39 +2863,48 @@ export function MicroKartView({ onExit }: MicroKartViewProps) {
             <div className="game-pause-actions">
               <button
                 type="button"
-                className="primary"
+                className="primary game-menu-cta"
                 data-testid="pause-menu-resume"
-                aria-label="Continue game"
+                aria-label={!hasStarted ? 'Start race' : menuDirty ? 'Start new race' : 'Continue race'}
                 onClick={() => {
                   if (getSharedMusicOn()) {
                     getSharedArcadeAudio().ensureContext();
                   }
-                  if (countdown > 0) {
+                  if (!hasStarted || menuDirty) {
+                    setHasStarted(true);
+                    setMenuDirty(false);
+                    triggerFreshCountdown();
+                  } else if (countdown > 0) {
                     triggerFreshCountdown();
                   }
                   setSharedGamePaused(false);
                 }}
               >
-                Continue
+                {!hasStarted ? 'Start' : menuDirty ? 'Go!' : 'Continue'}
               </button>
-              <button
-                type="button"
-                data-testid="pause-menu-restart"
-                onClick={() => resetRace(circuitId, effectiveMode)}
-              >
-                Restart race
-              </button>
-              <button
-                type="button"
-                data-testid="pause-menu-exit"
-                onClick={() => {
-                  if (isOnline2P) void getSharedNetplay().leaveRoom();
-                  setSharedGamePaused(false);
-                  onExit();
-                }}
-              >
-                Exit to Home
-              </button>
+              <div className="game-pause-secondary">
+                {hasStarted && !menuDirty ? (
+                  <button
+                    type="button"
+                    data-testid="pause-menu-restart"
+                    onClick={() => resetRace(circuitId, effectiveMode)}
+                  >
+                    Restart
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  data-testid="pause-menu-exit"
+                  aria-label="Close Micro Kart"
+                  onClick={() => {
+                    if (isOnline2P) void getSharedNetplay().leaveRoom();
+                    setSharedGamePaused(false);
+                    onExit();
+                  }}
+                >
+                  Home
+                </button>
+              </div>
             </div>
           </div>
         </div>

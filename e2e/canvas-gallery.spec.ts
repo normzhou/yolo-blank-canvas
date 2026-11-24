@@ -29,11 +29,16 @@ test('the home gallery opens Prism Stack and the Pause Menu exits to the canvas 
     await expect(page.getByRole('heading', { name: 'Prism Stack' })).toBeVisible();
     await expect(page.getByRole('img', { name: 'Prism Stack board, 9 by 18' })).toBeVisible();
 
-    await expect(page.getByTestId('arcade-countdown')).toBeVisible();
+    // Starts on the harmonized Start Menu with Start CTA (#436)
+    await expect(page.getByTestId('game-pause-menu')).toBeVisible();
+    await expect(page.getByTestId('pause-menu-resume')).toHaveText('Start');
+    await page.getByTestId('pause-menu-resume').click();
     await expect(page.getByTestId('game-pause-menu')).toHaveCount(0);
+    await expect(page.getByTestId('arcade-countdown')).toBeVisible();
 
     await page.getByTestId('pause-button').click();
     await expect(page.getByTestId('game-pause-menu')).toBeVisible();
+    await expect(page.getByTestId('pause-menu-resume')).toHaveText('Continue');
     await page.getByRole('button', { name: 'Close Prism Stack' }).click();
     await expect(page).toHaveURL((url) => url.pathname === '/' && url.search === '');
     await expect(page.getByRole('heading', { name: 'Blank canvas' })).toBeVisible();
@@ -90,6 +95,8 @@ test('Escape closes the palette before the app, and the tilde alias opens it', a
   try {
     await page.goto(`${stub.base}?app=prism-stack`);
     await expect(page.getByRole('heading', { name: 'Prism Stack' })).toBeVisible();
+    await expect(page.getByTestId('game-pause-menu')).toBeVisible();
+    await page.getByTestId('pause-menu-resume').click();
     await expect(page.getByTestId('game-pause-menu')).toHaveCount(0);
 
     await page.keyboard.press('Shift+Backquote');

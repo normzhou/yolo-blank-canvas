@@ -143,6 +143,8 @@ test('Prism Stack: 9x18 board renders, music toggles with a stable track label, 
   await page.getByRole('button', { name: 'Prism Stack', exact: true }).click();
   await page.getByTestId('deck-slide-card').click();
   await expect(page.getByRole('img', { name: 'Prism Stack board, 9 by 18' })).toBeVisible();
+  await expect(page.getByTestId('game-pause-menu')).toBeVisible();
+  await page.getByTestId('pause-menu-resume').click();
   await expect(page.getByText(/Scene 1\/\d+:/)).toBeVisible();
   await snap('09-prism-stack-board');
 

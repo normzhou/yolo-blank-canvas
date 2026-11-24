@@ -1342,6 +1342,8 @@ export function StarlightBurstView({ onExit }: { onExit: () => void }) {
     createRandomMascotPair(),
   );
   const [stagePreset, setStagePreset] = useState<number>(0);
+  const [hasStarted, setHasStarted] = useState<boolean>(false);
+  const [menuDirty, setMenuDirty] = useState<boolean>(false);
   const [paused, setPaused] = useState<boolean>(() => getSharedGamePaused());
   const [musicOn, setMusicOn] = useState<boolean>(() => getSharedMusicOn());
   const [sfxOn, setSfxOn] = useState<boolean>(() => getSharedSfxOn());
@@ -2512,25 +2514,31 @@ export function StarlightBurstView({ onExit }: { onExit: () => void }) {
             className="game-pause-menu"
             role="dialog"
             aria-modal="true"
-            aria-label="Game paused"
+            aria-label={hasStarted ? 'Game paused' : 'Starlight Burst menu'}
             data-testid="game-pause-menu"
+            data-menu-state={hasStarted ? 'paused' : 'start'}
             ref={pauseMenuRef}
           >
-            <span className="game-pause-kicker">Starlight Burst</span>
-            <h3 className="game-pause-title">Paused</h3>
+            <div className="game-pause-head">
+              <span className="game-pause-kicker">
+                {hasStarted ? 'Game Paused' : 'Ready to Play'}
+              </span>
+              <div className="game-pause-title">{hasStarted ? 'Paused' : 'Starlight Burst'}</div>
+            </div>
             <div className="game-pause-section">
-              <span className="stack-label">Game Mode</span>
-              <div className="filter-group" role="group" aria-label="Player mode">
+              <span className="stack-label">Mode</span>
+              <div className="filter-group game-menu-pills" role="group" aria-label="Player mode">
                 <button
                   type="button"
                   aria-pressed={!isOnline2P && !isInviting && match.mode === '1p'}
                   onClick={() => {
                     if (isOnline2P) void getSharedNetplay().leaveRoom();
                     if (isInviting) void getSharedNetplay().cancelInvite();
-                    startNewRound('1p', false);
+                    startNewRound('1p', false, stagePreset, false);
+                    setMenuDirty(true);
                   }}
                 >
-                  1 Player
+                  1P
                 </button>
                 {canSelectLocal2P ? (
                   <button
@@ -2539,10 +2547,11 @@ export function StarlightBurstView({ onExit }: { onExit: () => void }) {
                     onClick={() => {
                       if (isOnline2P) void getSharedNetplay().leaveRoom();
                       if (isInviting) void getSharedNetplay().cancelInvite();
-                      startNewRound('2p', false);
+                      startNewRound('2p', false, stagePreset, false);
+                      setMenuDirty(true);
                     }}
                   >
-                    2 Player
+                    2P Local
                   </button>
                 ) : null}
                 <button
@@ -2558,30 +2567,32 @@ export function StarlightBurstView({ onExit }: { onExit: () => void }) {
                   onClick={() => {
                     if (isOnline2P) {
                       void getSharedNetplay().leaveRoom();
-                      startNewRound(canSelectLocal2P ? '2p' : '1p', false);
+                      startNewRound(canSelectLocal2P ? '2p' : '1p', false, stagePreset, false);
                     } else if (isInviting) {
                       void getSharedNetplay().cancelInvite();
                     } else if (canSelectOnline2P) {
                       if (match.mode === '2p') {
-                        startNewRound('1p', false);
+                        startNewRound('1p', false, stagePreset, false);
                       }
+                      setHasStarted(true);
+                      setMenuDirty(false);
                       setSharedGamePaused(false);
                       void getSharedNetplay().sendInvite('starlight-burst');
                     }
                   }}
                 >
                   {isOnline2P
-                    ? `2P online (${activeSbRoom.opponent.name})`
+                    ? `Online (${activeSbRoom.opponent.name})`
                     : isInviting
-                      ? `Waiting 2P… (${inviteSecondsLeft}s)`
-                      : '2P online'}
+                      ? `Waiting (${inviteSecondsLeft}s)`
+                      : '2P Online'}
                 </button>
               </div>
             </div>
             <div className="game-pause-section">
-              <span className="stack-label">Constellation</span>
+              <span className="stack-label">Stage</span>
               <div
-                className="filter-group sb-stage-stepper"
+                className="filter-group sb-stage-stepper game-menu-pills"
                 role="group"
                 aria-label="Constellation selection"
                 data-testid="sb-stage-selector"
@@ -2594,7 +2605,8 @@ export function StarlightBurstView({ onExit }: { onExit: () => void }) {
                     const totalOptions = TOTAL_STAGES + 1;
                     const prevPreset = (stagePreset - 1 + totalOptions) % totalOptions;
                     setStagePreset(prevPreset);
-                    startNewRound(match.mode, true, prevPreset);
+                    startNewRound(match.mode, true, prevPreset, false);
+                    setMenuDirty(true);
                   }}
                 >
                   ‹
@@ -2605,12 +2617,13 @@ export function StarlightBurstView({ onExit }: { onExit: () => void }) {
                   onClick={() => {
                     const nextPreset = (stagePreset + 1) % (TOTAL_STAGES + 1);
                     setStagePreset(nextPreset);
-                    startNewRound(match.mode, true, nextPreset);
+                    startNewRound(match.mode, true, nextPreset, false);
+                    setMenuDirty(true);
                   }}
                   title={`Cycle between random waves and ${TOTAL_STAGES} constellations`}
                 >
                   {stagePreset === 0
-                    ? 'Wave: Random'
+                    ? 'Random'
                     : `Stage ${stagePreset}: ${stageTitle(stagePreset)}`}
                 </button>
                 <button
@@ -2620,7 +2633,8 @@ export function StarlightBurstView({ onExit }: { onExit: () => void }) {
                   onClick={() => {
                     const nextPreset = (stagePreset + 1) % (TOTAL_STAGES + 1);
                     setStagePreset(nextPreset);
-                    startNewRound(match.mode, true, nextPreset);
+                    startNewRound(match.mode, true, nextPreset, false);
+                    setMenuDirty(true);
                   }}
                 >
                   ›
@@ -2629,7 +2643,7 @@ export function StarlightBurstView({ onExit }: { onExit: () => void }) {
             </div>
             <div className="game-pause-section">
               <span className="stack-label">Audio</span>
-              <div className="filter-group" role="group" aria-label="Audio controls">
+              <div className="filter-group game-menu-pills" role="group" aria-label="Audio controls">
                 <button
                   type="button"
                   data-testid="pause-menu-sfx-btn"
@@ -2656,40 +2670,51 @@ export function StarlightBurstView({ onExit }: { onExit: () => void }) {
             <div className="game-pause-actions">
               <button
                 type="button"
-                className="primary"
+                className="primary game-menu-cta"
                 data-testid="pause-menu-resume"
-                aria-label="Continue game"
+                aria-label={!hasStarted ? 'Start game' : menuDirty ? 'Start new game' : 'Continue game'}
                 onClick={() => {
                   if (getSharedMusicOn()) {
                     getSharedArcadeAudio().ensureContext();
                   }
-                  if (countdown > 0) {
+                  if (!hasStarted || menuDirty) {
+                    setHasStarted(true);
+                    setMenuDirty(false);
+                    triggerFreshCountdown();
+                    getSharedArcadeAudio().startNewGameTrack();
+                  } else if (countdown > 0) {
                     triggerFreshCountdown();
                   }
                   setSharedGamePaused(false);
                 }}
               >
-                Continue
+                {!hasStarted ? 'Start' : menuDirty ? 'Go!' : 'Continue'}
               </button>
-              <button
-                type="button"
-                data-testid="pause-menu-restart"
-                aria-label="Restart game"
-                onClick={() => {
-                  handleNextOrNewRound();
-                  setSharedGamePaused(false);
-                }}
-              >
-                {match.status === 'round_over' ? 'Next round' : 'New game'}
-              </button>
-              <button
-                type="button"
-                data-testid="pause-menu-exit"
-                aria-label="Close Starlight Burst"
-                onClick={onExit}
-              >
-                Exit to menu
-              </button>
+              <div className="game-pause-secondary">
+                {hasStarted && !menuDirty ? (
+                  <button
+                    type="button"
+                    data-testid="pause-menu-restart"
+                    aria-label="Restart game"
+                    onClick={() => {
+                      setHasStarted(true);
+                      setMenuDirty(false);
+                      handleNextOrNewRound();
+                      setSharedGamePaused(false);
+                    }}
+                  >
+                    {match.status === 'round_over' ? 'Next round' : 'Restart'}
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  data-testid="pause-menu-exit"
+                  aria-label="Close Starlight Burst"
+                  onClick={onExit}
+                >
+                  Home
+                </button>
+              </div>
             </div>
           </div>
         </div>
