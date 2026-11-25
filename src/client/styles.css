@@ -3456,6 +3456,33 @@ button.passkey-handoff-copy-btn:hover {
   will-change: transform, opacity;
 }
 
+.kart-distant-badge {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kart-distant-arrow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: none;
+  font-size: var(--text-xs);
+  line-height: 1;
+  color: var(--prism-4);
+  text-shadow: 0 1px 3px var(--stage-well), 0 0 6px var(--stage-well);
+  pointer-events: none;
+}
+
+.kart-distant-marker.is-edge .kart-distant-arrow {
+  display: block;
+}
+
+.kart-distant-marker.is-edge .kart-portrait-svg {
+  filter: drop-shadow(0 0 5px var(--prism-4));
+}
+
 .kart-distant-dist {
   font-style: italic;
   font-size: var(--text-xs);
@@ -3595,7 +3622,7 @@ button.passkey-handoff-copy-btn:hover {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  width: min(680px, 94vw);
+  width: min(760px, 96vw);
   pointer-events: none;
 }
 
@@ -3604,7 +3631,7 @@ button.passkey-handoff-copy-btn:hover {
   pointer-events: auto;
   touch-action: none;
   flex: 1 1 auto;
-  max-width: 460px;
+  max-width: 560px;
   height: 60px;
   border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--stage-text) 10%, transparent);
@@ -3751,13 +3778,13 @@ button.passkey-handoff-copy-btn:hover {
   transform: scale(1.06);
 }
 
-/* Left-Side Vertical Lap-Progress Standings Rail — Character Photo + Text Only, Zero Transparency (#406, #422) */
+/* Left-Side Vertical Lap-Progress Standings Rail — Portrait + Place + Lap Only (#406, #422, #442) */
 .kart-standings-rail {
   position: absolute;
   left: 14px;
   top: 78px;
   bottom: 108px;
-  width: 196px;
+  width: 82px;
   z-index: 5;
   pointer-events: none;
 }
@@ -3765,7 +3792,19 @@ button.passkey-handoff-copy-btn:hover {
 .kart-standings-rail.is-compact {
   top: 56px;
   bottom: 64px;
-  width: 170px;
+  width: 74px;
+}
+
+.kart-standing-compact {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.kart-standing-row.is-focus .kart-portrait-svg {
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--prism-4);
 }
 
 .kart-rail-spine {
@@ -4343,10 +4382,7 @@ button.passkey-handoff-copy-btn:hover {
     left: 8px;
     top: 108px;
     bottom: 136px;
-    width: 144px;
-  }
-  .kart-standing-meta:last-child {
-    display: none;
+    width: 74px;
   }
   .kart-hunt-banner {
     top: 76px;
