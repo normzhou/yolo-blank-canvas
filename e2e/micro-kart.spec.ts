@@ -17,7 +17,7 @@ test('Micro Kart renders via static-VBO WebGL2 by default, supports Starlight Bu
     const card = page.getByTestId('deck-slide-card');
     await page.getByTestId('carousel-dot-micro-kart').click();
     await expect(card).toHaveAttribute('data-slide-id', 'micro-kart');
-    await expect(card).toHaveAttribute('data-game-version', '2.10.0');
+    await expect(card).toHaveAttribute('data-game-version', '2.11.0');
     await expect(page.locator('.deck-slide-title')).toHaveText('Micro Kart');
 
     await page.getByRole('button', { name: 'Play Micro Kart', exact: true }).click();
@@ -373,7 +373,7 @@ test('Micro Kart shows left-side emotional standings, in-game split finish banne
     await expect(page.getByTestId('kart-quad-tile-sunset-loop')).toHaveAttribute('data-active', 'true');
     await expect(page.getByTestId('kart-quad-arrow-0')).toBeVisible();
     await expect(page.getByTestId('kart-standing-lap-0')).toHaveText('L1');
-    await expect(page.getByTestId('kart-standing-track-0')).toContainText('Sunset');
+    await expect(page.getByTestId('kart-standing-track-0')).toHaveCount(0);
     await expect(page.getByTestId('arcade-countdown')).toHaveCount(0, { timeout: 8000 });
     // Step ~40% through Track 1 -> portrait smoothly climbs inside Segment 1 (0%..12.5%) without jumping!
     await page.evaluate(() => {
@@ -400,8 +400,26 @@ test('Micro Kart shows left-side emotional standings, in-game split finish banne
     const nextCircuitAttr = await page.getByTestId('micro-kart-stage').getAttribute('data-circuit');
     expect(nextCircuitAttr).not.toBe('sunset-loop');
     await expect(page.getByTestId('kart-circuit-label')).toContainText('🌀 #2 ·');
+    // After warping through the portal, every visible distant/edge portrait MUST belong strictly to a rival on the exact same circuit (zero stale portraits from previous tracks! #442)
+    await page.waitForTimeout(120);
+    const sameTrackRivals = await page.evaluate((targetCircuit) => {
+      const sameChars = new Set<string>();
+      document.querySelectorAll('[data-testid^="kart-standing-slot-"]').forEach((el) => {
+        if (el.getAttribute('data-testid') === 'kart-standing-slot-0') return;
+        if (el.getAttribute('data-circuit') === targetCircuit) {
+          const ch = el.getAttribute('data-character');
+          if (ch) sameChars.add(ch);
+        }
+      });
+      const visibleMarkerChars = Array.from(
+        document.querySelectorAll('[data-testid^="kart-distant-marker-"][data-visible="true"]'),
+      ).map((el) => (el.getAttribute('data-testid') ?? '').replace('kart-distant-marker-', ''));
+      const stale = visibleMarkerChars.filter((ch) => !sameChars.has(ch));
+      return { stale, visibleCount: visibleMarkerChars.length, sameTrackCount: sameChars.size };
+    }, nextCircuitAttr);
+    expect(sameTrackRivals.stale).toEqual([]);
 
-    // 6. Verify 2P Split-Screen is NOT offered on mobile & Portrait Rotate-to-Landscape prompt appears (#440)
+    // 6. Mobile Portrait plays directly (no landscape nag!), supports full-screen absolute-X touch steering, and hides 2P Split (#442)
     const mobileCtx = await browser.newContext({
       viewport: { width: 390, height: 844 },
       hasTouch: true,
@@ -413,11 +431,18 @@ test('Micro Kart shows left-side emotional standings, in-game split finish banne
       await expect(mobilePage.getByTestId('game-pause-menu')).toBeVisible();
       await expect(mobilePage.getByTestId('kart-2p-local-btn')).toHaveCount(0);
       await mobilePage.getByTestId('pause-menu-resume').click();
-      await expect(mobilePage.getByTestId('kart-landscape-prompt')).toBeVisible();
-      await mobilePage.getByTestId('kart-landscape-dismiss').click();
       await expect(mobilePage.getByTestId('kart-landscape-prompt')).toHaveCount(0);
       await expect(mobilePage.getByTestId('kart-p1-steer-slider')).toBeVisible();
       await expect(mobilePage.getByTestId('kart-p1-touch-brake')).toBeVisible();
+      // Touching mid-screen right (outside the bottom band!) directly steers right via absolute screen X!
+      await mobilePage.mouse.move(340, 360);
+      await mobilePage.mouse.down();
+      await expect
+        .poll(async () =>
+          Number(await mobilePage.getByTestId('kart-p1-steer-slider').getAttribute('aria-valuenow')),
+        )
+        .toBeGreaterThan(50);
+      await mobilePage.mouse.up();
     } finally {
       await mobileCtx.close();
     }
