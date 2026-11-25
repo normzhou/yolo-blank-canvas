@@ -372,15 +372,16 @@
         "v0.56.0": "a174bab184037ad92a600738d6975db4ed91a0c6",
         "v0.57.0": "9237b0ecc6f16e3349a8a03b7fbf8b1966e0d801",
         "v0.58.0": "328ea156f9d9f0fc30665879843f55d588529f64",
-        "v0.59.0": "38a62564d94ff3ade9c2acae01b8537d4163dd7c"
+        "v0.59.0": "38a62564d94ff3ade9c2acae01b8537d4163dd7c",
+        "v0.60.0": "a7278bc0bad32b70ff5910321ba9373ae50aecde"
       },
       "published": {
-        "tag": "v0.60.0",
-        "commit": "a7278bc0bad32b70ff5910321ba9373ae50aecde",
-        "source_commit": "b0c90d44d9ef5e9fdf1532694898666c67ae9248",
-        "published_at": "2026-11-24T23:20:34Z",
-        "acceptance": ".yolo/reports/releases-observed-2026-11-24-v0600.json",
-        "note": "Minor Micro Kart touch Steering Band, Mobile Landscape & Side-by-Side 2P Split-Screen release (#440, PR #441; @yolo-arcade/game-micro-kart@2.10.0). Replaces swipe-to-steer canvas zones with a wide faintly highlighted absolute-X Steering Band containing the live-rotating F1 steering wheel in the center + dedicated BRAKE touch pad, adds mobile landscape preference & non-blocking Portrait Rotate Phone prompt, and switches Desktop 2P local split-screen to full-height side-by-side (Left P1 / Right P2); two-round closed-loop visual audit + 52/52 E2E + 11/11 standalone v0.60.0 e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 576319a1-ed37-427e-9356-1cc04d8645e7)."
+        "tag": "v0.61.0",
+        "commit": "c72b17deba2a6005ae619ebb4e5ecf956c018fe7",
+        "source_commit": "86dd67d7bcebdd2316cfe116bb92d5a862f732d0",
+        "published_at": "2026-11-25T06:07:32Z",
+        "acceptance": ".yolo/reports/releases-observed-2026-11-25-v0610.json",
+        "note": "Minor Micro Kart portrait play, full-screen touch steering, slim rail, portal stuck-portrait fix & space-fighter edge indicators release (#442, PR #443; @yolo-arcade/game-micro-kart@2.11.0). Removes mobile landscape nag, widens Steering Band and allows touching anywhere on screen outside controls to steer via absolute X, slims vertical progress rail to portrait + place + lap only, fixes ref-callback race causing stuck portraits across portals, and pins off-screen same-track rivals to the screen edge at 60/120fps with 360-degree orbital arrows and meter counts; closed-loop visual audit + 52/52 E2E + 11/11 standalone v0.61.0 e2e:verify-release and deployed live to https://demo.yolo-dev.ai (Version ID: 74be6d7e-a007-4f04-9cc8-48920ddc43b7)."
       },
       "tags_without_a_published_release": {
         "v0.3.0": "Superseded by v0.3.1. Verified as an installable artifact; never published. Deleting the tag is reserved, so it stands."
@@ -513,7 +514,8 @@
         ".yolo/reports/releases-observed-2026-11-24-v0570.json",
         ".yolo/reports/releases-observed-2026-11-24-v0580.json",
         ".yolo/reports/releases-observed-2026-11-24-v0590.json",
-        ".yolo/reports/releases-observed-2026-11-24-v0600.json"
+        ".yolo/reports/releases-observed-2026-11-24-v0600.json",
+        ".yolo/reports/releases-observed-2026-11-25-v0610.json"
       ]
     }
   },

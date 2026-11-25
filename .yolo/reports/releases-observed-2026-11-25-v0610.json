@@ -1,0 +1,82 @@
+{
+  "schema_version": 2,
+  "kind": "release-observation",
+  "status": "published-and-acceptance-passed",
+  "target": "normzhou/yolo-blank-canvas",
+  "date": "2026-11-25",
+  "observed_at": "2026-11-25",
+  "protocol": {
+    "revision": "f9ceb59e5bb6c5e38b01208ef68903b0ffc53664",
+    "sha256": "330c1c667db5fde248e6818d3a081a49b40ce74eb351899d3f4d60e9283942b1"
+  },
+  "outcome": "#442",
+  "releases": [
+    {
+      "tag": "v0.61.0",
+      "commit": "c72b17deba2a6005ae619ebb4e5ecf956c018fe7"
+    }
+  ],
+  "release": {
+    "tag": "v0.61.0",
+    "commit": "c72b17deba2a6005ae619ebb4e5ecf956c018fe7",
+    "source_commit": "86dd67d7bcebdd2316cfe116bb92d5a862f732d0",
+    "assets_commit": "cb022231bbf44c0dc6dd520e016a6ae29a27305c",
+    "native_version": "0.61.0",
+    "native_version_source": "package.json#version",
+    "is_draft": false,
+    "is_prerelease": false,
+    "published_at": "2026-11-25T06:07:32Z",
+    "url": "https://github.com/normzhou/yolo-blank-canvas/releases/tag/v0.61.0",
+    "pull_request": "https://github.com/normzhou/yolo-blank-canvas/pull/443"
+  },
+  "build_identity": {
+    "server_build_id": "86dd67d7bcebdd2316cfe116bb92d5a862f732d0",
+    "client_build_id": "86dd67d7bcebdd2316cfe116bb92d5a862f732d0",
+    "matches_source_commit": true
+  },
+  "acceptance": {
+    "checks": {
+      "closed_loop_hud_radar_audit": "Real Chrome WebGL2 screenshots visually inspected via read_file across Mobile Portrait (390x844 full-screen touch steering & slim portrait+place+lap rail) and Desktop (1280x720 360-degree orbital space-fighter edge pointers with meter readouts)",
+      "npm_test": "31 files, 200 tests passed",
+      "tsc": "npx tsc --noEmit — clean",
+      "e2e": "npm run e2e — 52 passed (1.3m, verifying zero stale rival portraits after portal warps, slim rail, portrait play without nag, and mid-screen absolute-X touch steering)",
+      "e2e_live": "npm run e2e:live — 5 passed (13.3s, read-only)",
+      "standalone_verify_release": "git archive v0.61.0 extracted to an empty temporary directory + node server/cli.js --no-open --port 4508 + npm run e2e:verify-release — 11 passed (20.2s)",
+      "ci": "GitHub Actions CI/Test and type check green (34s)"
+    },
+    "live_deployment": {
+      "worker": "yolo-demo-app",
+      "version_id": "74be6d7e-a007-4f04-9cc8-48920ddc43b7",
+      "origin": "https://demo.yolo-dev.ai",
+      "observed_version": "v0.61.0",
+      "observed_build_id": "86dd67d7bcebdd2316cfe116bb92d5a862f732d0",
+      "game_manifest": {
+        "starlight-burst": {
+          "version": "2.3.0",
+          "entry": "/games/starlight-burst-DkE8OQwP.js",
+          "hash": "434fa7329cbd872ccf7ac2cb919678f6d2338265a8ac54922124d7807fd384f6",
+          "sizeBytes": 87227
+        },
+        "prism-stack": {
+          "version": "2.2.0",
+          "entry": "/games/prism-stack-DSAM1YLh.js",
+          "hash": "13370bb93d2e863a4e90eeed26666b23804851936098fb9aab527c992ed19503",
+          "sizeBytes": 37768
+        },
+        "micro-kart": {
+          "version": "2.11.0",
+          "entry": "/games/micro-kart-DsRvdkQt.js",
+          "hash": "ebdec66662c802613efaeebebf4026d6e129b5c82110d2d3b2194b9b64e835da",
+          "sizeBytes": 179189
+        }
+      }
+    }
+  },
+  "what_this_release_delivers": [
+    "Returns mobile Micro Kart (@yolo-arcade/game-micro-kart@2.11.0) to direct portrait play, widens the bottom Steering Band and enables full-screen absolute-X touch steering anywhere outside interactive controls, slims the vertical progress rail down to portrait + place + lap only, fixes portal stuck-portrait DOM leakage, and adds 60/120fps space-fighter edge-of-screen rival portraits with 360-degree directional arrows and meter counts."
+  ],
+  "limits": [
+    "Read-only release verification checks do not submit a live issue to GitHub."
+  ],
+  "watermark": "agent-recorded under the L1 grant in .yolo/governance/AUTHORITY.md; outcome #442"
+}
